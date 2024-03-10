@@ -31,7 +31,7 @@ export const useUserStore = defineStore({
       this.roles = roles;
     },
     /** 存储是否勾选了登录页的免登录 */
-    SET_ISREMEMBERED(bool: boolean) {
+    SET_IS_REMEMBERED(bool: boolean) {
       this.isRemembered = bool;
     },
     /** 设置登录页的免登录存储几天 */
