@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@pureadmin/descriptions':
-    specifier: ^1.2.0
-    version: 1.2.0(element-plus@2.6.1)(typescript@5.3.3)
+    specifier: ^1.2.1
+    version: 1.2.1(echarts@5.5.0)(element-plus@2.6.1)(typescript@5.3.3)
   '@pureadmin/table':
     specifier: ^3.1.2
     version: 3.1.2(element-plus@2.6.1)(typescript@5.3.3)
@@ -1191,15 +1191,17 @@ packages:
     resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
     dev: false
 
-  /@pureadmin/descriptions@1.2.0(element-plus@2.6.1)(typescript@5.3.3):
-    resolution: {integrity: sha512-k2A3SGGKf0eKrSQB3hXzgGlAz7DKSM31WN/QGBn37UCIHfQlIVrvSPEAF2omHlukQT2Artap6veCqBcJ9dGAKQ==}
+  /@pureadmin/descriptions@1.2.1(echarts@5.5.0)(element-plus@2.6.1)(typescript@5.3.3):
+    resolution: {integrity: sha512-7jDJuqz8xnhcmwXdWQnBzOYeX2WK27TRFaVgs9AdiRr+DnKb9W+krHByJwQtxo5lg4qyRh4/IWQGEMfhC2ljeQ==}
     peerDependencies:
       element-plus: ^2.0.0
     dependencies:
       '@element-plus/icons-vue': 2.3.1(vue@3.4.21)
+      '@pureadmin/utils': 2.4.5(echarts@5.5.0)(vue@3.4.21)
       element-plus: 2.6.1(vue@3.4.21)
       vue: 3.4.21(typescript@5.3.3)
     transitivePeerDependencies:
+      - echarts
       - typescript
     dev: false
 
