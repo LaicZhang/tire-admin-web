@@ -96,7 +96,7 @@
     "autoprefixer": "^10.4.18",
     "boxen": "^7.1.1",
     "cloc": "^2.11.0",
-    "cssnano": "^6.0.5",
+    "cssnano": "^6.1.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-define-config": "^2.1.0",
