@@ -10,15 +10,25 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { initRouter, getTopMenu } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import { ref, reactive, toRaw, onMounted, onBeforeUnmount } from "vue";
+import {
+  ref,
+  reactive,
+  toRaw,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  computed
+} from "vue";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
 import Lock from "@iconify-icons/ri/lock-fill";
 import User from "@iconify-icons/ri/user-3-fill";
+import Info from "@iconify-icons/ri/information-line";
 import axios, { AxiosResponse } from "axios";
 import { http } from "@/utils/http";
+import { operates, thirdParty } from "./utils/enums";
 
 defineOptions({
   name: "Login"
@@ -41,7 +51,15 @@ const ruleForm = reactive({
   uid: "",
   isRemember: true
 });
-const OriginCaptchaUrl = ref("http://localhost:3000/api/verify/captcha");
+const currentPage = computed(() => {
+  return useUserStoreHook().currentPage;
+});
+
+const checked = ref(false);
+const loginDay = ref(7);
+const disabled = ref(false);
+const captchaCode = ref("");
+const originCaptchaUrl = ref("http://localhost:3000/api/verify/captcha");
 const captchaUrl = ref("http://localhost:3000/api/verify/captcha");
 
 const onLogin = async (formEl: FormInstance | undefined) => {
@@ -68,8 +86,8 @@ const onLogin = async (formEl: FormInstance | undefined) => {
 
 const refreshCaptcha = async () => {
   try {
-    const response = await http.get(OriginCaptchaUrl.value);
-    captchaUrl.value = "data:image/svg+xml;base64," + btoa(response);
+    const response = await http.get(originCaptchaUrl.value);
+    captchaUrl.value = "data:image/svg+xml;base64," + btoa(response as any);
   } catch (error) {
     console.error("Error fetching captcha:", error);
   }
@@ -88,6 +106,16 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.document.removeEventListener("keypress", onkeypress);
+});
+
+watch(captchaCode, value => {
+  useUserStoreHook().SET_CAPTCHA_CODE(value);
+});
+watch(checked, bool => {
+  useUserStoreHook().SET_IS_REMEMBERED(bool);
+});
+watch(loginDay, value => {
+  useUserStoreHook().SET_LOGINDAY(value);
 });
 </script>
 
@@ -116,6 +144,7 @@ onBeforeUnmount(() => {
           </Motion>
 
           <el-form
+            v-if="currentPage === 0"
             ref="ruleFormRef"
             :model="ruleForm"
             :rules="loginRules"
@@ -152,33 +181,120 @@ onBeforeUnmount(() => {
                 />
               </el-form-item>
             </Motion>
-
-            <Motion :delay="150">
-              <el-form-item prop="code">
+            <Motion :delay="200">
+              <el-form-item prop="verifyCode">
                 <el-input
                   v-model="ruleForm.code"
                   clearable
                   placeholder="验证码"
-                  :prefix-icon="useRenderIcon(Lock)"
-                />
+                  :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
+                >
+                  <template v-slot:append>
+                    <img
+                      :src="captchaUrl"
+                      alt="点击刷新"
+                      @click="refreshCaptcha"
+                    />
+                  </template>
+                </el-input>
               </el-form-item>
-
-              <img :src="captchaUrl" alt="点击刷新" @click="refreshCaptcha" />
             </Motion>
 
             <Motion :delay="250">
-              <el-button
-                class="w-full mt-4"
-                size="default"
-                type="primary"
-                :loading="loading"
-                @click="onLogin(ruleFormRef)"
-              >
-                登录
-              </el-button>
+              <el-form-item>
+                <div class="w-full h-[20px] flex justify-between items-center">
+                  <el-checkbox v-model="checked">
+                    <span class="flex">
+                      <select
+                        v-model="loginDay"
+                        :style="{
+                          width: loginDay < 10 ? '10px' : '16px',
+                          outline: 'none',
+                          background: 'none',
+                          appearance: 'none'
+                        }"
+                      >
+                        <option value="1">1</option>
+                        <option value="7">7</option>
+                        <option value="30">30</option>
+                      </select>
+                      天内免登录
+                      <el-tooltip
+                        effect="dark"
+                        placement="top"
+                        content="勾选并登录后，规定天数内无需再次登录"
+                      >
+                        <IconifyIconOffline :icon="Info" class="ml-1" />
+                      </el-tooltip>
+                    </span>
+                  </el-checkbox>
+                  <el-button
+                    link
+                    type="primary"
+                    @click="useUserStoreHook().SET_CURRENT_PAGE(4)"
+                  >
+                    忘记密码？
+                  </el-button>
+                </div>
+                <el-button
+                  class="w-full mt-4"
+                  size="default"
+                  type="primary"
+                  :loading="loading"
+                  :disabled="disabled"
+                  @click="onLogin(ruleFormRef)"
+                >
+                  登录
+                </el-button>
+              </el-form-item>
             </Motion>
           </el-form>
+          <Motion :delay="300">
+            <el-form-item>
+              <div class="w-full h-[20px] flex justify-between items-center">
+                <el-button
+                  v-for="(item, index) in operates"
+                  :key="index"
+                  class="w-full mt-4"
+                  size="default"
+                  @click="useUserStoreHook().SET_CURRENT_PAGE(index + 1)"
+                >
+                  {{ item.title }}
+                </el-button>
+              </div>
+            </el-form-item>
+          </Motion>
+
+          <Motion v-if="currentPage === 0" :delay="350">
+            <el-form-item>
+              <el-divider>
+                <p class="text-gray-500 text-xs">第三方登录</p>
+              </el-divider>
+              <div class="w-full flex justify-evenly">
+                <span
+                  v-for="(item, index) in thirdParty"
+                  :key="index"
+                  :title="item.title"
+                >
+                  <IconifyIconOnline
+                    :icon="`ri:${item.icon}-fill`"
+                    width="20"
+                    class="cursor-pointer text-gray-500 hover:text-blue-400"
+                  />
+                </span>
+              </div>
+            </el-form-item>
+          </Motion>
         </div>
+
+        <!-- 手机号登录 -->
+        <phone v-if="currentPage === 1" />
+        <!-- 二维码登录 -->
+        <qrCode v-if="currentPage === 2" />
+        <!-- 注册 -->
+        <regist v-if="currentPage === 3" />
+        <!-- 忘记密码 -->
+        <update v-if="currentPage === 4" />
       </div>
     </div>
   </div>
