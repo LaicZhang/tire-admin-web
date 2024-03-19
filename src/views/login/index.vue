@@ -17,6 +17,8 @@ import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
 import Lock from "@iconify-icons/ri/lock-fill";
 import User from "@iconify-icons/ri/user-3-fill";
+import axios, { AxiosResponse } from "axios";
+import { http } from "@/utils/http";
 
 defineOptions({
   name: "Login"
@@ -35,8 +37,12 @@ const { title } = useNav();
 const ruleForm = reactive({
   username: "",
   password: "",
+  code: "",
+  uid: "",
   isRemember: true
 });
+const OriginCaptchaUrl = ref("http://localhost:3000/api/verify/captcha");
+const captchaUrl = ref("http://localhost:3000/api/verify/captcha");
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
@@ -58,6 +64,15 @@ const onLogin = async (formEl: FormInstance | undefined) => {
       return fields;
     }
   });
+};
+
+const refreshCaptcha = async () => {
+  try {
+    const response = await http.get(OriginCaptchaUrl.value);
+    captchaUrl.value = "data:image/svg+xml;base64," + btoa(response);
+  } catch (error) {
+    console.error("Error fetching captcha:", error);
+  }
 };
 
 /** 使用公共函数，避免`removeEventListener`失效 */
@@ -120,7 +135,7 @@ onBeforeUnmount(() => {
                 <el-input
                   v-model="ruleForm.username"
                   clearable
-                  placeholder="账号"
+                  placeholder="手机号/账号"
                   :prefix-icon="useRenderIcon(User)"
                 />
               </el-form-item>
@@ -136,6 +151,19 @@ onBeforeUnmount(() => {
                   :prefix-icon="useRenderIcon(Lock)"
                 />
               </el-form-item>
+            </Motion>
+
+            <Motion :delay="150">
+              <el-form-item prop="code">
+                <el-input
+                  v-model="ruleForm.code"
+                  clearable
+                  placeholder="验证码"
+                  :prefix-icon="useRenderIcon(Lock)"
+                />
+              </el-form-item>
+
+              <img :src="captchaUrl" alt="点击刷新" @click="refreshCaptcha" />
             </Motion>
 
             <Motion :delay="250">
