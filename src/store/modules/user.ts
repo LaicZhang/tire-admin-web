@@ -43,8 +43,8 @@ export const useUserStore = defineStore({
       this.currentPage = value;
     },
     /** 存储前端生成的验证码 */
-    SET_CAPTCHA_CODE(verifyCode: string) {
-      this.verifyCode = verifyCode;
+    SET_CAPTCHA_CODE(captchaCode: string) {
+      this.captchaCode = captchaCode;
     },
     /** 设置登录页的免登录存储几天 */
     SET_LOGINDAY(value: number) {

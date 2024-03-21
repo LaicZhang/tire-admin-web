@@ -1,34 +1,31 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import { ref, reactive } from "vue";
 import Motion from "../utils/motion";
 import { message } from "@/utils/message";
 import { updateRules } from "../utils/rule";
 import type { FormInstance } from "element-plus";
-import { useVerifyCode } from "../utils/verifyCode";
-import { $t, transformI18n } from "@/plugins/i18n";
+import { useCaptchaCode } from "../utils/captchaCode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Lock from "@iconify-icons/ri/lock-fill";
 import Iphone from "@iconify-icons/ep/iphone";
 
-const { t } = useI18n();
 const loading = ref(false);
 const ruleForm = reactive({
   phone: "",
-  verifyCode: "",
+  captchaCode: "",
   password: "",
   repeatPassword: ""
 });
 const ruleFormRef = ref<FormInstance>();
-const { isDisabled, text } = useVerifyCode();
+const { isDisabled, text } = useCaptchaCode();
 const repeatPasswordRule = [
   {
     validator: (rule, value, callback) => {
       if (value === "") {
-        callback(new Error(transformI18n($t("login.passwordSureReg"))));
+        callback(new Error("login.passwordSureReg"));
       } else if (ruleForm.password !== value) {
-        callback(new Error(transformI18n($t("login.passwordDifferentReg"))));
+        callback(new Error("login.passwordDifferentReg"));
       } else {
         callback();
       }
@@ -44,7 +41,7 @@ const onUpdate = async (formEl: FormInstance | undefined) => {
     if (valid) {
       // 模拟请求，需根据实际开发进行修改
       setTimeout(() => {
-        message(transformI18n($t("login.passwordUpdateReg")), {
+        message("login.passwordUpdateReg", {
           type: "success"
         });
         loading.value = false;
@@ -57,8 +54,8 @@ const onUpdate = async (formEl: FormInstance | undefined) => {
 };
 
 function onBack() {
-  useVerifyCode().end();
-  useUserStoreHook().SET_CURRENTPAGE(0);
+  useCaptchaCode().end();
+  useUserStoreHook().SET_CURRENT_PAGE(0);
 }
 </script>
 
@@ -74,31 +71,27 @@ function onBack() {
         <el-input
           v-model="ruleForm.phone"
           clearable
-          :placeholder="t('login.phone')"
+          :placeholder="'login.phone'"
           :prefix-icon="useRenderIcon(Iphone)"
         />
       </el-form-item>
     </Motion>
 
     <Motion :delay="100">
-      <el-form-item prop="verifyCode">
+      <el-form-item prop="captchaCode">
         <div class="w-full flex justify-between">
           <el-input
-            v-model="ruleForm.verifyCode"
+            v-model="ruleForm.captchaCode"
             clearable
-            :placeholder="t('login.smsVerifyCode')"
+            :placeholder="'login.smsCaptchaCode'"
             :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
           />
           <el-button
             :disabled="isDisabled"
             class="ml-2"
-            @click="useVerifyCode().start(ruleFormRef, 'phone')"
+            @click="useCaptchaCode().start(ruleFormRef, 'phone')"
           >
-            {{
-              text.length > 0
-                ? text + t("login.info")
-                : t("login.getVerifyCode")
-            }}
+            {{ text.length > 0 ? text + "login.info" : "login.getCaptchaCode" }}
           </el-button>
         </div>
       </el-form-item>
@@ -110,7 +103,7 @@ function onBack() {
           v-model="ruleForm.password"
           clearable
           show-password
-          :placeholder="t('login.password')"
+          :placeholder="'login.password'"
           :prefix-icon="useRenderIcon(Lock)"
         />
       </el-form-item>
@@ -122,7 +115,7 @@ function onBack() {
           v-model="ruleForm.repeatPassword"
           clearable
           show-password
-          :placeholder="t('login.sure')"
+          :placeholder="'login.sure'"
           :prefix-icon="useRenderIcon(Lock)"
         />
       </el-form-item>
@@ -137,7 +130,7 @@ function onBack() {
           :loading="loading"
           @click="onUpdate(ruleFormRef)"
         >
-          {{ t("login.definite") }}
+          登录
         </el-button>
       </el-form-item>
     </Motion>
@@ -145,7 +138,7 @@ function onBack() {
     <Motion :delay="300">
       <el-form-item>
         <el-button class="w-full" size="default" @click="onBack">
-          {{ t("login.back") }}
+          返回
         </el-button>
       </el-form-item>
     </Motion>

@@ -11,6 +11,9 @@ import removeConsole from "vite-plugin-remove-console";
 import { themePreprocessorPlugin } from "@pureadmin/theme";
 import { genScssMultipleScopeVars } from "../src/layout/theme";
 // import { vitePluginFakeServer } from "vite-plugin-fake-server";
+import AutoImport from "unplugin-auto-import/vite";
+// import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
 export function getPluginsList(
   VITE_CDN: boolean,
@@ -41,6 +44,15 @@ export function getPluginsList(
         multipleScopeVars: genScssMultipleScopeVars(),
         extract: true
       }
+    }),
+    // Components({
+    //   extensions: ['vue'],
+    //   include: [/\.vue$/],
+    //   resolvers: [ElementPlusResolver()],
+    // }),
+    AutoImport({
+      imports: ["vue", "vue-router", "pinia"],
+      resolvers: [ElementPlusResolver()]
     }),
     // svg组件化支持
     svgLoader(),

@@ -5,7 +5,7 @@ import { useUserStoreHook } from "@/store/modules/user";
 </script>
 
 <template>
-  <Motion class="-mt-2 -mb-2"> <ReQrcode :text="t('login.test')" /> </Motion>
+  <Motion class="-mt-2 -mb-2"> <ReQrcode :text="'login.test'" /> </Motion>
   <Motion :delay="100">
     <el-divider>
       <p class="text-gray-500 text-xs">扫码后点击确认即可登录</p>

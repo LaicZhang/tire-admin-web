@@ -10,15 +10,24 @@ export const REGEXP_SIX = /^\d{6}$/;
 export const REGEXP_PWD =
   /^(?![0-9]+$)(?![a-z]+$)(?![A-Z]+$)(?!([^(0-9a-zA-Z)]|[()])+$)(?!^.*[\u4E00-\u9FA5].*$)([^(0-9a-zA-Z)]|[()]|[a-z]|[A-Z]|[0-9]){8,18}$/;
 
+export enum ERROR_TIPS {
+  passwordReg = "密码不能为空",
+  passwordRuleReg = "密码格式应为8-18位数字、字母、符号的任意两种组合",
+  captchaCodeReg = "验证码不能为空",
+  captchaCodeCorrectReg = "验证码不正确",
+  phoneReg = "手机号码不能为空",
+  phoneCorrectReg = "手机号码格式不正确"
+}
+
 /** 登录校验 */
 const loginRules = reactive<FormRules>({
   password: [
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error(transformI18n($t("login.passwordReg"))));
+          callback(new Error(ERROR_TIPS.passwordReg));
         } else if (!REGEXP_PWD.test(value)) {
-          callback(new Error(transformI18n($t("login.passwordRuleReg"))));
+          callback(new Error(ERROR_TIPS.passwordRuleReg));
         } else {
           callback();
         }
@@ -26,13 +35,13 @@ const loginRules = reactive<FormRules>({
       trigger: "blur"
     }
   ],
-  verifyCode: [
+  captchaCode: [
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error(transformI18n($t("login.verifyCodeReg"))));
+          callback(new Error(ERROR_TIPS.captchaCodeReg));
         } else if (useUserStoreHook().captchaCode !== value) {
-          callback(new Error(transformI18n($t("login.verifyCodeCorrectReg"))));
+          callback(new Error(ERROR_TIPS.captchaCodeCorrectReg));
         } else {
           callback();
         }
@@ -48,9 +57,9 @@ const phoneRules = reactive<FormRules>({
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error(transformI18n($t("login.phoneReg"))));
+          callback(new Error(ERROR_TIPS.phoneReg));
         } else if (!isPhone(value)) {
-          callback(new Error(transformI18n($t("login.phoneCorrectReg"))));
+          callback(new Error(ERROR_TIPS.phoneCorrectReg));
         } else {
           callback();
         }
@@ -58,13 +67,13 @@ const phoneRules = reactive<FormRules>({
       trigger: "blur"
     }
   ],
-  verifyCode: [
+  captchaCode: [
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error(transformI18n($t("login.verifyCodeReg"))));
+          callback(new Error(ERROR_TIPS.captchaCodeReg));
         } else if (!REGEXP_SIX.test(value)) {
-          callback(new Error(transformI18n($t("login.verifyCodeSixReg"))));
+          callback(new Error(ERROR_TIPS.captchaCodeCorrectReg));
         } else {
           callback();
         }
@@ -80,9 +89,9 @@ const updateRules = reactive<FormRules>({
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error(transformI18n($t("login.phoneReg"))));
+          callback(new Error("login.phoneReg"));
         } else if (!isPhone(value)) {
-          callback(new Error(transformI18n($t("login.phoneCorrectReg"))));
+          callback(new Error("login.phoneCorrectReg"));
         } else {
           callback();
         }
@@ -90,13 +99,13 @@ const updateRules = reactive<FormRules>({
       trigger: "blur"
     }
   ],
-  verifyCode: [
+  captchaCode: [
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error(transformI18n($t("login.verifyCodeReg"))));
+          callback(new Error("login.captchaCodeReg"));
         } else if (!REGEXP_SIX.test(value)) {
-          callback(new Error(transformI18n($t("login.verifyCodeSixReg"))));
+          callback(new Error("login.captchaCodeSixReg"));
         } else {
           callback();
         }
@@ -108,9 +117,9 @@ const updateRules = reactive<FormRules>({
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error(transformI18n($t("login.passwordReg"))));
+          callback(new Error("login.passwordReg"));
         } else if (!REGEXP_PWD.test(value)) {
-          callback(new Error(transformI18n($t("login.passwordRuleReg"))));
+          callback(new Error("login.passwordRuleReg"));
         } else {
           callback();
         }

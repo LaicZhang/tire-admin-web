@@ -6,7 +6,7 @@ const isDisabled = ref(false);
 const timer = ref(null);
 const text = ref("");
 
-export const useVerifyCode = () => {
+export const useCaptchaCode = () => {
   const start = async (
     formEl: FormInstance | undefined,
     props: FormItemProp,

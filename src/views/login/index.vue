@@ -26,7 +26,10 @@ import darkIcon from "@/assets/svg/dark.svg?component";
 import Lock from "@iconify-icons/ri/lock-fill";
 import User from "@iconify-icons/ri/user-3-fill";
 import Info from "@iconify-icons/ri/information-line";
-import axios, { AxiosResponse } from "axios";
+import phone from "./components/phone.vue";
+import qrCode from "./components/qrCode.vue";
+import regist from "./components/regist.vue";
+import update from "./components/update.vue";
 import { http } from "@/utils/http";
 import { operates, thirdParty } from "./utils/enums";
 
@@ -182,7 +185,7 @@ watch(loginDay, value => {
               </el-form-item>
             </Motion>
             <Motion :delay="200">
-              <el-form-item prop="verifyCode">
+              <el-form-item prop="captchaCode">
                 <el-input
                   v-model="ruleForm.code"
                   clearable
@@ -249,7 +252,7 @@ watch(loginDay, value => {
               </el-form-item>
             </Motion>
           </el-form>
-          <Motion :delay="300">
+          <Motion v-if="currentPage === 0" :delay="350">
             <el-form-item>
               <div class="w-full h-[20px] flex justify-between items-center">
                 <el-button
@@ -263,9 +266,7 @@ watch(loginDay, value => {
                 </el-button>
               </div>
             </el-form-item>
-          </Motion>
 
-          <Motion v-if="currentPage === 0" :delay="350">
             <el-form-item>
               <el-divider>
                 <p class="text-gray-500 text-xs">第三方登录</p>
@@ -285,16 +286,15 @@ watch(loginDay, value => {
               </div>
             </el-form-item>
           </Motion>
+          <!-- 手机号登录 -->
+          <phone v-if="currentPage === 1" />
+          <!-- 二维码登录 -->
+          <qrCode v-if="currentPage === 2" />
+          <!-- 注册 -->
+          <regist v-if="currentPage === 3" />
+          <!-- 忘记密码 -->
+          <update v-if="currentPage === 4" />
         </div>
-
-        <!-- 手机号登录 -->
-        <phone v-if="currentPage === 1" />
-        <!-- 二维码登录 -->
-        <qrCode v-if="currentPage === 2" />
-        <!-- 注册 -->
-        <regist v-if="currentPage === 3" />
-        <!-- 忘记密码 -->
-        <update v-if="currentPage === 4" />
       </div>
     </div>
   </div>

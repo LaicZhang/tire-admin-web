@@ -4,7 +4,7 @@ import Motion from "../utils/motion";
 import { message } from "@/utils/message";
 import { phoneRules } from "../utils/rule";
 import type { FormInstance } from "element-plus";
-import { useVerifyCode } from "../utils/verifyCode";
+import { useCaptchaCode } from "../utils/captchaCode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Iphone from "@iconify-icons/ep/iphone";
@@ -12,10 +12,10 @@ import Iphone from "@iconify-icons/ep/iphone";
 const loading = ref(false);
 const ruleForm = reactive({
   phone: "",
-  verifyCode: ""
+  captchaCode: ""
 });
 const ruleFormRef = ref<FormInstance>();
-const { isDisabled, text } = useVerifyCode();
+const { isDisabled, text } = useCaptchaCode();
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
@@ -34,7 +34,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
 };
 
 function onBack() {
-  useVerifyCode().end();
+  useCaptchaCode().end();
   useUserStoreHook().SET_CURRENT_PAGE(0);
 }
 </script>
@@ -46,27 +46,27 @@ function onBack() {
         <el-input
           v-model="ruleForm.phone"
           clearable
-          placeholder="('login.phone')"
+          placeholder="手机号码"
           :prefix-icon="useRenderIcon(Iphone)"
         />
       </el-form-item>
     </Motion>
 
     <Motion :delay="100">
-      <el-form-item prop="verifyCode">
+      <el-form-item prop="captchaCode">
         <div class="w-full flex justify-between">
           <el-input
-            v-model="ruleForm.verifyCode"
+            v-model="ruleForm.captchaCode"
             clearable
-            placeholder="t('login.smsVerifyCode')"
+            placeholder="验证码"
             :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
           />
           <el-button
             :disabled="isDisabled"
             class="ml-2"
-            @click="useVerifyCode().start(ruleFormRef, 'phone')"
+            @click="useCaptchaCode().start(ruleFormRef, 'phone')"
           >
-            {{ text.length > 0 ? text + "login.info" : "login.getVerifyCode" }}
+            {{ text.length > 0 ? text + "秒后重新发送" : "发送验证码" }}
           </el-button>
         </div>
       </el-form-item>

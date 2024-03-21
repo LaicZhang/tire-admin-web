@@ -4,7 +4,7 @@ import Motion from "../utils/motion";
 import { message } from "@/utils/message";
 import { updateRules } from "../utils/rule";
 import type { FormInstance } from "element-plus";
-import { useVerifyCode } from "../utils/verifyCode";
+import { useCaptchaCode } from "../utils/captchaCode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Lock from "@iconify-icons/ri/lock-fill";
@@ -16,12 +16,12 @@ const loading = ref(false);
 const ruleForm = reactive({
   username: "",
   phone: "",
-  verifyCode: "",
+  captchaCode: "",
   password: "",
   repeatPassword: ""
 });
 const ruleFormRef = ref<FormInstance>();
-const { isDisabled, text } = useVerifyCode();
+const { isDisabled, text } = useCaptchaCode();
 const repeatPasswordRule = [
   {
     validator: (rule, value, callback) => {
@@ -62,7 +62,7 @@ const onUpdate = async (formEl: FormInstance | undefined) => {
 };
 
 function onBack() {
-  useVerifyCode().end();
+  useCaptchaCode().end();
   useUserStoreHook().SET_CURRENT_PAGE(0);
 }
 </script>
@@ -79,7 +79,7 @@ function onBack() {
         :rules="[
           {
             required: true,
-            message: transformI18n($t('login.usernameReg')),
+            message: 'login.usernameReg',
             trigger: 'blur'
           }
         ]"
@@ -106,20 +106,20 @@ function onBack() {
     </Motion>
 
     <Motion :delay="150">
-      <el-form-item prop="verifyCode">
+      <el-form-item prop="captchaCode">
         <div class="w-full flex justify-between">
           <el-input
-            v-model="ruleForm.verifyCode"
+            v-model="ruleForm.captchaCode"
             clearable
-            placeholder="t('login.smsVerifyCode')"
+            placeholder="t('login.smsCaptchaCode')"
             :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
           />
           <el-button
             :disabled="isDisabled"
             class="ml-2"
-            @click="useVerifyCode().start(ruleFormRef, 'phone')"
+            @click="useCaptchaCode().start(ruleFormRef, 'phone')"
           >
-            {{ text.length > 0 ? text + "login.info" : "login.getVerifyCode" }}
+            {{ text.length > 0 ? text + "login.info" : "login.getCaptchaCode" }}
           </el-button>
         </div>
       </el-form-item>
@@ -169,7 +169,7 @@ function onBack() {
           :loading="loading"
           @click="onUpdate(ruleFormRef)"
         >
-          {{ "login.definite" }}
+          登录
         </el-button>
       </el-form-item>
     </Motion>
@@ -177,7 +177,7 @@ function onBack() {
     <Motion :delay="400">
       <el-form-item>
         <el-button class="w-full" size="default" @click="onBack">
-          {{ "login.back" }}
+          返回
         </el-button>
       </el-form-item>
     </Motion>

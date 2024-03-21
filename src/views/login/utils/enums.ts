@@ -1,6 +1,6 @@
 const operates = [
   {
-    title: "验证码登录"
+    title: "手机号登录"
   },
   {
     title: "扫码登录"
