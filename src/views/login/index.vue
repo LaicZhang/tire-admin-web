@@ -20,6 +20,7 @@ import {
   computed
 } from "vue";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
+import { ReImageVerify } from "@/components/ReImageVerify";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
@@ -30,7 +31,6 @@ import phone from "./components/phone.vue";
 import qrCode from "./components/qrCode.vue";
 import regist from "./components/regist.vue";
 import update from "./components/update.vue";
-import { http } from "@/utils/http";
 import { operates, thirdParty } from "./utils/enums";
 
 defineOptions({
@@ -39,6 +39,7 @@ defineOptions({
 const router = useRouter();
 const loading = ref(false);
 const ruleFormRef = ref<FormInstance>();
+const imgCode = ref("");
 
 const { initStorage } = useLayout();
 initStorage();
@@ -47,13 +48,6 @@ const { dataTheme, dataThemeChange } = useDataThemeChange();
 dataThemeChange();
 const { title } = useNav();
 
-const ruleForm = reactive({
-  username: "",
-  password: "",
-  code: "",
-  uid: "",
-  isRemember: true
-});
 const currentPage = computed(() => {
   return useUserStoreHook().currentPage;
 });
@@ -61,10 +55,13 @@ const currentPage = computed(() => {
 const checked = ref(false);
 const loginDay = ref(7);
 const disabled = ref(false);
-const captchaCode = ref("");
-const originCaptchaUrl = ref("http://localhost:3000/api/verify/captcha");
-const captchaUrl = ref("http://localhost:3000/api/verify/captcha");
 
+const ruleForm = reactive({
+  username: "",
+  password: "",
+  code: "",
+  isRemember: checked.value
+});
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
@@ -87,14 +84,14 @@ const onLogin = async (formEl: FormInstance | undefined) => {
   });
 };
 
-const refreshCaptcha = async () => {
-  try {
-    const response = await http.get(originCaptchaUrl.value);
-    captchaUrl.value = "data:image/svg+xml;base64," + btoa(response as any);
-  } catch (error) {
-    console.error("Error fetching captcha:", error);
-  }
-};
+// const refreshCaptcha = async () => {
+//   try {
+//     const response = await http.get(originCaptchaUrl.value);
+//     captchaUrl.value = "data:image/svg+xml;base64," + btoa(response as any);
+//   } catch (error) {
+//     console.error("Error fetching captcha:", error);
+//   }
+// };
 
 /** 使用公共函数，避免`removeEventListener`失效 */
 function onkeypress({ code }: KeyboardEvent) {
@@ -111,7 +108,7 @@ onBeforeUnmount(() => {
   window.document.removeEventListener("keypress", onkeypress);
 });
 
-watch(captchaCode, value => {
+watch(imgCode, value => {
   useUserStoreHook().SET_CAPTCHA_CODE(value);
 });
 watch(checked, bool => {
@@ -184,8 +181,19 @@ watch(loginDay, value => {
                 />
               </el-form-item>
             </Motion>
-            <Motion :delay="200">
+
+            <!-- <Motion :delay="200">
               <el-form-item prop="captchaCode">
+                <el-input v-model="ruleForm.code" clearable placeholder="验证码"
+                  :prefix-icon="useRenderIcon('ri:shield-keyhole-line')">
+                  <template v-slot:append>
+                    <img :src="captchaUrl" alt="点击刷新" @click="refreshCaptcha" />
+                  </template>
+</el-input>
+</el-form-item>
+</Motion> -->
+            <Motion :delay="200">
+              <el-form-item prop="code">
                 <el-input
                   v-model="ruleForm.code"
                   clearable
@@ -193,11 +201,7 @@ watch(loginDay, value => {
                   :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
                 >
                   <template v-slot:append>
-                    <img
-                      :src="captchaUrl"
-                      alt="点击刷新"
-                      @click="refreshCaptcha"
-                    />
+                    <ReImageVerify v-model:code="imgCode" />
                   </template>
                 </el-input>
               </el-form-item>
