@@ -32,6 +32,7 @@ import qrCode from "./components/qrCode.vue";
 import regist from "./components/regist.vue";
 import update from "./components/update.vue";
 import { operates, thirdParty } from "./utils/enums";
+import { getCurrentCompanyAPi } from "../../api/user";
 
 defineOptions({
   name: "Login"
@@ -83,15 +84,6 @@ const onLogin = async (formEl: FormInstance | undefined) => {
     }
   });
 };
-
-// const refreshCaptcha = async () => {
-//   try {
-//     const response = await http.get(originCaptchaUrl.value);
-//     captchaUrl.value = "data:image/svg+xml;base64," + btoa(response as any);
-//   } catch (error) {
-//     console.error("Error fetching captcha:", error);
-//   }
-// };
 
 /** 使用公共函数，避免`removeEventListener`失效 */
 function onkeypress({ code }: KeyboardEvent) {

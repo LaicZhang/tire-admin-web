@@ -15,8 +15,14 @@ export interface DataInfo<T> {
   roles?: Array<string>;
 }
 
+export interface currentCompanyInfo {
+  companyName: string;
+  companyId: string;
+}
+
 export const userKey = "user-info";
 export const TokenKey = "authorized-token";
+export const currentCompanyKey = "current-company";
 /**
  * 通过`multiple-tabs`是否在`cookie`中，判断用户是否已经登录系统，
  * 从而支持多标签页打开已经登录的系统后无需再登录。

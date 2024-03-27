@@ -43,3 +43,8 @@ export type userType = {
   loginDay?: number;
   currentPage?: number;
 };
+
+export type currentCompanyType = {
+  companyName?: string;
+  companyId?: string;
+};

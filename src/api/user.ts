@@ -44,3 +44,11 @@ export const refreshTokenApi = (data?: object) => {
     { data }
   );
 };
+
+export const getCurrentCompanyAPi = () => {
+  return http.request("get", baseUrlApi("/auth/current-company"));
+};
+
+export const determineCurrentCompanyApi = (data?: object) => {
+  return http.request("post", baseUrlApi("/auth/current-company"), { data });
+};
