@@ -16,8 +16,8 @@ export interface DataInfo<T> {
 }
 
 export interface currentCompanyInfo {
-  companyName: string;
-  companyId: string;
+  companyName?: string;
+  companyId?: string;
 }
 
 export const userKey = "user-info";

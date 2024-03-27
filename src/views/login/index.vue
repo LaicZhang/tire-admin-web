@@ -29,10 +29,11 @@ import User from "@iconify-icons/ri/user-3-fill";
 import Info from "@iconify-icons/ri/information-line";
 import phone from "./components/phone.vue";
 import qrCode from "./components/qrCode.vue";
-import regist from "./components/regist.vue";
-import update from "./components/update.vue";
+import register from "./components/register.vue";
+import forget from "./components/update.vue";
 import { operates, thirdParty } from "./utils/enums";
 import { getCurrentCompanyAPi } from "../../api/user";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 
 defineOptions({
   name: "Login"
@@ -72,11 +73,18 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         .loginByUsername({ ...ruleForm })
         .then(res => {
           if (res.code === 200) {
+            useCurrentCompanyStoreHook().handleCurrentCompany();
             initRouter().then(() => {
               router.push(getTopMenu(true).path);
               message("登录成功", { type: "success" });
             });
+          } else {
+            message(res.message, { type: "error" });
           }
+        })
+        .finally(() => {
+          disabled.value = false;
+          loading.value = false;
         });
     } else {
       loading.value = false;
@@ -287,9 +295,9 @@ watch(loginDay, value => {
           <!-- 二维码登录 -->
           <qrCode v-if="currentPage === 2" />
           <!-- 注册 -->
-          <regist v-if="currentPage === 3" />
+          <register v-if="currentPage === 3" />
           <!-- 忘记密码 -->
-          <update v-if="currentPage === 4" />
+          <forget v-if="currentPage === 4" />
         </div>
       </div>
     </div>

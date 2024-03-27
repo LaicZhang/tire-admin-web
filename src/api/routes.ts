@@ -7,6 +7,7 @@ type Result = {
   data: Array<any>;
 };
 
-export const getAsyncRoutes = () => {
-  return http.request<Result>("get", baseUrlApi("/auth/async-routes"));
+export const getAsyncRoutes = async () => {
+  console.log("getAsyncRoutes");
+  return await http.request<Result>("get", baseUrlApi("/auth/async-routes"));
 };
