@@ -7,6 +7,6 @@ type Result = {
   data: Array<any>;
 };
 
-export const getAsyncRoutes = async () => {
-  return await http.request<Result>("get", baseUrlApi("/auth/async-routes"));
+export const getSystemUpdateLogApi = (index: number) => {
+  return http.request<Result>("get", baseUrlApi("/log/update/") + index);
 };

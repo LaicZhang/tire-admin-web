@@ -1,6 +1,12 @@
 import { http } from "@/utils/http";
 import { baseUrlApi } from "./utils";
 
+export type Result = {
+  code: number;
+  message: string;
+  data: any;
+};
+
 export type UserResult = {
   code: number;
   message: string;
@@ -51,4 +57,8 @@ export const getCurrentCompanyAPi = () => {
 
 export const determineCurrentCompanyApi = (data?: object) => {
   return http.request("post", baseUrlApi("/auth/current-company"), { data });
+};
+
+export const getVerifyCodeApi = (data?: object) => {
+  return http.request<Result>("post", baseUrlApi("/verify/code"), { data });
 };

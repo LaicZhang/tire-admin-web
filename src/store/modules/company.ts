@@ -3,7 +3,7 @@ import { store } from "@/store";
 import type { currentCompanyType } from "./types";
 import { storageLocal } from "@pureadmin/utils";
 import { type currentCompanyInfo, currentCompanyKey } from "@/utils/auth";
-import { getCurrentCompanyAPi } from "@/api/user";
+import { getCurrentCompanyAPi } from "@/api/auth";
 
 export const useCurrentCompanyStore = defineStore({
   id: "pure-company",

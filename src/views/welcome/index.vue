@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import lastFeat from "./components/lastFeat.vue";
 defineOptions({
   name: "Welcome"
 });
 </script>
 
 <template>
-  <h1>Pure-Admin-Thin（非国际化版本）</h1>
+  <lastFeat />
 </template>

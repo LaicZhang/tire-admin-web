@@ -8,6 +8,10 @@ import { useCaptchaCode } from "../utils/captchaCode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Iphone from "@iconify-icons/ep/iphone";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
+import { initRouter, getTopMenu } from "@/router/utils";
+import { useRouter } from "vue-router";
+import { getVerifyCodeApi } from "@/api/auth";
 
 const loading = ref(false);
 const ruleForm = reactive({
@@ -16,19 +20,48 @@ const ruleForm = reactive({
 });
 const ruleFormRef = ref<FormInstance>();
 const { isDisabled, text } = useCaptchaCode();
+const router = useRouter();
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
     if (valid) {
-      setTimeout(() => {
-        message("登录成功", { type: "success" });
-        loading.value = false;
-      }, 2000);
+      useUserStoreHook()
+        .loginByUsername({
+          username: ruleForm.phone,
+          isRemember: true,
+          code: ruleForm.captchaCode
+        })
+        .then(res => {
+          if (res.code === 200) {
+            useCurrentCompanyStoreHook().handleCurrentCompany();
+            initRouter().then(() => {
+              router.push(getTopMenu(true).path);
+              message("登录成功", { type: "success" });
+            });
+          } else {
+            message(res.message, { type: "error" });
+          }
+        })
+        .finally(() => {
+          isDisabled.value = false;
+          loading.value = false;
+        });
     } else {
       loading.value = false;
       return fields;
+    }
+  });
+};
+
+const sendSmsCode = () => {
+  useCaptchaCode().start(ruleFormRef.value, "phone");
+  getVerifyCodeApi({ phone: ruleForm.phone, type: 1 }).then(res => {
+    if (res.code === 200) {
+      message("验证码发送成功", { type: "success" });
+    } else {
+      message(res.message, { type: "error" });
     }
   });
 };
@@ -61,11 +94,7 @@ function onBack() {
             placeholder="验证码"
             :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
           />
-          <el-button
-            :disabled="isDisabled"
-            class="ml-2"
-            @click="useCaptchaCode().start(ruleFormRef, 'phone')"
-          >
+          <el-button :disabled="isDisabled" class="ml-2" @click="sendSmsCode()">
             {{ text.length > 0 ? text + "秒后重新发送" : "发送验证码" }}
           </el-button>
         </div>

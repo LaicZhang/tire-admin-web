@@ -4,8 +4,8 @@ import type { userType } from "./types";
 import { routerArrays } from "@/layout/types";
 import { router, resetRouter } from "@/router";
 import { storageLocal } from "@pureadmin/utils";
-import { getLogin, refreshTokenApi } from "@/api/user";
-import type { UserResult, RefreshTokenResult } from "@/api/user";
+import { getLogin, refreshTokenApi } from "@/api/auth";
+import type { UserResult, RefreshTokenResult } from "@/api/auth";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
 
@@ -21,7 +21,7 @@ export const useUserStore = defineStore({
     // 判断登录页面显示哪个组件（0：登录（默认）、1：手机登录、2：二维码登录、3：注册、4：忘记密码）
     currentPage: 0,
     // 是否勾选了登录页的免登录
-    isRemembered: false,
+    isRemember: true,
     // 登录页的免登录存储几天，默认7天
     loginDay: 7
   }),
@@ -36,7 +36,7 @@ export const useUserStore = defineStore({
     },
     /** 存储是否勾选了登录页的免登录 */
     SET_IS_REMEMBERED(bool: boolean) {
-      this.isRemembered = bool;
+      this.isRemember = bool;
     },
     /** 存储登录页面显示哪个组件 */
     SET_CURRENT_PAGE(value: number) {

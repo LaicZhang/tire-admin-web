@@ -72,37 +72,6 @@ export const noticesData: TabItem[] = [
   },
   {
     key: "2",
-    name: "消息",
-    list: [
-      {
-        avatar:
-          "https://gw.alipayobjects.com/zos/rmsportal/fcHMVNCjPOsbUGdEduuv.jpeg",
-        title: "李白 评论了你",
-        description: "长风破浪会有时,直挂云帆济沧海",
-        datetime: "一年前",
-        type: "2"
-      },
-      {
-        avatar:
-          "https://gw.alipayobjects.com/zos/rmsportal/fcHMVNCjPOsbUGdEduuv.jpeg",
-        title: "李白 回复了你",
-        description: "行路难，行路难，多歧路，今安在。",
-        datetime: "一年前",
-        type: "2"
-      },
-      {
-        avatar:
-          "https://gw.alipayobjects.com/zos/rmsportal/fcHMVNCjPOsbUGdEduuv.jpeg",
-        title: "标题",
-        description:
-          "请将鼠标移动到此处，以便测试超长的消息在此处将如何处理。本例中设置的描述最大行数为2，超过2行的描述内容将被省略并且可以通过tooltip查看完整内容",
-        datetime: "一年前",
-        type: "2"
-      }
-    ]
-  },
-  {
-    key: "3",
     name: "待办",
     list: [
       {

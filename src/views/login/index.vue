@@ -32,7 +32,6 @@ import qrCode from "./components/qrCode.vue";
 import register from "./components/register.vue";
 import forget from "./components/update.vue";
 import { operates, thirdParty } from "./utils/enums";
-import { getCurrentCompanyAPi } from "../../api/user";
 import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 
 defineOptions({
@@ -54,7 +53,7 @@ const currentPage = computed(() => {
   return useUserStoreHook().currentPage;
 });
 
-const checked = ref(false);
+const checked = ref(true);
 const loginDay = ref(7);
 const disabled = ref(false);
 
