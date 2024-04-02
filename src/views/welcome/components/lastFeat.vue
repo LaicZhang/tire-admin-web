@@ -4,6 +4,8 @@ import { useRenderFlicker } from "@/components/ReFlicker";
 import { randomGradient } from "@pureadmin/utils";
 import ReCol from "@/components/ReCol";
 import { getSystemUpdateLogApi } from "@/api/panel";
+import { formatDate } from "@/utils/time";
+import { message } from "@/utils/message";
 
 defineOptions({
   name: "lastFeat"
@@ -14,6 +16,8 @@ const getSystemUpdateLog = () => {
   getSystemUpdateLogApi(index.value).then(res => {
     if (res.code === 200) {
       latestNewsData.value = res.data;
+    } else {
+      message(res.message, { type: "error" });
     }
   });
 };
@@ -61,7 +65,7 @@ onMounted(() => {
                 })
               )
             "
-            :timestamp="item.createAt.substring(0, 10)"
+            :timestamp="formatDate(item.createAt)"
           >
             <p class="text-text_color_regular text-sm">
               {{ item.title }}

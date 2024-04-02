@@ -1,7 +1,7 @@
 import { http } from "@/utils/http";
 import { baseUrlApi } from "./utils";
 
-export type Result = {
+export type CommonResult = {
   code: number;
   message: string;
   data: any;
@@ -52,13 +52,29 @@ export const refreshTokenApi = (data?: object) => {
 };
 
 export const getCurrentCompanyAPi = () => {
-  return http.request("get", baseUrlApi("/auth/current-company"));
+  return http.request<CommonResult>("get", baseUrlApi("/auth/current-company"));
 };
 
 export const determineCurrentCompanyApi = (data?: object) => {
-  return http.request("post", baseUrlApi("/auth/current-company"), { data });
+  return http.request<CommonResult>(
+    "post",
+    baseUrlApi("/auth/current-company"),
+    { data }
+  );
 };
 
 export const getVerifyCodeApi = (data?: object) => {
-  return http.request<Result>("post", baseUrlApi("/verify/code"), { data });
+  return http.request<CommonResult>("post", baseUrlApi("/verify/code"), {
+    data
+  });
+};
+
+export const getUserInfoApi = () => {
+  return http.request<CommonResult>("get", baseUrlApi("/auth/info"));
+};
+
+export const updateUserInfoApi = (data?: object) => {
+  return http.request<CommonResult>("patch", baseUrlApi("/auth/info"), {
+    data
+  });
 };

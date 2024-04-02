@@ -32,13 +32,17 @@ export const useCurrentCompanyStore = defineStore({
                 name: string;
               }[]
             ) => {
-              if (data.length === 1) {
+              if (data.length === 0) {
+                resolve([]);
+                return;
+              } else if (data.length === 1) {
                 this.SET_NAME(data[0].name);
                 this.SET_ID(data[0].uid);
                 resolve(data);
+                return data[0];
               } else {
                 resolve(data);
-                return;
+                return data;
               }
             }
           )

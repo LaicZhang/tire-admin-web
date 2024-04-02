@@ -12,7 +12,7 @@
     "eslint --cache --fix",
     "stylelint --fix --allow-empty-input"
   ],
-  "*.{css,scss,html}": [
+  "*.{css,scss,sass,html}": [
     "prettier --cache --ignore-unknown --write",
     "stylelint --fix --allow-empty-input"
   ],

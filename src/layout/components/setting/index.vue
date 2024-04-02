@@ -287,7 +287,7 @@ function removeMatchMedia() {
 function watchSystemThemeChange() {
   updateTheme();
   removeMatchMedia();
-  mediaQueryList.addEventListener("change", updateTheme);
+  mediaQueryList.addEventListener("change", updateTheme, { passive: true });
 }
 
 onBeforeMount(() => {

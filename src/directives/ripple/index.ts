@@ -190,8 +190,8 @@ function updateRipple(
   }
 
   if (enabled && !wasEnabled) {
-    el.addEventListener("pointerdown", rippleShow);
-    el.addEventListener("pointerup", rippleHide);
+    el.addEventListener("pointerdown", rippleShow, { passive: true });
+    el.addEventListener("pointerup", rippleHide, { passive: true });
   } else if (!enabled && wasEnabled) {
     removeListeners(el);
   }

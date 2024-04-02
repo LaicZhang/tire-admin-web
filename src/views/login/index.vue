@@ -100,7 +100,7 @@ function onkeypress({ code }: KeyboardEvent) {
 }
 
 onMounted(() => {
-  window.document.addEventListener("keypress", onkeypress);
+  window.document.addEventListener("keypress", onkeypress, { passive: true });
 });
 
 onBeforeUnmount(() => {

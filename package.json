@@ -20,6 +20,7 @@
     "lint:stylelint": "stylelint --cache --fix \"**/*.{html,vue,css,scss}\" --cache-location node_modules/.cache/stylelint/",
     "lint": "pnpm lint:eslint && pnpm lint:prettier && pnpm lint:stylelint",
     "prepare": "husky",
+    "lint:fix": "eslint . --fix",
     "preinstall": "npx only-allow pnpm"
   },
   "keywords": [
@@ -33,22 +34,18 @@
     "vite",
     "esm"
   ],
-  "homepage": "https://github.com/pure-admin/pure-admin-thin",
+  "homepage": "https://github.com/laiczhang",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pure-admin/pure-admin-thin.git"
-  },
-  "bugs": {
-    "url": "https://github.com/pure-admin/pure-admin-thin/issues"
+    "url": "git+https://github.com/laiczhang"
   },
   "license": "MIT",
   "author": {
-    "name": "xiaoxian521",
-    "email": "pureadmin@163.com",
-    "url": "https://github.com/xiaoxian521"
+    "name": "laiczhang",
+    "email": "laiczhang@outlook.com",
+    "url": "https://github.com/laiczhang"
   },
   "dependencies": {
-    "@pureadmin/descriptions": "^1.2.1",
     "@pureadmin/table": "^3.1.2",
     "@pureadmin/utils": "^2.4.7",
     "@vueuse/core": "^10.9.0",
@@ -75,6 +72,7 @@
     "vue-types": "^5.1.1"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^2.11.6",
     "@commitlint/cli": "^19.2.1",
     "@commitlint/config-conventional": "^19.1.0",
     "@commitlint/types": "^19.0.3",
