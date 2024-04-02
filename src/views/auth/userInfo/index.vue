@@ -132,11 +132,13 @@ import {
 } from "@element-plus/icons-vue";
 import { getUserInfoApi } from "@/api/auth";
 // import User from "@iconify-icons/ri/user-3-fill";
+import { message } from "@/utils/message";
+import type { ComponentSize } from "element-plus";
 
 defineOptions({
   name: "userInfo"
 });
-const size = ref("default");
+const size = ref<ComponentSize>("default");
 const iconStyle = computed(() => {
   const marginMap = {
     large: "8px",
@@ -175,13 +177,14 @@ const exUserInfo = ref({
   username: ""
 });
 const getUserInfo = async () => {
-  const { data, code, message } = await getUserInfoApi();
+  const res = await getUserInfoApi();
+  const { data, code } = res;
   const { info, phone, email, username } = data;
   if (code === 200) {
     userInfo.value = info;
     exUserInfo.value = { phone, email, username };
   } else {
-    message(message, { type: "error" });
+    message(res.message, { type: "error" });
   }
 };
 onMounted(() => {
