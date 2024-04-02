@@ -13,6 +13,6 @@ declare module "vue" {
     ReDialog: (typeof import("./src/components/ReDialog/index.vue"))["default"];
     RouterLink: (typeof import("vue-router"))["RouterLink"];
     RouterView: (typeof import("vue-router"))["RouterView"];
-    Src: (typeof import("./src/components/ReText/src/index.vue"))["default"];
+    Src: (typeof import("./src/components/ReImageVerify/src/index.vue"))["default"];
   }
 }
