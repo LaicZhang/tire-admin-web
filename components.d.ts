@@ -7,12 +7,42 @@ export {}
 
 declare module "vue" {
   export interface GlobalComponents {
+    ElAvatar: (typeof import("element-plus/es"))["ElAvatar"];
+    ElBacktop: (typeof import("element-plus/es"))["ElBacktop"];
+    ElBadge: (typeof import("element-plus/es"))["ElBadge"];
+    ElBreadcrumb: (typeof import("element-plus/es"))["ElBreadcrumb"];
+    ElBreadcrumbItem: (typeof import("element-plus/es"))["ElBreadcrumbItem"];
     ElButton: (typeof import("element-plus/es"))["ElButton"];
+    ElCard: (typeof import("element-plus/es"))["ElCard"];
     ElConfigProvider: (typeof import("element-plus/es"))["ElConfigProvider"];
+    ElDescriptions: (typeof import("element-plus/es"))["ElDescriptions"];
+    ElDescriptionsItem: (typeof import("element-plus/es"))["ElDescriptionsItem"];
     ElDialog: (typeof import("element-plus/es"))["ElDialog"];
+    ElDropdown: (typeof import("element-plus/es"))["ElDropdown"];
+    ElDropdownItem: (typeof import("element-plus/es"))["ElDropdownItem"];
+    ElDropdownMenu: (typeof import("element-plus/es"))["ElDropdownMenu"];
+    ElEmpty: (typeof import("element-plus/es"))["ElEmpty"];
+    ElIcon: (typeof import("element-plus/es"))["ElIcon"];
+    ElInput: (typeof import("element-plus/es"))["ElInput"];
+    ElInputNumber: (typeof import("element-plus/es"))["ElInputNumber"];
+    ElMenu: (typeof import("element-plus/es"))["ElMenu"];
+    ElMenuItem: (typeof import("element-plus/es"))["ElMenuItem"];
+    ElRadio: (typeof import("element-plus/es"))["ElRadio"];
+    ElRadioGroup: (typeof import("element-plus/es"))["ElRadioGroup"];
+    ElScrollbar: (typeof import("element-plus/es"))["ElScrollbar"];
+    ElSubMenu: (typeof import("element-plus/es"))["ElSubMenu"];
+    ElSwitch: (typeof import("element-plus/es"))["ElSwitch"];
+    ElTabPane: (typeof import("element-plus/es"))["ElTabPane"];
+    ElTabs: (typeof import("element-plus/es"))["ElTabs"];
+    ElTag: (typeof import("element-plus/es"))["ElTag"];
+    ElText: (typeof import("element-plus/es"))["ElText"];
+    ElTooltip: (typeof import("element-plus/es"))["ElTooltip"];
     ReDialog: (typeof import("./src/components/ReDialog/index.vue"))["default"];
     RouterLink: (typeof import("vue-router"))["RouterLink"];
     RouterView: (typeof import("vue-router"))["RouterView"];
     Src: (typeof import("./src/components/ReImageVerify/src/index.vue"))["default"];
+  }
+  export interface ComponentCustomProperties {
+    vLoading: (typeof import("element-plus/es"))["ElLoadingDirective"];
   }
 }

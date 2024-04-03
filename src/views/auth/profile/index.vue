@@ -136,7 +136,7 @@ import { message } from "@/utils/message";
 import type { ComponentSize } from "element-plus";
 
 defineOptions({
-  name: "userInfo"
+  name: "profile"
 });
 const size = ref<ComponentSize>("default");
 const iconStyle = computed(() => {

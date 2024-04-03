@@ -87,6 +87,17 @@ const handleLink = item => {
     }
   }
 };
+// const handleLink = item => {
+//   const { redirect, name, path, query, params } = item;
+//   if (redirect) {
+//     router.push(redirect as any);
+//   } else {
+//     const routeOptions = name
+//       ? { name, params: params || {}, query: query || {} }
+//       : { path };
+//     router.push(routeOptions);
+//   }
+// };
 
 onMounted(() => {
   getBreadcrumb();
