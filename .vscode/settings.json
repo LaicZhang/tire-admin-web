@@ -304,4 +304,6 @@
     "weibo"
   ],
   "typescript.tsdk": "node_modules/typescript/lib",
+  "gitlens.ai.experimental.provider": "openai",
+  "gitlens.ai.experimental.openai.model": "gpt-3.5-turbo",
 }
