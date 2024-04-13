@@ -123,14 +123,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import {
-  Iphone,
-  Location,
-  OfficeBuilding,
-  Tickets,
-  User
-} from "@element-plus/icons-vue";
-import { getUserInfoApi } from "@/api/auth";
+// import {
+//   Iphone,
+//   Location,
+//   OfficeBuilding,
+//   Tickets,
+//   User
+// } from "@element-plus/icons-vue";
+import { getUserInfoApi } from "@/api";
 // import User from "@iconify-icons/ri/user-3-fill";
 import { message } from "@/utils/message";
 import type { ComponentSize } from "element-plus";
@@ -139,26 +139,26 @@ defineOptions({
   name: "profile"
 });
 const size = ref<ComponentSize>("default");
-const iconStyle = computed(() => {
-  const marginMap = {
-    large: "8px",
-    default: "6px",
-    small: "4px"
-  };
-  return {
-    marginRight: marginMap[size.value] || marginMap.default
-  };
-});
-const blockMargin = computed(() => {
-  const marginMap = {
-    large: "32px",
-    default: "28px",
-    small: "24px"
-  };
-  return {
-    marginTop: marginMap[size.value] || marginMap.default
-  };
-});
+// const iconStyle = computed(() => {
+//   const marginMap = {
+//     large: "8px",
+//     default: "6px",
+//     small: "4px"
+//   };
+//   return {
+//     marginRight: marginMap[size.value] || marginMap.default
+//   };
+// });
+// const blockMargin = computed(() => {
+//   const marginMap = {
+//     large: "32px",
+//     default: "28px",
+//     small: "24px"
+//   };
+//   return {
+//     marginTop: marginMap[size.value] || marginMap.default
+//   };
+// });
 
 const userInfo = ref({
   id: 0,

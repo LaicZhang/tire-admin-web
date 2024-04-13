@@ -11,7 +11,7 @@ import Iphone from "@iconify-icons/ep/iphone";
 import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 import { initRouter, getTopMenu } from "@/router/utils";
 import { useRouter } from "vue-router";
-import { getVerifyCodeApi } from "@/api/auth";
+import { getVerifyCodeApi } from "@/api";
 
 const loading = ref(false);
 const ruleForm = reactive({

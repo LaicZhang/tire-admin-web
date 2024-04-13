@@ -81,6 +81,9 @@ const onLogin = async (formEl: FormInstance | undefined) => {
             message(res.message, { type: "error" });
           }
         })
+        .catch(err => {
+          message(err.message, { type: "error" });
+        })
         .finally(() => {
           disabled.value = false;
           loading.value = false;
