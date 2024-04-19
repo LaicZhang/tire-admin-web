@@ -6,7 +6,7 @@ export default [
     name: "home",
     path: "/home",
     redirect: null,
-    component: null,
+
     isShow: true,
     meta: {
       roles: ["admin", "boss", "common", "officer"],
@@ -22,7 +22,7 @@ export default [
     name: "auth",
     path: "/auth",
     redirect: null,
-    component: null,
+
     isShow: true,
     meta: {
       roles: ["admin", "boss", "common", "officer"],
@@ -70,7 +70,7 @@ export default [
     name: "system",
     path: "/system",
     redirect: null,
-    component: null,
+
     isShow: true,
     meta: {
       roles: ["admin"],
@@ -86,8 +86,8 @@ export default [
         name: "user",
         path: "/system/user",
         redirect: null,
-        component: null,
         isShow: true,
+        component: () => import("@/views/system/user/index.vue"),
         meta: {
           roles: ["admin"],
           title: "用户管理",
@@ -101,7 +101,7 @@ export default [
         name: "permission",
         path: "/system/permission",
         redirect: null,
-        component: null,
+        component: () => import("@/views/system/permission/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -116,8 +116,8 @@ export default [
         name: "role",
         path: "/system/role",
         redirect: null,
-        component: null,
         isShow: true,
+        component: () => import("@/views/system/role/index.vue"),
         meta: {
           roles: ["admin"],
           title: "角色管理",
@@ -131,7 +131,7 @@ export default [
         name: "companies",
         path: "/system/companies",
         redirect: null,
-        component: null,
+        component: () => import("@/views/system/companies/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -146,7 +146,7 @@ export default [
         name: "log",
         path: "/system/log",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -161,7 +161,7 @@ export default [
         name: "menu",
         path: "/system/menu",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -176,7 +176,7 @@ export default [
         name: "dict",
         path: "/system/dict",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -191,7 +191,7 @@ export default [
         name: "static",
         path: "/system/static",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -206,7 +206,7 @@ export default [
         name: "notice",
         path: "/system/notice",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -221,7 +221,7 @@ export default [
         name: "task",
         path: "/system/task",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -236,7 +236,7 @@ export default [
         name: "feedback",
         path: "/system/feedback",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -253,7 +253,7 @@ export default [
     name: "company",
     path: "/company",
     redirect: null,
-    component: null,
+
     isShow: true,
     meta: {
       roles: ["admin", "boss"],
@@ -269,7 +269,7 @@ export default [
         name: "companyInfo",
         path: "/company/info",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss"],
@@ -284,7 +284,7 @@ export default [
         name: "department",
         path: "/company/department",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "manager"],
@@ -299,7 +299,7 @@ export default [
         name: "employee",
         path: "/company/employee",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "manager"],
@@ -314,7 +314,7 @@ export default [
         name: "salary",
         path: "/company/salary",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "manager"],
@@ -329,7 +329,7 @@ export default [
         name: "position",
         path: "/company/position",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss"],
@@ -344,7 +344,7 @@ export default [
         name: "repo",
         path: "/company/repo",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "warehouseManager"],
@@ -359,7 +359,7 @@ export default [
         name: "chat",
         path: "/company/chat",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss"],
@@ -376,7 +376,7 @@ export default [
     name: "business",
     path: "/business",
     redirect: null,
-    component: null,
+
     isShow: true,
     meta: {
       roles: ["admin", "boss", "common", "officer"],
@@ -392,7 +392,7 @@ export default [
         name: "tire",
         path: "/business/tire",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "warehouseManager"],
@@ -407,7 +407,7 @@ export default [
         name: "warehouseManager",
         path: "/business/warehouseManager",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "warehouseManager", "purchaser", "seller"],
@@ -422,7 +422,7 @@ export default [
         name: "provider",
         path: "/business/provider",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "purchaser"],
@@ -437,7 +437,7 @@ export default [
         name: "customer",
         path: "/business/customer",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "seller"],
@@ -452,7 +452,7 @@ export default [
         name: "order",
         path: "/business/order",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "purchaser", "seller"],
@@ -469,7 +469,7 @@ export default [
     name: "analysis",
     path: "/analysis",
     redirect: null,
-    component: null,
+
     isShow: true,
     meta: {
       roles: ["admin", "boss"],
@@ -485,7 +485,7 @@ export default [
         name: "assets",
         path: "/analysis/assets",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
@@ -500,7 +500,7 @@ export default [
         name: "sales",
         path: "/analysis/sales",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
@@ -515,7 +515,7 @@ export default [
         name: "dataSettings",
         path: "/analysis/dataSettings",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
@@ -530,7 +530,7 @@ export default [
         name: "archiving",
         path: "/analysis/archiving",
         redirect: null,
-        component: null,
+
         isShow: true,
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],

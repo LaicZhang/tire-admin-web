@@ -5,38 +5,44 @@ import type {
 } from "@pureadmin/table";
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
-import { formatDate } from "@/utils/time";
 
 export function useColumns() {
   const dataList = ref([]);
   const loading = ref(true);
   const columns: TableColumnList = [
     {
-      label: "id",
-      prop: "id"
+      label: "uid",
+      prop: "uid"
     },
     {
-      label: "日期",
-      prop: "createAt",
-      formatter: row => {
-        return formatDate(row.createAt);
-      }
+      label: "用户名",
+      prop: "username"
     },
     {
-      label: "方式",
-      prop: "method"
+      label: "电话",
+      prop: "phone"
     },
     {
-      label: "ip",
-      prop: "ip"
+      label: "邮箱",
+      prop: "email"
+    },
+    {
+      label: "状态",
+      prop: "status"
+    },
+    {
+      label: "操作",
+      width: "120",
+      fixed: "right",
+      slot: "operation"
     }
   ];
 
   /** 分页配置 */
   const pagination = reactive<PaginationProps>({
-    pageSize: 20,
+    pageSize: 10,
     currentPage: 1,
-    pageSizes: [20, 40, 60],
+    pageSizes: [10],
     total: 0,
     align: "right",
     background: true,
@@ -84,20 +90,6 @@ export function useColumns() {
       loading.value = false;
     });
   }
-
-  // onMounted(() => {
-  //   delay(600).then(() => {
-  //     const newList = [];
-  //     Array.from({ length: 6 }).forEach(() => {
-  //       newList.push(clone(tableData, true));
-  //     });
-  //     newList.flat(Infinity).forEach((item, index) => {
-  //       dataList.value.push({ id: index, ...item });
-  //     });
-  //     pagination.total = dataList.value.length;
-  //     loading.value = false;
-  //   });
-  // });
 
   return {
     loading,
