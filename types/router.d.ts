@@ -60,6 +60,10 @@ declare global {
    * @description 完整子路由配置表
    */
   interface RouteChildrenConfigsTable {
+    id?: number;
+    uid?: string;
+    parentId?: string;
+    isShow?: boolean;
     /** 子路由地址 `必填` */
     path: string;
     /** 路由名字（对应不要重复，和当前组件的`name`保持一致）`必填` */
@@ -77,6 +81,10 @@ declare global {
    * @description 整体路由配置表（包括完整子路由）
    */
   interface RouteConfigsTable {
+    id?: number;
+    uid?: string;
+    parentId?: string;
+    isShow?: boolean;
     /** 路由地址 `必填` */
     path: string;
     /** 路由名字（保持唯一）`可选` */
@@ -86,6 +94,7 @@ declare global {
     /** 路由重定向 `可选` */
     redirect?: string;
     meta?: {
+      roles?: Array<string>;
       /** 菜单名称（兼容国际化、非国际化，如何用国际化的写法就必须在根目录的`locales`文件夹下对应添加）`必填` */
       title: string;
       /** 菜单图标 `可选` */

@@ -7,7 +7,7 @@ import { useNav } from "@/layout/hooks/useNav";
 import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
-import { initRouter, getTopMenu } from "@/router/utils";
+import { initRouter, getTopMenu, addPathMatch } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import {
@@ -33,6 +33,7 @@ import register from "./components/register.vue";
 import forget from "./components/update.vue";
 import { operates, thirdParty } from "./utils/enums";
 import { useCurrentCompanyStoreHook } from "@/store/modules/company";
+import { usePermissionStoreHook } from "@/store/modules/permission";
 
 defineOptions({
   name: "Login"
@@ -73,10 +74,15 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         .then(res => {
           if (res.code === 200) {
             useCurrentCompanyStoreHook().handleCurrentCompany();
-            initRouter().then(() => {
-              router.push(getTopMenu(true).path);
-              message("登录成功", { type: "success" });
-            });
+            // initRouter().then(() => {
+            //   router.push(getTopMenu(true).path);
+            //   message("登录成功", { type: "success" });
+            // });
+            // // 全部采取静态路由模式
+            usePermissionStoreHook().handleWholeMenus([]);
+            addPathMatch();
+            message("登录成功", { type: "success" });
+            router.push("/");
           } else {
             message(res.message, { type: "error" });
           }
@@ -315,3 +321,5 @@ watch(loginDay, value => {
   padding: 0;
 }
 </style>
+, addPathMatchimport { usePermissionStoreHook } from
+"@/store/modules/permission";
