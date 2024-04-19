@@ -359,7 +359,7 @@ export default [
         name: "chat",
         path: "/company/chat",
         redirect: null,
-
+        component: () => import("@/views/company/chat/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss"],
