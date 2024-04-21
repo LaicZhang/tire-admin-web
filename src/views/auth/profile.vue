@@ -1,11 +1,5 @@
 <template>
-  <el-card>
-    <el-radio-group v-model="size">
-      <el-radio value="large">大</el-radio>
-      <el-radio value="default">默认</el-radio>
-      <el-radio value="small">小</el-radio>
-    </el-radio-group>
-
+  <el-card class="m-2">
     <el-descriptions
       class="margin-top"
       title="个人基础信息"

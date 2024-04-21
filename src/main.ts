@@ -9,6 +9,7 @@ import { useElementPlus } from "@/plugins/elementPlus";
 import { injectResponsiveStorage } from "@/utils/responsive";
 
 import Table from "@pureadmin/table";
+import PureDescriptions from "@pureadmin/descriptions";
 
 // 引入重置样式
 import "./style/reset.scss";
@@ -59,5 +60,6 @@ getPlatformConfig(app).then(async config => {
     .use(useElementPlus)
     .use(Table)
     .use(useEcharts)
+    .use(PureDescriptions)
     .mount("#app");
 });

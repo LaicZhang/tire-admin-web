@@ -269,7 +269,7 @@ export default [
         name: "companyInfo",
         path: "/company/info",
         redirect: null,
-
+        component: () => import("@/views/company/info/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss"],

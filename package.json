@@ -46,6 +46,7 @@
     "url": "https://github.com/laiczhang"
   },
   "dependencies": {
+    "@pureadmin/descriptions": "^1.2.1",
     "@pureadmin/table": "^3.1.2",
     "@pureadmin/utils": "^2.4.7",
     "@vueuse/core": "^10.9.0",
