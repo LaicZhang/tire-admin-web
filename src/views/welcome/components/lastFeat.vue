@@ -4,8 +4,7 @@ import { useRenderFlicker } from "@/components/ReFlicker";
 import { randomGradient } from "@pureadmin/utils";
 import ReCol from "@/components/ReCol";
 import { getSystemUpdateLogApi } from "@/api";
-import { formatDate } from "@/utils/time";
-import { message } from "@/utils/message";
+import { formatDate, message } from "@/utils";
 
 defineOptions({
   name: "lastFeat"

@@ -27,6 +27,14 @@ export function useColumns() {
       prop: "method"
     },
     {
+      label: "OS",
+      prop: "record.os"
+    },
+    {
+      label: "浏览器",
+      prop: "record.browser"
+    },
+    {
       label: "ip",
       prop: "ip"
     }

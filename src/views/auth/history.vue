@@ -21,6 +21,7 @@ const {
 const index = ref(1);
 const type = ref(1);
 async function getHistory() {
+  dataList.value = [];
   let params;
 
   if (type.value === 1) {

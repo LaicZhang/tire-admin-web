@@ -10,28 +10,22 @@
       <template #extra>
         <el-button type="primary">更新</el-button>
       </template>
-      <el-descriptions-item>
+      <!-- <el-descriptions-item>
         <template #label>
           <div class="cell-item">
-            <!-- <el-icon>
-              <user />
-            </el-icon> -->
             头像
           </div>
         </template>
-        {{ userInfo.avatarId }}
-      </el-descriptions-item>
-      <el-descriptions-item>
+        {{ userInfo.info.avatarId}}
+      </el-descriptions-item> -->
+      <!-- <el-descriptions-item>
         <template #label>
           <div class="cell-item">
-            <!-- <el-icon :style="iconStyle">
-              <iphone />
-            </el-icon> -->
             ID
           </div>
         </template>
-        {{ userInfo.userId }}
-      </el-descriptions-item>
+        {{ userInfo.info.userId }}
+      </el-descriptions-item> -->
       <el-descriptions-item>
         <template #label>
           <div class="cell-item">
@@ -41,7 +35,7 @@
             用户名
           </div>
         </template>
-        {{ exUserInfo.username }}
+        {{ userInfo.username }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
@@ -52,7 +46,7 @@
             昵称
           </div>
         </template>
-        {{ userInfo.nickname }}
+        {{ userInfo.info?.nickname }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
@@ -63,7 +57,7 @@
             手机号
           </div>
         </template>
-        {{ exUserInfo.phone }}
+        {{ userInfo.phone }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
@@ -74,7 +68,7 @@
             邮箱
           </div>
         </template>
-        {{ exUserInfo.email }}
+        {{ userInfo.email }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
@@ -85,7 +79,9 @@
             性别
           </div>
         </template>
-        <el-tag size="small">{{ userInfo.gender === 1 ? "男" : "女" }}</el-tag>
+        <el-tag size="small">{{
+          userInfo.info.gender === 1 ? "男" : "女"
+        }}</el-tag>
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
@@ -97,7 +93,7 @@
           </div>
         </template>
         <el-tag size="small">{{
-          userInfo.isRealName === true ? "已实名" : "未实名"
+          userInfo.info.isRealName === true ? "已实名" : "未实名"
         }}</el-tag>
       </el-descriptions-item>
       <el-descriptions-item>
@@ -109,7 +105,7 @@
             生日
           </div>
         </template>
-        {{ userInfo.birthday.substring(0, 10) }}
+        {{ userInfo.info?.birthday.substring(0, 10) }}
       </el-descriptions-item>
     </el-descriptions>
   </el-card>
@@ -155,34 +151,32 @@ const size = ref<ComponentSize>("default");
 // });
 
 const userInfo = ref({
-  id: 0,
-  userId: "",
-  avatarId: "",
-  nickname: "",
-  isRealName: false,
-  birthday: "",
-  gender: 1,
-  isCN: true,
-  updateAt: ""
-});
-const exUserInfo = ref({
   phone: "",
   email: "",
-  username: ""
+  username: "",
+  info: {
+    id: 0,
+    userId: "",
+    avatarId: "",
+    nickname: "",
+    isRealName: false,
+    birthday: "",
+    gender: 1,
+    isCN: true,
+    updateAt: ""
+  }
 });
 const getUserInfo = async () => {
   const res = await getUserInfoApi();
   const { data, code } = res;
-  const { info, phone, email, username } = data;
   if (code === 200) {
-    userInfo.value = info;
-    exUserInfo.value = { phone, email, username };
+    userInfo.value = data;
   } else {
     message(res.message, { type: "error" });
   }
 };
-onMounted(() => {
-  getUserInfo();
+onMounted(async () => {
+  await getUserInfo();
 });
 </script>
 
