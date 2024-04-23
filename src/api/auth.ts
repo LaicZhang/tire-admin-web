@@ -47,7 +47,7 @@ export const updateUserInfoApi = (data?: object) => {
 export const getLogApi = (index: number, params?: object) => {
   return http.request<CommonResult>(
     "get",
-    baseUrlApi("/log/page") + `/${index}`,
+    baseUrlApi("/auth/login-history/page") + `/${index}`,
     { params }
   );
 };
