@@ -10,9 +10,10 @@ export const useCurrentCompanyStore = defineStore({
   state: (): currentCompanyType => ({
     companyName:
       storageLocal().getItem<currentCompanyInfo>(currentCompanyKey)
-        ?.companyName,
+        ?.companyName || "",
     companyId:
-      storageLocal().getItem<currentCompanyInfo>(currentCompanyKey)?.companyId
+      storageLocal().getItem<currentCompanyInfo>(currentCompanyKey)
+        ?.companyId || ""
   }),
   actions: {
     SET_NAME(companyName: string) {
@@ -21,7 +22,7 @@ export const useCurrentCompanyStore = defineStore({
     SET_ID(id: string) {
       this.companyId = id;
     },
-    CURRENT_COMPANY(companyName: string, companyId: string) {
+    SET_CURRENT_COMPANY(companyName: string, companyId: string) {
       this.SET_NAME(companyName);
       this.SET_ID(companyId);
       storageLocal().setItem(currentCompanyKey, {
@@ -38,8 +39,7 @@ export const useCurrentCompanyStore = defineStore({
               resolve([]);
               return;
             } else if (data.length === 1) {
-              this.SET_NAME(data[0].name);
-              this.SET_ID(data[0].uid);
+              this.SET_CURRENT_COMPANY(data[0].name, data[0].uid);
               resolve(data);
               return data[0];
             } else {

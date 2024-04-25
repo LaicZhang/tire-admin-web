@@ -8,5 +8,8 @@ type Result = {
 };
 
 export const getSystemUpdateLogApi = (index: number) => {
-  return http.request<Result>("get", baseUrlApi("/log/update/") + index);
+  return http.request<Result>(
+    "get",
+    baseUrlApi("/auth/update-history/page/") + index
+  );
 };
