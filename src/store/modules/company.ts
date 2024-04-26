@@ -2,8 +2,9 @@ import { defineStore } from "pinia";
 import { store } from "@/store";
 import type { currentCompanyType } from "./types";
 import { storageLocal } from "@pureadmin/utils";
-import { type currentCompanyInfo, currentCompanyKey } from "@/utils/auth";
-import { getCurrentCompanyAPi } from "@/api/auth";
+import type { currentCompanyInfo } from "@/utils";
+import { getCurrentCompanyAPi } from "@/api";
+import { currentCompanyKey } from "@/utils";
 
 export const useCurrentCompanyStore = defineStore({
   id: "pure-company",
@@ -37,7 +38,7 @@ export const useCurrentCompanyStore = defineStore({
             const data = res.data;
             if (data.length === 0) {
               resolve([]);
-              return;
+              return [];
             } else if (data.length === 1) {
               this.SET_CURRENT_COMPANY(data[0].name, data[0].uid);
               resolve(data);

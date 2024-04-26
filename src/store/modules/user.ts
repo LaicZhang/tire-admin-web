@@ -7,7 +7,7 @@ import { storageLocal } from "@pureadmin/utils";
 import { getLogin, refreshTokenApi } from "@/api";
 import type { UserResult, RefreshTokenResult } from "@/api";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
-import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
+import { type DataInfo, setToken, removeToken, userKey } from "@/utils";
 
 export const useUserStore = defineStore({
   id: "pure-user",
