@@ -71,7 +71,7 @@
     "vue": "^3.4.26",
     "vue-router": "^4.3.2",
     "vue-tippy": "^6.4.1",
-    "vue-types": "^5.1.1"
+    "vue-types": "^5.1.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.16.1",
