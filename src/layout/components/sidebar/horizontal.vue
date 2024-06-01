@@ -39,7 +39,7 @@ nextTick(() => {
     class="horizontal-header"
   >
     <div class="horizontal-header-left" @click="backTopMenu">
-      <img :src="getLogo()" alt="logo" />
+      loading="lazy" :src="getLogo()" alt="logo" />
       <span>{{ title }}</span>
     </div>
     <el-menu
@@ -67,7 +67,7 @@ nextTick(() => {
       <!-- 退出登录 -->
       <el-dropdown trigger="click">
         <span class="el-dropdown-link navbar-bg-hover">
-          <img :src="userAvatar" :style="avatarsStyle" />
+          <img loading="lazy" :src="userAvatar" :style="avatarsStyle" />
           <p v-if="username" class="dark:text-white">{{ username }}</p>
         </span>
         <template #dropdown>

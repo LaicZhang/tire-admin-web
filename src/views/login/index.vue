@@ -129,7 +129,7 @@ watch(loginDay, value => {
 
 <template>
   <div class="select-none">
-    <img :src="bg" class="wave" />
+    <img loading="lazy" :src="bg" class="wave" />
     <div class="flex-c absolute right-5 top-3">
       <!-- 主题 -->
       <el-switch
@@ -279,7 +279,7 @@ watch(loginDay, value => {
               </div>
             </el-form-item>
 
-            <el-form-item>
+            <el-form-item v-if="0">
               <el-divider>
                 <p class="text-gray-500 text-xs">第三方登录</p>
               </el-divider>

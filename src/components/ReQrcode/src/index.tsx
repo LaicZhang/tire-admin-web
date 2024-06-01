@@ -236,7 +236,7 @@ export default defineComponent({
           {props.tag === "canvas" ? (
             <canvas ref={wrapRef} onClick={clickCode}></canvas>
           ) : (
-            <img ref={wrapRef} onClick={clickCode}></img>
+            <img loading="lazy" ref={wrapRef} onClick={clickCode}></img>
           )}
           {props.disabled && (
             <div
