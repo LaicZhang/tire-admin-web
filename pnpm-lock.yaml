@@ -168,7 +168,7 @@ devDependencies:
     version: 2.1.0
   eslint-plugin-prettier:
     specifier: ^5.1.3
-    version: 5.1.3(eslint-config-prettier@9.1.0)(eslint@9.4.0)(prettier@3.3.1)
+    version: 5.1.3(eslint-config-prettier@9.1.0)(eslint@9.4.0)(prettier@3.3.2)
   eslint-plugin-vue:
     specifier: ^9.26.0
     version: 9.26.0(eslint@9.4.0)
@@ -194,8 +194,8 @@ devDependencies:
     specifier: ^4.0.9
     version: 4.0.9(postcss@8.4.38)
   prettier:
-    specifier: ^3.3.1
-    version: 3.3.1
+    specifier: ^3.3.2
+    version: 3.3.2
   rimraf:
     specifier: ^5.0.7
     version: 5.0.7
@@ -219,7 +219,7 @@ devDependencies:
     version: 13.1.0(postcss@8.4.38)(stylelint@16.6.1)
   stylelint-prettier:
     specifier: ^5.0.0
-    version: 5.0.0(prettier@3.3.1)(stylelint@16.6.1)
+    version: 5.0.0(prettier@3.3.2)(stylelint@16.6.1)
   svgo:
     specifier: ^3.3.2
     version: 3.3.2
@@ -3913,7 +3913,7 @@ packages:
       - typescript
     dev: true
 
-  /eslint-plugin-prettier@5.1.3(eslint-config-prettier@9.1.0)(eslint@9.4.0)(prettier@3.3.1):
+  /eslint-plugin-prettier@5.1.3(eslint-config-prettier@9.1.0)(eslint@9.4.0)(prettier@3.3.2):
     resolution: {integrity: sha512-C9GCVAs4Eq7ZC/XFQHITLiHJxQngdtraXaM+LoUFoFp/lHNl2Zn8f3WQbe9HvTBBQ9YnKFB0/2Ajdqwo5D1EAw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
@@ -3929,7 +3929,7 @@ packages:
     dependencies:
       eslint: 9.4.0
       eslint-config-prettier: 9.1.0(eslint@9.4.0)
-      prettier: 3.3.1
+      prettier: 3.3.2
       prettier-linter-helpers: 1.0.0
       synckit: 0.8.8
     dev: true
@@ -6426,8 +6426,8 @@ packages:
     hasBin: true
     dev: true
 
-  /prettier@3.3.1:
-    resolution: {integrity: sha512-7CAwy5dRsxs8PHXT3twixW9/OEll8MLE0VRPCJyl7CkS6VHGPSlsVaWTiASPTyGyYRyApxlaWTzwUxVNrhcwDg==}
+  /prettier@3.3.2:
+    resolution: {integrity: sha512-rAVeHYMcv8ATV5d508CFdn+8/pHPpXeIid1DdrPwXnaAdH7cqjVbpJaT5eq4yRAFU/lsbwYwSF/n5iNrdJHPQA==}
     engines: {node: '>=14'}
     hasBin: true
     dev: true
@@ -7049,14 +7049,14 @@ packages:
       stylelint: 16.6.1(typescript@5.4.5)
     dev: true
 
-  /stylelint-prettier@5.0.0(prettier@3.3.1)(stylelint@16.6.1):
+  /stylelint-prettier@5.0.0(prettier@3.3.2)(stylelint@16.6.1):
     resolution: {integrity: sha512-RHfSlRJIsaVg5Br94gZVdWlz/rBTyQzZflNE6dXvSxt/GthWMY3gEHsWZEBaVGg7GM+XrtVSp4RznFlB7i0oyw==}
     engines: {node: '>=18.12.0'}
     peerDependencies:
       prettier: '>=3.0.0'
       stylelint: '>=16.0.0'
     dependencies:
-      prettier: 3.3.1
+      prettier: 3.3.2
       prettier-linter-helpers: 1.0.0
       stylelint: 16.6.1(typescript@5.4.5)
     dev: true
