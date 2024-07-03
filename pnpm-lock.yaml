@@ -262,8 +262,8 @@ importers:
         specifier: ^9.4.3
         version: 9.4.3(eslint@9.6.0)
       vue-tsc:
-        specifier: ^2.0.22
-        version: 2.0.22(typescript@5.5.3)
+        specifier: ^2.0.24
+        version: 2.0.24(typescript@5.5.3)
 
 packages:
 
@@ -1369,14 +1369,14 @@ packages:
       vite: ^5.0.0
       vue: ^3.2.25
 
-  '@volar/language-core@2.3.3':
-    resolution: {integrity: sha512-Blu4NQaRszEsgK/QvWFRSQPRAhPDbYef+peFV9Gb86swxRCs01q7h673/HYstaPsTbjh/F5mXjozoOFxQ8tLYw==}
+  '@volar/language-core@2.4.0-alpha.13':
+    resolution: {integrity: sha512-tHeJVIRTJ3dlsdNyRjBlqdKHocWkgORM5eXgf6xcGERoXYe6vBpQpxJgpK1pehA8psXNPqkMN1ryBseA0B+m8A==}
 
-  '@volar/source-map@2.3.3':
-    resolution: {integrity: sha512-eFRHA13hxiGPt+Xa0EX3yNd50ozctnW5KzQj/IllKmSK/KuBEkSAsIhBdOxCpv1YhV4GmI3iKG9peOs6k9LtnA==}
+  '@volar/source-map@2.4.0-alpha.13':
+    resolution: {integrity: sha512-NABqcuA9QpHsU3FnA5BENP3PI1FOb6hDxqkV1KAHP7gt4fgfQOqSCWpqj3QAS7RV0PtiKTxiDMIJ7doMBhNm7w==}
 
-  '@volar/typescript@2.3.3':
-    resolution: {integrity: sha512-cwGMSwqIR54Hngu5dYmUJPHFpo6KGj7BlpwT2G9WTKwEjFlH4g/0IPeq064428DAi/VMP42vqAQSBiEHi5Gc4A==}
+  '@volar/typescript@2.4.0-alpha.13':
+    resolution: {integrity: sha512-zW/MOPA9SwkCuuVPqADDYfAEPAh68aJQG3/EAqDYozSuK2YNYHEAC0BWYZESSNZC6jxwwx7w0U82fBkDZ9hHEw==}
 
   '@vue/babel-helper-vue-transform-on@1.2.2':
     resolution: {integrity: sha512-nOttamHUR3YzdEqdM/XXDyCSdxMA9VizUKoroLX6yTyRtggzQMHXcmwh8a7ZErcJttIBIc9s68a1B8GZ+Dmvsw==}
@@ -1421,8 +1421,8 @@ packages:
   '@vue/devtools-api@6.6.1':
     resolution: {integrity: sha512-LgPscpE3Vs0x96PzSSB4IGVSZXZBZHpfxs+ZA1d+VEPwHdOXowy/Y2CsvCAIFrf+ssVU1pD1jidj505EpUnfbA==}
 
-  '@vue/language-core@2.0.22':
-    resolution: {integrity: sha512-dNTAAtEOuMiz7N1s5tKpypnVVCtawxVSF5BukD0ELcYSw+DSbrSlYYSw8GuwvurodCeYFSHsmslE+c2sYDNoiA==}
+  '@vue/language-core@2.0.24':
+    resolution: {integrity: sha512-997YD6Lq/66LXr3ZOLNxDCmyn13z9NP8LU1UZn9hGCDWhzlbXAIP0hOgL3w3x4RKEaWTaaRtsHP9DzHvmduruQ==}
     peerDependencies:
       typescript: '*'
     peerDependenciesMeta:
@@ -4438,11 +4438,11 @@ packages:
     peerDependencies:
       vue: ^3.2.0
 
-  vue-tsc@2.0.22:
-    resolution: {integrity: sha512-lMBIwPBO0sxCcmvu45yt1b035AaQ8/XSXQDk8m75y4j0jSXY/y/XzfEtssQ9JMS47lDaR10O3/926oCs8OeGUw==}
+  vue-tsc@2.0.24:
+    resolution: {integrity: sha512-1qi4P8L7yS78A7OJ7CDDxUIZPD6nVxoQEgX3DkRZNi1HI1qOfzOJwQlNpmwkogSVD6S/XcanbW9sktzpSxz6rA==}
     hasBin: true
     peerDependencies:
-      typescript: '*'
+      typescript: '>=5.0.0'
 
   vue-types@5.1.2:
     resolution: {integrity: sha512-NdwLhEl2hn2PRsHb+eYgwBfimFZB2Y0s11YqFRX0VEMrDZZvzPXYxcUJ+aH7AIHyxGc47qdgakVzcjw6bZElBw==}
@@ -5709,15 +5709,15 @@ snapshots:
       vite: 5.3.2(@types/node@20.14.9)(sass@1.77.6)
       vue: 3.4.31(typescript@5.5.3)
 
-  '@volar/language-core@2.3.3':
+  '@volar/language-core@2.4.0-alpha.13':
     dependencies:
-      '@volar/source-map': 2.3.3
+      '@volar/source-map': 2.4.0-alpha.13
 
-  '@volar/source-map@2.3.3': {}
+  '@volar/source-map@2.4.0-alpha.13': {}
 
-  '@volar/typescript@2.3.3':
+  '@volar/typescript@2.4.0-alpha.13':
     dependencies:
-      '@volar/language-core': 2.3.3
+      '@volar/language-core': 2.4.0-alpha.13
       path-browserify: 1.0.1
       vscode-uri: 3.0.8
 
@@ -5812,11 +5812,11 @@ snapshots:
 
   '@vue/devtools-api@6.6.1': {}
 
-  '@vue/language-core@2.0.22(typescript@5.5.3)':
+  '@vue/language-core@2.0.24(typescript@5.5.3)':
     dependencies:
-      '@volar/language-core': 2.3.3
-      '@vue/compiler-dom': 3.4.29
-      '@vue/shared': 3.4.29
+      '@volar/language-core': 2.4.0-alpha.13
+      '@vue/compiler-dom': 3.4.31
+      '@vue/shared': 3.4.31
       computeds: 0.0.1
       minimatch: 9.0.5
       muggle-string: 0.4.1
@@ -9042,10 +9042,10 @@ snapshots:
       tippy.js: 6.3.7
       vue: 3.4.31(typescript@5.5.3)
 
-  vue-tsc@2.0.22(typescript@5.5.3):
+  vue-tsc@2.0.24(typescript@5.5.3):
     dependencies:
-      '@volar/typescript': 2.3.3
-      '@vue/language-core': 2.0.22(typescript@5.5.3)
+      '@volar/typescript': 2.4.0-alpha.13
+      '@vue/language-core': 2.0.24(typescript@5.5.3)
       semver: 7.6.2
       typescript: 5.5.3
 
