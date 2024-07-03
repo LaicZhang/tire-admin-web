@@ -10,13 +10,13 @@ importers:
     dependencies:
       '@pureadmin/descriptions':
         specifier: ^1.2.1
-        version: 1.2.1(echarts@5.5.0)(element-plus@2.7.6(vue@3.4.31(typescript@5.5.3)))(typescript@5.5.3)
+        version: 1.2.1(echarts@5.5.1)(element-plus@2.7.6(vue@3.4.31(typescript@5.5.3)))(typescript@5.5.3)
       '@pureadmin/table':
         specifier: ^3.1.2
         version: 3.1.2(element-plus@2.7.6(vue@3.4.31(typescript@5.5.3)))(typescript@5.5.3)
       '@pureadmin/utils':
         specifier: ^2.4.7
-        version: 2.4.7(echarts@5.5.0)(vue@3.4.31(typescript@5.5.3))
+        version: 2.4.7(echarts@5.5.1)(vue@3.4.31(typescript@5.5.3))
       '@vueuse/core':
         specifier: ^10.11.0
         version: 10.11.0(vue@3.4.31(typescript@5.5.3))
@@ -33,8 +33,8 @@ importers:
         specifier: ^1.11.11
         version: 1.11.11
       echarts:
-        specifier: ^5.5.0
-        version: 5.5.0
+        specifier: ^5.5.1
+        version: 5.5.1
       element-plus:
         specifier: ^2.7.6
         version: 2.7.6(vue@3.4.31(typescript@5.5.3))
@@ -2039,8 +2039,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  echarts@5.5.0:
-    resolution: {integrity: sha512-rNYnNCzqDAPCr4m/fqyUFv7fD9qIsd50S6GDFgO1DxZhncCsNsG7IfUlAlvZe5oSEQxtsjnHiUuppzccry93Xw==}
+  echarts@5.5.1:
+    resolution: {integrity: sha512-Fce8upazaAXUVUVsjgV6mBnGuqgO+JNDlcgF79Dksy4+wgGpQB2lmYoO4TSweFg/mZITdpGHomw/cNBJZj1icA==}
 
   electron-to-chromium@1.4.770:
     resolution: {integrity: sha512-ONwOsDiVvV07CMsyH4+dEaZ9L79HMH/ODHnDS3GkIhgNqdDHJN2C18kFb0fBj0RXpQywsPJl6k2Pqg1IY4r1ig==}
@@ -4562,8 +4562,8 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
 
-  zrender@5.5.0:
-    resolution: {integrity: sha512-O3MilSi/9mwoovx77m6ROZM7sXShR/O/JIanvzTwjN3FORfLSr81PsUGd7jlaYOeds9d8tw82oP44+3YucVo+w==}
+  zrender@5.6.0:
+    resolution: {integrity: sha512-uzgraf4njmmHAbEUxMJ8Oxg+P3fT04O+9p7gY+wJRVxo8Ge+KmYv0WJev945EH4wFuc4OY2NLXz46FZrWS9xJg==}
 
 snapshots:
 
@@ -5388,10 +5388,10 @@ snapshots:
 
   '@popperjs/core@2.11.8': {}
 
-  '@pureadmin/descriptions@1.2.1(echarts@5.5.0)(element-plus@2.7.6(vue@3.4.31(typescript@5.5.3)))(typescript@5.5.3)':
+  '@pureadmin/descriptions@1.2.1(echarts@5.5.1)(element-plus@2.7.6(vue@3.4.31(typescript@5.5.3)))(typescript@5.5.3)':
     dependencies:
       '@element-plus/icons-vue': 2.3.1(vue@3.4.31(typescript@5.5.3))
-      '@pureadmin/utils': 2.4.7(echarts@5.5.0)(vue@3.4.31(typescript@5.5.3))
+      '@pureadmin/utils': 2.4.7(echarts@5.5.1)(vue@3.4.31(typescript@5.5.3))
       element-plus: 2.7.6(vue@3.4.31(typescript@5.5.3))
       vue: 3.4.31(typescript@5.5.3)
     transitivePeerDependencies:
@@ -5411,9 +5411,9 @@ snapshots:
       fs-extra: 11.2.0
       string-hash: 1.1.3
 
-  '@pureadmin/utils@2.4.7(echarts@5.5.0)(vue@3.4.31(typescript@5.5.3))':
+  '@pureadmin/utils@2.4.7(echarts@5.5.1)(vue@3.4.31(typescript@5.5.3))':
     optionalDependencies:
-      echarts: 5.5.0
+      echarts: 5.5.1
       vue: 3.4.31(typescript@5.5.3)
 
   '@rollup/pluginutils@5.1.0(rollup@4.17.2)':
@@ -6530,10 +6530,10 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  echarts@5.5.0:
+  echarts@5.5.1:
     dependencies:
       tslib: 2.3.0
-      zrender: 5.5.0
+      zrender: 5.6.0
 
   electron-to-chromium@1.4.770: {}
 
@@ -9170,6 +9170,6 @@ snapshots:
 
   yocto-queue@1.0.0: {}
 
-  zrender@5.5.0:
+  zrender@5.6.0:
     dependencies:
       tslib: 2.3.0
