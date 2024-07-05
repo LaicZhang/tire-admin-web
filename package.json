@@ -86,7 +86,7 @@
     "@pureadmin/theme": "^3.2.0",
     "@types/gradient-string": "^1.1.6",
     "@types/js-cookie": "^3.0.6",
-    "@types/node": "^20.14.9",
+    "@types/node": "^20.14.10",
     "@types/nprogress": "^0.2.3",
     "@types/qs": "^6.9.15",
     "@types/sortablejs": "^1.15.8",
