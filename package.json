@@ -65,7 +65,7 @@
     "pinyin-pro": "^3.23.0",
     "plus-pro-components": "^0.1.13",
     "qrcode": "^1.5.3",
-    "qs": "^6.12.2",
+    "qs": "^6.12.3",
     "responsive-storage": "^2.2.0",
     "sortablejs": "^1.15.2",
     "vue": "^3.4.31",
