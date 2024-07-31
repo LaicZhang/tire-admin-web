@@ -57,8 +57,8 @@ importers:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.5.4)(vue@3.4.34(typescript@5.5.4))
       pinyin-pro:
-        specifier: ^3.23.1
-        version: 3.23.1
+        specifier: ^3.24.1
+        version: 3.24.1
       plus-pro-components:
         specifier: ^0.1.13
         version: 0.1.13(element-plus@2.7.7(vue@3.4.34(typescript@5.5.4)))(vue@3.4.34(typescript@5.5.4))
@@ -3392,8 +3392,8 @@ packages:
       typescript:
         optional: true
 
-  pinyin-pro@3.23.1:
-    resolution: {integrity: sha512-fA345e5Zj+oAemjPKN9BpbTToUrq3J6ZVKEXpiCNNftFQahr4cKsBNnpGWR154WSOP3PgqlsaNgKklD8FlZvSw==}
+  pinyin-pro@3.24.1:
+    resolution: {integrity: sha512-PwKJ2fvyEpKFoWxhf9qo5LragsJ6CccTa3ItECFl7wwsmgZKJuu5CtaNj23lUD2HdbfP/oW+G5L0qVm9VuFMyA==}
 
   pirates@4.0.6:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
@@ -8096,7 +8096,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.5.4
 
-  pinyin-pro@3.23.1: {}
+  pinyin-pro@3.24.1: {}
 
   pirates@4.0.6: {}
 
