@@ -95,7 +95,7 @@
     "@vitejs/plugin-vue": "^5.0.5",
     "@vitejs/plugin-vue-jsx": "^4.0.0",
     "autoprefixer": "^10.4.19",
-    "boxen": "^7.1.1",
+    "boxen": "^8.0.1",
     "cloc": "2.0.0-cloc",
     "cssnano": "^7.0.4",
     "eslint": "^9.7.0",
