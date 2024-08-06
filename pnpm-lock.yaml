@@ -154,8 +154,8 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       cloc:
-        specifier: 2.0.0-cloc
-        version: 2.0.0-cloc
+        specifier: 2.11.0
+        version: 2.11.0
       cssnano:
         specifier: ^7.0.4
         version: 7.0.4(postcss@8.4.39)
@@ -1768,8 +1768,8 @@ packages:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
     engines: {node: '>=12'}
 
-  cloc@2.0.0-cloc:
-    resolution: {integrity: sha512-hy6aS/5QbKlxyasequhfAOHOBzV1QpBeA01P8hnjnlV++OaRXazX3YLv5Mpqw0+Vh4FV4kiFhKYSV2x6CAKlpQ==}
+  cloc@2.11.0:
+    resolution: {integrity: sha512-+mxuCHo7ESOQadlsyMjmPZ4hGBtvQzmNGHfLdBNvXKbnRhtmOTslU4XF2cyFSaOCHaaF26ba2CGjU6lpeIFB0w==}
     hasBin: true
 
   color-convert@1.9.3:
@@ -6322,7 +6322,7 @@ snapshots:
       strip-ansi: 6.0.1
       wrap-ansi: 7.0.0
 
-  cloc@2.0.0-cloc: {}
+  cloc@2.11.0: {}
 
   color-convert@1.9.3:
     dependencies:
