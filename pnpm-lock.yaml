@@ -54,8 +54,8 @@ importers:
         specifier: ^0.12.7
         version: 0.12.7
       pinia:
-        specifier: ^2.1.7
-        version: 2.1.7(typescript@5.5.4)(vue@3.4.34(typescript@5.5.4))
+        specifier: ^2.2.1
+        version: 2.2.1(typescript@5.5.4)(vue@3.4.34(typescript@5.5.4))
       pinyin-pro:
         specifier: ^3.24.1
         version: 3.24.1
@@ -1461,6 +1461,9 @@ packages:
 
   '@vue/devtools-api@6.6.1':
     resolution: {integrity: sha512-LgPscpE3Vs0x96PzSSB4IGVSZXZBZHpfxs+ZA1d+VEPwHdOXowy/Y2CsvCAIFrf+ssVU1pD1jidj505EpUnfbA==}
+
+  '@vue/devtools-api@6.6.3':
+    resolution: {integrity: sha512-0MiMsFma/HqA6g3KLKn+AGpL1kgKhFWszC9U29NfpWK5LE7bjeXxySWJrOJ77hBz+TBrBQ7o4QJqbPbqbs8rJw==}
 
   '@vue/language-core@2.0.26':
     resolution: {integrity: sha512-/lt6SfQ3O1yDAhPsnLv9iSUgXd1dMHqUm/t3RctfqjuwQf1LnftZ414X3UBn6aXT4MiwXWtbNJ4Z0NZWwDWgJQ==}
@@ -3335,8 +3338,8 @@ packages:
     resolution: {integrity: sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog==}
     engines: {node: '>=0.10.0'}
 
-  pinia@2.1.7:
-    resolution: {integrity: sha512-+C2AHFtcFqjPih0zpYuvof37SFxMQ7OEG2zV9jRI12i9BOy3YQVAHwdKtyyc8pDcDyIc33WCIsZaCFWU7WWxGQ==}
+  pinia@2.2.1:
+    resolution: {integrity: sha512-ltEU3xwiz5ojVMizdP93AHi84Rtfz0+yKd8ud75hr9LVyWX2alxp7vLbY1kFm7MXFmHHr/9B08Xf8Jj6IHTEiQ==}
     peerDependencies:
       '@vue/composition-api': ^1.4.0
       typescript: '>=4.4.4'
@@ -4478,8 +4481,8 @@ packages:
   vscode-uri@3.0.8:
     resolution: {integrity: sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw==}
 
-  vue-demi@0.14.7:
-    resolution: {integrity: sha512-EOG8KXDQNwkJILkx/gPcoL/7vH+hORoBaKgGe+6W7VFMvCYJfmF2dGbvgDroVnI8LU7/kTu8mbjRZGBU1z9NTA==}
+  vue-demi@0.14.10:
+    resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
     engines: {node: '>=12'}
     hasBin: true
     peerDependencies:
@@ -5950,6 +5953,8 @@ snapshots:
       '@vue/shared': 3.4.34
 
   '@vue/devtools-api@6.6.1': {}
+
+  '@vue/devtools-api@6.6.3': {}
 
   '@vue/language-core@2.0.26(typescript@5.5.4)':
     dependencies:
@@ -7978,11 +7983,11 @@ snapshots:
 
   pify@2.3.0: {}
 
-  pinia@2.1.7(typescript@5.5.4)(vue@3.4.34(typescript@5.5.4)):
+  pinia@2.2.1(typescript@5.5.4)(vue@3.4.34(typescript@5.5.4)):
     dependencies:
-      '@vue/devtools-api': 6.6.1
+      '@vue/devtools-api': 6.6.3
       vue: 3.4.34(typescript@5.5.4)
-      vue-demi: 0.14.7(vue@3.4.34(typescript@5.5.4))
+      vue-demi: 0.14.10(vue@3.4.34(typescript@5.5.4))
     optionalDependencies:
       typescript: 5.5.4
 
@@ -9192,7 +9197,7 @@ snapshots:
 
   vscode-uri@3.0.8: {}
 
-  vue-demi@0.14.7(vue@3.4.34(typescript@5.5.4)):
+  vue-demi@0.14.10(vue@3.4.34(typescript@5.5.4)):
     dependencies:
       vue: 3.4.34(typescript@5.5.4)
 
