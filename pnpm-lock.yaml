@@ -15,8 +15,8 @@ importers:
         specifier: ^3.1.2
         version: 3.1.2(element-plus@2.7.7(vue@3.4.37(typescript@5.5.4)))(typescript@5.5.4)
       '@pureadmin/utils':
-        specifier: ^2.4.7
-        version: 2.4.7(echarts@5.5.1)(vue@3.4.37(typescript@5.5.4))
+        specifier: ^2.4.8
+        version: 2.4.8(echarts@5.5.1)(vue@3.4.37(typescript@5.5.4))
       '@vueuse/core':
         specifier: ^10.11.0
         version: 10.11.0(vue@3.4.37(typescript@5.5.4))
@@ -1081,8 +1081,8 @@ packages:
   '@pureadmin/theme@3.2.0':
     resolution: {integrity: sha512-SBlTvEl0rmfqTW/mOJUPftvZe4yF+38CJdlBOvVITpehzCytqlG5i8XKpcs8aAR9SVfhcrLVS5Q6xh7xDVQcJQ==}
 
-  '@pureadmin/utils@2.4.7':
-    resolution: {integrity: sha512-fUHwZm9wEtcxUk//bs8xoDe0XYAeoU/FbvAF9CM4Y5xBmaaXvzN+sSFCUyUKC08q4tmCyaHBeLNolO3I4t3X6Q==}
+  '@pureadmin/utils@2.4.8':
+    resolution: {integrity: sha512-7baOiunmno3mlvk7oKIrEvIEVAbJgIrvvMw9EJMOvTmebfn31F5ps9JyIeDzsnVRABZLSEg0iIVVfYe+DGAeqg==}
     peerDependencies:
       echarts: '*'
       vue: '*'
@@ -5525,7 +5525,7 @@ snapshots:
   '@pureadmin/descriptions@1.2.1(echarts@5.5.1)(element-plus@2.7.7(vue@3.4.37(typescript@5.5.4)))(typescript@5.5.4)':
     dependencies:
       '@element-plus/icons-vue': 2.3.1(vue@3.4.37(typescript@5.5.4))
-      '@pureadmin/utils': 2.4.7(echarts@5.5.1)(vue@3.4.37(typescript@5.5.4))
+      '@pureadmin/utils': 2.4.8(echarts@5.5.1)(vue@3.4.37(typescript@5.5.4))
       element-plus: 2.7.7(vue@3.4.37(typescript@5.5.4))
       vue: 3.4.37(typescript@5.5.4)
     transitivePeerDependencies:
@@ -5545,7 +5545,7 @@ snapshots:
       fs-extra: 11.2.0
       string-hash: 1.1.3
 
-  '@pureadmin/utils@2.4.7(echarts@5.5.1)(vue@3.4.37(typescript@5.5.4))':
+  '@pureadmin/utils@2.4.8(echarts@5.5.1)(vue@3.4.37(typescript@5.5.4))':
     optionalDependencies:
       echarts: 5.5.1
       vue: 3.4.37(typescript@5.5.4)
