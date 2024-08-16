@@ -2,18 +2,19 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addEmployeeApi, updateEmployeeApi } from "@/api";
+import { getCompanyId, addRepoApi, updateRepoApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
   uid: string;
-  /** 真实姓名 */
   name: string;
-  /** 员工编号 */
+  /** 仓库编号 */
   id: string;
-  /** 备注 */
-  desc?: string;
-  nickname?: string;
+  desc: string;
+  startAt: string;
+  endAt: string;
+  address: string;
+  status: boolean;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -29,13 +30,16 @@ export function handleSelectionChange(val) {
 
 export function openDialog(title = "新增", row?: FormItemProps) {
   addDialog({
-    title: `${title}员工`,
+    title: `${title}仓库`,
     props: {
       formInline: {
         name: row?.name ?? "",
-        nickname: row?.nickname ?? "",
         uid: row?.uid ?? "",
-        desc: row?.desc ?? ""
+        desc: row?.desc ?? "",
+        startAt: row?.startAt ?? "",
+        endAt: row?.endAt ?? "",
+        address: row?.address ?? "",
+        status: row?.status ?? 0
       }
     },
     width: "40%",
@@ -57,19 +61,29 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         if (valid) {
           console.log("curData", curData);
           if (title === "新增") {
-            const { name, desc, nickname } = curData;
-            await addEmployeeApi({
+            const { name, desc, startAt, endAt, address } = curData;
+            await addRepoApi({
               name,
               desc,
-              nickname,
+              startAt,
+              endAt,
+              address,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, nickname } = curData;
-            await updateEmployeeApi(uid, { name, desc, nickname });
+            const { uid, name, desc, startAt, endAt, address, status } =
+              curData;
+            await updateRepoApi(uid, {
+              name,
+              desc,
+              startAt,
+              endAt,
+              address,
+              status
+            });
             chores();
           }
         }

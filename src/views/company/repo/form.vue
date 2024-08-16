@@ -4,37 +4,35 @@ import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 
 interface FormItemProps {
-  phone: string;
-  email: string;
-  username: string;
-  password: string;
+  uid: string;
   name: string;
-  /** 员工编号 */
+  /** 仓库编号 */
   id: string;
-  /** 备注 */
   desc: string;
-  nickname?: string;
+  startAt: string;
+  endAt: string;
+  address: string;
+  status: boolean;
 }
 interface FormProps {
   formInline: FormItemProps;
 }
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    phone: "",
-    email: "",
-    username: "",
-    password: "",
+    uid: "",
     name: "",
-    nickname: "",
     id: "",
-    desc: ""
+    desc: "",
+    startAt: "",
+    endAt: "",
+    address: "",
+    status: true
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
-  phone: [{ required: true, message: "手机号为必填项", trigger: "blur" }],
-  username: [{ required: true, message: "用户名为必填项", trigger: "blur" }]
+  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }],
+  desc: [{ required: true, message: "角色标识为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
@@ -53,35 +51,37 @@ defineExpose({ getRef });
     :rules="formRules"
     label-width="82px"
   >
-    <el-form-item label="真实姓名" prop="name">
+    <el-form-item label="名称" prop="name">
       <el-input
         v-model="newFormInline.name"
         clearable
-        placeholder="请输入真实姓名"
+        placeholder="请输入名称"
       />
     </el-form-item>
 
-    <el-form-item label="手机号码" prop="phone">
+    <el-form-item label="地址" prop="address">
       <el-input
-        v-model="newFormInline.phone"
+        v-model="newFormInline.address"
         clearable
-        placeholder="请输入手机号码"
+        placeholder="请输入地址"
       />
     </el-form-item>
 
-    <el-form-item label="初始密码" prop="password">
-      <el-input
-        v-model="newFormInline.password"
+    <el-form-item label="启用时间" prop="startAt">
+      <el-date-picker
+        v-model="newFormInline.startAt"
         clearable
-        placeholder="请输入初始密码"
+        type="datetime"
+        placeholder="请输入启用时间"
       />
     </el-form-item>
 
-    <el-form-item label="昵称" prop="nickname">
-      <el-input
-        v-model="newFormInline.nickname"
+    <el-form-item label="停用时间" prop="endAt">
+      <el-date-picker
+        v-model="newFormInline.endAt"
         clearable
-        placeholder="请输入昵称"
+        type="datetime"
+        placeholder="请输入停用时间"
       />
     </el-form-item>
 

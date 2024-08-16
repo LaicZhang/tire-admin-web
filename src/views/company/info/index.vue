@@ -29,7 +29,7 @@ onMounted(async () => {
       border
       :data
       :title="$route.meta.title"
-      :columns="columns"
+      :columns
       column="2"
     />
   </el-card>
