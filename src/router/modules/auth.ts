@@ -284,7 +284,7 @@ export default [
         name: "department",
         path: "/company/department",
         redirect: null,
-
+        component: () => import("@/views/company/department/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "manager"],
@@ -299,7 +299,7 @@ export default [
         name: "employee",
         path: "/company/employee",
         redirect: null,
-
+        component: () => import("@/views/company/employee/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "manager"],
@@ -314,7 +314,7 @@ export default [
         name: "salary",
         path: "/company/salary",
         redirect: null,
-
+        component: () => import("@/views/company/salary/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "manager"],
@@ -329,7 +329,7 @@ export default [
         name: "position",
         path: "/company/position",
         redirect: null,
-
+        component: () => import("@/views/company/position/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss"],
@@ -344,7 +344,7 @@ export default [
         name: "repo",
         path: "/company/repo",
         redirect: null,
-
+        component: () => import("@/views/company/repo/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "warehouseManager"],

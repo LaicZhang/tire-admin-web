@@ -5,3 +5,4 @@ export * from "./utils";
 export * from "./user";
 export * from "./type";
 export * from "./company";
+export * from "./department";

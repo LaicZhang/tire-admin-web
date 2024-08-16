@@ -2,6 +2,8 @@
 import { onMounted, ref } from "vue";
 import { getCompanyApi } from "@/api";
 import { message } from "@/utils/message";
+import { columns } from "./columns";
+
 defineOptions({
   name: "companyInfo"
 });
@@ -15,44 +17,6 @@ const getCompanyInfo = async () => {
   else message(res.message, { type: "error" });
   data.value = [res.data];
 };
-const columns = [
-  {
-    label: "ID",
-    prop: "id"
-  },
-  {
-    label: "公司名称",
-    prop: "name"
-  },
-  {
-    label: "状态",
-    prop: "status"
-  },
-  {
-    label: "负责人",
-    prop: "principalName"
-  },
-  {
-    label: "负责人电话",
-    prop: "principalPhone"
-  },
-  {
-    label: "所在省",
-    prop: "province"
-  },
-  {
-    label: "所在市",
-    prop: "city"
-  },
-  {
-    label: "创建时间",
-    prop: "createAt"
-  },
-  {
-    label: "更新时间",
-    prop: "updateAt"
-  }
-];
 
 onMounted(async () => {
   await getCompanyInfo();
@@ -66,6 +30,7 @@ onMounted(async () => {
       :data
       :title="$route.meta.title"
       :columns="columns"
+      column="2"
     />
   </el-card>
 </template>
