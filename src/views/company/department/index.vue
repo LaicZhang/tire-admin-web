@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "@iconify-icons/ep/refresh";
@@ -21,26 +21,30 @@ const form = ref({
   name: "",
   desc: ""
 });
-const pagination = reactive({
+const pagination = ref({
   total: 0,
   pageSize: 10,
   currentPage: 1,
   background: true
 });
 const getDepartmentListInfo = async () => {
-  const res = await getDepartmentListApi(pagination.currentPage);
+  const res = await getDepartmentListApi(pagination.value.currentPage);
   if (res.code === 200) dataList.value = res.data.list;
   else message(res.message, { type: "error" });
+  pagination.value.total = res.data.count;
 };
 const onSearch = async () => {
   loading.value = true;
-  const { data } = await getDepartmentListApi(pagination.currentPage, {
+  if (form.value.name === "" && form.value.desc === "")
+    await getDepartmentListInfo();
+
+  const { data } = await getDepartmentListApi(pagination.value.currentPage, {
     name: form.value.name,
     desc: form.value.desc
   });
 
   dataList.value = data.list;
-  pagination.total = data.count;
+  pagination.value.total = data.count;
   loading.value = false;
 };
 
@@ -50,6 +54,11 @@ const resetForm = formEl => {
   formEl.resetFields();
   loading.value = false;
 };
+
+async function handleCurrentChange(val: number) {
+  pagination.value.currentPage = val;
+  await getDepartmentListInfo();
+}
 async function handleDelete(row) {
   await deleteDepartmentApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
@@ -101,7 +110,7 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-2">
-      <PureTableBar title="部门管理" @refresh="onSearch">
+      <PureTableBar title="部门管理" @refresh="getDepartmentListInfo">
         <template #buttons>
           <el-button
             type="primary"
@@ -121,6 +130,7 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
+            @page-current-change="handleCurrentChange"
           >
             <template #operation="{ row }">
               <el-button

@@ -23,14 +23,6 @@ export type { FormItemProps, FormProps };
 
 const formRef = ref(null);
 
-export function handleSizeChange(val: number) {
-  console.log(`${val} items per page`);
-}
-
-export function handleCurrentChange(val: number) {
-  console.log(`current page: ${val}`);
-}
-
 export function handleSelectionChange(val) {
   console.log("handleSelectionChange", val);
 }
