@@ -80,7 +80,7 @@ onMounted(async () => {
         <el-form-item label="名称：" prop="name">
           <el-input
             v-model="form.name"
-            placeholder="请输入部门名称"
+            placeholder="请输入员工名称"
             clearable
             class="!w-[180px]"
           />
@@ -110,14 +110,14 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-2">
-      <PureTableBar title="部门管理" @refresh="getDepartmentListInfo">
+      <PureTableBar title="员工管理" @refresh="getDepartmentListInfo">
         <template #buttons>
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
           >
-            新增部门
+            新增员工
           </el-button>
         </template>
         <template v-slot="{ size }">
