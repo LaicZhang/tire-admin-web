@@ -4,27 +4,37 @@ import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 
 interface FormItemProps {
-  /** 员工名字 */
+  phone: string;
+  email: string;
+  username: string;
+  password: string;
   name: string;
   /** 员工编号 */
   id: string;
   /** 备注 */
   desc: string;
+  nickname?: string;
 }
 interface FormProps {
   formInline: FormItemProps;
 }
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
+    phone: "",
+    email: "",
+    username: "",
+    password: "",
     name: "",
+    nickname: "",
     id: "",
     desc: ""
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "角色名字为必填项", trigger: "blur" }],
-  desc: [{ required: true, message: "角色标识为必填项", trigger: "blur" }]
+  name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
+  phone: [{ required: true, message: "手机号为必填项", trigger: "blur" }],
+  username: [{ required: true, message: "用户名为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
@@ -43,11 +53,35 @@ defineExpose({ getRef });
     :rules="formRules"
     label-width="82px"
   >
-    <el-form-item label="名字" prop="name">
+    <el-form-item label="真实姓名" prop="name">
       <el-input
         v-model="newFormInline.name"
         clearable
-        placeholder="请输入名字"
+        placeholder="请输入真实姓名"
+      />
+    </el-form-item>
+
+    <el-form-item label="手机号码" prop="phone">
+      <el-input
+        v-model="newFormInline.phone"
+        clearable
+        placeholder="请输入手机号码"
+      />
+    </el-form-item>
+
+    <el-form-item label="初始密码" prop="password">
+      <el-input
+        v-model="newFormInline.password"
+        clearable
+        placeholder="请输入初始密码"
+      />
+    </el-form-item>
+
+    <el-form-item label="昵称" prop="nickname">
+      <el-input
+        v-model="newFormInline.nickname"
+        clearable
+        placeholder="请输入昵称"
       />
     </el-form-item>
 

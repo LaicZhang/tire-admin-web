@@ -7,13 +7,13 @@ import editForm from "./form.vue";
 
 interface FormItemProps {
   uid: string;
-  /** 员工名称 */
+  /** 真实姓名 */
   name: string;
   /** 员工编号 */
   id: string;
   /** 备注 */
-  desc: string;
-  managerId: string;
+  desc?: string;
+  nickname?: string;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -33,6 +33,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     props: {
       formInline: {
         name: row?.name ?? "",
+        nickname: row?.nickname ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? ""
       }
@@ -56,19 +57,19 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         if (valid) {
           console.log("curData", curData);
           if (title === "新增") {
-            const { name, desc, managerId } = curData;
+            const { name, desc, nickname } = curData;
             await addEmployeeApi({
               name,
               desc,
-              managerId,
+              nickname,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, managerId } = curData;
-            await updateEmployeeApi(uid, { name, desc, managerId });
+            const { uid, name, desc, nickname } = curData;
+            await updateEmployeeApi(uid, { name, desc, nickname });
             chores();
           }
         }

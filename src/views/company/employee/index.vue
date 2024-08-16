@@ -19,6 +19,8 @@ const loading = ref(false);
 const formRef = ref();
 const form = ref({
   name: "",
+  nickname: "",
+  status: 0,
   desc: ""
 });
 const pagination = ref({
@@ -81,6 +83,14 @@ onMounted(async () => {
           <el-input
             v-model="form.name"
             placeholder="请输入员工名字"
+            clearable
+            class="!w-[180px]"
+          />
+        </el-form-item>
+        <el-form-item label="状态：" prop="status">
+          <el-input
+            v-model="form.status"
+            placeholder="请输入员工状态"
             clearable
             class="!w-[180px]"
           />
