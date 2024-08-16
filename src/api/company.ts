@@ -7,34 +7,34 @@ const prefix = "/company/";
 
 const cid = getCompanyId();
 
-export async function getCompanyId() {
-  return await useCurrentCompanyStoreHook().companyId;
+export function getCompanyId() {
+  return useCurrentCompanyStoreHook().companyId;
 }
 
-export function getCompanyListApi(index: number, params?: Object) {
-  return http.request<CommonResult>(
+export async function getCompanyListApi(index: number, params?: Object) {
+  return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),
     { params }
   );
 }
 
-export function addCompanyApi(data: Object) {
-  return http.request<CommonResult>("post", baseUrlApi(prefix), {
+export async function addCompanyApi(data: Object) {
+  return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data
   });
 }
 
-export function getCompanyApi(uid = cid) {
-  return http.request<CommonResult>("get", baseUrlApi(prefix + uid));
+export async function getCompanyApi(uid = cid) {
+  return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export function updateCompanyApi(uid = cid, data: Object) {
-  return http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
+export async function updateCompanyApi(uid = cid, data: Object) {
+  return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });
 }
 
-export function deleteCompanyApi(uid: number) {
-  return http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
+export async function deleteCompanyApi(uid: number) {
+  return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }

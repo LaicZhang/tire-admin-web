@@ -6,8 +6,12 @@ import gradientString from "gradient-string";
 import boxen, { type Options as BoxenOptions } from "boxen";
 dayjs.extend(duration);
 
+// const welcomeMessage = gradientString("cyan", "magenta").multiline(
+//   `您好! 欢迎使用 pure-admin 开源项目\n我们为您精心准备了下面两个贴心的保姆级文档\nhttps://yiming_chang.gitee.io/pure-admin-doc\nhttps://pure-admin-utils.netlify.app`
+// );
+
 const welcomeMessage = gradientString("cyan", "magenta").multiline(
-  `您好! 欢迎使用 pure-admin 开源项目\n我们为您精心准备了下面两个贴心的保姆级文档\nhttps://yiming_chang.gitee.io/pure-admin-doc\nhttps://pure-admin-utils.netlify.app`
+  "hello, welcome to pure-admin"
 );
 
 const boxenOptions: BoxenOptions = {

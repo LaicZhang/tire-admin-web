@@ -73,13 +73,13 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         .loginByUsername({ ...ruleForm })
         .then(res => {
           if (res.code === 200) {
-            useCurrentCompanyStoreHook().handleCurrentCompany();
             // initRouter().then(() => {
             //   router.push(getTopMenu(true).path);
             //   message("登录成功", { type: "success" });
             // });
             // // 全部采取静态路由模式
             usePermissionStoreHook().handleWholeMenus([]);
+            useCurrentCompanyStoreHook().handleCurrentCompany();
             addPathMatch();
             message("登录成功", { type: "success" });
             router.push("/");
@@ -321,5 +321,3 @@ watch(loginDay, value => {
   padding: 0;
 }
 </style>
-, addPathMatchimport { usePermissionStoreHook } from
-"@/store/modules/permission";

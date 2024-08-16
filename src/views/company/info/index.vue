@@ -6,31 +6,54 @@ defineOptions({
   name: "companyInfo"
 });
 
-const companyInfoRef = ref({});
-const cid = ref("");
+const companyInfoRef = ref();
+const data = ref([]);
+
 const getCompanyInfo = async () => {
-  const res = await getCompanyApi(cid.value);
+  const res = await getCompanyApi();
   if (res.code === 200) companyInfoRef.value = res.data;
   else message(res.message, { type: "error" });
+  data.value = [res.data];
 };
 const columns = [
   {
     label: "ID",
-    value: "12345"
+    prop: "id"
   },
   {
-    label: "管理人",
-    value: "明明"
+    label: "公司名称",
+    prop: "name"
+  },
+  {
+    label: "状态",
+    prop: "status"
+  },
+  {
+    label: "负责人",
+    prop: "principalName"
+  },
+  {
+    label: "负责人电话",
+    prop: "principalPhone"
+  },
+  {
+    label: "所在省",
+    prop: "province"
+  },
+  {
+    label: "所在市",
+    prop: "city"
   },
   {
     label: "创建时间",
-    value: "createAt"
+    prop: "createAt"
   },
   {
     label: "更新时间",
-    value: "updateAt"
+    prop: "updateAt"
   }
 ];
+
 onMounted(async () => {
   await getCompanyInfo();
 });
@@ -38,6 +61,11 @@ onMounted(async () => {
 
 <template>
   <el-card class="m-2">
-    <PureDescriptions border :title="$route.meta.title" :columns="columns" />
+    <PureDescriptions
+      border
+      :data
+      :title="$route.meta.title"
+      :columns="columns"
+    />
   </el-card>
 </template>

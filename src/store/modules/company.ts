@@ -2,45 +2,49 @@ import { defineStore } from "pinia";
 import { store } from "@/store";
 import type { currentCompanyType } from "./types";
 import { storageLocal } from "@pureadmin/utils";
-import type { currentCompanyInfo } from "@/utils";
+import type { CurrentCompanyInfo } from "@/utils";
 import { getCurrentCompanyAPi } from "@/api";
-import { currentCompanyKey } from "@/utils";
+
+export const currentCompanyKey = "current-company";
 
 export const useCurrentCompanyStore = defineStore({
   id: "pure-company",
   state: (): currentCompanyType => ({
     companyName:
-      storageLocal().getItem<currentCompanyInfo>(currentCompanyKey)
-        ?.companyName || "",
+      storageLocal().getItem<CurrentCompanyInfo>(currentCompanyKey)
+        ?.companyName ?? "",
     companyId:
-      storageLocal().getItem<currentCompanyInfo>(currentCompanyKey)
-        ?.companyId || ""
+      storageLocal().getItem<CurrentCompanyInfo>(currentCompanyKey)
+        ?.companyId ?? ""
   }),
   actions: {
-    SET_NAME(companyName: string) {
-      this.companyName = companyName;
+    SET_NAME(name: string) {
+      this.companyName = name;
     },
     SET_ID(id: string) {
       this.companyId = id;
     },
-    SET_CURRENT_COMPANY(companyName: string, companyId: string) {
-      this.SET_NAME(companyName);
-      this.SET_ID(companyId);
+    SET_CURRENT_COMPANY(company: CurrentCompanyInfo) {
+      console.log("company", company);
+      this.SET_NAME(company?.companyName);
+      this.SET_ID(company?.companyId);
       storageLocal().setItem(currentCompanyKey, {
-        companyName: companyName,
-        companyId: companyId
+        ...company
       });
     },
     async handleCurrentCompany() {
       return new Promise((resolve, reject) => {
         getCurrentCompanyAPi()
           .then(res => {
+            console.log("res", res);
             const data = res.data;
             if (data.length === 0) {
-              resolve([]);
-              return [];
+              reject("当前用户没有公司信息");
             } else if (data.length === 1) {
-              this.SET_CURRENT_COMPANY(data[0].name, data[0].uid);
+              this.SET_CURRENT_COMPANY({
+                companyName: data[0].name,
+                companyId: data[0].uid
+              });
               resolve(data);
               return data[0];
             } else {
@@ -55,6 +59,14 @@ export const useCurrentCompanyStore = defineStore({
     }
   }
 });
+
+export function setCurrentCompanyKey(company: CurrentCompanyInfo) {
+  this.SET_NAME(company?.companyName);
+  this.SET_ID(company?.companyId);
+  storageLocal().setItem(currentCompanyKey, {
+    ...company
+  });
+}
 
 export function useCurrentCompanyStoreHook() {
   return useCurrentCompanyStore(store);

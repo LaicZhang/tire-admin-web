@@ -15,7 +15,7 @@ export interface DataInfo<T> {
   roles?: Array<string>;
 }
 
-export interface currentCompanyInfo {
+export interface CurrentCompanyInfo {
   companyName?: string;
   companyId?: string;
 }
