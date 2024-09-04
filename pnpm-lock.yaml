@@ -245,8 +245,8 @@ devDependencies:
     specifier: ^0.5.1
     version: 0.5.1(vite@5.4.2)
   vite-plugin-fake-server:
-    specifier: ^2.1.1
-    version: 2.1.1
+    specifier: ^2.1.2
+    version: 2.1.2
   vite-plugin-remove-console:
     specifier: ^2.2.0
     version: 2.2.0
@@ -5598,8 +5598,9 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /path-to-regexp@6.2.2:
-    resolution: {integrity: sha512-GQX3SSMokngb36+whdpRXE+3f9V8UzyAorlYvOGx87ufGHehNTn5lCxrKtLyZ4Yl/wEKnNnr98ZzOwwDZV5ogw==}
+  /path-to-regexp@8.0.0:
+    resolution: {integrity: sha512-GAWaqWlTjYK/7SVpIUA6CTxmcg65SP30sbjdCvyYReosRkk7Z/LyHWwkK3Vu0FcIi0FNTADUs4eh1AsU5s10cg==}
+    engines: {node: '>=16'}
     dev: true
 
   /path-type@4.0.0:
@@ -7619,13 +7620,13 @@ packages:
       vite: 5.4.2(@types/node@22.5.1)(sass@1.77.8)
     dev: true
 
-  /vite-plugin-fake-server@2.1.1:
-    resolution: {integrity: sha512-QUgssvE7jI9XU1WuDZ3gkzzi9GzVeapELIlFNMvmE2swDKL7O2y2nV0kRZ9VYOsD+hV312uSJyzHBJvcmBw7UQ==}
+  /vite-plugin-fake-server@2.1.2:
+    resolution: {integrity: sha512-Jn5eS4JJwWjrX3RFWEkniSoq0VJF2DLsZj+7L2DbT+3nKmzsR1um6gh39u+J2TgTNSnjDUQH3znzSF9BsIDB2g==}
     dependencies:
       bundle-import: 0.0.1
       chokidar: 3.6.0
       fast-glob: 3.3.2
-      path-to-regexp: 6.2.2
+      path-to-regexp: 8.0.0
       picocolors: 1.0.1
     dev: true
 
