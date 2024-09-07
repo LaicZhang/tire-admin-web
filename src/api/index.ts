@@ -9,3 +9,4 @@ export * from "./department";
 export * from "./employee";
 export * from "./repo";
 export * from "./salary";
+export * from "./position";
