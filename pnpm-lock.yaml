@@ -230,8 +230,8 @@ devDependencies:
     specifier: ^5.6.2
     version: 5.6.2
   unplugin-auto-import:
-    specifier: ^0.18.0
-    version: 0.18.2(@vueuse/core@11.0.3)(rollup@4.21.2)
+    specifier: ^0.18.3
+    version: 0.18.3(@vueuse/core@11.0.3)(rollup@4.21.2)
   unplugin-vue-components:
     specifier: ^0.27.3
     version: 0.27.4(rollup@4.21.2)(vue@3.5.4)
@@ -7681,6 +7681,7 @@ packages:
 
   /unimport@3.11.1(rollup@4.21.2):
     resolution: {integrity: sha512-DuB1Uoq01LrrXTScxnwOoMSlTXxyKcULguFxbLrMDFcE/CO0ZWHpEiyhovN0mycPt7K6luAHe8laqvwvuoeUPg==}
+    requiresBuild: true
     dependencies:
       '@rollup/pluginutils': 5.1.0(rollup@4.21.2)
       acorn: 8.12.1
@@ -7698,6 +7699,29 @@ packages:
     transitivePeerDependencies:
       - rollup
       - webpack-sources
+    dev: false
+    optional: true
+
+  /unimport@3.12.0(rollup@4.21.2):
+    resolution: {integrity: sha512-5y8dSvNvyevsnw4TBQkIQR1Rjdbb+XjVSwQwxltpnVZrStBvvPkMPcZrh1kg5kY77kpx6+D4Ztd3W6FOBH/y2Q==}
+    dependencies:
+      '@rollup/pluginutils': 5.1.0(rollup@4.21.2)
+      acorn: 8.12.1
+      escape-string-regexp: 5.0.0
+      estree-walker: 3.0.3
+      fast-glob: 3.3.2
+      local-pkg: 0.5.0
+      magic-string: 0.30.11
+      mlly: 1.7.1
+      pathe: 1.1.2
+      pkg-types: 1.2.0
+      scule: 1.3.0
+      strip-literal: 2.1.0
+      unplugin: 1.14.1
+    transitivePeerDependencies:
+      - rollup
+      - webpack-sources
+    dev: true
 
   /unist-util-is@6.0.0:
     resolution: {integrity: sha512-2qCTHimwdxLfz+YzdGfkqNlH0tLi9xjTnHddPmJwtIG9MGsdbutfTc4P+haPD7l7Cjxf/WZj+we5qfVPvvxfYw==}
@@ -7731,8 +7755,8 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
-  /unplugin-auto-import@0.18.2(@vueuse/core@11.0.3)(rollup@4.21.2):
-    resolution: {integrity: sha512-Dwb3rAic75harVBrVjwiq6H24PT+nBq2dpxV5BH8NNI6sDFaTytvP+iyo4xy7prQbR3r5K6nMs4f5Wp9PE4g8A==}
+  /unplugin-auto-import@0.18.3(@vueuse/core@11.0.3)(rollup@4.21.2):
+    resolution: {integrity: sha512-q3FUtGQjYA2e+kb1WumyiQMjHM27MrTQ05QfVwtLRVhyYe+KF6TblBYaEX9L6Z0EibsqaXAiW+RFfkcQpfaXzg==}
     engines: {node: '>=14'}
     peerDependencies:
       '@nuxt/kit': ^3.2.2
@@ -7750,8 +7774,8 @@ packages:
       local-pkg: 0.5.0
       magic-string: 0.30.11
       minimatch: 9.0.5
-      unimport: 3.11.1(rollup@4.21.2)
-      unplugin: 1.13.1
+      unimport: 3.12.0(rollup@4.21.2)
+      unplugin: 1.14.1
     transitivePeerDependencies:
       - rollup
       - webpack-sources
@@ -7798,6 +7822,19 @@ packages:
     dependencies:
       acorn: 8.12.1
       webpack-virtual-modules: 0.6.2
+
+  /unplugin@1.14.1:
+    resolution: {integrity: sha512-lBlHbfSFPToDYp9pjXlUEFVxYLaue9f9T1HC+4OHlmj+HnMDdz9oZY+erXfoCe/5V/7gKUSY2jpXPb9S7f0f/w==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      webpack-sources: ^3
+    peerDependenciesMeta:
+      webpack-sources:
+        optional: true
+    dependencies:
+      acorn: 8.12.1
+      webpack-virtual-modules: 0.6.2
+    dev: true
 
   /untyped@1.4.2:
     resolution: {integrity: sha512-nC5q0DnPEPVURPhfPQLahhSTnemVtPzdx7ofiRxXpOB2SYnb3MfdU3DVGyJdS8Lx+tBWeAePO8BfU/3EgksM7Q==}
