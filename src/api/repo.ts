@@ -4,7 +4,7 @@ import type { CommonResult } from "./type";
 
 const prefix = "/repo/";
 
-export async function getRepoListApi(index: number, params?: Object) {
+export async function getRepoListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),
@@ -12,7 +12,7 @@ export async function getRepoListApi(index: number, params?: Object) {
   );
 }
 
-export async function addRepoApi(data: Object) {
+export async function addRepoApi(data: object) {
   return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data
   });
@@ -22,7 +22,7 @@ export async function getRepoApi(uid) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateRepoApi(uid, data: Object) {
+export async function updateRepoApi(uid, data: object) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });

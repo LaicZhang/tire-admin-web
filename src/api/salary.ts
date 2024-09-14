@@ -7,7 +7,7 @@ const prefix = "/salary/";
 
 const cid = getCompanyId();
 
-export async function getSalaryListApi(index: number, params?: Object) {
+export async function getSalaryListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),
@@ -15,7 +15,7 @@ export async function getSalaryListApi(index: number, params?: Object) {
   );
 }
 
-export async function addSalaryApi(data: Object) {
+export async function addSalaryApi(data: object) {
   return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data
   });
@@ -25,7 +25,7 @@ export async function getSalaryApi(uid = cid) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateSalaryApi(uid, data: Object) {
+export async function updateSalaryApi(uid, data: object) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });

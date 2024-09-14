@@ -110,7 +110,7 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-2">
-      <PureTableBar title="岗位管理" @refresh="getPositionListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="getPositionListInfo">
         <template #buttons>
           <el-button
             type="primary"

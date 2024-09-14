@@ -376,7 +376,6 @@ export default [
     name: "business",
     path: "/business",
     redirect: null,
-
     isShow: true,
     meta: {
       roles: ["admin", "boss", "common", "officer"],
@@ -392,7 +391,7 @@ export default [
         name: "tire",
         path: "/business/tire",
         redirect: null,
-
+        component: () => import("@/views/business/tire/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "warehouseManager"],
@@ -407,7 +406,7 @@ export default [
         name: "warehouseManager",
         path: "/business/warehouseManager",
         redirect: null,
-
+        component: () => import("@/views/business/warehouseManager/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "warehouseManager", "purchaser", "seller"],
@@ -422,7 +421,7 @@ export default [
         name: "provider",
         path: "/business/provider",
         redirect: null,
-
+        component: () => import("@/views/business/provider/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "purchaser"],
@@ -437,7 +436,7 @@ export default [
         name: "customer",
         path: "/business/customer",
         redirect: null,
-
+        component: () => import("@/views/business/customer/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "seller"],
@@ -452,7 +451,7 @@ export default [
         name: "order",
         path: "/business/order",
         redirect: null,
-
+        component: () => import("@/views/business/order/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "purchaser", "seller"],
@@ -469,7 +468,6 @@ export default [
     name: "analysis",
     path: "/analysis",
     redirect: null,
-
     isShow: true,
     meta: {
       roles: ["admin", "boss"],

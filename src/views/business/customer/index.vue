@@ -7,20 +7,18 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getEmployeeListApi, deleteEmployeeApi } from "@/api";
+import { getCustomerListApi, deleteCustomerApi } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
-  name: "Employee"
+  name: "tire"
 });
 const dataList = ref([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
   name: "",
-  nickname: "",
-  status: 0,
   desc: ""
 });
 const pagination = ref({
@@ -29,8 +27,8 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
-const getEmployeeListInfo = async () => {
-  const res = await getEmployeeListApi(pagination.value.currentPage);
+const getCustomerListInfo = async () => {
+  const res = await getCustomerListApi(pagination.value.currentPage);
   if (res.code === 200) dataList.value = res.data.list;
   else message(res.message, { type: "error" });
   pagination.value.total = res.data.count;
@@ -38,9 +36,9 @@ const getEmployeeListInfo = async () => {
 const onSearch = async () => {
   loading.value = true;
   if (form.value.name === "" && form.value.desc === "")
-    await getEmployeeListInfo();
+    await getCustomerListInfo();
 
-  const { data } = await getEmployeeListApi(pagination.value.currentPage, {
+  const { data } = await getCustomerListApi(pagination.value.currentPage, {
     name: form.value.name,
     desc: form.value.desc
   });
@@ -59,15 +57,20 @@ const resetForm = formEl => {
 
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
-  await getEmployeeListInfo();
+  await getCustomerListInfo();
 }
 async function handleDelete(row) {
-  await deleteEmployeeApi(row.uid);
+  await deleteCustomerApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
+// async function handleToggleCustomer(row) {
+//   await toggleCustomerApi(row.uid);
+//   onSearch();
+// }
+
 onMounted(async () => {
-  await getEmployeeListInfo();
+  await getCustomerListInfo();
 });
 </script>
 
@@ -79,18 +82,10 @@ onMounted(async () => {
         :inline="true"
         class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
       >
-        <el-form-item label="名字：" prop="name">
+        <el-form-item label="仓库名称：" prop="name">
           <el-input
             v-model="form.name"
-            placeholder="请输入员工名字"
-            clearable
-            class="!w-[180px]"
-          />
-        </el-form-item>
-        <el-form-item label="状态：" prop="status">
-          <el-input
-            v-model="form.status"
-            placeholder="请输入员工状态"
+            placeholder="请输入仓库名称"
             clearable
             class="!w-[180px]"
           />
@@ -120,14 +115,14 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-2">
-      <PureTableBar :title="$route.meta.title" @refresh="getEmployeeListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="getCustomerListInfo">
         <template #buttons>
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
           >
-            新增员工
+            新增仓库
           </el-button>
         </template>
         <template v-slot="{ size }">
@@ -148,21 +143,27 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
               >
                 修改
               </el-button>
+
+              <!-- <el-popconfirm
+                :title="`是否确认停用${row.name}`"
+                @confirm="handleToggleCustomer(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="primary">
+                    {{ row.status === true ? "停用" : "启用" }}
+                  </el-button>
+                </template>
+              </el-popconfirm> -->
+
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"
               >
                 <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="danger"
-                    :icon="useRenderIcon(Delete)"
-                  >
+                  <el-button class="reset-margin" link type="danger">
                     删除
                   </el-button>
                 </template>

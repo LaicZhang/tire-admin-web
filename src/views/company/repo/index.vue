@@ -114,7 +114,7 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-2">
-      <PureTableBar title="仓库管理" @refresh="getRepoListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="getRepoListInfo">
         <template #buttons>
           <el-button
             type="primary"
