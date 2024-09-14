@@ -1,11 +1,17 @@
+import { formatDate } from "@/utils";
+
 export const columns = [
   {
     label: "ID",
     prop: "id"
   },
   {
-    label: "部门",
+    label: "编码",
     prop: "name"
+  },
+  {
+    label: "名称",
+    prop: "cn"
   },
   {
     label: "备注",
@@ -13,11 +19,17 @@ export const columns = [
   },
   {
     label: "更新时间",
-    prop: "updateAt"
+    prop: "updateAt",
+    formatter: (row, column, cellValue) => {
+      return formatDate(cellValue);
+    }
   },
   {
     label: "创建时间",
-    prop: "createAt"
+    prop: "createAt",
+    formatter: (row, column, cellValue) => {
+      return formatDate(cellValue);
+    }
   },
   {
     label: "操作",

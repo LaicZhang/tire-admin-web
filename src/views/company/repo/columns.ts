@@ -1,3 +1,5 @@
+import { formatDate } from "@/utils";
+
 export const columns = [
   {
     label: "ID",
@@ -24,11 +26,17 @@ export const columns = [
   },
   {
     label: "启用时间",
-    prop: "startAt"
+    prop: "startAt",
+    formatter: (row, column, cellValue) => {
+      return formatDate(cellValue);
+    }
   },
   {
     label: "到期时间",
-    prop: "endAt"
+    prop: "endAt",
+    formatter: (row, column, cellValue) => {
+      return formatDate(cellValue);
+    }
   },
   {
     label: "操作",

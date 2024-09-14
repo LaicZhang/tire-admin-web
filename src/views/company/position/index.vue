@@ -110,14 +110,14 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-2">
-      <PureTableBar title="员工管理" @refresh="getPositionListInfo">
+      <PureTableBar title="岗位管理" @refresh="getPositionListInfo">
         <template #buttons>
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
           >
-            新增员工
+            新增岗位
           </el-button>
         </template>
         <template v-slot="{ size }">
