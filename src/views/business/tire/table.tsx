@@ -30,7 +30,7 @@ export function handleSelectionChange(val) {
 
 export function openDialog(title = "新增", row?: FormItemProps) {
   addDialog({
-    title: `${title}仓库`,
+    title: `${title}轮胎`,
     props: {
       formInline: {
         name: row?.name ?? "",

@@ -1,42 +1,27 @@
-import { formatDate } from "@/utils";
-
 export const columns = [
   {
     label: "ID",
     prop: "id"
   },
   {
-    label: "仓库",
+    label: "分组",
+    prop: "group"
+  },
+  {
+    label: "名称",
     prop: "name"
   },
   {
-    label: "地址",
-    prop: "address"
+    label: "品牌",
+    prop: "brand"
   },
   {
-    label: "状态",
-    prop: "status",
-    formatter: (row, column, cellValue) => {
-      return cellValue === true ? "正常" : "停用";
-    }
+    label: "花纹",
+    prop: "pattern"
   },
   {
     label: "备注",
     prop: "desc"
-  },
-  {
-    label: "启用时间",
-    prop: "startAt",
-    formatter: (row, column, cellValue) => {
-      return formatDate(cellValue);
-    }
-  },
-  {
-    label: "到期时间",
-    prop: "endAt",
-    formatter: (row, column, cellValue) => {
-      return formatDate(cellValue);
-    }
   },
   {
     label: "操作",

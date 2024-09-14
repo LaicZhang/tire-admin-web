@@ -2,15 +2,16 @@ import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
 import { getCompanyId } from "../company";
+import type { ORDER_TYPE } from "@/utils";
 
-const getOrderPrefix = (type: number) => {
-  if (typeof type === "string") return `/${string}-order/`;
+const getOrderPrefix = (type: ORDER_TYPE) => {
+  return `/${type}/`;
 };
 
 const cid = getCompanyId();
 
 export async function getOrderListApi(
-  type: number,
+  type: ORDER_TYPE,
   index: number,
   params?: object
 ) {
@@ -21,7 +22,7 @@ export async function getOrderListApi(
   );
 }
 
-export async function addOrderApi(type: number, data: object) {
+export async function addOrderApi(type: ORDER_TYPE, data: object) {
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(getOrderPrefix(type)),
@@ -31,14 +32,14 @@ export async function addOrderApi(type: number, data: object) {
   );
 }
 
-export async function getOrderApi(type: number, uid = cid) {
+export async function getOrderApi(type: ORDER_TYPE, uid = cid) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(getOrderPrefix(type) + uid)
   );
 }
 
-export async function updateOrderApi(type: number, uid, data: object) {
+export async function updateOrderApi(type: ORDER_TYPE, uid, data: object) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(getOrderPrefix(type) + uid),
@@ -48,7 +49,7 @@ export async function updateOrderApi(type: number, uid, data: object) {
   );
 }
 
-export async function deleteOrderApi(type: number, uid) {
+export async function deleteOrderApi(type: ORDER_TYPE, uid) {
   return await http.request<CommonResult>(
     "delete",
     baseUrlApi(getOrderPrefix(type) + uid)

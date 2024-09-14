@@ -6,12 +6,12 @@ export const columns = [
     prop: "id"
   },
   {
-    label: "仓库",
+    label: "名称",
     prop: "name"
   },
   {
-    label: "地址",
-    prop: "address"
+    label: "联系人",
+    prop: "contactName"
   },
   {
     label: "状态",
@@ -21,22 +21,29 @@ export const columns = [
     }
   },
   {
+    label: "是否个人",
+    prop: "isIndividual",
+    formatter: (row, column, cellValue) => {
+      return cellValue === true ? "正常" : "停用";
+    }
+  },
+  {
+    label: "是否公开",
+    prop: "isPublic",
+    formatter: (row, column, cellValue) => {
+      return cellValue === true ? "公开" : "不公开";
+    }
+  },
+  {
+    label: "最后联络时间",
+    prop: "lastContactAt",
+    formatter: (row, column, cellValue) => {
+      return formatDate(cellValue);
+    }
+  },
+  {
     label: "备注",
     prop: "desc"
-  },
-  {
-    label: "启用时间",
-    prop: "startAt",
-    formatter: (row, column, cellValue) => {
-      return formatDate(cellValue);
-    }
-  },
-  {
-    label: "到期时间",
-    prop: "endAt",
-    formatter: (row, column, cellValue) => {
-      return formatDate(cellValue);
-    }
   },
   {
     label: "操作",

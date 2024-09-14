@@ -82,7 +82,7 @@ onMounted(async () => {
         :inline="true"
         class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
       >
-        <el-form-item label="仓库名称：" prop="name">
+        <el-form-item label="供应商名称：" prop="name">
           <el-input
             v-model="form.name"
             placeholder="请输入仓库名称"
@@ -122,7 +122,7 @@ onMounted(async () => {
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
           >
-            新增仓库
+            新增供应商
           </el-button>
         </template>
         <template v-slot="{ size }">

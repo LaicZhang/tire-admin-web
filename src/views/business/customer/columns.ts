@@ -1,42 +1,38 @@
-import { formatDate } from "@/utils";
-
 export const columns = [
   {
     label: "ID",
     prop: "id"
   },
   {
-    label: "仓库",
+    label: "名称",
     prop: "name"
   },
   {
-    label: "地址",
-    prop: "address"
+    label: "等级",
+    prop: "level"
   },
   {
-    label: "状态",
-    prop: "status",
+    label: "总消费",
+    prop: "totalTransactionAmount"
+  },
+  {
+    label: "限制",
+    prop: "limit"
+  },
+  {
+    label: "客户来源",
+    prop: "from"
+  },
+  {
+    label: "是否公开",
+    prop: "isPublic",
     formatter: (row, column, cellValue) => {
-      return cellValue === true ? "正常" : "停用";
+      return cellValue === true ? "公开" : "不公开";
     }
   },
   {
     label: "备注",
     prop: "desc"
-  },
-  {
-    label: "启用时间",
-    prop: "startAt",
-    formatter: (row, column, cellValue) => {
-      return formatDate(cellValue);
-    }
-  },
-  {
-    label: "到期时间",
-    prop: "endAt",
-    formatter: (row, column, cellValue) => {
-      return formatDate(cellValue);
-    }
   },
   {
     label: "操作",
