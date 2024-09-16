@@ -101,8 +101,8 @@ devDependencies:
     specifier: ^9.9.1
     version: 9.10.0
   '@faker-js/faker':
-    specifier: ^9.0.0
-    version: 9.0.0
+    specifier: ^9.0.1
+    version: 9.0.1
   '@iconify-icons/ep':
     specifier: ^1.2.12
     version: 1.2.12
@@ -1385,8 +1385,8 @@ packages:
       levn: 0.4.1
     dev: true
 
-  /@faker-js/faker@9.0.0:
-    resolution: {integrity: sha512-dTDHJSmz6c1OJ6HO7jiUiIb4sB20Dlkb3pxYsKm0qTXm2Bmj97rlXIhlvaFsW2rvCi+OLlwKLVSS6ZxFUVZvjQ==}
+  /@faker-js/faker@9.0.1:
+    resolution: {integrity: sha512-4mDeYIgM3By7X6t5E6eYwLAa+2h4DeZDF7thhzIg6XB76jeEvMwadYAMCFJL/R4AnEBcAUO9+gL0vhy3s+qvZA==}
     engines: {node: '>=18.0.0', npm: '>=9.0.0'}
     dev: true
 
