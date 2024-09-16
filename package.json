@@ -68,7 +68,7 @@
     "qs": "^6.12.3",
     "responsive-storage": "^2.2.0",
     "sortablejs": "^1.15.3",
-    "vue": "^3.5.4",
+    "vue": "^3.5.6",
     "vue-router": "^4.4.4",
     "vue-tippy": "^6.4.4",
     "vue-types": "^5.1.3"
