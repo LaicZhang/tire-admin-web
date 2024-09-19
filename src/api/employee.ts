@@ -7,6 +7,12 @@ const prefix = "/employee/";
 
 const cid = getCompanyId();
 
+export async function getAllEmployeeApi(params?: object) {
+  return await http.request<CommonResult>("get", baseUrlApi(prefix), {
+    params
+  });
+}
+
 export async function getEmployeeListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
     "get",

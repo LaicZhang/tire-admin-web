@@ -122,7 +122,7 @@ onMounted(async () => {
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
           >
-            新增仓库
+            新增客户
           </el-button>
         </template>
         <template v-slot="{ size }">

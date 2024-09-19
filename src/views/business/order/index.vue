@@ -7,8 +7,8 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getRepoListApi, deleteRepoApi, toggleRepoApi } from "@/api";
-import { message } from "@/utils";
+import { getOrderListApi, deleteOrderApi } from "@/api";
+import { message, ORDER_TYPE, ORDER_TYPE_LIST } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
@@ -18,29 +18,35 @@ const dataList = ref([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
-  name: "",
   desc: ""
 });
+const orderType = ref("");
 const pagination = ref({
   total: 0,
   pageSize: 10,
   currentPage: 1,
   background: true
 });
-const getRepoListInfo = async () => {
-  const res = await getRepoListApi(pagination.value.currentPage);
+const getOrderListInfo = async () => {
+  const res = await getOrderListApi(
+    orderType.value,
+    pagination.value.currentPage
+  );
   if (res.code === 200) dataList.value = res.data.list;
   else message(res.message, { type: "error" });
   pagination.value.total = res.data.count;
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === "") await getRepoListInfo();
+  if (form.value.desc === "") await getOrderListInfo();
 
-  const { data } = await getRepoListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
-  });
+  const { data } = await getOrderListApi(
+    orderType.value,
+    pagination.value.currentPage,
+    {
+      desc: form.value.desc
+    }
+  );
 
   dataList.value = data.list;
   pagination.value.total = data.count;
@@ -56,39 +62,58 @@ const resetForm = formEl => {
 
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
-  await getRepoListInfo();
+  await getOrderListInfo();
 }
 async function handleDelete(row) {
-  await deleteRepoApi(row.uid);
+  await deleteOrderApi(orderType.value, row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
-async function handleToggleRepo(row) {
-  await toggleRepoApi(row.uid);
-  onSearch();
-}
+// async function handleToggleOrder(row) {
+//   await toggleOrderApi(row.uid);
+//   onSearch();
+// }
 
 onMounted(async () => {
-  await getRepoListInfo();
+  await getOrderListInfo();
 });
 </script>
 
 <template>
   <div class="main">
     <el-card class="m-2">
+      <el-radio-group v-model="orderType" @change="onSearch">
+        <el-radio
+          v-for="item in ORDER_TYPE_LIST"
+          :key="item.value"
+          :value="item.value"
+          >{{ item.label }}</el-radio
+        >
+      </el-radio-group>
+    </el-card>
+
+    <el-card class="m-2">
       <el-form
         ref="formRef"
         :inline="true"
         class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
       >
-        <el-form-item label="仓库名称：" prop="name">
-          <el-input
+        <el-form-item label="操作人：" prop="name">
+          <el-select
             v-model="form.name"
-            placeholder="请输入仓库名称"
+            placeholder="请输入操作人"
             clearable
             class="!w-[180px]"
-          />
+          >
+            <el-option
+              v-for="item in employeeList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </el-form-item>
+
         <el-form-item label="备注：" prop="desc">
           <el-input
             v-model="form.desc"
@@ -114,7 +139,7 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-2">
-      <PureTableBar :title="$route.meta.title" @refresh="getRepoListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="getOrderListInfo">
         <template #buttons>
           <el-button
             type="primary"
@@ -148,7 +173,7 @@ onMounted(async () => {
 
               <el-popconfirm
                 :title="`是否确认停用${row.name}`"
-                @confirm="handleToggleRepo(row)"
+                @confirm="handleToggleOrder(row)"
               >
                 <template #reference>
                   <el-button class="reset-margin" link type="primary">

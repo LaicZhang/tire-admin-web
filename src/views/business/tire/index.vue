@@ -18,6 +18,7 @@ const dataList = ref([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
+  group: "",
   name: "",
   desc: ""
 });
@@ -77,9 +78,9 @@ onMounted(async () => {
         :inline="true"
         class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
       >
-        <el-form-item label="分组名称：" prop="name">
+        <el-form-item label="分组名称：" prop="group">
           <el-input
-            v-model="form.name"
+            v-model="form.group"
             placeholder="请输入分组名称"
             clearable
             class="!w-[180px]"
