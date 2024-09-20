@@ -6,7 +6,7 @@
 
 项目目前支持1.x.x版本，低于1.0的版本不再进行安全更新。
 
-### 前端
+### [前端](https://github.com/LaicZhang/tire-admin-web)
 
 - Vue
 - Pinia
@@ -14,12 +14,14 @@
 - Element Plus
 - Vite
 
-## 后端
+### [后端](https://github.com/LaicZhang/be-core)
 
 - Nest.js
 - Typescript
+- Prisma
 - Postgres
 - Redis
+- Docker
 
 ## 许可证
 
