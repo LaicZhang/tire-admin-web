@@ -48,6 +48,13 @@ pnpm i
 
 ![](https://img1.tucang.cc/api/image/show/07a84b802411ad04bd8d32bfabedab6b)
 
+## TODO
+
+- 减少内存占用
+- 升级eslint->9.x
+- 优化部署方案
+- 定时备份数据库
+
 ## 许可证
 
 [MIT](./LICENSE)
