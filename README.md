@@ -24,6 +24,20 @@
 - Redis
 - Docker
 
+### 代码规范
+
+- ESlint
+- StyleLint
+- ESLint config by antfu
+- husky
+
+## 部署
+
+- Vercel
+- OSS
+- Tencent Cloud
+- Tencent Webify
+
 ## Installation
 
 ```
