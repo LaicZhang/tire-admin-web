@@ -13,6 +13,7 @@
 - Typescript
 - Element Plus
 - Vite
+- TailwindCSS
 
 ### [后端](https://github.com/LaicZhang/be-core)
 
@@ -22,6 +23,16 @@
 - Postgres
 - Redis
 - Docker
+
+## Installation
+
+```
+pnpm i
+```
+
+## 演示
+
+![](https://img1.tucang.cc/api/image/show/07a84b802411ad04bd8d32bfabedab6b)
 
 ## 许可证
 
