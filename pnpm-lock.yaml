@@ -57,8 +57,8 @@ dependencies:
     specifier: ^2.2.2
     version: 2.2.2(typescript@5.6.2)(vue@3.5.7)
   pinyin-pro:
-    specifier: ^3.24.1
-    version: 3.24.2
+    specifier: ^3.25.0
+    version: 3.25.0
   plus-pro-components:
     specifier: ^0.1.13
     version: 0.1.16(element-plus@2.8.3)(vue@3.5.7)
@@ -6049,8 +6049,8 @@ packages:
       vue-demi: 0.14.10(vue@3.5.7)
     dev: false
 
-  /pinyin-pro@3.24.2:
-    resolution: {integrity: sha512-5tPyLhxT4CZ9dWqQRqm3X5ADdS18Sb2w0ranNBgr6jCrqO4O8gtfuyqG7Y6+1Mre+0n2VlhKDz+3P5oqSLrkOw==}
+  /pinyin-pro@3.25.0:
+    resolution: {integrity: sha512-MpwQPa9Ry+1vVHrsRgfJTvbtoMn0Gk529OZEWqN+O/iiSOqnd2dbKrDMaX87n7YvVPhy2W1/sKakK9zheYNWeg==}
     dev: false
 
   /pirates@4.0.6:
