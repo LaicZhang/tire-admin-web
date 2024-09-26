@@ -104,8 +104,8 @@ devDependencies:
     specifier: ^19.5.0
     version: 19.5.0
   '@eslint/js':
-    specifier: ^9.9.1
-    version: 9.11.0
+    specifier: ^9.11.1
+    version: 9.11.1
   '@faker-js/faker':
     specifier: ^9.0.2
     version: 9.0.2
@@ -1362,6 +1362,11 @@ packages:
 
   /@eslint/js@9.11.0:
     resolution: {integrity: sha512-LPkkenkDqyzTFauZLLAPhIb48fj6drrfMvRGSL9tS3AcZBSVTllemLSNyCvHNNL2t797S/6DJNSIwRwXgMO/eQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    dev: true
+
+  /@eslint/js@9.11.1:
+    resolution: {integrity: sha512-/qu+TWz8WwPWc7/HcIJKi+c+MOm46GdVaSlTTQcaqaL53+GsoA6MxWp5PtTx48qbSP7ylM1Kn7nhvkugfJvRSA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dev: true
 
