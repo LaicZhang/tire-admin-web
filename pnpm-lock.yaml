@@ -179,8 +179,8 @@ devDependencies:
     specifier: ^9.28.0
     version: 9.28.0(eslint@9.11.1)
   gradient-string:
-    specifier: ^2.0.2
-    version: 2.0.2
+    specifier: ^3.0.0
+    version: 3.0.0
   husky:
     specifier: ^9.1.6
     version: 9.1.6
@@ -4544,11 +4544,11 @@ packages:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
     dev: true
 
-  /gradient-string@2.0.2:
-    resolution: {integrity: sha512-rEDCuqUQ4tbD78TpzsMtt5OIf0cBCSDWSJtUDaF6JsAh+k0v9r++NzxNEG87oDZx9ZwGhD8DaezR2L/yrw0Jdw==}
-    engines: {node: '>=10'}
+  /gradient-string@3.0.0:
+    resolution: {integrity: sha512-frdKI4Qi8Ihp4C6wZNB565de/THpIaw3DjP5ku87M+N9rNSGmPTjfkq61SdRXB7eCaL8O1hkKDvf6CDMtOzIAg==}
+    engines: {node: '>=14'}
     dependencies:
-      chalk: 4.1.2
+      chalk: 5.3.0
       tinygradient: 1.1.5
     dev: true
 
