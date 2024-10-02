@@ -37,6 +37,14 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
         clientFiles: ["./index.html", "./src/{views,components}/*"]
       }
     },
+    // css: {
+    //   preprocessorOptions: {
+    //     scss: {
+    //       api: "modern-compiler"
+    //       // silenceDeprecations: ["legacy-js-api"]
+    //     }
+    //   }
+    // },
     plugins: getPluginsList(VITE_CDN, VITE_COMPRESSION),
     // https://cn.vitejs.dev/config/dep-optimization-options.html#dep-optimization-options
     optimizeDeps: {

@@ -52,11 +52,17 @@ export function setToken(data: DataInfo<Date>) {
   expires = new Date(data.expires).getTime(); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
   const cookieString = JSON.stringify({ accessToken, expires });
 
-  expires > 0
-    ? Cookies.set(TokenKey, cookieString, {
-        expires: (expires - Date.now()) / 86400000
-      })
-    : Cookies.set(TokenKey, cookieString);
+  // expires > 0
+  //   ? Cookies.set(TokenKey, cookieString, {
+  //     expires: (expires - Date.now()) / 86400000
+  //   })
+  //   : Cookies.set(TokenKey, cookieString);
+
+  Cookies.set(
+    TokenKey,
+    cookieString,
+    expires > 0 ? { expires: (expires - Date.now()) / 86400000 } : undefined
+  );
 
   Cookies.set(
     multipleTabsKey,
