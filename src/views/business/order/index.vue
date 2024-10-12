@@ -101,7 +101,7 @@ onMounted(async () => {
         <el-form-item label="操作人：" prop="name">
           <el-select
             v-model="form.name"
-            placeholder="请输入操作人"
+            placeholder="请选择操作人"
             clearable
             class="!w-[180px]"
           >
@@ -146,7 +146,7 @@ onMounted(async () => {
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
           >
-            新增仓库
+            新增订单
           </el-button>
         </template>
         <template v-slot="{ size }">

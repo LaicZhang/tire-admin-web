@@ -85,7 +85,7 @@ onMounted(async () => {
         <el-form-item label="供应商名称：" prop="name">
           <el-input
             v-model="form.name"
-            placeholder="请输入仓库名称"
+            placeholder="请输入供应商名称"
             clearable
             class="!w-[180px]"
           />
@@ -156,7 +156,7 @@ onMounted(async () => {
                     {{ row.status === true ? "停用" : "启用" }}
                   </el-button>
                 </template>
-              </el-popconfirm> -->
+</el-popconfirm> -->
 
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"

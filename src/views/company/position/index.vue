@@ -80,7 +80,7 @@ onMounted(async () => {
         <el-form-item label="名称：" prop="name">
           <el-input
             v-model="form.name"
-            placeholder="请输入员工名称"
+            placeholder="请输入职位名称"
             clearable
             class="!w-[180px]"
           />

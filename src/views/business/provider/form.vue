@@ -6,7 +6,6 @@ import type { FormRules } from "element-plus";
 interface FormItemProps {
   uid: string;
   name: string;
-  /** 仓库编号 */
   id: string;
   desc: string;
   startAt: string;
