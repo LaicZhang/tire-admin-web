@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, h } from "vue";
 defineOptions({
   name: "chat"
 });
@@ -54,7 +54,8 @@ const sendMessage = () => {
               Conversations
             </h3>
             <a
-              href="#"
+              href="https://kimi.moonshot.cn/"
+              target="_blank"
               class="flex items-center space-x-2 py-2 px-3 bg-gray-100 rounded-md"
             >
               <svg
@@ -71,7 +72,7 @@ const sendMessage = () => {
               >
                 <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z" />
               </svg>
-              <span>新对话</span>
+              <span> 新对话(kimi) </span>
             </a>
           </div>
         </nav>

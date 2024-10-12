@@ -8,7 +8,6 @@ import editForm from "./form.vue";
 interface FormItemProps {
   uid: string;
   name: string;
-  /** 仓库编号 */
   id: string;
   desc: string;
   startAt: string;
@@ -30,7 +29,7 @@ export function handleSelectionChange(val) {
 
 export function openDialog(title = "新增", row?: FormItemProps) {
   addDialog({
-    title: `${title}仓库`,
+    title: `${title}库存`,
     props: {
       formInline: {
         name: row?.name ?? "",

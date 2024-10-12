@@ -117,6 +117,8 @@ onMounted(async () => {
     <el-card class="m-2">
       <PureTableBar :title="$route.meta.title" @refresh="getReserveListInfo">
         <template #buttons>
+          <el-button type="primary" @click="openDialog()"> 胎号管理 </el-button>
+
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
