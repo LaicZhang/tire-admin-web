@@ -27,7 +27,6 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       proxy: {
         "/api": {
           target: "https://api.zhuaoshuai.com",
-          secure: true,
           changeOrigin: true
           // rewrite: path => path.replace(/^\/api/, "")
         }
