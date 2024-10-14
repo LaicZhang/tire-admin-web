@@ -50,7 +50,7 @@
     "@pureadmin/table": "^3.2.1",
     "@pureadmin/utils": "^2.4.8",
     "@vueuse/core": "^11.1.0",
-    "@vueuse/motion": "^2.2.5",
+    "@vueuse/motion": "^2.2.6",
     "animate.css": "^4.1.1",
     "axios": "^1.7.7",
     "dayjs": "^1.11.13",
