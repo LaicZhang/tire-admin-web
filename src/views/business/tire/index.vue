@@ -7,27 +7,40 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getTireListApi, deleteTireApi } from "@/api";
+import { getTireListApi, deleteTireApi, getDepartmentWithEmpApi } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
   name: "Tire"
 });
-const dataList = ref([]);
-const loading = ref(false);
-const formRef = ref();
-const form = ref({
-  group: "",
-  name: "",
-  desc: ""
-});
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
+const dataList = ref([]),
+  loading = ref(false),
+  formRef = ref(),
+  form = ref({
+    group: "",
+    name: "",
+    desc: ""
+  }),
+  pagination = ref({
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  });
+
+const getEmployeesWithTire = async () => {
+  const { data, code } = await getDepartmentWithEmpApi();
+  if (code === 200) {
+    console.log(data);
+    data.forEach(item => {
+      localStorage.setItem(
+        "department-with-employees:" + item.id,
+        JSON.stringify(item)
+      );
+    });
+  }
+};
 const getTireListInfo = async () => {
   const res = await getTireListApi(pagination.value.currentPage);
   if (res.code === 200) dataList.value = res.data.list;
@@ -66,6 +79,7 @@ async function handleDelete(row) {
 }
 
 onMounted(async () => {
+  await getEmployeesWithTire();
   await getTireListInfo();
 });
 </script>

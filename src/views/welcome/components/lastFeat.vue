@@ -9,10 +9,11 @@ import { formatDate, message } from "@/utils";
 defineOptions({
   name: "lastFeat"
 });
-const latestNewsData = ref();
-const index = ref(1);
-const getSystemUpdateLog = () => {
-  getSystemUpdateLogApi(index.value).then(res => {
+const latestNewsData = ref(),
+  index = ref(1);
+
+const getSystemUpdateLog = async () => {
+  await getSystemUpdateLogApi(index.value).then(res => {
     if (res.code === 200) {
       latestNewsData.value = res.data;
     } else {
@@ -21,8 +22,8 @@ const getSystemUpdateLog = () => {
   });
 };
 
-onMounted(() => {
-  getSystemUpdateLog();
+onMounted(async () => {
+  await getSystemUpdateLog();
 });
 </script>
 

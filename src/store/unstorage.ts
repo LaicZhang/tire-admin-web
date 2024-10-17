@@ -1,22 +1,53 @@
 import { createStorage } from "unstorage";
 import indexedDbDriver from "unstorage/drivers/indexedb";
+import localStorageDriver from "unstorage/drivers/localstorage";
 
-const storage = createStorage({
-  driver: indexedDbDriver({ base: "app:" })
-});
+export class IndexedDbStorage {
+  private indexedDbStorage;
+  constructor(base: string) {
+    this.indexedDbStorage = createStorage({
+      driver: indexedDbDriver({ base })
+    });
+  }
 
-export async function setItems(key, value) {
-  await storage.setItems(key, value);
+  setItems(key, value) {
+    this.indexedDbStorage.setItems(key, value);
+  }
+
+  getItems(key) {
+    this.indexedDbStorage.getItems(key);
+  }
+
+  setItem(key, value) {
+    this.indexedDbStorage.setItems(key, value);
+  }
+
+  getItem(key) {
+    this.indexedDbStorage.getItems(key);
+  }
 }
 
-export async function getItems(key) {
-  await storage.getItems(key);
-}
+export class LStorage {
+  private lStorage;
+  constructor(base: string) {
+    this.lStorage = createStorage({
+      driver: localStorageDriver({ base })
+    });
+  }
 
-export async function setItem(key, value) {
-  await storage.setItems(key, value);
-}
+  setItems(key, value) {
+    this.lStorage.setItems(key, value);
+  }
 
-export async function getItem(key) {
-  await storage.getItems(key);
+  getItems(key) {
+    this.lStorage.getItems(key);
+  }
+
+  setItem(key, value) {
+    this.lStorage.setItems(key, value);
+  }
+
+  getItem(key) {
+    this.lStorage.getItems(key);
+  }
 }
