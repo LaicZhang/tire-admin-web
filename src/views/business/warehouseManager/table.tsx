@@ -2,7 +2,7 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addRepoApi, updateRepoApi } from "@/api";
+import { getCompanyId, addReserveApi, updateReserveApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
@@ -60,28 +60,20 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         if (valid) {
           console.log("curData", curData);
           if (title === "新增") {
-            const { name, desc, startAt, endAt, address } = curData;
-            await addRepoApi({
+            const { name, desc } = curData;
+            await addReserveApi({
               name,
               desc,
-              startAt,
-              endAt,
-              address,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, startAt, endAt, address, status } =
-              curData;
-            await updateRepoApi(uid, {
+            const { uid, name, desc } = curData;
+            await updateReserveApi(uid, {
               name,
-              desc,
-              startAt,
-              endAt,
-              address,
-              status
+              desc
             });
             chores();
           }

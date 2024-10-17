@@ -1,6 +1,6 @@
 import { cdn } from "./cdn";
 import vue from "@vitejs/plugin-vue";
-import { viteBuildInfo } from "./info";
+// import { viteBuildInfo } from "./info";
 import svgLoader from "vite-svg-loader";
 import type { PluginOption } from "vite";
 import vueJsx from "@vitejs/plugin-vue-jsx";
@@ -24,7 +24,7 @@ export function getPluginsList(
     vue(),
     // jsx、tsx语法支持
     vueJsx(),
-    viteBuildInfo(),
+    // viteBuildInfo(),
     /**
      * 开发环境下移除非必要的vue-router动态路由警告No match found for location with path
      * 非必要具体看 https://github.com/vuejs/router/issues/521 和 https://github.com/vuejs/router/issues/359

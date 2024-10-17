@@ -6,13 +6,17 @@ import type { FormRules } from "element-plus";
 interface FormItemProps {
   uid: string;
   name: string;
-  /** 仓库编号 */
-  id: string;
+  id: number;
   desc: string;
-  startAt: string;
-  endAt: string;
-  address: string;
-  status: boolean;
+  operatorId: string;
+  level: number;
+  totalTransactionAmount: number;
+  isPublic: boolean;
+  province: string;
+  isIndividual: boolean;
+  from: string;
+  limit: number;
+  discount: number;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -21,12 +25,17 @@ const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     uid: "",
     name: "",
-    id: "",
+    id: 0,
     desc: "",
-    startAt: "",
-    endAt: "",
-    address: "",
-    status: true
+    operatorId: "",
+    level: 0,
+    totalTransactionAmount: 0,
+    isPublic: false,
+    province: "",
+    isIndividual: false,
+    from: "",
+    limit: 0,
+    discount: 0
   })
 });
 /** 自定义表单规则校验 */
@@ -59,29 +68,43 @@ defineExpose({ getRef });
       />
     </el-form-item>
 
-    <el-form-item label="地址" prop="address">
+    <el-form-item label="等级" prop="level">
       <el-input
-        v-model="newFormInline.address"
+        v-model="newFormInline.level"
         clearable
-        placeholder="请输入地址"
+        placeholder="请输入等级"
       />
     </el-form-item>
 
-    <el-form-item label="启用时间" prop="startAt">
-      <el-date-picker
-        v-model="newFormInline.startAt"
+    <el-form-item label="操作人" prop="operatorId">
+      <el-input
+        v-model="newFormInline.operatorId"
         clearable
-        type="datetime"
-        placeholder="请输入启用时间"
+        placeholder="请输入操作人"
       />
     </el-form-item>
 
-    <el-form-item label="停用时间" prop="endAt">
-      <el-date-picker
-        v-model="newFormInline.endAt"
+    <el-form-item label="来源" prop="from">
+      <el-input
+        v-model="newFormInline.from"
         clearable
-        type="datetime"
-        placeholder="请输入停用时间"
+        placeholder="请输入来源"
+      />
+    </el-form-item>
+
+    <el-form-item label="限额" prop="limit">
+      <el-input
+        v-model="newFormInline.limit"
+        clearable
+        placeholder="请输入限额"
+      />
+    </el-form-item>
+
+    <el-form-item label="折扣" prop="discount">
+      <el-input
+        v-model="newFormInline.discount"
+        clearable
+        placeholder="请输入折扣"
       />
     </el-form-item>
 

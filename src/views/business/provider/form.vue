@@ -4,13 +4,15 @@ import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 
 interface FormItemProps {
+  id: number;
   uid: string;
   name: string;
-  id: string;
   desc: string;
-  startAt: string;
-  endAt: string;
-  address: string;
+  operatorId: string;
+  isIndividual: boolean;
+  isPublic: boolean;
+  contactName: string;
+  province: string;
   status: boolean;
 }
 interface FormProps {
@@ -20,18 +22,19 @@ const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     uid: "",
     name: "",
-    id: "",
+    id: 0,
     desc: "",
-    startAt: "",
-    endAt: "",
-    address: "",
+    operatorId: "",
+    isIndividual: false,
+    isPublic: false,
+    contactName: "",
+    province: "",
     status: true
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }],
-  desc: [{ required: true, message: "角色标识为必填项", trigger: "blur" }]
+  name: [{ required: true, message: "名称为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
@@ -50,38 +53,44 @@ defineExpose({ getRef });
     :rules="formRules"
     label-width="82px"
   >
-    <el-form-item label="名称" prop="name">
+    <el-form-item label="客户名称" prop="name">
       <el-input
         v-model="newFormInline.name"
         clearable
-        placeholder="请输入名称"
+        placeholder="请输入客户名称"
       />
     </el-form-item>
 
-    <el-form-item label="地址" prop="address">
+    <el-form-item label="联系人" prop="contactName">
       <el-input
-        v-model="newFormInline.address"
+        v-model="newFormInline.contactName"
         clearable
-        placeholder="请输入地址"
+        placeholder="请输入联系人"
       />
     </el-form-item>
 
-    <el-form-item label="启用时间" prop="startAt">
-      <el-date-picker
-        v-model="newFormInline.startAt"
+    <el-form-item label="省份" prop="province">
+      <el-input
+        v-model="newFormInline.province"
         clearable
-        type="datetime"
-        placeholder="请输入启用时间"
+        placeholder="请输入省份"
       />
     </el-form-item>
 
-    <el-form-item label="停用时间" prop="endAt">
-      <el-date-picker
-        v-model="newFormInline.endAt"
+    <el-form-item label="操作人" prop="operatorId">
+      <el-input
+        v-model="newFormInline.operatorId"
         clearable
-        type="datetime"
-        placeholder="请输入停用时间"
+        placeholder="请输入操作人"
       />
+    </el-form-item>
+
+    <el-form-item label="是否公开" prop="isPublic">
+      <el-switch v-model="newFormInline.isPublic" />
+    </el-form-item>
+
+    <el-form-item label="是否个人" prop="isIndividual">
+      <el-switch v-model="newFormInline.isIndividual" />
     </el-form-item>
 
     <el-form-item label="备注">

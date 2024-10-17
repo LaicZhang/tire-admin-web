@@ -2,18 +2,19 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addRepoApi, updateRepoApi } from "@/api";
+import { getCompanyId, addProviderApi, updateProviderApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
+  id: number;
   uid: string;
   name: string;
-  /** 仓库编号 */
-  id: string;
   desc: string;
-  startAt: string;
-  endAt: string;
-  address: string;
+  operatorId: string;
+  isIndividual: boolean;
+  isPublic: boolean;
+  contactName: string;
+  province: string;
   status: boolean;
 }
 interface FormProps {
@@ -30,16 +31,18 @@ export function handleSelectionChange(val) {
 
 export function openDialog(title = "新增", row?: FormItemProps) {
   addDialog({
-    title: `${title}仓库`,
+    title: `${title}供应商`,
     props: {
       formInline: {
         name: row?.name ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? "",
-        startAt: row?.startAt ?? "",
-        endAt: row?.endAt ?? "",
-        address: row?.address ?? "",
-        status: row?.status ?? 0
+        operatorId: row?.operatorId ?? "",
+        isIndividual: row?.isIndividual ?? false,
+        isPublic: row?.isPublic ?? false,
+        contactName: row?.contactName ?? "",
+        province: row?.province ?? "",
+        status: row?.status ?? false
       }
     },
     width: "40%",
@@ -61,27 +64,20 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         if (valid) {
           console.log("curData", curData);
           if (title === "新增") {
-            const { name, desc, startAt, endAt, address } = curData;
-            await addRepoApi({
+            const { name, desc } = curData;
+            await addProviderApi({
               name,
               desc,
-              startAt,
-              endAt,
-              address,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, startAt, endAt, address, status } =
-              curData;
-            await updateRepoApi(uid, {
+            const { uid, name, desc, status } = curData;
+            await updateProviderApi(uid, {
               name,
               desc,
-              startAt,
-              endAt,
-              address,
               status
             });
             chores();

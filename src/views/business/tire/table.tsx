@@ -2,19 +2,28 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addRepoApi, updateRepoApi } from "@/api";
+import { getCompanyId, addTireApi, updateTireApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
-  uid: string;
+  id?: number;
+  uid?: string;
+  group: string;
   name: string;
-  /** 仓库编号 */
-  id: string;
   desc: string;
-  startAt: string;
-  endAt: string;
-  address: string;
-  status: boolean;
+  unit: string;
+  pattern: string;
+  brand: string;
+  loadIndex: string;
+  speedLevel: string;
+  format: string;
+  weight: string;
+  purchasePriceWithTax: string;
+  purchasePrice: string;
+  salePriceWithTax: string;
+  salePrice: string;
+  commissionType: number;
+  commission: string;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -33,13 +42,23 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     title: `${title}轮胎`,
     props: {
       formInline: {
+        id: row?.id ?? 0,
         name: row?.name ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? "",
-        startAt: row?.startAt ?? "",
-        endAt: row?.endAt ?? "",
-        address: row?.address ?? "",
-        status: row?.status ?? 0
+        unit: row?.unit ?? "",
+        pattern: row?.pattern ?? "",
+        brand: row?.brand ?? "",
+        loadIndex: row?.loadIndex ?? "",
+        speedLevel: row?.speedLevel ?? "",
+        format: row?.format ?? "",
+        weight: row?.weight ?? "",
+        purchasePriceWithTax: row?.purchasePriceWithTax ?? 0n,
+        purchasePrice: row?.purchasePrice ?? 0n,
+        salePriceWithTax: row?.salePriceWithTax ?? 0n,
+        salePrice: row?.salePrice ?? 0n,
+        commissionType: row?.commissionType ?? 0,
+        commission: row?.commission ?? 0n
       }
     },
     width: "40%",
@@ -61,28 +80,20 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         if (valid) {
           console.log("curData", curData);
           if (title === "新增") {
-            const { name, desc, startAt, endAt, address } = curData;
-            await addRepoApi({
+            const { name, desc } = curData;
+            await addTireApi({
               name,
               desc,
-              startAt,
-              endAt,
-              address,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, startAt, endAt, address, status } =
-              curData;
-            await updateRepoApi(uid, {
+            const { uid, name, desc } = curData;
+            await updateTireApi(uid, {
               name,
-              desc,
-              startAt,
-              endAt,
-              address,
-              status
+              desc
             });
             chores();
           }

@@ -2,19 +2,23 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addRepoApi, updateRepoApi } from "@/api";
+import { getCompanyId, addCustomerApi, updateCustomerApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
   uid: string;
   name: string;
-  /** 仓库编号 */
-  id: string;
+  id: number;
   desc: string;
-  startAt: string;
-  endAt: string;
-  address: string;
-  status: boolean;
+  operatorId: string;
+  level: number;
+  totalTransactionAmount: number;
+  isPublic: boolean;
+  province: string;
+  isIndividual: boolean;
+  from: string;
+  limit: number;
+  discount: number;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -36,10 +40,16 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         name: row?.name ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? "",
-        startAt: row?.startAt ?? "",
-        endAt: row?.endAt ?? "",
-        address: row?.address ?? "",
-        status: row?.status ?? 0
+        id: row?.id ?? 0,
+        operatorId: row?.operatorId ?? "",
+        level: row?.level ?? 0,
+        totalTransactionAmount: row?.totalTransactionAmount ?? 0,
+        isPublic: row?.isPublic ?? false,
+        province: row?.province ?? "",
+        isIndividual: row?.isIndividual ?? false,
+        from: row?.from ?? "",
+        limit: row?.limit ?? 0,
+        discount: row?.discount ?? 0
       }
     },
     width: "40%",
@@ -61,28 +71,20 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         if (valid) {
           console.log("curData", curData);
           if (title === "新增") {
-            const { name, desc, startAt, endAt, address } = curData;
-            await addRepoApi({
+            const { name, desc } = curData;
+            await addCustomerApi({
               name,
               desc,
-              startAt,
-              endAt,
-              address,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, startAt, endAt, address, status } =
-              curData;
-            await updateRepoApi(uid, {
+            const { uid, name, desc } = curData;
+            await updateCustomerApi(uid, {
               name,
-              desc,
-              startAt,
-              endAt,
-              address,
-              status
+              desc
             });
             chores();
           }

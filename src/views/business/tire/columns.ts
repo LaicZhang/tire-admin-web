@@ -20,6 +20,14 @@ export const columns = [
     prop: "pattern"
   },
   {
+    label: "进价",
+    prop: "purchasePrice"
+  },
+  {
+    label: "售价",
+    prop: "salePrice"
+  },
+  {
     label: "备注",
     prop: "desc"
   },
