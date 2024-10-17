@@ -70,11 +70,13 @@ declare global {
     VITE_CDN: boolean;
     VITE_HIDE_HOME: string;
     VITE_COMPRESSION: ViteCompression;
+    VITE_SERVER_URL: string;
   }
 
   /**
    *  继承 `@pureadmin/table` 的 `TableColumns` ，方便全局直接调用
    */
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface TableColumnList extends Array<TableColumns> {}
 
   /**

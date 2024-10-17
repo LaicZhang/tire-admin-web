@@ -32,7 +32,6 @@ const dataList = ref([]),
 const getEmployeesWithTire = async () => {
   const { data, code } = await getDepartmentWithEmpApi();
   if (code === 200) {
-    console.log(data);
     data.forEach(item => {
       localStorage.setItem(
         "department-with-employees:" + item.id,

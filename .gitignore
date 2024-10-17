@@ -21,4 +21,3 @@ tests/**/coverage/
 *.njsproj
 *.sln
 tsconfig.tsbuildinfo
-vite.config.ts

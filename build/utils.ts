@@ -56,7 +56,8 @@ const warpperEnv = (envConf: Recordable): ViteEnv => {
     VITE_ROUTER_HISTORY: "",
     VITE_CDN: false,
     VITE_HIDE_HOME: "false",
-    VITE_COMPRESSION: "none"
+    VITE_COMPRESSION: "none",
+    VITE_SERVER_URL: "http://localhost:3000"
   };
 
   for (const envName of Object.keys(envConf)) {
@@ -86,6 +87,7 @@ const getPackageSize = options => {
     if (err) throw err;
     let count = 0;
     const checkEnd = () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       ++count == files.length &&
         callback(format ? formatBytes(sum(fileListTotal)) : sum(fileListTotal));
     };
@@ -103,6 +105,7 @@ const getPackageSize = options => {
         }
       });
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     files.length === 0 && callback(0);
   });
 };
