@@ -11,7 +11,7 @@ export function getCompanyId() {
   return useCurrentCompanyStoreHook().companyId;
 }
 
-export async function getCompanyListApi(index: number, params?: Object) {
+export async function getCompanyListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),
@@ -19,7 +19,7 @@ export async function getCompanyListApi(index: number, params?: Object) {
   );
 }
 
-export async function addCompanyApi(data: Object) {
+export async function addCompanyApi(data: object) {
   return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data
   });
@@ -29,7 +29,7 @@ export async function getCompanyApi(uid = cid) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateCompanyApi(uid = cid, data: Object) {
+export async function updateCompanyApi(uid = cid, data: object) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });

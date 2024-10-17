@@ -31,14 +31,13 @@ export const useImageVerify = (width = 120, height = 40) => {
 };
 
 function randomNum(min: number, max: number) {
-  const num = Math.floor(Math.random() * (max - min) + min);
-  return num;
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 function randomColor(min: number, max: number) {
-  const r = randomNum(min, max);
-  const g = randomNum(min, max);
-  const b = randomNum(min, max);
+  const r = randomNum(min, max),
+    g = randomNum(min, max),
+    b = randomNum(min, max);
   return `rgb(${r},${g},${b})`;
 }
 
