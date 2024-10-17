@@ -56,8 +56,8 @@ const warpperEnv = (envConf: Recordable): ViteEnv => {
     VITE_ROUTER_HISTORY: "",
     VITE_CDN: false,
     VITE_HIDE_HOME: "false",
-    VITE_COMPRESSION: "none",
-    VITE_SERVER_URL: "http://localhost:3000"
+    VITE_COMPRESSION: "none"
+    // VITE_SERVER_URL: "http://localhost:3000"
   };
 
   for (const envName of Object.keys(envConf)) {
