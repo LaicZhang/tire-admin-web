@@ -35,13 +35,12 @@ const props = withDefaults(defineProps<FormProps>(), {
     isIndividual: false,
     from: "",
     limit: 0,
-    discount: 0
+    discount: 10
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }],
-  desc: [{ required: true, message: "角色标识为必填项", trigger: "blur" }]
+  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();

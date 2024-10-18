@@ -167,6 +167,7 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
+                @click="openDialog('修改', row)"
               >
                 修改
               </el-button>

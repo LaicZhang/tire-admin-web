@@ -29,9 +29,10 @@ const pagination = ref({
 });
 const getCustomerListInfo = async () => {
   const res = await getCustomerListApi(pagination.value.currentPage);
-  if (res.code === 200) dataList.value = res.data.list;
+  const { code, data } = res;
+  if (code === 200) dataList.value = data.list;
   else message(res.message, { type: "error" });
-  pagination.value.total = res.data.count;
+  pagination.value.total = data.count;
 };
 const onSearch = async () => {
   loading.value = true;
@@ -142,21 +143,20 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
+                @click="openDialog('查看', row)"
+              >
+                查看
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
                 :icon="useRenderIcon(EditPen)"
+                @click="openDialog('修改', row)"
               >
                 修改
               </el-button>
-
-              <!-- <el-popconfirm
-                :title="`是否确认停用${row.name}`"
-                @confirm="handleToggleCustomer(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="primary">
-                    {{ row.status === true ? "停用" : "启用" }}
-                  </el-button>
-                </template>
-              </el-popconfirm> -->
 
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"

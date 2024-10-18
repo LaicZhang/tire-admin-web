@@ -34,7 +34,7 @@ export function handleSelectionChange(val) {
 
 export function openDialog(title = "新增", row?: FormItemProps) {
   addDialog({
-    title: `${title}仓库`,
+    title: `${title}客户`,
     props: {
       formInline: {
         name: row?.name ?? "",
@@ -49,10 +49,11 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         isIndividual: row?.isIndividual ?? false,
         from: row?.from ?? "",
         limit: row?.limit ?? 0,
-        discount: row?.discount ?? 0
+        discount: row?.discount ?? 10
       }
     },
     width: "40%",
+    hideFooter: title === "查看" ? true : false,
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
@@ -70,21 +71,30 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id, uid, operatorId, ...customerData } = curData;
           if (title === "新增") {
-            const { name, desc } = curData;
             await addCustomerApi({
-              name,
-              desc,
-              company: {
-                connect: { uid: await getCompanyId() }
+              customer: {
+                ...customerData,
+                operator: {
+                  connect: { uid: null }
+                },
+                company: {
+                  connect: { uid: await getCompanyId() }
+                }
               }
             });
             chores();
           } else {
-            const { uid, name, desc } = curData;
             await updateCustomerApi(uid, {
-              name,
-              desc
+              ...customerData,
+              operator: {
+                connect: { uid: operatorId }
+              },
+              company: {
+                connect: { uid: await getCompanyId() }
+              }
             });
             chores();
           }

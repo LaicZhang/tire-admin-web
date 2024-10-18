@@ -46,6 +46,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       }
     },
     width: "40%",
+    hideFooter: title === "查看" ? true : false,
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
@@ -63,22 +64,32 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id, uid, operatorId, ...customerData } = curData;
           if (title === "新增") {
-            const { name, desc } = curData;
             await addProviderApi({
-              name,
-              desc,
-              company: {
-                connect: { uid: await getCompanyId() }
+              provider: {
+                ...customerData,
+                operator: {
+                  connect: { uid: null }
+                },
+                company: {
+                  connect: { uid: await getCompanyId() }
+                }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, status } = curData;
             await updateProviderApi(uid, {
-              name,
-              desc,
-              status
+              provider: {
+                ...customerData,
+                operator: {
+                  connect: { uid: operatorId }
+                },
+                company: {
+                  connect: { uid: await getCompanyId() }
+                }
+              }
             });
             chores();
           }

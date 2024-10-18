@@ -159,21 +159,20 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
+                @click="openDialog('查看', row)"
+              >
+                查看
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
                 :icon="useRenderIcon(EditPen)"
+                @click="openDialog('修改', row)"
               >
                 修改
               </el-button>
-
-              <!-- <el-popconfirm
-                :title="`是否确认停用${row.name}`"
-                @confirm="handleToggleTire(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="primary">
-                    {{ row.status === true ? "停用" : "启用" }}
-                  </el-button>
-                </template>
-              </el-popconfirm> -->
 
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"

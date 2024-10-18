@@ -17,14 +17,14 @@ export const columns = [
     label: "状态",
     prop: "status",
     formatter: (row, column, cellValue) => {
-      return cellValue === true ? "正常" : "停用";
+      return cellValue === true ? "正常" : "异常";
     }
   },
   {
     label: "是否个人",
     prop: "isIndividual",
     formatter: (row, column, cellValue) => {
-      return cellValue === true ? "正常" : "停用";
+      return cellValue === true ? "个人" : "公司";
     }
   },
   {

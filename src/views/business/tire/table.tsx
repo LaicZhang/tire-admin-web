@@ -17,10 +17,10 @@ interface FormItemProps {
   loadIndex: string;
   speedLevel: string;
   format: string;
-  weight: string;
-  purchasePriceWithTax: string;
-  purchasePrice: string;
-  salePriceWithTax: string;
+  weight: number;
+  purchasePriceWithTax: number;
+  purchasePrice: number;
+  salePriceWithTax: number;
   salePrice: string;
   commissionType: number;
   commission: string;
@@ -46,22 +46,23 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         name: row?.name ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? "",
-        unit: row?.unit ?? "",
+        unit: row?.unit ?? "条",
         pattern: row?.pattern ?? "",
         brand: row?.brand ?? "",
         loadIndex: row?.loadIndex ?? "",
         speedLevel: row?.speedLevel ?? "",
         format: row?.format ?? "",
-        weight: row?.weight ?? "",
-        purchasePriceWithTax: row?.purchasePriceWithTax ?? 0n,
-        purchasePrice: row?.purchasePrice ?? 0n,
-        salePriceWithTax: row?.salePriceWithTax ?? 0n,
-        salePrice: row?.salePrice ?? 0n,
+        weight: row?.weight ?? 0,
+        purchasePriceWithTax: row?.purchasePriceWithTax ?? 0,
+        purchasePrice: row?.purchasePrice ?? 0,
+        salePriceWithTax: row?.salePriceWithTax ?? 0,
+        salePrice: row?.salePrice ?? 0,
         commissionType: row?.commissionType ?? 0,
-        commission: row?.commission ?? 0n
+        commission: row?.commission ?? 0
       }
     },
     width: "40%",
+    hideFooter: title === "查看" ? true : false,
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
@@ -79,21 +80,22 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id, uid, ...customerData } = curData;
           if (title === "新增") {
-            const { name, desc } = curData;
             await addTireApi({
-              name,
-              desc,
+              ...customerData,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc } = curData;
             await updateTireApi(uid, {
-              name,
-              desc
+              ...customerData,
+              company: {
+                connect: { uid: await getCompanyId() }
+              }
             });
             chores();
           }
