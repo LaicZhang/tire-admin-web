@@ -2,37 +2,17 @@
 import { ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
+import { PurchaseFormProps } from "./props/purchase";
 
-interface FormItemProps {
-  uid: string;
-  name: string;
-  /** 仓库编号 */
-  id: string;
-  desc: string;
-  startAt: string;
-  endAt: string;
-  address: string;
-  status: boolean;
-}
-interface FormProps {
-  formInline: FormItemProps;
-}
-const props = withDefaults(defineProps<FormProps>(), {
+const props = withDefaults(defineProps<PurchaseFormProps>(), {
   formInline: () => ({
     uid: "",
-    name: "",
-    id: "",
-    desc: "",
-    startAt: "",
-    endAt: "",
-    address: "",
-    status: true
+    id: 0
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }],
-  desc: [{ required: true, message: "角色标识为必填项", trigger: "blur" }]
+  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();

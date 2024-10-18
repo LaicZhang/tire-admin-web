@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { columns } from "./columns";
+import { purchaseOrderColumns, saleOrderColumns } from "./props";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "@iconify-icons/ep/refresh";
 import Delete from "@iconify-icons/ep/delete";
@@ -8,8 +8,9 @@ import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
 import { getOrderListApi, deleteOrderApi } from "@/api";
-import { message, ORDER_TYPE, ORDER_TYPE_LIST } from "@/utils";
+import { getOrderTypeList, message, ORDER_TYPE } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { useUserStoreHook } from "@/store/modules/user";
 
 defineOptions({
   name: "tire"
@@ -27,7 +28,15 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
+
+const columns = ref([]);
+const employeeList = ref([]);
+const userRoles = useUserStoreHook().roles;
+const curOrderType = ref("");
+const orderTypeList = ref(getOrderTypeList(userRoles));
+
 const getOrderListInfo = async () => {
+  if (orderType.value === "") return;
   const res = await getOrderListApi(
     orderType.value,
     pagination.value.currentPage
@@ -37,8 +46,8 @@ const getOrderListInfo = async () => {
   pagination.value.total = res.data.count;
 };
 const onSearch = async () => {
+  curOrderType.value = orderType.value;
   loading.value = true;
-  if (form.value.desc === "") await getOrderListInfo();
 
   const { data } = await getOrderListApi(
     orderType.value,
@@ -58,6 +67,16 @@ const resetForm = formEl => {
   if (!formEl) return;
   formEl.resetFields();
   loading.value = false;
+};
+
+const setOrderType = async () => {
+  console.log("setOrderType", orderType.value);
+  if (orderType.value === ORDER_TYPE.purchase) {
+    columns.value = purchaseOrderColumns;
+  } else if (orderType.value === ORDER_TYPE.sale) {
+    columns.value = saleOrderColumns;
+  }
+  await onSearch();
 };
 
 async function handleCurrentChange(val: number) {
@@ -82,9 +101,9 @@ onMounted(async () => {
 <template>
   <div class="main">
     <el-card class="m-2">
-      <el-radio-group v-model="orderType" @change="onSearch">
+      <el-radio-group v-model="orderType" @change="setOrderType">
         <el-radio
-          v-for="item in ORDER_TYPE_LIST"
+          v-for="item in orderTypeList"
           :key="item.value"
           :value="item.value"
           >{{ item.label }}</el-radio
@@ -98,9 +117,9 @@ onMounted(async () => {
         :inline="true"
         class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
       >
-        <el-form-item label="操作人：" prop="name">
+        <el-form-item label="操作人：" prop="operatorId">
           <el-select
-            v-model="form.name"
+            v-model="form.operatorId"
             placeholder="请选择操作人"
             clearable
             class="!w-[180px]"
@@ -166,22 +185,20 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
+                @click="openDialog('查看', row)"
+              >
+                查看
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
                 :icon="useRenderIcon(EditPen)"
                 @click="openDialog('修改', row)"
               >
                 修改
               </el-button>
-
-              <el-popconfirm
-                :title="`是否确认停用${row.name}`"
-                @confirm="handleToggleOrder(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="primary">
-                    {{ row.status === true ? "停用" : "启用" }}
-                  </el-button>
-                </template>
-              </el-popconfirm>
 
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"

@@ -5,23 +5,6 @@ import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addRepoApi, updateRepoApi } from "@/api";
 import editForm from "./form.vue";
 
-interface FormItemProps {
-  uid: string;
-  name: string;
-  /** 仓库编号 */
-  id: string;
-  desc: string;
-  startAt: string;
-  endAt: string;
-  address: string;
-  status: boolean;
-}
-interface FormProps {
-  formInline: FormItemProps;
-}
-
-export type { FormItemProps, FormProps };
-
 const formRef = ref(null);
 
 export function handleSelectionChange(val) {
@@ -30,16 +13,12 @@ export function handleSelectionChange(val) {
 
 export function openDialog(title = "新增", row?: FormItemProps) {
   addDialog({
-    title: `${title}仓库`,
+    title: `${title}订单`,
     props: {
       formInline: {
         name: row?.name ?? "",
         uid: row?.uid ?? "",
-        desc: row?.desc ?? "",
-        startAt: row?.startAt ?? "",
-        endAt: row?.endAt ?? "",
-        address: row?.address ?? "",
-        status: row?.status ?? 0
+        desc: row?.desc ?? ""
       }
     },
     width: "40%",
@@ -51,7 +30,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     contentRenderer: () => h(editForm, { ref: formRef }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
-      const curData = options.props.formInline as FormItemProps;
+      const curData = options.props.formInline;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"

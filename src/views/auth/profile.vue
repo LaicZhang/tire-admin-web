@@ -124,6 +124,7 @@ import { getUserInfoApi } from "@/api";
 // import User from "@iconify-icons/ri/user-3-fill";
 import { message } from "@/utils/message";
 import type { ComponentSize } from "element-plus";
+import { userInfoTemplate } from "./info";
 
 defineOptions({
   name: "profile"
@@ -150,22 +151,7 @@ const size = ref<ComponentSize>("default");
 //   };
 // });
 
-const userInfo = ref({
-  phone: "",
-  email: "",
-  username: "",
-  info: {
-    id: 0,
-    userId: "",
-    avatarId: "",
-    nickname: "",
-    isRealName: false,
-    birthday: "",
-    gender: 1,
-    isCN: true,
-    updateAt: ""
-  }
-});
+const userInfo = ref(userInfoTemplate);
 const getUserInfo = async () => {
   const res = await getUserInfoApi();
   const { data, code } = res;
