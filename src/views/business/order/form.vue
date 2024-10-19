@@ -2,12 +2,29 @@
 import { ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
-import { PurchaseFormProps } from "./props/purchase";
+import { PurchaseFormProps, SaleFormProps } from "./props";
 
-const props = withDefaults(defineProps<PurchaseFormProps>(), {
+const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
   formInline: () => ({
     uid: "",
-    id: 0
+    id: 0,
+    desc: "",
+    operatorId: "",
+    auditorId: "",
+    count: 0,
+    total: 0,
+    orderStatus: 0,
+    logisticsStatus: 0,
+    paidAmount: 0,
+    isApproved: false,
+    isLocked: false,
+    rejectReason: "",
+    paymentId: "",
+    auditAt: null,
+    arrivalAt: null,
+    payAt: null,
+    providerId: "",
+    customerId: ""
   })
 });
 /** 自定义表单规则校验 */

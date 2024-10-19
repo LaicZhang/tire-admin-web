@@ -1,9 +1,8 @@
 export interface PurchaseFormItemProps {
   id: number;
   uid: string;
-  name: string;
   providerId: string;
-  desc: string;
+  desc?: string;
   operatorId: string;
   auditorId: string;
   count: number;

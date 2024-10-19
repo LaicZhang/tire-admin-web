@@ -11,12 +11,11 @@ export function handleSelectionChange(val) {
   console.log("handleSelectionChange", val);
 }
 
-export function openDialog(title = "新增", row?: FormItemProps) {
+export function openDialog(title = "新增", row?) {
   addDialog({
     title: `${title}订单`,
     props: {
       formInline: {
-        name: row?.name ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? ""
       }

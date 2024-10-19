@@ -194,7 +194,37 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                :icon="useRenderIcon(EditPen)"
+                @click="openDialog('审核', row)"
+              >
+                审核
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                @click="openDialog('更新物流', row)"
+              >
+                更新物流
+              </el-button>
+
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.purchase ||
+                  orderType === ORDER_TYPE.sale
+                "
+                class="reset-margin"
+                link
+                type="primary"
+                @click="openDialog('付款', row)"
+              >
+                {{ orderType === ORDER_TYPE.purchase ? "付款" : "收款" }}
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
                 @click="openDialog('修改', row)"
               >
                 修改
