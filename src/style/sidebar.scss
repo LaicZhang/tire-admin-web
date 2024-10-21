@@ -263,8 +263,9 @@
     }
 
     & > .el-menu {
-      i {
-        margin-right: 20px;
+      i,
+      svg {
+        margin-right: 5px;
       }
     }
 
@@ -461,6 +462,8 @@
 
       /* 搜索 */
       .search-container,
+      /* 国际化 */
+      .globalization,
       /* 全屏 */
       .fullscreen-icon,
       /* 消息通知 */
@@ -477,6 +480,15 @@
       .dropdown-badge {
         height: 48px;
         color: $subMenuActiveText;
+      }
+
+      .globalization {
+        width: 40px;
+        height: 48px;
+        padding: 11px;
+        color: $subMenuActiveText;
+        cursor: pointer;
+        outline: none;
       }
 
       .el-dropdown-link {
@@ -559,6 +571,7 @@
     }
 
     .sidebar-container {
+      z-index: 2001;
       width: $sideBarWidth;
       transition: transform var(--pure-transition-duration);
     }
@@ -634,6 +647,8 @@ body[layout="vertical"] {
 
   /* 搜索 */
   .search-container,
+  /* 国际化 */
+  .globalization,
   /* 全屏 */
   .fullscreen-icon,
   /* 消息通知 */
