@@ -8,6 +8,8 @@ import {
   getKeyList
 } from "@pureadmin/utils";
 
+import Fullscreen from "@iconify-icons/ri/fullscreen-fill";
+import ExitFullscreen from "@iconify-icons/ri/fullscreen-exit-fill";
 import Sortable from "sortablejs";
 import DragIcon from "./svg/drag.svg?component";
 import ExpandIcon from "./svg/expand.svg?component";
@@ -39,11 +41,12 @@ const props = {
 export default defineComponent({
   name: "PureTableBar",
   props,
-  emits: ["refresh"],
+  emits: ["refresh", "fullscreen"],
   setup(props, { emit, slots, attrs }) {
     const size = ref("default");
     const loading = ref(false);
     const checkAll = ref(true);
+    const isFullscreen = ref(false);
     const isIndeterminate = ref(false);
     const isExpandAll = ref(props.isExpandAll);
     const filterColumns = cloneDeep(props?.columns).filter(column =>
@@ -98,6 +101,11 @@ export default defineComponent({
     function onExpand() {
       isExpandAll.value = !isExpandAll.value;
       toggleRowExpansionAll(props.tableRef.data, isExpandAll.value);
+    }
+
+    function onFullscreen() {
+      isFullscreen.value = !isFullscreen.value;
+      emit("fullscreen", isFullscreen.value);
     }
 
     function toggleRowExpansionAll(data, isExpansion) {
@@ -225,7 +233,18 @@ export default defineComponent({
 
     return () => (
       <>
-        <div {...attrs} class="w-[99/100] mt-2 px-2 pb-2 bg-bg_color">
+        <div
+          {...attrs}
+          class={[
+            "w-[99/100]",
+            "px-2",
+            "pb-2",
+            "bg-bg_color",
+            isFullscreen.value
+              ? ["!w-full", "!h-full", "z-[2002]", "fixed", "inset-0"]
+              : "mt-2"
+          ]}
+        >
           <div class="flex justify-between w-full h-[60px] p-4">
             {slots?.title ? (
               slots.title()
@@ -337,6 +356,14 @@ export default defineComponent({
                   </el-scrollbar>
                 </div>
               </el-popover>
+              <el-divider direction="vertical" />
+
+              <iconifyIconOffline
+                class={["w-[16px]", iconClass.value]}
+                icon={isFullscreen.value ? ExitFullscreen : Fullscreen}
+                v-tippy={isFullscreen.value ? "退出全屏" : "全屏"}
+                onClick={() => onFullscreen()}
+              />
             </div>
           </div>
           {slots.default({
