@@ -104,7 +104,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <el-card class="m-2">
+  <el-card class="m-1">
     <PlusSearch
       v-model="state"
       :columns="formColumns"
@@ -117,7 +117,7 @@ onMounted(async () => {
     />
   </el-card>
 
-  <el-card class="m-2">
+  <el-card class="m-1">
     <PureTableBar :title="$route.meta.title">
       <pure-table
         ref="tableRef"

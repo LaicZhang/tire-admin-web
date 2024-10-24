@@ -73,7 +73,7 @@ onMounted(async () => {
 
 <template>
   <div class="main">
-    <el-card class="m-2">
+    <el-card class="m-1">
       <el-form
         ref="formRef"
         :inline="true"
@@ -119,7 +119,7 @@ onMounted(async () => {
       </el-form>
     </el-card>
 
-    <el-card class="m-2">
+    <el-card class="m-1">
       <PureTableBar :title="$route.meta.title" @refresh="getEmployeeListInfo">
         <template #buttons>
           <el-button

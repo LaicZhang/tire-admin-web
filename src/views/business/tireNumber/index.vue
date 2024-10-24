@@ -7,12 +7,12 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getSalaryListApi, deleteSalaryApi } from "@/api";
+import { getTireNumberListApi, deleteTireNumberApi } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
-  name: "salary"
+  name: "tireNumber"
 });
 const dataList = ref([]);
 const loading = ref(false);
@@ -27,8 +27,8 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
-const getSalaryListInfo = async () => {
-  const res = await getSalaryListApi(pagination.value.currentPage);
+const getReserveListInfo = async () => {
+  const res = await getTireNumberListApi(pagination.value.currentPage);
   if (res.code === 200) dataList.value = res.data.list;
   else message(res.message, { type: "error" });
   pagination.value.total = res.data.count;
@@ -36,9 +36,9 @@ const getSalaryListInfo = async () => {
 const onSearch = async () => {
   loading.value = true;
   if (form.value.name === "" && form.value.desc === "")
-    await getSalaryListInfo();
+    await getReserveListInfo();
 
-  const { data } = await getSalaryListApi(pagination.value.currentPage, {
+  const { data } = await getTireNumberListApi(pagination.value.currentPage, {
     name: form.value.name,
     desc: form.value.desc
   });
@@ -57,15 +57,20 @@ const resetForm = formEl => {
 
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
-  await getSalaryListInfo();
+  await getReserveListInfo();
 }
 async function handleDelete(row) {
-  await deleteSalaryApi(row.uid);
+  await deleteTireNumberApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
+// async function handleToggleReserve(row) {
+//   await toggleReserveApi(row.uid);
+//   onSearch();
+// }
+
 onMounted(async () => {
-  await getSalaryListInfo();
+  await getReserveListInfo();
 });
 </script>
 
@@ -110,14 +115,16 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getSalaryListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="getReserveListInfo">
         <template #buttons>
+          <el-button type="primary" @click="openDialog()"> 胎号管理 </el-button>
+
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
           >
-            新增薪资模板
+            新增库存
           </el-button>
         </template>
         <template v-slot="{ size }">
@@ -146,21 +153,27 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
               >
                 修改
               </el-button>
+
+              <!-- <el-popconfirm
+                :title="`是否确认停用${row.name}`"
+                @confirm="handleToggleReserve(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="primary">
+                    {{ row.status === true ? "停用" : "启用" }}
+                  </el-button>
+                </template>
+              </el-popconfirm> -->
+
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"
               >
                 <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="danger"
-                    :icon="useRenderIcon(Delete)"
-                  >
+                  <el-button class="reset-margin" link type="danger">
                     删除
                   </el-button>
                 </template>

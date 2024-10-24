@@ -48,7 +48,7 @@ onMounted(async () => {
 
 <template>
   <div class="mb-2 items-center text-sm">
-    <el-card class="m-2">
+    <el-card class="m-1">
       <el-radio-group v-model="type" @change="getHistory">
         <el-radio :value="1">登录记录</el-radio>
         <el-radio :value="2">操作记录</el-radio>
@@ -56,7 +56,7 @@ onMounted(async () => {
       </el-radio-group>
     </el-card>
 
-    <el-card class="m-2">
+    <el-card class="m-1">
       <pure-table
         ref="tableRef"
         border

@@ -378,7 +378,7 @@ export default [
     redirect: null,
     isShow: true,
     meta: {
-      roles: ["admin", "boss", "common", "officer"],
+      roles: ["admin", "boss", "officer"],
       title: "业务管理",
       icon: "ep:management",
       rank: 10
@@ -447,6 +447,21 @@ export default [
       },
       {
         id: 31,
+        uid: "5cd4bf61-a0bf-449f-b4d4-cf8254745b27",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "tireNumber",
+        path: "/business/tireNumber",
+        redirect: null,
+        component: () => import("@/views/business/tireNumber/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "purchaser", "seller"],
+          title: "胎号管理",
+          icon: null
+        }
+      },
+      {
+        id: 32,
         uid: "5cd4bf61-a0bf-449f-b4d4-cf8254745b27",
         parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
         name: "order",

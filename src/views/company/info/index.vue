@@ -24,7 +24,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <el-card class="m-2">
+  <el-card class="m-1">
     <PureDescriptions
       border
       :data

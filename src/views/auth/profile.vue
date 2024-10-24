@@ -1,5 +1,5 @@
 <template>
-  <el-card class="m-2">
+  <el-card class="m-1">
     <el-descriptions
       class="margin-top"
       title="个人基础信息"
