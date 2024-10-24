@@ -12,7 +12,7 @@ import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
-  name: "warehouseManager"
+  name: "warehouseManagement"
 });
 const dataList = ref([]);
 const loading = ref(false);

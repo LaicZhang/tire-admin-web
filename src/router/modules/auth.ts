@@ -403,10 +403,11 @@ export default [
         id: 28,
         uid: "dd712740-a20f-4618-8a4a-b6c94dc4a93a",
         parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
-        name: "warehouseManager",
-        path: "/business/warehouseManager",
+        name: "warehouseManagement",
+        path: "/business/warehouseManagement",
         redirect: null,
-        component: () => import("@/views/business/warehouseManager/index.vue"),
+        component: () =>
+          import("@/views/business/warehouseManagement/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "warehouseManager", "purchaser", "seller"],
