@@ -6,14 +6,12 @@ import { getCompanyId, addReserveApi, updateReserveApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
-  uid: string;
-  name: string;
-  id: string;
+  id: number;
+  number: string;
   desc: string;
-  startAt: string;
-  endAt: string;
-  address: string;
-  status: boolean;
+  tireId: string;
+  isLocked: boolean;
+  isInRepo: boolean;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -32,13 +30,12 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     title: `${title}库存`,
     props: {
       formInline: {
-        name: row?.name ?? "",
-        uid: row?.uid ?? "",
+        number: row?.number ?? "",
+        id: row?.id ?? "",
         desc: row?.desc ?? "",
-        startAt: row?.startAt ?? "",
-        endAt: row?.endAt ?? "",
-        address: row?.address ?? "",
-        status: row?.status ?? 0
+        tireId: row?.tireId ?? "",
+        isLocked: row?.isLocked ?? false,
+        isInRepo: row?.isInRepo ?? false
       }
     },
     width: "40%",
@@ -52,7 +49,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       const FormRef = formRef.value.getRef();
       const curData = options.props.formInline as FormItemProps;
       function chores() {
-        message(`您${title}了名称为${curData.name}的这条数据`, {
+        message(`您${title}了id为${curData.id}的这条数据`, {
           type: "success"
         });
         done(); // 关闭弹框
@@ -60,21 +57,18 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          const { id, ...curTireNumberData } = curData;
           if (title === "新增") {
-            const { name, desc } = curData;
             await addReserveApi({
-              name,
-              desc,
+              ...curTireNumberData,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc } = curData;
-            await updateReserveApi(uid, {
-              name,
-              desc
+            await updateReserveApi(id, {
+              ...curTireNumberData
             });
             chores();
           }

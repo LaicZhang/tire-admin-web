@@ -5,31 +5,15 @@ export const columns = [
   },
   {
     label: "轮胎名",
-    prop: "name"
+    prop: "tireId"
   },
   {
-    label: "当前库存",
-    prop: "count"
+    label: "是否锁定",
+    prop: "isLocked"
   },
   {
-    label: "待入库",
-    prop: "toBeStocked"
-  },
-  {
-    label: "待出库",
-    prop: "toBeShipped"
-  },
-  {
-    label: "最新价",
-    prop: "lastPrice"
-  },
-  {
-    label: "历史最高价",
-    prop: "maxPriceInHistory"
-  },
-  {
-    label: "历史最低价",
-    prop: "minPriceInHistory"
+    label: "是否在库",
+    prop: "isInRepo"
   },
   {
     label: "备注",

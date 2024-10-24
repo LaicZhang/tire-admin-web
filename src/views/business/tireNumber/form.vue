@@ -3,46 +3,29 @@ import { ref, reactive } from "vue";
 import type { FormRules } from "element-plus";
 
 interface FormItemProps {
-  uid: string;
-  tireId: string;
-  count: number;
-  toBeStocked: number;
-  toBeShipped: number;
-  maxPriceInHistory: number;
-  minPriceInHistory: number;
-  averagePrice: number;
-  lastPrice: number;
-  alarmId: string;
-  repoId: string;
+  id: number;
   desc: string;
-  lastInAt: Date;
-  lastOutAt: Date;
+  number: string;
+  tireId: string;
+  isLocked: boolean;
+  isInRepo: boolean;
 }
 interface FormProps {
   formInline: FormItemProps;
 }
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    uid: "",
+    id: 0,
     tireId: "",
-    count: 0,
-    toBeStocked: 0,
-    toBeShipped: 0,
-    maxPriceInHistory: 0,
-    minPriceInHistory: 0,
-    averagePrice: 0,
-    lastPrice: 0,
-    alarmId: "",
-    repoId: "",
-    desc: "",
-    lastInAt: null,
-    lastOutAt: null
+    number: "",
+    isLocked: false,
+    isInRepo: false,
+    desc: ""
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  tireId: [{ required: true, message: "轮胎类型为必填项", trigger: "blur" }],
-  desc: [{ required: false, message: "角色标识为必填项", trigger: "blur" }]
+  tireId: [{ required: true, message: "轮胎类型为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
@@ -69,28 +52,20 @@ defineExpose({ getRef });
       />
     </el-form-item>
 
-    <el-form-item label="库存数量" prop="count">
+    <el-form-item label="轮胎胎号" prop="number">
       <el-input
-        v-model="newFormInline.count"
+        v-model="newFormInline.number"
         clearable
-        placeholder="请输入库存数量"
+        placeholder="请选择轮胎胎号"
       />
     </el-form-item>
 
-    <el-form-item label="均价" prop="averagePrice">
-      <el-input
-        v-model="newFormInline.averagePrice"
-        clearable
-        placeholder="请输入均价"
-      />
+    <el-form-item label="是否锁定">
+      <el-switch v-model="newFormInline.isLocked" />
     </el-form-item>
 
-    <el-form-item label="最新价格" prop="lastPrice">
-      <el-input
-        v-model="newFormInline.lastPrice"
-        clearable
-        placeholder="请输入最新价格"
-      />
+    <el-form-item label="是否在库">
+      <el-switch v-model:model-value="newFormInline.isInRepo" />
     </el-form-item>
 
     <el-form-item label="备注">
@@ -98,24 +73,6 @@ defineExpose({ getRef });
         v-model="newFormInline.desc"
         placeholder="请输入备注信息"
         type="textarea"
-      />
-    </el-form-item>
-
-    <el-form-item label="最新入库" prop="lastInAt">
-      <el-date-picker
-        v-model="newFormInline.lastInAt"
-        clearable
-        type="datetime"
-        placeholder="请输入最新入库时间"
-      />
-    </el-form-item>
-
-    <el-form-item label="最新出库" prop="lastOutAt">
-      <el-date-picker
-        v-model="newFormInline.lastOutAt"
-        clearable
-        type="datetime"
-        placeholder="请输入最新出库时间"
       />
     </el-form-item>
   </el-form>
