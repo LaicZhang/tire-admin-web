@@ -6,12 +6,24 @@ export const columns = [
     prop: "id"
   },
   {
-    label: "部门",
+    label: "名称",
     prop: "name"
   },
   {
-    label: "备注",
-    prop: "desc"
+    label: "基本工资",
+    prop: "base"
+  },
+  {
+    label: "绩效",
+    prop: "performance"
+  },
+  {
+    label: "全勤奖",
+    prop: "fulltimeAttendanceAward"
+  },
+  {
+    label: "补贴",
+    prop: "subsidy"
   },
   {
     label: "更新时间",
@@ -26,6 +38,10 @@ export const columns = [
     formatter: (row, column, cellValue) => {
       return formatDate(cellValue);
     }
+  },
+  {
+    label: "备注",
+    prop: "desc"
   },
   {
     label: "操作",

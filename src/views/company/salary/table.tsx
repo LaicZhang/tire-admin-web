@@ -6,14 +6,13 @@ import { getCompanyId, addSalaryApi, updateSalaryApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
-  uid: string;
-  /** 部门名称 */
   name: string;
-  /** 部门编号 */
   id: string;
-  /** 备注 */
   desc: string;
-  managerId: string;
+  base: number;
+  performance: number;
+  fulltimeAttendanceAward: number;
+  subsidy: number;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -33,7 +32,11 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     props: {
       formInline: {
         name: row?.name ?? "",
-        uid: row?.uid ?? "",
+        id: row?.id ?? "",
+        base: row?.base ?? 0,
+        performance: row?.performance ?? 0,
+        fulltimeAttendanceAward: row?.fulltimeAttendanceAward ?? 0,
+        subsidy: row?.subsidy ?? 0,
         desc: row?.desc ?? ""
       }
     },
@@ -57,19 +60,18 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         if (valid) {
           console.log("curData", curData);
           if (title === "新增") {
-            const { name, desc, managerId } = curData;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id, ...curSalaryData } = curData;
             await addSalaryApi({
-              name,
-              desc,
-              managerId,
+              ...curSalaryData,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, managerId } = curData;
-            await updateSalaryApi(uid, { name, desc, managerId });
+            const { id, ...curSalaryData } = curData;
+            await updateSalaryApi(id, { ...curSalaryData });
             chores();
           }
         }

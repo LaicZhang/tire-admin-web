@@ -80,7 +80,7 @@ onMounted(async () => {
         <el-form-item label="名称：" prop="name">
           <el-input
             v-model="form.name"
-            placeholder="请输入员工名称"
+            placeholder="请输入名称"
             clearable
             class="!w-[180px]"
           />
@@ -133,6 +133,14 @@ onMounted(async () => {
             @page-current-change="handleCurrentChange"
           >
             <template #operation="{ row }">
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                @click="openDialog('查看', row)"
+              >
+                查看
+              </el-button>
               <el-button
                 class="reset-margin"
                 link

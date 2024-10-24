@@ -137,9 +137,9 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('详情', row)"
+                @click="openDialog('查看', row)"
               >
-                详情
+                查看
               </el-button>
               <el-button
                 class="reset-margin"

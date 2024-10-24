@@ -147,6 +147,14 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
+                @click="openDialog('查看', row)"
+              >
+                查看
+              </el-button>
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
                 :icon="useRenderIcon(EditPen)"
                 @click="openDialog('修改', row)"
               >

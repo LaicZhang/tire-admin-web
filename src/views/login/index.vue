@@ -313,7 +313,7 @@ watch(loginDay, value => {
 </template>
 
 <style scoped>
-@use url("@/style/login.css");
+@import url("@/style/login.css");
 </style>
 
 <style lang="scss" scoped>
