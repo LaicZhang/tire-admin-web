@@ -76,7 +76,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                 connect: { uid: await getCompanyId() }
               },
               tire: {
-                connect: { id: tireId }
+                connect: { uid: tireId }
               }
             });
             chores();

@@ -27,7 +27,7 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
-const getReserveListInfo = async () => {
+const getTireNumberListInfo = async () => {
   const res = await getTireNumberListApi(pagination.value.currentPage);
   const { code, data } = res;
   if (code === 200) dataList.value = data.list;
@@ -50,6 +50,10 @@ const onSearch = async () => {
   dataList.value = data.list;
   pagination.value.total = data.count;
   loading.value = false;
+};
+
+const openImportDialog = () => {
+  message("暂未开放", { type: "warning" });
 };
 
 const resetForm = formEl => {
@@ -76,13 +80,9 @@ async function handleDelete(row) {
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
-// async function handleToggleReserve(row) {
-//   await toggleReserveApi(row.uid);
-//   onSearch();
-// }
 
-onMounted(async () => {
-  await onSearch();
+onMounted(() => {
+  onSearch();
 });
 </script>
 
@@ -127,9 +127,9 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getReserveListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="getTireNumberListInfo">
         <template #buttons>
-          <el-button type="primary" @click="console.log('import')">
+          <el-button type="primary" @click="openImportDialog">
             批量导入
           </el-button>
 
@@ -170,17 +170,6 @@ onMounted(async () => {
               >
                 修改
               </el-button>
-
-              <!-- <el-popconfirm
-                :title="`是否确认停用${row.name}`"
-                @confirm="handleToggleReserve(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="primary">
-                    {{ row.status === true ? "停用" : "启用" }}
-                  </el-button>
-                </template>
-              </el-popconfirm> -->
 
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"
