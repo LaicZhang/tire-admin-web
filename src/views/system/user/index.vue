@@ -90,6 +90,7 @@ const handleRest = () => {
 const getDetails = async row => {
   loading.value = true;
   const { data, code, message } = await getOneUserApi(row.uid);
+  console.log(data, code, message);
 };
 const updateOne = row => {
   loading.value = true;
@@ -142,7 +143,7 @@ onMounted(async () => {
             size="small"
             @click.prevent="getDetails(row)"
           >
-            详情
+            查看
           </el-button>
           <el-button
             link

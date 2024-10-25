@@ -2,7 +2,7 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addReserveApi, updateReserveApi } from "@/api";
+import { getCompanyId, addTireNumberApi, updateTireNumberApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
@@ -27,7 +27,7 @@ export function handleSelectionChange(val) {
 
 export function openDialog(title = "新增", row?: FormItemProps) {
   addDialog({
-    title: `${title}库存`,
+    title: `${title}胎号`,
     props: {
       formInline: {
         number: row?.number ?? "",
@@ -57,18 +57,27 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
-          const { id, ...curTireNumberData } = curData;
+          const { id, tireId, ...curTireNumberData } = curData;
           if (title === "新增") {
-            await addReserveApi({
+            await addTireNumberApi({
               ...curTireNumberData,
               company: {
                 connect: { uid: await getCompanyId() }
+              },
+              tire: {
+                connect: { uid: tireId }
               }
             });
             chores();
           } else {
-            await updateReserveApi(id, {
-              ...curTireNumberData
+            await updateTireNumberApi(id, {
+              ...curTireNumberData,
+              company: {
+                connect: { uid: await getCompanyId() }
+              },
+              tire: {
+                connect: { id: tireId }
+              }
             });
             chores();
           }

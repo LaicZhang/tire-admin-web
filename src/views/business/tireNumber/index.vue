@@ -18,7 +18,7 @@ const dataList = ref([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
-  name: "",
+  number: "",
   desc: ""
 });
 const pagination = ref({
@@ -29,19 +29,23 @@ const pagination = ref({
 });
 const getReserveListInfo = async () => {
   const res = await getTireNumberListApi(pagination.value.currentPage);
-  if (res.code === 200) dataList.value = res.data.list;
+  const { code, data } = res;
+  if (code === 200) dataList.value = data.list;
   else message(res.message, { type: "error" });
-  pagination.value.total = res.data.count;
+  pagination.value.total = data.count;
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === "")
-    await getReserveListInfo();
-
-  const { data } = await getTireNumberListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
-  });
+  let res;
+  if (form.value.number === "" && form.value.desc === "")
+    res = await getTireNumberListApi(1);
+  else {
+    res = await getTireNumberListApi(pagination.value.currentPage, {
+      number: form.value.number,
+      desc: form.value.desc
+    });
+  }
+  const { code, data } = res;
 
   dataList.value = data.list;
   pagination.value.total = data.count;
@@ -57,7 +61,15 @@ const resetForm = formEl => {
 
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
-  await getReserveListInfo();
+  const res = await getTireNumberListApi(pagination.value.currentPage, {
+    number: form.value.number,
+    desc: form.value.desc
+  });
+  const { code, data } = res;
+  if (code === 200) dataList.value = data.list;
+  else message(res.message, { type: "error" });
+  pagination.value.total = data.count;
+  loading.value = false;
 }
 async function handleDelete(row) {
   await deleteTireNumberApi(row.uid);
@@ -70,7 +82,7 @@ async function handleDelete(row) {
 // }
 
 onMounted(async () => {
-  await getReserveListInfo();
+  await onSearch();
 });
 </script>
 
@@ -82,10 +94,10 @@ onMounted(async () => {
         :inline="true"
         class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
       >
-        <el-form-item label="名称：" prop="name">
+        <el-form-item label="胎号：" prop="number">
           <el-input
-            v-model="form.name"
-            placeholder="请输入名称"
+            v-model="form.number"
+            placeholder="请输入胎号"
             clearable
             class="!w-[180px]"
           />
@@ -117,6 +129,10 @@ onMounted(async () => {
     <el-card class="m-1">
       <PureTableBar :title="$route.meta.title" @refresh="getReserveListInfo">
         <template #buttons>
+          <el-button type="primary" @click="console.log('import')">
+            批量导入
+          </el-button>
+
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"

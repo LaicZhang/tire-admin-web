@@ -7,13 +7,19 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getTireListApi, deleteTireApi, getDepartmentWithEmpApi } from "@/api";
-import { message } from "@/utils";
+import {
+  getTireListApi,
+  getAllTiresApi,
+  deleteTireApi,
+  getDepartmentWithEmpApi
+} from "@/api";
+import { message, localForage } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
   name: "Tire"
 });
+// const allTireList = ref([]);
 const dataList = ref([]),
   loading = ref(false),
   formRef = ref(),
@@ -30,13 +36,21 @@ const dataList = ref([]),
   });
 
 const getEmployeesWithTire = async () => {
-  const { data, code } = await getDepartmentWithEmpApi();
+  const res = await getDepartmentWithEmpApi();
+  const { data, code } = res;
   if (code === 200) {
     data.forEach(item => {
-      localStorage.setItem(
-        "department-with-employees:" + item.id,
-        JSON.stringify(item)
-      );
+      localStorage.setItem("dep-w-emp:" + item.id, JSON.stringify(item)); //department-with-employees
+      localForage().setItem("dep-w-emp:" + item.id, item);
+    });
+  } else message(res.message, { type: "error" });
+};
+const getAllTires = async () => {
+  const { data, code } = await getAllTiresApi();
+  if (code === 200) {
+    // allTireList.value = data.list;
+    data.list.forEach(element => {
+      localForage().setItem("tire:" + element.name, element);
     });
   }
 };
@@ -48,11 +62,15 @@ const getTireListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === "") await getTireListInfo();
+  if (
+    form.value.group === "" &&
+    form.value.desc === "" &&
+    form.value.name === ""
+  )
+    await getTireListInfo();
 
   const { data } = await getTireListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
+    ...form.value
   });
 
   dataList.value = data.list;
@@ -80,6 +98,7 @@ async function handleDelete(row) {
 onMounted(async () => {
   await getEmployeesWithTire();
   await getTireListInfo();
+  await getAllTires();
 });
 </script>
 

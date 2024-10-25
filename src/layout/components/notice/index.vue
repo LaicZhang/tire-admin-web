@@ -1,20 +1,42 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { noticesData } from "./data";
 import NoticeList from "./noticeList.vue";
 import Bell from "@iconify-icons/ep/bell";
+import { getNoticeApi } from "@/api";
+import { message } from "@/utils";
 
 const noticesNum = ref(0);
-const notices = ref(noticesData);
-const activeKey = ref(noticesData[0].key);
+const curNoticesData = [];
+const notices = ref(curNoticesData);
+const activeKey = ref(curNoticesData[0]?.key);
+
+const getNotice = async () => {
+  const res = await getNoticeApi();
+  const { data, code } = res;
+  if (code === 200) {
+    notices.value[0] = {
+      key: "1",
+      name: "通知",
+      list: data
+    };
+    message(res.message, { type: "success" });
+  } else {
+    message(res.message, { type: "error" });
+  }
+};
 
 notices.value.map(v => (noticesNum.value += v.list.length));
+
+onMounted(async () => {
+  await getNotice();
+});
 </script>
 
 <template>
   <el-dropdown trigger="click" placement="bottom-end">
     <span class="dropdown-badge navbar-bg-hover select-none">
-      <el-badge :value="noticesNum" :max="99">
+      <el-badge :value="noticesNum" :hidden="noticesNum === 0" :max="99">
         <span class="header-notice-icon">
           <IconifyIconOffline :icon="Bell" />
         </span>

@@ -13,3 +13,7 @@ export const getSystemUpdateLogApi = (index: number) => {
     baseUrlApi("/auth/update-history/page/") + index
   );
 };
+
+export const getNoticeApi = () => {
+  return http.request<Result>("get", baseUrlApi("/auth/notice"));
+};

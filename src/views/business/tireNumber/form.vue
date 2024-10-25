@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
+import { getAllTiresApi } from "@/api";
+import { localForage } from "@/utils";
 
 interface FormItemProps {
   id: number;
@@ -27,6 +29,7 @@ const props = withDefaults(defineProps<FormProps>(), {
 const formRules = reactive({
   tireId: [{ required: true, message: "轮胎类型为必填项", trigger: "blur" }]
 });
+const allTireList = ref([]);
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
@@ -34,7 +37,22 @@ function getRef() {
   return ruleFormRef.value;
 }
 
+const getAllTires = async () => {
+  const { data, code } = await getAllTiresApi();
+  if (code === 200) {
+    allTireList.value = data.list;
+    data.list.forEach(element => {
+      localForage().setItem("tire-name:" + element.name, element);
+      localForage().setItem("tire-uid:" + element.uid, element);
+    });
+  }
+};
+
 defineExpose({ getRef });
+
+onMounted(() => {
+  getAllTires();
+});
 </script>
 
 <template>
@@ -45,11 +63,17 @@ defineExpose({ getRef });
     label-width="82px"
   >
     <el-form-item label="轮胎" prop="tireId">
-      <el-input
+      <el-select
         v-model="newFormInline.tireId"
         clearable
         placeholder="请选择轮胎"
-      />
+      >
+        <el-option
+          v-for="item in allTireList"
+          :key="item.id"
+          :label="item.brand + ' ' + item.name"
+          :value="item.uid"
+      /></el-select>
     </el-form-item>
 
     <el-form-item label="轮胎胎号" prop="number">

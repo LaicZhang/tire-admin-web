@@ -9,11 +9,17 @@ export const columns = [
   },
   {
     label: "是否锁定",
-    prop: "isLocked"
+    prop: "isLocked",
+    formatter: (row, column, cellValue) => {
+      return cellValue ? "是" : "否";
+    }
   },
   {
     label: "是否在库",
-    prop: "isInRepo"
+    prop: "isInRepo",
+    formatter: (row, column, cellValue) => {
+      return cellValue ? "是" : "否";
+    }
   },
   {
     label: "备注",
