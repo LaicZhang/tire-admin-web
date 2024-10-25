@@ -105,7 +105,7 @@
             生日
           </div>
         </template>
-        {{ userInfo.info?.birthday.substring(0, 10) }}
+        {{ userInfo.info.birthday.substring(0, 10) }}
       </el-descriptions-item>
     </el-descriptions>
   </el-card>

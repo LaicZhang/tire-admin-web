@@ -57,6 +57,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, tireId, ...curTireNumberData } = curData;
           if (title === "新增") {
             await addTireNumberApi({
@@ -70,7 +71,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             });
             chores();
           } else {
-            await updateTireNumberApi(id, {
+            await updateTireNumberApi(curTireNumberData.number, {
               ...curTireNumberData,
               company: {
                 connect: { uid: await getCompanyId() }
