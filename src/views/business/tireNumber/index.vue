@@ -153,6 +153,9 @@ onMounted(() => {
             :pagination="{ ...pagination, size }"
             @page-current-change="handleCurrentChange"
           >
+            <template #tireName="{ row }">
+              <div>{{ row.tire.group }}-{{ row.tire.name }}</div>
+            </template>
             <template #operation="{ row }">
               <el-button
                 class="reset-margin"

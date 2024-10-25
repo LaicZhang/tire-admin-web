@@ -5,7 +5,8 @@ export const columns = [
   },
   {
     label: "轮胎名",
-    prop: "tireId"
+    prop: "tireId",
+    slot: "tireName"
   },
   {
     label: "是否锁定",
