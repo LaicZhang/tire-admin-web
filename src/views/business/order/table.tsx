@@ -2,8 +2,9 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addRepoApi, updateRepoApi } from "@/api";
+import { getCompanyId, addOrderApi, updateOrderApi } from "@/api";
 import editForm from "./form.vue";
+import type { ORDER_TYPE } from "@/utils";
 
 const formRef = ref(null);
 
@@ -11,7 +12,7 @@ export function handleSelectionChange(val) {
   console.log("handleSelectionChange", val);
 }
 
-export function openDialog(title = "新增", row?) {
+export function openDialog(title = "新增", type: ORDER_TYPE, row?) {
   addDialog({
     title: `${title}订单`,
     props: {
@@ -39,29 +40,22 @@ export function openDialog(title = "新增", row?) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id, uid, type, ...orderData } = curData;
           if (title === "新增") {
-            const { name, desc, startAt, endAt, address } = curData;
-            await addRepoApi({
-              name,
-              desc,
-              startAt,
-              endAt,
-              address,
+            await addOrderApi(type, {
+              ...orderData,
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, startAt, endAt, address, status } =
-              curData;
-            await updateRepoApi(uid, {
-              name,
-              desc,
-              startAt,
-              endAt,
-              address,
-              status
+            await updateOrderApi(type, uid, {
+              ...orderData,
+              company: {
+                connect: { uid: await getCompanyId() }
+              }
             });
             chores();
           }

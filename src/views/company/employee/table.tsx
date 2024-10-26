@@ -57,8 +57,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          const { uid, name, desc, nickname } = curData;
           if (title === "新增") {
-            const { name, desc, nickname } = curData;
             await addEmployeeApi({
               name,
               desc,
@@ -69,7 +69,6 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             });
             chores();
           } else {
-            const { uid, name, desc, nickname } = curData;
             await updateEmployeeApi(uid, { name, desc, nickname });
             chores();
           }

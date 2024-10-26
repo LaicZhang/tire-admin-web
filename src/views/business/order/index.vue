@@ -159,11 +159,11 @@ onMounted(async () => {
 
     <el-card class="m-1">
       <PureTableBar :title="$route.meta.title" @refresh="getOrderListInfo">
-        <template #buttons>
+        <template #buttons="{ row }">
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog()"
+            @click="openDialog('新增', orderType, row)"
           >
             新增订单
           </el-button>
@@ -185,7 +185,7 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('查看', row)"
+                @click="openDialog('查看', orderType, row)"
               >
                 查看
               </el-button>
@@ -194,7 +194,7 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('审核', row)"
+                @click="openDialog('审核', orderType, row)"
               >
                 审核
               </el-button>
@@ -203,7 +203,7 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('更新物流', row)"
+                @click="openDialog('更新物流', orderType, row)"
               >
                 更新物流
               </el-button>
@@ -225,7 +225,7 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('修改', row)"
+                @click="openDialog('修改', orderType, row)"
               >
                 修改
               </el-button>
