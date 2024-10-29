@@ -37,7 +37,6 @@ const dataList = ref([]),
 
 const getEmployeesWithTire = async () => {
   const { data, code, msg } = await getDepartmentWithEmpApi();
-  const { data, code, msg } = res;
   if (code === 200) {
     await localForage().setItem("dep-w-emp", data);
     data.forEach(item => {

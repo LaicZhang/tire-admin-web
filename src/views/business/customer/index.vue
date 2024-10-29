@@ -31,7 +31,6 @@ const getCustomerListInfo = async () => {
   const { data, code, msg } = await getCustomerListApi(
     pagination.value.currentPage
   );
-  const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
   else message(msg, { type: "error" });
   pagination.value.total = data.count;
