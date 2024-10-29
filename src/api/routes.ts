@@ -3,7 +3,7 @@ import { baseUrlApi } from "./utils";
 
 type Result = {
   code: number;
-  message: string;
+  msg: string;
   data: Array<any>;
 };
 

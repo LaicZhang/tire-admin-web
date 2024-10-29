@@ -1,12 +1,12 @@
 export type CommonResult = {
   code: number;
-  message: string;
+  msg: string;
   data: any;
 };
 
 export type UserResult = {
   code: number;
-  message: string;
+  msg: string;
   data: {
     /** 用户名 */
     username: string;
@@ -23,7 +23,7 @@ export type UserResult = {
 
 export type RefreshTokenResult = {
   code: number;
-  message: string;
+  msg: string;
   data: {
     /** `token` */
     accessToken: string;

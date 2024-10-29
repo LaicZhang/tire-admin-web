@@ -12,8 +12,7 @@ const notices = ref(curNoticesData);
 const activeKey = ref(curNoticesData[0]?.key);
 
 const getNotice = async () => {
-  const res = await getNoticeApi();
-  const { data, code, msg } = res;
+  const { data, code, msg } = await getNoticeApi();
   if (code === 200) {
     notices.value[0] = {
       key: "1",
