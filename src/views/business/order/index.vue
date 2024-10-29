@@ -203,6 +203,15 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
+                @click="openDialog('更新状态', orderType, row)"
+              >
+                {{ row.status === true ? "关闭" : "开启" }}
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
                 @click="openDialog('更新物流', orderType, row)"
               >
                 更新物流

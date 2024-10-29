@@ -29,9 +29,9 @@ const pagination = ref({
 });
 const getTireNumberListInfo = async () => {
   const res = await getTireNumberListApi(pagination.value.currentPage);
-  const { code, data } = res;
+  const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
-  else message(res.message, { type: "error" });
+  else message(msg, { type: "error" });
   pagination.value.total = data.count;
 };
 const onSearch = async () => {
@@ -45,7 +45,7 @@ const onSearch = async () => {
       desc: form.value.desc
     });
   }
-  const { code, data } = res;
+  const { code, data, msg } = res;
 
   dataList.value = data.list;
   pagination.value.total = data.count;
@@ -69,9 +69,9 @@ async function handleCurrentChange(val: number) {
     number: form.value.number,
     desc: form.value.desc
   });
-  const { code, data } = res;
+  const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
-  else message(res.message, { type: "error" });
+  else message(msg, { type: "error" });
   pagination.value.total = data.count;
   loading.value = false;
 }

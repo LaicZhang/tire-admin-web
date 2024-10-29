@@ -37,13 +37,13 @@ const dataList = ref([]),
 
 const getEmployeesWithTire = async () => {
   const res = await getDepartmentWithEmpApi();
-  const { data, code } = res;
+  const { data, code, msg } = res;
   if (code === 200) {
     data.forEach(item => {
       localStorage.setItem("dep-w-emp:" + item.id, JSON.stringify(item)); //department-with-employees
       localForage().setItem("dep-w-emp:" + item.id, item);
     });
-  } else message(res.message, { type: "error" });
+  } else message(msg, { type: "error" });
 };
 const getAllTires = async () => {
   const { data, code } = await getAllTiresApi();
@@ -57,7 +57,7 @@ const getAllTires = async () => {
 const getTireListInfo = async () => {
   const res = await getTireListApi(pagination.value.currentPage);
   if (res.code === 200) dataList.value = res.data.list;
-  else message(res.message, { type: "error" });
+  else message(msg, { type: "error" });
   pagination.value.total = res.data.count;
 };
 const onSearch = async () => {

@@ -4,7 +4,6 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addOrderApi, updateOrderApi } from "@/api";
 import editForm from "./form.vue";
-import type { ORDER_TYPE } from "@/utils";
 
 const formRef = ref(null);
 
@@ -12,7 +11,7 @@ export function handleSelectionChange(val) {
   console.log("handleSelectionChange", val);
 }
 
-export function openDialog(title = "新增", type: ORDER_TYPE, row?) {
+export function openDialog(title = "新增", type, row?) {
   addDialog({
     title: `${title}订单`,
     props: {
@@ -44,6 +43,16 @@ export function openDialog(title = "新增", type: ORDER_TYPE, row?) {
           const { id, uid, type, ...orderData } = curData;
           if (title === "新增") {
             await addOrderApi(type, {
+              ...orderData,
+              company: {
+                connect: { uid: await getCompanyId() }
+              }
+            });
+            chores();
+          } else if (
+            ["审核", "付款", "收款", "更新物流", "更新状态"].includes(title)
+          ) {
+            await updateOrderApi(type, uid, {
               ...orderData,
               company: {
                 connect: { uid: await getCompanyId() }

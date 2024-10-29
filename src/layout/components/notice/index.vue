@@ -13,16 +13,15 @@ const activeKey = ref(curNoticesData[0]?.key);
 
 const getNotice = async () => {
   const res = await getNoticeApi();
-  const { data, code } = res;
+  const { data, code, msg } = res;
   if (code === 200) {
     notices.value[0] = {
       key: "1",
       name: "通知",
       list: data
     };
-    message(res.message, { type: "success" });
   } else {
-    message(res.message, { type: "error" });
+    message(msg, { type: "error" });
   }
 };
 

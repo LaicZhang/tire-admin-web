@@ -153,12 +153,11 @@ const size = ref<ComponentSize>("default");
 
 const userInfo = ref(userInfoTemplate);
 const getUserInfo = async () => {
-  const res = await getUserInfoApi();
-  const { data, code } = res;
+  const { data, code, msg } = await getUserInfoApi();
   if (code === 200) {
     userInfo.value = data;
   } else {
-    message(res.message, { type: "error" });
+    message(msg, { type: "error" });
   }
 };
 onMounted(async () => {

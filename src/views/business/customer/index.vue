@@ -29,9 +29,9 @@ const pagination = ref({
 });
 const getCustomerListInfo = async () => {
   const res = await getCustomerListApi(pagination.value.currentPage);
-  const { code, data } = res;
+  const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
-  else message(res.message, { type: "error" });
+  else message(msg, { type: "error" });
   pagination.value.total = data.count;
 };
 const onSearch = async () => {
