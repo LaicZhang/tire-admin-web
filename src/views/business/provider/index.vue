@@ -28,10 +28,12 @@ const pagination = ref({
   background: true
 });
 const getProviderListInfo = async () => {
-  const res = await getProviderListApi(pagination.value.currentPage);
-  if (res.code === 200) dataList.value = res.data.list;
-  else message(res.message, { type: "error" });
-  pagination.value.total = res.data.count;
+  const { data, code, msg } = await getProviderListApi(
+    pagination.value.currentPage
+  );
+  if (code === 200) dataList.value = data.list;
+  else message(msg, { type: "error" });
+  pagination.value.total = data.count;
 };
 const onSearch = async () => {
   loading.value = true;
@@ -59,11 +61,13 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getProviderListInfo();
 }
+
 async function handleDelete(row) {
   await deleteProviderApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
+
 // async function handleToggleProvider(row) {
 //   await toggleProviderApi(row.uid);
 //   onSearch();

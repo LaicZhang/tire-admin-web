@@ -50,14 +50,18 @@ export function openDialog(title = "新增", type, row?) {
             });
             chores();
           } else if (
-            ["审核", "付款", "收款", "更新物流", "更新状态"].includes(title)
+            ["审核", "修改", "付款", "收款", "更新物流", "更新状态"].includes(
+              title
+            )
           ) {
-            await updateOrderApi(type, uid, {
-              ...orderData,
-              company: {
-                connect: { uid: await getCompanyId() }
-              }
-            });
+            if (title === "审核") {
+              await updateOrderApi(type, uid, {
+                ...orderData,
+                company: {
+                  connect: { uid: await getCompanyId() }
+                }
+              });
+            }
             chores();
           } else {
             await updateOrderApi(type, uid, {

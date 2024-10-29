@@ -72,7 +72,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
       useUserStoreHook()
         .loginByUsername({ ...ruleForm })
         .then(res => {
-          if (res.code === 200) {
+          if (code === 200) {
             // initRouter().then(() => {
             //   router.push(getTopMenu(true).path);
             //   message("登录成功", { type: "success" });
@@ -84,7 +84,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
             message("登录成功", { type: "success" });
             router.push("/");
           } else {
-            message(res.message, { type: "error" });
+            message(msg, { type: "error" });
           }
         })
         .catch(err => {

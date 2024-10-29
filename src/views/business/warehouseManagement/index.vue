@@ -28,10 +28,12 @@ const pagination = ref({
   background: true
 });
 const getReserveListInfo = async () => {
-  const res = await getReserveListApi(pagination.value.currentPage);
-  if (res.code === 200) dataList.value = res.data.list;
-  else message(res.message, { type: "error" });
-  pagination.value.total = res.data.count;
+  const { data, code, msg } = await getReserveListApi(
+    pagination.value.currentPage
+  );
+  if (code === 200) dataList.value = data.list;
+  else message(msg, { type: "error" });
+  pagination.value.total = data.count;
 };
 const onSearch = async () => {
   loading.value = true;
@@ -59,11 +61,13 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getReserveListInfo();
 }
+
 async function handleDelete(row) {
   await deleteReserveApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
+
 // async function handleToggleReserve(row) {
 //   await toggleReserveApi(row.uid);
 //   onSearch();

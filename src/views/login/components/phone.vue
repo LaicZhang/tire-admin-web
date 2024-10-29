@@ -34,14 +34,14 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           code: ruleForm.captchaCode
         })
         .then(res => {
-          if (res.code === 200) {
+          if (code === 200) {
             useCurrentCompanyStoreHook().handleCurrentCompany();
             initRouter().then(() => {
               router.push(getTopMenu(true).path);
               message("登录成功", { type: "success" });
             });
           } else {
-            message(res.message, { type: "error" });
+            message(msg, { type: "error" });
           }
         })
         .finally(() => {
@@ -58,10 +58,10 @@ const onLogin = async (formEl: FormInstance | undefined) => {
 const sendSmsCode = () => {
   useCaptchaCode().start(ruleFormRef.value, "phone");
   getVerifyCodeApi({ phone: ruleForm.phone, type: 1 }).then(res => {
-    if (res.code === 200) {
+    if (code === 200) {
       message("验证码发送成功", { type: "success" });
     } else {
-      message(res.message, { type: "error" });
+      message(msg, { type: "error" });
     }
   });
 };

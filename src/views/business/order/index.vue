@@ -8,7 +8,7 @@ import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
 import { getOrderListApi, deleteOrderApi } from "@/api";
-import { getOrderTypeList, message, ORDER_TYPE } from "@/utils";
+import { getOrderTypeList, localForage, message, ORDER_TYPE } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useUserStoreHook } from "@/store/modules/user";
 
@@ -19,6 +19,7 @@ const dataList = ref([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
+  operatorId: "",
   desc: ""
 });
 const orderType = ref("");
@@ -37,13 +38,26 @@ const orderTypeList = ref(getOrderTypeList(userRoles));
 
 const getOrderListInfo = async () => {
   if (orderType.value === "") return;
-  const res = await getOrderListApi(
+  const { data, code, msg } = await getOrderListApi(
     orderType.value,
     pagination.value.currentPage
   );
-  if (res.code === 200) dataList.value = res.data.list;
-  else message(res.message, { type: "error" });
-  pagination.value.total = res.data.count;
+  if (code === 200) dataList.value = data.list;
+  else message(msg, { type: "error" });
+  pagination.value.total = data.count;
+};
+
+const getEmployeeList = async () => {
+  const depWithEmp = await localForage().getItem("dep-w-emp");
+  console.log("depWithEmp", depWithEmp);
+  depWithEmp.map(item => {
+    item.employees.map(el => {
+      employeeList.value.push({
+        label: item.name + "-" + el.name,
+        value: el.uid
+      });
+    });
+  });
 };
 const onSearch = async () => {
   curOrderType.value = orderType.value;
@@ -83,18 +97,20 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getOrderListInfo();
 }
+
 async function handleDelete(row) {
   await deleteOrderApi(orderType.value, row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  await onSearch();
 }
+
 // async function handleToggleOrder(row) {
 //   await toggleOrderApi(row.uid);
 //   onSearch();
 // }
 
 onMounted(async () => {
-  await getOrderListInfo();
+  await Promise.all([getOrderListInfo(), getEmployeeList()]);
 });
 </script>
 
@@ -106,8 +122,8 @@ onMounted(async () => {
           v-for="item in orderTypeList"
           :key="item.value"
           :value="item.value"
-          >{{ item.label }}</el-radio
-        >
+          >{{ item.label }}
+        </el-radio>
       </el-radio-group>
     </el-card>
 
@@ -159,11 +175,11 @@ onMounted(async () => {
 
     <el-card class="m-1">
       <PureTableBar :title="$route.meta.title" @refresh="getOrderListInfo">
-        <template #buttons="{ row }">
+        <template #buttons>
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog('新增', orderType, row)"
+            @click="openDialog('新增', orderType)"
           >
             新增订单
           </el-button>
@@ -225,7 +241,13 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('付款', row)"
+                @click="
+                  openDialog(
+                    orderType === ORDER_TYPE.purchase ? '付款' : '收款',
+                    orderType,
+                    row
+                  )
+                "
               >
                 {{ orderType === ORDER_TYPE.purchase ? "付款" : "收款" }}
               </el-button>

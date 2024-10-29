@@ -36,11 +36,11 @@ const dataList = ref([]),
   });
 
 const getEmployeesWithTire = async () => {
-  const res = await getDepartmentWithEmpApi();
+  const { data, code, msg } = await getDepartmentWithEmpApi();
   const { data, code, msg } = res;
   if (code === 200) {
+    await localForage().setItem("dep-w-emp", data);
     data.forEach(item => {
-      localStorage.setItem("dep-w-emp:" + item.id, JSON.stringify(item)); //department-with-employees
       localForage().setItem("dep-w-emp:" + item.id, item);
     });
   } else message(msg, { type: "error" });
@@ -55,10 +55,12 @@ const getAllTires = async () => {
   }
 };
 const getTireListInfo = async () => {
-  const res = await getTireListApi(pagination.value.currentPage);
-  if (res.code === 200) dataList.value = res.data.list;
+  const { data, code, msg } = await getTireListApi(
+    pagination.value.currentPage
+  );
+  if (code === 200) dataList.value = data.list;
   else message(msg, { type: "error" });
-  pagination.value.total = res.data.count;
+  pagination.value.total = data.count;
 };
 const onSearch = async () => {
   loading.value = true;
@@ -89,6 +91,7 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getTireListInfo();
 }
+
 async function handleDelete(row) {
   await deleteTireApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });

@@ -28,10 +28,12 @@ const pagination = ref({
   background: true
 });
 const getDepartmentListInfo = async () => {
-  const res = await getDepartmentListApi(pagination.value.currentPage);
-  if (res.code === 200) dataList.value = res.data.list;
-  else message(res.message, { type: "error" });
-  pagination.value.total = res.data.count;
+  const { data, code, msg } = await getDepartmentListApi(
+    pagination.value.currentPage
+  );
+  if (code === 200) dataList.value = data.list;
+  else message(msg, { type: "error" });
+  pagination.value.total = data.count;
 };
 const onSearch = async () => {
   loading.value = true;
@@ -59,11 +61,13 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getDepartmentListInfo();
 }
+
 async function handleDelete(row) {
   await deleteDepartmentApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
+
 onMounted(async () => {
   await getDepartmentListInfo();
 });

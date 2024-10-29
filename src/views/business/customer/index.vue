@@ -28,7 +28,9 @@ const pagination = ref({
   background: true
 });
 const getCustomerListInfo = async () => {
-  const res = await getCustomerListApi(pagination.value.currentPage);
+  const { data, code, msg } = await getCustomerListApi(
+    pagination.value.currentPage
+  );
   const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
   else message(msg, { type: "error" });
@@ -60,11 +62,13 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getCustomerListInfo();
 }
+
 async function handleDelete(row) {
   await deleteCustomerApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
+
 // async function handleToggleCustomer(row) {
 //   await toggleCustomerApi(row.uid);
 //   onSearch();

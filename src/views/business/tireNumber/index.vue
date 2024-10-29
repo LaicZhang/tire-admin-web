@@ -28,7 +28,9 @@ const pagination = ref({
   background: true
 });
 const getTireNumberListInfo = async () => {
-  const res = await getTireNumberListApi(pagination.value.currentPage);
+  const { data, code, msg } = await getTireNumberListApi(
+    pagination.value.currentPage
+  );
   const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
   else message(msg, { type: "error" });
@@ -65,16 +67,20 @@ const resetForm = formEl => {
 
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
-  const res = await getTireNumberListApi(pagination.value.currentPage, {
-    number: form.value.number,
-    desc: form.value.desc
-  });
+  const { data, code, msg } = await getTireNumberListApi(
+    pagination.value.currentPage,
+    {
+      number: form.value.number,
+      desc: form.value.desc
+    }
+  );
   const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
   else message(msg, { type: "error" });
   pagination.value.total = data.count;
   loading.value = false;
 }
+
 async function handleDelete(row) {
   await deleteTireNumberApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });

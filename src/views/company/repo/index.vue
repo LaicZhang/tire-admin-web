@@ -28,10 +28,12 @@ const pagination = ref({
   background: true
 });
 const getRepoListInfo = async () => {
-  const res = await getRepoListApi(pagination.value.currentPage);
-  if (res.code === 200) dataList.value = res.data.list;
-  else message(res.message, { type: "error" });
-  pagination.value.total = res.data.count;
+  const { data, code, msg } = await getRepoListApi(
+    pagination.value.currentPage
+  );
+  if (code === 200) dataList.value = data.list;
+  else message(msg, { type: "error" });
+  pagination.value.total = data.count;
 };
 const onSearch = async () => {
   loading.value = true;
@@ -58,11 +60,13 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getRepoListInfo();
 }
+
 async function handleDelete(row) {
   await deleteRepoApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
+
 async function handleToggleRepo(row) {
   await toggleRepoApi(row.uid);
   onSearch();

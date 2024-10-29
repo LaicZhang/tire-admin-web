@@ -30,10 +30,12 @@ const pagination = ref({
   background: true
 });
 const getEmployeeListInfo = async () => {
-  const res = await getEmployeeListApi(pagination.value.currentPage);
-  if (res.code === 200) dataList.value = res.data.list;
-  else message(res.message, { type: "error" });
-  pagination.value.total = res.data.count;
+  const { data, code, msg } = await getEmployeeListApi(
+    pagination.value.currentPage
+  );
+  if (code === 200) dataList.value = data.list;
+  else message(msg, { type: "error" });
+  pagination.value.total = data.count;
 };
 const onSearch = async () => {
   loading.value = true;
@@ -61,11 +63,13 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getEmployeeListInfo();
 }
+
 async function handleDelete(row) {
   await deleteEmployeeApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
+
 onMounted(async () => {
   await getEmployeeListInfo();
 });

@@ -12,9 +12,9 @@ const companyInfoRef = ref();
 const data = ref([]);
 
 const getCompanyInfo = async () => {
-  const res = await getCompanyApi();
-  if (res.code === 200) companyInfoRef.value = res.data;
-  else message(res.message, { type: "error" });
+  const { data, code, msg } = await getCompanyApi();
+  if (code === 200) companyInfoRef.value = res.data;
+  else message(msg, { type: "error" });
   data.value = [res.data];
 };
 
