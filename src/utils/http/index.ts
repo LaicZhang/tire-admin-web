@@ -16,7 +16,6 @@ import { useUserStoreHook } from "@/store/modules/user";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 const defaultConfig: AxiosRequestConfig = {
-  baseURL: "https://api.zhuaoshuai.com",
   // 请求超时时间
   timeout: 10000,
   headers: {
@@ -80,8 +79,8 @@ class PureHttp {
           : new Promise(resolve => {
               const data = getToken();
               if (data) {
-                const now = new Date().getTime();
-                const expired = parseInt(data.expires) - now <= 0;
+                const now = new Date().getTime(),
+                  expired = parseInt(data.expires) - now <= 0;
                 if (expired) {
                   if (!PureHttp.isRefreshing) {
                     PureHttp.isRefreshing = true;

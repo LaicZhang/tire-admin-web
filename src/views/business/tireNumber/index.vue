@@ -31,7 +31,6 @@ const getTireNumberListInfo = async () => {
   const { data, code, msg } = await getTireNumberListApi(
     pagination.value.currentPage
   );
-  const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
   else message(msg, { type: "error" });
   pagination.value.total = data.count;
@@ -74,7 +73,6 @@ async function handleCurrentChange(val: number) {
       desc: form.value.desc
     }
   );
-  const { code, data, msg } = res;
   if (code === 200) dataList.value = data.list;
   else message(msg, { type: "error" });
   pagination.value.total = data.count;
