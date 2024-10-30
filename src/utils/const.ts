@@ -1,3 +1,7 @@
+export enum SYS {
+  dict = "sys_dict"
+}
+
 export enum ORDER_TYPE {
   purchase = "purchase-order",
   sale = "sale-order",
