@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { purchaseOrderColumns, saleOrderColumns } from "./props";
+import {
+  purchaseOrderColumns,
+  saleOrderColumns,
+  claimOrderColumns,
+  returnOrderColumns,
+  wasteOrderColumns,
+  transferOrderColumns,
+  assemblyOrderColumns
+} from "./props";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "@iconify-icons/ep/refresh";
 import Delete from "@iconify-icons/ep/delete";
@@ -20,6 +28,7 @@ const loading = ref(false);
 const formRef = ref();
 const form = ref({
   operatorId: "",
+  auditorId: "",
   desc: ""
 });
 const orderType = ref("");
@@ -33,7 +42,6 @@ const pagination = ref({
 const columns = ref([]);
 const employeeList = ref([]);
 const userRoles = useUserStoreHook().roles;
-const curOrderType = ref("");
 const orderTypeList = ref(getOrderTypeList(userRoles));
 
 const getOrderListInfo = async () => {
@@ -60,10 +68,9 @@ const getEmployeeList = async () => {
   });
 };
 const onSearch = async () => {
-  curOrderType.value = orderType.value;
   loading.value = true;
 
-  const { data } = await getOrderListApi(
+  const { data, code, msg } = await getOrderListApi(
     orderType.value,
     pagination.value.currentPage,
     {
@@ -71,8 +78,10 @@ const onSearch = async () => {
     }
   );
 
-  dataList.value = data.list;
-  pagination.value.total = data.count;
+  if (code === 200) {
+    dataList.value = data.list;
+    pagination.value.total = data.count;
+  } else message(msg, { type: "error" });
   loading.value = false;
 };
 
@@ -82,16 +91,34 @@ const resetForm = formEl => {
   formEl.resetFields();
   loading.value = false;
 };
+const columnMapping = {
+  [ORDER_TYPE.purchase]: purchaseOrderColumns,
+  [ORDER_TYPE.sale]: saleOrderColumns,
+  [ORDER_TYPE.claim]: claimOrderColumns,
+  [ORDER_TYPE.return]: returnOrderColumns,
+  [ORDER_TYPE.waste]: wasteOrderColumns,
+  [ORDER_TYPE.transfer]: transferOrderColumns,
+  [ORDER_TYPE.assembly]: assemblyOrderColumns
+};
 
 const setOrderType = async () => {
-  console.log("setOrderType", orderType.value);
-  if (orderType.value === ORDER_TYPE.purchase) {
-    columns.value = purchaseOrderColumns;
-  } else if (orderType.value === ORDER_TYPE.sale) {
-    columns.value = saleOrderColumns;
+  try {
+    console.log("setOrderType", orderType.value);
+    await localForage().setItem("curOrderType", orderType.value);
+    columns.value = columnMapping[orderType.value] || columns.value;
+    await onSearch();
+  } catch (e) {
+    throw new Error("fail to set order type for", e.message);
   }
-  await onSearch();
 };
+
+async function getOrderType() {
+  const curOrderType: string = await localForage().getItem("curOrderType");
+  if (curOrderType) {
+    orderType.value = curOrderType;
+    await setOrderType();
+  }
+}
 
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
@@ -110,7 +137,7 @@ async function handleDelete(row) {
 // }
 
 onMounted(async () => {
-  await Promise.all([getOrderListInfo(), getEmployeeList()]);
+  await Promise.all([getOrderType(), getOrderListInfo(), getEmployeeList()]);
 });
 </script>
 
@@ -118,12 +145,12 @@ onMounted(async () => {
   <div class="main">
     <el-card class="m-1">
       <el-radio-group v-model="orderType" @change="setOrderType">
-        <el-radio
+        <el-radio-button
           v-for="item in orderTypeList"
           :key="item.value"
           :value="item.value"
           >{{ item.label }}
-        </el-radio>
+        </el-radio-button>
       </el-radio-group>
     </el-card>
 
@@ -137,6 +164,22 @@ onMounted(async () => {
           <el-select
             v-model="form.operatorId"
             placeholder="请选择操作人"
+            clearable
+            class="!w-[180px]"
+          >
+            <el-option
+              v-for="item in employeeList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="审核人：" prop="auditorId">
+          <el-select
+            v-model="form.auditorId"
+            placeholder="请选择审核人"
             clearable
             class="!w-[180px]"
           >
@@ -236,20 +279,21 @@ onMounted(async () => {
               <el-button
                 v-if="
                   orderType === ORDER_TYPE.purchase ||
-                  orderType === ORDER_TYPE.sale
+                  orderType === ORDER_TYPE.sale ||
+                  orderType === ORDER_TYPE.return
                 "
                 class="reset-margin"
                 link
                 type="primary"
                 @click="
                   openDialog(
-                    orderType === ORDER_TYPE.purchase ? '付款' : '收款',
+                    orderType === ORDER_TYPE.sale ? '收款' : '付款',
                     orderType,
                     row
                   )
                 "
               >
-                {{ orderType === ORDER_TYPE.purchase ? "付款" : "收款" }}
+                {{ orderType === ORDER_TYPE.sale ? "收款" : "付款" }}
               </el-button>
 
               <el-button
