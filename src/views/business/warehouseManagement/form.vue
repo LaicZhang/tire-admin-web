@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
+import { localForage } from "@/utils";
 
 interface FormItemProps {
   uid: string;
@@ -18,9 +19,11 @@ interface FormItemProps {
   lastInAt: Date;
   lastOutAt: Date;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     uid: "",
@@ -47,11 +50,20 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+const allTiresList = ref([]);
+
+const getAllTiresList = async () => {
+  allTiresList.value = await localForage().getItem("tire");
+};
+
 function getRef() {
   return ruleFormRef.value;
 }
 
 defineExpose({ getRef });
+onMounted(async () => {
+  await getAllTiresList();
+});
 </script>
 
 <template>
@@ -62,19 +74,22 @@ defineExpose({ getRef });
     label-width="82px"
   >
     <el-form-item label="轮胎" prop="tireId">
-      <el-input
+      <el-select
         v-model="newFormInline.tireId"
         clearable
         placeholder="请选择轮胎"
-      />
+      >
+        <el-option
+          v-for="item in allTiresList"
+          :key="item.id"
+          :label="item.group + '-' + item.name"
+          :value="item.id"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="库存数量" prop="count">
-      <el-input
-        v-model="newFormInline.count"
-        clearable
-        placeholder="请输入库存数量"
-      />
+      <el-input-number v-model="newFormInline.count" clearable />
     </el-form-item>
 
     <el-form-item label="均价" prop="averagePrice">

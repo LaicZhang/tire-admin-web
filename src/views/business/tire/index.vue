@@ -45,13 +45,15 @@ const getEmployeesWithTire = async () => {
   } else message(msg, { type: "error" });
 };
 const getAllTires = async () => {
-  const { data, code } = await getAllTiresApi();
+  const { data, code, msg } = await getAllTiresApi();
+  const tasks = [];
   if (code === 200) {
-    // allTireList.value = data.list;
+    tasks.push(localForage().setItem("tire", data.list));
     data.list.forEach(element => {
-      localForage().setItem("tire:" + element.name, element);
+      tasks.push(localForage().setItem("tire:" + element.name, element));
     });
-  }
+  } else message(msg, { type: "error" });
+  await Promise.all(tasks);
 };
 const getTireListInfo = async () => {
   const { data, code, msg } = await getTireListApi(
