@@ -10,9 +10,9 @@ interface FormItemProps {
   /** 部门名称 */
   name: string;
   /** 部门编号 */
-  id: string;
+  id: number;
   /** 备注 */
-  desc: string;
+  desc?: string;
   managerId: string;
 }
 interface FormProps {

@@ -21,7 +21,7 @@ const form = ref({
   name: "",
   nickname: "",
   status: 0,
-  desc: ""
+  desc: undefined
 });
 const pagination = ref({
   total: 0,
@@ -39,7 +39,7 @@ const getEmployeeListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === "")
+  if (form.value.name === "" && form.value.desc === undefined)
     await getEmployeeListInfo();
 
   const { data } = await getEmployeeListApi(pagination.value.currentPage, {

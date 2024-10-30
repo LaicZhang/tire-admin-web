@@ -7,7 +7,7 @@ interface FormItemProps {
   id: number;
   uid: string;
   name: string;
-  desc: string;
+  desc?: string;
   operatorId: string;
   isIndividual: boolean;
   isPublic: boolean;
@@ -15,15 +15,17 @@ interface FormItemProps {
   province: string;
   status: boolean;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     uid: "",
     name: "",
     id: 0,
-    desc: "",
+    desc: undefined,
     operatorId: "",
     isIndividual: false,
     isPublic: false,
@@ -39,6 +41,7 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }

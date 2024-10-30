@@ -6,15 +6,17 @@ import { localForage } from "@/utils";
 
 interface FormItemProps {
   id: number;
-  desc: string;
+  desc?: string;
   number: string;
   tireId: string;
   isLocked: boolean;
   isInRepo: boolean;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     id: 0,
@@ -22,7 +24,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     number: "",
     isLocked: false,
     isInRepo: false,
-    desc: ""
+    desc: undefined
   })
 });
 /** 自定义表单规则校验 */
@@ -33,6 +35,7 @@ const allTireList = ref([]);
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }
@@ -73,7 +76,8 @@ onMounted(() => {
           :key="item.id"
           :label="item.brand + ' ' + item.name"
           :value="item.uid"
-      /></el-select>
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="轮胎胎号" prop="number">

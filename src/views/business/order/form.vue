@@ -8,7 +8,7 @@ const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
   formInline: () => ({
     uid: "",
     id: 0,
-    desc: "",
+    desc: undefined,
     operatorId: "",
     auditorId: "",
     count: 0,
@@ -34,6 +34,7 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }

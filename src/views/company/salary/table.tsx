@@ -7,8 +7,8 @@ import editForm from "./form.vue";
 
 interface FormItemProps {
   name: string;
-  id: string;
-  desc: string;
+  id: number;
+  desc?: string;
   base: number;
   performance: number;
   fulltimeAttendanceAward: number;

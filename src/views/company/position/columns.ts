@@ -14,6 +14,10 @@ export const columns = [
     prop: "cn"
   },
   {
+    label: "职级",
+    prop: "level"
+  },
+  {
     label: "备注",
     prop: "desc"
   },

@@ -7,7 +7,7 @@ interface FormItemProps {
   uid?: string;
   group: string;
   name: string;
-  desc: string;
+  desc?: string;
   unit: string;
   pattern: string;
   brand: string;
@@ -22,16 +22,18 @@ interface FormItemProps {
   commissionType: number;
   commission: string;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     id: 0,
     uid: "",
     group: "",
     name: "",
-    desc: "",
+    desc: undefined,
     unit: "条",
     pattern: "",
     brand: "",
@@ -55,6 +57,7 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }

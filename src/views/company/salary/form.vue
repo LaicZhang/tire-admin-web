@@ -5,16 +5,18 @@ import type { FormRules } from "element-plus";
 
 interface FormItemProps {
   name: string;
-  id: string;
-  desc: string;
+  id: number;
+  desc?: string;
   base: number;
   performance: number;
   fulltimeAttendanceAward: number;
   subsidy: number;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     name: "",
@@ -23,7 +25,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     performance: 0,
     fulltimeAttendanceAward: 0,
     subsidy: 0,
-    desc: ""
+    desc: undefined
   })
 });
 /** 自定义表单规则校验 */
@@ -34,6 +36,7 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }

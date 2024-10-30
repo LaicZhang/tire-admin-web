@@ -10,14 +10,16 @@ interface FormItemProps {
   password: string;
   name: string;
   /** 员工编号 */
-  id: string;
+  id: number;
   /** 备注 */
-  desc: string;
+  desc?: string;
   nickname?: string;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     phone: "",
@@ -27,7 +29,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     name: "",
     nickname: "",
     id: "",
-    desc: ""
+    desc: undefined
   })
 });
 /** 自定义表单规则校验 */
@@ -39,6 +41,7 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }

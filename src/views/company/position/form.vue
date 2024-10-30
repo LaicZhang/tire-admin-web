@@ -7,28 +7,30 @@ interface FormItemProps {
   /** 部门名称 */
   name: string;
   /** 部门编号 */
-  id: string;
+  id: number;
   /** 备注 */
-  desc: string;
+  desc?: string;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     name: "",
-    id: "",
-    desc: ""
+    id: 0,
+    desc: undefined
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }],
-  desc: [{ required: true, message: "角色标识为必填项", trigger: "blur" }]
+  name: [{ required: true, message: "名称为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }

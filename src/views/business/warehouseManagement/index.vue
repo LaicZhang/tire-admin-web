@@ -19,7 +19,7 @@ const loading = ref(false);
 const formRef = ref();
 const form = ref({
   name: "",
-  desc: ""
+  desc: undefined
 });
 const pagination = ref({
   total: 0,
@@ -37,7 +37,7 @@ const getReserveListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === "")
+  if (form.value.name === "" && form.value.desc === undefined)
     await getReserveListInfo();
 
   const { data } = await getReserveListApi(pagination.value.currentPage, {
@@ -155,20 +155,10 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
+                @click="openDialog('修改', row)"
               >
                 修改
               </el-button>
-
-              <!-- <el-popconfirm
-                :title="`是否确认停用${row.name}`"
-                @confirm="handleToggleReserve(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="primary">
-                    {{ row.status === true ? "停用" : "启用" }}
-                  </el-button>
-                </template>
-              </el-popconfirm> -->
 
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"

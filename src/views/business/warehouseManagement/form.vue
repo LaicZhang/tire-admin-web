@@ -15,7 +15,7 @@ interface FormItemProps {
   lastPrice: number;
   alarmId: string;
   repoId: string;
-  desc: string;
+  desc?: string;
   lastInAt: Date;
   lastOutAt: Date;
 }
@@ -37,7 +37,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     lastPrice: 0,
     alarmId: "",
     repoId: "",
-    desc: "",
+    desc: undefined,
     lastInAt: null,
     lastOutAt: null
   })

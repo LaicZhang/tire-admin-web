@@ -9,7 +9,7 @@ interface FormItemProps {
   uid: string;
   name: string;
   id: number;
-  desc: string;
+  desc?: string;
   operatorId: string;
   level: number;
   totalTransactionAmount: number;

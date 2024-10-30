@@ -10,7 +10,7 @@ interface FormItemProps {
   uid?: string;
   group: string;
   name: string;
-  desc: string;
+  desc?: string;
   unit: string;
   pattern: string;
   brand: string;

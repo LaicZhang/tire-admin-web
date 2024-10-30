@@ -19,7 +19,7 @@ const loading = ref(false);
 const formRef = ref();
 const form = ref({
   name: "",
-  desc: ""
+  desc: undefined
 });
 const pagination = ref({
   total: 0,
@@ -37,7 +37,8 @@ const getRepoListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === "") await getRepoListInfo();
+  if (form.value.name === "" && form.value.desc === undefined)
+    await getRepoListInfo();
 
   const { data } = await getRepoListApi(pagination.value.currentPage, {
     name: form.value.name,
@@ -154,6 +155,7 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
+                @click="openDialog('修改', row)"
               >
                 修改
               </el-button>

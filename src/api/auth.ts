@@ -37,6 +37,24 @@ export const getVerifyCodeApi = (data?: object) => {
   });
 };
 
+export const getNoticeApi = () => {
+  return http.request<CommonResult>("get", baseUrlApi("/auth/notice"));
+};
+
+export const getCompanyInfoApi = (type: string) => {
+  return http.request<CommonResult>(
+    "get",
+    baseUrlApi("/auth/company-info" + "/" + type)
+  );
+};
+
+export const updateCompanyInfoApi = (data?: object) => {
+  return http.request<CommonResult>(
+    "patch",
+    baseUrlApi("/auth/company-info", { data })
+  );
+};
+
 export const getUserInfoApi = () => {
   return http.request<CommonResult>("get", baseUrlApi("/auth/info"));
 };

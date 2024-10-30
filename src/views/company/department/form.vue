@@ -4,31 +4,33 @@ import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 
 interface FormItemProps {
-  /** 部门名称 */
+  uid?: string;
   name: string;
-  /** 部门编号 */
-  id: string;
-  /** 备注 */
-  desc: string;
+  id: number;
+  desc?: string;
+  managerId: string;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     name: "",
-    id: "",
-    desc: ""
+    id: 0,
+    desc: undefined,
+    managerId: ""
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }],
-  desc: [{ required: true, message: "角色标识为必填项", trigger: "blur" }]
+  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }

@@ -29,7 +29,7 @@ const formRef = ref();
 const form = ref({
   operatorId: "",
   auditorId: "",
-  desc: ""
+  desc: undefined
 });
 const orderType = ref("");
 const pagination = ref({

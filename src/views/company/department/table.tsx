@@ -7,12 +7,9 @@ import editForm from "./form.vue";
 
 interface FormItemProps {
   uid: string;
-  /** 部门名称 */
   name: string;
-  /** 部门编号 */
-  id: string;
-  /** 备注 */
-  desc: string;
+  id: number;
+  desc?: string;
   managerId: string;
 }
 interface FormProps {

@@ -7,7 +7,7 @@ interface FormItemProps {
   uid: string;
   name: string;
   id: number;
-  desc: string;
+  desc?: string;
   operatorId: string;
   level: number;
   totalTransactionAmount: number;
@@ -18,15 +18,17 @@ interface FormItemProps {
   limit: number;
   discount: number;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     uid: "",
     name: "",
     id: 0,
-    desc: "",
+    desc: undefined,
     operatorId: "",
     level: 0,
     totalTransactionAmount: 0,
@@ -45,6 +47,7 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }
@@ -68,11 +71,7 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="等级" prop="level">
-      <el-input
-        v-model="newFormInline.level"
-        clearable
-        placeholder="请输入等级"
-      />
+      <el-input-number v-model="newFormInline.level" clearable />
     </el-form-item>
 
     <el-form-item label="操作人" prop="operatorId">

@@ -2,41 +2,42 @@
 import { ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
+import dayjs from "dayjs";
 
 interface FormItemProps {
-  uid: string;
+  uid?: string;
   name: string;
-  /** 仓库编号 */
-  id: string;
-  desc: string;
-  startAt: string;
-  endAt: string;
+  id: number;
+  desc?: string;
+  startAt: Date;
+  endAt: Date;
   address: string;
   status: boolean;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    uid: "",
     name: "",
-    id: "",
-    desc: "",
-    startAt: "",
-    endAt: "",
+    id: 0,
+    desc: undefined,
+    startAt: dayjs().toDate(),
+    endAt: dayjs().add(1, "y").toDate(),
     address: "",
     status: true
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }],
-  desc: [{ required: true, message: "角色标识为必填项", trigger: "blur" }]
+  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
 function getRef() {
   return ruleFormRef.value;
 }
@@ -65,6 +66,10 @@ defineExpose({ getRef });
         clearable
         placeholder="请输入地址"
       />
+    </el-form-item>
+
+    <el-form-item label="状态" prop="status">
+      <el-switch v-model="newFormInline.status" />
     </el-form-item>
 
     <el-form-item label="启用时间" prop="startAt">

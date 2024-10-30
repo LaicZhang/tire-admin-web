@@ -26,7 +26,7 @@ const dataList = ref([]),
   form = ref({
     group: "",
     name: "",
-    desc: ""
+    desc: undefined
   }),
   pagination = ref({
     total: 0,
@@ -67,7 +67,7 @@ const onSearch = async () => {
   loading.value = true;
   if (
     form.value.group === "" &&
-    form.value.desc === "" &&
+    form.value.desc === undefined &&
     form.value.name === ""
   )
     await getTireListInfo();

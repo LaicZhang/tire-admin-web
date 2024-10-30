@@ -19,7 +19,7 @@ const loading = ref(false);
 const formRef = ref();
 const form = ref({
   number: "",
-  desc: ""
+  desc: undefined
 });
 const pagination = ref({
   total: 0,
@@ -38,7 +38,7 @@ const getTireNumberListInfo = async () => {
 const onSearch = async () => {
   loading.value = true;
   let res;
-  if (form.value.number === "" && form.value.desc === "")
+  if (form.value.number === "" && form.value.desc === undefined)
     res = await getTireNumberListApi(1);
   else {
     res = await getTireNumberListApi(pagination.value.currentPage, {

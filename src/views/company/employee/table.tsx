@@ -10,7 +10,7 @@ interface FormItemProps {
   /** 真实姓名 */
   name: string;
   /** 员工编号 */
-  id: string;
+  id: number;
   /** 备注 */
   desc?: string;
   nickname?: string;

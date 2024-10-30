@@ -8,8 +8,8 @@ import editForm from "./form.vue";
 interface FormItemProps {
   uid: string;
   name: string;
-  id: string;
-  desc: string;
+  id: number;
+  desc?: string;
   startAt: string;
   endAt: string;
   address: string;
@@ -34,7 +34,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       formInline: {
         name: row?.name ?? "",
         uid: row?.uid ?? "",
-        desc: row?.desc ?? "",
+        desc: row?.desc ?? undefined,
         startAt: row?.startAt ?? "",
         endAt: row?.endAt ?? "",
         address: row?.address ?? "",
@@ -66,7 +66,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
               name,
               desc,
               company: {
-                connect: { uid: await getCompanyId() }
+                connect: { uid: getCompanyId() }
               }
             });
             chores();

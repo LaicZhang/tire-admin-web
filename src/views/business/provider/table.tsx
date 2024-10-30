@@ -9,7 +9,7 @@ interface FormItemProps {
   id: number;
   uid: string;
   name: string;
-  desc: string;
+  desc?: string;
   operatorId: string;
   isIndividual: boolean;
   isPublic: boolean;

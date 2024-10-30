@@ -19,7 +19,7 @@ const loading = ref(false);
 const formRef = ref();
 const form = ref({
   name: "",
-  desc: ""
+  desc: undefined
 });
 const pagination = ref({
   total: 0,
@@ -37,7 +37,7 @@ const getPositionListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === "")
+  if (form.value.name === "" && form.value.desc === undefined)
     await getPositionListInfo();
 
   const { data } = await getPositionListApi(pagination.value.currentPage, {

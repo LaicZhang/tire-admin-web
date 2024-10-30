@@ -2,7 +2,7 @@ export interface SaleFormItemProps {
   id: number;
   uid: string;
   customerId: string;
-  desc: string;
+  desc?: string;
   operatorId: string;
   auditorId: string;
   count: number;

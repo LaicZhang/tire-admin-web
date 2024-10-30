@@ -9,8 +9,8 @@ interface FormItemProps {
   uid: string;
   name: string;
   /** 仓库编号 */
-  id: string;
-  desc: string;
+  id: number;
+  desc?: string;
   startAt: string;
   endAt: string;
   address: string;

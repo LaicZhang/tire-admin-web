@@ -8,7 +8,7 @@ import editForm from "./form.vue";
 interface FormItemProps {
   id: number;
   number: string;
-  desc: string;
+  desc?: string;
   tireId: string;
   isLocked: boolean;
   isInRepo: boolean;

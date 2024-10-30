@@ -14,10 +14,6 @@ export const getSystemUpdateLogApi = (index: number) => {
   );
 };
 
-export const getNoticeApi = () => {
-  return http.request<Result>("get", baseUrlApi("/auth/notice"));
-};
-
 export const getSysDictApi = () => {
   return http.request<Result>("get", baseUrlApi("/dict/list"));
 };
