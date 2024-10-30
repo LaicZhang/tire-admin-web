@@ -39,7 +39,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       }
     },
     width: "40%",
-    hideFooter: title === "查看" ? true : false,
+    hideFooter: title === "查看",
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,

@@ -13,7 +13,7 @@ export function handleSelectionChange(val) {
 
 export function openDialog(title = "新增", type, row?) {
   addDialog({
-    title: `${title}订单`,
+    title: `${title}`,
     props: {
       formInline: {
         uid: row?.uid ?? "",
@@ -21,7 +21,7 @@ export function openDialog(title = "新增", type, row?) {
       }
     },
     width: "40%",
-    hideFooter: title === "查看" ? true : false,
+    hideFooter: title === "查看",
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
