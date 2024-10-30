@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { getCompanyApi } from "@/api";
+import { onMounted, ref, h } from "vue";
+import { getCompanyInfoApi } from "@/api";
 import { message } from "@/utils/message";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
+import { openDialog } from "./table";
 
 defineOptions({
   name: "companyInfo"
 });
-
-const companyInfoRef = ref();
-const data = ref([]);
+const { columns } = useColumns();
+const companyInfoRes = ref([]);
 
 const getCompanyInfo = async () => {
-  const { data, code, msg } = await getCompanyApi();
-  if (code === 200) companyInfoRef.value = res.data;
+  const { data, code, msg } = await getCompanyInfoApi("only-info");
+  if (code === 200) companyInfoRes.value = [data];
   else message(msg, { type: "error" });
-  data.value = [res.data];
 };
 
 onMounted(async () => {
@@ -27,10 +26,14 @@ onMounted(async () => {
   <el-card class="m-1">
     <PureDescriptions
       border
-      :data
+      :data="companyInfoRes"
       :title="$route.meta.title"
       :columns
-      column="2"
-    />
+      :column="2"
+    >
+      <template #extra>
+        <el-button type="primary" @click="openDialog">更新</el-button>
+      </template>
+    </PureDescriptions>
   </el-card>
 </template>
