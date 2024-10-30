@@ -72,6 +72,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
       useUserStoreHook()
         .loginByUsername({ ...ruleForm })
         .then(res => {
+          const { code, msg, data } = res;
           if (code === 200) {
             // initRouter().then(() => {
             //   router.push(getTopMenu(true).path);
