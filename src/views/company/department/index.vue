@@ -37,7 +37,7 @@ const getDepartmentListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === undefined)
+  if (form.value.name === undefined && form.value.desc === undefined)
     await getDepartmentListInfo();
 
   const { data } = await getDepartmentListApi(pagination.value.currentPage, {
