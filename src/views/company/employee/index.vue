@@ -7,8 +7,8 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getEmployeeListApi, deleteEmployeeApi } from "@/api";
-import { message } from "@/utils";
+import { getEmployeeListApi, deleteEmployeeApi, getSysDictApi } from "@/api";
+import { localForage, message, SYS } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
@@ -20,7 +20,7 @@ const formRef = ref();
 const form = ref({
   name: "",
   nickname: "",
-  status: 0,
+  status: undefined,
   desc: undefined,
   phone: "",
   email: "",
@@ -74,10 +74,22 @@ async function handleCurrentChange(val: number) {
 async function handleDelete(row) {
   await deleteEmployeeApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  await onSearch();
 }
 
+const getSysDict = async () => {
+  const { code, data, msg } = await getSysDictApi();
+  if (code === 200) {
+    const dict = Object.groupBy(data, ({ name }) => name);
+    await localForage().setItem(SYS.dict, dict);
+    employeeStatus.value = dict.employeeStatus;
+  } else message(msg, { type: "error" });
+};
+
+const employeeStatus = ref([]);
+
 onMounted(async () => {
+  await getSysDict();
   await getEmployeeListInfo();
 });
 </script>
@@ -99,13 +111,21 @@ onMounted(async () => {
           />
         </el-form-item>
         <el-form-item label="状态：" prop="status">
-          <el-input
+          <el-select
             v-model="form.status"
             placeholder="请输入员工状态"
             clearable
             class="!w-[180px]"
-          />
+          >
+            <el-option
+              v-for="item in employeeStatus"
+              :key="item.id"
+              :value="item"
+              :label="item.cn"
+            />
+          </el-select>
         </el-form-item>
+
         <el-form-item label="备注：" prop="desc">
           <el-input
             v-model="form.desc"
@@ -153,6 +173,15 @@ onMounted(async () => {
             :pagination="{ ...pagination, size }"
             @page-current-change="handleCurrentChange"
           >
+            <template #employeeStatus="{ row }">
+              <div>
+                {{
+                  employeeStatus.find(item => {
+                    if (item.key === row.status) return item.cn;
+                  })["cn"]
+                }}
+              </div>
+            </template>
             <template #operation="{ row }">
               <el-button
                 class="reset-margin"

@@ -15,7 +15,8 @@ export const columns = [
   },
   {
     label: "状态",
-    prop: "status"
+    prop: "status",
+    slot: "employeeStatus"
   },
   {
     label: "备注",

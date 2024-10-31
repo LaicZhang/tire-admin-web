@@ -8,11 +8,15 @@ defineOptions({
   name: "initDict"
 });
 const initDict = async () => {
-  const sysDict = await localForage().getItem(SYS.dict);
-  if (sysDict) return;
+  // const sysDict = await localForage().getItem(SYS.dict);
+  // if (sysDict) return;
   const { code, data, msg } = await getSysDictApi();
-  if (code === 200) await localForage().setItem("sys-dict", data);
-  else message(msg, { type: "error" });
+  if (code === 200) {
+    await localForage().setItem(
+      SYS.dict,
+      Object.groupBy(data, ({ name }) => name)
+    );
+  } else message(msg, { type: "error" });
 };
 onMounted(() => {
   initDict();
