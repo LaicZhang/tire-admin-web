@@ -56,7 +56,7 @@ const getOrderListInfo = async () => {
 };
 
 const getEmployeeList = async () => {
-  const depWithEmp = await localForage().getItem("dep-w-emp");
+  const depWithEmp: any[] = await localForage().getItem("dep-w-emp");
   console.log("depWithEmp", depWithEmp);
   depWithEmp.map(item => {
     item.employees.map(el => {
@@ -69,7 +69,6 @@ const getEmployeeList = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-
   const { data, code, msg } = await getOrderListApi(
     orderType.value,
     pagination.value.currentPage,
@@ -137,7 +136,8 @@ async function handleDelete(row) {
 // }
 
 onMounted(async () => {
-  await Promise.all([getOrderType(), getOrderListInfo(), getEmployeeList()]);
+  await getOrderType();
+  await Promise.all([getOrderListInfo(), getEmployeeList()]);
 });
 </script>
 

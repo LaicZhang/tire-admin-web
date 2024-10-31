@@ -21,7 +21,13 @@ const form = ref({
   name: "",
   nickname: "",
   status: 0,
-  desc: undefined
+  desc: undefined,
+  phone: "",
+  email: "",
+  username: "",
+  password: undefined,
+  uid: "",
+  id: 0
 });
 const pagination = ref({
   total: 0,

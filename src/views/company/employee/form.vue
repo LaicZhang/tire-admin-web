@@ -9,9 +9,8 @@ interface FormItemProps {
   username: string;
   password: string;
   name: string;
-  /** 员工编号 */
   id: number;
-  /** 备注 */
+  uid: string;
   desc?: string;
   nickname?: string;
 }
@@ -28,7 +27,8 @@ const props = withDefaults(defineProps<FormProps>(), {
     password: "",
     name: "",
     nickname: "",
-    id: "",
+    uid: "",
+    id: 0,
     desc: undefined
   })
 });
@@ -56,11 +56,27 @@ defineExpose({ getRef });
     :rules="formRules"
     label-width="82px"
   >
+    <el-form-item label="用户名" prop="username">
+      <el-input
+        v-model="newFormInline.username"
+        clearable
+        placeholder="请输入真实姓名"
+      />
+    </el-form-item>
+
     <el-form-item label="真实姓名" prop="name">
       <el-input
         v-model="newFormInline.name"
         clearable
         placeholder="请输入真实姓名"
+      />
+    </el-form-item>
+
+    <el-form-item label="昵称" prop="nickname">
+      <el-input
+        v-model="newFormInline.nickname"
+        clearable
+        placeholder="请输入昵称"
       />
     </el-form-item>
 
@@ -77,14 +93,6 @@ defineExpose({ getRef });
         v-model="newFormInline.password"
         clearable
         placeholder="请输入初始密码"
-      />
-    </el-form-item>
-
-    <el-form-item label="昵称" prop="nickname">
-      <el-input
-        v-model="newFormInline.nickname"
-        clearable
-        placeholder="请输入昵称"
       />
     </el-form-item>
 

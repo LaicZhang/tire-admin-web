@@ -88,6 +88,10 @@ defineExpose({ getRef });
       />
     </el-form-item>
 
+    <el-form-item label="状态" prop="status">
+      <el-switch v-model="newFormInline.status" />
+    </el-form-item>
+
     <el-form-item label="是否公开" prop="isPublic">
       <el-switch v-model="newFormInline.isPublic" />
     </el-form-item>

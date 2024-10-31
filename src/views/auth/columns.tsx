@@ -5,7 +5,7 @@ import type {
 } from "@pureadmin/table";
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
-import { formatDate } from "@/utils/time";
+import { formatDate } from "@/utils";
 
 export function useColumns() {
   const dataList = ref([]);

@@ -18,7 +18,7 @@ const dataList = ref([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
-  name: "",
+  name: undefined,
   desc: undefined
 });
 const pagination = ref({

@@ -36,7 +36,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       formInline: {
         name: row?.name ?? "",
         uid: row?.uid ?? "",
-        desc: row?.desc ?? "",
+        desc: row?.desc ?? undefined,
         operatorId: row?.operatorId ?? "",
         isIndividual: row?.isIndividual ?? false,
         isPublic: row?.isPublic ?? false,
@@ -74,7 +74,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                   connect: { uid: null }
                 },
                 company: {
-                  connect: { uid: await getCompanyId() }
+                  connect: { uid: getCompanyId() }
                 }
               }
             });
@@ -87,7 +87,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                   connect: { uid: operatorId }
                 },
                 company: {
-                  connect: { uid: await getCompanyId() }
+                  connect: { uid: getCompanyId() }
                 }
               }
             });

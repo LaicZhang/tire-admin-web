@@ -6,12 +6,13 @@ import { getCompanyId, addEmployeeApi, updateEmployeeApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
-  uid: string;
-  /** 真实姓名 */
+  phone: string;
+  email: string;
+  username: string;
+  password: string;
   name: string;
-  /** 员工编号 */
   id: number;
-  /** 备注 */
+  uid: string;
   desc?: string;
   nickname?: string;
 }
@@ -35,7 +36,12 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         name: row?.name ?? "",
         nickname: row?.nickname ?? "",
         uid: row?.uid ?? "",
-        desc: row?.desc ?? ""
+        desc: row?.desc ?? undefined,
+        phone: row?.phone ?? "",
+        email: row?.email ?? "",
+        username: row?.username ?? "",
+        password: row.password ?? "",
+        id: 0
       }
     },
     width: "40%",
@@ -64,7 +70,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
               desc,
               nickname,
               company: {
-                connect: { uid: await getCompanyId() }
+                connect: { uid: getCompanyId() }
               }
             });
             chores();

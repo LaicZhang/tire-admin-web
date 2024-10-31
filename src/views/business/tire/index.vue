@@ -24,8 +24,8 @@ const dataList = ref([]),
   loading = ref(false),
   formRef = ref(),
   form = ref({
-    group: "",
-    name: "",
+    group: undefined,
+    name: undefined,
     desc: undefined
   }),
   pagination = ref({
