@@ -1,7 +1,7 @@
-import { http } from "../utils/http";
-import { baseUrlApi } from "./utils";
-import type { CommonResult } from "./type";
-import { getCompanyId } from "./company";
+import { http } from "../../utils/http";
+import { baseUrlApi } from "../utils";
+import type { CommonResult } from "../type";
+import { getCompanyId } from "../company";
 
 const prefix = "/department/";
 

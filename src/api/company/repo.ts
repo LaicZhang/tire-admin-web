@@ -1,6 +1,6 @@
-import { http } from "../utils/http";
-import { baseUrlApi } from "./utils";
-import type { CommonResult } from "./type";
+import { http } from "../../utils/http";
+import { baseUrlApi } from "../utils";
+import type { CommonResult } from "../type";
 
 const prefix = "/repo/";
 
