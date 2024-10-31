@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
+import { localForage } from "@/utils";
 
 interface FormItemProps {
   phone: string;
@@ -13,6 +14,7 @@ interface FormItemProps {
   uid: string;
   desc?: string;
   nickname?: string;
+  jobs: any[];
 }
 
 interface FormProps {
@@ -29,9 +31,12 @@ const props = withDefaults(defineProps<FormProps>(), {
     nickname: "",
     uid: "",
     id: 0,
-    desc: undefined
+    desc: undefined,
+    jobs: []
   })
 });
+
+const allPositionList = ref([]);
 /** 自定义表单规则校验 */
 const formRules = reactive({
   name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
@@ -46,7 +51,14 @@ function getRef() {
   return ruleFormRef.value;
 }
 
+async function getPositionList() {
+  allPositionList.value = await localForage().getItem("positions");
+}
+
 defineExpose({ getRef });
+onMounted(async () => {
+  await getPositionList();
+});
 </script>
 
 <template>
@@ -60,7 +72,7 @@ defineExpose({ getRef });
       <el-input
         v-model="newFormInline.username"
         clearable
-        placeholder="请输入真实姓名"
+        placeholder="请输入用户名"
       />
     </el-form-item>
 
@@ -86,6 +98,26 @@ defineExpose({ getRef });
         clearable
         placeholder="请输入手机号码"
       />
+    </el-form-item>
+
+    <el-form-item label="电子邮件" prop="email">
+      <el-input
+        v-model="newFormInline.email"
+        clearable
+        placeholder="请输入电子邮件"
+      />
+    </el-form-item>
+
+    <el-form-item label="岗位" prop="jobs">
+      <el-checkbox-group v-model="newFormInline.jobs">
+        <el-checkbox
+          v-for="item in allPositionList"
+          :key="item.id"
+          :value="item"
+        >
+          {{ item.cn }}
+        </el-checkbox>
+      </el-checkbox-group>
     </el-form-item>
 
     <el-form-item label="初始密码" prop="password">

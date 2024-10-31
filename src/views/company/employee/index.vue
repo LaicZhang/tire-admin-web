@@ -25,9 +25,10 @@ const form = ref({
   phone: "",
   email: "",
   username: "",
-  password: undefined,
+  password: "",
   uid: "",
-  id: 0
+  id: 0,
+  jobs: []
 });
 const pagination = ref({
   total: 0,
@@ -45,7 +46,7 @@ const getEmployeeListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === undefined)
+  if (form.value.name === undefined && form.value.desc === undefined)
     await getEmployeeListInfo();
 
   const { data } = await getEmployeeListApi(pagination.value.currentPage, {

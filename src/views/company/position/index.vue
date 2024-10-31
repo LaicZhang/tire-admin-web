@@ -8,7 +8,7 @@ import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
 import { getPositionListApi, deletePositionApi } from "@/api";
-import { message } from "@/utils";
+import { localForage, message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
@@ -37,7 +37,7 @@ const getPositionListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === "" && form.value.desc === undefined)
+  if (form.value.name === undefined && form.value.desc === undefined)
     await getPositionListInfo();
 
   const { data } = await getPositionListApi(pagination.value.currentPage, {
@@ -65,11 +65,18 @@ async function handleCurrentChange(val: number) {
 async function handleDelete(row) {
   await deletePositionApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  await onSearch();
+}
+
+async function getAllPosition() {
+  const { data, code, msg } = await getPositionListApi(0);
+  if (code === 200) {
+    await localForage().setItem("positions", data);
+  } else message(msg, { type: "error" });
 }
 
 onMounted(async () => {
-  await getPositionListInfo();
+  await Promise.all([getPositionListInfo(), getAllPosition()]);
 });
 </script>
 

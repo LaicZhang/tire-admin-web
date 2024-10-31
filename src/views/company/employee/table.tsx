@@ -15,6 +15,7 @@ interface FormItemProps {
   uid: string;
   desc?: string;
   nickname?: string;
+  jobs: any[];
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -40,8 +41,9 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         phone: row?.phone ?? "",
         email: row?.email ?? "",
         username: row?.username ?? "",
-        password: row.password ?? "",
-        id: 0
+        password: row?.password ?? "",
+        id: 0,
+        jobs: row?.jobs ?? []
       }
     },
     width: "40%",
@@ -63,14 +65,32 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
-          const { uid, name, desc, nickname } = curData;
+          const {
+            uid,
+            name,
+            phone,
+            email,
+            password,
+            username,
+            desc,
+            nickname,
+            jobs
+          } = curData;
           if (title === "新增") {
             await addEmployeeApi({
-              name,
-              desc,
-              nickname,
-              company: {
-                connect: { uid: getCompanyId() }
+              user: {
+                phone,
+                email,
+                username,
+                password
+              },
+              connectEmployeeDto: {
+                jobs,
+                companyId: await getCompanyId()
+              },
+              name: {
+                name,
+                nickname
               }
             });
             chores();
