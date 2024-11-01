@@ -8,6 +8,11 @@ export const columns = [
     prop: "group"
   },
   {
+    label: "实物图",
+    prop: "covers",
+    slot: "covers"
+  },
+  {
     label: "名称",
     prop: "name"
   },

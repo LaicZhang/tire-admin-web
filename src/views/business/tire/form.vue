@@ -1,6 +1,17 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
+import Add from "@iconify-icons/ep/plus";
+import {
+  getImageWH,
+  getMD5,
+  getToken,
+  localForage,
+  message,
+  StaticImageTypeEnum
+} from "@/utils";
+import { JSX } from "vue/jsx-runtime";
+import { setUploadedImages } from "@/views/business/tire/store";
 
 interface FormItemProps {
   id?: number;
@@ -21,6 +32,7 @@ interface FormItemProps {
   salePrice: string;
   commissionType: number;
   commission: string;
+  covers: any[];
 }
 
 interface FormProps {
@@ -31,22 +43,23 @@ const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     id: 0,
     uid: "",
-    group: "",
-    name: "",
+    group: "默认",
+    name: undefined,
     desc: undefined,
     unit: "条",
-    pattern: "",
-    brand: "",
-    loadIndex: "",
-    speedLevel: "",
-    format: "",
-    weight: "",
-    purchasePriceWithTax: "",
-    purchasePrice: "",
-    salePriceWithTax: "",
-    salePrice: "",
+    pattern: undefined,
+    brand: undefined,
+    loadIndex: undefined,
+    speedLevel: undefined,
+    format: undefined,
+    weight: undefined,
+    purchasePriceWithTax: undefined,
+    purchasePrice: undefined,
+    salePriceWithTax: undefined,
+    salePrice: undefined,
     commissionType: 0,
-    commission: ""
+    commission: undefined,
+    covers: []
   })
 });
 /** 自定义表单规则校验 */
@@ -62,7 +75,48 @@ function getRef() {
   return ruleFormRef.value;
 }
 
+const Authorization = ref("");
+const baseImagePath = "https://s4-tire.zyha.cn/cover/";
+
+function getAuthorization() {
+  if (!Authorization.value)
+    Authorization.value = "Bearer " + getToken().accessToken;
+}
+
+const uploadData = ref();
+const uploadedImagesList = ref([]);
+
+async function handleSuccess(response, file, fileList, row?) {
+  console.log("handleSuccess", response, file, fileList, row);
+  const { code, msg, data } = response;
+  if (code !== 200) message(msg, { type: "error" });
+  const params = { id: data.id };
+  uploadedImagesList.value.push(params);
+  uploadedImagesList.value = Array.from(new Set(uploadedImagesList.value));
+  await setUploadedImages(params);
+}
+
+const onBeforeUpload = async file => {
+  const { name, size, type } = file;
+  const hash = getMD5(file);
+  const [filename, ext] = name.split(".");
+  const { width, height } = await getImageWH(file);
+  uploadData.value = {
+    hash,
+    ext,
+    filename,
+    size,
+    mimetype: type,
+    width,
+    height,
+    type: StaticImageTypeEnum.COVER
+  };
+};
+
 defineExpose({ getRef });
+onMounted(() => {
+  getAuthorization();
+});
 </script>
 
 <template>
@@ -86,6 +140,40 @@ defineExpose({ getRef });
         clearable
         placeholder="请输入分组"
       />
+    </el-form-item>
+
+    <el-form-item label="实物图" prop="covers">
+      <el-upload
+        v-model="newFormInline.covers"
+        :before-upload="onBeforeUpload"
+        :on-success="
+          (response, file, fileList) => {
+            return handleSuccess(response, file, fileList);
+          }
+        "
+        :data="uploadData"
+        class="cover-uploader"
+        :limit="3"
+        drag
+        action="http://127.0.0.1:3000/api/static"
+        :headers="{ Authorization }"
+      >
+        <div style="display: flex">
+          <div v-if="newFormInline.covers.length !== 0">
+            <el-image
+              v-for="item in newFormInline.covers"
+              :key="item.id"
+              :src="baseImagePath + item.hash + '.' + item.ext"
+              loading="lazy"
+            />
+          </div>
+          <IconifyIconOffline
+            v-if="newFormInline.covers.length < 4"
+            :icon="Add"
+            class="m-auto mt-4"
+          />
+        </div>
+      </el-upload>
     </el-form-item>
 
     <el-form-item label="单位" prop="unit">
@@ -181,3 +269,28 @@ defineExpose({ getRef });
     </el-form-item>
   </el-form>
 </template>
+
+<style scoped>
+.cover-uploader .el-upload {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  transition: var(--el-transition-duration-fast);
+}
+
+.cover-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+/**
+.el-icon.cover-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
+}
+*/
+</style>

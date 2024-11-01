@@ -34,6 +34,7 @@ const dataList = ref([]),
     currentPage: 1,
     background: true
   });
+const baseImagePath = "https://s4-tire.zyha.cn/cover/";
 
 const getEmployeesWithTire = async () => {
   const { data, code, msg } = await getDepartmentWithEmpApi();
@@ -96,7 +97,7 @@ async function handleCurrentChange(val: number) {
 async function handleDelete(row) {
   await deleteTireApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  await onSearch();
 }
 
 onMounted(async () => {
@@ -177,6 +178,21 @@ onMounted(async () => {
             :pagination="{ ...pagination, size }"
             @page-current-change="handleCurrentChange"
           >
+            <template #covers="{ row }">
+              <el-image
+                v-for="item in row.covers"
+                :key="item.id"
+                :src="baseImagePath + item.hash + '.' + item.ext"
+                loading="lazy"
+                hide-on-click-modal
+                preview-teleported
+                :preview-src-list="
+                  row.covers.map(item => {
+                    return baseImagePath + item.hash + '.' + item.ext;
+                  })
+                "
+              />
+            </template>
             <template #operation="{ row }">
               <el-button
                 class="reset-margin"

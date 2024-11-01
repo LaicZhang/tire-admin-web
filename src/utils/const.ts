@@ -1,5 +1,13 @@
 export enum SYS {
-  dict = "sys_dict"
+  dict = "sys_dict",
+  setting = "sys_setting"
+}
+
+export enum StaticImageTypeEnum {
+  AVATAR = 1,
+  COVER = 2,
+  LOGO = 3,
+  DRIVER = 4
 }
 
 export enum ORDER_TYPE {
