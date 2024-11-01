@@ -77,26 +77,33 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             nickname,
             jobs
           } = curData;
+          const user = {
+              phone,
+              email,
+              username,
+              password
+            },
+            nameInfo = {
+              name,
+              nickname,
+              desc
+            };
           if (title === "新增") {
             await addEmployeeApi({
-              user: {
-                phone,
-                email,
-                username,
-                password
-              },
+              user,
               connectEmployeeDto: {
                 jobs,
                 companyId: getCompanyId()
               },
-              name: {
-                name,
-                nickname
-              }
+              name: nameInfo
             });
             chores();
           } else {
-            await updateEmployeeApi(uid, { name, desc, nickname });
+            await updateEmployeeApi(uid, {
+              user,
+              name: nameInfo,
+              jobs
+            });
             chores();
           }
         }

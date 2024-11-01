@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
-import { localForage } from "@/utils";
+import { localForage, message, SYS } from "@/utils";
 
 interface FormItemProps {
   phone: string;
@@ -10,6 +10,7 @@ interface FormItemProps {
   username: string;
   password: string;
   name: string;
+  status: number;
   id: number;
   uid: string;
   desc?: string;
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     phone: "",
     email: undefined,
+    status: 0,
     username: "",
     password: "",
     name: "",
@@ -41,7 +43,7 @@ const allPositionList = ref([]);
 const formRules = reactive({
   name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
   phone: [
-    { required: true, message: "手机号为必填项", trigger: "blur" },
+    // { required: true, message: "手机号为必填项", trigger: "blur" },
     {
       pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
       message: "请输入手机号",
@@ -59,6 +61,12 @@ function getRef() {
   return ruleFormRef.value;
 }
 
+const employeeStatus = ref([]);
+const getEmployeeStatus = async () => {
+  const dict: any = await localForage().getItem(SYS.dict);
+  employeeStatus.value = dict.employeeStatus;
+};
+
 async function getPositionList() {
   allPositionList.value = await localForage().getItem("positions");
 }
@@ -66,6 +74,7 @@ async function getPositionList() {
 defineExpose({ getRef });
 onMounted(async () => {
   await getPositionList();
+  await getEmployeeStatus();
 });
 </script>
 
@@ -114,6 +123,22 @@ onMounted(async () => {
         clearable
         placeholder="请输入电子邮件"
       />
+    </el-form-item>
+
+    <el-form-item label="状态" prop="status">
+      <el-select
+        v-model="newFormInline.status"
+        placeholder="请输入员工状态"
+        clearable
+        class="!w-[180px]"
+      >
+        <el-option
+          v-for="item in employeeStatus"
+          :key="item.id"
+          :value="item.key"
+          :label="item.cn"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="岗位" prop="jobs">
