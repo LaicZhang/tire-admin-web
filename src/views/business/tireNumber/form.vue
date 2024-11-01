@@ -84,7 +84,7 @@ onMounted(() => {
       <el-input
         v-model="newFormInline.number"
         clearable
-        placeholder="请选择轮胎胎号"
+        placeholder="请输入轮胎胎号"
       />
     </el-form-item>
 

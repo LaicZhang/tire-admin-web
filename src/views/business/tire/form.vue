@@ -3,6 +3,7 @@ import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
 import Add from "@iconify-icons/ep/plus";
 import {
+  getFileMd5,
   getImageWH,
   getMD5,
   getToken,
@@ -12,6 +13,7 @@ import {
 } from "@/utils";
 import { JSX } from "vue/jsx-runtime";
 import { setUploadedImages } from "@/views/business/tire/store";
+import SparkMD5 from "spark-md5";
 
 interface FormItemProps {
   id?: number;
@@ -84,21 +86,23 @@ function getAuthorization() {
 }
 
 const uploadData = ref();
-const uploadedImagesList = ref([]);
+
+// const uploadedImagesList = ref([]);
 
 async function handleSuccess(response, file, fileList, row?) {
   console.log("handleSuccess", response, file, fileList, row);
   const { code, msg, data } = response;
   if (code !== 200) message(msg, { type: "error" });
   const params = { id: data.id };
-  uploadedImagesList.value.push(params);
-  uploadedImagesList.value = Array.from(new Set(uploadedImagesList.value));
+  // uploadedImagesList.value.push(params);
+  // uploadedImagesList.value = Array.from(new Set(uploadedImagesList.value));
   await setUploadedImages(params);
 }
 
 const onBeforeUpload = async file => {
-  const { name, size, type } = file;
-  const hash = getMD5(file);
+  const { name, size, type, lastModified } = file;
+  console.log(file);
+  const hash = getFileMd5(lastModified, size);
   const [filename, ext] = name.split(".");
   const { width, height } = await getImageWH(file);
   uploadData.value = {
@@ -109,8 +113,10 @@ const onBeforeUpload = async file => {
     mimetype: type,
     width,
     height,
+    lastModified,
     type: StaticImageTypeEnum.COVER
   };
+  console.log("uploadData", uploadData.value);
 };
 
 defineExpose({ getRef });
@@ -143,7 +149,16 @@ onMounted(() => {
     </el-form-item>
 
     <el-form-item label="实物图" prop="covers">
+      <div v-if="newFormInline.covers.length !== 0" style="display: inline">
+        <el-image
+          v-for="item in newFormInline.covers"
+          :key="item.id"
+          :src="baseImagePath + item.hash + '.' + item.ext"
+          loading="lazy"
+        />
+      </div>
       <el-upload
+        v-if="newFormInline.covers.length < 4"
         v-model="newFormInline.covers"
         :before-upload="onBeforeUpload"
         :on-success="
@@ -153,26 +168,11 @@ onMounted(() => {
         "
         :data="uploadData"
         class="cover-uploader"
-        :limit="3"
         drag
         action="http://127.0.0.1:3000/api/static"
         :headers="{ Authorization }"
       >
-        <div style="display: flex">
-          <div v-if="newFormInline.covers.length !== 0">
-            <el-image
-              v-for="item in newFormInline.covers"
-              :key="item.id"
-              :src="baseImagePath + item.hash + '.' + item.ext"
-              loading="lazy"
-            />
-          </div>
-          <IconifyIconOffline
-            v-if="newFormInline.covers.length < 4"
-            :icon="Add"
-            class="m-auto mt-4"
-          />
-        </div>
+        <IconifyIconOffline :icon="Add" class="m-auto mt-4" />
       </el-upload>
     </el-form-item>
 
