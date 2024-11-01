@@ -186,6 +186,7 @@ onMounted(async () => {
                 loading="lazy"
                 hide-on-click-modal
                 preview-teleported
+                style="height: 30px"
                 :preview-src-list="
                   row.covers.map(item => {
                     return baseImagePath + item.hash + '.' + item.ext;

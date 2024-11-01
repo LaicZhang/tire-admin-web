@@ -149,12 +149,18 @@ onMounted(() => {
     </el-form-item>
 
     <el-form-item label="实物图" prop="covers">
-      <div v-if="newFormInline.covers.length !== 0" style="display: inline">
+      <div v-if="newFormInline.covers.length !== 0">
         <el-image
           v-for="item in newFormInline.covers"
           :key="item.id"
+          style="height: 80px"
           :src="baseImagePath + item.hash + '.' + item.ext"
           loading="lazy"
+          :preview-src-list="
+            newFormInline.covers.map(item => {
+              return baseImagePath + item.hash + '.' + item.ext;
+            })
+          "
         />
       </div>
       <el-upload
