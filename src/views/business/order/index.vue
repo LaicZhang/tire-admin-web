@@ -27,8 +27,8 @@ const dataList = ref([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
-  operatorId: "",
-  auditorId: "",
+  operatorId: undefined,
+  auditorId: undefined,
   desc: undefined
 });
 const orderType = ref("");
