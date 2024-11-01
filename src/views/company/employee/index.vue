@@ -18,17 +18,12 @@ const dataList = ref([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
-  name: "",
-  nickname: "",
+  name: undefined,
+  nickname: undefined,
   status: undefined,
   desc: undefined,
-  phone: "",
-  email: "",
-  username: "",
-  password: "",
-  uid: "",
-  id: 0,
-  jobs: []
+  phone: undefined,
+  email: undefined
 });
 const pagination = ref({
   total: 0,
@@ -46,11 +41,19 @@ const getEmployeeListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined)
+  // if (
+  //   form.value.name === undefined &&
+  //   form.value.desc === undefined &&
+  //   form.value.status === undefined
+  // )
+  //   await getEmployeeListInfo();
+  if (Object.values(form.value).every(v => v === undefined)) {
     await getEmployeeListInfo();
+  }
 
   const { data } = await getEmployeeListApi(pagination.value.currentPage, {
     name: form.value.name,
+    status: form.value.status,
     desc: form.value.desc
   });
 
@@ -120,7 +123,7 @@ onMounted(async () => {
             <el-option
               v-for="item in employeeStatus"
               :key="item.id"
-              :value="item"
+              :value="item.key"
               :label="item.cn"
             />
           </el-select>

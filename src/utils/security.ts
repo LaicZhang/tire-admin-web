@@ -1,4 +1,5 @@
 import CryptoJS from "crypto-js";
+import { formatTimeOnlyNumber } from "@/utils/time";
 
 export function getMD5(data: Buffer | string): string {
   // return CryptoJS.MD5(data).toString().toLowerCase();
@@ -19,4 +20,8 @@ export function compareMD5(hash: string, data: Buffer) {
     throw new Error(
       `the parma ${hash} and real hash ${fileHash} hash not match`
     );
+}
+
+export function getUsernameOfOnlyNumber() {
+  return formatTimeOnlyNumber() + Math.trunc(Math.random() * 100);
 }

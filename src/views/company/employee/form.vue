@@ -24,7 +24,7 @@ interface FormProps {
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     phone: "",
-    email: "",
+    email: undefined,
     username: "",
     password: "",
     name: "",
@@ -40,8 +40,16 @@ const allPositionList = ref([]);
 /** 自定义表单规则校验 */
 const formRules = reactive({
   name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
-  phone: [{ required: true, message: "手机号为必填项", trigger: "blur" }],
-  username: [{ required: true, message: "用户名为必填项", trigger: "blur" }]
+  phone: [
+    { required: true, message: "手机号为必填项", trigger: "blur" },
+    {
+      pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
+      message: "请输入手机号",
+      trigger: "blur"
+    }
+  ],
+  username: [{ required: true, message: "用户名为必填项", trigger: "blur" }],
+  nickname: [{ required: true, message: "昵称为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
@@ -71,7 +79,7 @@ onMounted(async () => {
     <el-form-item label="用户名" prop="username">
       <el-input
         v-model="newFormInline.username"
-        clearable
+        disabled
         placeholder="请输入用户名"
       />
     </el-form-item>
@@ -120,11 +128,11 @@ onMounted(async () => {
       </el-checkbox-group>
     </el-form-item>
 
-    <el-form-item label="初始密码" prop="password">
+    <el-form-item label="密码" prop="password">
       <el-input
         v-model="newFormInline.password"
         clearable
-        placeholder="请输入初始密码"
+        placeholder="请输入密码"
       />
     </el-form-item>
 

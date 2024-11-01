@@ -7,3 +7,7 @@ export const formatDate = (date: Date) => {
 export const formatDateTime = (date: Date) => {
   return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
 };
+
+export const formatTimeOnlyNumber = () => {
+  return dayjs().format("YYYYMMDDHHmmss");
+};

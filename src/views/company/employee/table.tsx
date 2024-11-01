@@ -4,6 +4,7 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addEmployeeApi, updateEmployeeApi } from "@/api";
 import editForm from "./form.vue";
+import { getUsernameOfOnlyNumber } from "@/utils";
 
 interface FormItemProps {
   phone: string;
@@ -34,14 +35,14 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     title: `${title}员工`,
     props: {
       formInline: {
-        name: row?.name ?? "",
+        name: row?.name ?? undefined,
         nickname: row?.nickname ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? undefined,
-        phone: row?.phone ?? "",
-        email: row?.email ?? "",
-        username: row?.username ?? "",
-        password: row?.password ?? "",
+        phone: row?.phone ?? undefined,
+        email: row?.email ?? undefined,
+        username: row?.username ?? getUsernameOfOnlyNumber(),
+        password: row?.password ?? undefined,
         id: 0,
         jobs: row?.jobs ?? []
       }
@@ -86,7 +87,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
               },
               connectEmployeeDto: {
                 jobs,
-                companyId: await getCompanyId()
+                companyId: getCompanyId()
               },
               name: {
                 name,
