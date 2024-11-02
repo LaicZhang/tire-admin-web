@@ -4,25 +4,30 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addEmployeeApi, updateEmployeeApi } from "@/api";
 import editForm from "./form.vue";
-import { getUsernameOfOnlyNumber } from "@/utils";
+import { getRandomName, getUsernameOfOnlyNumber } from "@/utils";
 
-interface FormItemProps {
+export interface FormItemProps {
   phone: string;
   email: string;
   username: string;
   password: string;
   name: string;
+  status: number;
   id: number;
   uid: string;
   desc?: string;
   nickname?: string;
   jobs: any[];
+  user?: {
+    username: string;
+    password?: string;
+    phone: string;
+    email: string;
+  };
 }
-interface FormProps {
+export interface FormProps {
   formInline: FormItemProps;
 }
-
-export type { FormItemProps, FormProps };
 
 const formRef = ref(null);
 
@@ -36,14 +41,15 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     props: {
       formInline: {
         name: row?.name ?? undefined,
-        nickname: row?.nickname ?? "",
-        uid: row?.uid ?? "",
+        nickname: row?.nickname ?? getRandomName(),
+        uid: row?.uid ?? undefined,
         desc: row?.desc ?? undefined,
-        phone: row?.phone ?? undefined,
-        email: row?.email ?? undefined,
-        username: row?.username ?? getUsernameOfOnlyNumber(),
-        password: row?.password ?? undefined,
-        id: 0,
+        phone: row?.user.phone ?? undefined,
+        email: row?.user.email ?? undefined,
+        username: row?.user.username ?? getUsernameOfOnlyNumber(),
+        status: row?.status ?? undefined,
+        password: row?.user.password ?? undefined,
+        id: row?.id ?? undefined,
         jobs: row?.jobs ?? []
       }
     },
@@ -53,7 +59,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: formRef }),
+    contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
       const curData = options.props.formInline as FormItemProps;
@@ -75,18 +81,15 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             username,
             desc,
             nickname,
-            jobs
+            jobs,
+            status
           } = curData;
-          const user = {
-              phone,
-              email,
-              username,
-              password
-            },
+          const user = { phone, email, username, password },
             nameInfo = {
               name,
               nickname,
-              desc
+              desc,
+              status
             };
           if (title === "新增") {
             await addEmployeeApi({
@@ -99,6 +102,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             });
             chores();
           } else {
+            delete user.password;
             await updateEmployeeApi(uid, {
               user,
               name: nameInfo,

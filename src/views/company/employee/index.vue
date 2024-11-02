@@ -81,12 +81,8 @@ async function handleDelete(row) {
 }
 
 const getSysDict = async () => {
-  const { code, data, msg } = await getSysDictApi();
-  if (code === 200) {
-    const dict = Object.groupBy(data, ({ name }) => name);
-    await localForage().setItem(SYS.dict, dict);
-    employeeStatus.value = dict.employeeStatus;
-  } else message(msg, { type: "error" });
+  const dict: any = await localForage().getItem(SYS.dict);
+  employeeStatus.value = dict.employeeStatus;
 };
 
 const employeeStatus = ref([]);

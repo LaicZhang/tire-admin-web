@@ -3,24 +3,7 @@ import { onMounted, ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 import { localForage, message, SYS } from "@/utils";
-
-interface FormItemProps {
-  phone: string;
-  email: string;
-  username: string;
-  password: string;
-  name: string;
-  status: number;
-  id: number;
-  uid: string;
-  desc?: string;
-  nickname?: string;
-  jobs: any[];
-}
-
-interface FormProps {
-  formInline: FormItemProps;
-}
+import { FormProps } from "./table";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
