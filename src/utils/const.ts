@@ -1,3 +1,5 @@
+export const BaseImagePath = "https://s4-tire.zyha.cn/cover/";
+
 export enum SYS {
   dict = "sys_dict",
   setting = "sys_setting"

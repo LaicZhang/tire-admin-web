@@ -15,6 +15,7 @@ import {
 } from "@/api";
 import { message, localForage } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { BaseImagePath } from "@/utils";
 
 defineOptions({
   name: "Tire"
@@ -34,7 +35,6 @@ const dataList = ref([]),
     currentPage: 1,
     background: true
   });
-const baseImagePath = "https://s4-tire.zyha.cn/cover/";
 
 const getEmployeesWithTire = async () => {
   const { data, code, msg } = await getDepartmentWithEmpApi();
@@ -182,14 +182,14 @@ onMounted(async () => {
               <el-image
                 v-for="item in row.covers"
                 :key="item.id"
-                :src="baseImagePath + item.hash + '.' + item.ext"
+                :src="BaseImagePath + item.hash + '.' + item.ext"
                 loading="lazy"
                 hide-on-click-modal
                 preview-teleported
                 style="height: 30px"
                 :preview-src-list="
                   row.covers.map(item => {
-                    return baseImagePath + item.hash + '.' + item.ext;
+                    return BaseImagePath + item.hash + '.' + item.ext;
                   })
                 "
               />

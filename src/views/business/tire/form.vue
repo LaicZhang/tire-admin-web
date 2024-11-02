@@ -11,9 +11,8 @@ import {
   message,
   StaticImageTypeEnum
 } from "@/utils";
-import { JSX } from "vue/jsx-runtime";
 import { setUploadedImages } from "@/views/business/tire/store";
-import SparkMD5 from "spark-md5";
+import { BaseImagePath } from "@/utils";
 
 interface FormItemProps {
   id?: number;
@@ -27,11 +26,11 @@ interface FormItemProps {
   loadIndex: string;
   speedLevel: string;
   format: string;
-  weight: string;
-  purchasePriceWithTax: string;
-  purchasePrice: string;
-  salePriceWithTax: string;
-  salePrice: string;
+  weight: number;
+  purchasePriceWithTax: number;
+  purchasePrice: number;
+  salePriceWithTax: number;
+  salePrice: number;
   commissionType: number;
   commission: string;
   covers: any[];
@@ -78,7 +77,6 @@ function getRef() {
 }
 
 const Authorization = ref("");
-const baseImagePath = "https://s4-tire.zyha.cn/cover/";
 
 function getAuthorization() {
   if (!Authorization.value)
@@ -154,11 +152,11 @@ onMounted(() => {
           v-for="item in newFormInline.covers"
           :key="item.id"
           style="height: 80px"
-          :src="baseImagePath + item.hash + '.' + item.ext"
+          :src="BaseImagePath + item.hash + '.' + item.ext"
           loading="lazy"
           :preview-src-list="
             newFormInline.covers.map(item => {
-              return baseImagePath + item.hash + '.' + item.ext;
+              return BaseImagePath + item.hash + '.' + item.ext;
             })
           "
         />
@@ -227,44 +225,48 @@ onMounted(() => {
     </el-form-item>
 
     <el-form-item label="重量" prop="weight">
-      <el-input
+      <el-input-number
         v-model="newFormInline.weight"
         clearable
         placeholder="请输入重量"
       />
     </el-form-item>
 
-    <el-form-item label="含税进价" prop="purchasePriceWithTax">
-      <el-input
-        v-model="newFormInline.purchasePriceWithTax"
-        clearable
-        placeholder="请输入含税进价"
-      />
-    </el-form-item>
+    <div class="flex">
+      <el-form-item label="含税进价" prop="purchasePriceWithTax">
+        <el-input-number
+          v-model="newFormInline.purchasePriceWithTax"
+          clearable
+          placeholder="请输入含税进价"
+        />
+      </el-form-item>
 
-    <el-form-item label="进价" prop="purchasePrice">
-      <el-input
-        v-model="newFormInline.purchasePrice"
-        clearable
-        placeholder="请输入进价"
-      />
-    </el-form-item>
+      <el-form-item label="进价" prop="purchasePrice">
+        <el-input-number
+          v-model="newFormInline.purchasePrice"
+          clearable
+          placeholder="请输入进价"
+        />
+      </el-form-item>
+    </div>
 
-    <el-form-item label="含税售价" prop="salePriceWithTax">
-      <el-input
-        v-model="newFormInline.salePriceWithTax"
-        clearable
-        placeholder="请输入含税售价"
-      />
-    </el-form-item>
+    <div class="flex">
+      <el-form-item label="含税售价" prop="salePriceWithTax">
+        <el-input-number
+          v-model="newFormInline.salePriceWithTax"
+          clearable
+          placeholder="请输入含税售价"
+        />
+      </el-form-item>
 
-    <el-form-item label="售价" prop="salePrice">
-      <el-input
-        v-model="newFormInline.salePrice"
-        clearable
-        placeholder="请输入售价"
-      />
-    </el-form-item>
+      <el-form-item label="售价" prop="salePrice">
+        <el-input-number
+          v-model="newFormInline.salePrice"
+          clearable
+          placeholder="请输入售价"
+        />
+      </el-form-item>
+    </div>
 
     <el-form-item label="备注" prop="desc">
       <el-input
