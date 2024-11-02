@@ -14,14 +14,15 @@ import Refresh from "@iconify-icons/ep/refresh";
 import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
-import { openDialog, allTireList } from "./table";
+import { openDialog } from "./table";
 import {
   getOrderListApi,
   deleteOrderApi,
   getEmployeeListApi,
   getAuditorListApi,
   getRepoListApi,
-  getTireListApi
+  getTireListApi,
+  getProviderListApi
 } from "@/api";
 import {
   ALL_LIST,
@@ -82,7 +83,7 @@ const getEmployeeList = async () => {
   const { data, code, msg } = await getEmployeeListApi(0);
   if (code === 200) {
     employeeList.value = data;
-    console.log("employeeList", employeeList.value);
+    await localForage().setItem(ALL_LIST.employee, data);
   }
 };
 const managerList = ref([]);
@@ -109,7 +110,7 @@ const getAllCustomerList = async () => {
 };
 
 const getAllProviderList = async () => {
-  const { data, code, msg } = await getTireListApi(0);
+  const { data, code, msg } = await getProviderListApi(0);
   if (code === 200) {
     allProviderList.value = data;
     await localForage().setItem(ALL_LIST.provider, data);
@@ -169,7 +170,8 @@ const columnMapping = {
 const setOrderType = async () => {
   try {
     console.log("setOrderType", orderType.value);
-    await localForage().setItem(CUR_ORDER_TYPE, orderType.value);
+    const type = orderType.value;
+    await localForage().setItem(CUR_ORDER_TYPE, type);
     columns.value = columnMapping[orderType.value] || columns.value;
     await onSearch();
   } catch (e) {

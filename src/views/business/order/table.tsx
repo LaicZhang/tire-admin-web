@@ -2,24 +2,16 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addOrderApi, updateOrderApi, getUidApi } from "@/api";
+import { getCompanyId, addOrderApi, updateOrderApi } from "@/api";
 import editForm from "./form.vue";
-import { ALL_LIST, localForage } from "@/utils";
+import { ALL_LIST, CUR_ORDER_TYPE, localForage } from "@/utils";
 
 const formRef = ref(null);
-const orderId = ref("");
 export function handleSelectionChange(val) {
   console.log("handleSelectionChange", val);
 }
+const orderType = ref("");
 
-export async function getOrderId(type: string) {
-  if (orderId.value) return;
-  const { data, msg, code } = await getUidApi(type);
-  console.log("getUidApi", data);
-  if (code === 200) {
-    orderId.value = data.id;
-  } else message(msg, { type: "error" });
-}
 export const allTireList = ref([]);
 export const allRepoList = ref([]);
 export const allCustomerList = ref([]);
@@ -45,14 +37,29 @@ export async function getAllProviderList() {
   if (res) allProviderList.value = res;
 }
 
+export async function getOrderType() {
+  orderType.value = await localForage().getItem(CUR_ORDER_TYPE);
+  return orderType.value;
+}
+import { v7 as uuid } from "uuid";
 export async function openDialog(title = "新增", type, row?) {
-  await getOrderId(type);
+  const orderId = uuid();
   addDialog({
     title: `${title}`,
     props: {
       formInline: {
-        uid: row?.uid ?? "",
-        desc: row?.desc ?? ""
+        uid: row?.uid ?? orderId,
+        providerId: row?.providerId ?? undefined,
+        customerId: row?.customerId ?? undefined,
+        auditorId: row?.auditorId ?? undefined,
+        isApproved: row?.isApproved ?? false,
+        isLocked: row?.isLocked ?? false,
+        logisticsStatus: row?.logisticsStatus ?? 0,
+        orderStatus: row?.orderStatus ?? 0,
+        rejectReason: row?.rejectReason ?? undefined,
+        status: row?.status ?? true,
+        desc: row?.desc ?? undefined,
+        details: row?.details ?? []
       }
     },
     width: "95%",
@@ -75,18 +82,55 @@ export async function openDialog(title = "新增", type, row?) {
         if (valid) {
           console.log("curData", curData);
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, uid, type, details, ...orderData } = curData;
+          const { id, uid, details, ...orderData } = curData;
+          const companyId = await getCompanyId();
           if (title === "新增") {
-            await addOrderApi(type, {
-              order: {
-                ...orderData,
-                uid: orderId.value,
-                company: {
-                  connect: { uid: await getCompanyId() }
-                }
+            const commonData = {
+              uid,
+              company: {
+                connect: { uid: companyId }
               },
-              details
-            });
+              auditor: {
+                connect: { uid: curData.auditorId }
+              }
+            };
+            delete orderData.auditorId;
+            if (type === "purchase-order") {
+              const purchaseOrderData = {
+                provider: {
+                  connect: { uid: curData.providerId }
+                }
+              };
+              delete orderData.providerId;
+              const detailsRes = [];
+              details.map(item => {
+                delete item.index;
+                detailsRes.push({ companyId, ...item });
+              });
+              await addOrderApi(type, {
+                order: {
+                  ...orderData,
+                  ...commonData,
+                  ...purchaseOrderData
+                },
+                details: detailsRes
+              });
+            } else if (type === "sale-order") {
+              const saleOrderData = {
+                customer: {
+                  connect: { uid: curData.customerId }
+                }
+              };
+              delete orderData.customerId;
+              await addOrderApi(type, {
+                order: {
+                  ...orderData,
+                  ...commonData,
+                  ...saleOrderData
+                },
+                details
+              });
+            }
             chores();
           } else if (
             ["审核", "修改", "付款", "收款", "更新物流", "更新状态"].includes(

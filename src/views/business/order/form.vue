@@ -37,12 +37,13 @@ const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
     payAt: null,
     updateAt: null,
     providerId: undefined,
-    customerId: undefined
+    customerId: undefined,
+    details: []
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  auditorId: [{ required: true, message: "审核人呢为必填项", trigger: "blur" }]
+  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
@@ -84,7 +85,10 @@ function onDel(row) {
   const index = dataList.value.indexOf(row);
   if (index !== -1) dataList.value.splice(index, 1);
 }
-
+function saveDataList() {
+  newFormInline.value.details = dataList.value;
+  console.log("newFormInline.value", newFormInline.value);
+}
 function clearDetails() {
   dataList.value = [];
 }
@@ -178,6 +182,7 @@ onMounted(async () => {
         </el-button>
       </div> -->
       <pure-table
+        v-model="newFormInline.details"
         row-key="id"
         adaptive
         :columns="detailsColumns"
@@ -269,5 +274,8 @@ onMounted(async () => {
         />
       </el-form-item>
     </div>
+    <el-button type="primary" class="float-right ml-2" @click="saveDataList"
+      >保存</el-button
+    >
   </el-form>
 </template>

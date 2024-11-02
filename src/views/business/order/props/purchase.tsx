@@ -8,6 +8,7 @@ export interface PurchaseFormItemProps {
   warehouseEmployeeId: string;
   count: number;
   total: bigint;
+  status: boolean;
   orderStatus: number;
   logisticsStatus: number;
   paidAmount: number;
@@ -19,14 +20,17 @@ export interface PurchaseFormItemProps {
   arrivalAt: Date;
   payAt: Date;
   updateAt: Date;
-  details?: {
-    companyId: string;
-    count: number;
-    total: bigint;
-    desc: string;
-    isArrival: boolean;
-    tireId: string;
-  };
+  // details: [
+  //   {
+  //     companyId: string;
+  //     count: number;
+  //     total: bigint;
+  //     desc: string;
+  //     isArrival: boolean;
+  //     tireId: string;
+  //   }
+  // ];
+  details: any[];
 }
 
 export interface PurchaseFormProps {
@@ -114,7 +118,8 @@ export const purchaseOrderColumns = [
   },
   {
     label: "供应商",
-    prop: "providerId"
+    prop: "provider.name"
+    // slot: "providerId"
   },
   {
     label: "数量",
@@ -126,11 +131,13 @@ export const purchaseOrderColumns = [
   },
   {
     label: "采购员",
-    prop: "operatorId"
+    prop: "operator.name"
+    // slot: "operatorId"
   },
   {
     label: "审核员",
-    prop: "auditorId"
+    prop: "auditor.name"
+    // slot: "auditorId"
   },
   {
     label: "状态",
