@@ -18,6 +18,7 @@ export interface SaleFormItemProps {
   auditAt: Date;
   arrivalAt: Date;
   payAt: Date;
+  details: any[];
 }
 
 export interface SaleFormProps {
@@ -26,7 +27,54 @@ export interface SaleFormProps {
 
 import { formatDate } from "@/utils";
 
-export const saleOrderDeatailsColumns = [];
+export const saleOrderDeatailsColumns = [
+  {
+    label: "索引",
+    prop: "index",
+    width: 40
+  },
+  {
+    label: "轮胎",
+    prop: "tireId",
+    slot: "tireIdSelect"
+  },
+  {
+    label: "数量",
+    prop: "count",
+    cellRenderer: ({ row }) => <el-input-number v-model={row.count} />
+  },
+  {
+    label: "单价",
+    prop: "unitPrice",
+    cellRenderer: ({ row }) => <el-input-number v-model={row.unitPrice} />
+  },
+  {
+    label: "总价",
+    prop: "total",
+    cellRenderer: ({ row }) => <el-input-number v-model={row.total} />
+  },
+  {
+    label: "是否到货",
+    prop: "isArrival",
+    cellRenderer: ({ row }) => <el-switch v-model={row.isArrival} />
+  },
+  {
+    label: "仓库",
+    prop: "repoId",
+    slot: "repoIdSelect"
+  },
+  {
+    label: "备注",
+    prop: "desc",
+    cellRenderer: ({ row }) => <el-input v-model={row.desc} />
+  },
+  {
+    label: "操作",
+    fixed: "right",
+    prop: "operation",
+    slot: "operation"
+  }
+];
 
 export const saleOrderColumns = [
   {
