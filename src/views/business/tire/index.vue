@@ -67,9 +67,9 @@ const getTireListInfo = async () => {
 const onSearch = async () => {
   loading.value = true;
   if (
-    form.value.group === "" &&
+    form.value.group === undefined &&
     form.value.desc === undefined &&
-    form.value.name === ""
+    form.value.name === undefined
   )
     await getTireListInfo();
 

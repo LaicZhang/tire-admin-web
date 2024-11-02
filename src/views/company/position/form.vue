@@ -4,11 +4,8 @@ import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 
 interface FormItemProps {
-  /** 部门名称 */
   name: string;
-  /** 部门编号 */
   id: number;
-  /** 备注 */
   desc?: string;
 }
 
@@ -18,7 +15,7 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    name: "",
+    name: undefined,
     id: 0,
     desc: undefined
   })
