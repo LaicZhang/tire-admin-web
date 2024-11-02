@@ -34,8 +34,9 @@ export interface PurchaseFormProps {
 }
 
 import { formatDate } from "@/utils";
-import { allTireList, allRepoList } from "../table";
-
+// import { allTireList, allRepoList } from "../table";
+// import { ref } from "vue";
+// const tireList = ref(allTireList.value);
 export const purchaseOrderDeatailsColumns = [
   {
     label: "索引",
@@ -45,19 +46,20 @@ export const purchaseOrderDeatailsColumns = [
   {
     label: "轮胎",
     prop: "tireId",
-    cellRenderer: ({ row }) => (
-      <el-select v-model={row.tireId} clearable placeholder="请选择轮胎">
-        {allTireList.value.map(item => {
-          return (
-            <el-option
-              key={item.uid}
-              label={item.brand + " " + item.name}
-              value={item.uid}
-            />
-          );
-        })}
-      </el-select>
-    )
+    slot: "tireIdSelect"
+    // cellRenderer: ({ row }) => (
+    //   <el-select v-model={row.tireId} clearable placeholder="请选择轮胎">
+    //     {tireList.value.map(item => {
+    //       return (
+    //         <el-option
+    //           key={item.uid}
+    //           label={item.brand + " " + item.name}
+    //           value={item.uid}
+    //         />
+    //       );
+    //     })}
+    //   </el-select>
+    // )
   },
   {
     label: "数量",
@@ -82,15 +84,16 @@ export const purchaseOrderDeatailsColumns = [
   {
     label: "仓库",
     prop: "repoId",
-    cellRenderer: ({ row }) => (
-      <el-select v-model={row.repoId} clearable placeholder="请选择仓库">
-        {allRepoList.value.map(item => {
-          return (
-            <el-option key={item.uid} label={item.name} value={item.uid} />
-          );
-        })}
-      </el-select>
-    )
+    slot: "repoIdSelect"
+    // cellRenderer: ({ row }) => (
+    //   <el-select v-model={row.repoId} clearable placeholder="请选择仓库">
+    //     {allRepoList.value.map(item => {
+    //       return (
+    //         <el-option key={item.uid} label={item.name} value={item.uid} />
+    //       );
+    //     })}
+    //   </el-select>
+    // )
   },
   {
     label: "备注",

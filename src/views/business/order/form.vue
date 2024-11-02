@@ -8,7 +8,7 @@ import {
   saleOrderDeatailsColumns,
   SaleFormProps
 } from "./props";
-import { CUR_ORDER_TYPE, localForage } from "@/utils";
+import { ALL_LIST, CUR_ORDER_TYPE, localForage } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "@iconify-icons/ep/refresh";
 import Delete from "@iconify-icons/ep/delete";
@@ -62,7 +62,7 @@ async function getOrderType() {
 const dataList = ref([]);
 const managerList = ref([]);
 async function getManagerList() {
-  managerList.value = await localForage().getItem("managerList");
+  managerList.value = await localForage().getItem(ALL_LIST.manager);
 }
 const detailsColumns = ref([]);
 async function setDetailsColumns() {
@@ -89,11 +89,23 @@ function clearDetails() {
   dataList.value = [];
 }
 
+const allRepoList = ref([]);
+const allTireList = ref([]);
+const allCustomerList = ref([]);
+const allProviderList = ref([]);
+async function getALlList() {
+  allRepoList.value = await localForage().getItem(ALL_LIST.repo);
+  allTireList.value = await localForage().getItem(ALL_LIST.tire);
+  allCustomerList.value = await localForage().getItem(ALL_LIST.customer);
+  allProviderList.value = await localForage().getItem(ALL_LIST.provider);
+}
+
 defineExpose({ getRef });
 onMounted(async () => {
   await getOrderType();
   await getManagerList();
   await setDetailsColumns();
+  await getALlList();
 });
 </script>
 
@@ -113,7 +125,16 @@ onMounted(async () => {
         v-model="newFormInline.providerId"
         clearable
         placeholder="请输入供应商"
-      />
+      >
+        <el-option
+          v-for="item in allProviderList"
+          :key="item.id"
+          :label="item.name"
+          :value="item.uid"
+        >
+          {{ item.name }}
+        </el-option>
+      </el-select>
     </el-form-item>
 
     <el-form-item
@@ -125,7 +146,16 @@ onMounted(async () => {
         v-model="newFormInline.customerId"
         clearable
         placeholder="请输入客户"
-      />
+      >
+        <el-option
+          v-for="item in allCustomerList"
+          :key="item.id"
+          :label="item.name"
+          :value="item.uid"
+        >
+          {{ item.name }}
+        </el-option>
+      </el-select>
     </el-form-item>
 
     <el-form-item label="备注">
@@ -155,6 +185,26 @@ onMounted(async () => {
         :data="dataList"
         showOverflowTooltip
       >
+        <template #tireIdSelect="{ row }">
+          <el-select v-model="row.tireId" placeholder="请选择轮胎" clearable>
+            <el-option
+              v-for="item in allTireList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.uid"
+            />
+          </el-select>
+        </template>
+        <template #repoIdSelect="{ row }">
+          <el-select v-model="row.repoId" placeholder="请选择仓库" clearable>
+            <el-option
+              v-for="item in allRepoList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.uid"
+            />
+          </el-select>
+        </template>
         <template #append>
           <el-button
             plain

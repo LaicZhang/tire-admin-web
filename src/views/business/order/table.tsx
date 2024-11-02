@@ -15,25 +15,34 @@ export function handleSelectionChange(val) {
 export async function getOrderId(type: string) {
   if (orderId.value) return;
   const { data, msg, code } = await getUidApi(type);
+  console.log("getUidApi", data);
   if (code === 200) {
     orderId.value = data.id;
   } else message(msg, { type: "error" });
 }
 export const allTireList = ref([]);
 export const allRepoList = ref([]);
+export const allCustomerList = ref([]);
+export const allProviderList = ref([]);
+export const managerList = ref([]);
+
 export async function getAllRepoList() {
   const res: any[] = await localForage().getItem(ALL_LIST.repo);
-  if (res) {
-    allRepoList.value = res;
-    console.log(ALL_LIST.repo, allRepoList.value);
-  }
+  if (res) allRepoList.value = res;
 }
 export async function getAllTireList() {
   const res: any[] = await localForage().getItem(ALL_LIST.tire);
-  if (res) {
-    allTireList.value = res;
-    console.log(ALL_LIST.tire, allTireList.value);
-  }
+  if (res) allTireList.value = res;
+}
+
+export async function getAllCustomerList() {
+  const res: any[] = await localForage().getItem(ALL_LIST.customer);
+  if (res) allCustomerList.value = res;
+}
+
+export async function getAllProviderList() {
+  const res: any[] = await localForage().getItem(ALL_LIST.provider);
+  if (res) allProviderList.value = res;
 }
 
 export async function openDialog(title = "新增", type, row?) {

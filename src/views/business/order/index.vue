@@ -14,14 +14,17 @@ import Refresh from "@iconify-icons/ep/refresh";
 import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
-import { openDialog } from "./table";
+import { openDialog, allTireList } from "./table";
 import {
   getOrderListApi,
   deleteOrderApi,
   getEmployeeListApi,
-  getAuditorListApi
+  getAuditorListApi,
+  getRepoListApi,
+  getTireListApi
 } from "@/api";
 import {
+  ALL_LIST,
   CUR_ORDER_TYPE,
   getOrderTypeList,
   localForage,
@@ -83,13 +86,51 @@ const getEmployeeList = async () => {
   }
 };
 const managerList = ref([]);
+const allRepoList = ref([]);
+const allTireList = ref([]);
+const allCustomerList = ref([]);
+const allProviderList = ref([]);
+const getAllRepoList = async () => {
+  const { data, code, msg } = await getRepoListApi(0);
+  if (code === 200) {
+    allRepoList.value = data;
+    await localForage().setItem(ALL_LIST.repo, data);
+    console.log(ALL_LIST.repo, allRepoList.value);
+  } else message(msg, { type: "error" });
+};
 
+const getAllCustomerList = async () => {
+  const { data, code, msg } = await getTireListApi(0);
+  if (code === 200) {
+    allCustomerList.value = data;
+    await localForage().setItem(ALL_LIST.customer, data);
+    console.log(ALL_LIST.customer, allCustomerList.value);
+  } else message(msg, { type: "error" });
+};
+
+const getAllProviderList = async () => {
+  const { data, code, msg } = await getTireListApi(0);
+  if (code === 200) {
+    allProviderList.value = data;
+    await localForage().setItem(ALL_LIST.provider, data);
+    console.log(ALL_LIST.provider, allProviderList.value);
+  } else message(msg, { type: "error" });
+};
+
+const getAllTireList = async () => {
+  const { data, code, msg } = await getTireListApi(0);
+  if (code === 200) {
+    allTireList.value = data;
+    await localForage().setItem(ALL_LIST.tire, data);
+    console.log(ALL_LIST.tire, allTireList.value);
+  } else message(msg, { type: "error" });
+};
 const getManagerList = async () => {
   const { data, code, msg } = await getAuditorListApi(orderType.value);
   if (code === 200) {
     managerList.value = data;
-    await localForage().setItem("managerList", data);
-    console.log("managerList", managerList.value);
+    await localForage().setItem(ALL_LIST.manager, data);
+    console.log(ALL_LIST.manager, managerList.value);
   } else message(msg, { type: "error" });
 };
 const onSearch = async () => {
@@ -162,7 +203,15 @@ async function handleDelete(row) {
 
 onMounted(async () => {
   await getOrderType();
-  await Promise.all([getOrderListInfo(), getEmployeeList(), getManagerList()]);
+  await Promise.all([
+    getOrderListInfo(),
+    getEmployeeList(),
+    getAllRepoList(),
+    getManagerList(),
+    getAllTireList(),
+    getAllCustomerList(),
+    getAllProviderList()
+  ]);
 });
 </script>
 

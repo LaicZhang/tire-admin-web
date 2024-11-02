@@ -12,7 +12,8 @@ export enum ALL_LIST {
   repo = "all_repo",
   provider = "all_provider",
   customer = "all_customer",
-  tire = "all_tire"
+  tire = "all_tire",
+  manager = "all_manager"
 }
 
 export enum StaticImageTypeEnum {
