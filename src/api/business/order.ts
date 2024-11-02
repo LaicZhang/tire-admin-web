@@ -54,3 +54,12 @@ export async function deleteOrderApi(type: string, uid) {
     baseUrlApi(getOrderPrefix(type) + uid)
   );
 }
+
+const prefix = "/audit/";
+
+export async function getAuditorListApi(type: string) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "auditor/" + type)
+  );
+}

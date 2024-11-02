@@ -8,7 +8,7 @@ import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
 import { getRepoListApi, deleteRepoApi, toggleRepoApi } from "@/api";
-import { message } from "@/utils";
+import { ALL_LIST, localForage, message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
@@ -57,6 +57,14 @@ const resetForm = formEl => {
   loading.value = false;
 };
 
+const allRepoList = ref([]);
+const getAllRepoList = async () => {
+  const { data, code, msg } = await getRepoListApi(0);
+  if (code === 200) allRepoList.value = data.list;
+  else message(msg, { type: "error" });
+  await localForage().setItem(ALL_LIST.repo, data.list);
+};
+
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getRepoListInfo();
@@ -75,6 +83,7 @@ async function handleToggleRepo(row) {
 
 onMounted(async () => {
   await getRepoListInfo();
+  await getAllRepoList();
 });
 </script>
 

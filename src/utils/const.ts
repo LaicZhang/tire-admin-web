@@ -8,6 +8,13 @@ export enum SYS {
   setting = "sys_setting"
 }
 
+export enum ALL_LIST {
+  repo = "all_repo",
+  provider = "all_provider",
+  customer = "all_customer",
+  tire = "all_tire"
+}
+
 export enum StaticImageTypeEnum {
   AVATAR = 1,
   COVER = 2,

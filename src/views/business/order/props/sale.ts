@@ -5,6 +5,7 @@ export interface SaleFormItemProps {
   desc?: string;
   operatorId: string;
   auditorId: string;
+  warehouseEmployeeId: string;
   count: number;
   total: number;
   orderStatus: number;
@@ -24,6 +25,8 @@ export interface SaleFormProps {
 }
 
 import { formatDate } from "@/utils";
+
+export const saleOrderDeatailsColumns = [];
 
 export const saleOrderColumns = [
   {

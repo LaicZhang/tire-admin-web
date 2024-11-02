@@ -2,7 +2,7 @@
 import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
 import { getAllTiresApi } from "@/api";
-import { localForage } from "@/utils";
+import { ALL_LIST, localForage, message } from "@/utils";
 
 interface FormItemProps {
   id: number;
@@ -41,14 +41,15 @@ function getRef() {
 }
 
 const getAllTires = async () => {
-  const { data, code } = await getAllTiresApi();
+  const { data, code, msg } = await getAllTiresApi();
   if (code === 200) {
     allTireList.value = data.list;
+    await localForage().setItem(ALL_LIST.tire, data.list);
     data.list.forEach(element => {
       localForage().setItem("tire-name:" + element.name, element);
       localForage().setItem("tire-uid:" + element.uid, element);
     });
-  }
+  } else message(msg, { type: "error" });
 };
 
 defineExpose({ getRef });

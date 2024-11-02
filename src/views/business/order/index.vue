@@ -15,8 +15,19 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getOrderListApi, deleteOrderApi } from "@/api";
-import { getOrderTypeList, localForage, message, ORDER_TYPE } from "@/utils";
+import {
+  getOrderListApi,
+  deleteOrderApi,
+  getEmployeeListApi,
+  getAuditorListApi
+} from "@/api";
+import {
+  CUR_ORDER_TYPE,
+  getOrderTypeList,
+  localForage,
+  message,
+  ORDER_TYPE
+} from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useUserStoreHook } from "@/store/modules/user";
 
@@ -56,16 +67,30 @@ const getOrderListInfo = async () => {
 };
 
 const getEmployeeList = async () => {
-  const depWithEmp: any[] = await localForage().getItem("dep-w-emp");
-  console.log("depWithEmp", depWithEmp);
-  depWithEmp.map(item => {
-    item.employees.map(el => {
-      employeeList.value.push({
-        label: item.name + "-" + el.name,
-        value: el.uid
-      });
-    });
-  });
+  // const depWithEmp: any[] = await localForage().getItem("dep-w-emp");
+  // depWithEmp.map(item => {
+  //   item.employees.map(el => {
+  //     employeeList.value.push({
+  //       label: item.name + "-" + el.name,
+  //       value: el.uid
+  //     });
+  //   });
+  // });
+  const { data, code, msg } = await getEmployeeListApi(0);
+  if (code === 200) {
+    employeeList.value = data;
+    console.log("employeeList", employeeList.value);
+  }
+};
+const managerList = ref([]);
+
+const getManagerList = async () => {
+  const { data, code, msg } = await getAuditorListApi(orderType.value);
+  if (code === 200) {
+    managerList.value = data;
+    await localForage().setItem("managerList", data);
+    console.log("managerList", managerList.value);
+  } else message(msg, { type: "error" });
 };
 const onSearch = async () => {
   loading.value = true;
@@ -103,7 +128,7 @@ const columnMapping = {
 const setOrderType = async () => {
   try {
     console.log("setOrderType", orderType.value);
-    await localForage().setItem("curOrderType", orderType.value);
+    await localForage().setItem(CUR_ORDER_TYPE, orderType.value);
     columns.value = columnMapping[orderType.value] || columns.value;
     await onSearch();
   } catch (e) {
@@ -112,7 +137,7 @@ const setOrderType = async () => {
 };
 
 async function getOrderType() {
-  const curOrderType: string = await localForage().getItem("curOrderType");
+  const curOrderType: string = await localForage().getItem(CUR_ORDER_TYPE);
   if (curOrderType) {
     orderType.value = curOrderType;
     await setOrderType();
@@ -137,7 +162,7 @@ async function handleDelete(row) {
 
 onMounted(async () => {
   await getOrderType();
-  await Promise.all([getOrderListInfo(), getEmployeeList()]);
+  await Promise.all([getOrderListInfo(), getEmployeeList(), getManagerList()]);
 });
 </script>
 
@@ -169,10 +194,12 @@ onMounted(async () => {
           >
             <el-option
               v-for="item in employeeList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
+              :key="item.id"
+              :label="item.name"
+              :value="item.uid"
+            >
+              <div>{{ item.nickname }}-{{ item.name }}</div>
+            </el-option>
           </el-select>
         </el-form-item>
 
@@ -184,11 +211,13 @@ onMounted(async () => {
             class="!w-[180px]"
           >
             <el-option
-              v-for="item in employeeList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
+              v-for="item in managerList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.uid"
+            >
+              {{ item.name }}
+            </el-option>
           </el-select>
         </el-form-item>
 

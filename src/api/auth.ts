@@ -41,6 +41,10 @@ export const getNoticeApi = () => {
   return http.request<CommonResult>("get", baseUrlApi("/auth/notice"));
 };
 
+export const getUidApi = (type: string) => {
+  return http.request<CommonResult>("get", baseUrlApi("/auth/uid/" + type));
+};
+
 export const getCompanyInfoApi = (type: string) => {
   return http.request<CommonResult>(
     "get",

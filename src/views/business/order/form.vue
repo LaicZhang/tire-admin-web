@@ -1,16 +1,28 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
-import { PurchaseFormProps, SaleFormProps } from "./props";
+import {
+  PurchaseFormProps,
+  purchaseOrderDeatailsColumns,
+  saleOrderDeatailsColumns,
+  SaleFormProps
+} from "./props";
+import { CUR_ORDER_TYPE, localForage } from "@/utils";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Refresh from "@iconify-icons/ep/refresh";
+import Delete from "@iconify-icons/ep/delete";
+import EditPen from "@iconify-icons/ep/edit-pen";
+import AddFill from "@iconify-icons/ri/add-circle-line";
 
 const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
   formInline: () => ({
     uid: "",
     id: 0,
     desc: undefined,
-    operatorId: "",
-    auditorId: "",
+    operatorId: undefined,
+    auditorId: undefined,
+    warehouseEmployeeId: undefined,
     count: 0,
     total: 0,
     orderStatus: 0,
@@ -23,13 +35,14 @@ const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
     auditAt: null,
     arrivalAt: null,
     payAt: null,
-    providerId: "",
-    customerId: ""
+    updateAt: null,
+    providerId: undefined,
+    customerId: undefined
   })
 });
 /** 自定义表单规则校验 */
 const formRules = reactive({
-  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }]
+  auditorId: [{ required: true, message: "审核人呢为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
@@ -39,7 +52,49 @@ function getRef() {
   return ruleFormRef.value;
 }
 
+const orderType = ref("");
+async function getOrderType() {
+  const curOrderType: string = await localForage().getItem(CUR_ORDER_TYPE);
+  if (curOrderType) {
+    orderType.value = curOrderType;
+  }
+}
+const dataList = ref([]);
+const managerList = ref([]);
+async function getManagerList() {
+  managerList.value = await localForage().getItem("managerList");
+}
+const detailsColumns = ref([]);
+async function setDetailsColumns() {
+  if (orderType.value === "purchase-order") {
+    detailsColumns.value = purchaseOrderDeatailsColumns;
+  } else if (orderType.value === "sale-order") {
+    detailsColumns.value = saleOrderDeatailsColumns;
+  }
+  console.log(detailsColumns.value);
+}
+
+function onAdd() {
+  dataList.value.push({
+    index: dataList.value.length + 1,
+    count: 1
+  });
+}
+function onDel(row) {
+  const index = dataList.value.indexOf(row);
+  if (index !== -1) dataList.value.splice(index, 1);
+}
+
+function clearDetails() {
+  dataList.value = [];
+}
+
 defineExpose({ getRef });
+onMounted(async () => {
+  await getOrderType();
+  await getManagerList();
+  await setDetailsColumns();
+});
 </script>
 
 <template>
@@ -49,37 +104,27 @@ defineExpose({ getRef });
     :rules="formRules"
     label-width="82px"
   >
-    <el-form-item label="名称" prop="name">
-      <el-input
-        v-model="newFormInline.name"
+    <el-form-item
+      v-if="orderType === 'purchase-order'"
+      label="供应商"
+      prop="providerId"
+    >
+      <el-select
+        v-model="newFormInline.providerId"
         clearable
-        placeholder="请输入名称"
+        placeholder="请输入供应商"
       />
     </el-form-item>
 
-    <el-form-item label="地址" prop="address">
-      <el-input
-        v-model="newFormInline.address"
+    <el-form-item
+      v-if="orderType === 'sale-order'"
+      label="客户"
+      prop="customerId"
+    >
+      <el-select
+        v-model="newFormInline.customerId"
         clearable
-        placeholder="请输入地址"
-      />
-    </el-form-item>
-
-    <el-form-item label="启用时间" prop="startAt">
-      <el-date-picker
-        v-model="newFormInline.startAt"
-        clearable
-        type="datetime"
-        placeholder="请输入启用时间"
-      />
-    </el-form-item>
-
-    <el-form-item label="停用时间" prop="endAt">
-      <el-date-picker
-        v-model="newFormInline.endAt"
-        clearable
-        type="datetime"
-        placeholder="请输入停用时间"
+        placeholder="请输入客户"
       />
     </el-form-item>
 
@@ -90,5 +135,89 @@ defineExpose({ getRef });
         type="textarea"
       />
     </el-form-item>
+
+    <el-form-item label="详情">
+      <!-- <div>
+        <el-button
+          type="primary"
+          class="float-right"
+          :icon="useRenderIcon(AddFill)"
+          @click="openDialog('新增', orderType)"
+        >
+          新增
+        </el-button>
+      </div> -->
+      <pure-table
+        row-key="id"
+        adaptive
+        :columns="detailsColumns"
+        border
+        :data="dataList"
+        showOverflowTooltip
+      >
+        <template #append>
+          <el-button
+            plain
+            class="w-full my-2"
+            :icon="useRenderIcon(AddFill)"
+            @click="onAdd"
+          >
+            添加一行数据
+          </el-button>
+        </template>
+        <template #operation="{ row }">
+          <el-popconfirm
+            :title="`是否确认删除${row.tireId}这条数据`"
+            @confirm="onDel(row)"
+          >
+            <template #reference>
+              <el-button
+                class="reset-margin"
+                :icon="useRenderIcon(Delete)"
+                link
+                type="danger"
+              >
+                删除
+              </el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+      </pure-table>
+    </el-form-item>
+
+    <div class="flex">
+      <el-form-item label="审核人" prop="auditorId">
+        <el-select
+          v-model="newFormInline.auditorId"
+          placeholder="请选择审核人"
+          class="!w-[180px]"
+        >
+          <el-option
+            v-for="item in managerList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.uid"
+          >
+            {{ item.name }}
+          </el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="总价" prop="total">
+        <el-input-number
+          v-model="newFormInline.total"
+          placeholder="请输入总价"
+          class="!w-[180px]"
+        />
+      </el-form-item>
+
+      <el-form-item label="总数" prop="count">
+        <el-input-number
+          v-model="newFormInline.count"
+          placeholder="请输入总数"
+          class="!w-[180px]"
+        />
+      </el-form-item>
+    </div>
   </el-form>
 </template>
