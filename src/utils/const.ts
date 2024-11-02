@@ -1,4 +1,7 @@
 export const BaseImagePath = "https://s4-tire.zyha.cn/cover/";
+export const BaseStaticUploadPath = "http://127.0.0.1:3000/api/static";
+
+export const CUR_ORDER_TYPE = "curOrderType";
 
 export enum SYS {
   dict = "sys_dict",

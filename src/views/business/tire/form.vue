@@ -12,7 +12,7 @@ import {
   StaticImageTypeEnum
 } from "@/utils";
 import { setUploadedImages } from "@/views/business/tire/store";
-import { BaseImagePath } from "@/utils";
+import { BaseImagePath, BaseStaticUploadPath } from "@/utils";
 
 interface FormItemProps {
   id?: number;
@@ -173,7 +173,7 @@ onMounted(() => {
         :data="uploadData"
         class="cover-uploader"
         drag
-        action="http://127.0.0.1:3000/api/static"
+        :action="BaseStaticUploadPath"
         :headers="{ Authorization }"
       >
         <IconifyIconOffline :icon="Add" class="m-auto mt-4" />
