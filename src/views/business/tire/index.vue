@@ -7,13 +7,8 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import {
-  getTireListApi,
-  getAllTiresApi,
-  deleteTireApi,
-  getDepartmentWithEmpApi
-} from "@/api";
-import { message, localForage } from "@/utils";
+import { getTireListApi, deleteTireApi, getDepartmentWithEmpApi } from "@/api";
+import { message, localForage, ALL_LIST } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { BaseImagePath } from "@/utils";
 
@@ -46,11 +41,11 @@ const getEmployeesWithTire = async () => {
   } else message(msg, { type: "error" });
 };
 const getAllTires = async () => {
-  const { data, code, msg } = await getAllTiresApi();
+  const { data, code, msg } = await getTireListApi(0);
   const tasks = [];
   if (code === 200) {
-    tasks.push(localForage().setItem("tire", data.list));
-    data.list.forEach(element => {
+    tasks.push(localForage().setItem(ALL_LIST.tire, data));
+    data.forEach(element => {
       tasks.push(localForage().setItem("tire:" + element.name, element));
     });
   } else message(msg, { type: "error" });

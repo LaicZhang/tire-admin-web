@@ -15,10 +15,6 @@ export async function getTireListApi(index: number, params?: object) {
   );
 }
 
-export async function getAllTiresApi() {
-  return await http.request<CommonResult>("get", baseUrlApi(prefix + "page/0"));
-}
-
 export async function addTireApi(data: object) {
   return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
-import { getAllTiresApi } from "@/api";
+import { getTireListApi } from "@/api";
 import { ALL_LIST, localForage, message } from "@/utils";
 
 interface FormItemProps {
@@ -41,11 +41,11 @@ function getRef() {
 }
 
 const getAllTires = async () => {
-  const { data, code, msg } = await getAllTiresApi();
+  const { data, code, msg } = await getTireListApi(0);
   if (code === 200) {
-    allTireList.value = data.list;
-    await localForage().setItem(ALL_LIST.tire, data.list);
-    data.list.forEach(element => {
+    allTireList.value = data;
+    await localForage().setItem(ALL_LIST.tire, data);
+    data.forEach(element => {
       localForage().setItem("tire-name:" + element.name, element);
       localForage().setItem("tire-uid:" + element.uid, element);
     });
@@ -54,8 +54,8 @@ const getAllTires = async () => {
 
 defineExpose({ getRef });
 
-onMounted(() => {
-  getAllTires();
+onMounted(async () => {
+  await getAllTires();
 });
 </script>
 
@@ -77,7 +77,9 @@ onMounted(() => {
           :key="item.id"
           :label="item.brand + ' ' + item.name"
           :value="item.uid"
-        />
+        >
+          {{ item.brand + " " + item.name }}
+        </el-option>
       </el-select>
     </el-form-item>
 
