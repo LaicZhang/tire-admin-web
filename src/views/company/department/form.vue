@@ -17,10 +17,10 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    name: "",
-    id: 0,
+    name: undefined,
+    id: undefined,
     desc: undefined,
-    managerId: ""
+    managerId: undefined
   })
 });
 /** 自定义表单规则校验 */

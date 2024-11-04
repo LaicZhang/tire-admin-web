@@ -3,7 +3,7 @@ export const userInfoTemplate = {
   email: "",
   username: "",
   info: {
-    id: 0,
+    id: undefined,
     userId: "",
     avatarId: "",
     nickname: "",

@@ -25,19 +25,19 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    uid: "",
-    name: "",
-    id: 0,
+    uid: undefined,
+    name: undefined,
+    id: undefined,
     desc: undefined,
-    operatorId: "",
+    operatorId: undefined,
     level: 0,
     totalTransactionAmount: 0,
     isPublic: false,
-    province: "",
+    province: undefined,
     isIndividual: false,
-    from: "",
+    from: undefined,
     limit: 0,
-    discount: 10
+    discount: 100
   })
 });
 /** 自定义表单规则校验 */

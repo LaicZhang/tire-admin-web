@@ -21,8 +21,8 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    name: "",
-    id: 0,
+    name: undefined,
+    id: undefined,
     desc: undefined,
     startAt: dayjs().toDate(),
     endAt: dayjs().add(1, "y").toDate(),

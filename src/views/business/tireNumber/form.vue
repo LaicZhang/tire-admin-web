@@ -19,9 +19,9 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    id: 0,
-    tireId: "",
-    number: "",
+    id: undefined,
+    tireId: undefined,
+    number: undefined,
     isLocked: false,
     isInRepo: false,
     desc: undefined

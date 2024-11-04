@@ -16,7 +16,7 @@ interface FormProps {
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     name: undefined,
-    id: 0,
+    id: undefined,
     desc: undefined
   })
 });

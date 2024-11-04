@@ -7,15 +7,15 @@ import { FormProps } from "./table";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    phone: "",
+    phone: undefined,
     email: undefined,
     status: 0,
-    username: "",
-    password: "",
-    name: "",
-    nickname: "",
-    uid: "",
-    id: 0,
+    username: undefined,
+    password: undefined,
+    name: undefined,
+    nickname: undefined,
+    uid: undefined,
+    id: undefined,
     desc: undefined,
     jobs: []
   })

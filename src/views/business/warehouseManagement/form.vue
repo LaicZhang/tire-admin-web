@@ -26,8 +26,8 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    uid: "",
-    tireId: "",
+    uid: undefined,
+    tireId: undefined,
     count: 0,
     toBeStocked: 0,
     toBeShipped: 0,
@@ -35,8 +35,8 @@ const props = withDefaults(defineProps<FormProps>(), {
     minPriceInHistory: 0,
     averagePrice: 0,
     lastPrice: 0,
-    alarmId: "",
-    repoId: "",
+    alarmId: undefined,
+    repoId: undefined,
     desc: undefined,
     lastInAt: null,
     lastOutAt: null

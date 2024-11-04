@@ -17,8 +17,8 @@ import AddFill from "@iconify-icons/ri/add-circle-line";
 
 const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
   formInline: () => ({
-    uid: "",
-    id: 0,
+    uid: undefined,
+    id: undefined,
     desc: undefined,
     operatorId: undefined,
     auditorId: undefined,
@@ -30,8 +30,8 @@ const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
     paidAmount: 0,
     isApproved: false,
     isLocked: false,
-    rejectReason: "",
-    paymentId: "",
+    rejectReason: undefined,
+    paymentId: undefined,
     auditAt: null,
     arrivalAt: null,
     payAt: null,

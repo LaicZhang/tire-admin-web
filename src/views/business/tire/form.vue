@@ -42,7 +42,7 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    id: 0,
+    id: undefined,
     uid: "",
     group: "默认",
     name: undefined,
