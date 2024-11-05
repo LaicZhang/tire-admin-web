@@ -9,13 +9,13 @@ export enum SYS {
 }
 
 export enum ALL_LIST {
-  repo = "all_repo",
-  provider = "all_provider",
-  customer = "all_customer",
-  tire = "all_tire",
-  manager = "all_manager",
-  employee = "all_employee",
-  position = "all_position"
+  repo = "all_repos",
+  provider = "all_providers",
+  customer = "all_customers",
+  tire = "all_tires",
+  manager = "all_managers",
+  employee = "all_employees",
+  position = "all_positions"
 }
 
 export enum StaticImageTypeEnum {
@@ -32,7 +32,8 @@ export enum ORDER_TYPE {
   return = "return-order",
   waste = "waste-order",
   transfer = "transfer-order",
-  assembly = "assembly-order"
+  assembly = "assembly-order",
+  default = ""
 }
 
 export const ORDER_TYPE_LIST = [

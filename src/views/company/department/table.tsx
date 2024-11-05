@@ -6,12 +6,14 @@ import { getCompanyId, addDepartmentApi, updateDepartmentApi } from "@/api";
 import editForm from "./form.vue";
 
 interface FormItemProps {
-  uid: string;
+  uid?: string;
   name: string;
-  id: number;
+  id?: number;
   desc?: string;
-  managerId: string;
+  managers: string[];
+  employees: string[];
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
@@ -29,9 +31,11 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     title: `${title}部门`,
     props: {
       formInline: {
-        name: row?.name ?? "",
-        uid: row?.uid ?? "",
-        desc: row?.desc ?? ""
+        name: row?.name ?? undefined,
+        uid: row?.uid ?? undefined,
+        desc: row?.desc ?? undefined,
+        managers: row?.managers ?? [],
+        employees: row?.employees ?? []
       }
     },
     width: "40%",
@@ -53,20 +57,29 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          const { uid, name, desc, managers, employees } = curData;
           if (title === "新增") {
-            const { name, desc, managerId } = curData;
+            const managerIds = managers.map(m => ({ uid: m }));
+            const employeeIds = employees.map(e => ({ uid: e }));
             await addDepartmentApi({
               name,
               desc,
-              managerId,
+              managers: { connect: managerIds },
+              employees: { connect: employeeIds },
               company: {
                 connect: { uid: await getCompanyId() }
               }
             });
             chores();
           } else {
-            const { uid, name, desc, managerId } = curData;
-            await updateDepartmentApi(uid, { name, desc, managerId });
+            const managerIds = managers.map(m => ({ uid: m }));
+            const employeeIds = employees.map(e => ({ uid: e }));
+            await updateDepartmentApi(uid, {
+              name,
+              desc,
+              managers: { connect: managerIds },
+              employees: { connect: employeeIds }
+            });
             chores();
           }
         }

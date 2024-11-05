@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     desc: undefined,
     startAt: dayjs().toDate(),
     endAt: dayjs().add(1, "y").toDate(),
-    address: "",
+    address: undefined,
     status: true
   })
 });

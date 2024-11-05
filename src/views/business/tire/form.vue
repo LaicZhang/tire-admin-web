@@ -43,11 +43,11 @@ interface FormProps {
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     id: undefined,
-    uid: "",
+    uid: undefined,
     group: "默认",
     name: undefined,
     desc: undefined,
-    unit: "条",
+    unit: "套",
     pattern: undefined,
     brand: undefined,
     loadIndex: undefined,

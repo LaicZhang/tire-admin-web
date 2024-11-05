@@ -41,8 +41,7 @@ const onSearch = async () => {
     await getDepartmentListInfo();
 
   const { data } = await getDepartmentListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
+    ...form.value
   });
 
   dataList.value = data.list;

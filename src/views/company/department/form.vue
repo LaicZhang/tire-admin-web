@@ -1,28 +1,29 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
-
-interface FormItemProps {
-  uid?: string;
-  name: string;
-  id: number;
-  desc?: string;
-  managerId: string;
-}
-
-interface FormProps {
-  formInline: FormItemProps;
-}
+import { ALL_LIST, localForage, message } from "@/utils";
+import { getEmployeeListApi } from "@/api";
+import { FormProps } from "./table";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     name: undefined,
-    id: undefined,
     desc: undefined,
-    managerId: undefined
+    managers: [],
+    employees: []
   })
 });
+
+const allEmployeeList = ref([]);
+const getAllEmployeeList = async () => {
+  const { data, code, msg } = await getEmployeeListApi(0);
+  if (code === 200) {
+    allEmployeeList.value = data;
+    await localForage().setItem(ALL_LIST.employee, data);
+  } else message(msg, { type: "error" });
+};
+
 /** 自定义表单规则校验 */
 const formRules = reactive({
   name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }]
@@ -36,6 +37,9 @@ function getRef() {
 }
 
 defineExpose({ getRef });
+onMounted(async () => {
+  await getAllEmployeeList();
+});
 </script>
 
 <template>
@@ -51,6 +55,32 @@ defineExpose({ getRef });
         clearable
         placeholder="请输入名称"
       />
+    </el-form-item>
+
+    <el-form-item label="管理者">
+      <el-select v-model="newFormInline.managers" multiple>
+        <el-option
+          v-for="manager in allEmployeeList"
+          :key="manager.id"
+          :label="manager.name"
+          :value="manager.uid"
+        >
+          {{ manager.name }}
+        </el-option>
+      </el-select>
+    </el-form-item>
+
+    <el-form-item label="员工">
+      <el-select v-model="newFormInline.employees" multiple>
+        <el-option
+          v-for="employee in allEmployeeList"
+          :key="employee.id"
+          :label="employee.name"
+          :value="employee.uid"
+        >
+          {{ employee.name }}
+        </el-option>
+      </el-select>
     </el-form-item>
 
     <el-form-item label="备注">

@@ -35,9 +35,10 @@ const getEmployeeListInfo = async () => {
   const { data, code, msg } = await getEmployeeListApi(
     pagination.value.currentPage
   );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
+  if (code === 200) {
+    dataList.value = data.list;
+    pagination.value.total = data.count;
+  } else message(msg, { type: "error" });
 };
 const onSearch = async () => {
   loading.value = true;
