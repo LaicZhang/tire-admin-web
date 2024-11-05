@@ -25,6 +25,8 @@ export interface ClaimFormProps {
 
 import { formatDate } from "@/utils";
 
+export const claimOrderDetailsColumns = [];
+
 export const claimOrderColumns = [
   {
     label: "ID",

@@ -6,9 +6,14 @@ import {
   PurchaseFormProps,
   purchaseOrderDeatailsColumns,
   saleOrderDeatailsColumns,
-  SaleFormProps
+  SaleFormProps,
+  assemblyOrderDeatailsColumns,
+  claimOrderDetailsColumns,
+  returnOrderDetailsColumns,
+  transferOrderDetailsColumns,
+  wasteOrderDetailsColumns
 } from "./props";
-import { ALL_LIST, CUR_ORDER_TYPE, localForage } from "@/utils";
+import { ALL_LIST, CUR_ORDER_TYPE, localForage, ORDER_TYPE } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "@iconify-icons/ep/refresh";
 import Delete from "@iconify-icons/ep/delete";
@@ -56,23 +61,28 @@ function getRef() {
 const orderType = ref("");
 async function getOrderType() {
   const curOrderType: string = await localForage().getItem(CUR_ORDER_TYPE);
-  if (curOrderType) {
-    orderType.value = curOrderType;
-  }
+  if (curOrderType) orderType.value = curOrderType;
 }
 const dataList = ref([]);
 const managerList = ref([]);
-async function getManagerList() {
-  managerList.value = await localForage().getItem(ALL_LIST.manager);
-}
+
 const detailsColumns = ref([]);
-async function setDetailsColumns() {
-  if (orderType.value === "purchase-order") {
-    detailsColumns.value = purchaseOrderDeatailsColumns;
-  } else if (orderType.value === "sale-order") {
-    detailsColumns.value = saleOrderDeatailsColumns;
+const columnsMap = {
+  [ORDER_TYPE.purchase]: purchaseOrderDeatailsColumns,
+  [ORDER_TYPE.sale]: saleOrderDeatailsColumns,
+  [ORDER_TYPE.assembly]: assemblyOrderDeatailsColumns,
+  [ORDER_TYPE.claim]: claimOrderDetailsColumns,
+  [ORDER_TYPE.return]: returnOrderDetailsColumns,
+  [ORDER_TYPE.transfer]: transferOrderDetailsColumns,
+  [ORDER_TYPE.waste]: wasteOrderDetailsColumns,
+  [ORDER_TYPE.default]: []
+};
+function setDetailsColumns() {
+  detailsColumns.value = columnsMap[orderType.value] || [];
+
+  if (!detailsColumns.value.length) {
+    console.error("Unknown order type:", orderType.value);
   }
-  console.log(detailsColumns.value);
 }
 
 function onAdd() {
@@ -98,6 +108,7 @@ const allTireList = ref([]);
 const allCustomerList = ref([]);
 const allProviderList = ref([]);
 async function getALlList() {
+  managerList.value = await localForage().getItem(ALL_LIST.manager);
   allRepoList.value = await localForage().getItem(ALL_LIST.repo);
   allTireList.value = await localForage().getItem(ALL_LIST.tire);
   allCustomerList.value = await localForage().getItem(ALL_LIST.customer);
@@ -107,8 +118,7 @@ async function getALlList() {
 defineExpose({ getRef });
 onMounted(async () => {
   await getOrderType();
-  await getManagerList();
-  await setDetailsColumns();
+  setDetailsColumns();
   await getALlList();
 });
 </script>
@@ -121,7 +131,7 @@ onMounted(async () => {
     label-width="82px"
   >
     <el-form-item
-      v-if="orderType === 'purchase-order'"
+      v-if="orderType === ORDER_TYPE.purchase"
       label="供应商"
       prop="providerId"
     >
@@ -142,7 +152,7 @@ onMounted(async () => {
     </el-form-item>
 
     <el-form-item
-      v-if="orderType === 'sale-order'"
+      v-if="orderType === ORDER_TYPE.sale"
       label="客户"
       prop="customerId"
     >

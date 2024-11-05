@@ -25,6 +25,8 @@ export interface AssemblyFormProps {
 
 import { formatDate } from "@/utils";
 
+export const assemblyOrderDeatailsColumns = [];
+
 export const assemblyOrderColumns = [
   {
     label: "ID",

@@ -65,12 +65,13 @@ const getOrderListInfo = async () => {
     orderType.value,
     pagination.value.currentPage
   );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
+  if (code === 200) {
+    dataList.value = data.list;
+    pagination.value.total = data.count;
+  } else message(msg, { type: "error" });
 };
 
-const getEmployeeList = async () => {
+const getAllEmployeeList = async () => {
   // const depWithEmp: any[] = await localForage().getItem("dep-w-emp");
   // depWithEmp.map(item => {
   //   item.employees.map(el => {
@@ -84,7 +85,7 @@ const getEmployeeList = async () => {
   if (code === 200) {
     employeeList.value = data;
     await localForage().setItem(ALL_LIST.employee, data);
-  }
+  } else message(msg, { type: "error" });
 };
 const managerList = ref([]);
 const allRepoList = ref([]);
@@ -127,6 +128,7 @@ const getAllTireList = async () => {
   } else message(msg, { type: "error" });
 };
 const getManagerList = async () => {
+  if (orderType.value === ORDER_TYPE.default) return;
   const { data, code, msg } = await getAuditorListApi(orderType.value);
   if (code === 200) {
     managerList.value = data;
@@ -139,9 +141,7 @@ const onSearch = async () => {
   const { data, code, msg } = await getOrderListApi(
     orderType.value,
     pagination.value.currentPage,
-    {
-      desc: form.value.desc
-    }
+    form.value
   );
 
   if (code === 200) {
@@ -207,7 +207,7 @@ onMounted(async () => {
   await getOrderType();
   await Promise.all([
     getOrderListInfo(),
-    getEmployeeList(),
+    getAllEmployeeList(),
     getAllRepoList(),
     getManagerList(),
     getAllTireList(),

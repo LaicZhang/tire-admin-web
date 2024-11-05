@@ -25,6 +25,8 @@ export interface TransferFormProps {
 
 import { formatDate } from "@/utils";
 
+export const transferOrderDetailsColumns = [];
+
 export const transferOrderColumns = [
   {
     label: "ID",

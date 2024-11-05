@@ -25,6 +25,7 @@ export interface WasteFormProps {
 
 import { formatDate } from "@/utils";
 
+export const wasteOrderDetailsColumns = [];
 export const wasteOrderColumns = [
   {
     label: "ID",

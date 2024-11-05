@@ -25,6 +25,8 @@ export interface ReturnFormProps {
 
 import { formatDate } from "@/utils";
 
+export const returnOrderDetailsColumns = [];
+
 export const returnOrderColumns = [
   {
     label: "ID",
