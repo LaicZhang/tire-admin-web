@@ -8,7 +8,7 @@ import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { openDialog } from "./table";
 import { getPositionListApi, deletePositionApi } from "@/api";
-import { localForage, message } from "@/utils";
+import { ALL_LIST, localForage, message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
@@ -71,7 +71,7 @@ async function handleDelete(row) {
 async function getAllPosition() {
   const { data, code, msg } = await getPositionListApi(0);
   if (code === 200) {
-    await localForage().setItem("positions", data);
+    await localForage().setItem(ALL_LIST.position, data);
   } else message(msg, { type: "error" });
 }
 

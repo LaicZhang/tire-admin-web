@@ -14,7 +14,8 @@ export enum ALL_LIST {
   customer = "all_customer",
   tire = "all_tire",
   manager = "all_manager",
-  employee = "all_employee"
+  employee = "all_employee",
+  position = "all_position"
 }
 
 export enum StaticImageTypeEnum {

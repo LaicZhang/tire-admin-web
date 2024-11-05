@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
-import { localForage, message, SYS } from "@/utils";
+import { ALL_LIST, localForage, message, SYS } from "@/utils";
 import { FormProps } from "./table";
 
 const props = withDefaults(defineProps<FormProps>(), {
@@ -51,13 +51,12 @@ const getEmployeeStatus = async () => {
 };
 
 async function getPositionList() {
-  allPositionList.value = await localForage().getItem("positions");
+  allPositionList.value = await localForage().getItem(ALL_LIST.position);
 }
 
 defineExpose({ getRef });
 onMounted(async () => {
-  await getPositionList();
-  await getEmployeeStatus();
+  await Promise.all([getPositionList(), getEmployeeStatus()]);
 });
 </script>
 
