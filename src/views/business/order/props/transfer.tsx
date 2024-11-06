@@ -24,13 +24,16 @@ export interface TransferFormProps {
 }
 
 import { formatDate } from "@/utils";
-
+import { reactive } from "vue";
+export const transferOrderFormRules = reactive({
+  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
+});
 export const transferOrderDetailsColumns = [];
 
 export const transferOrderColumns = [
   {
-    label: "ID",
-    prop: "id"
+    label: "流水号",
+    prop: "number"
   },
   {
     label: "客户",

@@ -24,12 +24,15 @@ export interface WasteFormProps {
 }
 
 import { formatDate } from "@/utils";
-
+import { reactive } from "vue";
+export const wasteOrderFormRules = reactive({
+  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
+});
 export const wasteOrderDetailsColumns = [];
 export const wasteOrderColumns = [
   {
-    label: "ID",
-    prop: "id"
+    label: "流水号",
+    prop: "number"
   },
   {
     label: "客户",

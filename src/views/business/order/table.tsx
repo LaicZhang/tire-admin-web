@@ -4,7 +4,7 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addOrderApi, updateOrderApi } from "@/api";
 import editForm from "./form.vue";
-import { ALL_LIST, CUR_ORDER_TYPE, localForage } from "@/utils";
+import { ALL_LIST, CUR_ORDER_TYPE, localForage, ORDER_TYPE } from "@/utils";
 
 const formRef = ref(null);
 export function handleSelectionChange(val) {
@@ -42,13 +42,14 @@ export async function getOrderType() {
   return orderType.value;
 }
 import { v7 as uuid } from "uuid";
+import { getCommonData } from "./handleData";
+import { getFooterButtons } from "./props";
 export async function openDialog(title = "新增", type, row?) {
-  const orderId = uuid();
   addDialog({
     title: `${title}`,
     props: {
       formInline: {
-        uid: row?.uid ?? orderId,
+        uid: row?.uid ?? uuid(),
         providerId: row?.providerId ?? undefined,
         customerId: row?.customerId ?? undefined,
         auditorId: row?.auditorId ?? undefined,
@@ -59,11 +60,14 @@ export async function openDialog(title = "新增", type, row?) {
         rejectReason: row?.rejectReason ?? undefined,
         status: row?.status ?? true,
         desc: row?.desc ?? undefined,
+        total: row?.total ?? 0,
+        count: row?.count ?? 0,
         details: row?.details ?? []
       }
     },
+    footerButtons: getFooterButtons(type, title),
     width: "95%",
-    hideFooter: title === "查看",
+    hideFooter: ["查看"].includes(title),
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
@@ -81,21 +85,15 @@ export async function openDialog(title = "新增", type, row?) {
       FormRef.validate(async valid => {
         if (valid) {
           console.log("curData", curData);
+          if (curData.details.length === 0)
+            return message("请添加订单详情项", { type: "error" });
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, uid, details, ...orderData } = curData;
           const companyId = await getCompanyId();
           if (title === "新增") {
-            const commonData = {
-              uid,
-              company: {
-                connect: { uid: companyId }
-              },
-              auditor: {
-                connect: { uid: curData.auditorId }
-              }
-            };
+            const commonData = getCommonData(uid, companyId, curData);
             delete orderData.auditorId;
-            if (type === "purchase-order") {
+            if (type === ORDER_TYPE.purchase) {
               const purchaseOrderData = {
                 provider: {
                   connect: { uid: curData.providerId }
@@ -115,7 +113,7 @@ export async function openDialog(title = "新增", type, row?) {
                 },
                 details: detailsRes
               });
-            } else if (type === "sale-order") {
+            } else if (type === ORDER_TYPE.sale) {
               const saleOrderData = {
                 customer: {
                   connect: { uid: curData.customerId }

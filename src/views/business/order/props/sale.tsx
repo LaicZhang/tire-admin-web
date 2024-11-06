@@ -1,6 +1,7 @@
 export interface SaleFormItemProps {
   id: number;
   uid: string;
+  number: bigint;
   customerId: string;
   desc?: string;
   operatorId: string;
@@ -8,6 +9,7 @@ export interface SaleFormItemProps {
   warehouseEmployeeId: string;
   count: number;
   total: number;
+  showTotal: number;
   orderStatus: number;
   logisticsStatus: number;
   paidAmount: number;
@@ -18,14 +20,32 @@ export interface SaleFormItemProps {
   auditAt: Date;
   arrivalAt: Date;
   payAt: Date;
-  details: any[];
+  details: [
+    {
+      index: number;
+      companyId?: string;
+      count: number;
+      total: number;
+      desc?: string;
+      isArrival: boolean;
+      tireId: string;
+    }
+  ];
 }
 
 export interface SaleFormProps {
   formInline: SaleFormItemProps;
 }
 
+export const saleOrderFormRules = reactive({
+  customerId: [{ required: true, message: "客户为必填项", trigger: "blur" }],
+  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }],
+  count: [{ required: true, message: "数量为必填项", trigger: "blur" }],
+  total: [{ required: true, message: "总价为必填项", trigger: "blur" }]
+});
+
 import { formatDate } from "@/utils";
+import { reactive } from "vue";
 
 export const saleOrderDeatailsColumns = [
   {
@@ -78,8 +98,8 @@ export const saleOrderDeatailsColumns = [
 
 export const saleOrderColumns = [
   {
-    label: "ID",
-    prop: "id"
+    label: "流水号",
+    prop: "number"
   },
   {
     label: "客户",

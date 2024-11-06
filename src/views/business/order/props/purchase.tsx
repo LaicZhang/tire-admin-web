@@ -1,13 +1,20 @@
+import { reactive } from "vue";
+// import { formatDate } from "@/utils";
+import { copySrc, copyStyle, onCopy } from "./common";
+import type { FormRules } from "element-plus";
+
 export interface PurchaseFormItemProps {
   id: number;
   uid: string;
+  number: bigint;
   providerId: string;
   desc?: string;
   operatorId: string;
   auditorId: string;
   warehouseEmployeeId: string;
   count: number;
-  total: bigint;
+  total: number;
+  showTotal: number;
   status: boolean;
   orderStatus: number;
   logisticsStatus: number;
@@ -20,27 +27,30 @@ export interface PurchaseFormItemProps {
   arrivalAt: Date;
   payAt: Date;
   updateAt: Date;
-  // details: [
-  //   {
-  //     companyId: string;
-  //     count: number;
-  //     total: bigint;
-  //     desc: string;
-  //     isArrival: boolean;
-  //     tireId: string;
-  //   }
-  // ];
-  details: any[];
+  details: [
+    {
+      index: number;
+      companyId?: string;
+      count: number;
+      total: number;
+      desc?: string;
+      isArrival: boolean;
+      tireId: string;
+    }
+  ];
 }
 
 export interface PurchaseFormProps {
   formInline: PurchaseFormItemProps;
 }
 
-import { formatDate } from "@/utils";
-// import { allTireList, allRepoList } from "../table";
-// import { ref } from "vue";
-// const tireList = ref(allTireList.value);
+export const purchaseOrderFormRules: FormRules = reactive({
+  providerId: [{ required: true, message: "供应商为必填项", trigger: "blur" }],
+  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }],
+  count: [{ required: true, message: "数量为必填项", trigger: "blur" }],
+  total: [{ required: true, message: "总价为必填项", trigger: "blur" }]
+});
+
 export const purchaseOrderDeatailsColumns = [
   {
     label: "索引",
@@ -68,7 +78,8 @@ export const purchaseOrderDeatailsColumns = [
   {
     label: "数量",
     prop: "count",
-    cellRenderer: ({ row }) => <el-input-number v-model={row.count} />
+    slot: "countInput"
+    // cellRenderer: ({ row }) => <el-input-number v-model={row.count} />
   },
   {
     label: "单价",
@@ -111,10 +122,22 @@ export const purchaseOrderDeatailsColumns = [
     slot: "operation"
   }
 ];
+
 export const purchaseOrderColumns = [
   {
-    label: "ID",
-    prop: "id"
+    label: "流水号",
+    prop: "number",
+    cellRenderer: ({ row }) => (
+      <div>
+        <img
+          loading="lazy"
+          src={copySrc.value(row.uid)}
+          style={copyStyle.value}
+          onClick={() => onCopy(row.number.toString(), row.uid)}
+        />
+        {row.number}
+      </div>
+    )
   },
   {
     label: "供应商",
@@ -126,8 +149,12 @@ export const purchaseOrderColumns = [
     prop: "count"
   },
   {
-    label: "总价",
+    label: "应付货款",
     prop: "total"
+  },
+  {
+    label: "实付货款",
+    prop: "realTotal"
   },
   {
     label: "采购员",
@@ -164,13 +191,13 @@ export const purchaseOrderColumns = [
     label: "备注",
     prop: "desc"
   },
-  {
-    label: "付款时间",
-    prop: "payAt",
-    formatter: (row, column, cellValue) => {
-      return formatDate(cellValue);
-    }
-  },
+  // {
+  //   label: "付款时间",
+  //   prop: "payAt",
+  //   formatter: (row, column, cellValue) => {
+  //     return formatDate(cellValue);
+  //   }
+  // },
   {
     label: "操作",
     fixed: "right",

@@ -1,27 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { reactive } from "vue";
-import type { FormRules } from "element-plus";
-import {
-  PurchaseFormProps,
-  purchaseOrderDeatailsColumns,
-  saleOrderDeatailsColumns,
-  SaleFormProps,
-  assemblyOrderDeatailsColumns,
-  claimOrderDetailsColumns,
-  returnOrderDetailsColumns,
-  transferOrderDetailsColumns,
-  wasteOrderDetailsColumns
-} from "./props";
+import { onMounted, Ref, ref } from "vue";
+import { PurchaseFormProps, SaleFormProps } from "./props";
 import { ALL_LIST, CUR_ORDER_TYPE, localForage, ORDER_TYPE } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "@iconify-icons/ep/refresh";
 import Delete from "@iconify-icons/ep/delete";
-import EditPen from "@iconify-icons/ep/edit-pen";
 import AddFill from "@iconify-icons/ri/add-circle-line";
+import { getColumns, getFormRules } from "./handleData";
 
 const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
   formInline: () => ({
+    number: undefined,
     uid: undefined,
     id: undefined,
     desc: undefined,
@@ -30,6 +18,7 @@ const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
     warehouseEmployeeId: undefined,
     count: 0,
     total: 0,
+    showTotal: 0,
     orderStatus: 0,
     logisticsStatus: 0,
     paidAmount: 0,
@@ -46,61 +35,50 @@ const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
     details: []
   })
 });
-/** 自定义表单规则校验 */
-const formRules = reactive({
-  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
-});
+const orderType: Ref<ORDER_TYPE> = ref();
+
+const formRules = ref(getFormRules(orderType.value));
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
-
+const formTitle = ref("新增");
 function getRef() {
   return ruleFormRef.value;
 }
 
-const orderType = ref("");
 async function getOrderType() {
-  const curOrderType: string = await localForage().getItem(CUR_ORDER_TYPE);
+  const curOrderType: ORDER_TYPE = await localForage().getItem(CUR_ORDER_TYPE);
   if (curOrderType) orderType.value = curOrderType;
 }
-const dataList = ref([]);
+
 const managerList = ref([]);
 
 const detailsColumns = ref([]);
-const columnsMap = {
-  [ORDER_TYPE.purchase]: purchaseOrderDeatailsColumns,
-  [ORDER_TYPE.sale]: saleOrderDeatailsColumns,
-  [ORDER_TYPE.assembly]: assemblyOrderDeatailsColumns,
-  [ORDER_TYPE.claim]: claimOrderDetailsColumns,
-  [ORDER_TYPE.return]: returnOrderDetailsColumns,
-  [ORDER_TYPE.transfer]: transferOrderDetailsColumns,
-  [ORDER_TYPE.waste]: wasteOrderDetailsColumns,
-  [ORDER_TYPE.default]: []
-};
-function setDetailsColumns() {
-  detailsColumns.value = columnsMap[orderType.value] || [];
 
+function setDetailsColumnsAndFormRules() {
+  detailsColumns.value = getColumns(orderType.value);
+  formRules.value = getFormRules(orderType.value);
   if (!detailsColumns.value.length) {
     console.error("Unknown order type:", orderType.value);
   }
 }
 
 function onAdd() {
-  dataList.value.push({
-    index: dataList.value.length + 1,
-    count: 1
+  newFormInline.value.details.push({
+    index: newFormInline.value.details.length + 1,
+    count: 0,
+    total: 0,
+    tireId: undefined,
+    isArrival: false
   });
 }
 function onDel(row) {
-  const index = dataList.value.indexOf(row);
-  if (index !== -1) dataList.value.splice(index, 1);
-}
-function saveDataList() {
-  newFormInline.value.details = dataList.value;
-  console.log("newFormInline.value", newFormInline.value);
-}
-function clearDetails() {
-  dataList.value = [];
+  const index = newFormInline.value.details.indexOf(row);
+  if (index !== -1) newFormInline.value.details.splice(index, 1);
+  const { count, total } = newFormInline.value;
+  newFormInline.value.count = count - row.count;
+  newFormInline.value.total = total - row.total;
+  newFormInline.value.showTotal = newFormInline.value.total;
 }
 
 const allRepoList = ref([]);
@@ -118,7 +96,7 @@ async function getALlList() {
 defineExpose({ getRef });
 onMounted(async () => {
   await getOrderType();
-  setDetailsColumns();
+  setDetailsColumnsAndFormRules();
   await getALlList();
 });
 </script>
@@ -130,47 +108,68 @@ onMounted(async () => {
     :rules="formRules"
     label-width="82px"
   >
-    <el-form-item
-      v-if="orderType === ORDER_TYPE.purchase"
-      label="供应商"
-      prop="providerId"
-    >
-      <el-select
-        v-model="newFormInline.providerId"
-        clearable
-        placeholder="请输入供应商"
+    <div class="flex">
+      <el-form-item
+        v-if="[ORDER_TYPE.purchase].includes(orderType)"
+        label="供应商"
+        prop="providerId"
       >
-        <el-option
-          v-for="item in allProviderList"
-          :key="item.id"
-          :label="item.name"
-          :value="item.uid"
+        <el-select
+          v-model="newFormInline.providerId"
+          clearable
+          placeholder="请输入供应商"
+          class="!w-[15vw]"
         >
-          {{ item.name }}
-        </el-option>
-      </el-select>
-    </el-form-item>
+          <el-option
+            v-for="item in allProviderList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.uid"
+          >
+            {{ item.name }}
+          </el-option>
+        </el-select>
+      </el-form-item>
 
-    <el-form-item
-      v-if="orderType === ORDER_TYPE.sale"
-      label="客户"
-      prop="customerId"
-    >
-      <el-select
-        v-model="newFormInline.customerId"
-        clearable
-        placeholder="请输入客户"
+      <el-form-item
+        v-if="[ORDER_TYPE.sale].includes(orderType)"
+        label="客户"
+        prop="customerId"
       >
-        <el-option
-          v-for="item in allCustomerList"
-          :key="item.id"
-          :label="item.name"
-          :value="item.uid"
+        <el-select
+          v-model="newFormInline.customerId"
+          clearable
+          placeholder="请选择客户"
+          class="!w-[15vw]"
         >
-          {{ item.name }}
-        </el-option>
-      </el-select>
-    </el-form-item>
+          <el-option
+            v-for="item in allCustomerList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.uid"
+          >
+            {{ item.name }}
+          </el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="审核人" prop="auditorId">
+        <el-select
+          v-model="newFormInline.auditorId"
+          placeholder="请选择审核人"
+          class="!w-[15vw]"
+        >
+          <el-option
+            v-for="item in managerList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.uid"
+          >
+            {{ item.name }}
+          </el-option>
+        </el-select>
+      </el-form-item>
+    </div>
 
     <el-form-item label="备注">
       <el-input
@@ -197,7 +196,7 @@ onMounted(async () => {
         adaptive
         :columns="detailsColumns"
         border
-        :data="dataList"
+        :data="newFormInline.details"
         showOverflowTooltip
       >
         <template #tireIdSelect="{ row }">
@@ -210,6 +209,25 @@ onMounted(async () => {
             />
           </el-select>
         </template>
+
+        <template #countInput="{ row }">
+          <el-input-number
+            v-model="row.count"
+            :min="1"
+            :max="100"
+            :step="1"
+            :step-strictly="true"
+            controls-position="right"
+            @change="
+              () => {
+                newFormInline.count = newFormInline.details.reduce(
+                  (acc, cur) => acc + cur.count,
+                  0
+                );
+              }
+            "
+          />
+        </template>
         <template #repoIdSelect="{ row }">
           <el-select v-model="row.repoId" placeholder="请选择仓库" clearable>
             <el-option
@@ -220,7 +238,7 @@ onMounted(async () => {
             />
           </el-select>
         </template>
-        <template #append>
+        <template v-if="['新增'].find(item => item === formTitle)" #append>
           <el-button
             plain
             class="w-full my-2"
@@ -251,41 +269,32 @@ onMounted(async () => {
     </el-form-item>
 
     <div class="flex">
-      <el-form-item label="审核人" prop="auditorId">
-        <el-select
-          v-model="newFormInline.auditorId"
-          placeholder="请选择审核人"
-          class="!w-[180px]"
-        >
-          <el-option
-            v-for="item in managerList"
-            :key="item.id"
-            :label="item.name"
-            :value="item.uid"
-          >
-            {{ item.name }}
-          </el-option>
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="总价" prop="total">
+      <el-form-item label="总数" prop="count">
         <el-input-number
-          v-model="newFormInline.total"
-          placeholder="请输入总价"
+          v-model="newFormInline.count"
+          disabled
           class="!w-[180px]"
         />
       </el-form-item>
 
-      <el-form-item label="总数" prop="count">
+      <el-form-item label="应付货款" prop="showTotal">
         <el-input-number
-          v-model="newFormInline.count"
-          placeholder="请输入总数"
+          v-model="newFormInline.showTotal"
+          disabled
+          class="!w-[180px]"
+        />
+      </el-form-item>
+
+      <el-form-item label="实付货款" prop="total">
+        <el-input-number v-model="newFormInline.total" class="!w-[180px]" />
+      </el-form-item>
+
+      <el-form-item label="已付货款" prop="paidAmount">
+        <el-input-number
+          v-model="newFormInline.paidAmount"
           class="!w-[180px]"
         />
       </el-form-item>
     </div>
-    <el-button type="primary" class="float-right ml-2" @click="saveDataList"
-      >保存</el-button
-    >
   </el-form>
 </template>

@@ -23,15 +23,20 @@ export interface AssemblyFormProps {
   formInline: AssemblyFormItemProps;
 }
 
+export const assemblyOrderFormRules = reactive({
+  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
+});
+
 import { formatDate } from "@/utils";
+import { reactive } from "vue";
 
 export const assemblyOrderDeatailsColumns = [];
 
 export const assemblyOrderColumns = [
-  {
-    label: "ID",
-    prop: "id"
-  },
+  // {
+  //   label: "ID",
+  //   prop: "id"
+  // },
   {
     label: "客户",
     prop: "customerId"

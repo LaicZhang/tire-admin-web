@@ -24,13 +24,18 @@ export interface ClaimFormProps {
 }
 
 import { formatDate } from "@/utils";
+import { reactive } from "vue";
+
+export const claimOrderFormRules = reactive({
+  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
+});
 
 export const claimOrderDetailsColumns = [];
 
 export const claimOrderColumns = [
   {
-    label: "ID",
-    prop: "id"
+    label: "流水号",
+    prop: "number"
   },
   {
     label: "客户",
