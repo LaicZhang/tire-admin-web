@@ -156,7 +156,6 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                :icon="useRenderIcon(EditPen)"
                 @click="openDialog('修改', row)"
               >
                 修改
@@ -166,12 +165,7 @@ onMounted(async () => {
                 @confirm="handleDelete(row)"
               >
                 <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="danger"
-                    :icon="useRenderIcon(Delete)"
-                  >
+                  <el-button class="reset-margin" link type="danger">
                     删除
                   </el-button>
                 </template>

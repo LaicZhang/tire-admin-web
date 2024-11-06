@@ -1,10 +1,10 @@
 import { formatDate } from "@/utils";
 
 export const columns = [
-  {
-    label: "ID",
-    prop: "id"
-  },
+  // {
+  //   label: "ID",
+  //   prop: "id"
+  // },
   {
     label: "名称",
     prop: "name"
