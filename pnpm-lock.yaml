@@ -142,8 +142,8 @@ importers:
         specifier: ^0.2.3
         version: 0.2.3
       '@types/qs':
-        specifier: ^6.9.16
-        version: 6.9.16
+        specifier: ^6.9.17
+        version: 6.9.17
       '@types/sortablejs':
         specifier: ^1.15.8
         version: 1.15.8
@@ -1273,8 +1273,8 @@ packages:
   '@types/nprogress@0.2.3':
     resolution: {integrity: sha512-k7kRA033QNtC+gLc4VPlfnue58CM1iQLgn1IMAU8VPHGOj7oIHPp9UlhedEnD/Gl8evoCjwkZjlBORtZ3JByUA==}
 
-  '@types/qs@6.9.16':
-    resolution: {integrity: sha512-7i+zxXdPD0T4cKDuxCUXJ4wHcsJLwENa6Z3dCu8cfCK743OGy5Nu1RmAGqDPsoTDINVEcdXKRvR/zre+P2Ku1A==}
+  '@types/qs@6.9.17':
+    resolution: {integrity: sha512-rX4/bPcfmvxHDv0XjfJELTTr+iB+tn032nPILqHm5wbthUUUuVtNGGqzhya9XUxjTP8Fpr0qYgSZZKxGY++svQ==}
 
   '@types/sortablejs@1.15.8':
     resolution: {integrity: sha512-b79830lW+RZfwaztgs1aVPgbasJ8e7AXtZYHTELNXZPsERt4ymJdjV4OccDbHQAvHrCcFpbF78jkm0R6h/pZVg==}
@@ -5778,7 +5778,7 @@ snapshots:
 
   '@types/nprogress@0.2.3': {}
 
-  '@types/qs@6.9.16': {}
+  '@types/qs@6.9.17': {}
 
   '@types/sortablejs@1.15.8': {}
 
