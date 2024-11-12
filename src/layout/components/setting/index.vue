@@ -13,7 +13,7 @@ import panel from "../panel/index.vue";
 import { emitter } from "@/utils/mitt";
 import { useNav } from "@/layout/hooks/useNav";
 import { useAppStoreHook } from "@/store/modules/app";
-import { toggleTheme } from "@pureadmin/theme/dist/browser-utils";
+// import { toggleTheme } from "@pureadmin/theme/dist/browser-utils";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import Segmented, { type OptionsType } from "@/components/ReSegmented";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
@@ -48,9 +48,10 @@ const {
 if (unref(layoutTheme)) {
   const layout = unref(layoutTheme).layout;
   const theme = unref(layoutTheme).theme;
-  toggleTheme({
-    scopeName: `layout-theme-${theme}`
-  });
+  // toggleTheme({
+  //   scopeName: `layout-theme-${theme}`
+  // });
+  document.documentElement.setAttribute("data-theme", theme);
   setLayoutModel(layout);
 }
 
