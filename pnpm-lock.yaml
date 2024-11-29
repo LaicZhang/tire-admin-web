@@ -75,8 +75,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       sortablejs:
-        specifier: ^1.15.4
-        version: 1.15.4
+        specifier: ^1.15.6
+        version: 1.15.6
       unstorage:
         specifier: ^1.13.1
         version: 1.13.1(idb-keyval@6.2.1)
@@ -3773,8 +3773,8 @@ packages:
     resolution: {integrity: sha512-bSiSngZ/jWeX93BqeIAbImyTbEihizcwNjFoRUIY/T1wWQsfsm2Vw1agPKylXvQTU7iASGdHhyqRlqQzfz+Htg==}
     engines: {node: '>=18'}
 
-  sortablejs@1.15.4:
-    resolution: {integrity: sha512-wr7G5Id/WNllca5yF9I2vsz/2wDKJebX5FJBtfUFBGGpaaIVjW4kziAnNMEcigaTZAaPLB92NYBGqWenGDH++g==}
+  sortablejs@1.15.6:
+    resolution: {integrity: sha512-aNfiuwMEpfBM/CN6LY0ibyhxPfPbyFeBTYJKCvzkJ2GkUpazIt3H+QIPAMHwqQ7tMKaHz1Qj+rJJCqljnf4p3A==}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -7868,7 +7868,7 @@ snapshots:
       '@element-plus/icons-vue': 2.3.1(vue@3.5.13(typescript@5.7.2))
       element-plus: 2.8.8(vue@3.5.13(typescript@5.7.2))
       lodash-es: 4.17.21
-      sortablejs: 1.15.4
+      sortablejs: 1.15.6
       vue: 3.5.13(typescript@5.7.2)
 
   pngjs@5.0.0: {}
@@ -8322,7 +8322,7 @@ snapshots:
       ansi-styles: 6.2.1
       is-fullwidth-code-point: 5.0.0
 
-  sortablejs@1.15.4: {}
+  sortablejs@1.15.6: {}
 
   source-map-js@1.2.1: {}
 
