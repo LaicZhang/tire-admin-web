@@ -2,7 +2,7 @@ export function compressImage(file) {
   const reader = new FileReader();
   reader.onload = e => {
     const image = new Image();
-    image.src = e.target.result;
+    image.src = e.target.result as string;
     image.onload = () => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -37,7 +37,7 @@ export async function getImageWH(file) {
     height = 0;
   reader.onload = e => {
     const image = new Image();
-    image.src = e.target.result;
+    image.src = e.target.result as string;
     image.onload = () => {
       width = image.width;
       height = image.height;
