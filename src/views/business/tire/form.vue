@@ -3,11 +3,10 @@ import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
 import Add from "@iconify-icons/ep/plus";
 import {
+  formatToken,
   getFileMd5,
   getImageWH,
-  getMD5,
   getToken,
-  localForage,
   message,
   StaticImageTypeEnum
 } from "@/utils";
@@ -79,8 +78,7 @@ function getRef() {
 const Authorization = ref("");
 
 function getAuthorization() {
-  if (!Authorization.value)
-    Authorization.value = "Bearer " + getToken().accessToken;
+  Authorization.value = formatToken(getToken().accessToken);
 }
 
 const uploadData = ref();
