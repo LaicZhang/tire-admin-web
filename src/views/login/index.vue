@@ -34,6 +34,8 @@ import forget from "./components/update.vue";
 import { operates, thirdParty } from "./utils/enums";
 import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 import { usePermissionStoreHook } from "@/store/modules/permission";
+// import { useEventListener } from "@vueuse/core";
+// import { debounce } from "@pureadmin/utils";
 
 defineOptions({
   name: "Login"
@@ -59,18 +61,18 @@ const loginDay = ref(7);
 const disabled = ref(false);
 
 const ruleForm = reactive({
-  username: "",
-  password: "",
+  username: undefined,
+  password: undefined,
   code: "",
   isRemember: checked.value
 });
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
-  await formEl.validate((valid, fields) => {
+  await formEl.validate(valid => {
     if (valid) {
       useUserStoreHook()
-        .loginByUsername({ ...ruleForm })
+        .loginByUsername(ruleForm)
         .then(res => {
           const { code, msg, data } = res;
           if (code === 200) {
@@ -93,21 +95,31 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         })
         .finally(() => {
           disabled.value = false;
-          loading.value = false;
         });
-    } else {
-      loading.value = false;
-      return fields;
     }
+    loading.value = false;
   });
 };
 
-/** 使用公共函数，避免`removeEventListener`失效 */
 function onkeypress({ code }: KeyboardEvent) {
   if (code === "Enter") {
     onLogin(ruleFormRef.value);
   }
 }
+
+// const immediateDebounce: any = debounce(
+//   formRef => onLogin(formRef),
+//   1000,
+//   true
+// );
+// useEventListener(document, "keypress", ({ code }) => {
+//   if (
+//     ["Enter", "NumpadEnter"].includes(code) &&
+//     !disabled.value &&
+//     !loading.value
+//   )
+//     immediateDebounce(ruleFormRef.value);
+// });
 
 onMounted(() => {
   window.document.addEventListener("keypress", onkeypress, { passive: true });
@@ -173,7 +185,7 @@ watch(loginDay, value => {
                 <el-input
                   v-model="ruleForm.username"
                   clearable
-                  placeholder="手机号/账号"
+                  placeholder="用户名/手机号/账号"
                   :prefix-icon="useRenderIcon(User)"
                 />
               </el-form-item>
