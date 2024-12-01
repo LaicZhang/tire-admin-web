@@ -48,11 +48,11 @@ import { formatDate } from "@/utils";
 import { reactive } from "vue";
 
 export const saleOrderDeatailsColumns = [
-  {
-    label: "索引",
-    prop: "index",
-    width: 40
-  },
+  // {
+  //   label: "索引",
+  //   prop: "index",
+  //   width: 40
+  // },
   {
     label: "轮胎",
     prop: "tireId",

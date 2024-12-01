@@ -52,11 +52,11 @@ export const purchaseOrderFormRules: FormRules = reactive({
 });
 
 export const purchaseOrderDeatailsColumns = [
-  {
-    label: "索引",
-    prop: "index",
-    width: 40
-  },
+  // {
+  //   label: "索引",
+  //   prop: "index",
+  //   width: 40
+  // },
   {
     label: "轮胎",
     prop: "tireId",
@@ -203,6 +203,6 @@ export const purchaseOrderColumns = [
     fixed: "right",
     prop: "operation",
     slot: "operation",
-    minWidth: 120
+    minWidth: 370
   }
 ];

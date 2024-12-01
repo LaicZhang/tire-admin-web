@@ -26,6 +26,7 @@ import {
 } from "@/api";
 import {
   ALL_LIST,
+  CUR_FORM_TITLE,
   CUR_ORDER_TYPE,
   getOrderTypeList,
   localForage,
@@ -149,6 +150,14 @@ const onSearch = async () => {
     pagination.value.total = data.count;
   } else message(msg, { type: "error" });
   loading.value = false;
+};
+
+const formTitle = ref("");
+
+const handleOpenDialog = async (title, type, row) => {
+  formTitle.value = title;
+  await localForage().setItem(CUR_FORM_TITLE, title);
+  openDialog(title, type, row);
 };
 
 const resetForm = formEl => {
@@ -302,7 +311,7 @@ onMounted(async () => {
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog('新增', orderType)"
+            @click="handleOpenDialog('新增', orderType)"
           >
             新增订单
           </el-button>
@@ -324,7 +333,7 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('查看', orderType, row)"
+                @click="handleOpenDialog('查看', orderType, row)"
               >
                 查看
               </el-button>
@@ -333,7 +342,7 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('审核', orderType, row)"
+                @click="handleOpenDialog('审核', orderType, row)"
               >
                 审核
               </el-button>
@@ -342,16 +351,16 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('更新状态', orderType, row)"
+                @click="handleOpenDialog('更新状态', orderType, row)"
               >
-                {{ row.status === true ? "关闭" : "开启" }}
+                {{ row.status ? "关闭" : "开启" }}
               </el-button>
 
               <el-button
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('更新物流', orderType, row)"
+                @click="handleOpenDialog('更新物流', orderType, row)"
               >
                 更新物流
               </el-button>
@@ -366,7 +375,7 @@ onMounted(async () => {
                 link
                 type="primary"
                 @click="
-                  openDialog(
+                  handleOpenDialog(
                     orderType === ORDER_TYPE.sale ? '收款' : '付款',
                     orderType,
                     row
@@ -377,15 +386,17 @@ onMounted(async () => {
               </el-button>
 
               <el-button
+                v-if="row.isLocked === false"
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('修改', orderType, row)"
+                @click="handleOpenDialog('修改', orderType, row)"
               >
                 修改
               </el-button>
 
               <el-popconfirm
+                v-if="row.isLocked === false"
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"
               >

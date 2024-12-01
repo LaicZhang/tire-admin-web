@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { onMounted, Ref, ref } from "vue";
 import { PurchaseFormProps, SaleFormProps } from "./props";
-import { ALL_LIST, CUR_ORDER_TYPE, localForage, ORDER_TYPE } from "@/utils";
+import {
+  ALL_LIST,
+  CUR_ORDER_TYPE,
+  localForage,
+  message,
+  ORDER_TYPE
+} from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "@iconify-icons/ep/delete";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import { getColumns, getFormRules } from "./handleData";
+import { getFormTileInLocal } from "./table";
 
 const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
   formInline: () => ({
@@ -49,6 +56,7 @@ function getRef() {
 async function getOrderType() {
   const curOrderType: ORDER_TYPE = await localForage().getItem(CUR_ORDER_TYPE);
   if (curOrderType) orderType.value = curOrderType;
+  return orderType.value;
 }
 
 const managerList = ref([]);
@@ -61,6 +69,12 @@ function setDetailsColumnsAndFormRules() {
   if (!detailsColumns.value.length) {
     console.error("Unknown order type:", orderType.value);
   }
+}
+
+async function getFormTitle() {
+  const title = await getFormTileInLocal();
+  formTitle.value = title;
+  if (formTitle.value) return formTitle.value;
 }
 
 function onAdd() {
@@ -86,17 +100,34 @@ const allTireList = ref([]);
 const allCustomerList = ref([]);
 const allProviderList = ref([]);
 async function getALlList() {
-  managerList.value = await localForage().getItem(ALL_LIST.manager);
-  allRepoList.value = await localForage().getItem(ALL_LIST.repo);
-  allTireList.value = await localForage().getItem(ALL_LIST.tire);
-  allCustomerList.value = await localForage().getItem(ALL_LIST.customer);
-  allProviderList.value = await localForage().getItem(ALL_LIST.provider);
+  try {
+    const [managerData, repoData, tireData, customerData, providerData] =
+      (await Promise.all([
+        localForage().getItem(ALL_LIST.manager),
+        localForage().getItem(ALL_LIST.repo),
+        localForage().getItem(ALL_LIST.tire),
+        localForage().getItem(ALL_LIST.customer),
+        localForage().getItem(ALL_LIST.provider)
+      ])) as any[];
+
+    managerList.value = managerData;
+    allRepoList.value = repoData;
+    allTireList.value = tireData;
+    allCustomerList.value = customerData;
+    allProviderList.value = providerData;
+  } catch (error) {
+    message(error.message, { type: "error" });
+  }
 }
 
+async function getDisabled(arr: string[]) {
+  return arr.includes(formTitle.value);
+}
 defineExpose({ getRef });
 onMounted(async () => {
   await getOrderType();
   setDetailsColumnsAndFormRules();
+  await getFormTitle();
   await getALlList();
 });
 </script>
@@ -113,6 +144,7 @@ onMounted(async () => {
         v-if="[ORDER_TYPE.purchase].includes(orderType)"
         label="供应商"
         prop="providerId"
+        :disabled="getDisabled(['修改', '新增'])"
       >
         <el-select
           v-model="newFormInline.providerId"
@@ -238,7 +270,7 @@ onMounted(async () => {
             />
           </el-select>
         </template>
-        <template v-if="['新增'].find(item => item === formTitle)" #append>
+        <template v-if="['新增', '修改'].includes(formTitle)" #append>
           <el-button
             plain
             class="w-full my-2"
@@ -254,7 +286,9 @@ onMounted(async () => {
             @confirm="onDel(row)"
           >
             <template #reference>
+              <div />
               <el-button
+                v-if="['新增', '修改'].includes(formTitle)"
                 class="reset-margin"
                 :icon="useRenderIcon(Delete)"
                 link

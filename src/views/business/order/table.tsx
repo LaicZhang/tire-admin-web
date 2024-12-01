@@ -4,7 +4,13 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addOrderApi, updateOrderApi } from "@/api";
 import editForm from "./form.vue";
-import { ALL_LIST, CUR_ORDER_TYPE, localForage, ORDER_TYPE } from "@/utils";
+import {
+  ALL_LIST,
+  CUR_FORM_TITLE,
+  CUR_ORDER_TYPE,
+  localForage,
+  ORDER_TYPE
+} from "@/utils";
 
 const formRef = ref(null);
 export function handleSelectionChange(val) {
@@ -41,6 +47,13 @@ export async function getOrderType() {
   orderType.value = await localForage().getItem(CUR_ORDER_TYPE);
   return orderType.value;
 }
+const formTitle = ref("");
+export async function getFormTileInLocal() {
+  const title: string = await localForage().getItem(CUR_FORM_TITLE);
+  if (title) formTitle.value = title;
+  return formTitle.value;
+}
+
 import { v7 as uuid } from "uuid";
 import { getCommonData } from "./handleData";
 import { getFooterButtons } from "./props";
