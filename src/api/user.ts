@@ -2,7 +2,7 @@ import { http } from "@/utils/http";
 import { baseUrlApi } from "./utils";
 import type { CommonResult } from "./type";
 
-const prefix = "/user";
+const prefix = "/user/";
 
 export const getUsersApi = (index = 1, params?: object) => {
   return http.request<CommonResult>(
