@@ -3,8 +3,8 @@ import { store } from "@/store";
 import { getConfig } from "@/config";
 import type { setType } from "./types";
 
-export const useSettingStore = defineStore({
-  id: "pure-setting",
+export const useSettingStore = defineStore("pure-setting", {
+  // id: "pure-setting",
   state: (): setType => ({
     title: getConfig().Title,
     fixedHeader: getConfig().FixedHeader,

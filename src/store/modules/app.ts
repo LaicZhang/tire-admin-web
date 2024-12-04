@@ -4,8 +4,8 @@ import type { appType } from "./types";
 import { getConfig, responsiveStorageNameSpace } from "@/config";
 import { deviceDetection, storageLocal } from "@pureadmin/utils";
 
-export const useAppStore = defineStore({
-  id: "pure-app",
+export const useAppStore = defineStore("pure-app", {
+  // id: "pure-app",
   state: (): appType => ({
     sidebar: {
       opened:
@@ -56,9 +56,10 @@ export const useAppStore = defineStore({
         layout.sidebarStatus = false;
       } else if (!opened && !resize) {
         this.sidebar.withoutAnimation = false;
-        this.sidebar.opened = !this.sidebar.opened;
-        this.sidebar.isClickCollapse = !this.sidebar.opened;
-        layout.sidebarStatus = this.sidebar.opened;
+        const sidebarOpened = this.sidebar.opened;
+        this.sidebar.opened = !sidebarOpened;
+        this.sidebar.isClickCollapse = !sidebarOpened;
+        layout.sidebarStatus = sidebarOpened;
       }
       storageLocal().setItem(`${responsiveStorageNameSpace()}layout`, layout);
     },

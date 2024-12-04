@@ -7,8 +7,8 @@ import { getCurrentCompanyAPi } from "@/api";
 
 export const currentCompanyKey = "current-company";
 
-export const useCurrentCompanyStore = defineStore({
-  id: "pure-company",
+export const useCurrentCompanyStore = defineStore("pure-company", {
+  // id: "pure-company",
   state: (): currentCompanyType => ({
     companyName:
       storageLocal().getItem<CurrentCompanyInfo>(currentCompanyKey)

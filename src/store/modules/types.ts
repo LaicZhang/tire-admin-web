@@ -19,6 +19,10 @@ export type appType = {
   };
   layout: string;
   device: string;
+  viewportSize: {
+    width: number;
+    height: number;
+  };
 };
 
 export type multiType = {
