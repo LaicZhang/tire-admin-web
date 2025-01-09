@@ -256,8 +256,8 @@ importers:
         specifier: ^0.5.1
         version: 0.5.1(vite@6.0.7(@types/node@22.10.5)(jiti@2.4.1)(sass@1.83.1)(yaml@2.6.1))
       vite-plugin-fake-server:
-        specifier: ^2.1.5
-        version: 2.1.5
+        specifier: ^2.2.0
+        version: 2.2.0
       vite-plugin-remove-console:
         specifier: ^2.2.0
         version: 2.2.0
@@ -4200,8 +4200,8 @@ packages:
     peerDependencies:
       vite: '>=2.0.0'
 
-  vite-plugin-fake-server@2.1.5:
-    resolution: {integrity: sha512-AkuWd8Lhb9+Yn4mdryzFpZX6JfSxQ1MGYkK9wFxOEj5QHz+efo7ibPk/nGahgctd/4RJc+FuqHULO/pP1xvUMg==}
+  vite-plugin-fake-server@2.2.0:
+    resolution: {integrity: sha512-RP691997Q207nenNMhg7cvYyBXZyjqXwApTBa+a9kHmILgcAU2w4TMRDiAhIU0HPLAAR5MHlWTEpxA9Tbf+v8g==}
 
   vite-plugin-remove-console@2.2.0:
     resolution: {integrity: sha512-qgjh5pz75MdE9Kzs8J0kBwaCfifHV0ezRbB9rpGsIOxam+ilcGV7WOk91vFJXquzRmiKrFh3Hxlh0JJWAmXTbQ==}
@@ -8770,7 +8770,7 @@ snapshots:
       magic-string: 0.25.9
       vite: 6.0.7(@types/node@22.10.5)(jiti@2.4.1)(sass@1.83.1)(yaml@2.6.1)
 
-  vite-plugin-fake-server@2.1.5:
+  vite-plugin-fake-server@2.2.0:
     dependencies:
       bundle-import: 0.0.2
       chokidar: 4.0.1
