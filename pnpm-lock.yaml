@@ -66,8 +66,8 @@ importers:
         specifier: ^3.26.0
         version: 3.26.0
       plus-pro-components:
-        specifier: ^0.1.19
-        version: 0.1.19(element-plus@2.9.2(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3))
+        specifier: ^0.1.20
+        version: 0.1.20(element-plus@2.9.2(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3))
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -3249,8 +3249,8 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
-  plus-pro-components@0.1.19:
-    resolution: {integrity: sha512-FNboxNJooJ+awYbAhAtIJ/MCS8hAhAmtEY0K5gXIptJIb/VQkWCY+KSPebBwRTgekf8BVut4cB4Zd30TW4ie2A==}
+  plus-pro-components@0.1.20:
+    resolution: {integrity: sha512-a1e5+1tSFqHMWMfR6NoeXhbesc++v5t9GoTRW8i5kHBONThb+HqKj8rY3hVkOJYZX64x6GUsNM3RCq0rL/Itmg==}
     peerDependencies:
       element-plus: ^2.3.4
       vue: ^3.2.0
@@ -7764,7 +7764,7 @@ snapshots:
 
   pluralize@8.0.0: {}
 
-  plus-pro-components@0.1.19(element-plus@2.9.2(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3)):
+  plus-pro-components@0.1.20(element-plus@2.9.2(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3)):
     dependencies:
       '@element-plus/icons-vue': 2.3.1(vue@3.5.13(typescript@5.7.3))
       element-plus: 2.9.2(vue@3.5.13(typescript@5.7.3))
