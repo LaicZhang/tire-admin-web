@@ -56,6 +56,10 @@ yarn
 - [ ] Optimize deployment plan
 - [ ] Back up the database regularly
 
+## Thanks
+
+Thanks to [jetbrains](https://jetbrains.com) for sponsoring my development tools.
+
 ## License
 
 [MIT](./LICENSE)
