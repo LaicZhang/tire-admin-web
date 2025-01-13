@@ -51,10 +51,10 @@ yarn
 
 ## TODO
 
-- [ ] 减少内存占用
-- [x] 升级eslint->9.x
-- [ ] 优化部署方案
-- [ ] 定时备份数据库
+- [ ] Reduce memory usage
+- [x] Upgrade eslint->9.x
+- [ ] Optimize deployment plan
+- [ ] Back up the database regularly
 
 ## License
 
