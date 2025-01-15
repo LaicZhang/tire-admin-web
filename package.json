@@ -116,7 +116,7 @@
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^5.14.0",
-    "sass": "^1.83.1",
+    "sass": "^1.83.4",
     "stylelint": "^16.13.1",
     "stylelint-config-recess-order": "^5.1.1",
     "stylelint-config-recommended-vue": "^1.5.0",
