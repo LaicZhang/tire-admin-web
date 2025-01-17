@@ -220,8 +220,8 @@ importers:
         specifier: ^16.13.1
         version: 16.13.1(typescript@5.7.3)
       stylelint-config-recess-order:
-        specifier: ^5.1.1
-        version: 5.1.1(stylelint@16.13.1(typescript@5.7.3))
+        specifier: ^6.0.0
+        version: 6.0.0(stylelint@16.13.1(typescript@5.7.3))
       stylelint-config-recommended-vue:
         specifier: ^1.5.0
         version: 1.5.0(postcss-html@1.8.0)(stylelint@16.13.1(typescript@5.7.3))
@@ -3888,8 +3888,8 @@ packages:
       postcss-html: ^1.0.0
       stylelint: '>=14.0.0'
 
-  stylelint-config-recess-order@5.1.1:
-    resolution: {integrity: sha512-eDAHWVBelzDbMbdMj15pSw0Ycykv5eLeriJdbGCp0zd44yvhgZLI+wyVHegzXp5NrstxTPSxl0fuOVKdMm0XLA==}
+  stylelint-config-recess-order@6.0.0:
+    resolution: {integrity: sha512-1KqrttqpIrCYFAVQ1/bbgXo7EvvcjmkxxmnzVr+U66Xr2OlrNZqQ5+44Tmct6grCWY6wGTIBh2tSANqcmwIM2g==}
     peerDependencies:
       stylelint: '>=16'
 
@@ -8465,7 +8465,7 @@ snapshots:
       postcss-html: 1.8.0
       stylelint: 16.13.1(typescript@5.7.3)
 
-  stylelint-config-recess-order@5.1.1(stylelint@16.13.1(typescript@5.7.3)):
+  stylelint-config-recess-order@6.0.0(stylelint@16.13.1(typescript@5.7.3)):
     dependencies:
       stylelint: 16.13.1(typescript@5.7.3)
       stylelint-order: 6.0.4(stylelint@16.13.1(typescript@5.7.3))
