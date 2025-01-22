@@ -63,7 +63,7 @@
     "mitt": "^3.0.1",
     "nprogress": "^0.2.0",
     "path": "^0.12.7",
-    "pinia": "^2.3.0",
+    "pinia": "^2.3.1",
     "pinyin-pro": "^3.26.0",
     "plus-pro-components": "^0.1.20",
     "qrcode": "^1.5.4",
