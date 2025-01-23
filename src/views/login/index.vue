@@ -101,7 +101,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
   });
 };
 
-function onkeypress({ code }: KeyboardEvent) {
+function onkeydown({ code }: KeyboardEvent) {
   if (code === "Enter") {
     onLogin(ruleFormRef.value);
   }
@@ -112,7 +112,7 @@ function onkeypress({ code }: KeyboardEvent) {
 //   1000,
 //   true
 // );
-// useEventListener(document, "keypress", ({ code }) => {
+// useEventListener(document, "keydown", ({ code }) => {
 //   if (
 //     ["Enter", "NumpadEnter"].includes(code) &&
 //     !disabled.value &&
@@ -122,11 +122,11 @@ function onkeypress({ code }: KeyboardEvent) {
 // });
 
 onMounted(() => {
-  window.document.addEventListener("keypress", onkeypress, { passive: true });
+  window.document.addEventListener("keydown", onkeydown, { passive: true });
 });
 
 onBeforeUnmount(() => {
-  window.document.removeEventListener("keypress", onkeypress);
+  window.document.removeEventListener("keydown", onkeydown);
 });
 
 watch(imgCode, value => {
