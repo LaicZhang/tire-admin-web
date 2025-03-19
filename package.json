@@ -95,8 +95,8 @@
     "@types/sortablejs": "^1.15.8",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
-    "@vitejs/plugin-vue": "^5.2.1",
-    "@vitejs/plugin-vue-jsx": "^4.1.1",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vitejs/plugin-vue-jsx": "^4.1.2",
     "autoprefixer": "^10.4.21",
     "boxen": "^8.0.1",
     "cloc": "2.11.0",
@@ -116,8 +116,8 @@
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^5.14.0",
-    "sass": "^1.85.1",
-    "stylelint": "^16.15.0",
+    "sass": "^1.86.0",
+    "stylelint": "^16.16.0",
     "stylelint-config-recess-order": "^6.0.0",
     "stylelint-config-recommended-vue": "^1.6.0",
     "stylelint-config-standard-scss": "^14.0.0",
@@ -127,7 +127,7 @@
     "typescript": "^5.8.2",
     "unplugin-auto-import": "^19.1.1",
     "unplugin-vue-components": "^28.4.1",
-    "vite": "^6.2.1",
+    "vite": "^6.2.2",
     "vite-plugin-cdn-import": "^1.0.1",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-fake-server": "^2.2.0",
@@ -150,5 +150,5 @@
       "abab": "*"
     }
   },
-  "packageManager": "pnpm@10.5.2"
+  "packageManager": "pnpm@10.0.0"
 }
