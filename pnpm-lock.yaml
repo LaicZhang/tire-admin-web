@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@pureadmin/descriptions':
         specifier: ^1.2.1
-        version: 1.2.1(echarts@5.6.0)(element-plus@2.9.6(vue@3.5.13(typescript@5.8.2)))(typescript@5.8.2)
+        version: 1.2.1(echarts@5.6.0)(element-plus@2.9.7(vue@3.5.13(typescript@5.8.2)))(typescript@5.8.2)
       '@pureadmin/table':
         specifier: ^3.2.1
-        version: 3.2.1(element-plus@2.9.6(vue@3.5.13(typescript@5.8.2)))(typescript@5.8.2)
+        version: 3.2.1(element-plus@2.9.7(vue@3.5.13(typescript@5.8.2)))(typescript@5.8.2)
       '@pureadmin/utils':
         specifier: ^2.5.0
         version: 2.5.0(echarts@5.6.0)(vue@3.5.13(typescript@5.8.2))
@@ -39,8 +39,8 @@ importers:
         specifier: ^5.6.0
         version: 5.6.0
       element-plus:
-        specifier: ^2.9.6
-        version: 2.9.6(vue@3.5.13(typescript@5.8.2))
+        specifier: ^2.9.7
+        version: 2.9.7(vue@3.5.13(typescript@5.8.2))
       idb-keyval:
         specifier: ^6.2.1
         version: 6.2.1
@@ -67,7 +67,7 @@ importers:
         version: 3.26.0
       plus-pro-components:
         specifier: ^0.1.21
-        version: 0.1.21(element-plus@2.9.6(vue@3.5.13(typescript@5.8.2)))(vue@3.5.13(typescript@5.8.2))
+        version: 0.1.21(element-plus@2.9.7(vue@3.5.13(typescript@5.8.2)))(vue@3.5.13(typescript@5.8.2))
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -970,14 +970,14 @@ packages:
     resolution: {integrity: sha512-3vm4by+B5lvsFPSyep3ELWmZfE3kicDtmemVpuwl1yH7tqtnHdsA6hG8fbXedMVdkzgtvzWoRgjSB4Q+FHnZiw==}
     engines: {node: '>=18.0.0', npm: '>=9.0.0'}
 
-  '@floating-ui/core@1.6.8':
-    resolution: {integrity: sha512-7XJ9cPU+yI2QeLS+FCSlqNFZJq8arvswefkZrYI1yQBbftw6FyrZOxYSh+9S7z7TpeWlRt9zJ5IhM1WIL334jA==}
+  '@floating-ui/core@1.6.9':
+    resolution: {integrity: sha512-uMXCuQ3BItDUbAMhIXw7UPXRfAlOAvZzdK9BWpE60MCn+Svt3aLn9jsPTi/WNGlRUu2uI0v5S7JiIUsbsvh3fw==}
 
-  '@floating-ui/dom@1.6.11':
-    resolution: {integrity: sha512-qkMCxSR24v2vGkhYDo/UzxfJN3D4syqSjyuTFz6C7XcpU1pASPRieNI0Kj5VP3/503mOfYiGY891ugBX1GlABQ==}
+  '@floating-ui/dom@1.6.13':
+    resolution: {integrity: sha512-umqzocjDgNRGTuO7Q8CU32dkHkECqI8ZdMZ5Swb6QAM0t5rnlrN3lGo1hdpscRd3WS8T6DKYK4ephgIH9iRh3w==}
 
-  '@floating-ui/utils@0.2.8':
-    resolution: {integrity: sha512-kym7SodPp8/wloecOpcmSnWJsK7M0E5Wg8UcFA+uO4B9s5d0ywXOEro/8HM9x0rW+TljRzul/14UYz3TleT3ig==}
+  '@floating-ui/utils@0.2.9':
+    resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -1320,8 +1320,8 @@ packages:
   '@types/lodash-es@4.17.12':
     resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
 
-  '@types/lodash@4.17.10':
-    resolution: {integrity: sha512-YpS0zzoduEhuOWjAotS6A5AVCva7X4lVlYLF0FYHAY9sdraBfnatttHItlWeZdGhuEkf+OzMNg2ZYAx8t+52uQ==}
+  '@types/lodash@4.17.16':
+    resolution: {integrity: sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g==}
 
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
@@ -2127,8 +2127,8 @@ packages:
   electron-to-chromium@1.5.37:
     resolution: {integrity: sha512-u7000ZB/X0K78TaQqXZ5ktoR7J79B9US7IkE4zyvcILYwOGY2Tx9GRPYstn7HmuPcMxZ+BDGqIsyLpZQi9ufPw==}
 
-  element-plus@2.9.6:
-    resolution: {integrity: sha512-D9zU28Ce0s/9O/Vp3ewemikxzFVA6gdZyMwmWijHijo+t5/9H3sHRTIm1WlfeNpFW2Yq0y8nHXD0fU5YxU6qlQ==}
+  element-plus@2.9.7:
+    resolution: {integrity: sha512-6vjZh5SXBncLhUwJGTVKS5oDljfgGMh6J4zVTeAZK3YdMUN76FgpvHkwwFXocpJpMbii6rDYU3sgie64FyPerQ==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -5455,16 +5455,16 @@ snapshots:
 
   '@faker-js/faker@9.6.0': {}
 
-  '@floating-ui/core@1.6.8':
+  '@floating-ui/core@1.6.9':
     dependencies:
-      '@floating-ui/utils': 0.2.8
+      '@floating-ui/utils': 0.2.9
 
-  '@floating-ui/dom@1.6.11':
+  '@floating-ui/dom@1.6.13':
     dependencies:
-      '@floating-ui/core': 1.6.8
-      '@floating-ui/utils': 0.2.8
+      '@floating-ui/core': 1.6.9
+      '@floating-ui/utils': 0.2.9
 
-  '@floating-ui/utils@0.2.8': {}
+  '@floating-ui/utils@0.2.9': {}
 
   '@humanfs/core@0.19.1': {}
 
@@ -5651,19 +5651,19 @@ snapshots:
 
   '@popperjs/core@2.11.8': {}
 
-  '@pureadmin/descriptions@1.2.1(echarts@5.6.0)(element-plus@2.9.6(vue@3.5.13(typescript@5.8.2)))(typescript@5.8.2)':
+  '@pureadmin/descriptions@1.2.1(echarts@5.6.0)(element-plus@2.9.7(vue@3.5.13(typescript@5.8.2)))(typescript@5.8.2)':
     dependencies:
       '@element-plus/icons-vue': 2.3.1(vue@3.5.13(typescript@5.8.2))
       '@pureadmin/utils': 2.5.0(echarts@5.6.0)(vue@3.5.13(typescript@5.8.2))
-      element-plus: 2.9.6(vue@3.5.13(typescript@5.8.2))
+      element-plus: 2.9.7(vue@3.5.13(typescript@5.8.2))
       vue: 3.5.13(typescript@5.8.2)
     transitivePeerDependencies:
       - echarts
       - typescript
 
-  '@pureadmin/table@3.2.1(element-plus@2.9.6(vue@3.5.13(typescript@5.8.2)))(typescript@5.8.2)':
+  '@pureadmin/table@3.2.1(element-plus@2.9.7(vue@3.5.13(typescript@5.8.2)))(typescript@5.8.2)':
     dependencies:
-      element-plus: 2.9.6(vue@3.5.13(typescript@5.8.2))
+      element-plus: 2.9.7(vue@3.5.13(typescript@5.8.2))
       vue: 3.5.13(typescript@5.8.2)
     transitivePeerDependencies:
       - typescript
@@ -5784,9 +5784,9 @@ snapshots:
 
   '@types/lodash-es@4.17.12':
     dependencies:
-      '@types/lodash': 4.17.10
+      '@types/lodash': 4.17.16
 
-  '@types/lodash@4.17.10': {}
+  '@types/lodash@4.17.16': {}
 
   '@types/mdast@4.0.4':
     dependencies:
@@ -6693,13 +6693,13 @@ snapshots:
 
   electron-to-chromium@1.5.37: {}
 
-  element-plus@2.9.6(vue@3.5.13(typescript@5.8.2)):
+  element-plus@2.9.7(vue@3.5.13(typescript@5.8.2)):
     dependencies:
       '@ctrl/tinycolor': 3.6.1
       '@element-plus/icons-vue': 2.3.1(vue@3.5.13(typescript@5.8.2))
-      '@floating-ui/dom': 1.6.11
+      '@floating-ui/dom': 1.6.13
       '@popperjs/core': '@sxzz/popperjs-es@2.11.7'
-      '@types/lodash': 4.17.10
+      '@types/lodash': 4.17.16
       '@types/lodash-es': 4.17.12
       '@vueuse/core': 9.13.0(vue@3.5.13(typescript@5.8.2))
       async-validator: 4.2.5
@@ -8377,10 +8377,10 @@ snapshots:
 
   pluralize@8.0.0: {}
 
-  plus-pro-components@0.1.21(element-plus@2.9.6(vue@3.5.13(typescript@5.8.2)))(vue@3.5.13(typescript@5.8.2)):
+  plus-pro-components@0.1.21(element-plus@2.9.7(vue@3.5.13(typescript@5.8.2)))(vue@3.5.13(typescript@5.8.2)):
     dependencies:
       '@element-plus/icons-vue': 2.3.1(vue@3.5.13(typescript@5.8.2))
-      element-plus: 2.9.6(vue@3.5.13(typescript@5.8.2))
+      element-plus: 2.9.7(vue@3.5.13(typescript@5.8.2))
       lodash-es: 4.17.21
       sortablejs: 1.15.6
       vue: 3.5.13(typescript@5.8.2)
