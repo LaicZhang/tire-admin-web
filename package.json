@@ -127,7 +127,7 @@
     "typescript": "^5.8.2",
     "unplugin-auto-import": "^19.1.1",
     "unplugin-vue-components": "^28.4.1",
-    "vite": "^6.2.2",
+    "vite": "^6.2.3",
     "vite-plugin-cdn-import": "^1.0.1",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-fake-server": "^2.2.0",
