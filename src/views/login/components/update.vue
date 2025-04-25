@@ -7,8 +7,8 @@ import type { FormInstance } from "element-plus";
 import { useCaptchaCode } from "../utils/captchaCode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Lock from "@iconify-icons/ri/lock-fill";
-import Iphone from "@iconify-icons/ep/iphone";
+import Lock from "~icons/ri/lock-fill";
+import Iphone from "~icons/ep/iphone";
 
 const loading = ref(false);
 const ruleForm = reactive({

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { optionsItem } from "../types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Star from "@iconify-icons/ep/star";
-import Close from "@iconify-icons/ep/close";
+import Star from "~icons/ep/star";
+import Close from "~icons/ep/close";
 
 interface Props {
   item: optionsItem;

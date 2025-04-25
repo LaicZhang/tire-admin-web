@@ -7,9 +7,9 @@ import type { FormInstance } from "element-plus";
 import { useCaptchaCode } from "../utils/captchaCode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Lock from "@iconify-icons/ri/lock-fill";
-import Iphone from "@iconify-icons/ep/iphone";
-import User from "@iconify-icons/ri/user-3-fill";
+import Lock from "~icons/ri/lock-fill";
+import Iphone from "~icons/ep/iphone";
+import User from "~icons/ri/user-3-fill";
 
 const checked = ref(false);
 const loading = ref(false);

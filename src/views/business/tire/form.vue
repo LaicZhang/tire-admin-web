@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
-import Add from "@iconify-icons/ep/plus";
+import Add from "~icons/ep/plus";
 import {
   formatToken,
   getFileMd5,

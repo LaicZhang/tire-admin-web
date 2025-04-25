@@ -121,7 +121,7 @@ import { computed, onMounted, ref } from "vue";
 //   User
 // } from "@element-plus/icons-vue";
 import { getUserInfoApi } from "@/api";
-// import User from "@iconify-icons/ri/user-3-fill";
+// import User from "~icons/ri/user-3-fill";
 import { message } from "@/utils/message";
 import type { ComponentSize } from "element-plus";
 import { userInfoTemplate } from "./info";

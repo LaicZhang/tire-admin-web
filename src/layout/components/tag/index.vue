@@ -15,11 +15,11 @@ import {
   useResizeObserver
 } from "@pureadmin/utils";
 
-import ExitFullscreen from "@iconify-icons/ri/fullscreen-exit-fill";
-import Fullscreen from "@iconify-icons/ri/fullscreen-fill";
-import ArrowDown from "@iconify-icons/ri/arrow-down-s-line";
-import ArrowRightSLine from "@iconify-icons/ri/arrow-right-s-line";
-import ArrowLeftSLine from "@iconify-icons/ri/arrow-left-s-line";
+import ExitFullscreen from "~icons/ri/fullscreen-exit-fill";
+import Fullscreen from "~icons/ri/fullscreen-fill";
+import ArrowDown from "~icons/ri/arrow-down-s-line";
+import ArrowRightSLine from "~icons/ri/arrow-right-s-line";
+import ArrowLeftSLine from "~icons/ri/arrow-left-s-line";
 
 const {
   Close,
@@ -431,11 +431,7 @@ function openMenu(tag, e) {
     // 右键菜单不匹配当前路由，隐藏刷新
     tagsViews[0].show = false;
     showMenuModel(tag.path, tag.query);
-  } else if (
-    // eslint-disable-next-line no-dupe-else-if
-    multiTags.value.length === 2 &&
-    route.path !== tag.path
-  ) {
+  } else if (multiTags.value.length === 2 && route.path !== tag.path) {
     showMenus(true);
     // 只有两个标签时不显示关闭其他标签页
     tagsViews[4].show = false;
