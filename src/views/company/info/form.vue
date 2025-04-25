@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<FormProps>(), {
   })
 });
 /** 自定义表单规则校验 */
-const formRules = reactive({
+const formRules: FormRules = reactive({
   name: [{ required: true, message: "名称为必填项", trigger: "blur" }]
 });
 

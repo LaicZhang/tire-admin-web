@@ -17,9 +17,8 @@ const getSystemUpdateLog = async () => {
     const { code, data, msg } = res;
     if (code === 200) {
       latestNewsData.value = data;
-    } else {
-      message(msg, { type: "error" });
     }
+    message(msg, { type: "error" });
   });
 };
 

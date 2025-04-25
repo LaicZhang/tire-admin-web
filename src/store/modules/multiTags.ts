@@ -1,12 +1,20 @@
 import { defineStore } from "pinia";
-import { store } from "@/store";
-import { routerArrays } from "@/layout/types";
-import { responsiveStorageNameSpace } from "@/config";
-import type { multiType, positionType } from "./types";
-import { isEqual, isBoolean, isUrl, storageLocal } from "@pureadmin/utils";
+import {
+  type multiType,
+  type positionType,
+  store,
+  isUrl,
+  isEqual,
+  isNumber,
+  isBoolean,
+  getConfig,
+  routerArrays,
+  storageLocal,
+  responsiveStorageNameSpace
+} from "../utils";
+import { usePermissionStoreHook } from "./permission";
 
 export const useMultiTagsStore = defineStore("pure-multiTags", {
-  // id: "pure-multiTags",
   state: () => ({
     // 存储标签页信息（路由信息）
     multiTags: storageLocal().getItem<StorageConfigs>(
@@ -15,7 +23,12 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
       ? storageLocal().getItem<StorageConfigs>(
           `${responsiveStorageNameSpace()}tags`
         )
-      : [...routerArrays],
+      : ([
+          ...routerArrays,
+          ...usePermissionStoreHook().flatteningRoutes.filter(
+            v => v?.meta?.fixedTag
+          )
+        ] as any),
     multiTagsCache: storageLocal().getItem<StorageConfigs>(
       `${responsiveStorageNameSpace()}configure`
     )?.multiTagsCache
@@ -100,6 +113,14 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
             }
             this.multiTags.push(value);
             this.tagsCache(this.multiTags);
+            if (
+              getConfig()?.MaxTagsLevel &&
+              isNumber(getConfig().MaxTagsLevel)
+            ) {
+              if (this.multiTags.length > getConfig().MaxTagsLevel) {
+                this.multiTags.splice(1, 1);
+              }
+            }
           }
           break;
         case "splice":

@@ -6,11 +6,11 @@ export const userInfoTemplate = {
     id: undefined,
     userId: "",
     avatarId: "",
-    nickname: "",
+    nickname: undefined,
     isRealName: false,
     birthday: "",
     gender: 1,
     isCN: true,
-    updateAt: ""
+    updateAt: undefined
   }
 };

@@ -49,10 +49,9 @@ export const getCompanyInfoApi = (type: string) => {
 };
 
 export const updateCompanyInfoApi = (data?: object) => {
-  return http.request<CommonResult>(
-    "patch",
-    baseUrlApi("/auth/company-info", { data })
-  );
+  return http.request<CommonResult>("patch", baseUrlApi("/auth/company-info"), {
+    data
+  });
 };
 
 export const getUserInfoApi = () => {

@@ -8,10 +8,11 @@ import {
   getImageWH,
   getToken,
   message,
-  StaticImageTypeEnum
+  StaticImageTypeEnum,
+  BaseImagePath,
+  BaseStaticUploadPath
 } from "@/utils";
 import { setUploadedImages } from "@/views/business/tire/store";
-import { BaseImagePath, BaseStaticUploadPath } from "@/utils";
 
 interface FormItemProps {
   id?: number;
@@ -149,7 +150,6 @@ onMounted(() => {
         <el-image
           v-for="item in newFormInline.covers"
           :key="item.id"
-          style="height: 80px"
           :src="BaseImagePath + item.hash + '.' + item.ext"
           loading="lazy"
           :preview-src-list="
@@ -159,23 +159,24 @@ onMounted(() => {
           "
         />
       </div>
-      <el-upload
-        v-if="newFormInline.covers.length < 4"
-        v-model="newFormInline.covers"
-        :before-upload="onBeforeUpload"
-        :on-success="
-          (response, file, fileList) => {
-            return handleSuccess(response, file, fileList);
-          }
-        "
-        :data="uploadData"
-        class="cover-uploader"
-        drag
-        :action="BaseStaticUploadPath"
-        :headers="{ Authorization }"
-      >
-        <IconifyIconOffline :icon="Add" class="m-auto mt-4" />
-      </el-upload>
+      <div v-else>
+        <el-upload
+          v-model="newFormInline.covers"
+          :before-upload="onBeforeUpload"
+          :on-success="
+            (response, file, fileList) => {
+              return handleSuccess(response, file, fileList);
+            }
+          "
+          :data="uploadData"
+          class="cover-uploader"
+          drag
+          :action="BaseStaticUploadPath"
+          :headers="{ Authorization }"
+        >
+          <IconifyIconOffline :icon="Add" class="m-auto mt-4" />
+        </el-upload>
+      </div>
     </el-form-item>
 
     <el-form-item label="单位" prop="unit">

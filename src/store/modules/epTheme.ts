@@ -1,10 +1,12 @@
-import { store } from "@/store";
 import { defineStore } from "pinia";
-import { storageLocal } from "@pureadmin/utils";
-import { getConfig, responsiveStorageNameSpace } from "@/config";
+import {
+  store,
+  getConfig,
+  storageLocal,
+  responsiveStorageNameSpace
+} from "../utils";
 
 export const useEpThemeStore = defineStore("pure-epTheme", {
-  // id: "pure-epTheme",
   state: () => ({
     epThemeColor:
       storageLocal().getItem<StorageConfigs>(
@@ -21,8 +23,11 @@ export const useEpThemeStore = defineStore("pure-epTheme", {
     },
     /** 用于mix导航模式下hamburger-svg的fill属性 */
     fill(state) {
-      if (state.epTheme === "light") return "#409eff";
-      else return "#fff";
+      if (state.epTheme === "light") {
+        return "#409eff";
+      } else {
+        return "#fff";
+      }
     }
   },
   actions: {

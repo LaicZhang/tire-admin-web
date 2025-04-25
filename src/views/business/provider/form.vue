@@ -56,11 +56,11 @@ defineExpose({ getRef });
     :rules="formRules"
     label-width="82px"
   >
-    <el-form-item label="客户名称" prop="name">
+    <el-form-item label="供应商名称" prop="name">
       <el-input
         v-model="newFormInline.name"
         clearable
-        placeholder="请输入客户名称"
+        placeholder="请输入供应商名称"
       />
     </el-form-item>
 

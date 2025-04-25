@@ -8,8 +8,8 @@ import {
 } from "./index";
 import { ref, computed } from "vue";
 import { isFunction } from "@pureadmin/utils";
-import Fullscreen from "@iconify-icons/ri/fullscreen-fill";
-import ExitFullscreen from "@iconify-icons/ri/fullscreen-exit-fill";
+import Fullscreen from "~icons/ri/fullscreen-fill";
+import ExitFullscreen from "~icons/ri/fullscreen-exit-fill";
 
 const fullscreen = ref(false);
 
@@ -57,7 +57,7 @@ const fullscreenClass = computed(() => {
     "el-dialog__close",
     "-translate-x-2",
     "cursor-pointer",
-    "hover:!text-[red]"
+    "hover:text-[red]!"
   ];
 });
 

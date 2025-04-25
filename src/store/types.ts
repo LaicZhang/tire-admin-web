@@ -20,7 +20,6 @@ export type appType = {
   layout: string;
   device: string;
   viewportSize: { width: number; height: number };
-  sortSwap: boolean;
 };
 
 export type multiType = {
@@ -42,8 +41,7 @@ export type userType = {
   username?: string;
   nickname?: string;
   roles?: Array<string>;
-  verifyCode?: string;
-  currentPage?: number;
+  permissions?: Array<string>;
   isRemembered?: boolean;
   loginDay?: number;
 };
