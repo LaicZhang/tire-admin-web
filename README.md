@@ -1,4 +1,3 @@
-
 ## Introduction
 
 This project is an inventory management application for the tire trading industry. It was developed using the Vue family (Vue 3, Vite, Pinia, VueUse), a self-encapsulated UI component library based on Element-plus, the Echarts 5 data visualization library, the Axios network request library, and TypeScript 5. The project's goal is to provide a user-friendly interface for managing product inventory and sales, as well as a login function. Features to be developed include: optimizing data visualization, Redis caching, log management, file management, push settings management, and deleting users and related data.
@@ -51,7 +50,7 @@ yarn
 
 ## TODO
 
-- [ ] Reduce memory usage
+- [x] Reduce memory usage
 - [x] Upgrade eslint->9.x
 - [ ] Optimize deployment plan
 - [ ] Back up the database regularly

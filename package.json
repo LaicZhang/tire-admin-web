@@ -137,17 +137,23 @@
     "vue-tsc": "^2.2.10"
   },
   "engines": {
-    "node": "^20.9.0 || >=22.1.0",
-    "pnpm": ">=10.0.0"
+    "node": "^20.9.0 || >=22.0.0",
+    "pnpm": ">=10"
   },
   "pnpm": {
     "allowedDeprecatedVersions": {
+      "are-we-there-yet": "*",
       "sourcemap-codec": "*",
       "lodash.isequal": "*",
       "domexception": "*",
       "w3c-hr-time": "*",
+      "inflight": "*",
+      "npmlog": "*",
+      "rimraf": "*",
       "stable": "*",
-      "abab": "*"
+      "gauge": "*",
+      "abab": "*",
+      "glob": "*"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
