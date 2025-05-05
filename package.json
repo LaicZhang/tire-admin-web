@@ -101,7 +101,7 @@
     "cssnano": "^7.0.6",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-prettier": "^5.2.6",
+    "eslint-plugin-prettier": "^5.4.0",
     "eslint-plugin-vue": "^10.1.0",
     "gradient-string": "^3.0.0",
     "husky": "^9.1.7",
