@@ -99,7 +99,7 @@
     "code-inspector-plugin": "^0.20.10",
     "cloc": "2.11.0",
     "cssnano": "^7.0.6",
-    "eslint": "^9.25.1",
+    "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-vue": "^10.1.0",
