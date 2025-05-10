@@ -42,6 +42,8 @@ export type userType = {
   nickname?: string;
   roles?: Array<string>;
   permissions?: Array<string>;
-  isRemembered?: boolean;
+  isRemember?: boolean;
   loginDay?: number;
+  currentPage?: number;
+  captchaCode?: string;
 };

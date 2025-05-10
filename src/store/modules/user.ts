@@ -30,7 +30,9 @@ export const useUserStore = defineStore("pure-user", {
     permissions:
       storageLocal().getItem<DataInfo<number>>(userKey)?.permissions ?? [],
     // 是否勾选了登录页的免登录
-    isRemembered: false,
+    isRemember: true,
+    captchaCode: "",
+    currentPage: 0,
     // 登录页的免登录存储几天，默认7天
     loginDay: 7
   }),
@@ -56,8 +58,14 @@ export const useUserStore = defineStore("pure-user", {
       this.permissions = permissions;
     },
     /** 存储是否勾选了登录页的免登录 */
-    SET_ISREMEMBERED(bool: boolean) {
-      this.isRemembered = bool;
+    SET_IS_REMEMBERED(bool: boolean) {
+      this.isRemember = bool;
+    },
+    SET_CAPTCHA_CODE(value: string) {
+      this.captchaCode = value;
+    },
+    SET_CURRENT_PAGE(value: number) {
+      this.currentPage = value;
     },
     /** 设置登录页的免登录存储几天 */
     SET_LOGINDAY(value: number) {

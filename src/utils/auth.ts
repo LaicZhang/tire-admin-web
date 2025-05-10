@@ -11,6 +11,9 @@ export interface DataInfo<T> {
   refreshToken: string;
   /** 用户名 */
   username?: string;
+  avatar?: string;
+  nickname?: string;
+  permissions?: Array<string>;
   /** 当前登陆用户的角色 */
   roles?: Array<string>;
 }

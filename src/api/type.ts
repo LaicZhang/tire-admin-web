@@ -5,7 +5,8 @@ export type CommonResult = {
 };
 
 export type UserResult = {
-  success: boolean;
+  code: number;
+  success?: boolean;
   msg: string;
   data: {
     /** 头像 */
