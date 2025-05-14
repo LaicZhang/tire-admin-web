@@ -83,7 +83,7 @@
     "@commitlint/config-conventional": "^19.8.1",
     "@commitlint/types": "^19.8.1",
     "@eslint/js": "^9.26.0",
-    "@faker-js/faker": "^9.7.0",
+    "@faker-js/faker": "^9.8.0",
     "@iconify/json": "^2.2.337",
     "@iconify/vue": "5.0.0",
     "@tailwindcss/vite": "^4.1.6",
