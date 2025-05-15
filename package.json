@@ -120,7 +120,7 @@
     "stylelint-config-standard-scss": "^15.0.0",
     "stylelint-prettier": "^5.0.3",
     "svgo": "^3.3.2",
-    "tailwindcss": "^4.1.6",
+    "tailwindcss": "^4.1.7",
     "typescript": "^5.8.3",
     "unplugin-auto-import": "^19.2.0",
     "unplugin-vue-components": "^28.5.0",
