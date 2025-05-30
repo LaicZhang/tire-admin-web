@@ -15,8 +15,8 @@ importers:
         specifier: ^3.2.1
         version: 3.2.1(element-plus@2.9.11(vue@3.5.16(typescript@5.8.3)))(typescript@5.8.3)
       '@pureadmin/utils':
-        specifier: ^2.6.0
-        version: 2.6.0(echarts@5.6.0)(vue@3.5.16(typescript@5.8.3))
+        specifier: ^2.6.1
+        version: 2.6.1(echarts@5.6.0)(vue@3.5.16(typescript@5.8.3))
       '@vueuse/core':
         specifier: ^13.3.0
         version: 13.3.0(vue@3.5.16(typescript@5.8.3))
@@ -1219,8 +1219,8 @@ packages:
     peerDependencies:
       element-plus: ^2.0.0
 
-  '@pureadmin/utils@2.6.0':
-    resolution: {integrity: sha512-xPncBQ4DZUstKrljsHxr3yuYacEZmvEilSfrZ6vpWNgJtPnViJ24Lf7gl7c1Y1RKYm/kXxjrhI7x69S2oN1Pvg==}
+  '@pureadmin/utils@2.6.1':
+    resolution: {integrity: sha512-ODGPnhf1UmiZ4A95lu88n2VBAw4kEgUBQMPLfx6+JAIp1CHZnV98UyEX6E7twQ35AyjOO9m12i34//S6HN/D1A==}
     peerDependencies:
       echarts: '*'
       vue: '*'
@@ -1744,8 +1744,8 @@ packages:
   '@vitest/pretty-format@3.1.1':
     resolution: {integrity: sha512-dg0CIzNx+hMMYfNmSqJlLSXEmnNhMswcn3sXO7Tpldr0LiGmg3eXdLLhwkv2ZqgHb/d5xg5F7ezNFRA1fA13yA==}
 
-  '@vitest/pretty-format@3.1.2':
-    resolution: {integrity: sha512-R0xAiHuWeDjTSB3kQ3OQpT8Rx3yhdOAIm/JM4axXxnG7Q/fS8XUwggv/A4xzbQA+drYRjzkMnpYnOGAc4oeq8w==}
+  '@vitest/pretty-format@3.1.4':
+    resolution: {integrity: sha512-cqv9H9GvAEoTaoq+cYqUTCGscUjKqlJZC7PRwY5FMySVj5J+xOm1KQcCiYHJOEzOKRUhLH4R2pTwvFlWCEScsg==}
 
   '@vitest/runner@3.1.1':
     resolution: {integrity: sha512-X/d46qzJuEDO8ueyjtKfxffiXraPRfmYasoC4i5+mlLEJ10UvPb0XH5M9C3gWuxd7BAQhpK42cJgJtq53YnWVA==}
@@ -6189,7 +6189,7 @@ snapshots:
   '@pureadmin/descriptions@1.2.1(echarts@5.6.0)(element-plus@2.9.11(vue@3.5.16(typescript@5.8.3)))(typescript@5.8.3)':
     dependencies:
       '@element-plus/icons-vue': 2.3.1(vue@3.5.16(typescript@5.8.3))
-      '@pureadmin/utils': 2.6.0(echarts@5.6.0)(vue@3.5.16(typescript@5.8.3))
+      '@pureadmin/utils': 2.6.1(echarts@5.6.0)(vue@3.5.16(typescript@5.8.3))
       element-plus: 2.9.11(vue@3.5.16(typescript@5.8.3))
       vue: 3.5.16(typescript@5.8.3)
     transitivePeerDependencies:
@@ -6203,7 +6203,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@pureadmin/utils@2.6.0(echarts@5.6.0)(vue@3.5.16(typescript@5.8.3))':
+  '@pureadmin/utils@2.6.1(echarts@5.6.0)(vue@3.5.16(typescript@5.8.3))':
     optionalDependencies:
       echarts: 5.6.0
       vue: 3.5.16(typescript@5.8.3)
@@ -6698,7 +6698,7 @@ snapshots:
       tinyrainbow: 2.0.0
     optional: true
 
-  '@vitest/pretty-format@3.1.2':
+  '@vitest/pretty-format@3.1.4':
     dependencies:
       tinyrainbow: 2.0.0
     optional: true
@@ -10380,7 +10380,7 @@ snapshots:
     dependencies:
       '@vitest/expect': 3.1.1
       '@vitest/mocker': 3.1.1(vite@6.3.5(@types/node@22.15.24)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.0)(yaml@2.8.0))
-      '@vitest/pretty-format': 3.1.2
+      '@vitest/pretty-format': 3.1.4
       '@vitest/runner': 3.1.1
       '@vitest/snapshot': 3.1.1
       '@vitest/spy': 3.1.1
