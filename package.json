@@ -84,7 +84,7 @@
     "@commitlint/types": "^19.8.1",
     "@eslint/js": "^9.27.0",
     "@faker-js/faker": "^9.8.0",
-    "@iconify/json": "^2.2.342",
+    "@iconify/json": "^2.2.343",
     "@iconify/vue": "5.0.0",
     "@tailwindcss/vite": "^4.1.8",
     "@types/gradient-string": "^1.1.6",
