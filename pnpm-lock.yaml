@@ -118,8 +118,8 @@ importers:
         specifier: ^9.8.0
         version: 9.8.0
       '@iconify/json':
-        specifier: ^2.2.345
-        version: 2.2.345
+        specifier: ^2.2.346
+        version: 2.2.346
       '@iconify/vue':
         specifier: 5.0.0
         version: 5.0.0(vue@3.5.16(typescript@5.8.3))
@@ -1046,8 +1046,8 @@ packages:
     resolution: {integrity: sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==}
     engines: {node: '>=18.18'}
 
-  '@iconify/json@2.2.345':
-    resolution: {integrity: sha512-cWcTkpSw42OcltXXlLRMp4bnoFEMvEXEIZDPazqqpT7nr4dPN/ztEqOk6T3z0fXrN2E3OEgW0GnHlQqZz4qDgw==}
+  '@iconify/json@2.2.346':
+    resolution: {integrity: sha512-QcJNRnHf9UMuGdtbIISsGbUf/AArTpBr4ItaoBYryRjPiq7DHH7kcvbMdHpYcGvAMa6vidaL7g31iTLhOBgnyA==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -1691,8 +1691,8 @@ packages:
   '@vitest/pretty-format@3.1.1':
     resolution: {integrity: sha512-dg0CIzNx+hMMYfNmSqJlLSXEmnNhMswcn3sXO7Tpldr0LiGmg3eXdLLhwkv2ZqgHb/d5xg5F7ezNFRA1fA13yA==}
 
-  '@vitest/pretty-format@3.2.1':
-    resolution: {integrity: sha512-xBh1X2GPlOGBupp6E1RcUQWIxw0w/hRLd3XyBS6H+dMdKTAqHDNsIR2AnJwPA3yYe9DFy3VUKTe3VRTrAiQ01g==}
+  '@vitest/pretty-format@3.2.2':
+    resolution: {integrity: sha512-FY4o4U1UDhO9KMd2Wee5vumwcaHw7Vg4V7yR4Oq6uK34nhEJOmdRYrk3ClburPRUA09lXD/oXWZ8y/Sdma0aUQ==}
 
   '@vitest/runner@3.1.1':
     resolution: {integrity: sha512-X/d46qzJuEDO8ueyjtKfxffiXraPRfmYasoC4i5+mlLEJ10UvPb0XH5M9C3gWuxd7BAQhpK42cJgJtq53YnWVA==}
@@ -5956,7 +5956,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.2': {}
 
-  '@iconify/json@2.2.345':
+  '@iconify/json@2.2.346':
     dependencies:
       '@iconify/types': 2.0.0
       pathe: 1.1.2
@@ -6582,7 +6582,7 @@ snapshots:
       tinyrainbow: 2.0.0
     optional: true
 
-  '@vitest/pretty-format@3.2.1':
+  '@vitest/pretty-format@3.2.2':
     dependencies:
       tinyrainbow: 2.0.0
     optional: true
@@ -10289,7 +10289,7 @@ snapshots:
     dependencies:
       '@vitest/expect': 3.1.1
       '@vitest/mocker': 3.1.1(vite@6.3.5(@types/node@22.15.29)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(yaml@2.8.0))
-      '@vitest/pretty-format': 3.2.1
+      '@vitest/pretty-format': 3.2.2
       '@vitest/runner': 3.1.1
       '@vitest/snapshot': 3.1.1
       '@vitest/spy': 3.1.1
