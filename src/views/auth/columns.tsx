@@ -27,7 +27,7 @@ export function useColumns() {
       prop: "method"
     },
     {
-      label: "OS",
+      label: "操作系统",
       prop: "record.os"
     },
     {
@@ -47,8 +47,7 @@ export function useColumns() {
     pageSizes: [20, 40, 60],
     total: 0,
     align: "right",
-    background: true,
-    small: false
+    background: true
   });
 
   /** 加载动画配置 */

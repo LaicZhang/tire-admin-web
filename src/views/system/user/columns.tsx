@@ -45,8 +45,7 @@ export function useColumns() {
     pageSizes: [10],
     total: 0,
     align: "right",
-    background: true,
-    small: false
+    background: true
   });
 
   /** 加载动画配置 */
