@@ -86,7 +86,7 @@
     "@faker-js/faker": "^9.8.0",
     "@iconify/json": "^2.2.347",
     "@iconify/vue": "5.0.0",
-    "@tailwindcss/vite": "^4.1.8",
+    "@tailwindcss/vite": "^4.1.9",
     "@types/gradient-string": "^1.1.6",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^24.0.0",
