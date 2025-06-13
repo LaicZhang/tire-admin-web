@@ -82,7 +82,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@commitlint/types": "^19.8.1",
-    "@eslint/js": "^9.28.0",
+    "@eslint/js": "^9.29.0",
     "@faker-js/faker": "^9.8.0",
     "@iconify/json": "^2.2.347",
     "@iconify/vue": "5.0.0",
