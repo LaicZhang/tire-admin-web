@@ -97,7 +97,7 @@
     "@vitejs/plugin-vue-jsx": "^5.0.0",
     "boxen": "^8.0.1",
     "cloc": "^2.11.0",
-    "code-inspector-plugin": "^0.20.12",
+    "code-inspector-plugin": "^0.20.13",
     "cssnano": "^7.0.7",
     "eslint": "^9.29.0",
     "eslint-config-prettier": "^10.1.5",
