@@ -157,8 +157,8 @@ importers:
         specifier: ^2.11.0
         version: 2.11.0
       code-inspector-plugin:
-        specifier: ^0.20.14
-        version: 0.20.14
+        specifier: ^0.20.15
+        version: 0.20.15
       cssnano:
         specifier: ^7.0.7
         version: 7.0.7(postcss@8.5.6)
@@ -2316,11 +2316,11 @@ packages:
     resolution: {integrity: sha512-+mxuCHo7ESOQadlsyMjmPZ4hGBtvQzmNGHfLdBNvXKbnRhtmOTslU4XF2cyFSaOCHaaF26ba2CGjU6lpeIFB0w==}
     hasBin: true
 
-  code-inspector-core@0.20.14:
-    resolution: {integrity: sha512-V/y+H//zArtw3ZufP0TeZeo9Z5LHCLkVXKZuy/FtpVDUNLqleZVVUDvGQGYZTLA7oPqBKbqu5P2D3C9zyqhLWg==}
+  code-inspector-core@0.20.15:
+    resolution: {integrity: sha512-2PKFKkrdacwieS/A0e8nHf6AfqOGN4OQx4HtIPh8H+GfQry1jwsLdi+uCMMoBP4w/Cujy6onVYVg55Iu5w2OYQ==}
 
-  code-inspector-plugin@0.20.14:
-    resolution: {integrity: sha512-e7GujevJbQHc2+TsfGDuvJ9ofWCN0t30TgnOZhVnHQr7605LmYc6zHLzZOMtyjE4RnPwR3yNe+IeWge/fvgi1w==}
+  code-inspector-plugin@0.20.15:
+    resolution: {integrity: sha512-JIFNpBor45i1SnyD28TqbTsB6bND57kYzGR4c3gqIhZj9bO1nxSd51ef8OOSbsBXxhMpNjbldwYoBuQExdFAVA==}
 
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
@@ -2669,8 +2669,8 @@ packages:
     resolution: {integrity: sha512-j6vWzfrGVfyXxge+O0x5sh6cvxAog0a/4Rdd2K36zCMV5eJ+/+tOAngRO8cODMNWbVRdVlmGZQL2YS3yR8bIUA==}
     engines: {node: '>= 0.4'}
 
-  esbuild-code-inspector-plugin@0.20.14:
-    resolution: {integrity: sha512-OjwiGL0MzO3inUZQjawoRzNEjsB/JqfMDdK/kWjRz0nP9mTiDZd3odyOlyUOSRduohE+2xykRaZFtodIfD9H1A==}
+  esbuild-code-inspector-plugin@0.20.15:
+    resolution: {integrity: sha512-iCTPL4plbWPX+KerG1VUMK/+iuxm/RB9DLBKGVCgB2z7viw3O00+C2HIVua9QBcb13kU33Ws61BuIP7nfz74PQ==}
 
   esbuild@0.24.2:
     resolution: {integrity: sha512-+9egpBW8I3CD5XPe0n6BfT5fxLzxrlDzqydF3aviG+9ni1lDC/OvMHcxqEFV0+LANZG5R1bFMWfUrjVsdwxJvA==}
@@ -5084,8 +5084,8 @@ packages:
     resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
     hasBin: true
 
-  vite-code-inspector-plugin@0.20.14:
-    resolution: {integrity: sha512-JbUmYtm08tKzBa016qraTgnrMEMzynp5k8KNKHyVFy48SkW44yon9lCwKpdnAKp6ccmC2p8JQkIKzKkQ+K/GzQ==}
+  vite-code-inspector-plugin@0.20.15:
+    resolution: {integrity: sha512-Zd6dFN5/uqz0zkys6F+pNG//ToWw5nBGerPfwsD4KWMgEauXbPsQl78k20Fur/4dsrmUDXtM2uGG6FSdAsVT9A==}
 
   vite-node@3.1.1:
     resolution: {integrity: sha512-V+IxPAE2FvXpTCHXyNem0M+gWm6J7eRyWPR6vYoG/Gl+IscNOjXzztUhimQgTxaAoUoj40Qqimaa0NLIOOAH4w==}
@@ -5281,8 +5281,8 @@ packages:
       typescript:
         optional: true
 
-  webpack-code-inspector-plugin@0.20.14:
-    resolution: {integrity: sha512-qJnSyqsW7xh09iycY+A6BQ4VuZ6pJAyFzpDVgaG7VfCphUA2bk1rQq8vSSWfI+7TGY4uuqwBJCAzGtY7/WENFg==}
+  webpack-code-inspector-plugin@0.20.15:
+    resolution: {integrity: sha512-CaaIAMHOVCjWT2TEvhutZdR4SW/F0AAmRDtfafirRnhgmGH7fRHn8UB4hTI5z1AnS4FtLOt/RrW+UZkMMZc8+Q==}
 
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
@@ -7450,7 +7450,7 @@ snapshots:
 
   cloc@2.11.0: {}
 
-  code-inspector-core@0.20.14:
+  code-inspector-core@0.20.15:
     dependencies:
       '@vue/compiler-dom': 3.5.17
       chalk: 4.1.2
@@ -7460,14 +7460,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  code-inspector-plugin@0.20.14:
+  code-inspector-plugin@0.20.15:
     dependencies:
       chalk: 4.1.1
-      code-inspector-core: 0.20.14
+      code-inspector-core: 0.20.15
       dotenv: 16.6.1
-      esbuild-code-inspector-plugin: 0.20.14
-      vite-code-inspector-plugin: 0.20.14
-      webpack-code-inspector-plugin: 0.20.14
+      esbuild-code-inspector-plugin: 0.20.15
+      vite-code-inspector-plugin: 0.20.15
+      webpack-code-inspector-plugin: 0.20.15
     transitivePeerDependencies:
       - supports-color
 
@@ -7808,9 +7808,9 @@ snapshots:
       has-tostringtag: 1.0.2
       hasown: 2.0.2
 
-  esbuild-code-inspector-plugin@0.20.14:
+  esbuild-code-inspector-plugin@0.20.15:
     dependencies:
-      code-inspector-core: 0.20.14
+      code-inspector-core: 0.20.15
     transitivePeerDependencies:
       - supports-color
 
@@ -10503,9 +10503,9 @@ snapshots:
 
   uuid@11.1.0: {}
 
-  vite-code-inspector-plugin@0.20.14:
+  vite-code-inspector-plugin@0.20.15:
     dependencies:
-      code-inspector-core: 0.20.14
+      code-inspector-core: 0.20.15
     transitivePeerDependencies:
       - supports-color
 
@@ -10694,9 +10694,9 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.3
 
-  webpack-code-inspector-plugin@0.20.14:
+  webpack-code-inspector-plugin@0.20.15:
     dependencies:
-      code-inspector-core: 0.20.14
+      code-inspector-core: 0.20.15
     transitivePeerDependencies:
       - supports-color
 
