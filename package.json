@@ -49,7 +49,7 @@
     "@pureadmin/descriptions": "^1.2.1",
     "@pureadmin/table": "^3.2.1",
     "@pureadmin/utils": "^2.6.2",
-    "@vueuse/core": "^13.5.0",
+    "@vueuse/core": "^13.6.0",
     "@vueuse/motion": "^3.0.3",
     "animate.css": "^4.1.1",
     "axios": "^1.11.0",
