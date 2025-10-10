@@ -1,4 +1,6 @@
 {
+  // ========== Project ==========
+  "tailwindCSS.experimental.configFile": "src/style/tailwind.css",
   // ========== Visuals ==========
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.fontFamily": "Input Mono, monospace",
