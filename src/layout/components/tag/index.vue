@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { emitter } from "@/utils/mitt";
+import NProgress from "@/utils/progress";
 import { RouteConfigs } from "../../types";
 import { useTags } from "../../hooks/useTag";
 import { routerArrays } from "@/layout/types";
@@ -141,8 +142,9 @@ const handleScroll = (offset: number): void => {
 
 const handleWheel = (event: WheelEvent): void => {
   isScrolling.value = true;
-  const scrollIntensity = Math.abs(event.deltaX) + Math.abs(event.deltaY);
-  let offset = 0;
+  const { deltaX, deltaY } = event;
+  const scrollIntensity = Math.abs(deltaX) + Math.abs(deltaY);
+  let offset: number;
   if (event.deltaX < 0) {
     offset = scrollIntensity > 0 ? scrollIntensity : 100;
   } else {
@@ -185,7 +187,8 @@ function dynamicRouteTag(value: string): void {
             name: arrItem.name
           });
         } else {
-          if (arrItem.children && arrItem.children.length > 0) {
+          const children = arrItem.children;
+          if (children && children.length > 0) {
             concatPath(arrItem.children, value);
           }
         }
@@ -197,12 +200,14 @@ function dynamicRouteTag(value: string): void {
 
 /** 刷新路由 */
 function onFresh() {
+  NProgress.start();
   const { fullPath, query } = unref(route);
   router.replace({
     path: "/redirect" + fullPath,
     query
   });
   handleAliveRoute(route as ToRouteType, "refresh");
+  NProgress.done();
 }
 
 function deleteDynamicTag(obj: any, current: any, tag?: string) {
@@ -283,15 +288,17 @@ function onClickDrop(key, item, selectRoute?: RouteConfigs) {
 
   let selectTagRoute;
   if (selectRoute) {
+    const { path, meta, name } = selectRoute;
     selectTagRoute = {
-      path: selectRoute.path,
-      meta: selectRoute.meta,
-      name: selectRoute.name,
+      path,
+      meta,
+      name,
       query: selectRoute?.query,
       params: selectRoute?.params
     };
   } else {
-    selectTagRoute = { path: route.path, meta: route.meta };
+    const { path, meta } = route;
+    selectTagRoute = { path, meta };
   }
 
   // 当前路由信息
@@ -374,7 +381,7 @@ function showMenuModel(
   refresh = false
 ) {
   const allRoute = multiTags.value;
-  const routeLength = multiTags.value.length;
+  const routeLength = allRoute.length;
   let currentIndex = -1;
   if (isAllEmpty(query)) {
     currentIndex = allRoute.findIndex(v => v.path === currentPath);
@@ -384,9 +391,7 @@ function showMenuModel(
 
   showMenus(true);
 
-  if (refresh) {
-    tagsViews[0].show = true;
-  }
+  if (refresh) tagsViews[0].show = true;
 
   /**
    * currentIndex为1时，左侧的菜单顶级菜单，则不显示关闭左侧标签页
@@ -446,11 +451,9 @@ function openMenu(tag, e) {
   const offsetWidth = unref(containerDom).offsetWidth;
   const maxLeft = offsetWidth - menuMinWidth;
   const left = e.clientX - offsetLeft + 5;
-  if (left > maxLeft) {
-    buttonLeft.value = maxLeft;
-  } else {
-    buttonLeft.value = left;
-  }
+
+  buttonLeft.value = left > maxLeft ? maxLeft : left;
+
   useSettingStoreHook().hiddenSideBar
     ? (buttonTop.value = e.clientY)
     : (buttonTop.value = e.clientY - 40);
@@ -461,17 +464,17 @@ function openMenu(tag, e) {
 
 /** 触发tags标签切换 */
 function tagOnClick(item) {
-  const { name, path } = item;
+  const { name, path, query, params } = item;
   if (name) {
-    if (item.query) {
+    if (query) {
       router.push({
         name,
-        query: item.query
+        query
       });
-    } else if (item.params) {
+    } else if (params) {
       router.push({
         name,
-        params: item.params
+        params
       });
     } else {
       router.push({ name });

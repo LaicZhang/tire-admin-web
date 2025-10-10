@@ -63,6 +63,14 @@ export const remainingPaths = Object.keys(remainingRouter).map(v => {
   return remainingRouter[v].path;
 });
 
+/** 记录已经加载的页面路径 */
+const loadedPaths = new Set<string>();
+
+/** 重置已加载页面记录 */
+export function resetLoadedPaths() {
+  loadedPaths.clear();
+}
+
 /** 创建路由实例 */
 export const router: Router = createRouter({
   history: getHistoryMode(import.meta.env.VITE_ROUTER_HISTORY),
@@ -97,14 +105,19 @@ export function resetRouter() {
     }
   });
   usePermissionStoreHook().clearAllCachePage();
+  resetLoadedPaths();
 }
 
 /** 路由白名单 */
 const whiteList = ["/login"];
-
 const { VITE_HIDE_HOME } = import.meta.env;
 
 router.beforeEach((to: ToRouteType, _from, next) => {
+  to.meta.loaded = loadedPaths.has(to.path);
+  if (!to.meta.loaded) {
+    NProgress.start();
+  }
+
   if (to.meta?.keepAlive) {
     handleAliveRoute(to, "add");
     // 页面整体刷新和点击标签页刷新
@@ -216,7 +229,8 @@ router.beforeEach((to: ToRouteType, _from, next) => {
   }
 });
 
-router.afterEach(() => {
+router.afterEach(to => {
+  loadedPaths.add(to.path);
   NProgress.done();
 });
 
