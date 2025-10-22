@@ -14,8 +14,27 @@ import { getToken, formatToken } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
+// 优先使用环境变量，其次：开发环境走相对路径配合 Vite 代理，生产环境兜底到公网 API
+const resolveBaseURL = (): string => {
+  // Vite 注入的环境变量（仅在构建产物中可用）
+  const { VITE_SERVER_URL, DEV, PROD } = import.meta.env as unknown as {
+    VITE_SERVER_URL?: string;
+    DEV: boolean;
+    PROD: boolean;
+  };
+
+  // 开发环境：使用相对路径，通过 Vite proxy 将 /api 转发到后端
+  if (DEV) return "";
+
+  // 生产/预发：优先读取环境变量
+  if (PROD && VITE_SERVER_URL) return VITE_SERVER_URL;
+
+  // 默认兜底到公网 API（避免硬编码散落各处）
+  return "https://tire-api.laiczhang.com";
+};
+
 const defaultConfig: AxiosRequestConfig = {
-  baseURL: "https://tire-api.laiczhang.com",
+  baseURL: resolveBaseURL(),
   // 请求超时时间
   timeout: 10000,
   headers: {
