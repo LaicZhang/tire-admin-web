@@ -96,14 +96,14 @@ onMounted(() => {
       <el-form
         ref="formRef"
         :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
+        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
       >
         <el-form-item label="胎号：" prop="number">
           <el-input
             v-model="form.number"
             placeholder="请输入胎号"
             clearable
-            class="!w-[180px]"
+            class="w-[180px]!"
           />
         </el-form-item>
         <el-form-item label="备注：" prop="desc">
@@ -111,7 +111,7 @@ onMounted(() => {
             v-model="form.desc"
             placeholder="请输入备注"
             clearable
-            class="!w-[180px]"
+            class="w-[180px]!"
           />
         </el-form-item>
         <el-form-item>

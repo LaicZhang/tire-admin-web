@@ -553,7 +553,7 @@ onBeforeUnmount(() => {
           @click="tagOnClick(item)"
         >
           <span
-            class="tag-title dark:!text-text_color_primary dark:hover:!text-primary"
+            class="tag-title dark:text-text_color_primary! dark:hover:text-primary!"
           >
             {{ item.meta.title }}
           </span>

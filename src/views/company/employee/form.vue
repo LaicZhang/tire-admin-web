@@ -112,7 +112,7 @@ onMounted(async () => {
         v-model="newFormInline.status"
         placeholder="请输入员工状态"
         clearable
-        class="!w-[180px]"
+        class="w-[180px]!"
       >
         <el-option
           v-for="item in employeeStatus"

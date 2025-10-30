@@ -243,14 +243,14 @@ onMounted(async () => {
       <el-form
         ref="formRef"
         :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
+        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
       >
         <el-form-item label="操作人：" prop="operatorId">
           <el-select
             v-model="form.operatorId"
             placeholder="请选择操作人"
             clearable
-            class="!w-[180px]"
+            class="w-[180px]!"
           >
             <el-option
               v-for="item in employeeList"
@@ -268,7 +268,7 @@ onMounted(async () => {
             v-model="form.auditorId"
             placeholder="请选择审核人"
             clearable
-            class="!w-[180px]"
+            class="w-[180px]!"
           >
             <el-option
               v-for="item in managerList"
@@ -286,7 +286,7 @@ onMounted(async () => {
             v-model="form.desc"
             placeholder="请输入备注"
             clearable
-            class="!w-[180px]"
+            class="w-[180px]!"
           />
         </el-form-item>
         <el-form-item>

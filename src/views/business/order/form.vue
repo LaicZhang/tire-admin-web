@@ -150,7 +150,7 @@ onMounted(async () => {
           v-model="newFormInline.providerId"
           clearable
           placeholder="请输入供应商"
-          class="!w-[15vw]"
+          class="w-[15vw]!"
         >
           <el-option
             v-for="item in allProviderList"
@@ -172,7 +172,7 @@ onMounted(async () => {
           v-model="newFormInline.customerId"
           clearable
           placeholder="请选择客户"
-          class="!w-[15vw]"
+          class="w-[15vw]!"
         >
           <el-option
             v-for="item in allCustomerList"
@@ -189,7 +189,7 @@ onMounted(async () => {
         <el-select
           v-model="newFormInline.auditorId"
           placeholder="请选择审核人"
-          class="!w-[15vw]"
+          class="w-[15vw]!"
         >
           <el-option
             v-for="item in managerList"
@@ -307,7 +307,7 @@ onMounted(async () => {
         <el-input-number
           v-model="newFormInline.count"
           disabled
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
       </el-form-item>
 
@@ -315,18 +315,18 @@ onMounted(async () => {
         <el-input-number
           v-model="newFormInline.showTotal"
           disabled
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
       </el-form-item>
 
       <el-form-item label="实付货款" prop="total">
-        <el-input-number v-model="newFormInline.total" class="!w-[180px]" />
+        <el-input-number v-model="newFormInline.total" class="w-[180px]!" />
       </el-form-item>
 
       <el-form-item label="已付货款" prop="paidAmount">
         <el-input-number
           v-model="newFormInline.paidAmount"
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
       </el-form-item>
     </div>

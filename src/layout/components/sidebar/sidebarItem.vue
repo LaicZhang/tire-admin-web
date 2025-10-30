@@ -144,7 +144,7 @@ function resolvePath(routePath) {
             props.item?.pathList?.length === 2)
         "
         truncated
-        class="!px-4 !text-inherit"
+        class="px-4! text-inherit!"
       >
         {{ onlyOneChild.meta.title }}
       </el-text>
@@ -156,7 +156,7 @@ function resolvePath(routePath) {
               offset: [0, -10],
               theme: tooltipEffect
             }"
-            class="!text-inherit"
+            class="text-inherit!"
           >
             {{ onlyOneChild.meta.title }}
           </ReText>
@@ -196,8 +196,8 @@ function resolvePath(routePath) {
           theme: tooltipEffect
         }"
         :class="{
-          '!text-inherit': true,
-          '!px-4':
+          'text-inherit!': true,
+          'px-4!':
             layout !== 'horizontal' &&
             isCollapse &&
             !toRaw(props.item.meta.icon) &&

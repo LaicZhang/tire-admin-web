@@ -108,14 +108,14 @@ onMounted(async () => {
       <el-form
         ref="formRef"
         :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] overflow-auto"
+        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
       >
         <el-form-item label="分组名称：" prop="group">
           <el-input
             v-model="form.group"
             placeholder="请输入分组名称"
             clearable
-            class="!w-[180px]"
+            class="w-[180px]!"
           />
         </el-form-item>
         <el-form-item label="名称：" prop="name">
@@ -123,7 +123,7 @@ onMounted(async () => {
             v-model="form.name"
             placeholder="请输入名称"
             clearable
-            class="!w-[180px]"
+            class="w-[180px]!"
           />
         </el-form-item>
         <el-form-item label="备注：" prop="desc">
@@ -131,7 +131,7 @@ onMounted(async () => {
             v-model="form.desc"
             placeholder="请输入备注"
             clearable
-            class="!w-[180px]"
+            class="w-[180px]!"
           />
         </el-form-item>
         <el-form-item>
