@@ -158,6 +158,7 @@
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
+      "@tailwindcss/oxide",
       "core-js",
       "es5-ext",
       "esbuild",
