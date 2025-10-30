@@ -52,7 +52,7 @@
     "@vueuse/core": "^14.0.0",
     "@vueuse/motion": "^3.0.3",
     "animate.css": "^4.1.1",
-    "axios": "^1.12.2",
+    "axios": "^1.13.1",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.18",
     "echarts": "^6.0.0",
@@ -78,26 +78,26 @@
     "vue-types": "^6.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.0.0",
+    "@antfu/eslint-config": "^6.1.0",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@commitlint/types": "^20.0.0",
     "@eslint/js": "^9.38.0",
-    "@iconify/json": "^2.2.399",
+    "@iconify/json": "^2.2.401",
     "@iconify/vue": "5.0.0",
     "@tailwindcss/vite": "^4.1.16",
     "@types/gradient-string": "^1.1.6",
     "@types/js-cookie": "^3.0.6",
-    "@types/node": "^24.9.1",
+    "@types/node": "^24.9.2",
     "@types/nprogress": "^0.2.3",
     "@types/qs": "^6.14.0",
-    "@types/sortablejs": "^1.15.8",
+    "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitejs/plugin-vue-jsx": "^5.1.1",
     "boxen": "^8.0.1",
     "cloc": "^2.11.0",
     "code-inspector-plugin": "^1.2.10",
-    "cssnano": "^7.1.1",
+    "cssnano": "^7.1.2",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -133,7 +133,7 @@
     "vite-plugin-router-warn": "^1.0.0",
     "vite-svg-loader": "^5.1.0",
     "vue-eslint-parser": "^10.2.0",
-    "vue-tsc": "^3.1.1"
+    "vue-tsc": "^3.1.2"
   },
   "engines": {
     "node": "^20.19.0 || >=22.13.0 || >=24.0.0",
@@ -163,5 +163,5 @@
       "vue-demi"
     ]
   },
-  "packageManager": "pnpm@10.19.0"
+  "packageManager": "pnpm@10.20.0"
 }
