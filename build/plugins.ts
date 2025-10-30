@@ -53,7 +53,6 @@ export function getPluginsList(
     Icons({
       compiler: "vue3",
       scale: 1,
-      // 自动安装缺失的图标集（如 @iconify-json/ri）
       autoInstall: true
     }),
     VITE_CDN ? cdn : null,
