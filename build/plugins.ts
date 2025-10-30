@@ -52,7 +52,9 @@ export function getPluginsList(
     // 自动按需加载图标
     Icons({
       compiler: "vue3",
-      scale: 1
+      scale: 1,
+      // 自动安装缺失的图标集（如 @iconify-json/ri）
+      autoInstall: true
     }),
     VITE_CDN ? cdn : null,
     configCompressPlugin(VITE_COMPRESSION),
