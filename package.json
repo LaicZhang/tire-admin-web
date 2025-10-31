@@ -113,7 +113,7 @@
     "postcss-load-config": "^6.0.1",
     "postcss-scss": "^4.0.9",
     "prettier": "^3.6.2",
-    "rimraf": "^6.0.1",
+    "rimraf": "^6.1.0",
     "rollup-plugin-visualizer": "^6.0.5",
     "sass": "^1.93.2",
     "stylelint": "^16.25.0",
