@@ -86,7 +86,7 @@
     "@eslint/js": "^9.38.0",
     "@iconify-json/ep": "^1.2.3",
     "@iconify-json/ri": "^1.2.6",
-    "@iconify/json": "^2.2.401",
+    "@iconify/json": "^2.2.402",
     "@iconify/vue": "5.0.0",
     "@tailwindcss/vite": "^4.1.16",
     "@types/gradient-string": "^1.1.6",
