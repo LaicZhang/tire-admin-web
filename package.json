@@ -55,7 +55,7 @@
     "animate.css": "^4.1.1",
     "axios": "^1.13.1",
     "crypto-js": "^4.2.0",
-    "dayjs": "^1.11.18",
+    "dayjs": "^1.11.19",
     "echarts": "^6.0.0",
     "element-plus": "^2.11.5",
     "idb-keyval": "^6.2.2",
