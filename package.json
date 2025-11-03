@@ -125,7 +125,7 @@
     "svgo": "^4.0.0",
     "tailwindcss": "^4.1.16",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2",
+    "typescript-eslint": "^8.46.3",
     "unplugin-auto-import": "^20.2.0",
     "unplugin-icons": "^22.5.0",
     "unplugin-vue-components": "^30.0.0",
