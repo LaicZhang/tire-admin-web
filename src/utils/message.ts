@@ -4,6 +4,13 @@ import { type MessageHandler, ElMessage } from "element-plus";
 
 type messageStyle = "el" | "antd";
 type messageTypes = "info" | "success" | "warning" | "error";
+type messagePlacement =
+  | "top"
+  | "top-left"
+  | "top-right"
+  | "bottom"
+  | "bottom-left"
+  | "bottom-right";
 
 interface MessageParams {
   /** 消息类型，可选 `info` 、`success` 、`warning` 、`error` ，默认 `info` */
@@ -19,9 +26,11 @@ interface MessageParams {
   /** 是否显示关闭按钮，默认值 `false` */
   showClose?: boolean;
   /** 文字是否居中，默认值 `false` */
-  center?: boolean;
-  /** `Message` 距离窗口顶部的偏移量，默认 `20` */
+  // center?: boolean;
+  /** `Message` 消息距离窗口边缘的偏移量，默认 `16` */
   offset?: number;
+  /** `Message` 消息放置位置，默认 `top` */
+  placement?: messagePlacement;
   /** 设置组件的根元素，默认 `document.body` */
   appendTo?: string | HTMLElement;
   /** 合并内容相同的消息，不支持 `VNode` 类型的消息，默认值 `false` */
@@ -52,8 +61,9 @@ const message = (
       customClass = "antd",
       duration = 2000,
       showClose = false,
-      center = false,
-      offset = 20,
+      // center = false,
+      offset = 16,
+      placement = "top",
       appendTo = document.body,
       grouping = false,
       onClose
@@ -66,7 +76,8 @@ const message = (
       dangerouslyUseHTMLString,
       duration,
       showClose,
-      center,
+      // center,
+      placement,
       offset,
       appendTo,
       grouping,
