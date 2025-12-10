@@ -93,20 +93,18 @@ export const getOrderTypeList = (userRoles: string[]) => {
         label: "销售订单"
       });
     } else if (role === "finance" || role === "financeManager") {
-      orderTypeList.add([
-        {
-          value: ORDER_TYPE.purchase,
-          label: "采购订单"
-        },
-        {
-          value: ORDER_TYPE.sale,
-          label: "销售订单"
-        },
-        {
-          value: ORDER_TYPE.claim,
-          label: "理赔订单"
-        }
-      ]);
+      orderTypeList.add({
+        value: ORDER_TYPE.purchase,
+        label: "采购订单"
+      });
+      orderTypeList.add({
+        value: ORDER_TYPE.sale,
+        label: "销售订单"
+      });
+      orderTypeList.add({
+        value: ORDER_TYPE.claim,
+        label: "理赔订单"
+      });
     }
   });
   return [...orderTypeList];

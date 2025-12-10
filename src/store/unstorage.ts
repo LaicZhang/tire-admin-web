@@ -15,15 +15,15 @@ export class IndexedDbStorage {
   }
 
   getItems(key) {
-    this.indexedDbStorage.getItems(key);
+    return this.indexedDbStorage.getItems(key);
   }
 
   setItem(key, value) {
-    this.indexedDbStorage.setItems(key, value);
+    return this.indexedDbStorage.setItem(key, value);
   }
 
   getItem(key) {
-    this.indexedDbStorage.getItems(key);
+    return this.indexedDbStorage.getItem(key);
   }
 }
 
@@ -40,14 +40,14 @@ export class LStorage {
   }
 
   getItems(key) {
-    this.lStorage.getItems(key);
+    return this.lStorage.getItems(key);
   }
 
   setItem(key, value) {
-    this.lStorage.setItems(key, value);
+    return this.lStorage.setItem(key, value);
   }
 
   getItem(key) {
-    this.lStorage.getItems(key);
+    return this.lStorage.getItem(key);
   }
 }
