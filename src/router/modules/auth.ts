@@ -236,7 +236,7 @@ export default [
         name: "feedback",
         path: "/system/feedback",
         redirect: null,
-
+        component: () => import("@/views/system/feedback/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],

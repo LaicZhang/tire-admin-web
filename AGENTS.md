@@ -267,7 +267,7 @@
 - Docker：
   - 构建：`docker build -t tire-admin-web .`
   - 运行：`docker run -p 8080:80 tire-admin-web`
-  - 镜像阶段：Node 22-alpine 构建、Nginx 运行（见 Dockerfile）。
+  - 镜像阶段：Node 24-alpine 构建、Nginx 运行（见 Dockerfile）。
 - Vercel：`vercel.json` 将所有路径重写到 `index.html`，保证 SPA 路由可刷新直达。
 
 参考文件：

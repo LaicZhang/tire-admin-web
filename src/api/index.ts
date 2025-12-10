@@ -16,3 +16,14 @@ export * from "./business/customer";
 export * from "./business/provider";
 export * from "./business/order";
 export * from "./business/reserve";
+export * from "./business/feedback";
+export * from "./business/assembly";
+export * from "./chat";
+export {
+  getVerifyCodeApi as getVerifyCodeApiFromVerify,
+  getCaptchaApi
+} from "./verify";
+export * from "./setting";
+export * from "./payment";
+export * from "./logistic";
+export * from "./asset";

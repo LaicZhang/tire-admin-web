@@ -27,6 +27,7 @@ import CloseRightTags from "~icons/ri/text-direction-l";
 import CloseLeftTags from "~icons/ri/text-direction-r";
 import RefreshRight from "~icons/ep/refresh-right";
 import Close from "~icons/ep/close";
+import type { IconifyIcon } from "@iconify/vue";
 
 export function useTags() {
   const route = useRoute();
@@ -62,49 +63,49 @@ export function useTags() {
 
   const tagsViews = reactive<Array<tagsViewsType>>([
     {
-      icon: RefreshRight,
+      icon: RefreshRight as unknown as IconifyIcon,
       text: "重新加载",
       divided: false,
       disabled: false,
       show: true
     },
     {
-      icon: Close,
+      icon: Close as unknown as IconifyIcon,
       text: "关闭当前标签页",
       divided: false,
       disabled: multiTags.value.length > 1 ? false : true,
       show: true
     },
     {
-      icon: CloseLeftTags,
+      icon: CloseLeftTags as unknown as IconifyIcon,
       text: "关闭左侧标签页",
       divided: true,
       disabled: multiTags.value.length > 1 ? false : true,
       show: true
     },
     {
-      icon: CloseRightTags,
+      icon: CloseRightTags as unknown as IconifyIcon,
       text: "关闭右侧标签页",
       divided: false,
       disabled: multiTags.value.length > 1 ? false : true,
       show: true
     },
     {
-      icon: CloseOtherTags,
+      icon: CloseOtherTags as unknown as IconifyIcon,
       text: "关闭其他标签页",
       divided: true,
       disabled: multiTags.value.length > 2 ? false : true,
       show: true
     },
     {
-      icon: CloseAllTags,
+      icon: CloseAllTags as unknown as IconifyIcon,
       text: "关闭全部标签页",
       divided: false,
       disabled: multiTags.value.length > 1 ? false : true,
       show: true
     },
     {
-      icon: Fullscreen,
+      icon: Fullscreen as unknown as IconifyIcon,
       text: "内容区全屏",
       divided: true,
       disabled: false,

@@ -30,8 +30,8 @@ export const usePermissionStore = defineStore("pure-permission", {
         filterTree(ascending(this.constantMenus.concat(routes)))
       );
       this.flatteningRoutes = formatFlatteningRoutes(
-        this.constantMenus.concat(routes)
-      );
+        this.constantMenus.concat(routes) as any
+      ) as any;
     },
     cacheOperate({ mode, name }: cacheType) {
       const delIndex = this.cachePageList.findIndex(v => v === name);

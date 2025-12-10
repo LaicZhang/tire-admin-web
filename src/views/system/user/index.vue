@@ -89,8 +89,8 @@ const handleRest = () => {
 };
 const getDetails = async row => {
   loading.value = true;
-  const { data, code, message } = await getOneUserApi(row.uid);
-  console.log(data, code, message);
+  const { data, code, msg } = await getOneUserApi(row.uid);
+  console.log(data, code, msg);
 };
 const updateOne = row => {
   loading.value = true;

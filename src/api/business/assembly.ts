@@ -1,13 +1,10 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
-import { getCompanyId } from "../company";
 
-const prefix = "/provider/";
+const prefix = "/assembly-order/";
 
-const cid = getCompanyId();
-
-export async function getProviderListApi(index: number, params?: object) {
+export async function getAssemblyOrderListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),
@@ -15,34 +12,26 @@ export async function getProviderListApi(index: number, params?: object) {
   );
 }
 
-export async function addProviderApi(data: object) {
+export async function addAssemblyOrderApi(data: object) {
   return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data
   });
 }
 
-export async function getProviderApi(uid = cid) {
+export async function getAssemblyOrderApi(uid: string) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateProviderApi(uid, data: object) {
+export async function updateAssemblyOrderApi(uid: string, data: object) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });
 }
 
-export async function deleteProviderApi(uid) {
+export async function deleteAssemblyOrderApi(uid: string) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
 
-export async function getProviderCountApi() {
+export async function getAssemblyOrderCountApi() {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + "count"));
-}
-
-export async function migrateProviderApi(uid: string, data: object) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(prefix + "migrate/" + uid),
-    { data }
-  );
 }

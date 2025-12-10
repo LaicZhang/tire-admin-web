@@ -34,3 +34,40 @@ export async function updateTireNumberApi(uid, data: object) {
 export async function deleteTireNumberApi(uid) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
+
+export async function importTireNumberApi(data: object) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix + "import"),
+    { data }
+  );
+}
+
+export async function getTireNumberByNumberApi(number: string) {
+  return await http.request<CommonResult>("get", baseUrlApi(prefix + number));
+}
+
+export async function updateTireNumberByNumberApi(
+  number: string,
+  data: object
+) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(prefix + number),
+    { data }
+  );
+}
+
+export async function deleteTireNumberByNumberApi(number: string) {
+  return await http.request<CommonResult>(
+    "delete",
+    baseUrlApi(prefix + number)
+  );
+}
+
+export async function outRepoTireNumberApi(number: string) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(prefix + "out/" + number)
+  );
+}

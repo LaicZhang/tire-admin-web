@@ -25,7 +25,7 @@ const router = useRouter();
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
-  await formEl.validate((valid, fields) => {
+  await formEl.validate(valid => {
     if (valid) {
       useUserStoreHook()
         .loginByUsername({
@@ -34,6 +34,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           code: ruleForm.captchaCode
         })
         .then(res => {
+          const { code, msg } = res;
           if (code === 200) {
             useCurrentCompanyStoreHook().handleCurrentCompany();
             initRouter().then(() => {
@@ -50,7 +51,6 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         });
     } else {
       loading.value = false;
-      return fields;
     }
   });
 };
@@ -58,6 +58,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
 const sendSmsCode = () => {
   useCaptchaCode().start(ruleFormRef.value, "phone");
   getVerifyCodeApi({ phone: ruleForm.phone, type: 1 }).then(res => {
+    const { code, msg } = res;
     if (code === 200) {
       message("验证码发送成功", { type: "success" });
     } else {

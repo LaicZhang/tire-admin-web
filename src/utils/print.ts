@@ -5,7 +5,29 @@ interface PrintFunction {
   toPrint: Function;
 }
 
-const Print = function (dom, options?: object): PrintFunction {
+interface PrintInstance {
+  conf: {
+    styleStr: string;
+    setDomHeightArr: string[];
+    printBeforeFn: ((params: { doc: Document }) => void) | null;
+    printDoneCallBack: (() => void) | null;
+  };
+  dom: Element | null;
+  init: () => void;
+  getStyle: () => string;
+  getHtml: () => Element;
+  writeIframe: (content: string) => void;
+  toPrint: (frameWindow: Document | Window) => void;
+  isDOM: (obj: any) => boolean;
+  setDomHeight: (arr: string[]) => void;
+  extendOptions: <T>(obj: any, obj2: T) => T;
+}
+
+const Print = function (
+  this: PrintInstance,
+  dom: string | Element | any,
+  options?: Partial<PrintInstance["conf"]>
+): PrintFunction {
   options = options || {};
   // @ts-expect-error
   if (!(this instanceof Print)) return new Print(dom, options);
@@ -19,8 +41,7 @@ const Print = function (dom, options?: object): PrintFunction {
     printDoneCallBack: null
   };
   for (const key in this.conf) {
-    // eslint-disable-next-line no-prototype-builtins
-    if (key && options.hasOwnProperty(key)) {
+    if (key && Object.prototype.hasOwnProperty.call(options, key)) {
       this.conf[key] = options[key];
     }
   }
@@ -39,8 +60,8 @@ Print.prototype = {
   /**
    * init
    */
-  init: function (): void {
-    const content = this.getStyle() + this.getHtml();
+  init: function (this: PrintInstance): void {
+    const content = this.getStyle() + (this.getHtml() || "");
     this.writeIframe(content);
   },
   /**
@@ -48,7 +69,7 @@ Print.prototype = {
    * @param {Object} obj
    * @param {Object} obj2
    */
-  extendOptions: function <T>(obj, obj2: T): T {
+  extendOptions: function <T>(this: PrintInstance, obj: any, obj2: T): T {
     for (const k in obj2) {
       obj[k] = obj2[k];
     }
@@ -57,7 +78,7 @@ Print.prototype = {
   /**
     Copy all styles of the original page
   */
-  getStyle: function (): string {
+  getStyle: function (this: PrintInstance): string {
     let str = "";
     const styles: NodeListOf<Element> = document.querySelectorAll("style,link");
     for (let i = 0; i < styles.length; i++) {
@@ -67,7 +88,7 @@ Print.prototype = {
     return str;
   },
   // form assignment
-  getHtml: function (): Element {
+  getHtml: function (this: PrintInstance): string {
     const inputs = document.querySelectorAll("input");
     const selects = document.querySelectorAll("select");
     const textareas = document.querySelectorAll("textarea");
@@ -117,12 +138,12 @@ Print.prototype = {
       canvass[k4].parentNode.insertBefore(img, canvass[k4].nextElementSibling);
     }
 
-    return this.dom.outerHTML;
+    return this.dom?.outerHTML || "";
   },
   /**
     create iframe
   */
-  writeIframe: function (content) {
+  writeIframe: function (this: PrintInstance, content: string) {
     let w: Document | Window;
     let doc: Document;
     const iframe: HTMLIFrameElement = document.createElement("iframe");
@@ -165,18 +186,30 @@ Print.prototype = {
   /**
     Print
   */
-  toPrint: function (frameWindow): void {
+  toPrint: function (
+    this: PrintInstance,
+    frameWindow: Document | Window
+  ): void {
     try {
       setTimeout(function () {
-        frameWindow.focus();
-        try {
-          if (!frameWindow.document.execCommand("print", false, null)) {
-            frameWindow.print();
-          }
-        } catch (e) {
-          frameWindow.print();
+        const win = frameWindow as Window;
+        if (win.focus) {
+          win.focus();
         }
-        frameWindow.close();
+        try {
+          if (win.document && !win.document.execCommand("print", false, null)) {
+            win.print();
+          } else if (win.print) {
+            win.print();
+          }
+        } catch {
+          if (win.print) {
+            win.print();
+          }
+        }
+        if (win.close) {
+          win.close();
+        }
       }, 10);
     } catch (err) {
       console.error(err);
@@ -199,12 +232,15 @@ Print.prototype = {
    * Set the height of the specified dom element by getting the existing height of the dom element and setting
    * @param {Array} arr
    */
-  setDomHeight(arr) {
+  setDomHeight(this: PrintInstance, arr: string[]) {
     if (arr && arr.length) {
       arr.forEach(name => {
         const domArr = document.querySelectorAll(name);
         domArr.forEach(dom => {
-          dom.style.height = dom.offsetHeight + "px";
+          const element = dom as HTMLElement;
+          if (element.style && element.offsetHeight !== undefined) {
+            element.style.height = element.offsetHeight + "px";
+          }
         });
       });
     }

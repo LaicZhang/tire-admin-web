@@ -60,8 +60,9 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
 });
 
 export function setCurrentCompanyKey(company: CurrentCompanyInfo) {
-  this.SET_NAME(company?.companyName);
-  this.SET_ID(company?.companyId);
+  const store = useCurrentCompanyStoreHook();
+  store.SET_NAME(company?.companyName);
+  store.SET_ID(company?.companyId);
   storageLocal().setItem(currentCompanyKey, {
     ...company
   });

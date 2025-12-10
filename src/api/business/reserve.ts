@@ -1,11 +1,8 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
-import { getCompanyId } from "../company";
 
 const prefix = "/reserve/";
-
-const cid = getCompanyId();
 
 export async function getReserveListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
@@ -21,16 +18,16 @@ export async function addReserveApi(data: object) {
   });
 }
 
-export async function getReserveApi(uid = cid) {
-  return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
+export async function getReserveApi(id: number) {
+  return await http.request<CommonResult>("get", baseUrlApi(prefix + id));
 }
 
-export async function updateReserveApi(uid, data: object) {
-  return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
+export async function updateReserveApi(id: number, data?: object) {
+  return await http.request<CommonResult>("patch", baseUrlApi(prefix + id), {
     data
   });
 }
 
-export async function deleteReserveApi(uid) {
-  return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
+export async function deleteReserveApi(id: number) {
+  return await http.request<CommonResult>("delete", baseUrlApi(prefix + id));
 }

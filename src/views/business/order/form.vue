@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
     updateAt: null,
     providerId: undefined,
     customerId: undefined,
-    details: []
+    details: [] as any
   })
 });
 const orderType: Ref<ORDER_TYPE> = ref();
@@ -147,7 +147,7 @@ onMounted(async () => {
         :disabled="getDisabled(['修改', '新增'])"
       >
         <el-select
-          v-model="newFormInline.providerId"
+          v-model="(newFormInline as any).providerId"
           clearable
           placeholder="请输入供应商"
           class="w-[15vw]!"
@@ -169,7 +169,7 @@ onMounted(async () => {
         prop="customerId"
       >
         <el-select
-          v-model="newFormInline.customerId"
+          v-model="(newFormInline as any).customerId"
           clearable
           placeholder="请选择客户"
           class="w-[15vw]!"

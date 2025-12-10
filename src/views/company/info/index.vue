@@ -32,7 +32,7 @@ onMounted(async () => {
       :column="2"
     >
       <template #extra>
-        <el-button type="primary" @click="openDialog">更新</el-button>
+        <el-button type="primary" @click="() => openDialog()">更新</el-button>
       </template>
     </PureDescriptions>
   </el-card>

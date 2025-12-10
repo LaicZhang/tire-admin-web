@@ -34,3 +34,34 @@ export async function updateCustomerApi(uid, data: object) {
 export async function deleteCustomerApi(uid) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
+
+export async function migrateCustomerApi(uid: string, data: { uid: string }) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(prefix + "migrate/" + uid),
+    { data }
+  );
+}
+
+export async function createCustomerDebtProfileApi(
+  uid: string,
+  data: {
+    idCardImageUrl: string;
+    iouImageUrl: string;
+    liveImageUrl: string;
+    phone: string;
+  }
+) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix + "debt-profile/" + uid),
+    { data }
+  );
+}
+
+export async function getCustomerDebtProfileApi(uid: string) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "debt-profile/" + uid)
+  );
+}

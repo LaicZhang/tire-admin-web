@@ -47,7 +47,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: formRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
       const curData = options.props.formInline as FormItemProps;
@@ -71,8 +72,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             });
             chores();
           } else {
-            const { uid, name, desc } = curData;
-            await updateReserveApi(uid, {
+            const { id, name, desc } = curData;
+            await updateReserveApi(id, {
               name,
               desc
             });

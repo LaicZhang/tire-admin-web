@@ -40,3 +40,23 @@ export type RefreshTokenResult = {
     expires: Date;
   };
 };
+
+export type PaginatedResponseDto<T = any> = {
+  count: number;
+  list: T[];
+};
+
+export type CountResponseDto = {
+  count: number;
+};
+
+export type CaptchaResponseDto = {
+  data: {
+    id: string;
+    image: string;
+  };
+};
+
+export type VerifySendResponseDto = {
+  success: boolean;
+};

@@ -15,6 +15,7 @@ import {
   isAllEmpty,
   useResizeObserver
 } from "@pureadmin/utils";
+import type { IconifyIcon } from "@iconify/vue";
 
 import ExitFullscreen from "~icons/ri/fullscreen-exit-fill";
 import Fullscreen from "~icons/ri/fullscreen-fill";
@@ -337,10 +338,10 @@ function onClickDrop(key, item, selectRoute?: RouteConfigs) {
       onContentFullScreen();
       setTimeout(() => {
         if (pureSetting.hiddenSideBar) {
-          tagsViews[6].icon = ExitFullscreen;
+          tagsViews[6].icon = ExitFullscreen as unknown as IconifyIcon;
           tagsViews[6].text = "内容区退出全屏";
         } else {
-          tagsViews[6].icon = Fullscreen;
+          tagsViews[6].icon = Fullscreen as unknown as IconifyIcon;
           tagsViews[6].text = "内容区全屏";
         }
       }, 100);

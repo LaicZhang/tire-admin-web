@@ -311,7 +311,7 @@ onMounted(async () => {
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="handleOpenDialog('新增', orderType)"
+            @click="handleOpenDialog('新增', orderType, undefined)"
           >
             新增订单
           </el-button>
