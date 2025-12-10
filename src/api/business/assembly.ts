@@ -35,3 +35,29 @@ export async function deleteAssemblyOrderApi(uid: string) {
 export async function getAssemblyOrderCountApi() {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + "count"));
 }
+
+export async function createAssemblyOrderDetailApi(uid: string, data: object) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix + `detail/${uid}`),
+    { data }
+  );
+}
+
+export async function updateAssemblyOrderDetailApi(uid: string, data: object) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(prefix + `detail/${uid}`),
+    { data }
+  );
+}
+
+export async function deleteAssemblyOrderDetailApi(
+  uid: string,
+  detailId: string
+) {
+  return await http.request<CommonResult>(
+    "delete",
+    baseUrlApi(prefix + `detail/${uid}/${detailId}`)
+  );
+}

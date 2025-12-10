@@ -39,6 +39,8 @@ const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
     updateAt: null,
     providerId: undefined,
     customerId: undefined,
+    fee: 0,
+    isReceive: false,
     details: [] as any
   })
 });
@@ -210,6 +212,86 @@ onMounted(async () => {
         type="textarea"
       />
     </el-form-item>
+
+    <!-- 审核相关字段 -->
+    <template v-if="['审核'].includes(formTitle)">
+      <el-form-item label="审核状态">
+        <el-radio-group v-model="newFormInline.isApproved">
+          <el-radio :label="true">通过</el-radio>
+          <el-radio :label="false">拒绝</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item
+        v-if="newFormInline.isApproved === false"
+        label="拒绝原因"
+        prop="rejectReason"
+      >
+        <el-input
+          v-model="newFormInline.rejectReason"
+          placeholder="请输入拒绝原因"
+          type="textarea"
+        />
+      </el-form-item>
+    </template>
+
+    <!-- 支付相关字段 -->
+    <template
+      v-if="
+        ['付款', '收款'].includes(formTitle) &&
+        [ORDER_TYPE.purchase, ORDER_TYPE.sale].includes(orderType)
+      "
+    >
+      <el-form-item label="支付金额" prop="total">
+        <el-input-number
+          v-model="newFormInline.total"
+          :min="0"
+          :precision="2"
+          class="w-[180px]!"
+        />
+      </el-form-item>
+      <el-form-item label="支付账户" prop="paymentId">
+        <el-select
+          v-model="newFormInline.paymentId"
+          placeholder="请选择支付账户"
+          clearable
+          class="w-[15vw]!"
+        >
+          <!-- 支付账户选项需要从API获取 -->
+        </el-select>
+      </el-form-item>
+    </template>
+
+    <!-- 理赔费用相关字段 -->
+    <template
+      v-if="formTitle === '处理理赔费用' && orderType === ORDER_TYPE.claim"
+    >
+      <el-form-item label="费用金额" prop="fee">
+        <el-input-number
+          v-model="newFormInline.fee"
+          :min="0"
+          :precision="2"
+          class="w-[180px]!"
+        />
+      </el-form-item>
+      <el-form-item label="费用类型">
+        <el-radio-group v-model="newFormInline.isReceive">
+          <el-radio :label="true">收到理赔金</el-radio>
+          <el-radio :label="false">支付理赔金</el-radio>
+        </el-radio-group>
+      </el-form-item>
+    </template>
+
+    <!-- 退款相关字段 -->
+    <template v-if="formTitle === '退款' && orderType === ORDER_TYPE.return">
+      <el-form-item label="退款金额" prop="fee">
+        <el-input-number
+          v-model="newFormInline.fee"
+          :min="0"
+          :precision="2"
+          class="w-[180px]!"
+        />
+      </el-form-item>
+    </template>
 
     <el-form-item label="详情">
       <!-- <div>

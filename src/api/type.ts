@@ -60,3 +60,71 @@ export type CaptchaResponseDto = {
 export type VerifySendResponseDto = {
   success: boolean;
 };
+
+// 支付相关类型
+export type PaymentAccount = {
+  uid: string;
+  companyUid: string;
+  balance: number | string;
+  [key: string]: any;
+};
+
+export type PaymentRecord = {
+  uid: string;
+  serialNumber: string;
+  type: string;
+  beforeModify: number | string;
+  modified: number | string;
+  afterModify: number | string;
+  sign: string;
+  [key: string]: any;
+};
+
+export type CreatePaymentDto = {
+  companyUid: string;
+  [key: string]: any;
+};
+
+export type UpdatePaymentDto = {
+  type: "top-up" | "pay";
+  payment?: any;
+  record?: any;
+  [key: string]: any;
+};
+
+// 物流相关类型
+export type LogisticStatus = {
+  uid: string;
+  type: string;
+  logisticsStatus: number;
+  isArrival: boolean;
+  arrivalAt?: string | null;
+  departureAt?: string | null;
+  [key: string]: any;
+};
+
+export type UpdateLogisticDto = {
+  type: string;
+  isArrival: boolean;
+  [key: string]: any;
+};
+
+// 订单相关类型
+export type ClaimOrderPaymentDto = {
+  fee: number;
+  isReceive: boolean;
+};
+
+export type RefundOrderDto = {
+  fee: number;
+};
+
+export type OrderDetailDto = {
+  tireId?: string;
+  count?: number;
+  total?: number;
+  isExchange?: boolean;
+  exchangeTireId?: string;
+  exchangeCount?: number;
+  [key: string]: any;
+};

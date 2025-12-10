@@ -2,7 +2,15 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addOrderApi, updateOrderApi } from "@/api";
+import {
+  getCompanyId,
+  addOrderApi,
+  updateOrderApi,
+  payPurchaseOrderApi,
+  paySaleOrderApi,
+  processClaimOrderPaymentApi,
+  refundReturnOrderApi
+} from "@/api";
 import editForm from "./form.vue";
 import {
   ALL_LIST,
@@ -75,6 +83,9 @@ export async function openDialog(title = "新增", type, row?) {
         desc: row?.desc ?? undefined,
         total: row?.total ?? 0,
         count: row?.count ?? 0,
+        paymentId: row?.paymentId ?? undefined,
+        fee: row?.fee ?? 0,
+        isReceive: row?.isReceive ?? false,
         details: row?.details ?? []
       }
     },
@@ -150,11 +161,42 @@ export async function openDialog(title = "新增", type, row?) {
             if (title === "审核") {
               await updateOrderApi(type, uid, {
                 ...orderData,
+                isApproved: orderData.isApproved ?? true,
+                isLocked: orderData.isApproved ?? true,
+                auditAt: orderData.isApproved ? new Date().toISOString() : null,
+                company: {
+                  connect: { uid: await getCompanyId() }
+                }
+              });
+            } else if (title === "付款" && type === ORDER_TYPE.purchase) {
+              await payPurchaseOrderApi(uid, {
+                fee: orderData.total || 0,
+                paymentId: orderData.paymentId
+              });
+            } else if (title === "收款" && type === ORDER_TYPE.sale) {
+              await paySaleOrderApi(uid, {
+                fee: orderData.total || 0,
+                paymentId: orderData.paymentId
+              });
+            } else {
+              await updateOrderApi(type, uid, {
+                ...orderData,
                 company: {
                   connect: { uid: await getCompanyId() }
                 }
               });
             }
+            chores();
+          } else if (title === "处理理赔费用") {
+            await processClaimOrderPaymentApi(uid, {
+              fee: orderData.fee || 0,
+              isReceive: orderData.isReceive ?? false
+            });
+            chores();
+          } else if (title === "退款") {
+            await refundReturnOrderApi(uid, {
+              fee: orderData.fee || 0
+            });
             chores();
           } else {
             await updateOrderApi(type, uid, {

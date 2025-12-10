@@ -22,7 +22,17 @@ import {
   getAuditorListApi,
   getRepoListApi,
   getTireListApi,
-  getProviderListApi
+  getProviderListApi,
+  confirmPurchaseOrderArrivalApi,
+  confirmSaleOrderShipmentApi,
+  confirmSaleOrderDeliveryApi,
+  processClaimOrderPaymentApi,
+  confirmReturnOrderCustomerArrivalApi,
+  confirmReturnOrderProviderShipmentApi,
+  confirmReturnOrderProviderDeliveryApi,
+  refundReturnOrderApi,
+  confirmTransferOrderShipmentApi,
+  confirmTransferOrderArrivalApi
 } from "@/api";
 import {
   ALL_LIST,
@@ -201,6 +211,104 @@ async function handleDelete(row) {
   await onSearch();
 }
 
+// 采购订单：确认到货
+async function handleConfirmPurchaseArrival(row) {
+  try {
+    await confirmPurchaseOrderArrivalApi(row.uid, {});
+    message("确认到货成功", { type: "success" });
+    await onSearch();
+  } catch (error) {
+    message(error.message || "确认到货失败", { type: "error" });
+  }
+}
+
+// 销售订单：确认发货
+async function handleConfirmSaleShipment(row) {
+  try {
+    await confirmSaleOrderShipmentApi(row.uid, {});
+    message("确认发货成功", { type: "success" });
+    await onSearch();
+  } catch (error) {
+    message(error.message || "确认发货失败", { type: "error" });
+  }
+}
+
+// 销售订单：确认送达
+async function handleConfirmSaleDelivery(row) {
+  try {
+    await confirmSaleOrderDeliveryApi(row.uid, {});
+    message("确认送达成功", { type: "success" });
+    await onSearch();
+  } catch (error) {
+    message(error.message || "确认送达失败", { type: "error" });
+  }
+}
+
+// 理赔订单：处理理赔费用
+async function handleProcessClaimPayment(row) {
+  handleOpenDialog("处理理赔费用", orderType.value, row);
+}
+
+// 退货订单：确认客户退货到货
+async function handleConfirmReturnCustomerArrival(row) {
+  try {
+    await confirmReturnOrderCustomerArrivalApi(row.uid, {});
+    message("确认客户退货到货成功", { type: "success" });
+    await onSearch();
+  } catch (error) {
+    message(error.message || "确认客户退货到货失败", { type: "error" });
+  }
+}
+
+// 退货订单：确认退供应商发货
+async function handleConfirmReturnProviderShipment(row) {
+  try {
+    await confirmReturnOrderProviderShipmentApi(row.uid, {});
+    message("确认退供应商发货成功", { type: "success" });
+    await onSearch();
+  } catch (error) {
+    message(error.message || "确认退供应商发货失败", { type: "error" });
+  }
+}
+
+// 退货订单：确认退供应商送达
+async function handleConfirmReturnProviderDelivery(row) {
+  try {
+    await confirmReturnOrderProviderDeliveryApi(row.uid, {});
+    message("确认退供应商送达成功", { type: "success" });
+    await onSearch();
+  } catch (error) {
+    message(error.message || "确认退供应商送达失败", { type: "error" });
+  }
+}
+
+// 退货订单：退款
+async function handleRefundReturnOrder(row) {
+  handleOpenDialog("退款", orderType.value, row);
+}
+
+// 调拨订单：确认发货
+async function handleConfirmTransferShipment(row) {
+  try {
+    await confirmTransferOrderShipmentApi(row.uid, {});
+    message("确认发货成功", { type: "success" });
+    await onSearch();
+  } catch (error) {
+    message(error.message || "确认发货失败", { type: "error" });
+  }
+}
+
+// 调拨订单：确认到货
+async function handleConfirmTransferArrival(row) {
+  try {
+    await confirmTransferOrderArrivalApi(row.uid, {});
+    message("确认到货成功", { type: "success" });
+    await onSearch();
+  } catch (error) {
+    message(error.message || "确认到货失败", { type: "error" });
+  }
+}
+
 // async function handleToggleOrder(row) {
 //   await toggleOrderApi(row.uid);
 //   onSearch();
@@ -377,6 +485,149 @@ onMounted(async () => {
                 "
               >
                 {{ orderType === ORDER_TYPE.sale ? "收款" : "付款" }}
+              </el-button>
+
+              <!-- 采购订单：确认到货 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.purchase && row.isApproved === true
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConfirmPurchaseArrival(row)"
+              >
+                确认到货
+              </el-button>
+
+              <!-- 销售订单：确认发货 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.sale &&
+                  row.isApproved === true &&
+                  row.logisticsStatus === 0
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConfirmSaleShipment(row)"
+              >
+                确认发货
+              </el-button>
+
+              <!-- 销售订单：确认送达 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.sale &&
+                  row.isApproved === true &&
+                  row.logisticsStatus === 1
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConfirmSaleDelivery(row)"
+              >
+                确认送达
+              </el-button>
+
+              <!-- 理赔订单：处理理赔费用 -->
+              <el-button
+                v-if="orderType === ORDER_TYPE.claim && row.isApproved === true"
+                class="reset-margin"
+                link
+                type="warning"
+                @click="handleProcessClaimPayment(row)"
+              >
+                处理理赔费用
+              </el-button>
+
+              <!-- 退货订单：确认客户退货到货 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.return &&
+                  row.isApproved === true &&
+                  row.customerId
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConfirmReturnCustomerArrival(row)"
+              >
+                确认客户退货到货
+              </el-button>
+
+              <!-- 退货订单：确认退供应商发货 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.return &&
+                  row.isApproved === true &&
+                  row.providerId
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConfirmReturnProviderShipment(row)"
+              >
+                确认退供应商发货
+              </el-button>
+
+              <!-- 退货订单：确认退供应商送达 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.return &&
+                  row.isApproved === true &&
+                  row.providerId &&
+                  row.logisticsStatus === 1
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConfirmReturnProviderDelivery(row)"
+              >
+                确认退供应商送达
+              </el-button>
+
+              <!-- 退货订单：退款 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.return && row.isApproved === true
+                "
+                class="reset-margin"
+                link
+                type="warning"
+                @click="handleRefundReturnOrder(row)"
+              >
+                退款
+              </el-button>
+
+              <!-- 调拨订单：确认发货 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.transfer &&
+                  row.isApproved === true &&
+                  row.logisticsStatus === 0
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConfirmTransferShipment(row)"
+              >
+                确认发货
+              </el-button>
+
+              <!-- 调拨订单：确认到货 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.transfer &&
+                  row.isApproved === true &&
+                  row.logisticsStatus === 1
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConfirmTransferArrival(row)"
+              >
+                确认到货
               </el-button>
 
               <el-button
