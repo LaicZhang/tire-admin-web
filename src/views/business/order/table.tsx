@@ -13,8 +13,8 @@ import {
 } from "@/utils";
 
 const formRef = ref(null);
-export function handleSelectionChange(val) {
-  console.log("handleSelectionChange", val);
+export function handleSelectionChange(_val) {
+  // 选择变化处理
 }
 const orderType = ref("");
 
@@ -97,7 +97,6 @@ export async function openDialog(title = "新增", type, row?) {
       }
       FormRef.validate(async valid => {
         if (valid) {
-          console.log("curData", curData);
           if (curData.details.length === 0)
             return message("请添加订单详情项", { type: "error" });
           // eslint-disable-next-line @typescript-eslint/no-unused-vars

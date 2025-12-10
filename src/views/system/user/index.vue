@@ -73,7 +73,7 @@ const formColumns: PlusColumn[] = [
 ];
 
 const handleChange = () => {
-  console.log("change");
+  // 处理变化
 };
 const handleSearch = async () => {
   const { code, data } = await getUsersApi();
@@ -85,12 +85,11 @@ const handleSearch = async () => {
   loading.value = false;
 };
 const handleRest = () => {
-  console.log("handleRest");
+  // 处理重置
 };
 const getDetails = async row => {
   loading.value = true;
   const { data, code, msg } = await getOneUserApi(row.uid);
-  console.log(data, code, msg);
 };
 const updateOne = row => {
   loading.value = true;

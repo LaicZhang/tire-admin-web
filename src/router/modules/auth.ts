@@ -462,7 +462,7 @@ export default [
       },
       {
         id: 32,
-        uid: "5cd4bf61-a0bf-449f-b4d4-cf8254745b27",
+        uid: "6cd4bf61-a0bf-449f-b4d4-cf8254745b28",
         parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
         name: "order",
         path: "/business/order",
@@ -493,7 +493,7 @@ export default [
     },
     children: [
       {
-        id: 32,
+        id: 36,
         uid: "36e19140-226e-43e5-abf5-051b4121f8c8",
         parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
         name: "assets",

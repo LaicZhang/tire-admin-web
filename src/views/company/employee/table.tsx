@@ -31,8 +31,8 @@ export interface FormProps {
 
 const formRef = ref(null);
 
-export function handleSelectionChange(val) {
-  console.log("handleSelectionChange", val);
+export function handleSelectionChange(_val) {
+  // 选择变化处理
 }
 
 export function openDialog(title = "新增", row?: FormItemProps) {
@@ -71,7 +71,6 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       }
       FormRef.validate(async valid => {
         if (valid) {
-          console.log("curData", curData);
           const {
             uid,
             name,

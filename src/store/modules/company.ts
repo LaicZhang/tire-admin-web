@@ -24,7 +24,6 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
       this.companyId = id;
     },
     SET_CURRENT_COMPANY(company: CurrentCompanyInfo) {
-      console.log("company", company);
       this.SET_NAME(company?.companyName);
       this.SET_ID(company?.companyId);
       storageLocal().setItem(currentCompanyKey, {
@@ -35,7 +34,6 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
       return new Promise((resolve, reject) => {
         getCurrentCompanyAPi()
           .then(res => {
-            console.log("res", res);
             const data = res.data;
             if (data.length === 0) {
               reject("当前用户没有公司信息");

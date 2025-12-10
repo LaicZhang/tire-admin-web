@@ -98,7 +98,6 @@ const getAllRepoList = async () => {
   if (code === 200) {
     allRepoList.value = data;
     await localForage().setItem(ALL_LIST.repo, data);
-    console.log(ALL_LIST.repo, allRepoList.value);
   } else message(msg, { type: "error" });
 };
 
@@ -107,7 +106,6 @@ const getAllCustomerList = async () => {
   if (code === 200) {
     allCustomerList.value = data;
     await localForage().setItem(ALL_LIST.customer, data);
-    console.log(ALL_LIST.customer, allCustomerList.value);
   } else message(msg, { type: "error" });
 };
 
@@ -116,7 +114,6 @@ const getAllProviderList = async () => {
   if (code === 200) {
     allProviderList.value = data;
     await localForage().setItem(ALL_LIST.provider, data);
-    console.log(ALL_LIST.provider, allProviderList.value);
   } else message(msg, { type: "error" });
 };
 
@@ -125,7 +122,6 @@ const getAllTireList = async () => {
   if (code === 200) {
     allTireList.value = data;
     await localForage().setItem(ALL_LIST.tire, data);
-    console.log(ALL_LIST.tire, allTireList.value);
   } else message(msg, { type: "error" });
 };
 const getManagerList = async () => {
@@ -134,7 +130,6 @@ const getManagerList = async () => {
   if (code === 200) {
     managerList.value = data;
     await localForage().setItem(ALL_LIST.manager, data);
-    console.log(ALL_LIST.manager, managerList.value);
   } else message(msg, { type: "error" });
 };
 const onSearch = async () => {
@@ -178,7 +173,6 @@ const columnMapping = {
 
 const setOrderType = async () => {
   try {
-    console.log("setOrderType", orderType.value);
     const type = orderType.value;
     await localForage().setItem(CUR_ORDER_TYPE, type);
     columns.value = columnMapping[orderType.value] || columns.value;

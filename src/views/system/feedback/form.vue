@@ -7,7 +7,7 @@ defineOptions({
 });
 
 interface FeedbackFormProps {
-  formInline: {
+  formInline?: {
     uid?: string;
     content?: string;
     rating?: number;

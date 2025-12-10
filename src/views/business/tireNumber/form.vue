@@ -14,7 +14,7 @@ interface FormItemProps {
 }
 
 interface FormProps {
-  formInline: FormItemProps;
+  formInline?: FormItemProps;
 }
 
 const props = withDefaults(defineProps<FormProps>(), {

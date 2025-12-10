@@ -6,7 +6,7 @@ import { useNav } from "@/layout/hooks/useNav";
 import MenuFold from "~icons/ri/menu-fold-fill";
 
 interface Props {
-  isActive: boolean;
+  isActive?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {

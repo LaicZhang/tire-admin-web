@@ -84,7 +84,7 @@ const loadChatCount = async () => {
       chatCount.value = data.count || 0;
     }
   } catch (error) {
-    console.error("获取聊天记录数失败", error);
+    // 静默处理错误，避免影响用户体验
   }
 };
 

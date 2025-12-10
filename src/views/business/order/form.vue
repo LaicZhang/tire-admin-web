@@ -67,7 +67,7 @@ function setDetailsColumnsAndFormRules() {
   detailsColumns.value = getColumns(orderType.value);
   formRules.value = getFormRules(orderType.value);
   if (!detailsColumns.value.length) {
-    console.error("Unknown order type:", orderType.value);
+    // 未知订单类型，静默处理
   }
 }
 

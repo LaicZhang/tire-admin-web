@@ -78,8 +78,8 @@ export function useColumns() {
     // zIndex: 100
   };
 
-  function onSizeChange(val) {
-    console.log("onSizeChange", val);
+  function onSizeChange(_val) {
+    // 处理尺寸变化
   }
 
   function onCurrentChange(val) {

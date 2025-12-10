@@ -27,7 +27,7 @@ export function onCopy(
 ) {
   if (copied.value) return;
   curCopyActive.value = index;
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+
   isArray(value) ? update(value[0]) : update(value);
   delay(100).then(() => (copied.value = !copied.value));
 }
@@ -45,16 +45,17 @@ export const getFooterButtons = (type, title = "新增") => {
       {
         label: "取消",
         type: "danger",
-        btnClick: ({ dialog: { options, index }, button }) => {
-          console.log(options.props.formInline, index, button);
+        btnClick: ({ dialog: { options, index }, button: _button }) => {
           closeDialog(options, index);
         }
       },
       {
         label: "保存",
         type: "primary",
-        btnClick: ({ dialog: { options, index }, button }) => {
-          console.log(options.props.formInline, index, button);
+        btnClick: ({
+          dialog: { options: _options, index: _index },
+          button: _button
+        }) => {
           // closeDialog(options, index);
         }
       }

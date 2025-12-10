@@ -37,7 +37,7 @@ interface FormItemProps {
 }
 
 interface FormProps {
-  formInline: FormItemProps;
+  formInline?: FormItemProps;
 }
 
 const props = withDefaults(defineProps<FormProps>(), {
@@ -87,7 +87,6 @@ const uploadData = ref();
 // const uploadedImagesList = ref([]);
 
 async function handleSuccess(response, file, fileList, row?) {
-  console.log("handleSuccess", response, file, fileList, row);
   const { code, msg, data } = response;
   if (code !== 200) message(msg, { type: "error" });
   const params = { id: data.id };
@@ -98,7 +97,6 @@ async function handleSuccess(response, file, fileList, row?) {
 
 const onBeforeUpload = async file => {
   const { name, size, type, lastModified } = file;
-  console.log(file);
   const hash = getFileMd5(lastModified, size);
   const [filename, ext] = name.split(".");
   const { width, height } = await getImageWH(file);
@@ -113,7 +111,6 @@ const onBeforeUpload = async file => {
     lastModified,
     type: StaticImageTypeEnum.COVER
   };
-  console.log("uploadData", uploadData.value);
 };
 
 defineExpose({ getRef });

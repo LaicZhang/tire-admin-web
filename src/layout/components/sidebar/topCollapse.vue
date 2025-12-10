@@ -3,7 +3,7 @@ import MenuFold from "~icons/ri/menu-fold-fill";
 import MenuUnfold from "~icons/ri/menu-unfold-fill";
 
 interface Props {
-  isActive: boolean;
+  isActive?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
