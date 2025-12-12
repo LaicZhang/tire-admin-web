@@ -34,6 +34,7 @@ export enum ORDER_TYPE {
   waste = "waste-order",
   transfer = "transfer-order",
   assembly = "assembly-order",
+  surplus = "surplus-order",
   default = ""
 }
 

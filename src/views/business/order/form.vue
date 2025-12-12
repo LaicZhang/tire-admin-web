@@ -378,10 +378,9 @@ onMounted(async () => {
             controls-position="right"
             @change="
               () => {
-                newFormInline.count = newFormInline.details.reduce(
-                  (acc: number, cur: any) => acc + cur.count,
-                  0
-                );
+                newFormInline.count = (
+                  newFormInline.details as Array<{ count: number }>
+                ).reduce((acc, cur) => acc + (cur.count || 0), 0);
               }
             "
           />

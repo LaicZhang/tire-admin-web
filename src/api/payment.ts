@@ -27,7 +27,7 @@ export async function createPaymentApi(data: {
 export async function updatePaymentApi(
   uid: string,
   data: {
-    type: "top-up" | "pay";
+    type: "top-up" | "pay" | "freeze" | "unfreeze" | "pay-frozen";
     payment?: any;
     record?: any;
     [key: string]: any;

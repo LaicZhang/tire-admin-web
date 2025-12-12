@@ -475,6 +475,36 @@ export default [
           title: "订单管理",
           icon: null
         }
+      },
+      {
+        id: 41,
+        uid: "7cd4bf61-a0bf-449f-b4d4-cf8254745b29",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "stockTaking",
+        path: "/business/stockTaking",
+        redirect: null,
+        component: () => import("@/views/business/stockTaking/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "warehouseManager"],
+          title: "库存盘点",
+          icon: null
+        }
+      },
+      {
+        id: 42,
+        uid: "8cd4bf61-a0bf-449f-b4d4-cf8254745b30",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "batch",
+        path: "/business/batch",
+        redirect: null,
+        component: () => import("@/views/business/batch/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "warehouseManager"],
+          title: "批次管理",
+          icon: null
+        }
       }
     ]
   },
@@ -550,6 +580,66 @@ export default [
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
           title: "数据存档",
+          icon: null
+        }
+      },
+      {
+        id: 37,
+        uid: "12345678-cc70-4b36-b283-f7a1c7c8d28c",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "purchaseAnalysis",
+        path: "/analysis/purchase",
+        redirect: null,
+        component: () => import("@/views/analysis/purchase/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "采购分析",
+          icon: null
+        }
+      },
+      {
+        id: 38,
+        uid: "23456789-cc70-4b36-b283-f7a1c7c8d28c",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "inventoryAnalysis",
+        path: "/analysis/inventory",
+        redirect: null,
+        component: () => import("@/views/analysis/inventory/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "库存分析",
+          icon: null
+        }
+      },
+      {
+        id: 39,
+        uid: "34567890-cc70-4b36-b283-f7a1c7c8d28c",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "rankingAnalysis",
+        path: "/analysis/ranking",
+        redirect: null,
+        component: () => import("@/views/analysis/ranking/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "排行榜",
+          icon: null
+        }
+      },
+      {
+        id: 40,
+        uid: "45678901-cc70-4b36-b283-f7a1c7c8d28c",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "agingAnalysis",
+        path: "/analysis/aging",
+        redirect: null,
+        component: () => import("@/views/analysis/aging/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "账龄分析",
           icon: null
         }
       }

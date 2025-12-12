@@ -31,3 +31,33 @@ export async function updateReserveApi(id: number, data?: object) {
 export async function deleteReserveApi(id: number) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + id));
 }
+
+// 库存盘点 (单品)
+export async function stockTakingApi(data: {
+  repoId: string;
+  tireId: string;
+  actualCount: number;
+  desc?: string;
+}) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix + "stock-taking"),
+    { data }
+  );
+}
+
+// 批量库存盘点
+export async function batchStockTakingApi(data: {
+  items: Array<{
+    repoId: string;
+    tireId: string;
+    actualCount: number;
+    desc?: string;
+  }>;
+}) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix + "stock-taking/batch"),
+    { data }
+  );
+}

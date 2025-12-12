@@ -300,6 +300,109 @@ export async function deleteWasteOrderDetailApi(uid: string, detailId: string) {
   );
 }
 
+// 订单作废相关接口
+export async function reverseSaleOrderApi(uid: string, reason: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/sale-order/reverse/${uid}`),
+    { data: { reason } }
+  );
+}
+
+export async function reversePurchaseOrderApi(uid: string, reason: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/purchase-order/reverse/${uid}`),
+    { data: { reason } }
+  );
+}
+
+export async function reverseReturnOrderApi(uid: string, reason: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/return-order/reverse/${uid}`),
+    { data: { reason } }
+  );
+}
+
+export async function reverseWasteOrderApi(uid: string, reason: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/waste-order/reverse/${uid}`),
+    { data: { reason } }
+  );
+}
+
+export async function reverseClaimOrderApi(uid: string, reason: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/claim-order/reverse/${uid}`),
+    { data: { reason } }
+  );
+}
+
+export async function reverseSurplusOrderApi(uid: string, reason: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/surplus-order/reverse/${uid}`),
+    { data: { reason } }
+  );
+}
+
+// 调拨订单明细管理
+export async function createTransferOrderDetailApi(uid: string, data: object) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/transfer-order/detail/${uid}`),
+    { data }
+  );
+}
+
+export async function updateTransferOrderDetailApi(uid: string, data: object) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(`/transfer-order/detail/${uid}`),
+    { data }
+  );
+}
+
+export async function deleteTransferOrderDetailApi(
+  uid: string,
+  detailId: string
+) {
+  return await http.request<CommonResult>(
+    "delete",
+    baseUrlApi(`/transfer-order/detail/${uid}/${detailId}`)
+  );
+}
+
+// 盘盈订单明细管理
+export async function createSurplusOrderDetailApi(uid: string, data: object) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/surplus-order/detail/${uid}`),
+    { data }
+  );
+}
+
+export async function updateSurplusOrderDetailApi(uid: string, data: object) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(`/surplus-order/detail/${uid}`),
+    { data }
+  );
+}
+
+export async function deleteSurplusOrderDetailApi(
+  uid: string,
+  detailId: string
+) {
+  return await http.request<CommonResult>(
+    "delete",
+    baseUrlApi(`/surplus-order/detail/${uid}/${detailId}`)
+  );
+}
+
 // 审核相关
 const prefix = "/audit/";
 

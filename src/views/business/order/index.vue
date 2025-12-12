@@ -32,8 +32,15 @@ import {
   confirmReturnOrderProviderDeliveryApi,
   refundReturnOrderApi,
   confirmTransferOrderShipmentApi,
-  confirmTransferOrderArrivalApi
+  confirmTransferOrderArrivalApi,
+  reverseSaleOrderApi,
+  reversePurchaseOrderApi,
+  reverseReturnOrderApi,
+  reverseWasteOrderApi,
+  reverseClaimOrderApi,
+  reverseSurplusOrderApi
 } from "@/api";
+import { ElMessageBox } from "element-plus";
 import {
   ALL_LIST,
   CUR_FORM_TITLE,
@@ -307,6 +314,41 @@ async function handleConfirmTransferArrival(row) {
 //   await toggleOrderApi(row.uid);
 //   onSearch();
 // }
+
+// 订单作废
+const reverseApiMap = {
+  [ORDER_TYPE.sale]: reverseSaleOrderApi,
+  [ORDER_TYPE.purchase]: reversePurchaseOrderApi,
+  [ORDER_TYPE.return]: reverseReturnOrderApi,
+  [ORDER_TYPE.waste]: reverseWasteOrderApi,
+  [ORDER_TYPE.claim]: reverseClaimOrderApi,
+  [ORDER_TYPE.surplus]: reverseSurplusOrderApi
+};
+
+async function handleReverseOrder(row) {
+  try {
+    const { value: reason } = await ElMessageBox.prompt(
+      "请输入作废原因",
+      "订单作废",
+      {
+        confirmButtonText: "确认",
+        cancelButtonText: "取消",
+        inputPattern: /\S+/,
+        inputErrorMessage: "作废原因不能为空"
+      }
+    );
+    if (reason) {
+      const api = reverseApiMap[orderType.value];
+      if (api) {
+        await api(row.uid, reason);
+        message("订单已作废", { type: "success" });
+        await onSearch();
+      }
+    }
+  } catch {
+    // User cancelled
+  }
+}
 
 onMounted(async () => {
   await getOrderType();
@@ -622,6 +664,22 @@ onMounted(async () => {
                 @click="handleConfirmTransferArrival(row)"
               >
                 确认到货
+              </el-button>
+
+              <!-- 订单作废 -->
+              <el-button
+                v-if="
+                  row.isApproved === true &&
+                  !row.isReversed &&
+                  orderType !== ORDER_TYPE.assembly &&
+                  orderType !== ORDER_TYPE.transfer
+                "
+                class="reset-margin"
+                link
+                type="danger"
+                @click="handleReverseOrder(row)"
+              >
+                作废
               </el-button>
 
               <el-button

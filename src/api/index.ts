@@ -27,3 +27,5 @@ export * from "./setting";
 export * from "./payment";
 export * from "./logistic";
 export * from "./asset";
+export * from "./analysis";
+export * from "./batch";
