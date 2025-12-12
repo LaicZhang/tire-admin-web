@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
+import type { userType } from "./types";
 import {
-  type userType,
   store,
   router,
   resetRouter,
@@ -24,6 +24,8 @@ export const useUserStore = defineStore("pure-user", {
     username: storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "",
     // 昵称
     nickname: storageLocal().getItem<DataInfo<number>>(userKey)?.nickname ?? "",
+    // 用户id
+    uid: storageLocal().getItem<DataInfo<number>>(userKey)?.uid ?? "",
     // 页面级别权限
     roles: storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [],
     // 按钮级别权限
@@ -56,6 +58,10 @@ export const useUserStore = defineStore("pure-user", {
     /** 存储按钮级别权限 */
     SET_PERMS(permissions: Array<string>) {
       this.permissions = permissions;
+    },
+    /** 存储用户id */
+    SET_UID(uid: string) {
+      this.uid = uid;
     },
     /** 存储是否勾选了登录页的免登录 */
     SET_IS_REMEMBERED(bool: boolean) {

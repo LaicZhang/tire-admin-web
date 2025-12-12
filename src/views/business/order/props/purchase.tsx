@@ -27,17 +27,16 @@ export interface PurchaseFormItemProps {
   arrivalAt: Date;
   payAt: Date;
   updateAt: Date;
-  details: [
-    {
-      index: number;
-      companyId?: string;
-      count: number;
-      total: number;
-      desc?: string;
-      isArrival: boolean;
-      tireId: string;
-    }
-  ];
+  fee?: number;
+  details: Array<{
+    index: number;
+    companyId?: string;
+    count: number;
+    total: number;
+    desc?: string;
+    isArrival: boolean;
+    tireId: string;
+  }>;
 }
 
 export interface PurchaseFormProps {

@@ -46,6 +46,10 @@ export type userType = {
   captchaCode?: string;
   loginDay?: number;
   currentPage?: number;
+  uid?: string;
+  nickname?: string; // Add other missing fields if needed matching state
+  avatar?: string;
+  permissions?: Array<string>;
 };
 
 export type currentCompanyType = {

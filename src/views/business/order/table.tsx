@@ -9,7 +9,8 @@ import {
   payPurchaseOrderApi,
   paySaleOrderApi,
   processClaimOrderPaymentApi,
-  refundReturnOrderApi
+  refundReturnOrderApi,
+  confirmPurchaseOrderArrivalApi
 } from "@/api";
 import editForm from "./form.vue";
 import {
@@ -154,9 +155,15 @@ export async function openDialog(title = "新增", type, row?) {
             }
             chores();
           } else if (
-            ["审核", "修改", "付款", "收款", "更新物流", "更新状态"].includes(
-              title
-            )
+            [
+              "审核",
+              "修改",
+              "付款",
+              "收款",
+              "更新物流",
+              "更新状态",
+              "确认到货"
+            ].includes(title)
           ) {
             if (title === "审核") {
               await updateOrderApi(type, uid, {
@@ -196,6 +203,17 @@ export async function openDialog(title = "新增", type, row?) {
           } else if (title === "退款") {
             await refundReturnOrderApi(uid, {
               fee: orderData.fee || 0
+            });
+            chores();
+          } else if (title === "确认到货") {
+            const arrivalDetails = curData.details.map(item => ({
+              id: item.uid, // assuming uid is the detail ID
+              count: item.count,
+              batchNo: item.batchNo,
+              expiryDate: item.expiryDate
+            }));
+            await confirmPurchaseOrderArrivalApi(uid, {
+              details: arrivalDetails
             });
             chores();
           } else {

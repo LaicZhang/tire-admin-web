@@ -17,6 +17,9 @@ export interface ReturnFormItemProps {
   auditAt: Date;
   arrivalAt: Date;
   payAt: Date;
+  fee?: number;
+  showTotal?: number;
+  details?: any[];
 }
 
 export interface ReturnFormProps {

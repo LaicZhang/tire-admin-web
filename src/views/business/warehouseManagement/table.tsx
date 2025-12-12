@@ -1,18 +1,17 @@
 import { h, ref } from "vue";
-import { message } from "../../../utils/message";
-import { addDialog } from "../../../components/ReDialog";
+import { message } from "@/utils/message";
+import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addReserveApi, updateReserveApi } from "@/api";
+import { getCompanyId } from "@/api/company";
+import { addRepoApi, updateRepoApi } from "@/api/company/repo";
 import editForm from "./form.vue";
 
 interface FormItemProps {
-  uid: string;
+  uid?: string;
   name: string;
-  id: number;
+  address?: string;
+  managerId?: string;
   desc?: string;
-  startAt: string;
-  endAt: string;
-  address: string;
   status: boolean;
 }
 interface FormProps {
@@ -23,23 +22,23 @@ export type { FormItemProps, FormProps };
 
 const formRef = ref(null);
 
-export function handleSelectionChange(_val) {
-  // 选择变化处理
-}
-
-export function openDialog(title = "新增", row?: FormItemProps) {
+export function openDialog(
+  title = "新增",
+  row?: any,
+  refreshCallback?: () => void
+) {
   addDialog({
-    title: `${title}库存`,
+    title: `${title}仓库`,
     props: {
       formInline: {
+        uid: row?.uid ?? undefined,
         name: row?.name ?? "",
-        uid: row?.uid ?? "",
-        desc: row?.desc ?? undefined,
-        startAt: row?.startAt ?? "",
-        endAt: row?.endAt ?? "",
         address: row?.address ?? "",
-        status: row?.status ?? 0
-      }
+        managerId: row?.manager?.uid ?? undefined, // Assuming manager is an object in row
+        desc: row?.desc ?? "",
+        status: row?.status ?? true
+      },
+      refreshCallback
     },
     width: "40%",
     hideFooter: title === "查看",
@@ -57,26 +56,60 @@ export function openDialog(title = "新增", row?: FormItemProps) {
           type: "success"
         });
         done(); // 关闭弹框
+        // We typically need to refresh the list here, but openDialog doesn't easily callback.
+        // The parent component listens for dialog close or similar?
+        // Actually the parent passes `getRepoListInfo` to `PureTableBar` @refresh.
+        // But for add/edit, we rely on the fact that `onSearch` or `getRepoListInfo` is called.
+        // In the original code `chores` called `done()`.
+        // Wait, the original code didn't trigger refresh in `openDialog`?
+        // Ah, `handleDelete` called `onSearch`.
+        // `openDialog` usually doesn't refresh automatically unless we pass a callback.
+        // But looking at `index.vue`, `openDialog` is just imported.
+        // Let's check `index.vue`. It passes nothing.
+        // Maybe I should add a callback or event?
+        // For now, I'll stick to the original pattern. Original `openDialog` didn't seem to refresh parent?
+        // Ah, `addDialog` might return a promise or have a `close` callback?
+        // `ReDialog` likely handles this?
+        // Let's look at `index.vue` again. It doesn't seem to have a mechanism to refresh after dialog close.
+        // Wait, `addDialog` is from a component library.
+        // If I want to refresh, I might need to dispatch an event or use a global bus, or pass a callback.
+        // The previous code didn't refresh? That's a bug in previous code or I missed something.
+        // `mitt` is used in package.json.
+        // Let's assume for now I just save. The user might need to manually refresh.
+        // OR `addDialog` options might accept a `closeCallBack`.
+        // I will follow the existing pattern for now but ensure API calls are correct.
       }
       FormRef.validate(async valid => {
         if (valid) {
           if (title === "新增") {
-            const { name, desc } = curData;
-            await addReserveApi({
+            const { name, address, managerId, desc, status } = curData;
+            await addRepoApi({
               name,
+              address,
+              manager: managerId ? { connect: { uid: managerId } } : undefined,
               desc,
+              status,
               company: {
                 connect: { uid: getCompanyId() }
               }
             });
             chores();
+            // Trigger refresh if possible.
+            // Since we can't easily reach parent, we might rely on window reload or just let user refresh.
+            // A better way is to pass a "refresh" callback to openDialog.
+            // I'll add `refreshCallback` to openDialog signature.
+            if (options.props.refreshCallback) options.props.refreshCallback();
           } else {
-            const { id, name, desc } = curData;
-            await updateReserveApi(id, {
+            const { uid, name, address, managerId, desc, status } = curData;
+            await updateRepoApi(uid, {
               name,
-              desc
+              address,
+              manager: managerId ? { connect: { uid: managerId } } : undefined, // Check if update supports relation update like this
+              desc,
+              status
             });
             chores();
+            if (options.props.refreshCallback) options.props.refreshCallback();
           }
         }
       });

@@ -344,7 +344,8 @@ export default [
         name: "repo",
         path: "/company/repo",
         redirect: null,
-        component: () => import("@/views/company/repo/index.vue"),
+        component: () =>
+          import("@/views/business/warehouseManagement/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "warehouseManager"],
@@ -499,7 +500,7 @@ export default [
         name: "assets",
         path: "/analysis/assets",
         redirect: null,
-
+        component: () => import("@/views/analysis/assets/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
@@ -514,7 +515,7 @@ export default [
         name: "sales",
         path: "/analysis/sales",
         redirect: null,
-
+        component: () => import("@/views/analysis/sales/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
@@ -529,7 +530,7 @@ export default [
         name: "dataSettings",
         path: "/analysis/dataSettings",
         redirect: null,
-
+        component: () => import("@/views/analysis/dataSettings/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
@@ -544,7 +545,7 @@ export default [
         name: "archiving",
         path: "/analysis/archiving",
         redirect: null,
-
+        component: () => import("@/views/analysis/archiving/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],

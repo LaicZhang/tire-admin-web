@@ -101,12 +101,98 @@ async function handleCurrentChange(val: number) {
   await getPaymentListInfo();
 }
 
+import { addDialog } from "@/components/ReDialog";
+import { h } from "vue";
+import editForm from "./form.vue";
+import { deviceDetection } from "@pureadmin/utils";
+
+// ... previous imports ...
+
 async function handleCreate() {
-  message("创建支付账户功能待实现", { type: "warning" });
+  addDialog({
+    title: "新增",
+    props: {
+      formInline: {
+        title: "新增",
+        name: "",
+        type: "Alipay",
+        account: "",
+        realName: ""
+      }
+    },
+    width: "40%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () => h(editForm, { ref: formRef }),
+    beforeSure: (done, { options }) => {
+      const FormRef = formRef.value.getRef();
+      const curData = options.props.formInline;
+      FormRef.validate(async valid => {
+        if (valid) {
+          try {
+            const companyUid = await getCompanyId();
+            await createPaymentApi({
+              companyUid,
+              name: curData.name,
+              type: curData.type,
+              account: curData.account,
+              realName: curData.realName
+            });
+            message("创建成功", { type: "success" });
+            done();
+            onSearch();
+          } catch (error) {
+            message(error.message || "创建失败", { type: "error" });
+          }
+        }
+      });
+    }
+  });
 }
 
 async function handleRecharge(row) {
-  message("充值功能待实现", { type: "warning" });
+  addDialog({
+    title: "充值",
+    props: {
+      formInline: {
+        title: "充值",
+        uid: row.uid,
+        balance: row.balance,
+        amount: 0,
+        remark: ""
+      }
+    },
+    width: "40%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () => h(editForm, { ref: formRef }),
+    beforeSure: (done, { options }) => {
+      const FormRef = formRef.value.getRef();
+      const curData = options.props.formInline;
+      FormRef.validate(async valid => {
+        if (valid) {
+          try {
+            await updatePaymentApi(curData.uid, {
+              type: "top-up",
+              payment: {
+                amount: curData.amount,
+                remark: curData.remark
+              }
+            });
+            message("充值成功", { type: "success" });
+            done();
+            onSearch();
+          } catch (error) {
+            message(error.message || "充值失败", { type: "error" });
+          }
+        }
+      });
+    }
+  });
 }
 
 async function handleCheckBalance(row) {

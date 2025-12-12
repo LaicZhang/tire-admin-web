@@ -20,17 +20,16 @@ export interface SaleFormItemProps {
   auditAt: Date;
   arrivalAt: Date;
   payAt: Date;
-  details: [
-    {
-      index: number;
-      companyId?: string;
-      count: number;
-      total: number;
-      desc?: string;
-      isArrival: boolean;
-      tireId: string;
-    }
-  ];
+  fee?: number;
+  details: Array<{
+    index: number;
+    companyId?: string;
+    count: number;
+    total: number;
+    desc?: string;
+    isArrival: boolean;
+    tireId: string;
+  }>;
 }
 
 export interface SaleFormProps {

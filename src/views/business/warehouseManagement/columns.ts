@@ -1,35 +1,24 @@
-export const columns = [
+export const columns: TableColumnList = [
   {
     label: "ID",
-    prop: "id"
+    prop: "uid"
   },
   {
-    label: "轮胎名",
+    label: "仓库名称",
     prop: "name"
   },
   {
-    label: "当前库存",
-    prop: "count"
+    label: "地址",
+    prop: "address"
   },
   {
-    label: "待入库",
-    prop: "toBeStocked"
+    label: "负责人",
+    prop: "manager.name"
   },
   {
-    label: "待出库",
-    prop: "toBeShipped"
-  },
-  {
-    label: "最新价",
-    prop: "lastPrice"
-  },
-  {
-    label: "历史最高价",
-    prop: "maxPriceInHistory"
-  },
-  {
-    label: "历史最低价",
-    prop: "minPriceInHistory"
+    label: "状态",
+    prop: "status",
+    cellRenderer: scope => (scope.row.status ? "启用" : "停用")
   },
   {
     label: "备注",
@@ -38,8 +27,7 @@ export const columns = [
   {
     label: "操作",
     fixed: "right",
-    prop: "operation",
-    slot: "operation",
-    minWidth: 120
+    width: 200,
+    slot: "operation"
   }
 ];

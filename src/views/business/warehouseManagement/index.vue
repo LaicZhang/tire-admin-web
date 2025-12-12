@@ -7,7 +7,11 @@ import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getReserveListApi, deleteReserveApi } from "@/api";
+import {
+  getRepoListApi,
+  deleteRepoApi,
+  toggleRepoApi
+} from "@/api/company/repo";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
@@ -27,54 +31,59 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
-const getReserveListInfo = async () => {
-  const { data, code, msg } = await getReserveListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
-};
-const onSearch = async () => {
+
+const getRepoListInfo = async () => {
   loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined)
-    await getReserveListInfo();
-
-  const { data } = await getReserveListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
-  });
-
-  dataList.value = data.list;
-  pagination.value.total = data.count;
+  const { data, code, msg } = await getRepoListApi(
+    pagination.value.currentPage,
+    {
+      name: form.value.name,
+      desc: form.value.desc
+    }
+  );
+  if (code === 200) {
+    dataList.value = data.list;
+    pagination.value.total = data.count;
+  } else {
+    message(msg, { type: "error" });
+  }
   loading.value = false;
+};
+
+const onSearch = async () => {
+  pagination.value.currentPage = 1;
+  await getRepoListInfo();
 };
 
 const resetForm = formEl => {
-  loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
-  loading.value = false;
+  onSearch();
 };
 
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
-  await getReserveListInfo();
+  await getRepoListInfo();
 }
 
 async function handleDelete(row) {
-  await deleteReserveApi(row.uid);
+  await deleteRepoApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
 
-// async function handleToggleReserve(row) {
-//   await toggleReserveApi(row.uid);
-//   onSearch();
-// }
+async function handleToggleStatus(row) {
+  const { code, msg } = await toggleRepoApi(row.uid);
+  if (code === 200) {
+    message("状态已更新", { type: "success" });
+    getRepoListInfo();
+  } else {
+    message(msg, { type: "error" });
+  }
+}
 
 onMounted(async () => {
-  await getReserveListInfo();
+  await getRepoListInfo();
 });
 </script>
 
@@ -84,12 +93,13 @@ onMounted(async () => {
       <el-form
         ref="formRef"
         :inline="true"
+        :model="form"
         class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
       >
-        <el-form-item label="名称：" prop="name">
+        <el-form-item label="仓库名称：" prop="name">
           <el-input
             v-model="form.name"
-            placeholder="请输入名称"
+            placeholder="请输入仓库名称"
             clearable
             class="w-[180px]!"
           />
@@ -119,19 +129,19 @@ onMounted(async () => {
     </el-card>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getReserveListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="getRepoListInfo">
         <template #buttons>
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog()"
+            @click="openDialog('新增', undefined, onSearch)"
           >
-            新增库存
+            新增仓库
           </el-button>
         </template>
         <template v-slot="{ size }">
           <pure-table
-            row-key="id"
+            row-key="uid"
             adaptive
             :size
             :columns
@@ -146,16 +156,16 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('查看', row)"
+                @click="handleToggleStatus(row)"
               >
-                查看
+                {{ row.status ? "停用" : "启用" }}
               </el-button>
               <el-button
                 class="reset-margin"
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
+                @click="openDialog('修改', row, onSearch)"
               >
                 修改
               </el-button>

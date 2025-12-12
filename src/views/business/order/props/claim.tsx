@@ -17,6 +17,10 @@ export interface ClaimFormItemProps {
   auditAt: Date;
   arrivalAt: Date;
   payAt: Date;
+  fee?: number;
+  isReceive?: boolean;
+  showTotal?: number;
+  details?: any[];
 }
 
 export interface ClaimFormProps {

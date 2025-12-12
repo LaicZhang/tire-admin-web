@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { onMounted, Ref, ref } from "vue";
-import { PurchaseFormProps, SaleFormProps } from "./props";
+import {
+  PurchaseFormProps,
+  SaleFormProps,
+  ClaimFormProps,
+  ReturnFormProps
+} from "./props";
 import {
   ALL_LIST,
   CUR_ORDER_TYPE,
@@ -8,42 +13,48 @@ import {
   message,
   ORDER_TYPE
 } from "@/utils";
+import { getPaymentListApi, getCompanyId } from "@/api";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
 import { getColumns, getFormRules } from "./handleData";
 import { getFormTileInLocal } from "./table";
 
-const props = withDefaults(defineProps<PurchaseFormProps | SaleFormProps>(), {
-  formInline: () => ({
-    number: undefined,
-    uid: undefined,
-    id: undefined,
-    desc: undefined,
-    operatorId: undefined,
-    auditorId: undefined,
-    warehouseEmployeeId: undefined,
-    count: 0,
-    total: 0,
-    showTotal: 0,
-    orderStatus: 0,
-    logisticsStatus: 0,
-    paidAmount: 0,
-    isApproved: false,
-    isLocked: false,
-    rejectReason: undefined,
-    paymentId: undefined,
-    auditAt: null,
-    arrivalAt: null,
-    payAt: null,
-    updateAt: null,
-    providerId: undefined,
-    customerId: undefined,
-    fee: 0,
-    isReceive: false,
-    details: [] as any
-  })
-});
+const props = withDefaults(
+  defineProps<
+    PurchaseFormProps | SaleFormProps | ClaimFormProps | ReturnFormProps
+  >(),
+  {
+    formInline: () => ({
+      number: undefined,
+      uid: undefined,
+      id: undefined,
+      desc: undefined,
+      operatorId: undefined,
+      auditorId: undefined,
+      warehouseEmployeeId: undefined,
+      count: 0,
+      total: 0,
+      showTotal: 0,
+      orderStatus: 0,
+      logisticsStatus: 0,
+      paidAmount: 0,
+      isApproved: false,
+      isLocked: false,
+      rejectReason: undefined,
+      paymentId: undefined,
+      auditAt: null,
+      arrivalAt: null,
+      payAt: null,
+      updateAt: null,
+      providerId: undefined,
+      customerId: undefined,
+      fee: 0,
+      isReceive: false,
+      details: [] as any
+    })
+  }
+);
 const orderType: Ref<ORDER_TYPE> = ref();
 
 const formRules = ref(getFormRules(orderType.value));
@@ -68,7 +79,27 @@ const detailsColumns = ref([]);
 function setDetailsColumnsAndFormRules() {
   detailsColumns.value = getColumns(orderType.value);
   formRules.value = getFormRules(orderType.value);
-  if (!detailsColumns.value.length) {
+  if (formTitle.value === "确认到货" || formTitle.value === "新增") {
+    // 确认到货时添加批次号和过期时间列
+    // 新增时也可以允许录入(虽然逻辑上是到货才录入，但有时是一步到位)
+    // 这里主要针对 '确认到货'
+    if (formTitle.value === "确认到货") {
+      detailsColumns.value = [
+        ...detailsColumns.value,
+        {
+          label: "批次号",
+          prop: "batchNo",
+          slot: "batchNoInput"
+        },
+        {
+          label: "过期时间",
+          prop: "expiryDate",
+          slot: "expiryDateInput"
+        }
+      ];
+    }
+  }
+  if (!detailsColumns.value || !detailsColumns.value.length) {
     // 未知订单类型，静默处理
   }
 }
@@ -101,6 +132,7 @@ const allRepoList = ref([]);
 const allTireList = ref([]);
 const allCustomerList = ref([]);
 const allProviderList = ref([]);
+const allPaymentList = ref([]);
 async function getALlList() {
   try {
     const [managerData, repoData, tireData, customerData, providerData] =
@@ -117,6 +149,12 @@ async function getALlList() {
     allTireList.value = tireData;
     allCustomerList.value = customerData;
     allProviderList.value = providerData;
+
+    const cid = await getCompanyId();
+    const { data: paymentData } = await getPaymentListApi(cid);
+    allPaymentList.value = Array.isArray(paymentData)
+      ? paymentData
+      : paymentData.list;
   } catch (error) {
     message(error.message, { type: "error" });
   }
@@ -128,8 +166,8 @@ async function getDisabled(arr: string[]) {
 defineExpose({ getRef });
 onMounted(async () => {
   await getOrderType();
+  await getFormTitle(); // Move up to ensure title is ready before setting columns if we logic depends on it
   setDetailsColumnsAndFormRules();
-  await getFormTitle();
   await getALlList();
 });
 </script>
@@ -257,6 +295,12 @@ onMounted(async () => {
           class="w-[15vw]!"
         >
           <!-- 支付账户选项需要从API获取 -->
+          <el-option
+            v-for="item in allPaymentList"
+            :key="item.uid"
+            :label="item.name + ' (余额:' + (item.balance || 0) + ')'"
+            :value="item.uid"
+          />
         </el-select>
       </el-form-item>
     </template>
@@ -267,14 +311,14 @@ onMounted(async () => {
     >
       <el-form-item label="费用金额" prop="fee">
         <el-input-number
-          v-model="newFormInline.fee"
+          v-model="(newFormInline as any).fee"
           :min="0"
           :precision="2"
           class="w-[180px]!"
         />
       </el-form-item>
       <el-form-item label="费用类型">
-        <el-radio-group v-model="newFormInline.isReceive">
+        <el-radio-group v-model="(newFormInline as any).isReceive">
           <el-radio :label="true">收到理赔金</el-radio>
           <el-radio :label="false">支付理赔金</el-radio>
         </el-radio-group>
@@ -285,7 +329,7 @@ onMounted(async () => {
     <template v-if="formTitle === '退款' && orderType === ORDER_TYPE.return">
       <el-form-item label="退款金额" prop="fee">
         <el-input-number
-          v-model="newFormInline.fee"
+          v-model="(newFormInline as any).fee"
           :min="0"
           :precision="2"
           class="w-[180px]!"
@@ -335,11 +379,23 @@ onMounted(async () => {
             @change="
               () => {
                 newFormInline.count = newFormInline.details.reduce(
-                  (acc, cur) => acc + cur.count,
+                  (acc: number, cur: any) => acc + cur.count,
                   0
                 );
               }
             "
+          />
+        </template>
+        <template #batchNoInput="{ row }">
+          <el-input v-model="row.batchNo" placeholder="请输入批次号" />
+        </template>
+        <template #expiryDateInput="{ row }">
+          <el-date-picker
+            v-model="row.expiryDate"
+            type="date"
+            placeholder="请选择过期时间"
+            value-format="YYYY-MM-DD"
+            class="w-full!"
           />
         </template>
         <template #repoIdSelect="{ row }">

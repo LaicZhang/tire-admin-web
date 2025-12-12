@@ -1,23 +1,16 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
-import { localForage } from "@/utils";
+import { getEmployeeListApi } from "@/api/company/employee";
+import { message } from "@/utils";
 
 interface FormItemProps {
-  uid: string;
-  tireId: string;
-  count: number;
-  toBeStocked: number;
-  toBeShipped: number;
-  maxPriceInHistory: number;
-  minPriceInHistory: number;
-  averagePrice: number;
-  lastPrice: number;
-  alarmId: string;
-  repoId: string;
+  uid?: string;
+  name: string;
+  address?: string;
+  managerId?: string;
   desc?: string;
-  lastInAt: Date;
-  lastOutAt: Date;
+  status: boolean;
 }
 
 interface FormProps {
@@ -27,33 +20,30 @@ interface FormProps {
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     uid: undefined,
-    tireId: undefined,
-    count: 0,
-    toBeStocked: 0,
-    toBeShipped: 0,
-    maxPriceInHistory: 0,
-    minPriceInHistory: 0,
-    averagePrice: 0,
-    lastPrice: 0,
-    alarmId: undefined,
-    repoId: undefined,
-    desc: undefined,
-    lastInAt: null,
-    lastOutAt: null
+    name: "",
+    address: "",
+    managerId: undefined,
+    desc: "",
+    status: true
   })
 });
-/** 自定义表单规则校验 */
-const formRules = reactive({
-  tireId: [{ required: true, message: "轮胎类型为必填项", trigger: "blur" }],
-  desc: [{ required: false, message: "角色标识为必填项", trigger: "blur" }]
+
+const formRules = reactive<FormRules>({
+  name: [{ required: true, message: "仓库名称为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
-const allTiresList = ref([]);
+const employeeList = ref([]);
 
-const getAllTiresList = async () => {
-  allTiresList.value = await localForage().getItem("tire");
+const getEmployees = async () => {
+  const { data, code, msg } = await getEmployeeListApi(0); // 0 for all if API supports it, or handle pagination
+  if (code === 200) {
+    employeeList.value = data.list || [];
+  } else {
+    // message(msg, { type: "error" });
+    // Suppress initial loading error or handle it
+  }
 };
 
 function getRef() {
@@ -61,8 +51,9 @@ function getRef() {
 }
 
 defineExpose({ getRef });
+
 onMounted(async () => {
-  await getAllTiresList();
+  await getEmployees();
 });
 </script>
 
@@ -73,64 +64,46 @@ onMounted(async () => {
     :rules="formRules"
     label-width="82px"
   >
-    <el-form-item label="轮胎" prop="tireId">
-      <el-select
-        v-model="newFormInline.tireId"
+    <el-form-item label="仓库名称" prop="name">
+      <el-input
+        v-model="newFormInline.name"
         clearable
-        placeholder="请选择轮胎"
+        placeholder="请输入仓库名称"
+      />
+    </el-form-item>
+
+    <el-form-item label="仓库地址" prop="address">
+      <el-input
+        v-model="newFormInline.address"
+        clearable
+        placeholder="请输入仓库地址"
+      />
+    </el-form-item>
+
+    <el-form-item label="负责人" prop="managerId">
+      <el-select
+        v-model="newFormInline.managerId"
+        clearable
+        placeholder="请选择负责人"
       >
         <el-option
-          v-for="item in allTiresList"
-          :key="item.id"
-          :label="item.group + '-' + item.name"
-          :value="item.id"
+          v-for="item in employeeList"
+          :key="item.uid"
+          :label="item.name"
+          :value="item.uid"
         />
       </el-select>
     </el-form-item>
 
-    <el-form-item label="库存数量" prop="count">
-      <el-input-number v-model="newFormInline.count" clearable />
+    <el-form-item label="状态" prop="status">
+      <el-switch v-model="newFormInline.status" />
     </el-form-item>
 
-    <el-form-item label="均价" prop="averagePrice">
-      <el-input
-        v-model="newFormInline.averagePrice"
-        clearable
-        placeholder="请输入均价"
-      />
-    </el-form-item>
-
-    <el-form-item label="最新价格" prop="lastPrice">
-      <el-input
-        v-model="newFormInline.lastPrice"
-        clearable
-        placeholder="请输入最新价格"
-      />
-    </el-form-item>
-
-    <el-form-item label="备注">
+    <el-form-item label="备注" prop="desc">
       <el-input
         v-model="newFormInline.desc"
         placeholder="请输入备注信息"
         type="textarea"
-      />
-    </el-form-item>
-
-    <el-form-item label="最新入库" prop="lastInAt">
-      <el-date-picker
-        v-model="newFormInline.lastInAt"
-        clearable
-        type="datetime"
-        placeholder="请输入最新入库时间"
-      />
-    </el-form-item>
-
-    <el-form-item label="最新出库" prop="lastOutAt">
-      <el-date-picker
-        v-model="newFormInline.lastOutAt"
-        clearable
-        type="datetime"
-        placeholder="请输入最新出库时间"
       />
     </el-form-item>
   </el-form>

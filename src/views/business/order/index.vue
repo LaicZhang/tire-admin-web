@@ -213,13 +213,7 @@ async function handleDelete(row) {
 
 // 采购订单：确认到货
 async function handleConfirmPurchaseArrival(row) {
-  try {
-    await confirmPurchaseOrderArrivalApi(row.uid, {});
-    message("确认到货成功", { type: "success" });
-    await onSearch();
-  } catch (error) {
-    message(error.message || "确认到货失败", { type: "error" });
-  }
+  handleOpenDialog("确认到货", orderType.value, row);
 }
 
 // 销售订单：确认发货
