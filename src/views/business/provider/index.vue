@@ -10,6 +10,9 @@ import { openDialog } from "./table";
 import { getProviderListApi, deleteProviderApi } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { ImportDialog, ExportDialog } from "@/components/ImportExport";
+import ImportIcon from "~icons/ri/upload-cloud-2-line";
+import ExportIcon from "~icons/ri/download-cloud-2-line";
 
 defineOptions({
   name: "tire"
@@ -27,6 +30,9 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
+
+const showImportDialog = ref(false);
+const showExportDialog = ref(false);
 const getProviderListInfo = async () => {
   const { data, code, msg } = await getProviderListApi(
     pagination.value.currentPage
@@ -128,6 +134,20 @@ onMounted(async () => {
           >
             新增供应商
           </el-button>
+
+          <el-button
+            :icon="useRenderIcon(ImportIcon)"
+            @click="showImportDialog = true"
+          >
+            导入
+          </el-button>
+
+          <el-button
+            :icon="useRenderIcon(ExportIcon)"
+            @click="showExportDialog = true"
+          >
+            导出
+          </el-button>
         </template>
         <template v-slot="{ size }">
           <pure-table
@@ -176,5 +196,17 @@ onMounted(async () => {
         </template>
       </PureTableBar>
     </el-card>
+
+    <ImportDialog
+      v-model:visible="showImportDialog"
+      type="provider"
+      title="批量导入供应商"
+      @success="getProviderListInfo"
+    />
+    <ExportDialog
+      v-model:visible="showExportDialog"
+      type="provider"
+      title="导出供应商数据"
+    />
   </div>
 </template>

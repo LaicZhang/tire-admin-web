@@ -12,31 +12,52 @@ export function useColumns() {
   const loading = ref(true);
   const columns: TableColumnList = [
     {
-      label: "id",
-      prop: "id"
+      label: "序号",
+      type: "index",
+      width: 60
     },
     {
-      label: "日期",
-      prop: "createAt",
-      formatter: row => {
-        return formatDate(row.createAt);
-      }
+      label: "模块",
+      prop: "module",
+      hide: ({ method }) => !method // Simple heuristic: only show if it looks like an operation log
     },
     {
-      label: "方式",
-      prop: "method"
+      label: "操作",
+      prop: "method" // For login logs this is "method", for op logs it might be "summary" or we map "method"
+    },
+    {
+      label: "状态",
+      prop: "success",
+      cellRenderer: ({ row }) => (
+        <el-tag type={row.success ? "success" : "danger"}>
+          {row.success ? "成功" : "失败"}
+        </el-tag>
+      ),
+      hide: ({ method }) => !method // Only for op logs
+    },
+    {
+      label: "操作人",
+      prop: "operator"
+    },
+    {
+      label: "IP地址",
+      prop: "ip"
     },
     {
       label: "操作系统",
-      prop: "record.os"
+      prop: "record.os",
+      hide: ({ method }) => !!method // Hide for op logs if they don't have record.os
     },
     {
       label: "浏览器",
-      prop: "record.browser"
+      prop: "record.browser",
+      hide: ({ method }) => !!method
     },
     {
-      label: "ip",
-      prop: "ip"
+      label: "时间",
+      prop: "createAt",
+      formatter: row => formatDate(row.createAt),
+      minWidth: 160
     }
   ];
 

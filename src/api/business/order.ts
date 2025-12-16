@@ -412,3 +412,16 @@ export async function getAuditorListApi(type: string) {
     baseUrlApi(prefix + "auditor/" + type)
   );
 }
+
+// 获取待审核订单列表
+export async function getPendingAuditOrdersApi(
+  type: string,
+  index: number,
+  params?: object
+) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "pending/" + type + "/page/" + index),
+    { params }
+  );
+}

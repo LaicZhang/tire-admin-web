@@ -38,3 +38,24 @@ export async function toggleRepoApi(uid) {
 export async function deleteRepoApi(uid) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
+
+/** 启用仓库 */
+export async function startRepoApi(uid: string) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(prefix + "start/" + uid)
+  );
+}
+
+/** 停用仓库 */
+export async function stopRepoApi(uid: string) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(prefix + "stop/" + uid)
+  );
+}
+
+/** 设置为主仓库 */
+export async function setDefaultRepoApi(uid: string) {
+  return await updateRepoApi(uid, { isPrimary: true });
+}

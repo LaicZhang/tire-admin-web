@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import {
   getInventorySummaryApi,
   getSlowMovingApi,
-  getStockoutApi
+  getStockoutApi,
+  getInventoryTurnoverApi,
+  getExpiryDistributionApi
 } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
+import * as echarts from "echarts";
 
 defineOptions({
   name: "AnalysisInventory"
@@ -31,6 +34,16 @@ const summaryData = ref({
 const slowMovingList = ref<any[]>([]);
 // 缺货分析
 const stockoutList = ref<any[]>([]);
+// 库存周转
+const turnoverData = ref<any>({ turnoverRate: 0, averageDays: 0, details: [] });
+// 临期分布
+const expiryData = ref<any[]>([]);
+
+// 图表引用
+const turnoverChartRef = ref<HTMLElement | null>(null);
+const expiryChartRef = ref<HTMLElement | null>(null);
+let turnoverChart: echarts.ECharts | null = null;
+let expiryChart: echarts.ECharts | null = null;
 
 // 格式化金额
 const formatAmount = (val: string | number) => {
@@ -60,7 +73,7 @@ const getSummary = async () => {
 
 const getSlowMoving = async () => {
   try {
-    const { data, code } = await getSlowMovingApi({ days: 90 }); // 默认90天滞销
+    const { data, code } = await getSlowMovingApi({ days: 90 });
     if (code === 200) {
       slowMovingList.value = Array.isArray(data) ? data : data.items || [];
     }
@@ -80,10 +93,92 @@ const getStockout = async () => {
   }
 };
 
+const getTurnover = async () => {
+  try {
+    const { data, code } = await getInventoryTurnoverApi();
+    if (code === 200 && data) {
+      turnoverData.value = {
+        turnoverRate: data.turnoverRate || 0,
+        averageDays: data.averageDays || 0,
+        details: data.details || []
+      };
+      nextTick(() => updateTurnoverChart());
+    }
+  } catch (error) {
+    console.error("获取周转率失败:", error);
+  }
+};
+
+const getExpiry = async () => {
+  try {
+    const { data, code } = await getExpiryDistributionApi({});
+    if (code === 200) {
+      expiryData.value = Array.isArray(data) ? data : data.buckets || [];
+      nextTick(() => updateExpiryChart());
+    }
+  } catch (error) {
+    console.error("获取临期分布失败:", error);
+  }
+};
+
+const updateTurnoverChart = () => {
+  if (!turnoverChartRef.value) return;
+  if (!turnoverChart) {
+    turnoverChart = echarts.init(turnoverChartRef.value);
+  }
+  const details = turnoverData.value.details || [];
+  turnoverChart.setOption({
+    tooltip: { trigger: "axis" },
+    xAxis: {
+      type: "category",
+      data: details.map((d: any) => d.repoName || d.name)
+    },
+    yAxis: { type: "value", name: "周转次数" },
+    series: [
+      {
+        type: "bar",
+        data: details.map((d: any) => d.turnoverRate || 0),
+        itemStyle: { color: "#409EFF" }
+      }
+    ]
+  });
+};
+
+const updateExpiryChart = () => {
+  if (!expiryChartRef.value) return;
+  if (!expiryChart) {
+    expiryChart = echarts.init(expiryChartRef.value);
+  }
+  expiryChart.setOption({
+    tooltip: { trigger: "item" },
+    series: [
+      {
+        type: "pie",
+        radius: "60%",
+        data: expiryData.value.map((d: any) => ({
+          name: d.label || d.bucket,
+          value: d.count || d.quantity
+        }))
+      }
+    ]
+  });
+};
+
+const handleResize = () => {
+  turnoverChart?.resize();
+  expiryChart?.resize();
+};
+
 const loadData = async () => {
   loading.value = true;
   try {
-    await Promise.all([getSummary(), getSlowMoving(), getStockout()]);
+    await Promise.all([
+      getSummary(),
+      getSlowMoving(),
+      getStockout(),
+      getTurnover(),
+      getExpiry()
+    ]);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载数据失败";
     message(msg, { type: "error" });
@@ -94,6 +189,13 @@ const loadData = async () => {
 
 onMounted(() => {
   loadData();
+  window.addEventListener("resize", handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
+  turnoverChart?.dispose();
+  expiryChart?.dispose();
 });
 </script>
 
@@ -184,6 +286,33 @@ onMounted(() => {
             <el-table-column prop="safetyStock" label="安全库存" width="100" />
             <el-table-column prop="suggestPurchase" label="建议采购" />
           </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 库存周转率与临期分布 -->
+    <el-row :gutter="16" class="mt-4">
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <div class="flex justify-between items-center">
+              <span class="font-bold">库存周转率</span>
+              <el-tag type="info" size="small">
+                平均周转天数: {{ turnoverData.averageDays }} 天
+              </el-tag>
+            </div>
+          </template>
+          <div ref="turnoverChartRef" class="h-64" />
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <div class="flex justify-between items-center">
+              <span class="font-bold">临期分布</span>
+            </div>
+          </template>
+          <div ref="expiryChartRef" class="h-64" />
         </el-card>
       </el-col>
     </el-row>

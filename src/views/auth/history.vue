@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getLogApi } from "@/api";
+import { getOperationLogListApi } from "@/api/system/log";
 import { onMounted, ref } from "vue";
 import { useColumns } from "./columns";
 
@@ -20,23 +21,31 @@ const {
 } = useColumns();
 const index = ref(1);
 const type = ref(1);
+
 async function getHistory() {
   dataList.value = [];
-  let params;
+  loading.value = true;
+  let params: any = {};
 
   if (type.value === 1) {
-    params = { loginAt: null };
+    // Login History
+    const { data, code } = await getLogApi(index.value, params);
+    handleApiResponse({ data, code });
   } else if (type.value === 2) {
-    params = { operationAt: null };
+    // Operation History
+    const { data, code } = await getOperationLogListApi(index.value, params);
+    handleApiResponse({ data, code });
+  } else {
+    loading.value = false;
   }
-  const { data, code } = await getLogApi(index.value, params);
-  handleApiResponse({ data, code });
 }
 
 async function handleApiResponse({ data, code }) {
   if (code === 200) {
     dataList.value = data.list;
-    pagination.total = data.count;
+    pagination.total = data.total || data.count; // Adapt to different API returns
+    loading.value = false;
+  } else {
     loading.value = false;
   }
 }

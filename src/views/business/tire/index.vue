@@ -10,6 +10,10 @@ import { getTireListApi, deleteTireApi, getDepartmentWithEmpApi } from "@/api";
 import { message, localForage, ALL_LIST } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { BaseImagePath } from "@/utils";
+import { ImportDialog, ExportDialog } from "@/components/ImportExport";
+import ImportIcon from "~icons/ri/upload-cloud-2-line";
+import ExportIcon from "~icons/ri/download-cloud-2-line";
+import StockIcon from "~icons/ri/stack-line";
 
 defineOptions({
   name: "Tire"
@@ -29,6 +33,9 @@ const dataList = ref([]),
     currentPage: 1,
     background: true
   });
+
+const showImportDialog = ref(false);
+const showExportDialog = ref(false);
 
 const getEmployeesWithTire = async () => {
   const { data, code, msg } = await getDepartmentWithEmpApi();
@@ -165,6 +172,27 @@ onMounted(async () => {
           >
             新增轮胎
           </el-button>
+
+          <el-button
+            :icon="useRenderIcon(StockIcon)"
+            @click="showImportDialog = true"
+          >
+            期初库存
+          </el-button>
+
+          <el-button
+            :icon="useRenderIcon(ImportIcon)"
+            @click="showImportDialog = true"
+          >
+            导入
+          </el-button>
+
+          <el-button
+            :icon="useRenderIcon(ExportIcon)"
+            @click="showExportDialog = true"
+          >
+            导出
+          </el-button>
         </template>
         <template v-slot="{ size }">
           <pure-table
@@ -228,5 +256,17 @@ onMounted(async () => {
         </template>
       </PureTableBar>
     </el-card>
+
+    <ImportDialog
+      v-model:visible="showImportDialog"
+      type="tire"
+      title="批量导入商品"
+      @success="getTireListInfo"
+    />
+    <ExportDialog
+      v-model:visible="showExportDialog"
+      type="tire"
+      title="导出商品数据"
+    />
   </div>
 </template>

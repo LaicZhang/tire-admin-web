@@ -7,8 +7,14 @@ import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import { getRepoListApi, deleteRepoApi, toggleRepoApi } from "@/api";
-import { ALL_LIST, localForage, message } from "@/utils";
+import {
+  getRepoListApi,
+  deleteRepoApi,
+  startRepoApi,
+  stopRepoApi,
+  setDefaultRepoApi
+} from "@/api";
+import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
@@ -69,7 +75,19 @@ async function handleDelete(row) {
 }
 
 async function handleToggleRepo(row) {
-  await toggleRepoApi(row.uid);
+  if (row.status === true) {
+    await stopRepoApi(row.uid);
+    message(`已停用仓库「${row.name}」`, { type: "success" });
+  } else {
+    await startRepoApi(row.uid);
+    message(`已启用仓库「${row.name}」`, { type: "success" });
+  }
+  onSearch();
+}
+
+async function handleSetDefault(row) {
+  await setDefaultRepoApi(row.uid);
+  message(`已将「${row.name}」设为默认仓库`, { type: "success" });
   onSearch();
 }
 
@@ -160,7 +178,7 @@ onMounted(async () => {
               </el-button>
 
               <el-popconfirm
-                :title="`是否确认停用${row.name}`"
+                :title="`是否确认${row.status === true ? '停用' : '启用'}${row.name}`"
                 @confirm="handleToggleRepo(row)"
               >
                 <template #reference>
@@ -169,6 +187,21 @@ onMounted(async () => {
                   </el-button>
                 </template>
               </el-popconfirm>
+
+              <el-popconfirm
+                v-if="!row.isPrimary"
+                :title="`是否将${row.name}设为默认仓库`"
+                @confirm="handleSetDefault(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="success">
+                    设为默认
+                  </el-button>
+                </template>
+              </el-popconfirm>
+              <el-tag v-else type="success" size="small" class="ml-2">
+                默认
+              </el-tag>
 
               <el-popconfirm
                 :title="`是否确认删除${row.name}这条数据`"

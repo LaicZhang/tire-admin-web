@@ -28,7 +28,10 @@ export enum StaticImageTypeEnum {
 
 export enum ORDER_TYPE {
   purchase = "purchase-order",
+  purchasePlan = "purchase-plan",
+  purchaseInquiry = "purchase-inquiry",
   sale = "sale-order",
+  saleQuotation = "sale-quotation",
   claim = "claim-order",
   return = "return-order",
   waste = "waste-order",
@@ -44,8 +47,20 @@ export const ORDER_TYPE_LIST = [
     label: "采购订单"
   },
   {
+    value: ORDER_TYPE.purchasePlan,
+    label: "采购计划"
+  },
+  {
+    value: ORDER_TYPE.purchaseInquiry,
+    label: "采购询价"
+  },
+  {
     value: ORDER_TYPE.sale,
     label: "销售订单"
+  },
+  {
+    value: ORDER_TYPE.saleQuotation,
+    label: "销售报价"
   },
   {
     value: ORDER_TYPE.claim,

@@ -7,7 +7,10 @@ import {
   returnOrderColumns,
   wasteOrderColumns,
   transferOrderColumns,
-  assemblyOrderColumns
+  assemblyOrderColumns,
+  purchasePlanColumns,
+  purchaseInquiryColumns,
+  saleQuotationColumns
 } from "./props";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
@@ -16,7 +19,14 @@ import AddFill from "~icons/ri/add-circle-line";
 import { openDialog } from "./table";
 import {
   getOrderListApi,
+  getPurchasePlanListApi,
+  getPurchaseInquiryListApi,
+  getSaleQuotationListApi,
   deleteOrderApi,
+  predictPurchasePlanApi,
+  sendPurchaseInquiryApi,
+  convertSaleQuotationApi,
+  updateSaleQuotationStatusApi,
   getEmployeeListApi,
   getAuditorListApi,
   getRepoListApi,
@@ -78,10 +88,28 @@ const orderTypeList = ref(getOrderTypeList(userRoles));
 
 const getOrderListInfo = async () => {
   if (orderType.value === "") return;
-  const { data, code, msg } = await getOrderListApi(
-    orderType.value,
-    pagination.value.currentPage
-  );
+  let res;
+  const params = {
+    page: pagination.value.currentPage,
+    limit: pagination.value.pageSize,
+    ...form.value
+  };
+
+  if (orderType.value === ORDER_TYPE.purchasePlan) {
+    res = await getPurchasePlanListApi(params);
+  } else if (orderType.value === ORDER_TYPE.purchaseInquiry) {
+    res = await getPurchaseInquiryListApi(params);
+  } else if (orderType.value === ORDER_TYPE.saleQuotation) {
+    res = await getSaleQuotationListApi(params);
+  } else {
+    res = await getOrderListApi(
+      orderType.value,
+      pagination.value.currentPage,
+      form.value
+    );
+  }
+
+  const { data, code, msg } = res;
   if (code === 200) {
     dataList.value = data.list;
     pagination.value.total = data.count;
@@ -184,7 +212,10 @@ const columnMapping = {
   [ORDER_TYPE.return]: returnOrderColumns,
   [ORDER_TYPE.waste]: wasteOrderColumns,
   [ORDER_TYPE.transfer]: transferOrderColumns,
-  [ORDER_TYPE.assembly]: assemblyOrderColumns
+  [ORDER_TYPE.assembly]: assemblyOrderColumns,
+  [ORDER_TYPE.purchasePlan]: purchasePlanColumns,
+  [ORDER_TYPE.purchaseInquiry]: purchaseInquiryColumns,
+  [ORDER_TYPE.saleQuotation]: saleQuotationColumns
 };
 
 const setOrderType = async () => {
@@ -353,6 +384,26 @@ async function handleReverseOrder(row) {
     }
   } catch {
     // User cancelled
+  }
+}
+
+async function handleSendInquiry(row) {
+  try {
+    await sendPurchaseInquiryApi(row.id);
+    message("询价单发送成功", { type: "success" });
+    await onSearch();
+  } catch (error: any) {
+    message(error.message || "发送失败", { type: "error" });
+  }
+}
+
+async function handleConvertQuotation(row) {
+  try {
+    await convertSaleQuotationApi(row.id);
+    message("报价单转订单成功", { type: "success" });
+    await onSearch();
+  } catch (error: any) {
+    message(error.message || "转换失败", { type: "error" });
   }
 }
 
@@ -627,6 +678,48 @@ onMounted(async () => {
                 @click="handleConfirmReturnProviderDelivery(row)"
               >
                 确认退供应商送达
+              </el-button>
+
+              <!-- 采购计划：生成订单 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.purchasePlan &&
+                  row.status !== 'ordered'
+                "
+                class="reset-margin"
+                link
+                type="primary"
+                @click="message('功能开发中', { type: 'info' })"
+              >
+                生成订单
+              </el-button>
+
+              <!-- 采购询价：发送询价 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.purchaseInquiry &&
+                  row.status === 'draft'
+                "
+                class="reset-margin"
+                link
+                type="primary"
+                @click="handleSendInquiry(row)"
+              >
+                发送询价
+              </el-button>
+
+              <!-- 销售报价：转订单 -->
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.saleQuotation &&
+                  row.status === 'accepted'
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleConvertQuotation(row)"
+              >
+                转订单
               </el-button>
 
               <!-- 退货订单：退款 -->

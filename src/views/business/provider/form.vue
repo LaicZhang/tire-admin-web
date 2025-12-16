@@ -14,6 +14,7 @@ interface FormItemProps {
   contactName: string;
   province: string;
   status: boolean;
+  initialPayable?: number;
 }
 
 interface FormProps {
@@ -31,7 +32,8 @@ const props = withDefaults(defineProps<FormProps>(), {
     isPublic: false,
     contactName: undefined,
     province: undefined,
-    status: true
+    status: true,
+    initialPayable: 0
   })
 });
 /** 自定义表单规则校验 */
@@ -94,6 +96,20 @@ defineExpose({ getRef });
 
     <el-form-item label="是否公开" prop="isPublic">
       <el-switch v-model="newFormInline.isPublic" />
+    </el-form-item>
+
+    <el-form-item label="期初欠款" prop="initialPayable">
+      <el-input-number
+        v-model="newFormInline.initialPayable"
+        :min="0"
+        :step="100"
+        style="width: 100%"
+        placeholder="请输入期初应付款"
+        :disabled="!!newFormInline.uid"
+      />
+      <div class="text-xs text-gray-400 mt-1">
+        仅新建供应商时可设置，后期请通过财务调整
+      </div>
     </el-form-item>
 
     <el-form-item label="是否个人" prop="isIndividual">

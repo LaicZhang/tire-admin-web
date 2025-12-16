@@ -233,3 +233,67 @@ export async function exportReportApi(params?: {
     responseType: "blob"
   });
 }
+
+// 利润核算 - 毛利分析
+export async function getGrossProfitApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  groupBy?: "day" | "week" | "month";
+}) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "profit/gross"),
+    { params }
+  );
+}
+
+// 利润核算 - 净利润分析
+export async function getNetProfitApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  groupBy?: "day" | "week" | "month";
+}) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "profit/net"),
+    { params }
+  );
+}
+
+// 资金报表 - 收支汇总
+export async function getIncomeExpenseSummaryApi(params?: {
+  startDate?: string;
+  endDate?: string;
+}) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "finance/summary"),
+    { params }
+  );
+}
+
+// 资金报表 - 现金流分析
+export async function getCashFlowApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  groupBy?: "day" | "week" | "month";
+}) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "finance/cashflow"),
+    { params }
+  );
+}
+
+// 资金报表 - 账户余额趋势
+export async function getBalanceTrendApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  paymentUid?: string;
+}) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "finance/balance-trend"),
+    { params }
+  );
+}

@@ -8,18 +8,20 @@ import editForm from "./form.vue";
 interface FormItemProps {
   uid: string;
   name: string;
-  id: number;
+  id?: number;
   desc?: string;
-  operatorId: string;
-  level: number;
-  totalTransactionAmount: number;
-  isPublic: boolean;
-  province: string;
-  isIndividual: boolean;
-  from: string;
-  limit: number;
-  discount: number;
+  operatorId?: string;
+  levelId?: number;
+  tagIds: number[];
+  creditLimit?: number;
+  initialBalance?: number;
+  totalTransactionAmount?: number;
+  isPublic?: boolean;
+  province?: string;
+  isIndividual?: boolean;
+  from?: string;
 }
+
 interface FormProps {
   formInline: FormItemProps;
 }
@@ -32,7 +34,7 @@ export function handleSelectionChange(_val) {
   // 选择变化处理
 }
 
-export function openDialog(title = "新增", row?: FormItemProps) {
+export function openDialog(title = "新增", row?: any) {
   addDialog({
     title: `${title}客户`,
     props: {
@@ -40,19 +42,20 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         name: row?.name ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? "",
-        id: row?.id ?? 0,
-        operatorId: row?.operatorId ?? "",
-        level: row?.level ?? 0,
+        id: row?.id,
+        operatorId: row?.operator?.uid,
+        levelId: row?.level?.id,
+        tagIds: row?.tags?.map(t => t.id) ?? [],
+        creditLimit: row?.creditLimit ?? 0,
+        initialBalance: 0, // Only logic for new customers
         totalTransactionAmount: row?.totalTransactionAmount ?? 0,
         isPublic: row?.isPublic ?? false,
         province: row?.province ?? "",
         isIndividual: row?.isIndividual ?? false,
-        from: row?.from ?? "",
-        limit: row?.limit ?? 0,
-        discount: row?.discount ?? 10
+        from: row?.from ?? ""
       }
     },
-    width: "40%",
+    width: "45%",
     hideFooter: title === "查看",
     draggable: true,
     fullscreen: deviceDetection(),
@@ -64,38 +67,65 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       const FormRef = formRef.value.getRef();
       const curData = options.props.formInline as FormItemProps;
       function chores() {
-        message(`您${title}了名称为${curData.name}的这条数据`, {
+        message(`您${title}了客户「${curData.name}」`, {
           type: "success"
         });
         done(); // 关闭弹框
+        // 刷新列表（需要父组件配合，或者在这里通过其他方式触发刷新，目前保持原有逻辑）
+        location.reload(); // Temporary fallback to ensure list refresh if not handled by parent
       }
       FormRef.validate(async valid => {
         if (valid) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, uid, operatorId, ...customerData } = curData;
+          const companyId = await getCompanyId();
+
+          // 构建基础数据
+          const baseData = {
+            name: curData.name,
+            desc: curData.desc,
+            from: curData.from,
+            isIndividual: curData.isIndividual,
+            creditLimit: curData.creditLimit,
+            // 关联公司
+            company: {
+              connect: { uid: companyId }
+            }
+          };
+
+          // 处理关联关系
+          if (curData.levelId) {
+            baseData["level"] = {
+              connect: { id: curData.levelId }
+            };
+          }
+
+          if (curData.tagIds && curData.tagIds.length > 0) {
+            baseData["tags"] = {
+              connect: curData.tagIds.map(id => ({ id }))
+            };
+          }
+
           if (title === "新增") {
+            // 如果有期初欠款，可能需要特殊处理，但这里先尝试作为普通字段（如果后端模型支持）
+            // 注意：initialBalance 通常不直接存在于 customer 表，而是作为 debtProfile 或 transaction 存在。
+            // 这里仅传递给后端，看后端如何处理。如果不支持会报错。
+            if (curData.initialBalance) {
+              baseData["initialBalance"] = curData.initialBalance;
+            }
+
             await addCustomerApi({
-              customer: {
-                ...customerData,
-                operator: {
-                  connect: { uid: null }
-                },
-                company: {
-                  connect: { uid: await getCompanyId() }
-                }
-              }
+              customer: baseData
             });
             chores();
           } else {
-            await updateCustomerApi(uid, {
-              ...customerData,
-              operator: {
-                connect: { uid: operatorId }
-              },
-              company: {
-                connect: { uid: await getCompanyId() }
-              }
-            });
+            // 更新时，tag 需要先 disconnect 再 connect，或者用 set (Prisma update input)
+            // 为了简单，我们使用 set 来替换
+            if (curData.tagIds) {
+              baseData["tags"] = {
+                set: curData.tagIds.map(id => ({ id }))
+              };
+            }
+
+            await updateCustomerApi(curData.uid, baseData);
             chores();
           }
         }

@@ -17,6 +17,7 @@ import { getCompanyId } from "@/api/company";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
+import AccountOperationDialog from "./accountOperationDialog.vue";
 
 defineOptions({
   name: "Payment"
@@ -34,6 +35,17 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
+
+// Operation Dialog State
+const showOperationDialog = ref(false);
+const currentPayment = ref<any>(null);
+const operationType = ref<"top-up" | "pay" | "freeze" | "unfreeze">("top-up");
+
+function handleOperation(row, type: "top-up" | "pay" | "freeze" | "unfreeze") {
+  currentPayment.value = row;
+  operationType.value = type;
+  showOperationDialog.value = true;
+}
 
 const columns = ref([
   {
@@ -148,49 +160,7 @@ async function handleCreate() {
   });
 }
 
-async function handleRecharge(row) {
-  addDialog({
-    title: "充值",
-    props: {
-      formInline: {
-        title: "充值",
-        uid: row.uid,
-        balance: row.balance,
-        amount: 0,
-        remark: ""
-      }
-    },
-    width: "40%",
-    draggable: true,
-    fullscreen: deviceDetection(),
-    fullscreenIcon: true,
-    closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: formRef }),
-    beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
-      const curData = options.props.formInline;
-      FormRef.validate(async valid => {
-        if (valid) {
-          try {
-            await updatePaymentApi(curData.uid, {
-              type: "top-up",
-              payment: {
-                amount: curData.amount,
-                remark: curData.remark
-              }
-            });
-            message("充值成功", { type: "success" });
-            done();
-            onSearch();
-          } catch (error: unknown) {
-            const msg = error instanceof Error ? error.message : "充值失败";
-            message(msg, { type: "error" });
-          }
-        }
-      });
-    }
-  });
-}
+// function handleRecharge(row) { ... } // Replaced by handleOperation
 
 async function handleCheckBalance(row) {
   try {
@@ -274,9 +244,27 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="handleRecharge(row)"
+                @click="handleOperation(row, 'top-up')"
               >
                 充值
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="warning"
+                @click="handleOperation(row, 'pay')"
+              >
+                扣款
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="info"
+                @click="handleOperation(row, 'freeze')"
+              >
+                冻结
               </el-button>
 
               <el-button
@@ -303,5 +291,15 @@ onMounted(async () => {
         </template>
       </PureTableBar>
     </el-card>
+
+    <AccountOperationDialog
+      v-if="showOperationDialog"
+      v-model:visible="showOperationDialog"
+      :type="operationType"
+      :payment-uid="currentPayment?.uid"
+      :payment-name="currentPayment?.name"
+      :current-balance="currentPayment?.balance || 0"
+      @success="onSearch"
+    />
   </div>
 </template>

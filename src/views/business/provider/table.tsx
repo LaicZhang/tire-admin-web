@@ -16,6 +16,7 @@ interface FormItemProps {
   contactName: string;
   province: string;
   status: boolean;
+  initialPayable?: number;
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -42,7 +43,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         isPublic: row?.isPublic ?? false,
         contactName: row?.contactName ?? "",
         province: row?.province ?? "",
-        status: row?.status ?? false
+        status: row?.status ?? false,
+        initialPayable: 0
       }
     },
     width: "40%",
@@ -70,6 +72,10 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             await addProviderApi({
               provider: {
                 ...customerData,
+                // Add initialPayable if present
+                ...(customerData.initialPayable
+                  ? { initialPayable: customerData.initialPayable }
+                  : {}),
                 operator: {
                   connect: { uid: null }
                 },

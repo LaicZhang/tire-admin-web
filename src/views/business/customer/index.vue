@@ -10,6 +10,17 @@ import { openDialog } from "./table";
 import { getCustomerListApi, deleteCustomerApi } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import TagDialog from "./tagDialog.vue";
+import LevelDialog from "./levelDialog.vue";
+import FollowUpDialog from "./followUpDialog.vue";
+import { ImportDialog, ExportDialog } from "@/components/ImportExport";
+
+// Icons
+import TagIcon from "~icons/ri/price-tag-3-line";
+import LevelIcon from "~icons/ri/vip-crown-line";
+import ImportIcon from "~icons/ri/upload-cloud-2-line";
+import ExportIcon from "~icons/ri/download-cloud-2-line";
+import UserFollowIcon from "~icons/ri/user-follow-line";
 
 defineOptions({
   name: "tire"
@@ -27,6 +38,20 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
+
+// Dialog Controls
+const showTagDialog = ref(false);
+const showLevelDialog = ref(false);
+const showImportDialog = ref(false);
+const showExportDialog = ref(false);
+const showFollowUpDialog = ref(false);
+const currentCustomerUid = ref("");
+
+// Handlers
+function handleFollowUp(row) {
+  currentCustomerUid.value = row.uid;
+  showFollowUpDialog.value = true;
+}
 const getCustomerListInfo = async () => {
   const { data, code, msg } = await getCustomerListApi(
     pagination.value.currentPage
@@ -128,6 +153,34 @@ onMounted(async () => {
           >
             新增客户
           </el-button>
+
+          <el-button
+            :icon="useRenderIcon(TagIcon)"
+            @click="showTagDialog = true"
+          >
+            标签管理
+          </el-button>
+
+          <el-button
+            :icon="useRenderIcon(LevelIcon)"
+            @click="showLevelDialog = true"
+          >
+            等级管理
+          </el-button>
+
+          <el-button
+            :icon="useRenderIcon(ImportIcon)"
+            @click="showImportDialog = true"
+          >
+            导入
+          </el-button>
+
+          <el-button
+            :icon="useRenderIcon(ExportIcon)"
+            @click="showExportDialog = true"
+          >
+            导出
+          </el-button>
         </template>
         <template v-slot="{ size }">
           <pure-table
@@ -155,6 +208,16 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
+                :icon="useRenderIcon(UserFollowIcon)"
+                @click="handleFollowUp(row)"
+              >
+                跟进
+              </el-button>
+
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
                 :icon="useRenderIcon(EditPen)"
                 @click="openDialog('修改', row)"
               >
@@ -176,5 +239,25 @@ onMounted(async () => {
         </template>
       </PureTableBar>
     </el-card>
+
+    <!-- 弹窗组件 -->
+    <TagDialog v-model="showTagDialog" />
+    <LevelDialog v-model="showLevelDialog" />
+    <FollowUpDialog
+      v-if="showFollowUpDialog"
+      v-model:visible="showFollowUpDialog"
+      :customer-uid="currentCustomerUid"
+    />
+    <ImportDialog
+      v-model:visible="showImportDialog"
+      type="customer"
+      title="批量导入客户"
+      @success="getCustomerListInfo"
+    />
+    <ExportDialog
+      v-model:visible="showExportDialog"
+      type="customer"
+      title="导出客户数据"
+    />
   </div>
 </template>

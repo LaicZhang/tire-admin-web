@@ -13,7 +13,13 @@ import {
   returnOrderFormRules,
   saleOrderFormRules,
   transferOrderFormRules,
-  wasteOrderFormRules
+  wasteOrderFormRules,
+  purchasePlanDetailsColumns,
+  purchasePlanFormRules,
+  purchaseInquiryDetailsColumns,
+  purchaseInquiryFormRules,
+  saleQuotationDetailsColumns,
+  saleQuotationFormRules
 } from "./props";
 
 export const getCommonData = (uid: string, companyId: string, curData) => {
@@ -36,6 +42,9 @@ const columnsMap = {
   [ORDER_TYPE.return]: returnOrderDetailsColumns,
   [ORDER_TYPE.transfer]: transferOrderDetailsColumns,
   [ORDER_TYPE.waste]: wasteOrderDetailsColumns,
+  [ORDER_TYPE.purchasePlan]: purchasePlanDetailsColumns,
+  [ORDER_TYPE.purchaseInquiry]: purchaseInquiryDetailsColumns,
+  [ORDER_TYPE.saleQuotation]: saleQuotationDetailsColumns,
   [ORDER_TYPE.default]: []
 };
 
@@ -47,6 +56,9 @@ const formRulesMap = {
   [ORDER_TYPE.return]: returnOrderFormRules,
   [ORDER_TYPE.transfer]: transferOrderFormRules,
   [ORDER_TYPE.waste]: wasteOrderFormRules,
+  [ORDER_TYPE.purchasePlan]: purchasePlanFormRules,
+  [ORDER_TYPE.purchaseInquiry]: purchaseInquiryFormRules,
+  [ORDER_TYPE.saleQuotation]: saleQuotationFormRules,
   [ORDER_TYPE.default]: {}
 };
 

@@ -505,6 +505,132 @@ export default [
           title: "批次管理",
           icon: null
         }
+      },
+      {
+        id: 43,
+        uid: "9cd4bf61-a0bf-449f-b4d4-cf8254745b31",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "purchasePlan",
+        path: "/business/purchasePlan",
+        component: () => import("@/views/business/purchase/plan/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "purchaser"],
+          title: "采购计划",
+          icon: null
+        }
+      },
+      {
+        id: 44,
+        uid: "acd4bf61-a0bf-449f-b4d4-cf8254745b32",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "purchaseInquiry",
+        path: "/business/purchaseInquiry",
+        component: () => import("@/views/business/purchase/inquiry/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "purchaser"],
+          title: "采购询价",
+          icon: null
+        }
+      },
+      {
+        id: 45,
+        uid: "bcd4bf61-a0bf-449f-b4d4-cf8254745b33",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "salesQuotation",
+        path: "/business/salesQuotation",
+        component: () => import("@/views/business/sales/quotation/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "seller"],
+          title: "销售报价",
+          icon: null
+        }
+      },
+      {
+        id: 46,
+        uid: "ccd4bf61-a0bf-449f-b4d4-cf8254745b34",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "priceList",
+        path: "/business/priceList",
+        component: () => import("@/views/business/price/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "seller"],
+          title: "价目表",
+          icon: null
+        }
+      },
+      {
+        id: 47,
+        uid: "dcd4bf61-a0bf-449f-b4d4-cf8254745b35",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "stockLocation",
+        path: "/business/stockLocation",
+        component: () => import("@/views/business/stock/location/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "warehouseManager"],
+          title: "库区货位",
+          icon: null
+        }
+      },
+      {
+        id: 48,
+        uid: "ecd4bf61-a0bf-449f-b4d4-cf8254745b36",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "unit",
+        path: "/business/unit",
+        component: () => import("@/views/business/unit/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "计量单位",
+          icon: null
+        }
+      },
+      {
+        id: 49,
+        uid: "fcd4bf61-a0bf-449f-b4d4-cf8254745b37",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "financeItem",
+        path: "/business/financeItem",
+        component: () => import("@/views/business/financeItem/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "accountant"],
+          title: "收支项目",
+          icon: null
+        }
+      },
+      {
+        id: 50,
+        uid: "0dd4bf61-a0bf-449f-b4d4-cf8254745b38",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "stockAlert",
+        path: "/business/stockAlert",
+        component: () => import("@/views/business/stockAlert/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "warehouseManager"],
+          title: "库存预警",
+          icon: null
+        }
+      },
+      {
+        id: 51,
+        uid: "1dd4bf61-a0bf-449f-b4d4-cf8254745b39",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "expiryAlert",
+        path: "/business/expiryAlert",
+        component: () => import("@/views/business/expiryAlert/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "warehouseManager"],
+          title: "效期预警",
+          icon: null
+        }
       }
     ]
   },
@@ -640,6 +766,36 @@ export default [
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
           title: "账龄分析",
+          icon: null
+        }
+      },
+      {
+        id: 52,
+        uid: "56789012-cc70-4b36-b283-f7a1c7c8d28c",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "profitAnalysis",
+        path: "/analysis/profit",
+        redirect: null,
+        component: () => import("@/views/analysis/profit/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "利润核算",
+          icon: null
+        }
+      },
+      {
+        id: 53,
+        uid: "67890123-cc70-4b36-b283-f7a1c7c8d28c",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "financeAnalysis",
+        path: "/analysis/finance",
+        redirect: null,
+        component: () => import("@/views/analysis/finance/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "资金分析",
           icon: null
         }
       }

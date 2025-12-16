@@ -13,10 +13,11 @@ import {
   message,
   ORDER_TYPE
 } from "@/utils";
-import { getPaymentListApi, getCompanyId } from "@/api";
+import { getPaymentListApi, getCompanyId, scanBarcodeApi } from "@/api";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
+import SearchLine from "~icons/ri/search-line";
 import { getColumns, getFormRules } from "./handleData";
 import { getFormTileInLocal } from "./table";
 
@@ -110,14 +111,17 @@ async function getFormTitle() {
   if (formTitle.value) return formTitle.value;
 }
 
-function onAdd() {
+function onAdd(item?: any) {
   newFormInline.value.details.push({
     index: newFormInline.value.details.length + 1,
-    count: 0,
+    count: item ? 1 : 0,
     total: 0,
-    tireId: undefined,
+    tireId: item ? item.uid : undefined,
     isArrival: false
   });
+  if (item) {
+    newFormInline.value.count += 1;
+  }
 }
 function onDel(row) {
   const index = newFormInline.value.details.indexOf(row);
@@ -163,6 +167,55 @@ async function getALlList() {
 async function getDisabled(arr: string[]) {
   return arr.includes(formTitle.value);
 }
+
+// 条码扫描
+const barcodeInput = ref("");
+const barcodeLoading = ref(false);
+
+async function handleScan() {
+  const code = barcodeInput.value.trim();
+  if (!code) return;
+
+  try {
+    barcodeLoading.value = true;
+    const { data } = await scanBarcodeApi(code);
+    if (data) {
+      const existing = newFormInline.value.details.find(
+        d => d.tireId === data.uid
+      );
+      if (existing) {
+        existing.count = (existing.count || 0) + 1;
+        newFormInline.value.count += 1;
+        message(`已增加商品 [${data.name}] 数量`, { type: "success" });
+      } else {
+        // Find full info from local list if available, otherwise use API data mainly for UID
+        // Using allTireList to verify it exists in local options too
+        const inList = allTireList.value.find(t => t.uid === data.uid);
+        if (!inList) {
+          message(`商品 [${data.name}] 不在当前可选列表中`, {
+            type: "warning"
+          });
+          // Still add it? Maybe better to warn.
+          // If it's a valid product but not in "ALL_LIST.tire" cache, we might have issue.
+          // But let's assume ALL_LIST is up to date or we trust the API result.
+          onAdd(data);
+          message(`已添加商品 [${data.name}]`, { type: "success" });
+        } else {
+          onAdd(inList);
+          message(`已添加商品 [${inList.name}]`, { type: "success" });
+        }
+      }
+      barcodeInput.value = ""; // Clear input on success
+    } else {
+      message("未找到对应条码的商品", { type: "warning" });
+    }
+  } catch (error) {
+    message("扫码查询失败", { type: "error" });
+  } finally {
+    barcodeLoading.value = false;
+  }
+}
+
 defineExpose({ getRef });
 onMounted(async () => {
   await getOrderType();
@@ -338,16 +391,32 @@ onMounted(async () => {
     </template>
 
     <el-form-item label="详情">
-      <!-- <div>
+      <!-- 扫码栏，仅在新增或修改时显示 -->
+      <div
+        v-if="['新增', '修改'].includes(formTitle)"
+        class="mb-2 flex items-center"
+      >
+        <el-input
+          v-model="barcodeInput"
+          placeholder="扫描或输入条码添加商品 (回车)"
+          class="w-[300px] mr-2"
+          :prefix-icon="useRenderIcon(SearchLine)"
+          :loading="barcodeLoading"
+          @keyup.enter="handleScan"
+        />
         <el-button
           type="primary"
-          class="float-right"
-          :icon="useRenderIcon(AddFill)"
-          @click="openDialog('新增', orderType)"
+          link
+          :loading="barcodeLoading"
+          @click="handleScan"
         >
-          新增
+          添加
         </el-button>
-      </div> -->
+        <span class="text-gray-400 text-sm ml-2"
+          >Tip: 聚焦输入框后使用扫码枪或手动输入条码按回车</span
+        >
+      </div>
+
       <pure-table
         v-model="newFormInline.details"
         row-key="id"
@@ -358,7 +427,12 @@ onMounted(async () => {
         showOverflowTooltip
       >
         <template #tireIdSelect="{ row }">
-          <el-select v-model="row.tireId" placeholder="请选择轮胎" clearable>
+          <el-select
+            v-model="row.tireId"
+            placeholder="请选择轮胎"
+            clearable
+            filterable
+          >
             <el-option
               v-for="item in allTireList"
               :key="item.id"
@@ -412,7 +486,7 @@ onMounted(async () => {
             plain
             class="w-full my-2"
             :icon="useRenderIcon(AddFill)"
-            @click="onAdd"
+            @click="onAdd()"
           >
             添加一行数据
           </el-button>
