@@ -81,8 +81,9 @@ const loadData = async () => {
         ? data.length
         : data.total || list.length;
     }
-  } catch (error) {
-    message("加载批次列表失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "加载批次列表失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -108,8 +109,9 @@ const submitCreate = async () => {
         message("批次创建成功", { type: "success" });
         dialogVisible.value = false;
         loadData();
-      } catch (error) {
-        message(error.message || "创建失败", { type: "error" });
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : "创建失败";
+        message(msg, { type: "error" });
       }
     }
   });
@@ -123,8 +125,9 @@ const handleViewTransactions = async (row: any) => {
     if (code === 200) {
       transactions.value = Array.isArray(data) ? data : data.list || [];
     }
-  } catch (error) {
-    message("获取流水失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "获取流水失败";
+    message(msg, { type: "error" });
   }
 };
 

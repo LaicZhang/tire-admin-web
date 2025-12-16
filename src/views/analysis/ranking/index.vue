@@ -122,8 +122,9 @@ const loadData = async () => {
       getProductRank(),
       getOperatorRank()
     ]);
-  } catch (error) {
-    message("加载排行榜数据失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "加载排行榜数据失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }

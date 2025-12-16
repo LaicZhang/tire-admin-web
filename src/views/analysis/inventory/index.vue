@@ -84,8 +84,9 @@ const loadData = async () => {
   loading.value = true;
   try {
     await Promise.all([getSummary(), getSlowMoving(), getStockout()]);
-  } catch (error) {
-    message(error.message || "加载数据失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "加载数据失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }

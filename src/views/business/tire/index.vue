@@ -3,7 +3,6 @@ import { onMounted, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import { openDialog } from "./table";
@@ -55,9 +54,12 @@ const getTireListInfo = async () => {
   const { data, code, msg } = await getTireListApi(
     pagination.value.currentPage
   );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
+  if (code === 200) {
+    dataList.value = data.list;
+    pagination.value.total = data.count;
+  } else {
+    message(msg, { type: "error" });
+  }
 };
 const onSearch = async () => {
   loading.value = true;
@@ -65,8 +67,11 @@ const onSearch = async () => {
     form.value.group === undefined &&
     form.value.desc === undefined &&
     form.value.name === undefined
-  )
+  ) {
     await getTireListInfo();
+    loading.value = false;
+    return;
+  }
 
   const { data } = await getTireListApi(pagination.value.currentPage, {
     ...form.value

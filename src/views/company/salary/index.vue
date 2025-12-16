@@ -12,7 +12,7 @@ import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
-  name: "salary"
+  name: "Salary"
 });
 const dataList = ref([]);
 const loading = ref(false);
@@ -37,8 +37,11 @@ const getSalaryListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined)
+  if (form.value.name === undefined && form.value.desc === undefined) {
     await getSalaryListInfo();
+    loading.value = false;
+    return;
+  }
 
   const { data } = await getSalaryListApi(pagination.value.currentPage, {
     name: form.value.name,

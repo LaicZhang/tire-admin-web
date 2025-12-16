@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { getReceivableAgingApi, getPayableAgingApi } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -54,8 +54,9 @@ const getReceivable = async () => {
       };
       nextTick(() => updateChart("receivable"));
     }
-  } catch (error) {
-    console.error("获取应收账龄失败", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "获取应收账龄失败";
+    message(msg, { type: "error" });
   }
 };
 
@@ -70,8 +71,9 @@ const getPayable = async () => {
       };
       nextTick(() => updateChart("payable"));
     }
-  } catch (error) {
-    console.error("获取应付账龄失败", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "获取应付账龄失败";
+    message(msg, { type: "error" });
   }
 };
 
@@ -133,8 +135,10 @@ const loadData = async () => {
   loading.value = true;
   try {
     await Promise.all([getReceivable(), getPayable()]);
-  } catch (error) {
-    message("加载账龄数据失败", { type: "error" });
+  } catch (error: unknown) {
+    const errorMsg =
+      error instanceof Error ? error.message : "加载账龄数据失败";
+    message(errorMsg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -152,12 +156,22 @@ const handleTabChange = () => {
   });
 };
 
+const handleResize = () => {
+  chartInstanceReceivable?.resize();
+  chartInstancePayable?.resize();
+};
+
 onMounted(() => {
   loadData();
-  window.addEventListener("resize", () => {
-    chartInstanceReceivable?.resize();
-    chartInstancePayable?.resize();
-  });
+  window.addEventListener("resize", handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
+  chartInstanceReceivable?.dispose();
+  chartInstancePayable?.dispose();
+  chartInstanceReceivable = null;
+  chartInstancePayable = null;
 });
 </script>
 

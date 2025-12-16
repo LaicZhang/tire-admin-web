@@ -52,8 +52,9 @@ const getAssetListInfo = async () => {
     } else {
       message(msg, { type: "error" });
     }
-  } catch (e) {
-    message(e.message || "获取失败", { type: "error" });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "获取失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -80,8 +81,9 @@ async function handleDelete(row) {
     await deleteAssetApi(row.uid);
     message("删除成功", { type: "success" });
     onSearch();
-  } catch (e) {
-    message(e.message || "删除失败", { type: "error" });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "删除失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -150,8 +152,9 @@ function openDialog(title = "新增", row?) {
             message(`${title}成功`, { type: "success" });
             done();
             onSearch();
-          } catch (e) {
-            message(e.message || `${title}失败`, { type: "error" });
+          } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : `${title}失败`;
+            message(msg, { type: "error" });
           }
         }
       });

@@ -92,8 +92,9 @@ const getSummary = async () => {
         arrivalRate: data.arrivalRate || 0
       };
     }
-  } catch (error) {
-    console.error("获取采购汇总失败:", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "获取采购汇总失败";
+    message(msg, { type: "error" });
   }
 };
 
@@ -117,8 +118,9 @@ const getRankings = async () => {
       // 假设getProductRankingApi返回的是通用的或有参数区分但目前文档未体现
       productRanking.value = productRes.data?.items || [];
     }
-  } catch (error) {
-    console.error("获取排行榜失败:", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "获取排行榜失败";
+    message(msg, { type: "error" });
   }
 };
 
@@ -126,8 +128,9 @@ const loadData = async () => {
   loading.value = true;
   try {
     await Promise.all([getSummary(), getRankings()]);
-  } catch (error) {
-    message(error.message || "加载数据失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "加载数据失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }

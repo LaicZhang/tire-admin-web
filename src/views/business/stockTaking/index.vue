@@ -63,8 +63,9 @@ const loadData = async () => {
         description: ""
       }));
     }
-  } catch (error) {
-    message("加载库存数据失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "加载库存数据失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -84,8 +85,9 @@ const handleSubmit = async () => {
     await batchStockTakingApi({ items });
     message("盘点提交成功", { type: "success" });
     loadData();
-  } catch (error) {
-    message(error.message || "提交失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "提交失败";
+    message(msg, { type: "error" });
   }
 };
 

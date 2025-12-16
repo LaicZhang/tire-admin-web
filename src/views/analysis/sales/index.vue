@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import {
   getSalesSummaryApi,
   getSalesTrendApi,
@@ -215,8 +215,9 @@ const loadData = async () => {
   loading.value = true;
   try {
     await Promise.all([getSummary(), getTrend(), getRankings()]);
-  } catch (error) {
-    message(error.message || "加载数据失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "加载数据失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -226,11 +227,19 @@ const handleDateChange = () => {
   loadData();
 };
 
+const handleResize = () => {
+  chartInstance?.resize();
+};
+
 onMounted(() => {
   loadData();
-  window.addEventListener("resize", () => {
-    chartInstance?.resize();
-  });
+  window.addEventListener("resize", handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
+  chartInstance?.dispose();
+  chartInstance = null;
 });
 </script>
 

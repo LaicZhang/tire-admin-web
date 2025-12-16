@@ -44,8 +44,9 @@ const getList = async () => {
     } else {
       message(msg, { type: "error" });
     }
-  } catch (error) {
-    message(error.message || "获取失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "获取失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -100,8 +101,9 @@ function openDialog(row) {
             message("盘点成功", { type: "success" });
             done();
             onSearch();
-          } catch (e) {
-            message(e.message || "盘点失败", { type: "error" });
+          } catch (e: unknown) {
+            const errorMsg = e instanceof Error ? e.message : "盘点失败";
+            message(errorMsg, { type: "error" });
           }
         }
       });

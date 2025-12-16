@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import Delete from "~icons/ep/delete";
-import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import {
   getPaymentListApi,
@@ -16,6 +14,9 @@ import {
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { getCompanyId } from "@/api/company";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
+import editForm from "./form.vue";
 
 defineOptions({
   name: "Payment"
@@ -79,8 +80,9 @@ const getPaymentListInfo = async () => {
     } else {
       message(msg, { type: "error" });
     }
-  } catch (error) {
-    message(error.message || "获取支付账户列表失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "获取支付账户列表失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -100,13 +102,6 @@ async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
   await getPaymentListInfo();
 }
-
-import { addDialog } from "@/components/ReDialog";
-import { h } from "vue";
-import editForm from "./form.vue";
-import { deviceDetection } from "@pureadmin/utils";
-
-// ... previous imports ...
 
 async function handleCreate() {
   addDialog({
@@ -143,8 +138,9 @@ async function handleCreate() {
             message("创建成功", { type: "success" });
             done();
             onSearch();
-          } catch (error) {
-            message(error.message || "创建失败", { type: "error" });
+          } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : "创建失败";
+            message(msg, { type: "error" });
           }
         }
       });
@@ -186,8 +182,9 @@ async function handleRecharge(row) {
             message("充值成功", { type: "success" });
             done();
             onSearch();
-          } catch (error) {
-            message(error.message || "充值失败", { type: "error" });
+          } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : "充值失败";
+            message(msg, { type: "error" });
           }
         }
       });
@@ -203,8 +200,9 @@ async function handleCheckBalance(row) {
     } else {
       message(msg, { type: "error" });
     }
-  } catch (error) {
-    message(error.message || "查询余额失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "查询余额失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -213,8 +211,9 @@ async function handleDelete(row) {
     await deletePaymentApi(row.uid);
     message("删除成功", { type: "success" });
     await onSearch();
-  } catch (error) {
-    message(error.message || "删除失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "删除失败";
+    message(msg, { type: "error" });
   }
 }
 

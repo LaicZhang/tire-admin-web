@@ -11,7 +11,6 @@ import {
 } from "./props";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import { openDialog } from "./table";
@@ -54,7 +53,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useUserStoreHook } from "@/store/modules/user";
 
 defineOptions({
-  name: "tire"
+  name: "Order"
 });
 const dataList = ref([]);
 const loading = ref(false);
@@ -229,8 +228,9 @@ async function handleConfirmSaleShipment(row) {
     await confirmSaleOrderShipmentApi(row.uid, {});
     message("确认发货成功", { type: "success" });
     await onSearch();
-  } catch (error) {
-    message(error.message || "确认发货失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "确认发货失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -240,8 +240,9 @@ async function handleConfirmSaleDelivery(row) {
     await confirmSaleOrderDeliveryApi(row.uid, {});
     message("确认送达成功", { type: "success" });
     await onSearch();
-  } catch (error) {
-    message(error.message || "确认送达失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "确认送达失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -256,8 +257,9 @@ async function handleConfirmReturnCustomerArrival(row) {
     await confirmReturnOrderCustomerArrivalApi(row.uid, {});
     message("确认客户退货到货成功", { type: "success" });
     await onSearch();
-  } catch (error) {
-    message(error.message || "确认客户退货到货失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "确认客户退货到货失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -267,8 +269,9 @@ async function handleConfirmReturnProviderShipment(row) {
     await confirmReturnOrderProviderShipmentApi(row.uid, {});
     message("确认退供应商发货成功", { type: "success" });
     await onSearch();
-  } catch (error) {
-    message(error.message || "确认退供应商发货失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "确认退供应商发货失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -278,8 +281,9 @@ async function handleConfirmReturnProviderDelivery(row) {
     await confirmReturnOrderProviderDeliveryApi(row.uid, {});
     message("确认退供应商送达成功", { type: "success" });
     await onSearch();
-  } catch (error) {
-    message(error.message || "确认退供应商送达失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "确认退供应商送达失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -294,8 +298,9 @@ async function handleConfirmTransferShipment(row) {
     await confirmTransferOrderShipmentApi(row.uid, {});
     message("确认发货成功", { type: "success" });
     await onSearch();
-  } catch (error) {
-    message(error.message || "确认发货失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "确认发货失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -305,8 +310,9 @@ async function handleConfirmTransferArrival(row) {
     await confirmTransferOrderArrivalApi(row.uid, {});
     message("确认到货成功", { type: "success" });
     await onSearch();
-  } catch (error) {
-    message(error.message || "确认到货失败", { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "确认到货失败";
+    message(msg, { type: "error" });
   }
 }
 
