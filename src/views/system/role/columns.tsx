@@ -11,24 +11,19 @@ export function useColumns() {
   const loading = ref(true);
   const columns: TableColumnList = [
     {
-      label: "uid",
-      prop: "uid",
+      label: "角色名称",
+      prop: "name",
       minWidth: 120
     },
     {
-      label: "用户名",
-      prop: "username",
+      label: "角色标识",
+      prop: "code",
       minWidth: 120
     },
     {
-      label: "电话",
-      prop: "phone",
-      minWidth: 120
-    },
-    {
-      label: "邮箱",
-      prop: "email",
-      minWidth: 150
+      label: "描述",
+      prop: "description",
+      minWidth: 180
     },
     {
       label: "状态",
@@ -37,22 +32,10 @@ export function useColumns() {
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={
-            row.status === "1"
-              ? "success"
-              : row.status === "0"
-                ? "danger"
-                : "warning"
-          }
+          type={row.status === 1 ? "success" : "danger"}
           effect="plain"
         >
-          {row.status === "1"
-            ? "已解决"
-            : row.status === "0"
-              ? "未解决"
-              : row.status === "2"
-                ? "解决中"
-                : "未知"}
+          {row.status === 1 ? "启用" : "禁用"}
         </el-tag>
       )
     },
@@ -98,7 +81,6 @@ export function useColumns() {
 
   function onSizeChange(val: number) {
     pagination.pageSize = val;
-    // 需要在外部触发重新查询
   }
 
   function onCurrentChange(_val: number) {

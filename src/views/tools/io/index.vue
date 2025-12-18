@@ -68,9 +68,8 @@ function handleImportSuccess() {
   importDialogVisible.value = false;
 }
 
-function handleExportSuccess(id: string) {
-  message(`导出任务已创建: ${id}`, { type: "success" });
-  taskId.value = id;
+function handleExportSuccess() {
+  message("导出成功", { type: "success" });
   exportDialogVisible.value = false;
 }
 </script>
@@ -122,12 +121,12 @@ function handleExportSuccess(id: string) {
     </el-tabs>
 
     <ImportDialog
-      v-model="importDialogVisible"
+      v-model:visible="importDialogVisible"
       :type="templateType"
       @success="handleImportSuccess"
     />
     <ExportDialog
-      v-model="exportDialogVisible"
+      v-model:visible="exportDialogVisible"
       :type="templateType"
       @success="handleExportSuccess"
     />

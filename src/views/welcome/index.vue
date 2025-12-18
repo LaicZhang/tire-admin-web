@@ -10,7 +10,7 @@ defineOptions({
 </script>
 
 <template>
-  <div class="welcome-container p-4">
+  <div class="welcome-container p-1">
     <!-- 预警卡片 -->
     <AlertCards />
 

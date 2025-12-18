@@ -1,78 +1,240 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { getMenuListApi } from "@/api/system/menu";
+import { useColumns } from "./columns";
+import { FormItemProps } from "./utils/types";
+import MenuForm from "./form.vue";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
+import {
+  getMenuListApi,
+  createMenuApi,
+  updateMenuApi,
+  deleteMenuApi
+} from "@/api/system/menu";
+
+// Icons
+import AddFill from "~icons/ri/add-circle-line";
+import EditPen from "~icons/ep/edit-pen";
+import Delete from "~icons/ep/delete";
+import Search from "~icons/ep/search";
+import Refresh from "~icons/ep/refresh";
+import More from "~icons/ep/more-filled";
 
 defineOptions({
   name: "MenuManagement"
 });
 
-const dataList = ref([]);
-const loading = ref(false);
-const pagination = ref({
-  total: 0,
-  pageSize: 999, // Tree usually shows all
-  currentPage: 1,
-  background: true
+const searchFormRef = ref();
+const formRef = ref();
+const {
+  loading,
+  columns,
+  dataList,
+  pagination,
+  loadingConfig,
+  adaptiveConfig,
+  onSizeChange,
+  onCurrentChange
+} = useColumns();
+
+const form = reactive({
+  title: "",
+  status: ""
 });
 
-const columns = [
-  {
-    label: "菜单名称",
-    prop: "meta.title"
-  },
-  {
-    label: "路由路径",
-    prop: "path"
-  },
-  {
-    label: "图标",
-    prop: "meta.icon"
-  },
-  {
-    label: "排序",
-    prop: "meta.rank"
-  }
-];
-
-const getData = async () => {
+async function onSearch() {
   loading.value = true;
-  // Mocking response for now or call API
-  // const { data, code, msg } = await getMenuListApi();
-  // Assuming backend returns tree
-  loading.value = false;
-  message("菜单管理功能需后端接口支持树形结构，暂展示空列表", { type: "info" });
+  try {
+    const { data } = await getMenuListApi(); // API currently doesn't support filtering in mock maybe, but we can pass params
+    // Assuming data is list, we might need to process it to tree if backend doesn't return tree
+    // But usually backend returns tree for menu
+    dataList.value = data.list || [];
+    pagination.total = data.total || dataList.value.length;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+}
+
+const resetForm = formEl => {
+  if (!formEl) return;
+  formEl.resetFields();
+  onSearch();
+};
+
+const openDialog = (title = "新增", row?: FormItemProps) => {
+  addDialog({
+    title: `${title}菜单`,
+    props: {
+      formInline: {
+        code: row?.code ?? 0,
+        parentId: row?.parentId ?? "",
+        title: row?.title ?? "",
+        icon: row?.icon ?? "",
+        path: row?.path ?? "",
+        rank: row?.rank ?? 99,
+        component: row?.component ?? "",
+        auths: row?.auths ?? "",
+        frameSrc: row?.frameSrc ?? "",
+        redirect: row?.redirect ?? "",
+        showLink: row?.showLink ?? true,
+        keepAlive: row?.keepAlive ?? false,
+        hidden: row?.hidden ?? false,
+        fixedTag: row?.fixedTag ?? false,
+        hiddenTag: row?.hiddenTag ?? false,
+        enterTransition: row?.enterTransition ?? "",
+        leaveTransition: row?.leaveTransition ?? ""
+      }
+    },
+    width: "45%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: ({ options }) =>
+      h(MenuForm, {
+        ref: formRef,
+        formInline: options.props.formInline
+      }),
+    beforeSure: (done, { options }) => {
+      const curData = options.props.formInline as FormItemProps;
+      const FormRef = formRef.value.getRef();
+      FormRef.validate(valid => {
+        if (valid) {
+          // console.log("curData", curData);
+          const promise =
+            title === "新增"
+              ? createMenuApi(curData)
+              : updateMenuApi((row as any)?.id, curData); // Assuming row has id
+
+          promise.then(() => {
+            message("操作成功", { type: "success" });
+            done();
+            onSearch();
+          });
+        }
+      });
+    }
+  });
+};
+
+const handleDelete = async row => {
+  await deleteMenuApi(row.id);
+  message("删除成功", { type: "success" });
+  onSearch();
 };
 
 onMounted(() => {
-  getData();
+  onSearch();
 });
 </script>
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <PureTableBar title="菜单管理" @refresh="getData">
-        <template #buttons>
-          <el-button type="primary" :icon="useRenderIcon(AddFill)">
-            新增菜单
-          </el-button>
-        </template>
-        <template v-slot="{ size }">
-          <pure-table
-            row-key="path"
-            adaptive
-            :size="size"
-            :columns="columns"
-            border
-            :data="dataList"
-            :pagination="{ ...pagination, size }"
-          />
-        </template>
-      </PureTableBar>
-    </el-card>
+    <el-form
+      ref="searchFormRef"
+      :inline="true"
+      :model="form"
+      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+    >
+      <el-form-item label="菜单名称" prop="title">
+        <el-input
+          v-model="form.title"
+          placeholder="请输入菜单名称"
+          clearable
+          class="!w-[200px]"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(Search)"
+          :loading="loading"
+          @click="onSearch"
+        >
+          搜索
+        </el-button>
+        <el-button
+          :icon="useRenderIcon(Refresh)"
+          @click="resetForm(searchFormRef)"
+        >
+          重置
+        </el-button>
+      </el-form-item>
+    </el-form>
+
+    <PureTableBar title="菜单管理" @refresh="onSearch">
+      <template #buttons>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(AddFill)"
+          @click="openDialog()"
+        >
+          新增菜单
+        </el-button>
+      </template>
+      <template v-slot="{ size, dynamicColumns }">
+        <pure-table
+          row-key="path"
+          align-whole="center"
+          showOverflowTooltip
+          table-layout="auto"
+          :loading="loading"
+          :size="size"
+          :data="dataList"
+          :columns="dynamicColumns"
+          :pagination="pagination"
+          :paginationSmall="size === 'small'"
+          :header-cell-style="{
+            background: 'var(--el-fill-color-light)',
+            color: 'var(--el-text-color-primary)'
+          }"
+          @page-size-change="onSizeChange"
+          @page-current-change="onCurrentChange"
+        >
+          <template #operation="{ row }">
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(EditPen)"
+              @click="openDialog('修改', row)"
+            >
+              修改
+            </el-button>
+            <el-popconfirm title="确认删除?" @confirm="handleDelete(row)">
+              <template #reference>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="danger"
+                  :size="size"
+                  :icon="useRenderIcon(Delete)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-popconfirm>
+          </template>
+        </pure-table>
+      </template>
+    </PureTableBar>
   </div>
 </template>
+
+<style scoped lang="scss">
+.main {
+  margin: 20px;
+}
+
+.search-form {
+  :deep(.el-form-item) {
+    margin-bottom: 12px;
+  }
+}
+</style>

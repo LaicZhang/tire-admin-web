@@ -298,7 +298,12 @@ onMounted(() => {
             @click="removeStep(index)"
           />
         </div>
-        <el-button type="dashed" class="w-full mt-2" @click="addStep">
+        <el-button
+          type="default"
+          plain
+          class="w-full mt-2 border-dashed"
+          @click="addStep"
+        >
           + 添加步骤
         </el-button>
       </el-form>

@@ -34,3 +34,20 @@ export async function updatePositionApi(uid, data: object) {
 export async function deletePositionApi(uid) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
+
+export async function getPositionMenuUidsApi(uid: string) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(`${prefix}${uid}/menus`)
+  );
+}
+
+export async function setPositionMenusApi(uid: string, menuUids: string[]) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(`${prefix}${uid}/menus`),
+    {
+      data: { menuUids }
+    }
+  );
+}

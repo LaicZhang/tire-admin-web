@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, h } from "vue";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Eye from "~icons/ep/view";
+import EditPen from "~icons/ep/edit-pen";
+import Delete from "~icons/ep/delete";
+import AddFill from "~icons/ri/add-circle-line";
 // https://plus-pro-components.com/components/search.html
 import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { useColumns } from "./columns";
-import { getOneUserApi, getUsersApi } from "@/api";
+import {
+  getOneUserApi,
+  getUsersApi,
+  addUserApi,
+  updateUserApi,
+  deleteUserApi
+} from "@/api/user";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
+import UserForm from "./form.vue";
+import { message } from "@/utils";
+import { FormItemProps } from "./utils/types";
 
 const {
   loading,
@@ -22,26 +38,21 @@ defineOptions({
   name: "user"
 });
 const state = ref({
-  status: "0",
-  time: new Date().toString()
+  status: "",
+  username: ""
 });
+const formRef = ref();
 
 const formColumns: PlusColumn[] = [
   {
-    label: "uid",
-    prop: "uid"
-  },
-  {
     label: "用户名",
-    prop: "username"
+    prop: "username",
+    valueType: "copy"
   },
   {
-    label: "电话",
-    prop: "phone"
-  },
-  {
-    label: "邮箱",
-    prop: "email"
+    label: "手机号",
+    prop: "phone",
+    valueType: "copy"
   },
   {
     label: "状态",
@@ -49,24 +60,19 @@ const formColumns: PlusColumn[] = [
     valueType: "select",
     options: [
       {
-        label: "未解决",
-        value: "0",
-        color: "red"
-      },
-      {
         label: "已解决",
         value: "1",
         color: "blue"
       },
       {
+        label: "未解决",
+        value: "0",
+        color: "red"
+      },
+      {
         label: "解决中",
         value: "2",
         color: "yellow"
-      },
-      {
-        label: "失败",
-        value: "3",
-        color: "red"
       }
     ]
   }
@@ -76,7 +82,8 @@ const handleChange = () => {
   // 处理变化
 };
 const handleSearch = async () => {
-  const { code, data } = await getUsersApi();
+  loading.value = true;
+  const { code, data } = await getUsersApi(pagination.currentPage, state.value);
 
   if (code === 200) {
     dataList.value = data.list;
@@ -85,17 +92,63 @@ const handleSearch = async () => {
   loading.value = false;
 };
 const handleRest = () => {
-  // 处理重置
+  state.value = { status: "", username: "" };
+  handleSearch();
 };
 const getDetails = async row => {
   loading.value = true;
   const { data, code, msg } = await getOneUserApi(row.uid);
+  loading.value = false;
 };
-const updateOne = row => {
-  loading.value = true;
+
+const openDialog = (title = "新增", row?: FormItemProps) => {
+  addDialog({
+    title: `${title}用户`,
+    props: {
+      formInline: {
+        uid: row?.uid,
+        username: row?.username ?? "",
+        phone: row?.phone ?? "",
+        email: row?.email ?? "",
+        password: "", // 密码不回显
+        status: row?.status ?? "1"
+      }
+    },
+    width: "40%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: ({ options }) =>
+      h(UserForm, {
+        ref: formRef,
+        formInline: options.props.formInline
+      }),
+    beforeSure: (done, { options }) => {
+      const curData = options.props.formInline as FormItemProps;
+      const FormRef = formRef.value.getRef();
+      FormRef.validate(valid => {
+        if (valid) {
+          const promise =
+            title === "新增"
+              ? addUserApi(curData)
+              : updateUserApi(row?.uid, curData);
+
+          promise.then(() => {
+            message("操作成功", { type: "success" });
+            done();
+            handleSearch();
+          });
+        }
+      });
+    }
+  });
 };
-const deleteOne = row => {
-  loading.value = true;
+
+const deleteOne = async row => {
+  await deleteUserApi(row.uid);
+  message("删除成功", { type: "success" });
+  handleSearch();
 };
 
 onMounted(async () => {
@@ -104,64 +157,93 @@ onMounted(async () => {
 </script>
 
 <template>
-  <el-card class="m-1">
+  <div class="main">
     <PlusSearch
       v-model="state"
+      class="bg-white mb-4 p-4 rounded-md"
       :columns="formColumns"
-      :show-number="2"
+      :show-number="3"
       label-width="80"
       label-position="right"
       @change="handleChange"
       @search="handleSearch"
       @reset="handleRest"
     />
-  </el-card>
 
-  <el-card class="m-1">
-    <PureTableBar :title="$route.meta.title">
-      <pure-table
-        ref="tableRef"
-        border
-        adaptive
-        :adaptiveConfig="adaptiveConfig"
-        row-key="id"
-        alignWhole="center"
-        showOverflowTooltip
-        :loading="loading"
-        :loading-config="loadingConfig"
-        :data="dataList"
-        :columns="columns"
-        :pagination="pagination"
-        @page-size-change="onSizeChange"
-        @page-current-change="onCurrentChange"
-      >
-        <template #operation="{ row }">
+    <div class="bg-white p-4 rounded-md">
+      <PureTableBar :title="$route.meta.title" @refresh="handleSearch">
+        <template #buttons>
           <el-button
-            link
             type="primary"
-            size="small"
-            @click.prevent="getDetails(row)"
+            :icon="useRenderIcon(AddFill)"
+            @click="openDialog()"
           >
-            查看
-          </el-button>
-          <el-button
-            link
-            type="primary"
-            size="small"
-            @click.prevent="updateOne(row)"
-          >
-            更新
-          </el-button>
-          <el-button
-            link
-            type="danger"
-            size="small"
-            @click.prevent="deleteOne(row)"
-          >
-            删除
+            新增用户
           </el-button>
         </template>
-      </pure-table>
-    </PureTableBar>
-  </el-card>
+        <template v-slot="{ size }">
+          <pure-table
+            ref="tableRef"
+            border
+            adaptive
+            :adaptiveConfig="adaptiveConfig"
+            row-key="id"
+            alignWhole="center"
+            showOverflowTooltip
+            :loading="loading"
+            :loading-config="loadingConfig"
+            :data="dataList"
+            :columns="columns"
+            :pagination="pagination"
+            @page-size-change="onSizeChange"
+            @page-current-change="onCurrentChange"
+          >
+            <template #operation="{ row }">
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(Eye)"
+                @click.prevent="getDetails(row)"
+              >
+                查看
+              </el-button>
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(EditPen)"
+                @click.prevent="openDialog('修改', row)"
+              >
+                更新
+              </el-button>
+              <el-button
+                class="reset-margin"
+                link
+                type="danger"
+                :size="size"
+                :icon="useRenderIcon(Delete)"
+                @click.prevent="deleteOne(row)"
+              >
+                删除
+              </el-button>
+            </template>
+          </pure-table>
+        </template>
+      </PureTableBar>
+    </div>
+  </div>
 </template>
+
+<style scoped lang="scss">
+.main {
+  margin: 20px;
+}
+
+:deep(.el-card) {
+  border: none;
+  box-shadow: none;
+}
+</style>

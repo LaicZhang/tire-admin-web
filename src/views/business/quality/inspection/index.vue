@@ -6,6 +6,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import Add from "~icons/ep/plus";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "QualityInspection"
@@ -13,6 +14,7 @@ defineOptions({
 
 const loading = ref(true);
 const dataList = ref([]);
+const formRef = ref<FormInstance>();
 const pagination = reactive({
   total: 0,
   pageSize: 10,
@@ -64,7 +66,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl?: FormInstance) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();

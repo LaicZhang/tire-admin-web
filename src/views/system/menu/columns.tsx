@@ -5,68 +5,63 @@ import type {
 } from "@pureadmin/table";
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 export function useColumns() {
   const dataList = ref([]);
   const loading = ref(true);
+
   const columns: TableColumnList = [
     {
-      label: "uid",
-      prop: "uid",
-      minWidth: 120
+      label: "菜单名称",
+      prop: "title",
+      align: "left",
+      cellRenderer: ({ row }) => (
+        <>
+          <span class="inline-block mr-1">{useRenderIcon(row.meta.icon)}</span>
+          <span>{row.meta.title}</span>
+        </>
+      )
     },
     {
-      label: "用户名",
-      prop: "username",
-      minWidth: 120
+      label: "路由路径",
+      prop: "path"
     },
     {
-      label: "电话",
-      prop: "phone",
-      minWidth: 120
+      label: "组件路径",
+      prop: "component"
+      // formatter: ({ component }) => component || "-"
     },
     {
-      label: "邮箱",
-      prop: "email",
-      minWidth: 150
+      label: "排序",
+      prop: "meta.rank",
+      width: 100
     },
     {
-      label: "状态",
-      prop: "status",
-      minWidth: 100,
+      label: "显示",
+      prop: "meta.showLink",
+      width: 100,
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={
-            row.status === "1"
-              ? "success"
-              : row.status === "0"
-                ? "danger"
-                : "warning"
-          }
+          type={row.meta.showLink ? "success" : "info"}
           effect="plain"
         >
-          {row.status === "1"
-            ? "已解决"
-            : row.status === "0"
-              ? "未解决"
-              : row.status === "2"
-                ? "解决中"
-                : "未知"}
+          {row.meta.showLink ? "显示" : "隐藏"}
         </el-tag>
       )
     },
     {
       label: "操作",
-      width: 180,
       fixed: "right",
+      width: 210,
       slot: "operation"
     }
   ];
 
   /** 分页配置 */
   const pagination = reactive<PaginationProps>({
-    pageSize: 10,
+    pageSize: 10, // Tree table usually doesn't need pagination for root, but if API supports it.
     currentPage: 1,
     pageSizes: [10, 20, 50],
     total: 0,
@@ -98,7 +93,7 @@ export function useColumns() {
 
   function onSizeChange(val: number) {
     pagination.pageSize = val;
-    // 需要在外部触发重新查询
+    // Refresh logic if needed
   }
 
   function onCurrentChange(_val: number) {

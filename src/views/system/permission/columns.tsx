@@ -9,57 +9,25 @@ import { delay } from "@pureadmin/utils";
 export function useColumns() {
   const dataList = ref([]);
   const loading = ref(true);
+
   const columns: TableColumnList = [
     {
-      label: "uid",
-      prop: "uid",
-      minWidth: 120
+      label: "权限名称",
+      prop: "name"
     },
     {
-      label: "用户名",
-      prop: "username",
-      minWidth: 120
+      label: "权限标识",
+      prop: "code",
+      cellRenderer: ({ row }) => <el-tag size="small">{row.code}</el-tag>
     },
     {
-      label: "电话",
-      prop: "phone",
-      minWidth: 120
-    },
-    {
-      label: "邮箱",
-      prop: "email",
-      minWidth: 150
-    },
-    {
-      label: "状态",
-      prop: "status",
-      minWidth: 100,
-      cellRenderer: ({ row, props }) => (
-        <el-tag
-          size={props.size}
-          type={
-            row.status === "1"
-              ? "success"
-              : row.status === "0"
-                ? "danger"
-                : "warning"
-          }
-          effect="plain"
-        >
-          {row.status === "1"
-            ? "已解决"
-            : row.status === "0"
-              ? "未解决"
-              : row.status === "2"
-                ? "解决中"
-                : "未知"}
-        </el-tag>
-      )
+      label: "描述",
+      prop: "description"
     },
     {
       label: "操作",
-      width: 180,
       fixed: "right",
+      width: 180,
       slot: "operation"
     }
   ];
@@ -98,7 +66,6 @@ export function useColumns() {
 
   function onSizeChange(val: number) {
     pagination.pageSize = val;
-    // 需要在外部触发重新查询
   }
 
   function onCurrentChange(_val: number) {

@@ -25,9 +25,53 @@ import { usePermissionStoreHook } from "@/store/modules/permission";
 const IFrame = () => import("@/layout/frameView.vue");
 // https://cn.vitejs.dev/guide/features.html#glob-import
 const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
+const modulesRoutesKeys = Object.keys(modulesRoutes);
 
 // 动态路由
 import { getAsyncRoutes } from "@/api/routes";
+
+function extractImportPath(component: string): string {
+  const match = component.match(/import\((['"`])([^'"`]+)\1\)/);
+  return (match?.[2] ?? component).trim();
+}
+
+function getViewsRelativePath(componentPath: string): string | null {
+  const match = componentPath.match(/(\/views\/.*\.(?:vue|tsx))/);
+  if (match?.[1]) return match[1];
+  // "@/views/xx" | "views/xx"
+  const cleaned = componentPath
+    .replace(/^@\//, "/")
+    .replace(/^views\//, "/views/");
+  const match2 = cleaned.match(/(\/views\/.*\.(?:vue|tsx))/);
+  return match2?.[1] ?? null;
+}
+
+function resolveViewsModuleKeyByComponent(component: unknown): string | null {
+  if (!isString(component)) return null;
+  const componentPath = extractImportPath(component);
+  const viewsRelativePath = getViewsRelativePath(componentPath);
+  if (viewsRelativePath) {
+    const hit = modulesRoutesKeys.find(k => k.includes(viewsRelativePath));
+    if (hit) return hit;
+  }
+
+  const normalized = componentPath
+    .replace(/^@\//, "/src/")
+    .replace(/^src\//, "/src/");
+  const hit = modulesRoutesKeys.find(
+    k => k === normalized || k.includes(normalized)
+  );
+  return hit ?? null;
+}
+
+function resolveViewsModuleKeyByRoutePath(routePath: string): string | null {
+  const candidates = [`${routePath}/index.`, `${routePath}.`, routePath];
+  for (const candidate of candidates) {
+    const hit = modulesRoutesKeys.find(k => k.includes(candidate));
+    if (hit) return hit;
+  }
+  return null;
+}
 
 function handRank(routeInfo: any) {
   const { name, path, parentId, meta } = routeInfo;
@@ -301,7 +345,6 @@ function handleAliveRoute({ name }: ToRouteType, mode?: string) {
 /** 过滤后端传来的动态路由 重新生成规范路由 */
 function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
   if (!arrRoutes || !arrRoutes.length) return;
-  const modulesRoutesKeys = Object.keys(modulesRoutes);
   arrRoutes.forEach((v: RouteRecordRaw) => {
     // 将backstage属性加入meta，标识此路由为后端返回路由
     v.meta.backstage = true;
@@ -314,11 +357,19 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
     if (v.meta?.frameSrc) {
       v.component = IFrame;
     } else {
-      // 对后端传component组件路径和不传做兼容（如果后端传component组件路径，那么path可以随便写，如果不传，component组件路径会跟path保持一致）
-      const index = v?.component
-        ? modulesRoutesKeys.findIndex(ev => ev.includes(v.component as any))
-        : modulesRoutesKeys.findIndex(ev => ev.includes(v.path));
-      v.component = modulesRoutes[modulesRoutesKeys[index]];
+      const moduleKeyFromComponent = resolveViewsModuleKeyByComponent(
+        v.component
+      );
+      const moduleKeyFromPath =
+        v?.children && v.children.length
+          ? null
+          : resolveViewsModuleKeyByRoutePath(v.path);
+      const resolvedModuleKey = moduleKeyFromComponent ?? moduleKeyFromPath;
+      if (resolvedModuleKey) {
+        v.component = modulesRoutes[resolvedModuleKey];
+      } else if (isString(v.component)) {
+        v.component = modulesRoutes["/src/views/error/404.vue"];
+      }
     }
     if (v?.children && v.children.length) {
       addAsyncRoutes(v.children);

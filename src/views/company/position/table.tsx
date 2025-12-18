@@ -4,10 +4,12 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addPositionApi, updatePositionApi } from "@/api";
 import editForm from "./form.vue";
+import menuForm from "./menuForm.vue";
 
 interface FormItemProps {
   uid: string;
   name: string;
+  cn?: string;
   id: number;
   desc?: string;
 }
@@ -18,6 +20,7 @@ interface FormProps {
 export type { FormItemProps, FormProps };
 
 const formRef = ref(null);
+const menuFormRef = ref<{ submit: () => Promise<boolean> } | null>(null);
 
 export function handleSelectionChange(_val) {
   // 选择变化处理
@@ -69,6 +72,26 @@ export function openDialog(title = "新增", row?: FormItemProps) {
           }
         }
       });
+    }
+  });
+}
+
+export function openMenuDialog(row: FormItemProps) {
+  addDialog({
+    title: `配置菜单 - ${row.cn || row.name}`,
+    props: {
+      uid: row.uid
+    },
+    width: "55%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: ({ options }) =>
+      h(menuForm, { ref: menuFormRef, uid: options.props.uid }),
+    beforeSure: async done => {
+      const ok = await menuFormRef.value?.submit();
+      if (ok) done();
     }
   });
 }

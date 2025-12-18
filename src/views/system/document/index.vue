@@ -19,23 +19,7 @@ async function loadSettings() {
     // Filter for document related settings or use all
     settings.value = data || [];
     if (settings.value.length === 0) {
-      // Mock data for display if empty
-      settings.value = [
-        {
-          uid: "1",
-          key: "order_prefix",
-          value: "ORD",
-          group: "单据设置",
-          desc: "订单编号前缀"
-        },
-        {
-          uid: "2",
-          key: "sales_prefix",
-          value: "SAL",
-          group: "单据设置",
-          desc: "销售单编号前缀"
-        }
-      ];
+      // settings.value = [];
     }
   } catch (e) {
     console.error(e);

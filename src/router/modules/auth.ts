@@ -146,7 +146,7 @@ export default [
         name: "log",
         path: "/system/log",
         redirect: null,
-
+        component: () => import("@/views/system/log/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -161,7 +161,7 @@ export default [
         name: "menu",
         path: "/system/menu",
         redirect: null,
-
+        component: () => import("@/views/system/menu/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -176,7 +176,7 @@ export default [
         name: "dict",
         path: "/system/dict",
         redirect: null,
-
+        component: () => import("@/views/system/dict/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -191,7 +191,7 @@ export default [
         name: "static",
         path: "/system/static",
         redirect: null,
-
+        component: () => import("@/views/system/file/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -206,7 +206,7 @@ export default [
         name: "notice",
         path: "/system/notice",
         redirect: null,
-
+        component: () => import("@/views/system/notice/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],
@@ -221,7 +221,7 @@ export default [
         name: "task",
         path: "/system/task",
         redirect: null,
-
+        component: () => import("@/views/system/task/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],

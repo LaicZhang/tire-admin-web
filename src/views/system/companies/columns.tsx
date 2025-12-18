@@ -9,57 +9,56 @@ import { delay } from "@pureadmin/utils";
 export function useColumns() {
   const dataList = ref([]);
   const loading = ref(true);
+
   const columns: TableColumnList = [
     {
-      label: "uid",
-      prop: "uid",
-      minWidth: 120
+      label: "公司名称",
+      prop: "name",
+      minWidth: 150
     },
     {
-      label: "用户名",
-      prop: "username",
-      minWidth: 120
+      label: "联系人",
+      prop: "contact",
+      minWidth: 100
     },
     {
-      label: "电话",
+      label: "联系电话",
       prop: "phone",
       minWidth: 120
     },
     {
-      label: "邮箱",
-      prop: "email",
-      minWidth: 150
+      label: "地址",
+      prop: "address",
+      minWidth: 150,
+      showOverflowTooltip: true
     },
     {
       label: "状态",
       prop: "status",
-      minWidth: 100,
+      width: 100,
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={
-            row.status === "1"
-              ? "success"
-              : row.status === "0"
-                ? "danger"
-                : "warning"
-          }
+          type={row.status === 1 ? "success" : "danger"}
           effect="plain"
         >
-          {row.status === "1"
-            ? "已解决"
-            : row.status === "0"
-              ? "未解决"
-              : row.status === "2"
-                ? "解决中"
-                : "未知"}
+          {row.status === 1 ? "启用" : "禁用"}
         </el-tag>
       )
     },
     {
+      label: "创建时间",
+      prop: "createdAt",
+      minWidth: 160,
+      formatter: ({ createdAt }) => {
+        // Format date if needed, or rely on backend string
+        return createdAt ? createdAt.replace("T", " ").substring(0, 19) : "-";
+      }
+    },
+    {
       label: "操作",
-      width: 180,
       fixed: "right",
+      width: 150,
       slot: "operation"
     }
   ];
@@ -98,7 +97,6 @@ export function useColumns() {
 
   function onSizeChange(val: number) {
     pagination.pageSize = val;
-    // 需要在外部触发重新查询
   }
 
   function onCurrentChange(_val: number) {
