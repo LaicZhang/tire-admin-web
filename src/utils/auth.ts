@@ -37,11 +37,17 @@ export const currentCompanyKey = "current-company";
 export const multipleTabsKey = "multiple-tabs";
 
 /** 获取`token` */
-export function getToken(): DataInfo<number> {
-  // 此处与`TokenKey`相同，此写法解决初始化时`Cookies`中不存在`TokenKey`报错
-  return Cookies.get(TokenKey)
-    ? JSON.parse(Cookies.get(TokenKey))
-    : storageLocal().getItem(userKey);
+export function getToken(): DataInfo<number> | null {
+  try {
+    const cookieToken = Cookies.get(TokenKey);
+    if (cookieToken) {
+      return JSON.parse(cookieToken);
+    }
+    return storageLocal().getItem<DataInfo<number>>(userKey);
+  } catch (error) {
+    console.error("Failed to parse token:", error);
+    return null;
+  }
 }
 
 /**

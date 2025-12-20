@@ -1,21 +1,37 @@
 /**
+ * 树节点基础接口
+ */
+export interface TreeNode {
+  id?: string | number;
+  parentId?: string | number | null;
+  children?: TreeNode[];
+  uniqueId?: string | number;
+  pathList?: (string | number)[];
+  [key: string]: unknown;
+}
+
+/**
  * @description 提取菜单树中的每一项uniqueId
  * @param tree 树
  * @returns 每一项uniqueId组成的数组
  */
-export const extractPathList = (tree: any[]): any => {
+export const extractPathList = <T extends TreeNode>(
+  tree: T[]
+): (string | number)[] => {
   if (!Array.isArray(tree)) {
     console.warn("tree must be an array");
     return [];
   }
   if (!tree || tree.length === 0) return [];
-  const expandedPaths: Array<number | string> = [];
+  const expandedPaths: (number | string)[] = [];
   for (const node of tree) {
     const hasChildren = node.children && node.children.length > 0;
     if (hasChildren) {
-      extractPathList(node.children);
+      expandedPaths.push(...extractPathList(node.children as T[]));
     }
-    expandedPaths.push(node.uniqueId);
+    if (node.uniqueId !== undefined) {
+      expandedPaths.push(node.uniqueId);
+    }
   }
   return expandedPaths;
 };
@@ -26,7 +42,10 @@ export const extractPathList = (tree: any[]): any => {
  * @param pathList 每一项的id组成的数组
  * @returns 组件唯一uniqueId后的树
  */
-export const deleteChildren = (tree: any[], pathList = []): any => {
+export const deleteChildren = <T extends TreeNode>(
+  tree: T[],
+  pathList: (string | number)[] = []
+): T[] => {
   if (!Array.isArray(tree)) {
     console.warn("menuTree must be an array");
     return [];
@@ -41,7 +60,7 @@ export const deleteChildren = (tree: any[], pathList = []): any => {
       node.pathList.length > 1 ? node.pathList.join("-") : node.pathList[0];
     const hasChildren = node.children && node.children.length > 0;
     if (hasChildren) {
-      deleteChildren(node.children, node.pathList);
+      deleteChildren(node.children as T[], node.pathList);
     }
   }
   return tree;
@@ -53,7 +72,10 @@ export const deleteChildren = (tree: any[], pathList = []): any => {
  * @param pathList 每一项的id组成的数组
  * @returns 创建层级关系后的树
  */
-export const buildHierarchyTree = (tree: any[], pathList = []): any => {
+export const buildHierarchyTree = <T extends TreeNode>(
+  tree: T[],
+  pathList: (string | number)[] = []
+): T[] => {
   if (!Array.isArray(tree)) {
     console.warn("tree must be an array");
     return [];
@@ -65,7 +87,7 @@ export const buildHierarchyTree = (tree: any[], pathList = []): any => {
     node.pathList = [...pathList, node.id];
     const hasChildren = node.children && node.children.length > 0;
     if (hasChildren) {
-      buildHierarchyTree(node.children, node.pathList);
+      buildHierarchyTree(node.children as T[], node.pathList);
     }
   }
   return tree;
@@ -77,22 +99,22 @@ export const buildHierarchyTree = (tree: any[], pathList = []): any => {
  * @param uniqueId 唯一uniqueId
  * @returns 当前节点信息
  */
-export const getNodeByUniqueId = (
-  tree: any[],
+export const getNodeByUniqueId = <T extends TreeNode>(
+  tree: T[],
   uniqueId: number | string
-): any => {
+): T | null => {
   if (!Array.isArray(tree)) {
     console.warn("menuTree must be an array");
-    return [];
+    return null;
   }
-  if (!tree || tree.length === 0) return [];
+  if (!tree || tree.length === 0) return null;
   const item = tree.find(node => node.uniqueId === uniqueId);
   if (item) return item;
   const childrenList = tree
     .filter(node => node.children)
     .map(i => i.children)
-    .flat(1) as unknown;
-  return getNodeByUniqueId(childrenList as any[], uniqueId);
+    .flat(1) as T[];
+  return getNodeByUniqueId(childrenList, uniqueId);
 };
 
 /**
@@ -102,11 +124,11 @@ export const getNodeByUniqueId = (
  * @param fields 需要追加的字段
  * @returns 追加字段后的树
  */
-export const appendFieldByUniqueId = (
-  tree: any[],
+export const appendFieldByUniqueId = <T extends TreeNode>(
+  tree: T[],
   uniqueId: number | string,
-  fields: object
-): any => {
+  fields: Partial<T>
+): T[] => {
   if (!Array.isArray(tree)) {
     console.warn("menuTree must be an array");
     return [];
@@ -120,7 +142,7 @@ export const appendFieldByUniqueId = (
     )
       Object.assign(node, fields);
     if (hasChildren) {
-      appendFieldByUniqueId(node.children, uniqueId, fields);
+      appendFieldByUniqueId(node.children as T[], uniqueId, fields);
     }
   }
   return tree;
@@ -134,12 +156,12 @@ export const appendFieldByUniqueId = (
  * @param children 子节点字段，默认children
  * @returns 追加字段后的树
  */
-export const handleTree = (
-  data: any[],
+export const handleTree = <T extends Record<string, unknown>>(
+  data: T[],
   id?: string,
   parentId?: string,
   children?: string
-): any => {
+): T[] => {
   if (!Array.isArray(data)) {
     console.warn("data must be an array");
     return [];
@@ -150,22 +172,22 @@ export const handleTree = (
     childrenList: children || "children"
   };
 
-  const childrenListMap: any = {};
-  const nodeIds: any = {};
-  const tree = [];
+  const childrenListMap: Record<string, T[]> = {};
+  const nodeIds: Record<string, T> = {};
+  const tree: T[] = [];
 
   for (const d of data) {
-    const parentId = d[config.parentId];
-    if (childrenListMap[parentId] == null) {
-      childrenListMap[parentId] = [];
+    const parentIdValue = d[config.parentId] as string;
+    if (childrenListMap[parentIdValue] == null) {
+      childrenListMap[parentIdValue] = [];
     }
-    nodeIds[d[config.id]] = d;
-    childrenListMap[parentId].push(d);
+    nodeIds[d[config.id] as string] = d;
+    childrenListMap[parentIdValue].push(d);
   }
 
   for (const d of data) {
-    const parentId = d[config.parentId];
-    if (nodeIds[parentId] == null) {
+    const parentIdValue = d[config.parentId] as string;
+    if (nodeIds[parentIdValue] == null) {
       tree.push(d);
     }
   }
@@ -174,12 +196,15 @@ export const handleTree = (
     adaptToChildrenList(t);
   }
 
-  function adaptToChildrenList(o: Record<string, any>) {
-    if (childrenListMap[o[config.id]] !== null) {
-      o[config.childrenList] = childrenListMap[o[config.id]];
+  function adaptToChildrenList(o: T) {
+    const idValue = o[config.id] as string;
+    if (childrenListMap[idValue] !== undefined) {
+      (o as Record<string, unknown>)[config.childrenList] =
+        childrenListMap[idValue];
     }
-    if (o[config.childrenList]) {
-      for (const c of o[config.childrenList]) {
+    const childList = o[config.childrenList] as T[] | undefined;
+    if (childList) {
+      for (const c of childList) {
         adaptToChildrenList(c);
       }
     }

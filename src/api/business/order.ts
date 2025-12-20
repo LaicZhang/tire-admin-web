@@ -38,7 +38,7 @@ export async function getOrderApi(type: string, uid = cid) {
   );
 }
 
-export async function updateOrderApi(type: string, uid, data: object) {
+export async function updateOrderApi(type: string, uid: string, data: object) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(getOrderPrefix(type) + uid),
@@ -48,7 +48,7 @@ export async function updateOrderApi(type: string, uid, data: object) {
   );
 }
 
-export async function deleteOrderApi(type: string, uid) {
+export async function deleteOrderApi(type: string, uid: string) {
   return await http.request<CommonResult>(
     "delete",
     baseUrlApi(getOrderPrefix(type) + uid)

@@ -3,7 +3,7 @@ import { store } from "@/store";
 import type { currentCompanyType } from "./types";
 import { storageLocal } from "@pureadmin/utils";
 import type { CurrentCompanyInfo } from "@/utils";
-import { getCurrentCompanyAPi } from "@/api";
+import { getCurrentCompanyApi } from "@/api";
 
 export const currentCompanyKey = "current-company";
 
@@ -31,28 +31,18 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
       });
     },
     async handleCurrentCompany() {
-      return new Promise((resolve, reject) => {
-        getCurrentCompanyAPi()
-          .then(res => {
-            const data = res.data;
-            if (data.length === 0) {
-              reject("当前用户没有公司信息");
-            } else if (data.length === 1) {
-              this.SET_CURRENT_COMPANY({
-                companyName: data[0].name,
-                companyId: data[0].uid
-              });
-              resolve(data);
-              return data[0];
-            } else {
-              resolve(data);
-              return data;
-            }
-          })
-          .catch(error => {
-            reject(error);
-          });
-      });
+      const res = await getCurrentCompanyApi();
+      const data = res.data;
+      if (data.length === 0) {
+        throw new Error("当前用户没有公司信息");
+      }
+      if (data.length === 1) {
+        this.SET_CURRENT_COMPANY({
+          companyName: data[0].name,
+          companyId: data[0].uid
+        });
+      }
+      return data;
     }
   }
 });

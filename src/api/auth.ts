@@ -16,7 +16,7 @@ export const refreshTokenApi = (data?: object) => {
   );
 };
 
-export const getCurrentCompanyAPi = async () => {
+export const getCurrentCompanyApi = async () => {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi("/auth/current-company")

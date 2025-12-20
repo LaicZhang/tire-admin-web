@@ -60,19 +60,14 @@ const formColumns: PlusColumn[] = [
     valueType: "select",
     options: [
       {
-        label: "已解决",
+        label: "启用",
         value: "1",
         color: "blue"
       },
       {
-        label: "未解决",
+        label: "禁用",
         value: "0",
         color: "red"
-      },
-      {
-        label: "解决中",
-        value: "2",
-        color: "yellow"
       }
     ]
   }
@@ -91,7 +86,7 @@ const handleSearch = async () => {
   }
   loading.value = false;
 };
-const handleRest = () => {
+const handleReset = () => {
   state.value = { status: "", username: "" };
   handleSearch();
 };
@@ -146,9 +141,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 };
 
 const deleteOne = async row => {
-  await deleteUserApi(row.uid);
-  message("删除成功", { type: "success" });
-  handleSearch();
+  try {
+    await deleteUserApi(row.uid);
+    message("删除成功", { type: "success" });
+    handleSearch();
+  } catch (error) {
+    message("删除失败", { type: "error" });
+  }
 };
 
 onMounted(async () => {
@@ -167,7 +166,7 @@ onMounted(async () => {
       label-position="right"
       @change="handleChange"
       @search="handleSearch"
-      @reset="handleRest"
+      @reset="handleReset"
     />
 
     <div class="bg-white p-4 rounded-md">
