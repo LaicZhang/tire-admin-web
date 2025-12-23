@@ -329,3 +329,10 @@ export async function getDebtWarningListApi(params?: { type?: string }) {
     { params }
   );
 }
+
+// ============ 统计 ============
+
+/** 获取客户数量 */
+export async function getCustomerCountApi() {
+  return await http.request<CommonResult>("get", baseUrlApi(prefix + "count"));
+}

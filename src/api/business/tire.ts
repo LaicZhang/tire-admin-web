@@ -34,3 +34,47 @@ export async function updateTireApi(uid, data: object) {
 export async function deleteTireApi(uid) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
+
+// ============ 商品查询扩展 ============
+
+/** 按条码查询商品 */
+export async function getTireByBarcodeApi(code: string) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "barcode/" + code)
+  );
+}
+
+/** 按分组查询商品 */
+export async function getTireByGroupApi(group: string) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "group/" + group)
+  );
+}
+
+/** 按名称查询商品 */
+export async function getTireByNameApi(name: string) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(prefix + "name/" + name)
+  );
+}
+
+// ============ 商品封面管理 ============
+
+/** 添加商品封面 */
+export async function addTireCoverApi(tireId: string, staticId: number) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(prefix + `cover/${tireId}/${staticId}`)
+  );
+}
+
+/** 删除商品封面 */
+export async function deleteTireCoverApi(tireId: string, coverId: number) {
+  return await http.request<CommonResult>(
+    "delete",
+    baseUrlApi(prefix + `cover/${tireId}/${coverId}`)
+  );
+}

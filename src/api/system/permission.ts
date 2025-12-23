@@ -42,3 +42,8 @@ export const updatePermissionApi = (id: string, data: object) => {
 export const deletePermissionApi = (id: string) => {
   return http.request<CommonResult>("delete", baseUrlApi(`${prefix}/${id}`));
 };
+
+/** 获取权限详情 */
+export const getPermissionApi = (id: string) => {
+  return http.request<CommonResult>("get", baseUrlApi(`${prefix}/${id}`));
+};

@@ -243,6 +243,21 @@ export default [
           title: "反馈管理",
           icon: null
         }
+      },
+      {
+        id: 56,
+        uid: "de0e0f69-b995-43bf-a18f-dc2599bb4695",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "updateHistory",
+        path: "/system/updateHistory",
+        redirect: null,
+        component: () => import("@/views/system/updateHistory/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "更新历史",
+          icon: null
+        }
       }
     ]
   },
@@ -631,6 +646,20 @@ export default [
           title: "效期预警",
           icon: null
         }
+      },
+      {
+        id: 54,
+        uid: "2dd4bf61-a0bf-449f-b4d4-cf8254745b40",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "audit",
+        path: "/business/audit",
+        component: () => import("@/views/business/audit/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "auditor"],
+          title: "审核中心",
+          icon: null
+        }
       }
     ]
   },
@@ -796,6 +825,21 @@ export default [
         meta: {
           roles: ["admin", "boss", "dataAnalyst"],
           title: "资金分析",
+          icon: null
+        }
+      },
+      {
+        id: 55,
+        uid: "78901234-cc70-4b36-b283-f7a1c7c8d28c",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "comprehensiveAnalysis",
+        path: "/analysis/comprehensive",
+        redirect: null,
+        component: () => import("@/views/analysis/comprehensive/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "综合分析",
           icon: null
         }
       }

@@ -1,19 +1,26 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import {
   getLogisticListApi,
-  getLogisticApi,
   updateLogisticApi,
   cancelLogisticApi
 } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ShippingPlanTab from "./ShippingPlanTab.vue";
+import LoadingTaskTab from "./LoadingTaskTab.vue";
+import ShippingWaveTab from "./ShippingWaveTab.vue";
+import LogisticDetailDrawer from "./LogisticDetailDrawer.vue";
 
 defineOptions({
   name: "Logistic"
 });
+
+const activeTab = ref("logistic");
+const drawerVisible = ref(false);
+const currentLogistic = ref<any>(null);
 
 const dataList = ref([]);
 const loading = ref(false);
@@ -87,7 +94,7 @@ const columns = ref([
     fixed: "right",
     prop: "operation",
     slot: "operation",
-    minWidth: 200
+    minWidth: 240
   }
 ]);
 
@@ -166,6 +173,11 @@ async function handleCancel(row) {
   }
 }
 
+function handleViewDetail(row) {
+  currentLogistic.value = row;
+  drawerVisible.value = true;
+}
+
 onMounted(async () => {
   await getLogisticListInfo();
 });
@@ -174,103 +186,140 @@ onMounted(async () => {
 <template>
   <div class="main">
     <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="订单类型：" prop="type">
-          <el-select
-            v-model="form.type"
-            placeholder="请选择订单类型"
-            clearable
-            class="w-[180px]!"
+      <el-tabs v-model="activeTab" type="border-card">
+        <!-- 物流单列表 Tab -->
+        <el-tab-pane label="物流单" name="logistic">
+          <el-form
+            ref="formRef"
+            :inline="true"
+            class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
           >
-            <el-option
-              v-for="item in orderTypeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="是否已到达：" prop="isArrival">
-          <el-select
-            v-model="form.isArrival"
-            placeholder="请选择"
-            clearable
-            class="w-[180px]!"
-          >
-            <el-option label="是" :value="true" />
-            <el-option label="否" :value="false" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getLogisticListInfo">
-        <template v-slot="{ size }">
-          <pure-table
-            row-key="uid"
-            adaptive
-            :size
-            :columns
-            border
-            :data="dataList"
-            showOverflowTooltip
-            :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
-          >
-            <template #operation="{ row }">
-              <el-button
-                v-if="!row.isArrival && row.logisticsStatus === 0"
-                class="reset-margin"
-                link
-                type="success"
-                @click="handleConfirmShipment(row)"
+            <el-form-item label="订单类型：" prop="type">
+              <el-select
+                v-model="form.type"
+                placeholder="请选择订单类型"
+                clearable
+                class="w-[180px]!"
               >
-                确认发货
-              </el-button>
+                <el-option
+                  v-for="item in orderTypeOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
 
-              <el-button
-                v-if="!row.isArrival && row.logisticsStatus === 1"
-                class="reset-margin"
-                link
-                type="success"
-                @click="handleConfirmArrival(row)"
+            <el-form-item label="是否已到达：" prop="isArrival">
+              <el-select
+                v-model="form.isArrival"
+                placeholder="请选择"
+                clearable
+                class="w-[180px]!"
               >
-                确认送达
-              </el-button>
+                <el-option label="是" :value="true" />
+                <el-option label="否" :value="false" />
+              </el-select>
+            </el-form-item>
 
+            <el-form-item>
               <el-button
-                v-if="!row.isArrival"
-                class="reset-margin"
-                link
-                type="danger"
-                @click="handleCancel(row)"
+                type="primary"
+                :icon="useRenderIcon('ri:search-line')"
+                :loading="loading"
+                @click="onSearch"
               >
-                取消
+                搜索
               </el-button>
+              <el-button
+                :icon="useRenderIcon(Refresh)"
+                @click="resetForm(formRef)"
+              >
+                重置
+              </el-button>
+            </el-form-item>
+          </el-form>
+
+          <PureTableBar title="物流单列表" @refresh="getLogisticListInfo">
+            <template v-slot="{ size }">
+              <pure-table
+                row-key="uid"
+                adaptive
+                :size
+                :columns
+                border
+                :data="dataList"
+                showOverflowTooltip
+                :pagination="{ ...pagination, size }"
+                @page-current-change="handleCurrentChange"
+              >
+                <template #operation="{ row }">
+                  <el-button
+                    class="reset-margin"
+                    link
+                    type="primary"
+                    @click="handleViewDetail(row)"
+                  >
+                    详情
+                  </el-button>
+
+                  <el-button
+                    v-if="!row.isArrival && row.logisticsStatus === 0"
+                    class="reset-margin"
+                    link
+                    type="success"
+                    @click="handleConfirmShipment(row)"
+                  >
+                    确认发货
+                  </el-button>
+
+                  <el-button
+                    v-if="!row.isArrival && row.logisticsStatus === 1"
+                    class="reset-margin"
+                    link
+                    type="success"
+                    @click="handleConfirmArrival(row)"
+                  >
+                    确认送达
+                  </el-button>
+
+                  <el-button
+                    v-if="!row.isArrival"
+                    class="reset-margin"
+                    link
+                    type="danger"
+                    @click="handleCancel(row)"
+                  >
+                    取消
+                  </el-button>
+                </template>
+              </pure-table>
             </template>
-          </pure-table>
-        </template>
-      </PureTableBar>
+          </PureTableBar>
+        </el-tab-pane>
+
+        <!-- 发运计划 Tab -->
+        <el-tab-pane label="发运计划" name="shippingPlan">
+          <ShippingPlanTab />
+        </el-tab-pane>
+
+        <!-- 装车任务 Tab -->
+        <el-tab-pane label="装车任务" name="loadingTask">
+          <LoadingTaskTab />
+        </el-tab-pane>
+
+        <!-- 发货波次 Tab -->
+        <el-tab-pane label="发货波次" name="shippingWave">
+          <ShippingWaveTab />
+        </el-tab-pane>
+      </el-tabs>
     </el-card>
+
+    <!-- 物流详情抽屉 -->
+    <LogisticDetailDrawer
+      v-model:visible="drawerVisible"
+      :logistic="currentLogistic"
+      @refresh="getLogisticListInfo"
+    />
   </div>
 </template>

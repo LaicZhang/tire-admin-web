@@ -40,3 +40,8 @@ export async function updateEmployeeApi(uid, data: object) {
 export async function deleteEmployeeApi(uid) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
+
+/** 获取员工数量 */
+export async function getEmployeeCountApi() {
+  return await http.request<CommonResult>("get", baseUrlApi(prefix + "count"));
+}
