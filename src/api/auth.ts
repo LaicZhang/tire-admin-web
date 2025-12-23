@@ -44,7 +44,7 @@ export const getNoticeApi = () => {
 export const getCompanyInfoApi = (type: string) => {
   return http.request<CommonResult>(
     "get",
-    baseUrlApi("/auth/company-info" + "/" + type)
+    baseUrlApi(`/auth/company-info/${type}`)
   );
 };
 
@@ -67,7 +67,7 @@ export const updateUserInfoApi = (data?: object) => {
 export const getLogApi = (index: number, params?: object) => {
   return http.request<CommonResult>(
     "get",
-    baseUrlApi("/auth/login-history/page") + `/${index}`,
+    baseUrlApi(`/auth/login-history/page/${index}`),
     { params }
   );
 };

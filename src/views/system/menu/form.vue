@@ -2,7 +2,6 @@
 import { ref, computed } from "vue";
 import { formRules } from "./utils/rule";
 import { FormProps } from "./utils/types";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import IconSelect from "@/components/ReIcon/src/Select.vue";
 import ReCol from "@/components/ReCol";
 

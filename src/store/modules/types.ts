@@ -25,12 +25,33 @@ export type appType = {
   };
 };
 
+export interface RouteMeta {
+  title?: string;
+  icon?: string;
+  roles?: string[];
+  keepAlive?: boolean;
+  showLink?: boolean;
+  showParent?: boolean;
+  rank?: number;
+  auths?: string[];
+  frameSrc?: string;
+  frameLoading?: boolean;
+  transition?: {
+    name?: string;
+    enterTransition?: string;
+    leaveTransition?: string;
+  };
+  hiddenTag?: boolean;
+  dynamicLevel?: number;
+  activePath?: string;
+}
+
 export type multiType = {
   path: string;
   name: string;
-  meta: any;
-  query?: object;
-  params?: object;
+  meta: RouteMeta;
+  query?: Record<string, string>;
+  params?: Record<string, string>;
 };
 
 export type setType = {

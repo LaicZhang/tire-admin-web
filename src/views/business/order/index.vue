@@ -1,423 +1,61 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import {
-  purchaseOrderColumns,
-  saleOrderColumns,
-  claimOrderColumns,
-  returnOrderColumns,
-  wasteOrderColumns,
-  transferOrderColumns,
-  assemblyOrderColumns,
-  purchasePlanColumns,
-  purchaseInquiryColumns,
-  saleQuotationColumns
-} from "./props";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
-import { openDialog } from "./table";
-import {
-  getOrderListApi,
-  getPurchasePlanListApi,
-  getPurchaseInquiryListApi,
-  getSaleQuotationListApi,
-  deleteOrderApi,
-  predictPurchasePlanApi,
-  sendPurchaseInquiryApi,
-  convertSaleQuotationApi,
-  updateSaleQuotationStatusApi,
-  getEmployeeListApi,
-  getAuditorListApi,
-  getRepoListApi,
-  getTireListApi,
-  getProviderListApi,
-  confirmPurchaseOrderArrivalApi,
-  confirmSaleOrderShipmentApi,
-  confirmSaleOrderDeliveryApi,
-  processClaimOrderPaymentApi,
-  confirmReturnOrderCustomerArrivalApi,
-  confirmReturnOrderProviderShipmentApi,
-  confirmReturnOrderProviderDeliveryApi,
-  refundReturnOrderApi,
-  confirmTransferOrderShipmentApi,
-  confirmTransferOrderArrivalApi,
-  reverseSaleOrderApi,
-  reversePurchaseOrderApi,
-  reverseReturnOrderApi,
-  reverseWasteOrderApi,
-  reverseClaimOrderApi,
-  reverseSurplusOrderApi
-} from "@/api";
-import { ElMessageBox } from "element-plus";
-import {
-  ALL_LIST,
-  CUR_FORM_TITLE,
-  CUR_ORDER_TYPE,
-  getOrderTypeList,
-  localForage,
-  message,
-  ORDER_TYPE
-} from "@/utils";
+import { getOrderTypeList, message, ORDER_TYPE } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useUserStoreHook } from "@/store/modules/user";
+import { useOrderList, useOrderData, useOrderActions } from "./composables";
 
 defineOptions({
   name: "Order"
 });
-const dataList = ref([]);
-const loading = ref(false);
-const formRef = ref();
-const form = ref({
-  operatorId: undefined,
-  auditorId: undefined,
-  desc: undefined
-});
-const orderType = ref("");
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
-const columns = ref([]);
-const employeeList = ref([]);
+// 用户角色和订单类型列表
 const userRoles = useUserStoreHook().roles;
 const orderTypeList = ref(getOrderTypeList(userRoles));
+const formRef = ref();
 
-const getOrderListInfo = async () => {
-  if (orderType.value === "") return;
-  let res;
-  const params = {
-    page: pagination.value.currentPage,
-    limit: pagination.value.pageSize,
-    ...form.value
-  };
+// 使用 composables
+const {
+  dataList,
+  loading,
+  orderType,
+  columns,
+  form,
+  pagination,
+  getOrderListInfo,
+  onSearch,
+  setOrderType,
+  getOrderType,
+  handleCurrentChange,
+  resetForm
+} = useOrderList();
 
-  if (orderType.value === ORDER_TYPE.purchasePlan) {
-    res = await getPurchasePlanListApi(params);
-  } else if (orderType.value === ORDER_TYPE.purchaseInquiry) {
-    res = await getPurchaseInquiryListApi(params);
-  } else if (orderType.value === ORDER_TYPE.saleQuotation) {
-    res = await getSaleQuotationListApi(params);
-  } else {
-    res = await getOrderListApi(
-      orderType.value,
-      pagination.value.currentPage,
-      form.value
-    );
-  }
+const { employeeList, managerList, loadAllData } = useOrderData(orderType);
 
-  const { data, code, msg } = res;
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else message(msg, { type: "error" });
-};
-
-const getAllEmployeeList = async () => {
-  // const depWithEmp: any[] = await localForage().getItem("dep-w-emp");
-  // depWithEmp.map(item => {
-  //   item.employees.map(el => {
-  //     employeeList.value.push({
-  //       label: item.name + "-" + el.name,
-  //       value: el.uid
-  //     });
-  //   });
-  // });
-  const { data, code, msg } = await getEmployeeListApi(0);
-  if (code === 200) {
-    employeeList.value = data;
-    await localForage().setItem(ALL_LIST.employee, data);
-  } else message(msg, { type: "error" });
-};
-const managerList = ref([]);
-const allRepoList = ref([]);
-const allTireList = ref([]);
-const allCustomerList = ref([]);
-const allProviderList = ref([]);
-const getAllRepoList = async () => {
-  const { data, code, msg } = await getRepoListApi(0);
-  if (code === 200) {
-    allRepoList.value = data;
-    await localForage().setItem(ALL_LIST.repo, data);
-  } else message(msg, { type: "error" });
-};
-
-const getAllCustomerList = async () => {
-  const { data, code, msg } = await getTireListApi(0);
-  if (code === 200) {
-    allCustomerList.value = data;
-    await localForage().setItem(ALL_LIST.customer, data);
-  } else message(msg, { type: "error" });
-};
-
-const getAllProviderList = async () => {
-  const { data, code, msg } = await getProviderListApi(0);
-  if (code === 200) {
-    allProviderList.value = data;
-    await localForage().setItem(ALL_LIST.provider, data);
-  } else message(msg, { type: "error" });
-};
-
-const getAllTireList = async () => {
-  const { data, code, msg } = await getTireListApi(0);
-  if (code === 200) {
-    allTireList.value = data;
-    await localForage().setItem(ALL_LIST.tire, data);
-  } else message(msg, { type: "error" });
-};
-const getManagerList = async () => {
-  if (orderType.value === ORDER_TYPE.default) return;
-  const { data, code, msg } = await getAuditorListApi(orderType.value);
-  if (code === 200) {
-    managerList.value = data;
-    await localForage().setItem(ALL_LIST.manager, data);
-  } else message(msg, { type: "error" });
-};
-const onSearch = async () => {
-  loading.value = true;
-  const { data, code, msg } = await getOrderListApi(
-    orderType.value,
-    pagination.value.currentPage,
-    form.value
-  );
-
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else message(msg, { type: "error" });
-  loading.value = false;
-};
-
-const formTitle = ref("");
-
-const handleOpenDialog = async (title, type, row) => {
-  formTitle.value = title;
-  await localForage().setItem(CUR_FORM_TITLE, title);
-  openDialog(title, type, row);
-};
-
-const resetForm = formEl => {
-  loading.value = true;
-  if (!formEl) return;
-  formEl.resetFields();
-  loading.value = false;
-};
-const columnMapping = {
-  [ORDER_TYPE.purchase]: purchaseOrderColumns,
-  [ORDER_TYPE.sale]: saleOrderColumns,
-  [ORDER_TYPE.claim]: claimOrderColumns,
-  [ORDER_TYPE.return]: returnOrderColumns,
-  [ORDER_TYPE.waste]: wasteOrderColumns,
-  [ORDER_TYPE.transfer]: transferOrderColumns,
-  [ORDER_TYPE.assembly]: assemblyOrderColumns,
-  [ORDER_TYPE.purchasePlan]: purchasePlanColumns,
-  [ORDER_TYPE.purchaseInquiry]: purchaseInquiryColumns,
-  [ORDER_TYPE.saleQuotation]: saleQuotationColumns
-};
-
-const setOrderType = async () => {
-  try {
-    const type = orderType.value;
-    await localForage().setItem(CUR_ORDER_TYPE, type);
-    columns.value = columnMapping[orderType.value] || columns.value;
-    await onSearch();
-  } catch (e) {
-    throw new Error("fail to set order type for", e.message);
-  }
-};
-
-async function getOrderType() {
-  const curOrderType: string = await localForage().getItem(CUR_ORDER_TYPE);
-  if (curOrderType) {
-    orderType.value = curOrderType;
-    await setOrderType();
-  }
-}
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getOrderListInfo();
-}
-
-async function handleDelete(row) {
-  await deleteOrderApi(orderType.value, row.uid);
-  message(`您删除了${row.name}这条数据`, { type: "success" });
-  await onSearch();
-}
-
-// 采购订单：确认到货
-async function handleConfirmPurchaseArrival(row) {
-  handleOpenDialog("确认到货", orderType.value, row);
-}
-
-// 销售订单：确认发货
-async function handleConfirmSaleShipment(row) {
-  try {
-    await confirmSaleOrderShipmentApi(row.uid, {});
-    message("确认发货成功", { type: "success" });
-    await onSearch();
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "确认发货失败";
-    message(msg, { type: "error" });
-  }
-}
-
-// 销售订单：确认送达
-async function handleConfirmSaleDelivery(row) {
-  try {
-    await confirmSaleOrderDeliveryApi(row.uid, {});
-    message("确认送达成功", { type: "success" });
-    await onSearch();
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "确认送达失败";
-    message(msg, { type: "error" });
-  }
-}
-
-// 理赔订单：处理理赔费用
-async function handleProcessClaimPayment(row) {
-  handleOpenDialog("处理理赔费用", orderType.value, row);
-}
-
-// 退货订单：确认客户退货到货
-async function handleConfirmReturnCustomerArrival(row) {
-  try {
-    await confirmReturnOrderCustomerArrivalApi(row.uid, {});
-    message("确认客户退货到货成功", { type: "success" });
-    await onSearch();
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "确认客户退货到货失败";
-    message(msg, { type: "error" });
-  }
-}
-
-// 退货订单：确认退供应商发货
-async function handleConfirmReturnProviderShipment(row) {
-  try {
-    await confirmReturnOrderProviderShipmentApi(row.uid, {});
-    message("确认退供应商发货成功", { type: "success" });
-    await onSearch();
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "确认退供应商发货失败";
-    message(msg, { type: "error" });
-  }
-}
-
-// 退货订单：确认退供应商送达
-async function handleConfirmReturnProviderDelivery(row) {
-  try {
-    await confirmReturnOrderProviderDeliveryApi(row.uid, {});
-    message("确认退供应商送达成功", { type: "success" });
-    await onSearch();
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "确认退供应商送达失败";
-    message(msg, { type: "error" });
-  }
-}
-
-// 退货订单：退款
-async function handleRefundReturnOrder(row) {
-  handleOpenDialog("退款", orderType.value, row);
-}
-
-// 调拨订单：确认发货
-async function handleConfirmTransferShipment(row) {
-  try {
-    await confirmTransferOrderShipmentApi(row.uid, {});
-    message("确认发货成功", { type: "success" });
-    await onSearch();
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "确认发货失败";
-    message(msg, { type: "error" });
-  }
-}
-
-// 调拨订单：确认到货
-async function handleConfirmTransferArrival(row) {
-  try {
-    await confirmTransferOrderArrivalApi(row.uid, {});
-    message("确认到货成功", { type: "success" });
-    await onSearch();
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "确认到货失败";
-    message(msg, { type: "error" });
-  }
-}
-
-// async function handleToggleOrder(row) {
-//   await toggleOrderApi(row.uid);
-//   onSearch();
-// }
-
-// 订单作废
-const reverseApiMap = {
-  [ORDER_TYPE.sale]: reverseSaleOrderApi,
-  [ORDER_TYPE.purchase]: reversePurchaseOrderApi,
-  [ORDER_TYPE.return]: reverseReturnOrderApi,
-  [ORDER_TYPE.waste]: reverseWasteOrderApi,
-  [ORDER_TYPE.claim]: reverseClaimOrderApi,
-  [ORDER_TYPE.surplus]: reverseSurplusOrderApi
-};
-
-async function handleReverseOrder(row) {
-  try {
-    const { value: reason } = await ElMessageBox.prompt(
-      "请输入作废原因",
-      "订单作废",
-      {
-        confirmButtonText: "确认",
-        cancelButtonText: "取消",
-        inputPattern: /\S+/,
-        inputErrorMessage: "作废原因不能为空"
-      }
-    );
-    if (reason) {
-      const api = reverseApiMap[orderType.value];
-      if (api) {
-        await api(row.uid, reason);
-        message("订单已作废", { type: "success" });
-        await onSearch();
-      }
-    }
-  } catch {
-    // User cancelled
-  }
-}
-
-async function handleSendInquiry(row) {
-  try {
-    await sendPurchaseInquiryApi(row.id);
-    message("询价单发送成功", { type: "success" });
-    await onSearch();
-  } catch (error: any) {
-    message(error.message || "发送失败", { type: "error" });
-  }
-}
-
-async function handleConvertQuotation(row) {
-  try {
-    await convertSaleQuotationApi(row.id);
-    message("报价单转订单成功", { type: "success" });
-    await onSearch();
-  } catch (error: any) {
-    message(error.message || "转换失败", { type: "error" });
-  }
-}
+const {
+  handleOpenDialog,
+  handleDelete,
+  handleConfirmPurchaseArrival,
+  handleConfirmSaleShipment,
+  handleConfirmSaleDelivery,
+  handleProcessClaimPayment,
+  handleConfirmReturnCustomerArrival,
+  handleConfirmReturnProviderShipment,
+  handleConfirmReturnProviderDelivery,
+  handleRefundReturnOrder,
+  handleConfirmTransferShipment,
+  handleConfirmTransferArrival,
+  handleReverseOrder,
+  handleSendInquiry,
+  handleConvertQuotation
+} = useOrderActions(orderType, onSearch);
 
 onMounted(async () => {
   await getOrderType();
-  await Promise.all([
-    getOrderListInfo(),
-    getAllEmployeeList(),
-    getAllRepoList(),
-    getManagerList(),
-    getAllTireList(),
-    getAllCustomerList(),
-    getAllProviderList()
-  ]);
+  await Promise.all([getOrderListInfo(), loadAllData()]);
 });
 </script>
 

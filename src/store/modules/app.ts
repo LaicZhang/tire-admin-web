@@ -72,10 +72,10 @@ export const useAppStore = defineStore("pure-app", {
     toggleDevice(device: string) {
       this.device = device;
     },
-    setLayout(layout) {
+    setLayout(layout: string) {
       this.layout = layout;
     },
-    setViewportSize(size) {
+    setViewportSize(size: { width: number; height: number }) {
       this.viewportSize = size;
     }
   }

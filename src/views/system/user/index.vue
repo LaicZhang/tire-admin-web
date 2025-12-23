@@ -74,7 +74,7 @@ const formColumns: PlusColumn[] = [
 ];
 
 const handleChange = () => {
-  // 处理变化
+  handleSearch();
 };
 const handleSearch = async () => {
   loading.value = true;
@@ -90,10 +90,12 @@ const handleReset = () => {
   state.value = { status: "", username: "" };
   handleSearch();
 };
-const getDetails = async row => {
+const getDetails = async (row: { uid: string }) => {
   loading.value = true;
-  const { data, code, msg } = await getOneUserApi(row.uid);
+  const { data } = await getOneUserApi(row.uid);
   loading.value = false;
+  // TODO: 显示详情弹窗
+  console.log("User details:", data);
 };
 
 const openDialog = (title = "新增", row?: FormItemProps) => {
