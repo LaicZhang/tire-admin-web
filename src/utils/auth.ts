@@ -63,27 +63,21 @@ export function setToken(data: DataInfo<Date>) {
   expires = new Date(data.expires).getTime(); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
   const cookieString = JSON.stringify({ accessToken, expires });
 
-  // expires > 0
-  //   ? Cookies.set(TokenKey, cookieString, {
-  //     expires: (expires - Date.now()) / 86400000
-  //   })
-  //   : Cookies.set(TokenKey, cookieString);
+  /** Cookie 安全配置 */
+  const secureCookieOptions: Cookies.CookieAttributes = {
+    secure: import.meta.env.PROD, // 生产环境强制 HTTPS
+    sameSite: "strict" // 防止 CSRF 攻击
+  };
 
-  Cookies.set(
-    TokenKey,
-    cookieString,
-    expires > 0 ? { expires: (expires - Date.now()) / 86400000 } : undefined
-  );
+  Cookies.set(TokenKey, cookieString, {
+    ...secureCookieOptions,
+    ...(expires > 0 ? { expires: (expires - Date.now()) / 86400000 } : {})
+  });
 
-  Cookies.set(
-    multipleTabsKey,
-    "true",
-    isRemember
-      ? {
-          expires: loginDay
-        }
-      : {}
-  );
+  Cookies.set(multipleTabsKey, "true", {
+    ...secureCookieOptions,
+    ...(isRemember ? { expires: loginDay } : {})
+  });
 
   function setUserKey(username: string, roles: Array<string>, uid: string) {
     useUserStoreHook().SET_USERNAME(username);
@@ -100,7 +94,7 @@ export function setToken(data: DataInfo<Date>) {
 
   if (data.username && data.roles) {
     const { username, roles, uid } = data;
-    setUserKey(username, roles, uid);
+    setUserKey(username, roles, uid ?? "");
   } else {
     const username =
       storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "";

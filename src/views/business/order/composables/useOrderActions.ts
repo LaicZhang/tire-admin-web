@@ -20,6 +20,21 @@ import {
 import { ElMessageBox } from "element-plus";
 import { CUR_FORM_TITLE, localForage, message, ORDER_TYPE } from "@/utils";
 import { openDialog } from "../table";
+import type { CommonResult } from "@/api/type";
+
+/**
+ * 订单行数据接口
+ */
+export interface OrderRow {
+  uid: string;
+  id?: number;
+  name?: string;
+  status?: string;
+  orderNo?: string;
+  total?: number | string;
+  payStatus?: number;
+  [key: string]: unknown;
+}
 
 /**
  * 订单操作 composable
@@ -31,25 +46,29 @@ export function useOrderActions(
 ) {
   const formTitle = { value: "" };
 
-  const handleOpenDialog = async (title: string, type: string, row?: any) => {
+  const handleOpenDialog = async (
+    title: string,
+    type: string,
+    row?: OrderRow
+  ) => {
     formTitle.value = title;
     await localForage().setItem(CUR_FORM_TITLE, title);
     openDialog(title, type, row);
   };
 
-  const handleDelete = async (row: any) => {
+  const handleDelete = async (row: OrderRow) => {
     await deleteOrderApi(orderType.value, row.uid);
     message(`您删除了${row.name}这条数据`, { type: "success" });
     await onSearch();
   };
 
   // 采购订单：确认到货
-  const handleConfirmPurchaseArrival = async (row: any) => {
+  const handleConfirmPurchaseArrival = async (row: OrderRow) => {
     handleOpenDialog("确认到货", orderType.value, row);
   };
 
   // 销售订单：确认发货
-  const handleConfirmSaleShipment = async (row: any) => {
+  const handleConfirmSaleShipment = async (row: OrderRow) => {
     try {
       await confirmSaleOrderShipmentApi(row.uid, {});
       message("确认发货成功", { type: "success" });
@@ -61,7 +80,7 @@ export function useOrderActions(
   };
 
   // 销售订单：确认送达
-  const handleConfirmSaleDelivery = async (row: any) => {
+  const handleConfirmSaleDelivery = async (row: OrderRow) => {
     try {
       await confirmSaleOrderDeliveryApi(row.uid, {});
       message("确认送达成功", { type: "success" });
@@ -73,12 +92,12 @@ export function useOrderActions(
   };
 
   // 理赔订单：处理理赔费用
-  const handleProcessClaimPayment = async (row: any) => {
+  const handleProcessClaimPayment = async (row: OrderRow) => {
     handleOpenDialog("处理理赔费用", orderType.value, row);
   };
 
   // 退货订单：确认客户退货到货
-  const handleConfirmReturnCustomerArrival = async (row: any) => {
+  const handleConfirmReturnCustomerArrival = async (row: OrderRow) => {
     try {
       await confirmReturnOrderCustomerArrivalApi(row.uid, {});
       message("确认客户退货到货成功", { type: "success" });
@@ -91,7 +110,7 @@ export function useOrderActions(
   };
 
   // 退货订单：确认退供应商发货
-  const handleConfirmReturnProviderShipment = async (row: any) => {
+  const handleConfirmReturnProviderShipment = async (row: OrderRow) => {
     try {
       await confirmReturnOrderProviderShipmentApi(row.uid, {});
       message("确认退供应商发货成功", { type: "success" });
@@ -104,7 +123,7 @@ export function useOrderActions(
   };
 
   // 退货订单：确认退供应商送达
-  const handleConfirmReturnProviderDelivery = async (row: any) => {
+  const handleConfirmReturnProviderDelivery = async (row: OrderRow) => {
     try {
       await confirmReturnOrderProviderDeliveryApi(row.uid, {});
       message("确认退供应商送达成功", { type: "success" });
@@ -117,12 +136,12 @@ export function useOrderActions(
   };
 
   // 退货订单：退款
-  const handleRefundReturnOrder = async (row: any) => {
+  const handleRefundReturnOrder = async (row: OrderRow) => {
     handleOpenDialog("退款", orderType.value, row);
   };
 
   // 调拨订单：确认发货
-  const handleConfirmTransferShipment = async (row: any) => {
+  const handleConfirmTransferShipment = async (row: OrderRow) => {
     try {
       await confirmTransferOrderShipmentApi(row.uid, {});
       message("确认发货成功", { type: "success" });
@@ -134,7 +153,7 @@ export function useOrderActions(
   };
 
   // 调拨订单：确认到货
-  const handleConfirmTransferArrival = async (row: any) => {
+  const handleConfirmTransferArrival = async (row: OrderRow) => {
     try {
       await confirmTransferOrderArrivalApi(row.uid, {});
       message("确认到货成功", { type: "success" });
@@ -146,7 +165,10 @@ export function useOrderActions(
   };
 
   // 订单作废
-  const reverseApiMap: Record<string, (uid: string, reason: string) => any> = {
+  const reverseApiMap: Record<
+    string,
+    (uid: string, reason: string) => Promise<CommonResult>
+  > = {
     [ORDER_TYPE.sale]: reverseSaleOrderApi,
     [ORDER_TYPE.purchase]: reversePurchaseOrderApi,
     [ORDER_TYPE.return]: reverseReturnOrderApi,
@@ -155,7 +177,7 @@ export function useOrderActions(
     [ORDER_TYPE.surplus]: reverseSurplusOrderApi
   };
 
-  const handleReverseOrder = async (row: any) => {
+  const handleReverseOrder = async (row: OrderRow) => {
     try {
       const { value: reason } = await ElMessageBox.prompt(
         "请输入作废原因",
@@ -180,23 +202,25 @@ export function useOrderActions(
     }
   };
 
-  const handleSendInquiry = async (row: any) => {
+  const handleSendInquiry = async (row: OrderRow) => {
     try {
-      await sendPurchaseInquiryApi(row.id);
+      await sendPurchaseInquiryApi(row.id!);
       message("询价单发送成功", { type: "success" });
       await onSearch();
-    } catch (error: any) {
-      message(error.message || "发送失败", { type: "error" });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "发送失败";
+      message(msg, { type: "error" });
     }
   };
 
-  const handleConvertQuotation = async (row: any) => {
+  const handleConvertQuotation = async (row: OrderRow) => {
     try {
-      await convertSaleQuotationApi(row.id);
+      await convertSaleQuotationApi(row.id!);
       message("报价单转订单成功", { type: "success" });
       await onSearch();
-    } catch (error: any) {
-      message(error.message || "转换失败", { type: "error" });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "转换失败";
+      message(msg, { type: "error" });
     }
   };
 

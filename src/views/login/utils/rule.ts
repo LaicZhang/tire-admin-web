@@ -15,6 +15,7 @@ export enum ERROR_TIPS {
   passwordRuleReg = "密码格式应为8-18位数字、字母、符号的任意两种组合",
   captchaCodeReg = "验证码不能为空",
   captchaCodeCorrectReg = "验证码不正确",
+  captchaCodeSixReg = "请输入6位数字验证码",
   phoneReg = "手机号码不能为空",
   phoneCorrectReg = "手机号码格式不正确"
 }
@@ -37,6 +38,11 @@ const loginRules = reactive<FormRules>({
   ],
   captchaCode: [
     {
+      /**
+       * 注意：此客户端验证码校验仅用于提升用户体验，
+       * 实际安全验证必须在服务端进行。
+       * TODO: 后续应移除客户端验证，完全依赖服务端验证
+       */
       validator: (rule, value, callback) => {
         if (value === "") {
           callback(new Error(ERROR_TIPS.captchaCodeReg));
@@ -89,9 +95,9 @@ const updateRules = reactive<FormRules>({
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error("login.phoneReg"));
+          callback(new Error(ERROR_TIPS.phoneReg));
         } else if (!isPhone(value)) {
-          callback(new Error("login.phoneCorrectReg"));
+          callback(new Error(ERROR_TIPS.phoneCorrectReg));
         } else {
           callback();
         }
@@ -103,9 +109,9 @@ const updateRules = reactive<FormRules>({
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error("login.captchaCodeReg"));
+          callback(new Error(ERROR_TIPS.captchaCodeReg));
         } else if (!REGEXP_SIX.test(value)) {
-          callback(new Error("login.captchaCodeSixReg"));
+          callback(new Error(ERROR_TIPS.captchaCodeSixReg));
         } else {
           callback();
         }
@@ -117,9 +123,9 @@ const updateRules = reactive<FormRules>({
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error("login.passwordReg"));
+          callback(new Error(ERROR_TIPS.passwordReg));
         } else if (!REGEXP_PWD.test(value)) {
-          callback(new Error("login.passwordRuleReg"));
+          callback(new Error(ERROR_TIPS.passwordRuleReg));
         } else {
           callback();
         }

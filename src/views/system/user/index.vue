@@ -95,7 +95,6 @@ const getDetails = async (row: { uid: string }) => {
   const { data } = await getOneUserApi(row.uid);
   loading.value = false;
   // TODO: 显示详情弹窗
-  console.log("User details:", data);
 };
 
 const openDialog = (title = "新增", row?: FormItemProps) => {

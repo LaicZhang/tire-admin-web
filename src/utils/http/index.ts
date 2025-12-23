@@ -110,6 +110,11 @@ class PureHttp {
                         PureHttp.requests.forEach(cb => cb(token));
                         PureHttp.requests = [];
                       })
+                      .catch(() => {
+                        // Token 刷新失败，清空队列并登出
+                        PureHttp.requests = [];
+                        useUserStoreHook().logOut();
+                      })
                       .finally(() => {
                         PureHttp.isRefreshing = false;
                       });

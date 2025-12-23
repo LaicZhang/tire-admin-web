@@ -1,7 +1,7 @@
-export type CommonResult = {
+export type CommonResult<T = unknown> = {
   code: number;
   msg: string;
-  data: any;
+  data: T;
 };
 
 export type UserResult = {

@@ -4,6 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": false,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
     "strictFunctionTypes": false,
     "noImplicitThis": true,
     "jsx": "preserve",

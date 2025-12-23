@@ -2,13 +2,63 @@ import { http } from "@/utils/http";
 import { baseUrlApi } from "./utils";
 import type { CommonResult, RefreshTokenResult, UserResult } from "./type";
 
+/** 登录请求参数 */
+interface LoginDto {
+  username: string;
+  password: string;
+  code?: string;
+  isRemember?: boolean;
+}
+
+/** 刷新 Token 请求参数 */
+interface RefreshTokenDto {
+  refreshToken: string;
+}
+
+/** 设置当前公司参数 */
+interface DetermineCurrentCompanyDto {
+  companyId: string;
+}
+
+/** 发送验证码参数 */
+interface SendVerifyCodeDto {
+  email?: string;
+  phone?: string;
+  type: "register" | "reset-password" | "bind";
+}
+
+/** 更新公司信息参数 */
+interface UpdateCompanyInfoDto {
+  name?: string;
+  address?: string;
+  phone?: string;
+  bankInfo?: string;
+  taxNumber?: string;
+  [key: string]: string | undefined;
+}
+
+/** 更新用户信息参数 */
+interface UpdateUserInfoDto {
+  nickname?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+}
+
+/** 登录历史查询参数 */
+interface LoginHistoryQueryDto {
+  startDate?: string;
+  endDate?: string;
+  ip?: string;
+}
+
 /** 登录 */
-export const getLogin = (data?: object) => {
+export const getLogin = (data: LoginDto) => {
   return http.request<UserResult>("post", baseUrlApi("/auth/login"), { data });
 };
 
 /** 刷新token */
-export const refreshTokenApi = (data?: object) => {
+export const refreshTokenApi = (data: RefreshTokenDto) => {
   return http.request<RefreshTokenResult>(
     "post",
     baseUrlApi("/auth/refresh-token"),
@@ -23,7 +73,9 @@ export const getCurrentCompanyApi = async () => {
   );
 };
 
-export const determineCurrentCompanyApi = (data?: object) => {
+export const determineCurrentCompanyApi = (
+  data?: DetermineCurrentCompanyDto
+) => {
   return http.request<CommonResult>(
     "post",
     baseUrlApi("/auth/current-company"),
@@ -31,7 +83,7 @@ export const determineCurrentCompanyApi = (data?: object) => {
   );
 };
 
-export const getVerifyCodeApi = (data?: object) => {
+export const getVerifyCodeApi = (data?: SendVerifyCodeDto) => {
   return http.request<CommonResult>("post", baseUrlApi("/verify/code"), {
     data
   });
@@ -48,7 +100,7 @@ export const getCompanyInfoApi = (type: string) => {
   );
 };
 
-export const updateCompanyInfoApi = (data?: object) => {
+export const updateCompanyInfoApi = (data?: UpdateCompanyInfoDto) => {
   return http.request<CommonResult>("patch", baseUrlApi("/auth/company-info"), {
     data
   });
@@ -58,13 +110,13 @@ export const getUserInfoApi = () => {
   return http.request<CommonResult>("get", baseUrlApi("/auth/info"));
 };
 
-export const updateUserInfoApi = (data?: object) => {
+export const updateUserInfoApi = (data?: UpdateUserInfoDto) => {
   return http.request<CommonResult>("patch", baseUrlApi("/auth/info"), {
     data
   });
 };
 
-export const getLogApi = (index: number, params?: object) => {
+export const getLogApi = (index: number, params?: LoginHistoryQueryDto) => {
   return http.request<CommonResult>(
     "get",
     baseUrlApi(`/auth/login-history/page/${index}`),
