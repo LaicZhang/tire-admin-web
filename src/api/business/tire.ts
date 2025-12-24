@@ -1,11 +1,24 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "./../utils";
 import type { CommonResult } from "./../type";
-import { getCompanyId } from "./../company";
 
 const prefix = "/tire/";
 
-const cid = getCompanyId();
+export interface TireQueryDto {
+  keyword?: string;
+  group?: string;
+}
+
+export interface TireDto {
+  name: string;
+  number?: string;
+  barCode?: string;
+  group?: string;
+  brand?: string;
+  price?: number;
+  cost?: number;
+  desc?: string;
+}
 
 export async function getTireListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
@@ -15,23 +28,23 @@ export async function getTireListApi(index: number, params?: object) {
   );
 }
 
-export async function addTireApi(data: object) {
+export async function addTireApi(data: TireDto) {
   return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data
   });
 }
 
-export async function getTireApi(uid = cid) {
+export async function getTireApi(uid: string) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateTireApi(uid, data: object) {
+export async function updateTireApi(uid: string, data: Partial<TireDto>) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });
 }
 
-export async function deleteTireApi(uid) {
+export async function deleteTireApi(uid: string) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
 

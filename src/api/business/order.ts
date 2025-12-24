@@ -1,18 +1,74 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
-import { getCompanyId } from "../company";
 
 const getOrderPrefix = (type: string) => {
   return `/${type}/`;
 };
 
-const cid = getCompanyId();
+// ============ 订单 DTO 类型定义 ============
+
+/** 订单详情 DTO */
+export interface OrderDetailDto {
+  tireId: string;
+  count: number;
+  total?: number;
+  repoId?: string;
+  batchNo?: string;
+  expiryDate?: string;
+}
+
+/** 创建订单请求 DTO */
+export interface CreateOrderDto {
+  providerId?: string;
+  customerId?: string;
+  auditorId?: string;
+  desc?: string;
+  details: OrderDetailDto[];
+}
+
+/** 更新订单请求 DTO */
+export interface UpdateOrderDto {
+  providerId?: string;
+  customerId?: string;
+  auditorId?: string;
+  desc?: string;
+  total?: number;
+  paidAmount?: number;
+  details?: OrderDetailDto[];
+}
+
+/** 订单查询参数 DTO */
+/** 支付订单请求 DTO */
+export interface PayOrderDto {
+  total: number;
+  paymentId?: string;
+}
+
+/** 确认物流状态请求 DTO */
+export interface ConfirmLogisticsDto {
+  details?: Array<{
+    uid: string;
+    batchNo?: string;
+    expiryDate?: string;
+  }>;
+}
+
+export interface OrderQueryDto {
+  orderStatus?: number;
+  logisticsStatus?: number;
+  isApproved?: boolean;
+  startDate?: string;
+  endDate?: string;
+  keyword?: string;
+}
+
+// ============ 通用订单 API ============
 
 export async function getOrderListApi(
   type: string,
   index: number,
-  params?: object
+  params?: OrderQueryDto
 ) {
   return await http.request<CommonResult>(
     "get",
@@ -21,7 +77,7 @@ export async function getOrderListApi(
   );
 }
 
-export async function addOrderApi(type: string, data: object) {
+export async function addOrderApi(type: string, data: CreateOrderDto) {
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(getOrderPrefix(type)),
@@ -31,14 +87,18 @@ export async function addOrderApi(type: string, data: object) {
   );
 }
 
-export async function getOrderApi(type: string, uid = cid) {
+export async function getOrderApi(type: string, uid: string) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(getOrderPrefix(type) + uid)
   );
 }
 
-export async function updateOrderApi(type: string, uid: string, data: object) {
+export async function updateOrderApi(
+  type: string,
+  uid: string,
+  data: UpdateOrderDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(getOrderPrefix(type) + uid),
@@ -63,7 +123,7 @@ export async function getPurchaseOrderCountApi() {
   );
 }
 
-export async function payPurchaseOrderApi(uid: string, data: object) {
+export async function payPurchaseOrderApi(uid: string, data: PayOrderDto) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/purchase-order/pay/${uid}`),
@@ -78,7 +138,10 @@ export async function createPurchaseOrderDetailApi(uid: string) {
   );
 }
 
-export async function updatePurchaseOrderDetailApi(uid: string, data: object) {
+export async function updatePurchaseOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/purchase-order/detail/${uid}`),
@@ -95,7 +158,7 @@ export async function deletePurchaseOrderDetailApi(uid: string) {
 
 export async function confirmPurchaseOrderArrivalApi(
   uid: string,
-  data: object
+  data: ConfirmLogisticsDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -112,7 +175,7 @@ export async function getSaleOrderCountApi() {
   );
 }
 
-export async function paySaleOrderApi(uid: string, data: object) {
+export async function paySaleOrderApi(uid: string, data: PayOrderDto) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/sale-order/pay/${uid}`),
@@ -127,7 +190,10 @@ export async function createSaleOrderDetailApi(uid: string) {
   );
 }
 
-export async function updateSaleOrderDetailApi(uid: string, data: object) {
+export async function updateSaleOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/sale-order/detail/${uid}`),
@@ -142,7 +208,10 @@ export async function deleteSaleOrderDetailApi(uid: string) {
   );
 }
 
-export async function confirmSaleOrderShipmentApi(uid: string, data: object) {
+export async function confirmSaleOrderShipmentApi(
+  uid: string,
+  data: ConfirmLogisticsDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/sale-order/confirm-shipment/${uid}`),
@@ -150,7 +219,10 @@ export async function confirmSaleOrderShipmentApi(uid: string, data: object) {
   );
 }
 
-export async function confirmSaleOrderDeliveryApi(uid: string, data: object) {
+export async function confirmSaleOrderDeliveryApi(
+  uid: string,
+  data: ConfirmLogisticsDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/sale-order/confirm-delivery/${uid}`),
@@ -159,7 +231,7 @@ export async function confirmSaleOrderDeliveryApi(uid: string, data: object) {
 }
 
 // 索赔订单特定接口
-export async function getClaimOrderCountApi(params?: object) {
+export async function getClaimOrderCountApi(params?: OrderQueryDto) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi("/claim-order/count"),
@@ -174,7 +246,10 @@ export async function createClaimOrderDetailApi(uid: string) {
   );
 }
 
-export async function updateClaimOrderDetailApi(uid: string, data: object) {
+export async function updateClaimOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/claim-order/detail/${uid}`),
@@ -203,7 +278,7 @@ export async function processClaimOrderPaymentApi(
 // 退货订单特定接口
 export async function confirmReturnOrderCustomerArrivalApi(
   uid: string,
-  data: object
+  data: ConfirmLogisticsDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -214,7 +289,7 @@ export async function confirmReturnOrderCustomerArrivalApi(
 
 export async function confirmReturnOrderProviderShipmentApi(
   uid: string,
-  data: object
+  data: ConfirmLogisticsDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -225,7 +300,7 @@ export async function confirmReturnOrderProviderShipmentApi(
 
 export async function confirmReturnOrderProviderDeliveryApi(
   uid: string,
-  data: object
+  data: ConfirmLogisticsDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -244,7 +319,7 @@ export async function refundReturnOrderApi(uid: string, data: { fee: number }) {
 
 export async function getReturnOrderExchangeListApi(
   index: number,
-  params?: object
+  params?: OrderQueryDto
 ) {
   return await http.request<CommonResult>(
     "get",
@@ -256,7 +331,7 @@ export async function getReturnOrderExchangeListApi(
 // 调拨订单特定接口
 export async function confirmTransferOrderShipmentApi(
   uid: string,
-  data: object
+  data: ConfirmLogisticsDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -267,7 +342,7 @@ export async function confirmTransferOrderShipmentApi(
 
 export async function confirmTransferOrderArrivalApi(
   uid: string,
-  data: object
+  data: ConfirmLogisticsDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -277,7 +352,10 @@ export async function confirmTransferOrderArrivalApi(
 }
 
 // 报废订单特定接口
-export async function createWasteOrderDetailApi(uid: string, data: object) {
+export async function createWasteOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(`/waste-order/detail/${uid}`),
@@ -285,7 +363,10 @@ export async function createWasteOrderDetailApi(uid: string, data: object) {
   );
 }
 
-export async function updateWasteOrderDetailApi(uid: string, data: object) {
+export async function updateWasteOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/waste-order/detail/${uid}`),
@@ -350,7 +431,10 @@ export async function reverseSurplusOrderApi(uid: string, reason: string) {
 }
 
 // 调拨订单明细管理
-export async function createTransferOrderDetailApi(uid: string, data: object) {
+export async function createTransferOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(`/transfer-order/detail/${uid}`),
@@ -358,7 +442,10 @@ export async function createTransferOrderDetailApi(uid: string, data: object) {
   );
 }
 
-export async function updateTransferOrderDetailApi(uid: string, data: object) {
+export async function updateTransferOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/transfer-order/detail/${uid}`),
@@ -377,7 +464,10 @@ export async function deleteTransferOrderDetailApi(
 }
 
 // 盘盈订单明细管理
-export async function createSurplusOrderDetailApi(uid: string, data: object) {
+export async function createSurplusOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(`/surplus-order/detail/${uid}`),
@@ -385,7 +475,10 @@ export async function createSurplusOrderDetailApi(uid: string, data: object) {
   );
 }
 
-export async function updateSurplusOrderDetailApi(uid: string, data: object) {
+export async function updateSurplusOrderDetailApi(
+  uid: string,
+  data: OrderDetailDto
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/surplus-order/detail/${uid}`),
@@ -417,7 +510,7 @@ export async function getAuditorListApi(type: string) {
 export async function getPendingAuditOrdersApi(
   type: string,
   index: number,
-  params?: object
+  params?: OrderQueryDto
 ) {
   return await http.request<CommonResult>(
     "get",

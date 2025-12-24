@@ -118,13 +118,3 @@ export type ClaimOrderPaymentDto = {
 export type RefundOrderDto = {
   fee: number;
 };
-
-export type OrderDetailDto = {
-  tireId?: string;
-  count?: number;
-  total?: number;
-  isExchange?: boolean;
-  exchangeTireId?: string;
-  exchangeCount?: number;
-  [key: string]: any;
-};

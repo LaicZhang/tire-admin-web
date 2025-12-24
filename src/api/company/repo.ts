@@ -18,24 +18,25 @@ export async function addRepoApi(data: object) {
   });
 }
 
-export async function getRepoApi(uid) {
+export async function getRepoApi(uid: string) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateRepoApi(uid, data: object) {
+export async function updateRepoApi(uid: string, data: object) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });
 }
 
-export async function toggleRepoApi(uid) {
+export async function toggleRepoApi(uid: string) {
   const repo = await getRepoApi(uid);
-  if (repo.data.status === true)
+  const repoData = repo.data as { status?: boolean } | null;
+  if (repoData?.status === true)
     return await updateRepoApi(uid, { status: false });
   else return await updateRepoApi(uid, { status: true });
 }
 
-export async function deleteRepoApi(uid) {
+export async function deleteRepoApi(uid: string) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
 

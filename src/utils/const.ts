@@ -98,7 +98,7 @@ export const getOrderTypeList = (userRoles: string[]) => {
   if (userRoles.some(role => allowedRoles.includes(role))) {
     return ORDER_TYPE_LIST;
   }
-  const orderTypeList = new Set([]);
+  const orderTypeList = new Set<{ value: ORDER_TYPE; label: string }>();
   userRoles.forEach(role => {
     if (role === "seller" || role === "sellerManager") {
       orderTypeList.add({

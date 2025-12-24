@@ -1,11 +1,26 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
-import { getCompanyId } from "../company";
 
 const prefix = "/customer/";
 
-const cid = getCompanyId();
+/** 客户查询参数 */
+export interface CustomerQueryDto {
+  keyword?: string;
+  tagId?: number;
+  levelId?: number;
+  regionId?: number;
+}
+
+/** 客户创建/更新 DTO */
+export interface CustomerDto {
+  name: string;
+  phone?: string;
+  address?: string;
+  desc?: string;
+  levelId?: number;
+  regionId?: number;
+}
 
 export async function getCustomerListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
@@ -15,23 +30,26 @@ export async function getCustomerListApi(index: number, params?: object) {
   );
 }
 
-export async function addCustomerApi(data: object) {
+export async function addCustomerApi(data: CustomerDto) {
   return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data
   });
 }
 
-export async function getCustomerApi(uid = cid) {
+export async function getCustomerApi(uid: string) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateCustomerApi(uid, data: object) {
+export async function updateCustomerApi(
+  uid: string,
+  data: Partial<CustomerDto>
+) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });
 }
 
-export async function deleteCustomerApi(uid) {
+export async function deleteCustomerApi(uid: string) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
 

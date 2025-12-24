@@ -1,11 +1,8 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
-import { getCompanyId } from "../company";
 
 const prefix = "/role/";
-
-const cid = getCompanyId();
 
 export async function getPositionListApi(index: number, params?: object) {
   return await http.request<CommonResult>(
@@ -21,17 +18,17 @@ export async function addPositionApi(data: object) {
   });
 }
 
-export async function getPositionApi(uid = cid) {
+export async function getPositionApi(uid: string) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updatePositionApi(uid, data: object) {
+export async function updatePositionApi(uid: string, data: object) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });
 }
 
-export async function deletePositionApi(uid) {
+export async function deletePositionApi(uid: string) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
 

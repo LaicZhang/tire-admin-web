@@ -1,11 +1,8 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
-import { getCompanyId } from "../company";
 
 const prefix = "/employee/";
-
-const cid = getCompanyId();
 
 export async function getAllEmployeeApi(params?: object) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix), {
@@ -27,17 +24,17 @@ export async function addEmployeeApi(data: object) {
   });
 }
 
-export async function getEmployeeApi(uid = cid) {
+export async function getEmployeeApi(uid: string) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateEmployeeApi(uid, data: object) {
+export async function updateEmployeeApi(uid: string, data: object) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });
 }
 
-export async function deleteEmployeeApi(uid) {
+export async function deleteEmployeeApi(uid: string) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
 
