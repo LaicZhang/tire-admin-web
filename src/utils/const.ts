@@ -86,7 +86,29 @@ export const ORDER_TYPE_LIST = [
   }
 ];
 
-export const getOrderTypeList = (userRoles: string[]) => {
+/** 订单类型项定义 */
+export interface OrderTypeItem {
+  value: ORDER_TYPE;
+  label: string;
+}
+
+/** 订单类型映射表 - 用于按角色过滤时快速查找 */
+const ORDER_TYPE_MAP: Record<ORDER_TYPE, string> = {
+  [ORDER_TYPE.purchase]: "采购订单",
+  [ORDER_TYPE.purchasePlan]: "采购计划",
+  [ORDER_TYPE.purchaseInquiry]: "采购询价",
+  [ORDER_TYPE.sale]: "销售订单",
+  [ORDER_TYPE.saleQuotation]: "销售报价",
+  [ORDER_TYPE.claim]: "理赔订单",
+  [ORDER_TYPE.return]: "退货订单",
+  [ORDER_TYPE.waste]: "报废订单",
+  [ORDER_TYPE.transfer]: "调拨订单",
+  [ORDER_TYPE.assembly]: "装配订单",
+  [ORDER_TYPE.surplus]: "盘盈订单",
+  [ORDER_TYPE.default]: ""
+};
+
+export const getOrderTypeList = (userRoles: string[]): OrderTypeItem[] => {
   const allowedRoles = [
     "admin",
     "boss",
@@ -98,32 +120,30 @@ export const getOrderTypeList = (userRoles: string[]) => {
   if (userRoles.some(role => allowedRoles.includes(role))) {
     return ORDER_TYPE_LIST;
   }
-  const orderTypeList = new Set<{ value: ORDER_TYPE; label: string }>();
+
+  // 使用 Map 按 ORDER_TYPE 去重，避免 Set 无法正确去重对象引用的问题
+  const orderTypeMap = new Map<ORDER_TYPE, string>();
+
   userRoles.forEach(role => {
     if (role === "seller" || role === "sellerManager") {
-      orderTypeList.add({
-        value: ORDER_TYPE.purchase,
-        label: "采购订单"
-      });
+      orderTypeMap.set(
+        ORDER_TYPE.purchase,
+        ORDER_TYPE_MAP[ORDER_TYPE.purchase]
+      );
     } else if (role === "purchaser" || role === "purchaserManager") {
-      orderTypeList.add({
-        value: ORDER_TYPE.sale,
-        label: "销售订单"
-      });
+      orderTypeMap.set(ORDER_TYPE.sale, ORDER_TYPE_MAP[ORDER_TYPE.sale]);
     } else if (role === "finance" || role === "financeManager") {
-      orderTypeList.add({
-        value: ORDER_TYPE.purchase,
-        label: "采购订单"
-      });
-      orderTypeList.add({
-        value: ORDER_TYPE.sale,
-        label: "销售订单"
-      });
-      orderTypeList.add({
-        value: ORDER_TYPE.claim,
-        label: "理赔订单"
-      });
+      orderTypeMap.set(
+        ORDER_TYPE.purchase,
+        ORDER_TYPE_MAP[ORDER_TYPE.purchase]
+      );
+      orderTypeMap.set(ORDER_TYPE.sale, ORDER_TYPE_MAP[ORDER_TYPE.sale]);
+      orderTypeMap.set(ORDER_TYPE.claim, ORDER_TYPE_MAP[ORDER_TYPE.claim]);
     }
   });
-  return [...orderTypeList];
+
+  return Array.from(orderTypeMap.entries()).map(([value, label]) => ({
+    value,
+    label
+  }));
 };

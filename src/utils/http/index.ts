@@ -55,7 +55,7 @@ class PureHttp {
   }
 
   /** token过期后，暂存待执行的请求 */
-  private static requests = [];
+  private static requests: Array<(token: string) => void> = [];
 
   /** 防止重复刷新token */
   private static isRefreshing = false;
@@ -181,8 +181,8 @@ class PureHttp {
     return new Promise((resolve, reject) => {
       PureHttp.axiosInstance
         .request(config)
-        .then((response: undefined) => {
-          resolve(response);
+        .then((response: unknown) => {
+          resolve(response as T);
         })
         .catch(error => {
           reject(error);

@@ -10,24 +10,13 @@ import {
 import {
   type UserResult,
   type RefreshTokenResult,
+  type LoginDto,
+  type RefreshTokenDto,
   getLogin,
   refreshTokenApi
 } from "@/api";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
-
-/** 登录请求参数 */
-interface LoginDto {
-  username: string;
-  password: string;
-  code?: string;
-  isRemember?: boolean;
-}
-
-/** 刷新 Token 请求参数 */
-interface RefreshTokenDto {
-  refreshToken: string;
-}
 
 export const useUserStore = defineStore("pure-user", {
   state: (): userType => ({

@@ -3,7 +3,7 @@ import { baseUrlApi } from "./utils";
 import type { CommonResult, RefreshTokenResult, UserResult } from "./type";
 
 /** 登录请求参数 */
-interface LoginDto {
+export interface LoginDto {
   username: string;
   password: string;
   code?: string;
@@ -11,7 +11,7 @@ interface LoginDto {
 }
 
 /** 刷新 Token 请求参数 */
-interface RefreshTokenDto {
+export interface RefreshTokenDto {
   refreshToken: string;
 }
 
