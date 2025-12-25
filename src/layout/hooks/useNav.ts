@@ -9,6 +9,7 @@ import type { routeMetaType } from "../types";
 import { useRouter, useRoute } from "vue-router";
 import { router, remainingPaths } from "@/router";
 import { computed, type CSSProperties } from "vue";
+import type { RouteRecordRaw } from "vue-router";
 import { useAppStoreHook } from "@/store/modules/app";
 import { useUserStoreHook } from "@/store/modules/user";
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -86,12 +87,15 @@ export function useNav() {
     pureApp.toggleSideBar();
   }
 
-  function handleResize(menuRef) {
+  function handleResize(menuRef: { handleResize: () => void } | null): void {
     menuRef?.handleResize();
   }
 
-  function resolvePath(route) {
-    if (!route.children) return console.error(errorInfo);
+  function resolvePath(route: RouteRecordRaw): string | undefined {
+    if (!route.children) {
+      console.error(errorInfo);
+      return undefined;
+    }
     const httpReg = /^http(s?):\/\//;
     const routeChildPath = route.children[0]?.path;
     if (httpReg.test(routeChildPath)) {

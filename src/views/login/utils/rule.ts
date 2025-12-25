@@ -19,29 +19,74 @@ export enum ERROR_TIPS {
   phoneCorrectReg = "手机号码格式不正确"
 }
 
+/** 创建密码验证器 */
+const createPasswordValidator = () => ({
+  validator: (
+    _rule: unknown,
+    value: string,
+    callback: (error?: Error) => void
+  ) => {
+    if (value === "") {
+      callback(new Error(ERROR_TIPS.passwordReg));
+    } else if (!REGEXP_PWD.test(value)) {
+      callback(new Error(ERROR_TIPS.passwordRuleReg));
+    } else {
+      callback();
+    }
+  },
+  trigger: "blur"
+});
+
+/** 创建手机号验证器 */
+const createPhoneValidator = () => ({
+  validator: (
+    _rule: unknown,
+    value: string,
+    callback: (error?: Error) => void
+  ) => {
+    if (value === "") {
+      callback(new Error(ERROR_TIPS.phoneReg));
+    } else if (!isPhone(value)) {
+      callback(new Error(ERROR_TIPS.phoneCorrectReg));
+    } else {
+      callback();
+    }
+  },
+  trigger: "blur"
+});
+
+/** 创建6位数字验证码校验器工厂函数 */
+const createSixDigitCaptchaValidator = (errorMsg: string) => ({
+  validator: (
+    _rule: unknown,
+    value: string,
+    callback: (error?: Error) => void
+  ) => {
+    if (!value) {
+      callback(new Error(ERROR_TIPS.captchaCodeReg));
+    } else if (!REGEXP_SIX.test(value)) {
+      callback(new Error(errorMsg));
+    } else {
+      callback();
+    }
+  },
+  trigger: "blur"
+});
+
 /** 登录校验 */
 const loginRules = reactive<FormRules>({
-  password: [
-    {
-      validator: (rule, value, callback) => {
-        if (value === "") {
-          callback(new Error(ERROR_TIPS.passwordReg));
-        } else if (!REGEXP_PWD.test(value)) {
-          callback(new Error(ERROR_TIPS.passwordRuleReg));
-        } else {
-          callback();
-        }
-      },
-      trigger: "blur"
-    }
-  ],
+  password: [createPasswordValidator()],
   captchaCode: [
     {
       /**
        * 验证码校验完全由后端处理，
        * 客户端仅进行非空校验以提升用户体验
        */
-      validator: (rule, value, callback) => {
+      validator: (
+        _rule: unknown,
+        value: string,
+        callback: (error?: Error) => void
+      ) => {
         if (value === "") {
           callback(new Error(ERROR_TIPS.captchaCodeReg));
         } else if (value.length < 4) {
@@ -57,80 +102,17 @@ const loginRules = reactive<FormRules>({
 
 /** 手机登录校验 */
 const phoneRules = reactive<FormRules>({
-  phone: [
-    {
-      validator: (rule, value, callback) => {
-        if (value === "") {
-          callback(new Error(ERROR_TIPS.phoneReg));
-        } else if (!isPhone(value)) {
-          callback(new Error(ERROR_TIPS.phoneCorrectReg));
-        } else {
-          callback();
-        }
-      },
-      trigger: "blur"
-    }
-  ],
+  phone: [createPhoneValidator()],
   captchaCode: [
-    {
-      validator: (rule, value, callback) => {
-        if (value === "") {
-          callback(new Error(ERROR_TIPS.captchaCodeReg));
-        } else if (!REGEXP_SIX.test(value)) {
-          callback(new Error(ERROR_TIPS.captchaCodeCorrectReg));
-        } else {
-          callback();
-        }
-      },
-      trigger: "blur"
-    }
+    createSixDigitCaptchaValidator(ERROR_TIPS.captchaCodeCorrectReg)
   ]
 });
 
 /** 忘记密码校验 */
 const updateRules = reactive<FormRules>({
-  phone: [
-    {
-      validator: (rule, value, callback) => {
-        if (value === "") {
-          callback(new Error(ERROR_TIPS.phoneReg));
-        } else if (!isPhone(value)) {
-          callback(new Error(ERROR_TIPS.phoneCorrectReg));
-        } else {
-          callback();
-        }
-      },
-      trigger: "blur"
-    }
-  ],
-  captchaCode: [
-    {
-      validator: (rule, value, callback) => {
-        if (value === "") {
-          callback(new Error(ERROR_TIPS.captchaCodeReg));
-        } else if (!REGEXP_SIX.test(value)) {
-          callback(new Error(ERROR_TIPS.captchaCodeSixReg));
-        } else {
-          callback();
-        }
-      },
-      trigger: "blur"
-    }
-  ],
-  password: [
-    {
-      validator: (rule, value, callback) => {
-        if (value === "") {
-          callback(new Error(ERROR_TIPS.passwordReg));
-        } else if (!REGEXP_PWD.test(value)) {
-          callback(new Error(ERROR_TIPS.passwordRuleReg));
-        } else {
-          callback();
-        }
-      },
-      trigger: "blur"
-    }
-  ]
+  phone: [createPhoneValidator()],
+  captchaCode: [createSixDigitCaptchaValidator(ERROR_TIPS.captchaCodeSixReg)],
+  password: [createPasswordValidator()]
 });
 
 export { loginRules, phoneRules, updateRules };

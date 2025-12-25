@@ -86,26 +86,34 @@ function toggle(device: string, bool: boolean) {
 // 判断是否可自动关闭菜单栏
 let isAutoCloseSidebar = true;
 
+/** 布局断点常量 */
+const BREAKPOINTS = {
+  MOBILE: 760,
+  TABLET: 990
+} as const;
+
 useResizeObserver(appWrapperRef, entries => {
   if (isMobile) return;
   const entry = entries[0];
   const [{ inlineSize: width, blockSize: height }] = entry.borderBoxSize;
   useAppStoreHook().setViewportSize({ width, height });
-  width <= 760 ? setTheme("vertical") : setTheme(useAppStoreHook().layout);
+  width <= BREAKPOINTS.MOBILE
+    ? setTheme("vertical")
+    : setTheme(useAppStoreHook().layout);
   /** width app-wrapper类容器宽度
-   * 0 < width <= 760 隐藏侧边栏
-   * 760 < width <= 990 折叠侧边栏
-   * width > 990 展开侧边栏
+   * 0 < width <= BREAKPOINTS.MOBILE 隐藏侧边栏
+   * BREAKPOINTS.MOBILE < width <= BREAKPOINTS.TABLET 折叠侧边栏
+   * width > BREAKPOINTS.TABLET 展开侧边栏
    */
-  if (width > 0 && width <= 760) {
+  if (width > 0 && width <= BREAKPOINTS.MOBILE) {
     toggle("mobile", false);
     isAutoCloseSidebar = true;
-  } else if (width > 760 && width <= 990) {
+  } else if (width > BREAKPOINTS.MOBILE && width <= BREAKPOINTS.TABLET) {
     if (isAutoCloseSidebar) {
       toggle("desktop", false);
       isAutoCloseSidebar = false;
     }
-  } else if (width > 990 && !set.sidebar.isClickCollapse) {
+  } else if (width > BREAKPOINTS.TABLET && !set.sidebar.isClickCollapse) {
     toggle("desktop", true);
     isAutoCloseSidebar = true;
   } else {

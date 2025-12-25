@@ -7,7 +7,7 @@ import { useNav } from "@/layout/hooks/useNav";
 import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
-import { initRouter, getTopMenu, addPathMatch } from "@/router/utils";
+import { addPathMatch } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import {
@@ -34,8 +34,6 @@ import forget from "./components/update.vue";
 import { operates, thirdParty } from "./utils/enums";
 import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 import { usePermissionStoreHook } from "@/store/modules/permission";
-// import { useEventListener } from "@vueuse/core";
-// import { debounce } from "@pureadmin/utils";
 
 defineOptions({
   name: "Login"
@@ -59,8 +57,11 @@ const currentPage = computed(() => {
 });
 
 const checked = ref(true);
-const loginDay = ref(7);
+/** 登录天数选项类型 */
+type LoginDayOption = 1 | 7 | 30;
+const loginDay = ref<LoginDayOption>(7);
 const disabled = ref(false);
+const showThirdPartyLogin = ref(false);
 
 const ruleForm = reactive({
   username: "",
@@ -72,7 +73,10 @@ const ruleForm = reactive({
 // 刷新后端验证码
 const refreshCaptcha = () => {
   captchaTimestamp.value = Date.now();
-  captchaUrl.value = `${baseUrlApi("/verify/captcha")}?t=${captchaTimestamp.value}`;
+  // 使用 URL 对象安全拼接验证码 URL
+  const url = new URL(baseUrlApi("/verify/captcha"), window.location.origin);
+  url.searchParams.set("t", captchaTimestamp.value.toString());
+  captchaUrl.value = url.toString();
 };
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
@@ -84,11 +88,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         .then(res => {
           const { code, msg, data } = res;
           if (code === 200) {
-            // initRouter().then(() => {
-            //   router.push(getTopMenu(true).path);
-            //   message("登录成功", { type: "success" });
-            // });
-            // // 全部采取静态路由模式
+            // 全部采取静态路由模式
             usePermissionStoreHook().handleWholeMenus([]);
             useCurrentCompanyStoreHook().handleCurrentCompany();
             addPathMatch();
@@ -114,20 +114,6 @@ function onkeydown({ code }: KeyboardEvent) {
     onLogin(ruleFormRef.value);
   }
 }
-
-// const immediateDebounce: any = debounce(
-//   formRef => onLogin(formRef),
-//   1000,
-//   true
-// );
-// useEventListener(document, "keydown", ({ code }) => {
-//   if (
-//     ["Enter", "NumpadEnter"].includes(code) &&
-//     !disabled.value &&
-//     !loading.value
-//   )
-//     immediateDebounce(ruleFormRef.value);
-// });
 
 onMounted(() => {
   window.document.addEventListener("keydown", onkeydown, { passive: true });
@@ -304,7 +290,7 @@ watch(loginDay, value => {
               </div>
             </el-form-item>
 
-            <el-form-item v-if="0">
+            <el-form-item v-if="showThirdPartyLogin">
               <el-divider>
                 <p class="text-gray-500 text-xs">第三方登录</p>
               </el-divider>

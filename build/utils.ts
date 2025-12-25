@@ -48,7 +48,7 @@ const __APP_INFO__ = {
 };
 
 /** 处理环境变量 */
-const warpperEnv = (envConf: Recordable): ViteEnv => {
+const wrapperEnv = (envConf: Recordable): ViteEnv => {
   // 默认值
   const ret: ViteEnv = {
     VITE_PORT: 8848,
@@ -78,10 +78,19 @@ const warpperEnv = (envConf: Recordable): ViteEnv => {
   return ret;
 };
 
+/** @deprecated 使用 wrapperEnv 替代 */
+const warpperEnv = wrapperEnv;
+
 const fileListTotal: number[] = [];
 
 /** 获取指定文件夹中所有文件的总大小 */
-const getPackageSize = options => {
+interface GetPackageSizeOptions {
+  folder?: string;
+  callback: (size: string | number) => void;
+  format?: boolean;
+}
+
+const getPackageSize = (options: GetPackageSizeOptions): void => {
   const { folder = "dist", callback, format = true } = options;
   readdir(folder, (err, files: string[]) => {
     if (err) throw err;
@@ -108,4 +117,12 @@ const getPackageSize = options => {
   });
 };
 
-export { root, pathResolve, alias, __APP_INFO__, warpperEnv, getPackageSize };
+export {
+  root,
+  pathResolve,
+  alias,
+  __APP_INFO__,
+  wrapperEnv,
+  warpperEnv,
+  getPackageSize
+};
