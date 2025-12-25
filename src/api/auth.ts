@@ -30,12 +30,13 @@ interface SendVerifyCodeDto {
 }
 
 /** 更新公司信息参数 */
-interface UpdateCompanyInfoDto {
+export interface UpdateCompanyInfoDto {
   name?: string;
-  address?: string;
-  phone?: string;
-  bankInfo?: string;
-  taxNumber?: string;
+  desc?: string;
+  principalName?: string;
+  principalPhone?: string;
+  province?: string;
+  city?: string;
 }
 
 /** 更新用户信息参数 */
