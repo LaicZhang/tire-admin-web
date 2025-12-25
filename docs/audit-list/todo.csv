@@ -1,0 +1,34 @@
+序号,模块,问题描述,优先级,状态,建议/实现思路,涉及文件
+1,Config/Build,TypeScript strict mode 禁用,高,已完成,"分阶段启用: Phase1-noImplicitAny, Phase2-strictFunctionTypes, Phase3-strict: true",tsconfig.json
+2,Config/Build,ESLint 允许 any 类型,高,已完成,"逐步收紧规则: off → warn → error",eslint.config.js
+3,Components,大型组件文件 bar.tsx 394行,中,已完成,"拆分为 types.ts、DensityDropdown.tsx、ColumnSettings.tsx 子组件, 主文件从404行减至160行",src/components/RePureTableBar/src/
+4,Components,ReDialog 全局状态污染,中,已完成,"新增 useDialogStore.ts 使用 provide/inject 模式, 保持向后兼容",src/components/ReDialog/
+5,Router,硬编码魔法数字 (useTimeoutFn 100),中,已完成,提取为命名常量 CACHE_REFRESH_DELAY_MS,src/router/utils/cache.ts
+6,Utils,缺少单元测试,中,已完成,"为 tree.ts 递归函数、auth.ts token 处理添加测试",src/utils/__tests__/tree.test.ts; src/utils/__tests__/auth.test.ts
+7,API,异步模式不一致,中,已完成,"重构 user.ts 中的 Promise 反模式为 async/await",src/store/modules/user.ts
+8,API,重复代码模式,中,已完成,"创建 factory.ts 工厂函数减少重复 CRUD 代码",src/api/factory.ts
+9,Utils,HTTP 请求类型定义不完整,中,已完成,"添加命名导出、完整方法签名和 JSDoc 文档",src/utils/http/types.d.ts
+10,Login/Layout,登录表单事件监听优化,中,已完成,"使用 VueUse useEventListener 替代手动 addEventListener, 自动清理事件",src/views/login/index.vue
+11,Login/Layout,Layout 目录结构优化,中,延迟处理,"涉及大量文件移动, 建议安排专门重构周期",src/layout/
+12,Config/Build,多个 ESLint 规则关闭,中,已完成,"逐步启用 ban-ts-comment、no-empty-function、no-non-null-assertion 设为 warn",eslint.config.js
+13,Business,order 单一职责原则问题,中,延迟处理,"使用类型切换模式, 功能内聚, 暂不拆分",src/views/business/order/index.vue
+14,Business,表单文件较大 (form.vue ~15KB),中,延迟处理,"表单逻辑复杂, 拆分需谨慎设计",src/views/business/order/form.vue
+15,Business,重复的 API 调用模式,中,已验证,"现有 composables、factory.ts 已较好解决此问题",src/views/business/order/composables/
+16,Business,初始化性能优化,中,已完成,"创建 PERFORMANCE.md 性能优化指南, 项目已配置 keep-alive 和路由懒加载",docs/PERFORMANCE.md
+17,API,缺少 JSDoc 注释,低,已完成,"为 auth.ts 等 API 函数添加文档注释",src/api/auth.ts
+18,API,缺少错误处理指南,低,已完成,创建 ERROR_HANDLING.md 文档定义统一策略,src/api/ERROR_HANDLING.md
+19,Utils,递归调用可能栈溢出,低,已完成,"添加 MAX_TREE_DEPTH=100 深度限制",src/utils/tree.ts
+20,Utils,文件组织可优化,低,已完成,创建 README.md 说明目录结构和使用方式,src/utils/README.md
+21,Store,Action 命名风格不一致,低,已完成,"统一使用驼峰命名: setName, setId, setUsername, setRoles 等",src/store/modules/user.ts; src/store/modules/company.ts
+22,Components,缺少组件文档,低,已完成,添加组件 README.md 文档,src/components/ReDialog/README.md; src/components/RePureTableBar/README.md; src/components/ReIcon/README.md
+23,Components,图标注册方式可优化,低,已验证,"现有 unplugin-icons 配置已支持按需加载, 无需修改",vite.config.ts; src/components/ReIcon/
+24,Router,缺少 JSDoc 文档,低,已完成,"为 filter.ts、dynamic.ts 等函数添加 JSDoc 文档",src/router/utils/filter.ts; src/router/utils/dynamic.ts
+25,System Views,基础模块待完善,低,已完成,"创建 README.md 模块开发指南, 列出待完善模块清单",src/views/system/README.md
+26,System Views,重复的样式代码,低,已完成,创建 _common.scss 提取通用样式,src/views/system/_common.scss
+27,Config/Build,构建目标较旧,低,已完成,"升级 target 到 es2020",vite.config.ts
+28,Login/Layout,2FA 未实现,低,可选功能,可选实现双因素认证,src/views/login/
+29,Login/Layout,登录失败限制需后端检查,低,已整理,创建 BACKEND_SECURITY_CHECKLIST.md 文档整理需求,docs/BACKEND_SECURITY_CHECKLIST.md
+30,Login/Layout,CSRF Token 需后端检查,低,已整理,创建 BACKEND_SECURITY_CHECKLIST.md 文档整理需求,docs/BACKEND_SECURITY_CHECKLIST.md
+31,整体,添加单元测试,中,已完成,添加 vitest 配置和单元测试,vitest.config.ts; src/utils/__tests__/
+32,整体,添加 JSDoc 文档,低,已完成,为 API 和 Router 工具函数添加 JSDoc,src/api/auth.ts; src/router/utils/
+33,整体,启用完整 TypeScript strict mode,高,已完成,"Phase1: noImplicitAny=true, strictFunctionTypes=true; 修复 dynamic.ts 类型错误",tsconfig.json; src/router/utils/dynamic.ts

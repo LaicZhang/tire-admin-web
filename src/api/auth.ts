@@ -36,7 +36,6 @@ interface UpdateCompanyInfoDto {
   phone?: string;
   bankInfo?: string;
   taxNumber?: string;
-  [key: string]: string | undefined;
 }
 
 /** 更新用户信息参数 */
@@ -54,12 +53,20 @@ interface LoginHistoryQueryDto {
   ip?: string;
 }
 
-/** 登录 */
+/**
+ * 用户登录
+ * @param data - 登录参数（用户名、密码、验证码等）
+ * @returns 用户信息和 token
+ */
 export const getLogin = (data: LoginDto) => {
   return http.request<UserResult>("post", baseUrlApi("/auth/login"), { data });
 };
 
-/** 刷新token */
+/**
+ * 刷新访问令牌
+ * @param data - 包含 refreshToken 的对象
+ * @returns 新的 accessToken 和 refreshToken
+ */
 export const refreshTokenApi = (data: RefreshTokenDto) => {
   return http.request<RefreshTokenResult>(
     "post",
@@ -68,6 +75,10 @@ export const refreshTokenApi = (data: RefreshTokenDto) => {
   );
 };
 
+/**
+ * 获取当前公司信息
+ * @returns 当前公司 ID 和名称
+ */
 export const getCurrentCompanyApi = async () => {
   return await http.request<CommonResult>(
     "get",
@@ -75,6 +86,11 @@ export const getCurrentCompanyApi = async () => {
   );
 };
 
+/**
+ * 设置/切换当前公司
+ * @param data - 包含目标公司 ID 的对象
+ * @returns 操作结果
+ */
 export const determineCurrentCompanyApi = (
   data?: DetermineCurrentCompanyDto
 ) => {
@@ -85,16 +101,30 @@ export const determineCurrentCompanyApi = (
   );
 };
 
+/**
+ * 发送验证码
+ * @param data - 发送验证码参数（邮箱/手机、验证类型）
+ * @returns 操作结果
+ */
 export const getVerifyCodeApi = (data?: SendVerifyCodeDto) => {
   return http.request<CommonResult>("post", baseUrlApi("/verify/code"), {
     data
   });
 };
 
+/**
+ * 获取系统通知
+ * @returns 通知列表
+ */
 export const getNoticeApi = () => {
   return http.request<CommonResult>("get", baseUrlApi("/auth/notice"));
 };
 
+/**
+ * 获取公司信息
+ * @param type - 公司类型（如 'own' 获取本公司信息）
+ * @returns 公司详细信息
+ */
 export const getCompanyInfoApi = (type: string) => {
   return http.request<CommonResult>(
     "get",
@@ -102,22 +132,42 @@ export const getCompanyInfoApi = (type: string) => {
   );
 };
 
+/**
+ * 更新公司信息
+ * @param data - 更新的公司信息字段
+ * @returns 操作结果
+ */
 export const updateCompanyInfoApi = (data?: UpdateCompanyInfoDto) => {
   return http.request<CommonResult>("patch", baseUrlApi("/auth/company-info"), {
     data
   });
 };
 
+/**
+ * 获取当前用户信息
+ * @returns 用户详细信息
+ */
 export const getUserInfoApi = () => {
   return http.request<CommonResult>("get", baseUrlApi("/auth/info"));
 };
 
+/**
+ * 更新用户信息
+ * @param data - 更新的用户信息字段
+ * @returns 操作结果
+ */
 export const updateUserInfoApi = (data?: UpdateUserInfoDto) => {
   return http.request<CommonResult>("patch", baseUrlApi("/auth/info"), {
     data
   });
 };
 
+/**
+ * 获取登录历史记录
+ * @param index - 页码
+ * @param params - 查询参数（时间范围、IP 等）
+ * @returns 分页的登录历史列表
+ */
 export const getLogApi = (index: number, params?: LoginHistoryQueryDto) => {
   return http.request<CommonResult>(
     "get",

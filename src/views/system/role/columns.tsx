@@ -83,11 +83,15 @@ export function useColumns() {
     pagination.pageSize = val;
   }
 
-  function onCurrentChange(_val: number) {
-    loading.value = true;
-    delay(300).then(() => {
-      loading.value = false;
-    });
+  function onCurrentChange(val: number, callback?: () => void) {
+    pagination.currentPage = val;
+    if (callback) {
+      loading.value = true;
+      delay(300).then(() => {
+        callback();
+        loading.value = false;
+      });
+    }
   }
 
   return {

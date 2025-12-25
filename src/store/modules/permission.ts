@@ -11,6 +11,7 @@ import {
   formatFlatteningRoutes
 } from "../utils";
 import { useMultiTagsStoreHook } from "./multiTags";
+import type { RouteRecordRaw } from "vue-router";
 
 export const usePermissionStore = defineStore("pure-permission", {
   state: () => ({
@@ -25,13 +26,13 @@ export const usePermissionStore = defineStore("pure-permission", {
   }),
   actions: {
     /** 组装整体路由生成的菜单 */
-    handleWholeMenus(routes: any[]) {
+    handleWholeMenus(routes: RouteRecordRaw[]) {
       this.wholeMenus = filterNoPermissionTree(
         filterTree(ascending(this.constantMenus.concat(routes)))
-      );
+      ) as unknown as RouteRecordRaw[];
       this.flatteningRoutes = formatFlatteningRoutes(
-        this.constantMenus.concat(routes) as any
-      ) as any;
+        this.constantMenus.concat(routes)
+      ) as unknown as RouteRecordRaw[];
     },
     cacheOperate({ mode, name }: cacheType) {
       const delIndex = this.cachePageList.findIndex(v => v === name);

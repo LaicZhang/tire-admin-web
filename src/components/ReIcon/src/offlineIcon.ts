@@ -9,7 +9,8 @@ import EpHomeFilled from "~icons/ep/home-filled?raw";
 import RiSearchLine from "~icons/ri/search-line?raw";
 import RiInformationLine from "~icons/ri/information-line?raw";
 
-const icons = [
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const icons: Array<[string, any]> = [
   // Element Plus Icon: https://github.com/element-plus/element-plus-icons
   ["ep/home-filled", EpHomeFilled],
   // Remix Icon: https://github.com/Remix-Design/RemixIcon
@@ -19,5 +20,5 @@ const icons = [
 
 // 本地菜单图标，后端在路由的 icon 中返回对应的图标字符串并且前端在此处使用 addIcon 添加即可渲染菜单图标
 icons.forEach(([name, icon]) => {
-  addIcon(name as string, getSvgInfo(icon as string));
+  addIcon(name, getSvgInfo(icon));
 });

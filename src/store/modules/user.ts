@@ -19,78 +19,82 @@ import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
 
 export const useUserStore = defineStore("pure-user", {
-  state: (): userType => ({
-    // 头像
-    avatar: storageLocal().getItem<DataInfo<number>>(userKey)?.avatar ?? "",
-    // 用户名
-    username: storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "",
-    // 昵称
-    nickname: storageLocal().getItem<DataInfo<number>>(userKey)?.nickname ?? "",
-    // 用户id
-    uid: storageLocal().getItem<DataInfo<number>>(userKey)?.uid ?? "",
-    // 页面级别权限
-    roles: storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [],
-    // 按钮级别权限
-    permissions:
-      storageLocal().getItem<DataInfo<number>>(userKey)?.permissions ?? [],
-    // 是否勾选了登录页的免登录
-    isRemember: true,
-    captchaCode: "",
-    currentPage: 0,
-    // 登录页的免登录存储几天，默认7天
-    loginDay: 7
-  }),
+  state: (): userType => {
+    // 一次性读取 localStorage 并解构，避免重复调用
+    const stored = storageLocal().getItem<DataInfo<number>>(userKey);
+    return {
+      // 头像
+      avatar: stored?.avatar ?? "",
+      // 用户名
+      username: stored?.username ?? "",
+      // 昵称
+      nickname: stored?.nickname ?? "",
+      // 用户id
+      uid: stored?.uid ?? "",
+      // 页面级别权限
+      roles: stored?.roles ?? [],
+      // 按钮级别权限
+      permissions: stored?.permissions ?? [],
+      // 是否勾选了登录页的免登录
+      isRemember: true,
+      captchaCode: "",
+      currentPage: 0,
+      // 登录页的免登录存储几天，默认7天
+      loginDay: 7
+    };
+  },
   actions: {
     /** 存储头像 */
-    SET_AVATAR(avatar: string) {
+    setAvatar(avatar: string) {
       this.avatar = avatar;
     },
     /** 存储用户名 */
-    SET_USERNAME(username: string) {
+    setUsername(username: string) {
       this.username = username;
     },
     /** 存储昵称 */
-    SET_NICKNAME(nickname: string) {
+    setNickname(nickname: string) {
       this.nickname = nickname;
     },
     /** 存储角色 */
-    SET_ROLES(roles: Array<string>) {
+    setRoles(roles: Array<string>) {
       this.roles = roles;
     },
     /** 存储按钮级别权限 */
-    SET_PERMS(permissions: Array<string>) {
+    setPerms(permissions: Array<string>) {
       this.permissions = permissions;
     },
     /** 存储用户id */
-    SET_UID(uid: string) {
+    setUid(uid: string) {
       this.uid = uid;
     },
     /** 存储是否勾选了登录页的免登录 */
-    SET_IS_REMEMBERED(bool: boolean) {
+    setIsRemembered(bool: boolean) {
       this.isRemember = bool;
     },
-    SET_CAPTCHA_CODE(value: string) {
+    /** 存储验证码 */
+    setCaptchaCode(value: string) {
       this.captchaCode = value;
     },
-    SET_CURRENT_PAGE(value: number) {
+    /** 存储当前页码 */
+    setCurrentPage(value: number) {
       this.currentPage = value;
     },
     /** 设置登录页的免登录存储几天 */
-    SET_LOGINDAY(value: number) {
+    setLoginDay(value: number) {
       this.loginDay = Number(value);
     },
-    /** 登入 */
-    async loginByUsername(data: LoginDto) {
-      return new Promise<UserResult>((resolve, reject) => {
-        getLogin(data)
-          .then(data => {
-            if (data?.data) setToken(data.data);
-            resolve(data);
-          })
-          .catch(error => {
-            reject(error);
-          });
-      });
+    /**
+     * 用户登录
+     * @param data - 登录凭据
+     * @returns 登录结果（包含用户信息和 token）
+     */
+    async loginByUsername(data: LoginDto): Promise<UserResult> {
+      const result = await getLogin(data);
+      if (result?.data) {
+        setToken(result.data);
+      }
+      return result;
     },
     /** 前端登出（不调用接口） */
     logOut() {
@@ -101,20 +105,17 @@ export const useUserStore = defineStore("pure-user", {
       resetRouter();
       router.push("/login");
     },
-    /** 刷新`token` */
-    async handRefreshToken(data: RefreshTokenDto) {
-      return new Promise<RefreshTokenResult>((resolve, reject) => {
-        refreshTokenApi(data)
-          .then(data => {
-            if (data) {
-              setToken(data.data);
-              resolve(data);
-            }
-          })
-          .catch(error => {
-            reject(error);
-          });
-      });
+    /**
+     * 刷新 Token
+     * @param data - 包含 refreshToken 的对象
+     * @returns 新的 token 信息
+     */
+    async handRefreshToken(data: RefreshTokenDto): Promise<RefreshTokenResult> {
+      const result = await refreshTokenApi(data);
+      if (result?.data) {
+        setToken(result.data);
+      }
+      return result;
     }
   }
 });

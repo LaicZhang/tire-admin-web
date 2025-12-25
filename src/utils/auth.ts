@@ -80,9 +80,9 @@ export function setToken(data: DataInfo<Date>) {
   });
 
   function setUserKey(username: string, roles: Array<string>, uid: string) {
-    useUserStoreHook().SET_USERNAME(username);
-    useUserStoreHook().SET_ROLES(roles);
-    useUserStoreHook().SET_UID(uid);
+    useUserStoreHook().setUsername(username);
+    useUserStoreHook().setRoles(roles);
+    useUserStoreHook().setUid(uid);
     storageLocal().setItem(userKey, {
       refreshToken,
       expires,

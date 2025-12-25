@@ -5,9 +5,10 @@ import type {
 } from "@pureadmin/table";
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
+import type { FormItemProps } from "./utils/types";
 
 export function useColumns() {
-  const dataList = ref([]);
+  const dataList = ref<FormItemProps[]>([]);
   const loading = ref(true);
   const columns: TableColumnList = [
     {
@@ -37,22 +38,10 @@ export function useColumns() {
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={
-            row.status === "1"
-              ? "success"
-              : row.status === "0"
-                ? "danger"
-                : "warning"
-          }
+          type={row.status === "1" ? "success" : "danger"}
           effect="plain"
         >
-          {row.status === "1"
-            ? "已解决"
-            : row.status === "0"
-              ? "未解决"
-              : row.status === "2"
-                ? "解决中"
-                : "未知"}
+          {row.status === "1" ? "启用" : "禁用"}
         </el-tag>
       )
     },

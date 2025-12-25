@@ -34,6 +34,7 @@ import {
  * 如何匹配所有文件请看：https://github.com/mrmlnc/fast-glob#basic-syntax
  * 如何排除文件请看：https://cn.vitejs.dev/guide/features.html#negative-patterns
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const modules: Record<string, any> = import.meta.glob(
   ["./modules/**/*.ts", "!./modules/**/remaining.ts"],
   {
@@ -74,7 +75,7 @@ export function resetLoadedPaths() {
 /** 创建路由实例 */
 export const router: Router = createRouter({
   history: getHistoryMode(import.meta.env.VITE_ROUTER_HISTORY),
-  routes: constantRoutes.concat(...(remainingRouter as any)),
+  routes: constantRoutes.concat(...(remainingRouter as RouteRecordRaw[])),
   strict: true,
   scrollBehavior(to, from, savedPosition) {
     return new Promise(resolve => {

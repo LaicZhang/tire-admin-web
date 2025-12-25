@@ -2,6 +2,14 @@ import { ref } from "vue";
 import reDialog from "./index.vue";
 import { useTimeoutFn } from "@vueuse/core";
 import { withInstall } from "@pureadmin/utils";
+import {
+  provideDialogStore,
+  useDialogStore,
+  DIALOG_STORE_KEY
+} from "./useDialogStore";
+
+/** 对话框关闭动画延时 (ms) */
+const DIALOG_CLOSE_DELAY = 200;
 import type {
   EventType,
   ArgsType,
@@ -10,6 +18,10 @@ import type {
   DialogOptions
 } from "./type";
 
+/**
+ * 全局 dialog store
+ * @deprecated 建议使用 provideDialogStore/useDialogStore 替代，以支持 SSR 场景
+ */
 const dialogStore = ref<Array<DialogOptions>>([]);
 
 /** 打开弹框 */
@@ -26,12 +38,16 @@ const addDialog = (options: DialogOptions) => {
 };
 
 /** 关闭弹框 */
-const closeDialog = (options: DialogOptions, index: number, args?: any) => {
+const closeDialog = (
+  options: DialogOptions,
+  index: number,
+  args?: ArgsType
+) => {
   dialogStore.value[index].visible = false;
   options.closeCallBack && options.closeCallBack({ options, index, args });
   useTimeoutFn(() => {
     dialogStore.value.splice(index, 1);
-  }, 200);
+  }, DIALOG_CLOSE_DELAY);
 };
 
 /**
@@ -40,7 +56,11 @@ const closeDialog = (options: DialogOptions, index: number, args?: any) => {
  * @param key 属性，默认`title`
  * @param index 弹框索引（默认`0`，代表只有一个弹框，对于嵌套弹框要改哪个弹框的属性值就把该弹框索引赋给`index`）
  */
-const updateDialog = (value: any, key = "title", index = 0) => {
+const updateDialog = <K extends keyof DialogOptions>(
+  value: DialogOptions[K],
+  key: K = "title" as K,
+  index = 0
+) => {
   dialogStore.value[index][key] = value;
 };
 
@@ -49,7 +69,7 @@ const closeAllDialog = () => {
   dialogStore.value = [];
 };
 
-/** 千万别忘了在下面这三处引入并注册下，放心注册，不使用`addDialog`调用就不会被挂载
+/** 在下面这三处引入并注册，放心注册，不使用`addDialog`调用就不会被挂载
  * https://github.com/pure-admin/vue-pure-admin/blob/main/src/App.vue#L4
  * https://github.com/pure-admin/vue-pure-admin/blob/main/src/App.vue#L13
  * https://github.com/pure-admin/vue-pure-admin/blob/main/src/App.vue#L20
@@ -63,5 +83,9 @@ export {
   addDialog,
   closeDialog,
   updateDialog,
-  closeAllDialog
+  closeAllDialog,
+  // 新增：SSR 安全的 composable API
+  provideDialogStore,
+  useDialogStore,
+  DIALOG_STORE_KEY
 };

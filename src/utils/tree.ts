@@ -1,3 +1,6 @@
+/** 树递归最大深度限制，防止栈溢出 */
+const MAX_TREE_DEPTH = 100;
+
 /**
  * 树节点基础接口
  */
@@ -70,24 +73,32 @@ export const deleteChildren = <T extends TreeNode>(
  * @description 创建层级关系
  * @param tree 树
  * @param pathList 每一项的id组成的数组
+ * @param depth 当前递归深度（用于防止栈溢出）
  * @returns 创建层级关系后的树
  */
 export const buildHierarchyTree = <T extends TreeNode>(
   tree: T[],
-  pathList: (string | number)[] = []
+  pathList: (string | number)[] = [],
+  depth: number = 0
 ): T[] => {
   if (!Array.isArray(tree)) {
     console.warn("tree must be an array");
     return [];
   }
   if (!tree || tree.length === 0) return [];
+  if (depth > MAX_TREE_DEPTH) {
+    console.warn(
+      `Max tree depth (${MAX_TREE_DEPTH}) exceeded, stopping recursion`
+    );
+    return tree;
+  }
   for (const [key, node] of tree.entries()) {
     node.id = key;
     node.parentId = pathList.length ? pathList[pathList.length - 1] : null;
     node.pathList = [...pathList, node.id];
     const hasChildren = node.children && node.children.length > 0;
     if (hasChildren) {
-      buildHierarchyTree(node.children as T[], node.pathList);
+      buildHierarchyTree(node.children as T[], node.pathList, depth + 1);
     }
   }
   return tree;

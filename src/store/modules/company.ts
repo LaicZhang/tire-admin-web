@@ -8,36 +8,41 @@ import { getCurrentCompanyApi } from "@/api";
 export const currentCompanyKey = "current-company";
 
 export const useCurrentCompanyStore = defineStore("pure-company", {
-  state: (): currentCompanyType => ({
-    companyName:
-      storageLocal().getItem<CurrentCompanyInfo>(currentCompanyKey)
-        ?.companyName ?? "",
-    companyId:
-      storageLocal().getItem<CurrentCompanyInfo>(currentCompanyKey)
-        ?.companyId ?? ""
-  }),
+  state: (): currentCompanyType => {
+    // 一次性读取 localStorage 并解构
+    const stored =
+      storageLocal().getItem<CurrentCompanyInfo>(currentCompanyKey);
+    return {
+      companyName: stored?.companyName ?? "",
+      companyId: stored?.companyId ?? ""
+    };
+  },
   actions: {
-    SET_NAME(name: string) {
+    /** 设置公司名称 */
+    setName(name: string) {
       this.companyName = name;
     },
-    SET_ID(id: string) {
+    /** 设置公司 ID */
+    setId(id: string) {
       this.companyId = id;
     },
-    SET_CURRENT_COMPANY(company: CurrentCompanyInfo) {
-      this.SET_NAME(company?.companyName);
-      this.SET_ID(company?.companyId);
+    /** 设置当前公司信息 */
+    setCurrentCompany(company: CurrentCompanyInfo) {
+      this.setName(company?.companyName ?? "");
+      this.setId(company?.companyId ?? "");
       storageLocal().setItem(currentCompanyKey, {
         ...company
       });
     },
+    /** 获取并设置当前公司信息 */
     async handleCurrentCompany() {
       const res = await getCurrentCompanyApi();
-      const data = res.data;
+      const data = res.data as Array<{ uid: string; name: string }>;
       if (data.length === 0) {
         throw new Error("当前用户没有公司信息");
       }
       if (data.length === 1) {
-        this.SET_CURRENT_COMPANY({
+        this.setCurrentCompany({
           companyName: data[0].name,
           companyId: data[0].uid
         });
@@ -47,13 +52,9 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
   }
 });
 
+/** 设置当前公司信息 (使用 store action 代理) */
 export function setCurrentCompanyKey(company: CurrentCompanyInfo) {
-  const store = useCurrentCompanyStoreHook();
-  store.SET_NAME(company?.companyName);
-  store.SET_ID(company?.companyId);
-  storageLocal().setItem(currentCompanyKey, {
-    ...company
-  });
+  useCurrentCompanyStoreHook().setCurrentCompany(company);
 }
 
 export function useCurrentCompanyStoreHook() {

@@ -28,7 +28,6 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
         "/api": {
           target: "http://localhost:3000",
           changeOrigin: true
-          // rewrite: path => path.replace(/^\/api/, "")
         }
       },
       // 预热文件以提前转换和缓存结果，降低启动期间的初始页面加载时长并防止转换瀑布
@@ -36,14 +35,6 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
         clientFiles: ["./index.html", "./src/{views,components}/*"]
       }
     },
-    // css: {
-    //   preprocessorOptions: {
-    //     scss: {
-    //       api: "modern-compiler"
-    //       // silenceDeprecations: ["legacy-js-api"]
-    //     }
-    //   }
-    // },
     plugins: getPluginsList(VITE_CDN, VITE_COMPRESSION),
     // https://cn.vitejs.dev/config/dep-optimization-options.html#dep-optimization-options
     optimizeDeps: {
@@ -52,10 +43,10 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
     },
     build: {
       // https://cn.vitejs.dev/guide/build.html#browser-compatibility
-      target: "es2015",
+      target: "es2020",
       sourcemap: false,
-      // 消除打包大小超过500kb警告
-      chunkSizeWarningLimit: 4000,
+      // 消除打包大小警告（降低阈值以便早期发现问题）
+      chunkSizeWarningLimit: 2000,
       rollupOptions: {
         input: {
           index: pathResolve("./index.html", import.meta.url)

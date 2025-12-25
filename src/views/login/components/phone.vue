@@ -69,7 +69,7 @@ const sendSmsCode = () => {
 
 function onBack() {
   useCaptchaCode().end();
-  useUserStoreHook().SET_CURRENT_PAGE(0);
+  useUserStoreHook().setCurrentPage(0);
 }
 </script>
 

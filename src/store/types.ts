@@ -25,9 +25,19 @@ export type appType = {
 export type multiType = {
   path: string;
   name: string;
-  meta: any;
-  query?: object;
-  params?: object;
+  meta: {
+    title?: string;
+    icon?: string;
+    roles?: string[];
+    auths?: string[];
+    keepAlive?: boolean;
+    showLink?: boolean;
+    hiddenTag?: boolean;
+    dynamicLevel?: number;
+    frameSrc?: string;
+  };
+  query?: Record<string, string>;
+  params?: Record<string, string>;
 };
 
 export type setType = {

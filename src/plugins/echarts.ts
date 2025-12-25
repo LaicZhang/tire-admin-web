@@ -20,6 +20,12 @@ use([
   PieChart,
   BarChart,
   LineChart,
+  /**
+   * 渲染器选择说明:
+   * - CanvasRenderer: 适合大数据量场景，性能更好
+   * - SVGRenderer: 适合需要交互操作（如缩放、选择）的场景，更清晰
+   * 同时导入两种渲染器以支持不同业务场景的需求
+   */
   CanvasRenderer,
   SVGRenderer,
   GridComponent,

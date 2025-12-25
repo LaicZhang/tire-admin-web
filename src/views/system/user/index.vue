@@ -80,10 +80,11 @@ const handleChange = () => {
 const handleSearch = async () => {
   loading.value = true;
   const { code, data } = await getUsersApi(pagination.currentPage, state.value);
+  const result = data as { list: FormItemProps[]; count: number };
 
   if (code === 200) {
-    dataList.value = data.list;
-    pagination.total = data.count;
+    dataList.value = result.list;
+    pagination.total = result.count;
   }
   loading.value = false;
 };
@@ -93,9 +94,38 @@ const handleReset = () => {
 };
 const getDetails = async (row: { uid: string }) => {
   loading.value = true;
-  const { data } = await getOneUserApi(row.uid);
-  loading.value = false;
-  // TODO: 显示详情弹窗
+  try {
+    const { data } = await getOneUserApi(row.uid);
+    const user = data as FormItemProps;
+    loading.value = false;
+    addDialog({
+      title: "用户详情",
+      props: {
+        formInline: {
+          uid: user.uid,
+          username: user.username ?? "",
+          phone: user.phone ?? "",
+          email: user.email ?? "",
+          status: user.status ?? "1"
+        }
+      },
+      width: "40%",
+      draggable: true,
+      fullscreen: deviceDetection(),
+      fullscreenIcon: true,
+      closeOnClickModal: true,
+      hideFooter: true,
+      contentRenderer: ({ options }) =>
+        h(UserForm, {
+          ref: formRef,
+          formInline: options.props.formInline,
+          disabled: true
+        })
+    });
+  } catch {
+    loading.value = false;
+    message("获取用户详情失败", { type: "error" });
+  }
 };
 
 const openDialog = (title = "新增", row?: FormItemProps) => {
@@ -129,7 +159,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
           const promise =
             title === "新增"
               ? addUserApi(curData)
-              : updateUserApi(row?.uid, curData);
+              : updateUserApi(row?.uid ?? "", curData);
 
           promise.then(() => {
             message("操作成功", { type: "success" });
@@ -142,7 +172,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const deleteOne = async row => {
+const deleteOne = async (row: { uid: string; username: string }) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除用户 "${row.username}" 吗？此操作不可恢复。`,

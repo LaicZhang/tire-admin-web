@@ -14,7 +14,7 @@ import { useUserStoreHook } from "@/store/modules/user";
   <Motion :delay="150">
     <el-button
       class="w-full mt-4"
-      @click="useUserStoreHook().SET_CURRENT_PAGE(0)"
+      @click="useUserStoreHook().setCurrentPage(0)"
     >
       返回
     </el-button>

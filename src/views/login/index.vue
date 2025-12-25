@@ -10,15 +10,8 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { addPathMatch } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import {
-  ref,
-  reactive,
-  toRaw,
-  onMounted,
-  onBeforeUnmount,
-  watch,
-  computed
-} from "vue";
+import { ref, reactive, toRaw, onMounted, watch, computed } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 import { baseUrlApi } from "@/api/utils";
 
@@ -115,21 +108,19 @@ function onkeydown({ code }: KeyboardEvent) {
   }
 }
 
+// 使用 VueUse 的 useEventListener 自动处理事件清理
+useEventListener(document, "keydown", onkeydown, { passive: true });
+
 onMounted(() => {
-  window.document.addEventListener("keydown", onkeydown, { passive: true });
   // 初始化加载后端验证码
   refreshCaptcha();
 });
 
-onBeforeUnmount(() => {
-  window.document.removeEventListener("keydown", onkeydown);
-});
-
 watch(checked, bool => {
-  useUserStoreHook().SET_IS_REMEMBERED(bool);
+  useUserStoreHook().setIsRemembered(bool);
 });
 watch(loginDay, value => {
-  useUserStoreHook().SET_LOGINDAY(value);
+  useUserStoreHook().setLoginDay(value);
 });
 </script>
 
@@ -257,7 +248,7 @@ watch(loginDay, value => {
                   <el-button
                     link
                     type="primary"
-                    @click="useUserStoreHook().SET_CURRENT_PAGE(4)"
+                    @click="useUserStoreHook().setCurrentPage(4)"
                   >
                     忘记密码？
                   </el-button>
@@ -283,7 +274,7 @@ watch(loginDay, value => {
                   :key="index"
                   class="w-full mt-4"
                   size="default"
-                  @click="useUserStoreHook().SET_CURRENT_PAGE(index + 1)"
+                  @click="useUserStoreHook().setCurrentPage(index + 1)"
                 >
                   {{ item.title }}
                 </el-button>

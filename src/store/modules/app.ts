@@ -31,16 +31,16 @@ export const useAppStore = defineStore("pure-app", {
     }
   }),
   getters: {
-    getSidebarStatus(state) {
+    getSidebarStatus(state): boolean {
       return state.sidebar.opened;
     },
-    getDevice(state) {
+    getDevice(state): string {
       return state.device;
     },
-    getViewportWidth(state) {
+    getViewportWidth(state): number {
       return state.viewportSize.width;
     },
-    getViewportHeight(state) {
+    getViewportHeight(state): number {
       return state.viewportSize.height;
     }
   },

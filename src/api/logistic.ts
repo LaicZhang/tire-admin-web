@@ -25,14 +25,25 @@ export async function getLogisticApi(uid: string, type: string) {
   });
 }
 
-export async function updateLogisticApi(
-  uid: string,
-  data: {
-    type: string;
-    isArrival: boolean;
-    [key: string]: any;
-  }
-) {
+/** 物流更新数据类型 */
+export interface UpdateLogisticData {
+  type: string;
+  isArrival: boolean;
+  /** 物流公司 */
+  logisticsCompany?: string;
+  /** 物流单号 */
+  trackingNumber?: string;
+  /** 司机姓名 */
+  driverName?: string;
+  /** 司机电话 */
+  driverPhone?: string;
+  /** 到达/发货时间 */
+  timestamp?: string;
+  /** 备注 */
+  remark?: string;
+}
+
+export async function updateLogisticApi(uid: string, data: UpdateLogisticData) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });
