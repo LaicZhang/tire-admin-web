@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { formatDateTime } from "@/utils";
+import type { CompanyInfo } from "@/api/type";
 
 export function useColumns() {
   const columns = ref([
@@ -14,9 +15,9 @@ export function useColumns() {
     {
       label: "状态",
       prop: "status",
-      cellRenderer: ({ value }) => {
-        return <el-tag size="small">{value === true ? "正常" : "异常"}</el-tag>;
-      }
+      cellRenderer: ({ row }: { row: CompanyInfo }) => (
+        <el-tag size="small">{row.status === true ? "正常" : "异常"}</el-tag>
+      )
     },
     {
       label: "备注",
@@ -41,15 +42,15 @@ export function useColumns() {
     {
       label: "创建时间",
       prop: "createAt",
-      cellRenderer: ({ value }) => {
-        return formatDateTime(value);
+      cellRenderer: ({ row }: { row: CompanyInfo }) => {
+        return formatDateTime(row.createAt);
       }
     },
     {
       label: "更新时间",
       prop: "updateAt",
-      cellRenderer: ({ value }) => {
-        return formatDateTime(value);
+      cellRenderer: ({ row }: { row: CompanyInfo }) => {
+        return formatDateTime(row.updateAt);
       }
     }
   ]);

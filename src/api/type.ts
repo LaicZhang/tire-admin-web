@@ -50,6 +50,22 @@ export type CountResponseDto = {
   count: number;
 };
 
+/** 公司信息 */
+export interface CompanyInfo {
+  id: number;
+  uid: string;
+  name: string;
+  desc?: string;
+  status: boolean;
+  principalName?: string;
+  principalPhone?: string;
+  province?: string;
+  city?: string;
+  bossId?: string;
+  createAt?: string;
+  updateAt?: string;
+}
+
 export type CaptchaResponseDto = {
   data: {
     id: string;
