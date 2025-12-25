@@ -1,8 +1,39 @@
 import { http } from "../utils/http";
 import { baseUrlApi } from "./utils";
-import type { CommonResult } from "./type";
+import type { CommonResult, PaginatedResponseDto } from "./type";
 
 const prefix = "/finance-extension/";
+
+export interface OtherTransaction {
+  id: number;
+  type: "income" | "expense";
+  categoryId?: number;
+  categoryName?: string;
+  amount: number;
+  paymentUid: string;
+  paymentName?: string;
+  date?: string;
+  desc?: string;
+  createTime?: string;
+}
+
+export interface CollectionReminder {
+  id: number;
+  customerUid: string;
+  customerName?: string;
+  amount: number;
+  dueDate: string;
+  content?: string;
+  status: string;
+  createTime?: string;
+}
+
+export interface IncomeExpenseItem {
+  id: number;
+  name: string;
+  type: "income" | "expense";
+  desc?: string;
+}
 
 /** 录入期初余额 */
 export async function setInitialBalanceApi(data: {
@@ -11,7 +42,7 @@ export async function setInitialBalanceApi(data: {
   date?: string;
   desc?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<void>>(
     "post",
     baseUrlApi(prefix + "initial-balance"),
     { data }
@@ -25,7 +56,7 @@ export async function accountTransferApi(data: {
   amount: number;
   desc?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<void>>(
     "post",
     baseUrlApi(prefix + "account-transfer"),
     { data }
@@ -41,7 +72,7 @@ export async function createOtherTransactionApi(data: {
   date?: string;
   desc?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<OtherTransaction>>(
     "post",
     baseUrlApi(prefix + "other-transaction"),
     { data }
@@ -53,11 +84,9 @@ export async function getOtherTransactionListApi(
   index: number,
   params?: { type?: string; startDate?: string; endDate?: string }
 ) {
-  return await http.request<CommonResult>(
-    "get",
-    baseUrlApi(prefix + `other-transaction/${index}`),
-    { params }
-  );
+  return await http.request<
+    CommonResult<PaginatedResponseDto<OtherTransaction>>
+  >("get", baseUrlApi(prefix + `other-transaction/${index}`), { params });
 }
 
 /** 创建催收提醒 */
@@ -67,7 +96,7 @@ export async function createCollectionReminderApi(data: {
   dueDate: string;
   content?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<CollectionReminder>>(
     "post",
     baseUrlApi(prefix + "collection-reminder"),
     { data }
@@ -79,11 +108,9 @@ export async function getCollectionReminderListApi(
   index: number,
   params?: { status?: string }
 ) {
-  return await http.request<CommonResult>(
-    "get",
-    baseUrlApi(prefix + `collection-reminder/${index}`),
-    { params }
-  );
+  return await http.request<
+    CommonResult<PaginatedResponseDto<CollectionReminder>>
+  >("get", baseUrlApi(prefix + `collection-reminder/${index}`), { params });
 }
 
 /** 获取收支项目列表 */
@@ -91,11 +118,9 @@ export async function getIncomeExpenseItemListApi(
   index: number,
   params?: { type?: "income" | "expense" }
 ) {
-  return await http.request<CommonResult>(
-    "get",
-    baseUrlApi(prefix + `item/${index}`),
-    { params }
-  );
+  return await http.request<
+    CommonResult<PaginatedResponseDto<IncomeExpenseItem>>
+  >("get", baseUrlApi(prefix + `item/${index}`), { params });
 }
 
 /** 创建收支项目 */
@@ -104,14 +129,16 @@ export async function createIncomeExpenseItemApi(data: {
   type: "income" | "expense";
   desc?: string;
 }) {
-  return await http.request<CommonResult>("post", baseUrlApi(prefix + "item"), {
-    data
-  });
+  return await http.request<CommonResult<IncomeExpenseItem>>(
+    "post",
+    baseUrlApi(prefix + "item"),
+    { data }
+  );
 }
 
 /** 删除收支项目 */
 export async function deleteIncomeExpenseItemApi(id: number) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + `item/${id}`)
   );

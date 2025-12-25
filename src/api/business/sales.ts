@@ -1,20 +1,31 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
-import type { CommonResult } from "../type";
+import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const prefix = "/sales/";
 
+export interface SalesQuotationDto {
+  customerId: string;
+  validUntil?: string;
+  items?: Array<{ tireId: string; price: number; count: number }>;
+}
+
+export interface SalesQuotation extends SalesQuotationDto {
+  id: number;
+  uid: string;
+}
+
 /** 销售报价单 API */
 export async function getSalesQuotationListApi(index: number, params?: object) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<PaginatedResponseDto<SalesQuotation>>>(
     "get",
     baseUrlApi(prefix + "quotation/" + index),
     { params }
   );
 }
 
-export async function createSalesQuotationApi(data: object) {
-  return await http.request<CommonResult>(
+export async function createSalesQuotationApi(data: SalesQuotationDto) {
+  return await http.request<CommonResult<SalesQuotation>>(
     "post",
     baseUrlApi(prefix + "quotation"),
     {
@@ -23,8 +34,11 @@ export async function createSalesQuotationApi(data: object) {
   );
 }
 
-export async function updateSalesQuotationApi(id: string, data: object) {
-  return await http.request<CommonResult>(
+export async function updateSalesQuotationApi(
+  id: string,
+  data: Partial<SalesQuotationDto>
+) {
+  return await http.request<CommonResult<SalesQuotation>>(
     "patch",
     baseUrlApi(prefix + "quotation/" + id),
     {
@@ -34,7 +48,7 @@ export async function updateSalesQuotationApi(id: string, data: object) {
 }
 
 export async function deleteSalesQuotationApi(id: string) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + "quotation/" + id)
   );

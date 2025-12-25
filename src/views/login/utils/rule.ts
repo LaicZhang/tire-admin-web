@@ -1,7 +1,6 @@
 import { reactive } from "vue";
 import { isPhone } from "@pureadmin/utils";
 import type { FormRules } from "element-plus";
-import { useUserStoreHook } from "@/store/modules/user";
 
 /** 6位数字验证码正则 */
 export const REGEXP_SIX = /^\d{6}$/;
@@ -39,15 +38,14 @@ const loginRules = reactive<FormRules>({
   captchaCode: [
     {
       /**
-       * 注意：此客户端验证码校验仅用于提升用户体验，
-       * 实际安全验证必须在服务端进行。
-       * TODO: 后续应移除客户端验证，完全依赖服务端验证
+       * 验证码校验完全由后端处理，
+       * 客户端仅进行非空校验以提升用户体验
        */
       validator: (rule, value, callback) => {
         if (value === "") {
           callback(new Error(ERROR_TIPS.captchaCodeReg));
-        } else if (useUserStoreHook().captchaCode !== value) {
-          callback(new Error(ERROR_TIPS.captchaCodeCorrectReg));
+        } else if (value.length < 4) {
+          callback(new Error("请输入完整的验证码"));
         } else {
           callback();
         }

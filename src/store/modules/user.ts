@@ -94,9 +94,8 @@ export const useUserStore = defineStore("pure-user", {
     },
     /** 前端登出（不调用接口） */
     logOut() {
-      this.username = "";
-      this.roles = [];
-      this.permissions = [];
+      // 使用 $reset() 清理所有用户状态
+      this.$reset();
       removeToken();
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
       resetRouter();

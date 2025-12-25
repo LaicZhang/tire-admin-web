@@ -21,6 +21,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import UserForm from "./form.vue";
 import { message } from "@/utils";
+import { ElMessageBox } from "element-plus";
 import { FormItemProps } from "./utils/types";
 
 const {
@@ -143,11 +144,22 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 
 const deleteOne = async row => {
   try {
+    await ElMessageBox.confirm(
+      `确定要删除用户 "${row.username}" 吗？此操作不可恢复。`,
+      "删除确认",
+      {
+        confirmButtonText: "确定删除",
+        cancelButtonText: "取消",
+        type: "warning"
+      }
+    );
     await deleteUserApi(row.uid);
     message("删除成功", { type: "success" });
     handleSearch();
   } catch (error) {
-    message("删除失败", { type: "error" });
+    if (error !== "cancel") {
+      message("删除失败", { type: "error" });
+    }
   }
 };
 

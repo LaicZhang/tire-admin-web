@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
-import type { CommonResult } from "../type";
+import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const prefix = "/system/file";
 
@@ -14,13 +14,15 @@ export interface FileItem {
 }
 
 export async function getFileListApi(params?: object) {
-  return await http.request<CommonResult>("get", baseUrlApi(`${prefix}/list`), {
-    params
-  });
+  return await http.request<CommonResult<PaginatedResponseDto<FileItem>>>(
+    "get",
+    baseUrlApi(`${prefix}/list`),
+    { params }
+  );
 }
 
 export async function uploadFileApi(data: FormData) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<FileItem>>(
     "post",
     baseUrlApi(`${prefix}/upload`),
     {
@@ -33,7 +35,7 @@ export async function uploadFileApi(data: FormData) {
 }
 
 export async function deleteFileApi(id: number) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(`${prefix}/${id}`)
   );

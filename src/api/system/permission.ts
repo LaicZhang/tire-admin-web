@@ -13,37 +13,56 @@ export interface PermissionItem {
   createTime?: string;
 }
 
-export interface PermissionResult extends CommonResult {
-  data: {
-    list: PermissionItem[];
-    total: number;
-    count?: number; // Some APIs use count
-  };
+export interface PermissionListResult {
+  list: PermissionItem[];
+  total: number;
+  count?: number;
 }
 
 export const getPermissionListApi = (params?: object) => {
-  return http.request<PermissionResult>("get", baseUrlApi(`${prefix}/list`), {
-    params
-  });
+  return http.request<CommonResult<PermissionListResult>>(
+    "get",
+    baseUrlApi(`${prefix}/list`),
+    {
+      params
+    }
+  );
 };
 
-export const createPermissionApi = (data: object) => {
-  return http.request<CommonResult>("post", baseUrlApi(prefix), {
-    data
-  });
+export const createPermissionApi = (data: Partial<PermissionItem>) => {
+  return http.request<CommonResult<PermissionItem>>(
+    "post",
+    baseUrlApi(prefix),
+    {
+      data
+    }
+  );
 };
 
-export const updatePermissionApi = (id: string, data: object) => {
-  return http.request<CommonResult>("patch", baseUrlApi(`${prefix}/${id}`), {
-    data
-  });
+export const updatePermissionApi = (
+  id: string,
+  data: Partial<PermissionItem>
+) => {
+  return http.request<CommonResult<PermissionItem>>(
+    "patch",
+    baseUrlApi(`${prefix}/${id}`),
+    {
+      data
+    }
+  );
 };
 
 export const deletePermissionApi = (id: string) => {
-  return http.request<CommonResult>("delete", baseUrlApi(`${prefix}/${id}`));
+  return http.request<CommonResult<void>>(
+    "delete",
+    baseUrlApi(`${prefix}/${id}`)
+  );
 };
 
 /** 获取权限详情 */
 export const getPermissionApi = (id: string) => {
-  return http.request<CommonResult>("get", baseUrlApi(`${prefix}/${id}`));
+  return http.request<CommonResult<PermissionItem>>(
+    "get",
+    baseUrlApi(`${prefix}/${id}`)
+  );
 };

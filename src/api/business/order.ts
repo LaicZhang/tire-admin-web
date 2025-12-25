@@ -1,6 +1,6 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
-import type { CommonResult } from "../type";
+import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const getOrderPrefix = (type: string) => {
   return `/${type}/`;
@@ -70,7 +70,7 @@ export async function getOrderListApi(
   index: number,
   params?: OrderQueryDto
 ) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<PaginatedResponseDto>>(
     "get",
     baseUrlApi(getOrderPrefix(type) + "page/" + index),
     { params }

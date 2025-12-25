@@ -1,8 +1,23 @@
 import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
-import type { CommonResult } from "../type";
+import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const prefix = "/system/log/";
+
+export interface OperationLogItem {
+  id: number;
+  module: string;
+  method: string;
+  operator: string;
+  operatorId?: string;
+  ip?: string;
+  path?: string;
+  params?: string;
+  result?: string;
+  success: boolean;
+  errorMsg?: string;
+  createTime: string;
+}
 
 /** 获取操作日志列表 */
 export async function getOperationLogListApi(
@@ -16,9 +31,7 @@ export async function getOperationLogListApi(
     success?: boolean;
   }
 ) {
-  return await http.request<CommonResult>(
-    "get",
-    baseUrlApi(prefix + `list/${index}`),
-    { params }
-  );
+  return await http.request<
+    CommonResult<PaginatedResponseDto<OperationLogItem>>
+  >("get", baseUrlApi(prefix + `list/${index}`), { params });
 }

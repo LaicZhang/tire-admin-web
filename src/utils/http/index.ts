@@ -1,7 +1,8 @@
 import Axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
-  type CustomParamsSerializer
+  type CustomParamsSerializer,
+  type AxiosError
 } from "axios";
 import type {
   PureHttpError,
@@ -12,6 +13,7 @@ import type {
 import { stringify } from "qs";
 import { getToken, formatToken } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
+import { ElMessage } from "element-plus";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 // 优先使用环境变量，其次：开发环境走相对路径配合 Vite 代理，生产环境兜底到公网 API
@@ -26,11 +28,42 @@ const resolveBaseURL = (): string => {
   // 开发环境：使用相对路径，通过 Vite proxy 将 /api 转发到后端
   if (DEV) return "";
 
-  // 生产/预发：优先读取环境变量
+  // 生产/预发：必须配置环境变量
   if (PROD && VITE_SERVER_URL) return VITE_SERVER_URL;
 
-  // 默认兜底到公网 API（避免硬编码散落各处）
-  return "https://tire-api.laiczhang.com";
+  // 生产环境未配置时输出错误并返回空字符串（请求会失败）
+  if (PROD) {
+    console.error("[HTTP] 生产环境必须配置 VITE_SERVER_URL 环境变量");
+    return "";
+  }
+
+  return "";
+};
+
+/**
+ * 判断是否应该重试请求
+ * 仅对网络错误和幂等请求进行重试
+ */
+const shouldRetry = (error: AxiosError): boolean => {
+  // 仅重试 GET/HEAD/OPTIONS 等幂等请求
+  const idempotentMethods = ["get", "head", "options"];
+  const method = error.config?.method?.toLowerCase() || "";
+  if (!idempotentMethods.includes(method)) return false;
+
+  // 网络错误或超时时重试
+  return (
+    !error.response ||
+    error.code === "ECONNABORTED" ||
+    error.code === "ERR_NETWORK" ||
+    error.message.includes("timeout")
+  );
+};
+
+/**
+ * 指数退避延迟
+ */
+const getRetryDelay = (retryCount: number): number => {
+  return Math.min(1000 * Math.pow(2, retryCount), 10000);
 };
 
 const defaultConfig: AxiosRequestConfig = {
@@ -70,6 +103,7 @@ class PureHttp {
   private static retryOriginalRequest(config: PureHttpRequestConfig) {
     return new Promise(resolve => {
       PureHttp.requests.push((token: string) => {
+        config.headers ??= {};
         config.headers["Authorization"] = formatToken(token);
         resolve(config);
       });
@@ -99,6 +133,8 @@ class PureHttp {
                 const now = new Date().getTime(),
                   expired = parseInt(data.expires) - now <= 0;
                 if (expired) {
+                  // Token 已过期，将当前请求加入等待队列
+                  // 无论是否正在刷新，都需要等待新 token
                   if (!PureHttp.isRefreshing) {
                     PureHttp.isRefreshing = true;
                     // token过期刷新
@@ -106,7 +142,7 @@ class PureHttp {
                       .handRefreshToken({ refreshToken: data.refreshToken })
                       .then(res => {
                         const token = res.data.accessToken;
-                        config.headers["Authorization"] = formatToken(token);
+                        // 通知所有等待的请求使用新 token
                         PureHttp.requests.forEach(cb => cb(token));
                         PureHttp.requests = [];
                       })
@@ -119,8 +155,10 @@ class PureHttp {
                         PureHttp.isRefreshing = false;
                       });
                   }
+                  // 当前请求也加入等待队列，等待新 token
                   resolve(PureHttp.retryOriginalRequest(config));
                 } else {
+                  config.headers ??= {};
                   config.headers["Authorization"] = formatToken(
                     data.accessToken
                   );
@@ -154,10 +192,35 @@ class PureHttp {
         }
         return response.data;
       },
-      (error: PureHttpError) => {
+      async (error: PureHttpError) => {
         const $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
-        // 所有的响应异常 区分来源为取消请求/非取消请求
+
+        // 重试逻辑：仅对网络错误和幂等请求进行重试
+        const config = error.config as PureHttpRequestConfig & {
+          __retryCount?: number;
+        };
+        if (config && shouldRetry(error as unknown as AxiosError)) {
+          config.__retryCount = config.__retryCount || 0;
+          if (config.__retryCount < 3) {
+            config.__retryCount++;
+            const delay = getRetryDelay(config.__retryCount);
+            console.warn(
+              `[HTTP] 请求失败，${delay}ms 后进行第 ${config.__retryCount} 次重试:`,
+              config.url
+            );
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return instance.request(config);
+          }
+        }
+
+        // 非取消请求时显示错误提示
+        if (!$error.isCancelRequest) {
+          const response = $error.response as { data?: { msg?: string } };
+          const message =
+            response?.data?.msg || $error.message || "请求失败，请稍后重试";
+          ElMessage.error(message);
+        }
         return Promise.reject($error);
       }
     );
@@ -206,6 +269,24 @@ class PureHttp {
     config?: PureHttpRequestConfig
   ): Promise<P> {
     return this.request<P>("get", url, params, config);
+  }
+
+  /** 单独抽离的patch工具函数 */
+  public patch<T, P>(
+    url: string,
+    params?: AxiosRequestConfig<T>,
+    config?: PureHttpRequestConfig
+  ): Promise<P> {
+    return this.request<P>("patch", url, params, config);
+  }
+
+  /** 单独抽离的delete工具函数 */
+  public delete<T, P>(
+    url: string,
+    params?: AxiosRequestConfig<T>,
+    config?: PureHttpRequestConfig
+  ): Promise<P> {
+    return this.request<P>("delete", url, params, config);
   }
 }
 

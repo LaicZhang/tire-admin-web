@@ -5,11 +5,44 @@ import type { AxiosProgressEvent } from "axios";
 
 const prefix = "/tools/";
 
+export interface ImportTemplate {
+  type: string;
+  name: string;
+  fields: Array<{ name: string; label: string; required: boolean }>;
+}
+
+export interface ImportResult {
+  total: number;
+  success: number;
+  failed: number;
+  errors?: Array<{ row: number; message: string }>;
+}
+
+export interface ExportTask {
+  taskId: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  progress?: number;
+  downloadUrl?: string;
+}
+
+export interface PrintTemplate {
+  type: string;
+  name: string;
+  template: string;
+}
+
+export interface BarcodeProduct {
+  code: string;
+  name: string;
+  price?: number;
+  stock?: number;
+}
+
 // ============ 导入模板 ============
 
 /** 获取导入模板定义 */
 export async function getImportTemplateApi(type: string) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<ImportTemplate>>(
     "get",
     baseUrlApi(prefix + `import/template/${type}`)
   );
@@ -32,7 +65,7 @@ export async function importDataApi(
   data: FormData,
   onProgress?: (progress: number) => void
 ) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<ImportResult>>(
     "post",
     baseUrlApi(prefix + `import/${type}`),
     {
@@ -69,7 +102,7 @@ export async function createAsyncExportTaskApi(
   type: string,
   data: { filters?: object; fields?: string[] }
 ) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<ExportTask>>(
     "post",
     baseUrlApi(prefix + `export/async/${type}`),
     { data }
@@ -78,7 +111,7 @@ export async function createAsyncExportTaskApi(
 
 /** 查询导出任务状态 */
 export async function getExportTaskStatusApi(taskId: string) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<ExportTask>>(
     "get",
     baseUrlApi(prefix + `export/task/${taskId}`)
   );
@@ -110,7 +143,7 @@ export async function generateBarcodeApi(params: {
 
 /** 扫码查询商品 */
 export async function scanBarcodeApi(code: string) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<BarcodeProduct>>(
     "get",
     baseUrlApi(prefix + `barcode/scan/${code}`)
   );
@@ -120,7 +153,7 @@ export async function scanBarcodeApi(code: string) {
 
 /** 获取打印模板 */
 export async function getPrintTemplateApi(type: string) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<PrintTemplate>>(
     "get",
     baseUrlApi(prefix + `print/template/${type}`)
   );
@@ -131,7 +164,7 @@ export async function savePrintTemplateApi(data: {
   type: string;
   template: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<PrintTemplate>>(
     "post",
     baseUrlApi(prefix + "print/template"),
     { data }

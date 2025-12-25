@@ -45,7 +45,7 @@ export interface PurchaseSalesData {
  * GET /api/dashboard/summary
  */
 export async function getDashboardSummaryApi() {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<DashboardSummary>>(
     "get",
     baseUrlApi(dashboardPrefix + "summary")
   );
@@ -57,7 +57,7 @@ export async function getDashboardSummaryApi() {
  * @param days 查询天数，默认7，范围1-90
  */
 export async function getPurchaseSalesApi(days?: number) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<PurchaseSalesData>>(
     "get",
     baseUrlApi(dashboardPrefix + "purchase-sales"),
     { params: { days } }

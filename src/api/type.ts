@@ -66,7 +66,18 @@ export type PaymentAccount = {
   uid: string;
   companyUid: string;
   balance: number | string;
-  [key: string]: any;
+  /** 账户名称 */
+  name?: string;
+  /** 银行名称 */
+  bankName?: string;
+  /** 银行账号 */
+  bankAccount?: string;
+  /** 账户类型 */
+  accountType?: string;
+  /** 创建时间 */
+  createTime?: string;
+  /** 更新时间 */
+  updateTime?: string;
 };
 
 export type PaymentRecord = {
@@ -77,19 +88,43 @@ export type PaymentRecord = {
   modified: number | string;
   afterModify: number | string;
   sign: string;
-  [key: string]: any;
+  /** 描述 */
+  desc?: string;
+  /** 关联订单ID */
+  orderId?: string;
+  /** 创建时间 */
+  createTime?: string;
 };
 
 export type CreatePaymentDto = {
   companyUid: string;
-  [key: string]: any;
+  /** 账户名称 */
+  name?: string;
+  /** 银行名称 */
+  bankName?: string;
+  /** 银行账号 */
+  bankAccount?: string;
+  /** 账户类型 */
+  accountType?: string;
+  /** 初始余额 */
+  initialBalance?: number;
 };
 
 export type UpdatePaymentDto = {
-  type: "top-up" | "pay";
-  payment?: any;
-  record?: any;
-  [key: string]: any;
+  type: "top-up" | "pay" | "freeze" | "unfreeze" | "pay-frozen";
+  /** 支付账户更新信息 */
+  payment?: {
+    name?: string;
+    bankName?: string;
+    bankAccount?: string;
+    accountType?: string;
+  };
+  /** 交易记录信息 */
+  record?: {
+    amount: number;
+    desc?: string;
+    orderId?: string;
+  };
 };
 
 // 物流相关类型
@@ -100,13 +135,23 @@ export type LogisticStatus = {
   isArrival: boolean;
   arrivalAt?: string | null;
   departureAt?: string | null;
-  [key: string]: any;
+  /** 物流公司 */
+  logisticsCompany?: string;
+  /** 物流单号 */
+  trackingNumber?: string;
+  /** 司机信息 */
+  driverInfo?: string;
 };
 
 export type UpdateLogisticDto = {
   type: string;
   isArrival: boolean;
-  [key: string]: any;
+  /** 物流公司 */
+  logisticsCompany?: string;
+  /** 物流单号 */
+  trackingNumber?: string;
+  /** 到货/发货时间 */
+  timestamp?: string;
 };
 
 // 订单相关类型

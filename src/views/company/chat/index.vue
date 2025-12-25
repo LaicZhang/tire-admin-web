@@ -54,9 +54,8 @@ const sendMessage = async () => {
     const { data, code, msg } = await chatApi({
       uid: chatUid.value,
       batchId: batchId.value,
-      messages: chatHistory.value,
-      url: "https://api.openai.com/v1",
-      model: "gpt-4o"
+      messages: chatHistory.value
+      // Note: url 和 model 由后端配置管理，前端不应暴露第三方 API 地址
     });
 
     if (code === 200) {

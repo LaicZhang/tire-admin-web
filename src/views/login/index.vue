@@ -20,7 +20,7 @@ import {
   computed
 } from "vue";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
-import { ReImageVerify } from "@/components/ReImageVerify";
+import { baseUrlApi } from "@/api/utils";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
@@ -43,7 +43,9 @@ defineOptions({
 const router = useRouter();
 const loading = ref(false);
 const ruleFormRef = ref<FormInstance>();
-const imgCode = ref("");
+// 后端验证码 URL
+const captchaUrl = ref("");
+const captchaTimestamp = ref(Date.now());
 
 const { initStorage } = useLayout();
 initStorage();
@@ -61,11 +63,17 @@ const loginDay = ref(7);
 const disabled = ref(false);
 
 const ruleForm = reactive({
-  username: undefined,
-  password: undefined,
-  code: "",
+  username: "",
+  password: "",
+  captchaCode: "",
   isRemember: checked.value
 });
+
+// 刷新后端验证码
+const refreshCaptcha = () => {
+  captchaTimestamp.value = Date.now();
+  captchaUrl.value = `${baseUrlApi("/verify/captcha")}?t=${captchaTimestamp.value}`;
+};
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
@@ -123,15 +131,14 @@ function onkeydown({ code }: KeyboardEvent) {
 
 onMounted(() => {
   window.document.addEventListener("keydown", onkeydown, { passive: true });
+  // 初始化加载后端验证码
+  refreshCaptcha();
 });
 
 onBeforeUnmount(() => {
   window.document.removeEventListener("keydown", onkeydown);
 });
 
-watch(imgCode, value => {
-  useUserStoreHook().SET_CAPTCHA_CODE(value);
-});
 watch(checked, bool => {
   useUserStoreHook().SET_IS_REMEMBERED(bool);
 });
@@ -214,15 +221,20 @@ watch(loginDay, value => {
 </el-form-item>
 </Motion> -->
             <Motion :delay="200">
-              <el-form-item prop="code">
+              <el-form-item prop="captchaCode">
                 <el-input
-                  v-model="ruleForm.code"
+                  v-model="ruleForm.captchaCode"
                   clearable
                   placeholder="验证码"
                   :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
                 >
                   <template v-slot:append>
-                    <ReImageVerify v-model:code="imgCode" />
+                    <img
+                      :src="captchaUrl"
+                      alt="点击刷新"
+                      class="cursor-pointer h-[32px]"
+                      @click="refreshCaptcha"
+                    />
                   </template>
                 </el-input>
               </el-form-item>

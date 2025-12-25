@@ -1,6 +1,6 @@
 import { http } from "../utils/http";
 import { baseUrlApi } from "./utils";
-import type { CommonResult } from "./type";
+import type { CommonResult, CreatePaymentDto, UpdatePaymentDto } from "./type";
 
 const prefix = "/payment/";
 
@@ -15,24 +15,13 @@ export async function getPaymentApi(uid: string) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function createPaymentApi(data: {
-  companyUid: string;
-  [key: string]: any;
-}) {
+export async function createPaymentApi(data: CreatePaymentDto) {
   return await http.request<CommonResult>("post", baseUrlApi(prefix), {
     data
   });
 }
 
-export async function updatePaymentApi(
-  uid: string,
-  data: {
-    type: "top-up" | "pay" | "freeze" | "unfreeze" | "pay-frozen";
-    payment?: any;
-    record?: any;
-    [key: string]: any;
-  }
-) {
+export async function updatePaymentApi(uid: string, data: UpdatePaymentDto) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });

@@ -233,22 +233,49 @@ function handleAsyncRoutes(routeList) {
   addPathMatch();
 }
 
+/** 路由缓存过期时间（毫秒）：1小时 */
+const ROUTE_CACHE_EXPIRY_MS = 60 * 60 * 1000;
+
+/** 路由缓存数据结构 */
+interface RouteCacheData {
+  routes: unknown[];
+  timestamp: number;
+}
+
+/** 检查路由缓存是否过期 */
+function isRouteCacheExpired(cacheData: RouteCacheData | null): boolean {
+  if (!cacheData || !cacheData.timestamp) return true;
+  return Date.now() - cacheData.timestamp > ROUTE_CACHE_EXPIRY_MS;
+}
+
 /** 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）*/
 function initRouter() {
   if (getConfig()?.CachingAsyncRoutes) {
     // 开启动态路由缓存本地localStorage
     const key = "async-routes";
-    const asyncRouteList = storageLocal().getItem(key) as any;
-    if (asyncRouteList && asyncRouteList?.length > 0) {
+    const cachedData = storageLocal().getItem(key) as RouteCacheData | null;
+
+    // 检查缓存是否存在且未过期
+    if (
+      cachedData &&
+      cachedData.routes &&
+      cachedData.routes.length > 0 &&
+      !isRouteCacheExpired(cachedData)
+    ) {
       return new Promise(resolve => {
-        handleAsyncRoutes(asyncRouteList);
+        handleAsyncRoutes(cachedData.routes);
         resolve(router);
       });
     } else {
+      // 缓存不存在或已过期，从后端获取
       return new Promise(resolve => {
         getAsyncRoutes().then(({ data }) => {
           handleAsyncRoutes(cloneDeep(data));
-          storageLocal().setItem(key, data);
+          // 存储路由和时间戳
+          storageLocal().setItem(key, {
+            routes: data,
+            timestamp: Date.now()
+          } as RouteCacheData);
           resolve(router);
         });
       });

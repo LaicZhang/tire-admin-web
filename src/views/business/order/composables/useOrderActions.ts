@@ -57,9 +57,31 @@ export function useOrderActions(
   };
 
   const handleDelete = async (row: OrderRow) => {
-    await deleteOrderApi(orderType.value, row.uid);
-    message(`您删除了${row.name}这条数据`, { type: "success" });
-    await onSearch();
+    // 检查订单是否已付款，已付款订单不允许直接删除
+    if (row.payStatus && row.payStatus > 0) {
+      message("已付款订单不能直接删除，请先作废订单", { type: "warning" });
+      return;
+    }
+
+    try {
+      await ElMessageBox.confirm(
+        `确定要删除订单 "${row.orderNo || row.name}" 吗？此操作不可恢复。`,
+        "删除确认",
+        {
+          confirmButtonText: "确定删除",
+          cancelButtonText: "取消",
+          type: "warning"
+        }
+      );
+      await deleteOrderApi(orderType.value, row.uid);
+      message(`订单已删除`, { type: "success" });
+      await onSearch();
+    } catch (error) {
+      if (error !== "cancel") {
+        const msg = error instanceof Error ? error.message : "删除失败";
+        message(msg, { type: "error" });
+      }
+    }
   };
 
   // 采购订单：确认到货

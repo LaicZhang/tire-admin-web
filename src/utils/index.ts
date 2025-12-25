@@ -6,3 +6,4 @@ export * from "./localforage";
 export * from "./security";
 export * from "./file";
 export * from "./mock";
+export * from "./error";

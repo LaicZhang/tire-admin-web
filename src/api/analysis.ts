@@ -4,12 +4,122 @@ import type { CommonResult } from "./type";
 
 const prefix = "/analysis/";
 
+// ============ Response Types ============
+
+export interface InventorySummary {
+  totalCount: number;
+  toBeStockedCount: number;
+  toBeShippedCount: number;
+  inTransitCount: number;
+  totalValue: string;
+  skuCount: number;
+  repoCount: number;
+  belowAlarmCount: number;
+}
+
+export interface TurnoverData {
+  turnoverRate: number;
+  averageDays: number;
+  details: Array<{
+    repoName: string;
+    turnoverRate: number;
+  }>;
+}
+
+export interface AgingData {
+  totalAmount: string;
+  buckets: Array<{
+    label: string;
+    amount: string;
+    count: number;
+  }>;
+  details: Array<{
+    name: string;
+    amount: string;
+    aging: string;
+  }>;
+}
+
+export interface FinanceSummary {
+  totalIncome: string;
+  totalExpense: string;
+  netCashFlow: string;
+  currentBalance: string;
+  trend: Array<{
+    date: string;
+    data: number;
+  }>;
+}
+
+export interface SalesSummary {
+  totalAmount: string;
+  totalOrders: number;
+  paidAmount: string;
+  unpaidAmount: string;
+  averageOrderValue: string;
+  completionRate: number;
+}
+
+export interface PurchaseSummary {
+  totalAmount: string;
+  totalOrders: number;
+  paidAmount: string;
+  unpaidAmount: string;
+  averageOrderValue: string;
+  arrivalRate: number;
+}
+
+export interface TrendData {
+  data: Array<{ period: string; amount: string; count: number }>;
+}
+
+export interface RankingData {
+  items: Array<{
+    rank?: number;
+    name: string;
+    amount: string;
+    count?: number;
+    quantity?: number;
+  }>;
+}
+
+export interface ProfitData {
+  totalGrossProfit?: string;
+  totalRevenue?: string;
+  totalCost?: string;
+  totalNetProfit?: string;
+  totalExpense?: string;
+  trend: Array<{ period: string; value: number }>;
+}
+
+export interface ClaimLossData {
+  totalLoss: number;
+  claimCount: number;
+  avgLoss: number;
+  byReason: Array<{ reason: string; amount: number; count: number }>;
+}
+
+export interface SlowMovingData {
+  list?: Array<{
+    tireId: string;
+    tireName: string;
+    lastSaleDate: string;
+    stockQuantity: number;
+  }>;
+  items?: Array<{
+    tireId: string;
+    tireName: string;
+    lastSaleDate: string;
+    stockQuantity: number;
+  }>;
+}
+
 // 销售汇总
 export async function getSalesSummaryApi(params?: {
   startDate?: string;
   endDate?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<SalesSummary>>(
     "get",
     baseUrlApi(prefix + "sales/summary"),
     { params }
@@ -22,7 +132,7 @@ export async function getSalesTrendApi(params?: {
   endDate?: string;
   groupBy?: "day" | "week" | "month";
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<TrendData>>(
     "get",
     baseUrlApi(prefix + "sales/trend"),
     { params }
@@ -34,7 +144,7 @@ export async function getPurchaseSummaryApi(params?: {
   startDate?: string;
   endDate?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<PurchaseSummary>>(
     "get",
     baseUrlApi(prefix + "purchase/summary"),
     { params }
@@ -43,7 +153,7 @@ export async function getPurchaseSummaryApi(params?: {
 
 // 库存汇总
 export async function getInventorySummaryApi() {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<InventorySummary>>(
     "get",
     baseUrlApi(prefix + "inventory/summary")
   );
@@ -55,7 +165,7 @@ export async function getReceivableAgingApi(params?: {
   endDate?: string;
   agingDays?: number[];
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<AgingData>>(
     "get",
     baseUrlApi(prefix + "receivable/aging"),
     { params }
@@ -68,7 +178,7 @@ export async function getPayableAgingApi(params?: {
   endDate?: string;
   agingDays?: number[];
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<AgingData>>(
     "get",
     baseUrlApi(prefix + "payable/aging"),
     { params }
@@ -81,7 +191,7 @@ export async function getCustomerRankingApi(params?: {
   endDate?: string;
   limit?: number;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<RankingData>>(
     "get",
     baseUrlApi(prefix + "ranking/customers"),
     { params }
@@ -94,7 +204,7 @@ export async function getProviderRankingApi(params?: {
   endDate?: string;
   limit?: number;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<RankingData>>(
     "get",
     baseUrlApi(prefix + "ranking/providers"),
     { params }
@@ -108,7 +218,7 @@ export async function getProductRankingApi(params?: {
   limit?: number;
   orderBy?: "quantity" | "amount" | "profit";
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<RankingData>>(
     "get",
     baseUrlApi(prefix + "ranking/products"),
     { params }
@@ -122,7 +232,7 @@ export async function getOperatorRankingApi(params?: {
   limit?: number;
   orderBy?: "amount" | "count" | "collectionRate";
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<RankingData>>(
     "get",
     baseUrlApi(prefix + "ranking/operators"),
     { params }
@@ -137,7 +247,7 @@ export async function getPurchaseDetailApi(params?: {
   providerId?: string;
   tireId?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<{ items: unknown[] }>>(
     "get",
     baseUrlApi(prefix + "purchase/detail"),
     { params }
@@ -152,7 +262,7 @@ export async function getSaleDetailApi(params?: {
   customerId?: string;
   operatorId?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<{ items: unknown[] }>>(
     "get",
     baseUrlApi(prefix + "sale/detail"),
     { params }
@@ -165,7 +275,7 @@ export async function getReturnRateApi(params?: {
   endDate?: string;
   dimension?: "tire" | "provider";
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<{ list: unknown[] }>>(
     "get",
     baseUrlApi(prefix + "return-rate"),
     { params }
@@ -177,7 +287,7 @@ export async function getClaimLossApi(params?: {
   startDate?: string;
   endDate?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<ClaimLossData>>(
     "get",
     baseUrlApi(prefix + "claim-loss"),
     { params }
@@ -186,7 +296,7 @@ export async function getClaimLossApi(params?: {
 
 // 滞销商品分析
 export async function getSlowMovingApi(params?: { days?: number }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<SlowMovingData>>(
     "get",
     baseUrlApi(prefix + "slow-moving"),
     { params }
@@ -195,7 +305,7 @@ export async function getSlowMovingApi(params?: { days?: number }) {
 
 // 库存周转率
 export async function getInventoryTurnoverApi(params?: { repoId?: string }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<TurnoverData>>(
     "get",
     baseUrlApi(prefix + "inventory-turnover"),
     { params }
@@ -207,7 +317,7 @@ export async function getExpiryDistributionApi(params?: {
   repoId?: string;
   days?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<{ list: unknown[] }>>(
     "get",
     baseUrlApi(prefix + "expiry-distribution"),
     { params }
@@ -216,7 +326,7 @@ export async function getExpiryDistributionApi(params?: {
 
 // 缺货分析
 export async function getStockoutApi() {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<{ list: unknown[] }>>(
     "get",
     baseUrlApi(prefix + "stockout")
   );
@@ -240,7 +350,7 @@ export async function getGrossProfitApi(params?: {
   endDate?: string;
   groupBy?: "day" | "week" | "month";
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<ProfitData>>(
     "get",
     baseUrlApi(prefix + "profit/gross"),
     { params }
@@ -253,7 +363,7 @@ export async function getNetProfitApi(params?: {
   endDate?: string;
   groupBy?: "day" | "week" | "month";
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<ProfitData>>(
     "get",
     baseUrlApi(prefix + "profit/net"),
     { params }
@@ -265,7 +375,7 @@ export async function getIncomeExpenseSummaryApi(params?: {
   startDate?: string;
   endDate?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<FinanceSummary>>(
     "get",
     baseUrlApi(prefix + "finance/summary"),
     { params }
@@ -278,7 +388,7 @@ export async function getCashFlowApi(params?: {
   endDate?: string;
   groupBy?: "day" | "week" | "month";
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<TrendData>>(
     "get",
     baseUrlApi(prefix + "finance/cashflow"),
     { params }
@@ -291,7 +401,7 @@ export async function getBalanceTrendApi(params?: {
   endDate?: string;
   paymentUid?: string;
 }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<TrendData>>(
     "get",
     baseUrlApi(prefix + "finance/balance-trend"),
     { params }

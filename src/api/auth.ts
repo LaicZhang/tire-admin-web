@@ -7,6 +7,8 @@ export interface LoginDto {
   username: string;
   password: string;
   code?: string;
+  /** 图形验证码（密码登录时必填） */
+  captchaCode?: string;
   isRemember?: boolean;
 }
 

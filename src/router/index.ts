@@ -42,7 +42,7 @@ const modules: Record<string, any> = import.meta.glob(
 );
 
 /** 原始静态路由（未做任何处理） */
-const routes = [];
+const routes: RouteRecordRaw[] = [];
 
 Object.keys(modules).forEach(key => {
   routes.push(modules[key].default);
@@ -126,7 +126,6 @@ router.beforeEach((to: ToRouteType, _from, next) => {
     }
   }
   const userInfo = storageLocal().getItem<DataInfo<number>>(userKey);
-  NProgress.start();
   const externalLink = isUrl(to?.name as string);
   if (!externalLink) {
     to.matched.some(item => {

@@ -1,6 +1,6 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
-import type { CommonResult } from "../type";
+import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const prefix = "/customer/";
 
@@ -22,8 +22,19 @@ export interface CustomerDto {
   regionId?: number;
 }
 
-export async function getCustomerListApi(index: number, params?: object) {
-  return await http.request<CommonResult>(
+/** 客户实体 */
+export interface Customer extends CustomerDto {
+  id: number;
+  uid: string;
+  tags?: Array<{ id: number; name: string }>;
+  level?: { name: string };
+}
+
+export async function getCustomerListApi(
+  index: number,
+  params?: CustomerQueryDto
+) {
+  return await http.request<CommonResult<PaginatedResponseDto<Customer>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),
     { params }
@@ -31,30 +42,44 @@ export async function getCustomerListApi(index: number, params?: object) {
 }
 
 export async function addCustomerApi(data: CustomerDto) {
-  return await http.request<CommonResult>("post", baseUrlApi(prefix), {
-    data
-  });
+  return await http.request<CommonResult<Customer>>(
+    "post",
+    baseUrlApi(prefix),
+    {
+      data
+    }
+  );
 }
 
 export async function getCustomerApi(uid: string) {
-  return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
+  return await http.request<CommonResult<Customer>>(
+    "get",
+    baseUrlApi(prefix + uid)
+  );
 }
 
 export async function updateCustomerApi(
   uid: string,
   data: Partial<CustomerDto>
 ) {
-  return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
-    data
-  });
+  return await http.request<CommonResult<Customer>>(
+    "patch",
+    baseUrlApi(prefix + uid),
+    {
+      data
+    }
+  );
 }
 
 export async function deleteCustomerApi(uid: string) {
-  return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
+  return await http.request<CommonResult<void>>(
+    "delete",
+    baseUrlApi(prefix + uid)
+  );
 }
 
 export async function migrateCustomerApi(uid: string, data: { uid: string }) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<void>>(
     "patch",
     baseUrlApi(prefix + "migrate/" + uid),
     { data }
@@ -70,7 +95,7 @@ export async function createCustomerDebtProfileApi(
     phone: string;
   }
 ) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<void>>(
     "post",
     baseUrlApi(prefix + "debt-profile/" + uid),
     { data }

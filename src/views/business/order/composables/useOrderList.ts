@@ -1,11 +1,19 @@
 import { ref } from "vue";
+import type { FormInstance } from "element-plus";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
   getOrderListApi,
   getPurchasePlanListApi,
   getPurchaseInquiryListApi,
   getSaleQuotationListApi
 } from "@/api";
-import { CUR_ORDER_TYPE, localForage, message, ORDER_TYPE } from "@/utils";
+import {
+  CUR_ORDER_TYPE,
+  localForage,
+  message,
+  ORDER_TYPE,
+  handleApiError
+} from "@/utils";
 import {
   purchaseOrderColumns,
   saleOrderColumns,
@@ -18,21 +26,39 @@ import {
   purchaseInquiryColumns,
   saleQuotationColumns
 } from "../props";
+import type { OrderRow } from "./useOrderActions";
+
+/** 表格列配置类型 */
+export interface TableColumn {
+  label: string;
+  prop?: string;
+  slot?: string;
+  fixed?: string | boolean;
+  width?: number;
+  minWidth?: number;
+  formatter?: (
+    row: OrderRow,
+    column: TableColumn,
+    cellValue: unknown
+  ) => string;
+  cellRenderer?: (data: { row: OrderRow }) => JSX.Element;
+}
 
 /**
  * 订单列表 composable
  * 提取列表数据、分页、搜索等逻辑
  */
 export function useOrderList() {
-  const dataList = ref<any[]>([]);
+  const dataList = ref<OrderRow[]>([]);
   const loading = ref(false);
   const orderType = ref("");
-  const columns = ref<any[]>([]);
+  const columns = ref<TableColumn[]>([]);
 
   const form = ref({
     operatorId: undefined as string | undefined,
     auditorId: undefined as string | undefined,
-    desc: undefined as string | undefined
+    desc: undefined as string | undefined,
+    keyword: undefined as string | undefined
   });
 
   const pagination = ref({
@@ -42,66 +68,68 @@ export function useOrderList() {
     background: true
   });
 
-  const columnMapping: Record<string, any[]> = {
-    [ORDER_TYPE.purchase]: purchaseOrderColumns,
-    [ORDER_TYPE.sale]: saleOrderColumns,
-    [ORDER_TYPE.claim]: claimOrderColumns,
-    [ORDER_TYPE.return]: returnOrderColumns,
-    [ORDER_TYPE.waste]: wasteOrderColumns,
-    [ORDER_TYPE.transfer]: transferOrderColumns,
-    [ORDER_TYPE.assembly]: assemblyOrderColumns,
-    [ORDER_TYPE.purchasePlan]: purchasePlanColumns,
-    [ORDER_TYPE.purchaseInquiry]: purchaseInquiryColumns,
-    [ORDER_TYPE.saleQuotation]: saleQuotationColumns
+  const columnMapping: Record<string, TableColumn[]> = {
+    [ORDER_TYPE.purchase]: purchaseOrderColumns as TableColumn[],
+    [ORDER_TYPE.sale]: saleOrderColumns as TableColumn[],
+    [ORDER_TYPE.claim]: claimOrderColumns as TableColumn[],
+    [ORDER_TYPE.return]: returnOrderColumns as TableColumn[],
+    [ORDER_TYPE.waste]: wasteOrderColumns as TableColumn[],
+    [ORDER_TYPE.transfer]: transferOrderColumns as TableColumn[],
+    [ORDER_TYPE.assembly]: assemblyOrderColumns as TableColumn[],
+    [ORDER_TYPE.purchasePlan]: purchasePlanColumns as TableColumn[],
+    [ORDER_TYPE.purchaseInquiry]: purchaseInquiryColumns as TableColumn[],
+    [ORDER_TYPE.saleQuotation]: saleQuotationColumns as TableColumn[]
   };
 
   const getOrderListInfo = async () => {
     if (orderType.value === "") return;
-    let res;
-    const params = {
-      page: pagination.value.currentPage,
-      limit: pagination.value.pageSize,
-      ...form.value
-    };
 
-    if (orderType.value === ORDER_TYPE.purchasePlan) {
-      res = await getPurchasePlanListApi(params);
-    } else if (orderType.value === ORDER_TYPE.purchaseInquiry) {
-      res = await getPurchaseInquiryListApi(params);
-    } else if (orderType.value === ORDER_TYPE.saleQuotation) {
-      res = await getSaleQuotationListApi(params);
-    } else {
-      res = await getOrderListApi(
-        orderType.value,
-        pagination.value.currentPage,
-        form.value
-      );
-    }
+    try {
+      loading.value = true;
+      let res: CommonResult<PaginatedResponseDto<OrderRow>>;
+      const params = {
+        page: pagination.value.currentPage,
+        limit: pagination.value.pageSize,
+        ...form.value
+      };
 
-    const { data, code, msg } = res;
-    if (code === 200) {
-      dataList.value = data.list;
-      pagination.value.total = data.count;
-    } else {
-      message(msg, { type: "error" });
+      if (orderType.value === ORDER_TYPE.purchasePlan) {
+        res = (await getPurchasePlanListApi(params)) as CommonResult<
+          PaginatedResponseDto<OrderRow>
+        >;
+      } else if (orderType.value === ORDER_TYPE.purchaseInquiry) {
+        res = (await getPurchaseInquiryListApi(params)) as CommonResult<
+          PaginatedResponseDto<OrderRow>
+        >;
+      } else if (orderType.value === ORDER_TYPE.saleQuotation) {
+        res = (await getSaleQuotationListApi(params)) as CommonResult<
+          PaginatedResponseDto<OrderRow>
+        >;
+      } else {
+        res = await getOrderListApi(
+          orderType.value,
+          pagination.value.currentPage,
+          form.value
+        );
+      }
+
+      const { data, code, msg } = res;
+      if (code === 200) {
+        dataList.value = data.list;
+        pagination.value.total = data.count;
+      } else {
+        message(msg, { type: "error" });
+      }
+    } catch (error) {
+      handleApiError(error, "获取订单列表失败");
+    } finally {
+      loading.value = false;
     }
   };
 
   const onSearch = async () => {
-    loading.value = true;
-    const { data, code, msg } = await getOrderListApi(
-      orderType.value,
-      pagination.value.currentPage,
-      form.value
-    );
-
-    if (code === 200) {
-      dataList.value = data.list;
-      pagination.value.total = data.count;
-    } else {
-      message(msg, { type: "error" });
-    }
-    loading.value = false;
+    pagination.value.currentPage = 1;
+    await getOrderListInfo();
   };
 
   const setOrderType = async () => {
@@ -110,17 +138,21 @@ export function useOrderList() {
       await localForage().setItem(CUR_ORDER_TYPE, type);
       columns.value = columnMapping[orderType.value] || columns.value;
       await onSearch();
-    } catch (e: any) {
-      throw new Error("fail to set order type for " + e.message);
+    } catch (error) {
+      handleApiError(error, "设置订单类型失败");
     }
   };
 
   const getOrderType = async () => {
-    const curOrderType: string | null =
-      await localForage().getItem(CUR_ORDER_TYPE);
-    if (curOrderType) {
-      orderType.value = curOrderType;
-      await setOrderType();
+    try {
+      const curOrderType: string | null =
+        await localForage().getItem(CUR_ORDER_TYPE);
+      if (curOrderType) {
+        orderType.value = curOrderType;
+        await setOrderType();
+      }
+    } catch (error) {
+      handleApiError(error, "获取订单类型失败");
     }
   };
 
@@ -129,7 +161,7 @@ export function useOrderList() {
     await getOrderListInfo();
   };
 
-  const resetForm = (formEl: any) => {
+  const resetForm = (formEl: FormInstance | undefined) => {
     loading.value = true;
     if (!formEl) return;
     formEl.resetFields();
