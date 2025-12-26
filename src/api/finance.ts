@@ -54,12 +54,25 @@ export async function accountTransferApi(data: {
   fromPaymentUid: string;
   toPaymentUid: string;
   amount: number;
+  fee?: number;
+  feePaymentUid?: string;
   desc?: string;
 }) {
   return await http.request<CommonResult<void>>(
     "post",
     baseUrlApi(prefix + "account-transfer"),
-    { data }
+    {
+      data: {
+        fromPayment: data.fromPaymentUid,
+        toPayment: data.toPaymentUid,
+        amount: data.amount,
+        ...(data.fee !== undefined ? { fee: data.fee } : {}),
+        ...(data.feePaymentUid !== undefined
+          ? { feePayment: data.feePaymentUid }
+          : {}),
+        ...(data.desc !== undefined ? { remark: data.desc } : {})
+      }
+    }
   );
 }
 
