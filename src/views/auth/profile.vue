@@ -9,7 +9,7 @@
         border
       >
         <template #extra>
-          <el-button type="primary">更新</el-button>
+          <el-button type="primary" @click="openEditDialog">更新</el-button>
         </template>
         <el-descriptions-item>
           <template #label>
@@ -134,6 +134,59 @@
         <el-button type="primary" @click="checkBindStatus">已扫码</el-button>
       </template>
     </el-dialog>
+
+    <!-- 编辑个人信息对话框 -->
+    <el-dialog v-model="editDialogVisible" title="编辑个人信息" width="500px">
+      <el-form :model="editForm" label-width="80px">
+        <el-form-item label="昵称">
+          <el-input
+            v-model="editForm.nickname"
+            placeholder="请输入昵称"
+            maxlength="50"
+          />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input
+            v-model="editForm.phone"
+            placeholder="请输入手机号"
+            maxlength="20"
+          />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input
+            v-model="editForm.email"
+            placeholder="请输入邮箱"
+            type="email"
+          />
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-radio-group v-model="editForm.gender">
+            <el-radio :value="1">男</el-radio>
+            <el-radio :value="0">女</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="生日">
+          <el-date-picker
+            v-model="editForm.birthday"
+            type="date"
+            placeholder="选择日期"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="editLoading"
+          @click="handleUpdateUserInfo"
+        >
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -143,7 +196,8 @@ import { getUserInfoApi } from "@/api";
 import {
   getWxBindStatusApi,
   wxUnbindApi,
-  getWxQrLoginUrlApi
+  getWxQrLoginUrlApi,
+  updateUserInfoApi
 } from "@/api/auth";
 import { message } from "@/utils/message";
 import type { ComponentSize } from "element-plus";
@@ -167,6 +221,68 @@ const wxBindStatus = ref({
   avatar: "",
   bindTime: ""
 });
+
+// 编辑对话框相关
+const editDialogVisible = ref(false);
+const editLoading = ref(false);
+const editForm = ref({
+  nickname: "",
+  phone: "",
+  email: "",
+  gender: 1,
+  birthday: ""
+});
+
+const openEditDialog = () => {
+  editForm.value = {
+    nickname: userInfo.value.info?.nickname || "",
+    phone: userInfo.value.phone || "",
+    email: userInfo.value.email || "",
+    gender: userInfo.value.info?.gender ?? 1,
+    birthday: formattedBirthday.value || ""
+  };
+  editDialogVisible.value = true;
+};
+
+const handleUpdateUserInfo = async () => {
+  editLoading.value = true;
+  try {
+    const payload: {
+      nickname?: string;
+      phone?: string;
+      email?: string;
+      gender?: number;
+      birthday?: string;
+    } = {};
+    if (editForm.value.nickname !== undefined) {
+      payload.nickname = editForm.value.nickname;
+    }
+    if (editForm.value.phone !== undefined) {
+      payload.phone = editForm.value.phone;
+    }
+    if (editForm.value.email !== undefined) {
+      payload.email = editForm.value.email;
+    }
+    if (editForm.value.gender !== undefined) {
+      payload.gender = editForm.value.gender;
+    }
+    if (editForm.value.birthday) {
+      payload.birthday = editForm.value.birthday;
+    }
+    const { code, msg } = await updateUserInfoApi(payload);
+    if (code === 200) {
+      message("更新成功", { type: "success" });
+      editDialogVisible.value = false;
+      await getUserInfo();
+    } else {
+      message(msg || "更新失败", { type: "error" });
+    }
+  } catch {
+    message("更新失败", { type: "error" });
+  } finally {
+    editLoading.value = false;
+  }
+};
 
 const formattedBirthday = computed(() => {
   const birthday = userInfo.value.info?.birthday;

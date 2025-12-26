@@ -42,9 +42,10 @@ export interface UpdateCompanyInfoDto {
 /** 更新用户信息参数 */
 interface UpdateUserInfoDto {
   nickname?: string;
-  email?: string;
   phone?: string;
-  avatar?: string;
+  email?: string;
+  gender?: number;
+  birthday?: string;
 }
 
 /** 登录历史查询参数 */
