@@ -58,7 +58,7 @@ const handleQuery = async () => {
   try {
     const { data } = await getWorkflowListApi(queryForm);
     tableData.value = data.list;
-    total.value = data.total;
+    total.value = data.total ?? data.count ?? 0;
   } catch (e) {
     console.error(e);
   } finally {

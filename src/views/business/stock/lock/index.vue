@@ -5,6 +5,7 @@ import {
   lockRepoBinApi,
   unlockRepoBinApi
 } from "@/api/business/stock";
+import type { Bin } from "@/api/business/stock";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
@@ -20,7 +21,7 @@ defineOptions({
 
 const formRef = ref();
 const loading = ref(true);
-const dataList = ref([]);
+const dataList = ref<Bin[]>([]);
 const pagination = reactive({
   total: 0,
   pageSize: 10,
@@ -64,7 +65,7 @@ async function onSearch() {
       keyword: form.keyword
     });
     dataList.value = data.list;
-    pagination.total = data.total;
+    pagination.total = data.total ?? data.count;
   } catch (e) {
     console.error(e);
   } finally {
@@ -72,20 +73,20 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
 };
 
-const handleLock = async row => {
+const handleLock = async (row: { id: string | number }) => {
   ElMessageBox.prompt("请输入锁定原因", "锁定货位", {
     confirmButtonText: "确定",
     cancelButtonText: "取消"
   })
     .then(async ({ value }) => {
       try {
-        await lockRepoBinApi({ id: row.id, reason: value });
+        await lockRepoBinApi({ id: String(row.id), reason: value });
         message("锁定成功", { type: "success" });
         onSearch();
       } catch (e) {
@@ -95,9 +96,9 @@ const handleLock = async row => {
     .catch(() => {});
 };
 
-const handleUnlock = async row => {
+const handleUnlock = async (row: { id: string | number }) => {
   try {
-    await unlockRepoBinApi(row.id);
+    await unlockRepoBinApi(String(row.id));
     message("解锁成功", { type: "success" });
     onSearch();
   } catch (e) {

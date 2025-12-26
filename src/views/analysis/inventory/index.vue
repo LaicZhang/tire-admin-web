@@ -10,7 +10,7 @@ import {
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import * as echarts from "echarts";
+import * as echarts from "echarts/core";
 
 defineOptions({
   name: "AnalysisInventory"

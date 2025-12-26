@@ -21,17 +21,17 @@ const emit = defineEmits<{
 const drawerVisible = ref(props.visible);
 const exceptionDialogVisible = ref(false);
 
-const orderTypeMap = {
+const orderTypeMap: Record<string, string> = {
   "purchase-order": "采购订单",
   "sale-order": "销售订单",
   "return-order": "退货订单",
   "transfer-order": "调拨订单"
 };
 
-const statusMap = {
-  0: "待发货",
-  1: "运送中",
-  2: "已送达"
+const statusMap: Record<string, string> = {
+  "0": "待发货",
+  "1": "运送中",
+  "2": "已送达"
 };
 
 const logisticUid = computed(() => props.logistic?.uid || "");
@@ -97,7 +97,7 @@ function formatDate(date: string) {
               "
               size="small"
             >
-              {{ statusMap[logistic.logisticsStatus] || "未知" }}
+              {{ statusMap[String(logistic.logisticsStatus)] || "未知" }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="是否到达">

@@ -3,8 +3,9 @@ import Footer from "./footer/index.vue";
 import { useGlobal, isNumber } from "@pureadmin/utils";
 import KeepAliveFrame from "./keepAliveFrame/index.vue";
 import backTop from "@/assets/svg/back_top.svg?component";
-import { h, computed, Transition, defineComponent } from "vue";
+import { h, computed, Transition, defineComponent, type PropType } from "vue";
 import { usePermissionStoreHook } from "@/store/modules/permission";
+import type { RouteLocationNormalizedLoaded } from "vue-router";
 
 const props = defineProps({
   fixedHeader: Boolean
@@ -17,7 +18,7 @@ const isKeepAlive = computed(() => {
 });
 
 const transitions = computed(() => {
-  return route => {
+  return (route: RouteLocationNormalizedLoaded) => {
     return route.meta.transition;
   };
 });
@@ -48,8 +49,8 @@ const getMainWidth = computed(() => {
 
 const getSectionStyle = computed(() => {
   return [
-    hideTabs.value && layout ? "padding-top: 48px;" : "",
-    !hideTabs.value && layout ? "padding-top: 81px;" : "",
+    hideTabs.value && layout.value ? "padding-top: 48px;" : "",
+    !hideTabs.value && layout.value ? "padding-top: 81px;" : "",
     hideTabs.value && !layout.value ? "padding-top: 48px;" : "",
     !hideTabs.value && !layout.value ? "padding-top: 81px;" : "",
     props.fixedHeader
@@ -65,7 +66,7 @@ const getSectionStyle = computed(() => {
 const transitionMain = defineComponent({
   props: {
     route: {
-      type: undefined,
+      type: Object as PropType<RouteLocationNormalizedLoaded>,
       required: true
     }
   },
@@ -88,7 +89,7 @@ const transitionMain = defineComponent({
         appear: true
       },
       {
-        default: () => [this.$slots.default()]
+        default: () => [this.$slots.default?.()]
       }
     );
   }

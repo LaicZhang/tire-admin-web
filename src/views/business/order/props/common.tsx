@@ -11,7 +11,7 @@ const { copied, update } = useCopyToClipboard();
 
 export const copySvg = new URL("../order/copy.svg", location.origin).href;
 export const checkSvg = new URL("../order/check.svg", location.origin).href;
-export const curCopyActive = ref(null);
+export const curCopyActive = ref<string | number | null>(null);
 
 export const copyStyle = computed(() => {
   return {
@@ -37,7 +37,7 @@ export const copySrc = computed(
     curCopyActive.value === index && copied.value ? checkSvg : copySvg
 );
 
-export const getFooterButtons = (type, title = "新增") => {
+export const getFooterButtons = (_type: string, title = "新增") => {
   let footerButtons: ButtonProps[] = [];
   if (title === "新增") footerButtons = [];
   else
@@ -46,7 +46,7 @@ export const getFooterButtons = (type, title = "新增") => {
         label: "取消",
         type: "danger",
         btnClick: ({ dialog: { options, index }, button: _button }) => {
-          closeDialog(options, index);
+          if (options && typeof index === "number") closeDialog(options, index);
         }
       },
       {

@@ -11,34 +11,33 @@ const props = defineProps({
   }
 });
 
-const titleRef = ref(null);
+const titleRef = ref<HTMLElement | null>(null);
 const titleTooltip = ref(false);
-const descriptionRef = ref(null);
+const descriptionRef = ref<HTMLElement | null>(null);
 const descriptionTooltip = ref(false);
 const { tooltipEffect } = useNav();
 const isMobile = deviceDetection();
 
 function hoverTitle() {
   nextTick(() => {
-    titleRef.value?.scrollWidth > titleRef.value?.clientWidth
-      ? (titleTooltip.value = true)
-      : (titleTooltip.value = false);
+    titleTooltip.value =
+      (titleRef.value?.scrollWidth ?? 0) > (titleRef.value?.clientWidth ?? 0);
   });
 }
 
-function hoverDescription(event, description) {
+function hoverDescription(event: MouseEvent, description: string) {
   // currentWidth 为文本在页面中所占的宽度，创建标签，加入到页面，获取currentWidth ,最后在移除
   const tempTag = document.createElement("span");
   tempTag.innerText = description;
   tempTag.className = "getDescriptionWidth";
-  document.querySelector("body").appendChild(tempTag);
+  document.querySelector("body")?.appendChild(tempTag);
   const currentWidth = (
     document.querySelector(".getDescriptionWidth") as HTMLSpanElement
   ).offsetWidth;
-  document.querySelector(".getDescriptionWidth").remove();
+  document.querySelector(".getDescriptionWidth")?.remove();
 
   // cellWidth为容器的宽度
-  const cellWidth = event.target.offsetWidth;
+  const cellWidth = (event.target as HTMLElement)?.offsetWidth ?? 0;
 
   // 当文本宽度大于容器宽度两倍时，代表文本显示超过两行
   currentWidth > 2 * cellWidth

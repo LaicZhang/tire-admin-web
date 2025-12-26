@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { noticesData } from "./data";
+import { noticesData, type TabItem } from "./data";
 import NoticeList from "./noticeList.vue";
 import Bell from "~icons/ep/bell";
 import { getNoticeApi } from "@/api";
 import { message } from "@/utils";
 
 const noticesNum = ref(0);
-const curNoticesData = [];
-const notices = ref(curNoticesData);
+const curNoticesData: TabItem[] = [];
+const notices = ref<TabItem[]>(curNoticesData);
 const activeKey = ref(curNoticesData[0]?.key);
 
 const getNotice = async () => {

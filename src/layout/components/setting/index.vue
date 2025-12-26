@@ -30,9 +30,9 @@ const { device } = useNav();
 const { isDark } = useDark();
 const { $storage } = useGlobal<GlobalPropertiesApi>();
 
-const mixRef = ref();
-const verticalRef = ref();
-const horizontalRef = ref();
+const mixRef = ref<HTMLElement | null>(null);
+const verticalRef = ref<HTMLElement | null>(null);
+const horizontalRef = ref<HTMLElement | null>(null);
 
 const {
   dataTheme,
@@ -51,8 +51,8 @@ if (unref(layoutTheme)) {
   // toggleTheme({
   //   scopeName: `layout-theme-${theme}`
   // });
-  document.documentElement.setAttribute("data-theme", theme);
-  setLayoutModel(layout);
+  document.documentElement.setAttribute("data-theme", theme ?? "");
+  if (layout) setLayoutModel(layout);
 }
 
 /** 默认灵动模式 */
@@ -72,36 +72,42 @@ const settings = reactive({
 });
 
 const getThemeColorStyle = computed(() => {
-  return color => {
+  return (color: string) => {
     return { background: color };
   };
 });
 
 /** 当网页整体为暗色风格时不显示亮白色主题配色切换选项 */
 const showThemeColors = computed(() => {
-  return themeColor => {
+  return (themeColor: string) => {
     return themeColor === "light" && isDark.value ? false : true;
   };
 });
 
-function storageConfigureChange<T>(key: string, val: T): void {
+function storageConfigureChange<T extends keyof ResponsiveStorage["configure"]>(
+  key: T,
+  val: ResponsiveStorage["configure"][T]
+): void {
   const storageConfigure = $storage.configure;
-  storageConfigure[key] = val;
+
+  (storageConfigure as any)[key] = val;
   $storage.configure = storageConfigure;
 }
 
 /** 灰色模式设置 */
-const greyChange = (value): void => {
+const greyChange = (value: string | number | boolean): void => {
+  const boolVal = Boolean(value);
   const htmlEl = document.querySelector("html");
-  toggleClass(settings.greyVal, "html-grey", htmlEl);
-  storageConfigureChange("grey", value);
+  toggleClass(boolVal, "html-grey", htmlEl);
+  storageConfigureChange("grey", boolVal);
 };
 
 /** 色弱模式设置 */
-const weekChange = (value): void => {
+const weekChange = (value: string | number | boolean): void => {
+  const boolVal = Boolean(value);
   const htmlEl = document.querySelector("html");
-  toggleClass(settings.weakVal, "html-weakness", htmlEl);
-  storageConfigureChange("weak", value);
+  toggleClass(boolVal, "html-weakness", htmlEl);
+  storageConfigureChange("weak", boolVal);
 };
 
 /** 隐藏标签页设置 */
@@ -119,12 +125,12 @@ const hideFooterChange = () => {
 
 /** 标签页持久化设置 */
 const multiTagsCacheChange = () => {
-  const multiTagsCache = settings.multiTagsCache;
+  const multiTagsCache = Boolean(settings.multiTagsCache);
   storageConfigureChange("multiTagsCache", multiTagsCache);
   useMultiTagsStoreHook().multiTagsCacheChange(multiTagsCache);
 };
 
-function onChange({ option }) {
+function onChange({ option }: { option: OptionsType }) {
   const { value } = option;
   markValue.value = value;
   storageConfigureChange("showModel", value);
@@ -139,9 +145,9 @@ function logoChange() {
   emitter.emit("logoChange", unref(logoVal));
 }
 
-function setFalse(Doms): any {
+function setFalse(Doms: Array<{ value: HTMLElement | null }>): void {
   Doms.forEach(v => {
-    toggleClass(false, "is-select", unref(v));
+    toggleClass(false, "is-select", v.value);
   });
 }
 
@@ -159,19 +165,20 @@ const stretchTypeOptions: Array<OptionsType> = [
   }
 ];
 
-const setStretch = value => {
-  settings.stretch = value;
-  storageConfigureChange("stretch", value);
+const setStretch = (value: number | boolean | undefined) => {
+  const nextVal = value ?? false;
+  settings.stretch = nextVal;
+  storageConfigureChange("stretch", nextVal);
 };
 
-const stretchTypeChange = ({ option }) => {
+const stretchTypeChange = ({ option }: { option: OptionsType }) => {
   const { value } = option;
   value === "custom" ? setStretch(1440) : setStretch(false);
 };
 
 /** 主题色 激活选择项 */
 const getThemeColor = computed(() => {
-  return current => {
+  return (current: string) => {
     if (
       current === layoutTheme.value.theme &&
       layoutTheme.value.theme !== "light"
@@ -250,19 +257,19 @@ function setLayoutModel(layout: string) {
 watch($storage, ({ layout }) => {
   switch (layout["layout"]) {
     case "vertical":
-      toggleClass(true, "is-select", unref(verticalRef));
-      debounce(setFalse([horizontalRef]), 50);
-      debounce(setFalse([mixRef]), 50);
+      toggleClass(true, "is-select", verticalRef.value);
+      debounce(() => setFalse([horizontalRef]), 50)();
+      debounce(() => setFalse([mixRef]), 50)();
       break;
     case "horizontal":
-      toggleClass(true, "is-select", unref(horizontalRef));
-      debounce(setFalse([verticalRef]), 50);
-      debounce(setFalse([mixRef]), 50);
+      toggleClass(true, "is-select", horizontalRef.value);
+      debounce(() => setFalse([verticalRef]), 50)();
+      debounce(() => setFalse([mixRef]), 50)();
       break;
     case "mix":
-      toggleClass(true, "is-select", unref(mixRef));
-      debounce(setFalse([verticalRef]), 50);
-      debounce(setFalse([horizontalRef]), 50);
+      toggleClass(true, "is-select", mixRef.value);
+      debounce(() => setFalse([verticalRef]), 50)();
+      debounce(() => setFalse([horizontalRef]), 50)();
       break;
   }
 });
@@ -304,7 +311,7 @@ onBeforeMount(() => {
   });
 });
 
-onUnmounted(() => removeMatchMedia);
+onUnmounted(removeMatchMedia);
 </script>
 
 <template>

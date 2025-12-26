@@ -18,7 +18,7 @@ export const saleQuotationColumns: TableColumnList = [
     label: "状态",
     prop: "status",
     formatter: ({ status }) => {
-      const map = {
+      const map: Record<string, string> = {
         draft: "草稿",
         sent: "已发送",
         accepted: "已接受",

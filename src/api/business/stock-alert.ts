@@ -1,6 +1,6 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
-import type { CommonResult } from "../type";
+import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const alertPrefix = "/stock-alert/";
 const expiryPrefix = "/expiry-alert/";
@@ -65,7 +65,7 @@ export async function createExpiryAlertApi(data: ExpiryAlertDto) {
 }
 
 export async function getExpiryAlertListApi(params?: object) {
-  return await http.request<CommonResult<ExpiryAlert[]>>(
+  return await http.request<CommonResult<PaginatedResponseDto<ExpiryAlert>>>(
     "get",
     baseUrlApi(expiryPrefix),
     {

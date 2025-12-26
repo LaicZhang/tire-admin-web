@@ -1,13 +1,16 @@
 import type {
   LoadingConfig,
   AdaptiveConfig,
-  PaginationProps
+  PaginationProps,
+  TableColumnRenderer
 } from "@pureadmin/table";
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
 
+import type { CompanyRoleItem } from "@/api/system/role";
+
 export function useColumns() {
-  const dataList = ref([]);
+  const dataList = ref<CompanyRoleItem[]>([]);
   const loading = ref(true);
   const columns: TableColumnList = [
     {
@@ -29,13 +32,13 @@ export function useColumns() {
       label: "状态",
       prop: "status",
       minWidth: 100,
-      cellRenderer: ({ row, props }) => (
+      cellRenderer: (data: TableColumnRenderer) => (
         <el-tag
-          size={props.size}
-          type={row.status === 1 ? "success" : "danger"}
+          size={data.props?.size}
+          type={data.row?.status === 1 ? "success" : "danger"}
           effect="plain"
         >
-          {row.status === 1 ? "启用" : "禁用"}
+          {data.row?.status === 1 ? "启用" : "禁用"}
         </el-tag>
       )
     },

@@ -5,6 +5,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId } from "@/api/company";
 import { addRepoApi, updateRepoApi } from "@/api/company/repo";
 import editForm from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 interface FormItemProps {
   uid?: string;
@@ -20,7 +21,7 @@ interface FormProps {
 
 export type { FormItemProps, FormProps };
 
-const formRef = ref(null);
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 export function openDialog(
   title = "新增",
@@ -49,7 +50,8 @@ export function openDialog(
     contentRenderer: ({ options }) =>
       h(editForm, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline as FormItemProps;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
@@ -79,7 +81,7 @@ export function openDialog(
         // OR `addDialog` options might accept a `closeCallBack`.
         // I will follow the existing pattern for now but ensure API calls are correct.
       }
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           if (title === "新增") {
             const { name, address, managerId, desc, status } = curData;
@@ -101,6 +103,10 @@ export function openDialog(
             if (options.props.refreshCallback) options.props.refreshCallback();
           } else {
             const { uid, name, address, managerId, desc, status } = curData;
+            if (!uid) {
+              message("缺少仓库ID，无法更新", { type: "error" });
+              return;
+            }
             await updateRepoApi(uid, {
               name,
               address,

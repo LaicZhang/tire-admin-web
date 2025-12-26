@@ -110,7 +110,25 @@ async function loadSlowMoving() {
   try {
     const { data, code, msg } = await getSlowMovingApi({});
     if (code === 200) {
-      slowMovingData.value = { list: data?.list || [] };
+      const list = data?.list ?? data?.items ?? [];
+      slowMovingData.value = {
+        list: list.map(item => {
+          const lastSaleTime = Date.parse(item.lastSaleDate);
+          const daysWithoutSale = Number.isFinite(lastSaleTime)
+            ? Math.max(
+                0,
+                Math.floor((Date.now() - lastSaleTime) / (1000 * 60 * 60 * 24))
+              )
+            : 0;
+
+          return {
+            name: item.tireName,
+            stock: item.stockQuantity,
+            lastSaleDate: item.lastSaleDate,
+            daysWithoutSale
+          };
+        })
+      };
     } else {
       message(msg || "加载失败", { type: "error" });
     }
@@ -140,7 +158,7 @@ async function loadExpiryDistribution() {
 async function loadStockout() {
   loading.value = true;
   try {
-    const { data, code, msg } = await getStockoutApi({});
+    const { data, code, msg } = await getStockoutApi();
     if (code === 200) {
       stockoutData.value = { list: data?.list || [] };
     } else {
@@ -153,8 +171,8 @@ async function loadStockout() {
   }
 }
 
-function handleTabChange(tab: string) {
-  switch (tab) {
+function handleTabChange(tab: string | number) {
+  switch (String(tab)) {
     case "return-rate":
       loadReturnRate();
       break;
@@ -174,7 +192,7 @@ function handleTabChange(tab: string) {
 }
 
 function formatMoney(value: number) {
-  return (value / 100).toFixed(2);
+  return Number((value / 100).toFixed(2));
 }
 
 onMounted(() => {

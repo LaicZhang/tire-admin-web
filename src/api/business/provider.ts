@@ -11,6 +11,8 @@ const prefix = "/provider/";
 /** 供应商查询参数 */
 export interface ProviderQueryDto {
   keyword?: string;
+  name?: string;
+  desc?: string;
 }
 
 /** 供应商创建/更新 DTO */

@@ -50,7 +50,7 @@ export const purchaseOrderFormRules: FormRules = reactive({
   total: [{ required: true, message: "总价为必填项", trigger: "blur" }]
 });
 
-export const purchaseOrderDeatailsColumns = [
+export const purchaseOrderDeatailsColumns: TableColumnList = [
   // {
   //   label: "索引",
   //   prop: "index",
@@ -122,7 +122,7 @@ export const purchaseOrderDeatailsColumns = [
   }
 ];
 
-export const purchaseOrderColumns = [
+export const purchaseOrderColumns: TableColumnList = [
   {
     label: "流水号",
     prop: "number",

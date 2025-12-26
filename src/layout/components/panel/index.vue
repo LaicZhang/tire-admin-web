@@ -5,7 +5,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 import Close from "~icons/ep/close";
 
-const target = ref(null);
+const target = ref<HTMLElement | null>(null);
 const show = ref<Boolean>(false);
 
 const iconClass = computed(() => {
@@ -27,8 +27,8 @@ const iconClass = computed(() => {
 
 const { onReset } = useDataThemeChange();
 
-onClickOutside(target, (event: any) => {
-  if (event.clientX > target.value.offsetLeft) return;
+onClickOutside(target, (event: MouseEvent) => {
+  if (!target.value || event.clientX > target.value.offsetLeft) return;
   show.value = false;
 });
 

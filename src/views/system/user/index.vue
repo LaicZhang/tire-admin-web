@@ -154,7 +154,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     beforeSure: (done, { options }) => {
       const curData = options.props.formInline as FormItemProps;
       const FormRef = formRef.value.getRef();
-      FormRef.validate(valid => {
+      FormRef.validate((valid: boolean) => {
         if (valid) {
           const promise =
             title === "新增"

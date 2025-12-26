@@ -7,21 +7,21 @@ import { FormProps } from "./table";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    phone: undefined,
-    email: undefined,
+    phone: "",
+    email: "",
     status: 0,
-    username: undefined,
-    password: undefined,
-    name: undefined,
-    nickname: undefined,
+    username: "",
+    password: "",
+    name: "",
+    nickname: "",
     uid: undefined,
     id: undefined,
-    desc: undefined,
-    jobs: []
+    desc: "",
+    jobs: [] as Array<string | number>
   })
 });
 
-const allPositionList = ref([]);
+const allPositionList = ref<any[]>([]);
 /** 自定义表单规则校验 */
 const formRules = reactive({
   name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
@@ -44,14 +44,17 @@ function getRef() {
   return ruleFormRef.value;
 }
 
-const employeeStatus = ref([]);
+const employeeStatus = ref<
+  Array<{ id: number; key: string | number; cn: string }>
+>([]);
 const getEmployeeStatus = async () => {
   const dict: any = await localForage().getItem(SYS.dict);
   employeeStatus.value = dict.employeeStatus;
 };
 
 async function getPositionList() {
-  allPositionList.value = await localForage().getItem(ALL_LIST.position);
+  const cached: any = await localForage().getItem(ALL_LIST.position);
+  allPositionList.value = Array.isArray(cached) ? cached : cached?.list || [];
 }
 
 defineExpose({ getRef });
@@ -127,10 +130,10 @@ onMounted(async () => {
       <el-checkbox-group v-model="newFormInline.jobs">
         <el-checkbox
           v-for="item in allPositionList"
-          :key="item.id"
-          :value="item"
+          :key="item.id || item.uid"
+          :value="item.uid || item.id"
         >
-          {{ item.cn }}
+          {{ item.cn || item.name }}
         </el-checkbox>
       </el-checkbox-group>
     </el-form-item>

@@ -15,12 +15,13 @@ import {
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import type { PurchasePlan } from "@/api/business/purchase";
 
 defineOptions({
   name: "PurchasePlan"
 });
 
-const dataList = ref([]);
+const dataList = ref<PurchasePlan[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -33,7 +34,7 @@ const form = ref({
   status: undefined
 });
 
-const columns = [
+const columns: TableColumnList = [
   {
     label: "计划单号",
     prop: "planNo"
@@ -43,7 +44,9 @@ const columns = [
     prop: "items",
     cellRenderer: ({ row }) => {
       return (
-        row.items?.map(i => `${i.tireName} x ${i.quantity}`).join(", ") || "-"
+        row.items
+          ?.map((i: any) => `${i.tireName} x ${i.quantity}`)
+          .join(", ") || "-"
       );
     }
   },
@@ -51,7 +54,11 @@ const columns = [
     label: "状态",
     prop: "status",
     cellRenderer: ({ row }) => {
-      const map = { DRAFT: "草稿", SUBMITTED: "已提交", APPROVED: "已审核" };
+      const map: Record<string, string> = {
+        DRAFT: "草稿",
+        SUBMITTED: "已提交",
+        APPROVED: "已审核"
+      };
       return map[row.status] || row.status;
     }
   },
@@ -82,12 +89,12 @@ const getData = async () => {
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: any) => {
   await deletePurchasePlanApi(row.id);
   message("删除成功", { type: "success" });
   getData();
@@ -112,7 +119,8 @@ function openDialog(title = "新增", row?: any) {
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
               modelValue: options.props.desc,
-              "onUpdate:modelValue": val => (options.props.desc = val),
+              "onUpdate:modelValue": (val: string) =>
+                (options.props.desc = val),
               placeholder: "暂支持备注录入，详细商品选择开发中...",
               type: "textarea"
             })

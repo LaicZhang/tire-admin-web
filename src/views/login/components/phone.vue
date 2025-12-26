@@ -38,7 +38,8 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           if (code === 200) {
             useCurrentCompanyStoreHook().handleCurrentCompany();
             initRouter().then(() => {
-              router.push(getTopMenu(true).path);
+              const topMenu = getTopMenu(true);
+              router.push(topMenu.path || "/");
               message("登录成功", { type: "success" });
             });
           } else {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import type { FormInstance } from "element-plus";
 import {
   getPackingBoxListApi,
   createPackingBoxApi
@@ -73,7 +74,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();

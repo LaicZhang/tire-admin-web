@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, h } from "vue";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useColumns } from "./columns";
@@ -59,7 +60,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -91,12 +92,17 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     beforeSure: (done, { options }) => {
       const curData = options.props.formInline as FormItemProps;
       const FormRef = formRef.value.getRef();
-      FormRef.validate(valid => {
+      FormRef.validate((valid: boolean) => {
         if (valid) {
+          const companyId = row?.id;
+          if (title !== "新增" && companyId == null) {
+            message("缺少公司ID", { type: "error" });
+            return;
+          }
           const promise =
             title === "新增"
               ? addCompanyApi(curData)
-              : updateCompanyApi(row?.id, curData);
+              : updateCompanyApi(companyId, curData);
 
           promise.then(() => {
             message("操作成功", { type: "success" });
@@ -109,7 +115,8 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: FormItemProps) => {
+  if (row.id == null) return;
   await deleteCompanyApi(row.id);
   message("删除成功", { type: "success" });
   onSearch();

@@ -11,14 +11,14 @@ import {
   formatFlatteningRoutes
 } from "../utils";
 import { useMultiTagsStoreHook } from "./multiTags";
-import type { RouteRecordName, RouteRecordRaw } from "vue-router";
+import type { RouteRecordRaw } from "vue-router";
 
 export const usePermissionStore = defineStore("pure-permission", {
   state: (): {
     constantMenus: RouteRecordRaw[];
     wholeMenus: RouteRecordRaw[];
     flatteningRoutes: RouteRecordRaw[];
-    cachePageList: Array<RouteRecordName>;
+    cachePageList: string[];
   } => ({
     // 静态路由生成的菜单
     constantMenus: constantMenus as unknown as RouteRecordRaw[],
@@ -43,6 +43,7 @@ export const usePermissionStore = defineStore("pure-permission", {
       ) as unknown as RouteRecordRaw[];
     },
     cacheOperate({ mode, name }: cacheType) {
+      if (!name) return;
       const delIndex = this.cachePageList.findIndex(v => v === name);
       switch (mode) {
         case "refresh":

@@ -31,9 +31,9 @@ import { reactive } from "vue";
 export const returnOrderFormRules = reactive({
   auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
 });
-export const returnOrderDetailsColumns = [];
+export const returnOrderDetailsColumns: TableColumnList = [];
 
-export const returnOrderColumns = [
+export const returnOrderColumns: TableColumnList = [
   {
     label: "流水号",
     prop: "number"

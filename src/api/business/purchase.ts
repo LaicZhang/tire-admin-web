@@ -16,7 +16,12 @@ export interface PurchasePlan extends PurchasePlanDto {
 }
 
 export interface PurchaseInquiryDto {
-  providerId: string;
+  providerId?: string;
+  providerName?: string;
+  desc?: string;
+  status?: string;
+  inquiryNo?: string;
+  planNo?: string;
   items?: Array<{ tireId: string; count: number; price?: number }>;
 }
 

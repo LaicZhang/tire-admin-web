@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
@@ -10,7 +11,8 @@ import { openDialog } from "./table";
 import {
   getRepoListApi,
   deleteRepoApi,
-  toggleRepoApi
+  toggleRepoApi,
+  type Repo
 } from "@/api/company/repo";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -18,7 +20,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 defineOptions({
   name: "warehouseManagement"
 });
-const dataList = ref([]);
+const dataList = ref<Repo[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -55,7 +57,7 @@ const onSearch = async () => {
   await getRepoListInfo();
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -66,13 +68,13 @@ async function handleCurrentChange(val: number) {
   await getRepoListInfo();
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: Repo) {
   await deleteRepoApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
 
-async function handleToggleStatus(row) {
+async function handleToggleStatus(row: Repo) {
   const { code, msg } = await toggleRepoApi(row.uid);
   if (code === 200) {
     message("状态已更新", { type: "success" });

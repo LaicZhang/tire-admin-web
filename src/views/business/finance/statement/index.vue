@@ -4,7 +4,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
-import { getStatementList } from "@/api/business/statement";
+import { getStatementList, type Statement } from "@/api/business/statement";
 import { message } from "@/utils/message";
 
 defineOptions({
@@ -17,7 +17,7 @@ const form = ref({
   status: ""
 });
 
-const dataList = ref([]);
+const dataList = ref<Statement[]>([]);
 const loading = ref(true);
 const pagination = ref({
   total: 0,
@@ -82,15 +82,16 @@ async function onSearch() {
       ...form.value
     });
     dataList.value = data.list;
-    pagination.value.total = data.total;
+    pagination.value.total = data.total ?? data.count;
   } catch (e) {
-    message(e.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "查询失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
 }
 
-function resetForm(formEl) {
+function resetForm(formEl: { resetFields: () => void } | undefined) {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -102,7 +103,7 @@ function handleAdd() {
   message("功能开发中", { type: "info" });
 }
 
-function handleDetail(row) {
+function handleDetail(_row: Statement) {
   message("功能开发中", { type: "info" });
 }
 

@@ -47,8 +47,8 @@ const columns = ref([
     label: "装车时间",
     prop: "loadingTime",
     minWidth: 160,
-    formatter: (row, column, cellValue) => {
-      return cellValue ? new Date(cellValue).toLocaleString() : "-";
+    formatter: (_row: LoadingTask, _column: unknown, cellValue: unknown) => {
+      return cellValue ? new Date(String(cellValue)).toLocaleString() : "-";
     }
   },
   {
@@ -61,8 +61,8 @@ const columns = ref([
     label: "创建时间",
     prop: "createdAt",
     minWidth: 160,
-    formatter: (row, column, cellValue) => {
-      return cellValue ? new Date(cellValue).toLocaleString() : "-";
+    formatter: (_row: LoadingTask, _column: unknown, cellValue: unknown) => {
+      return cellValue ? new Date(String(cellValue)).toLocaleString() : "-";
     }
   },
   {

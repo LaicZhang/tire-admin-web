@@ -26,7 +26,10 @@ export const purchasePlanColumns: TableColumnList = [
     label: "来源",
     prop: "source",
     formatter: ({ source }) => {
-      const map = { auto: "自动生成", manual: "手动创建" };
+      const map: Record<string, string> = {
+        auto: "自动生成",
+        manual: "手动创建"
+      };
       return map[source] || source;
     }
   },
@@ -34,7 +37,11 @@ export const purchasePlanColumns: TableColumnList = [
     label: "状态",
     prop: "status",
     formatter: ({ status }) => {
-      const map = { pending: "待处理", ordered: "已下单", cancelled: "已取消" };
+      const map: Record<string, string> = {
+        pending: "待处理",
+        ordered: "已下单",
+        cancelled: "已取消"
+      };
       return map[status] || status;
     }
   },

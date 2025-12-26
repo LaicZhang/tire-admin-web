@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { getCollectionReminderListApi } from "@/api/finance";
+import type { CollectionReminder } from "@/api/finance";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
@@ -13,7 +14,7 @@ defineOptions({
 });
 
 const loading = ref(true);
-const dataList = ref([]);
+const dataList = ref<CollectionReminder[]>([]);
 const formRef = ref<FormInstance>();
 const pagination = reactive({
   total: 0,
@@ -58,7 +59,7 @@ async function onSearch() {
       { status: form.status }
     );
     dataList.value = data.list;
-    pagination.total = data.total;
+    pagination.total = data.total ?? data.count;
   } catch (e) {
     console.error(e);
   } finally {

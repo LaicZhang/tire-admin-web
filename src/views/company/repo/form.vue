@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 interface FormItemProps {
   uid?: string;
   name: string;
-  id: number;
+  id?: number;
   desc?: string;
   startAt: Date;
   endAt: Date;
@@ -21,12 +21,12 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    name: undefined,
+    name: "",
     id: undefined,
-    desc: undefined,
+    desc: "",
     startAt: dayjs().toDate(),
     endAt: dayjs().add(1, "y").toDate(),
-    address: undefined,
+    address: "",
     status: true
   })
 });

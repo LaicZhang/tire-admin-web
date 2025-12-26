@@ -4,7 +4,8 @@ import {
   getDefectCategoryListApi,
   createDefectCategoryApi,
   updateDefectCategoryApi,
-  deleteDefectCategoryApi
+  deleteDefectCategoryApi,
+  type DefectCategory
 } from "@/api/business/quality";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -20,7 +21,7 @@ defineOptions({
 });
 
 const loading = ref(true);
-const dataList = ref([]);
+const dataList = ref<DefectCategory[]>([]);
 const pagination = reactive({
   total: 0,
   pageSize: 10,
@@ -74,9 +75,7 @@ async function onSearch() {
     const { data } = await getDefectCategoryListApi({
       name: form.name
     });
-    // Assuming API returns array directly or inside list, adjusting based on common logic
-    dataList.value = Array.isArray(data) ? data : data.list || [];
-    // pagination might not be applicable if it returns all, but let's assume valid structure
+    dataList.value = data;
   } catch (e) {
     console.error(e);
   } finally {
@@ -84,7 +83,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -97,13 +96,13 @@ function handleAdd() {
   Object.assign(dialogForm, { id: 0, name: "", description: "", solution: "" });
 }
 
-function handleEdit(row) {
+function handleEdit(row: DefectCategory) {
   dialogType.value = "edit";
   dialogVisible.value = true;
   Object.assign(dialogForm, { ...row, id: row.id });
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: DefectCategory) {
   try {
     await deleteDefectCategoryApi(row.id);
     message("删除成功", { type: "success" });
@@ -113,9 +112,11 @@ async function handleDelete(row) {
   }
 }
 
-async function onDialogSubmit(formEl) {
+async function onDialogSubmit(
+  formEl: { validate: (cb: (valid: boolean) => void) => void } | undefined
+) {
   if (!formEl) return;
-  await formEl.validate(async valid => {
+  await formEl.validate(async (valid: boolean) => {
     if (valid) {
       dialogLoading.value = true;
       try {

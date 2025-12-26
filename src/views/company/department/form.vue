@@ -5,22 +5,23 @@ import type { FormRules } from "element-plus";
 import { ALL_LIST, localForage, message } from "@/utils";
 import { getEmployeeListApi } from "@/api";
 import { FormProps } from "./table";
+import type { Employee } from "@/api/company/employee";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    name: undefined,
-    desc: undefined,
-    managers: [],
-    employees: []
+    name: "",
+    desc: "",
+    managers: [] as string[],
+    employees: [] as string[]
   })
 });
 
-const allEmployeeList = ref([]);
+const allEmployeeList = ref<Employee[]>([]);
 const getAllEmployeeList = async () => {
   const { data, code, msg } = await getEmployeeListApi(0);
   if (code === 200) {
-    allEmployeeList.value = data;
-    await localForage().setItem(ALL_LIST.employee, data);
+    allEmployeeList.value = data.list;
+    await localForage().setItem(ALL_LIST.employee, data.list);
   } else message(msg, { type: "error" });
 };
 

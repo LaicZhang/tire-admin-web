@@ -9,6 +9,7 @@ import { useNav } from "@/layout/hooks/useNav";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import Setting from "~icons/ri/settings-3-line";
+import type { menuType } from "@/layout/types";
 
 const menuRef = ref();
 
@@ -25,7 +26,9 @@ const {
 } = useNav();
 
 const defaultActive = computed(() =>
-  !isAllEmpty(route.meta?.activePath) ? route.meta.activePath : route.path
+  !isAllEmpty(route.meta?.activePath)
+    ? (route.meta?.activePath as string)
+    : route.path
 );
 
 nextTick(() => {
@@ -53,8 +56,8 @@ nextTick(() => {
       <sidebar-item
         v-for="route in usePermissionStoreHook().wholeMenus"
         :key="route.path"
-        :item="route"
-        :base-path="route.path"
+        :item="route as unknown as menuType"
+        :base-path="route.path || ''"
       />
     </el-menu>
     <div class="horizontal-header-right">

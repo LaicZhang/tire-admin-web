@@ -5,9 +5,10 @@ import type {
 } from "@pureadmin/table";
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
+import type { PermissionItem } from "@/api/system/permission";
 
 export function useColumns() {
-  const dataList = ref([]);
+  const dataList = ref<PermissionItem[]>([]);
   const loading = ref(true);
 
   const columns: TableColumnList = [

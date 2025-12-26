@@ -13,7 +13,7 @@ import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import Setting from "~icons/ri/settings-3-line";
 
 const menuRef = ref();
-const defaultActive = ref(null);
+const defaultActive = ref<string | undefined>(undefined);
 
 const {
   route,
@@ -27,13 +27,14 @@ const {
   avatarsStyle
 } = useNav();
 
-function getDefaultActive(routePath) {
+function getDefaultActive(routePath: string) {
   const wholeMenus = usePermissionStoreHook().wholeMenus;
   /** 当前路由的父级路径 */
   const parentRoutes = getParentPaths(routePath, wholeMenus)[0];
   defaultActive.value = !isAllEmpty(route.meta?.activePath)
-    ? route.meta.activePath
-    : findRouteByPath(parentRoutes, wholeMenus)?.children[0]?.path;
+    ? (route.meta?.activePath as string)
+    : (findRouteByPath(parentRoutes, wholeMenus)?.children?.[0]?.path ??
+      undefined);
 }
 
 onMounted(() => {
@@ -69,22 +70,22 @@ watch(
       <el-menu-item
         v-for="route in usePermissionStoreHook().wholeMenus"
         :key="route.path"
-        :index="resolvePath(route) || route.redirect"
+        :index="(resolvePath(route) || route.redirect) as string"
       >
         <template #title>
           <div
-            v-if="toRaw(route.meta.icon)"
-            :class="['sub-menu-icon', route.meta.icon]"
+            v-if="toRaw(route.meta?.icon)"
+            :class="['sub-menu-icon', route.meta?.icon]"
           >
             <component
-              :is="useRenderIcon(route.meta && toRaw(route.meta.icon))"
+              :is="useRenderIcon(route.meta && toRaw(route.meta?.icon))"
             />
           </div>
           <div :style="getDivStyle">
             <span class="select-none">
-              {{ route.meta.title }}
+              {{ route.meta?.title }}
             </span>
-            <extraIcon :extraIcon="route.meta.extraIcon" />
+            <extraIcon :extraIcon="route.meta?.extraIcon" />
           </div>
         </template>
       </el-menu-item>

@@ -115,12 +115,12 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     beforeSure: (done, { options }) => {
       const curData = options.props.formInline as FormItemProps;
       const FormRef = formRef.value.getRef();
-      FormRef.validate(valid => {
+      FormRef.validate((valid: boolean) => {
         if (valid) {
           const promise =
             title === "新增"
               ? createRoleApi(curData)
-              : updateRoleApi(row?.id, curData);
+              : updateRoleApi(row?.id ?? "", curData);
 
           promise.then(() => {
             message("操作成功", { type: "success" });
@@ -133,8 +133,8 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const deleteOne = async row => {
-  await deleteRoleApi(row.id);
+const deleteOne = async (row: FormItemProps) => {
+  await deleteRoleApi(row.id ?? "");
   message("删除成功", { type: "success" });
   handleSearch();
 };

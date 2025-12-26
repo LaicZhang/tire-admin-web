@@ -7,6 +7,8 @@ const prefix = "/customer/";
 /** 客户查询参数 */
 export interface CustomerQueryDto {
   keyword?: string;
+  name?: string;
+  desc?: string;
   tagId?: number;
   levelId?: number;
   regionId?: number;

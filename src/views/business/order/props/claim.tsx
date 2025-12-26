@@ -34,9 +34,9 @@ export const claimOrderFormRules = reactive({
   auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
 });
 
-export const claimOrderDetailsColumns = [];
+export const claimOrderDetailsColumns: TableColumnList = [];
 
-export const claimOrderColumns = [
+export const claimOrderColumns: TableColumnList = [
   {
     label: "流水号",
     prop: "number"

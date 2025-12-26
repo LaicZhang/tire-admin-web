@@ -20,7 +20,7 @@ export const purchaseInquiryColumns: TableColumnList = [
     label: "状态",
     prop: "status",
     formatter: ({ status }) => {
-      const map = {
+      const map: Record<string, string> = {
         draft: "草稿",
         sent: "已发送",
         responded: "已报价",

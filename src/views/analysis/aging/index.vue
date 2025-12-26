@@ -4,24 +4,45 @@ import { getReceivableAgingApi, getPayableAgingApi } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import * as echarts from "echarts";
+import * as echarts from "echarts/core";
 
 defineOptions({
   name: "AnalysisAging"
 });
+
+interface BucketItem {
+  label: string;
+  amount: string;
+  count: number;
+}
+
+interface DetailItem {
+  name: string;
+  orderNumber?: string;
+  orderDate?: string;
+  dueAmount: string;
+  agingDays: number;
+  agingBucket?: string;
+}
+
+interface AgingData {
+  totalAmount: string;
+  buckets: BucketItem[];
+  details: DetailItem[];
+}
 
 const loading = ref(false);
 const activeTab = ref("receivable");
 const dateRange = ref<[Date, Date] | null>(null);
 
 // 应收数据
-const receivableData = ref({
+const receivableData = ref<AgingData>({
   totalAmount: "0",
   buckets: [],
   details: []
 });
 // 应付数据
-const payableData = ref({
+const payableData = ref<AgingData>({
   totalAmount: "0",
   buckets: [],
   details: []
@@ -113,7 +134,7 @@ const updateChart = (type: "receivable" | "payable") => {
         name: "金额",
         type: "pie",
         radius: "50%",
-        data: buckets.map((item: any) => ({
+        data: buckets.map((item: BucketItem) => ({
           value: Number(item.amount) / 100, // 转为元
           name: item.label
         })),

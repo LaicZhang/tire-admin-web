@@ -22,7 +22,7 @@ const activeTab = ref("logistic");
 const drawerVisible = ref(false);
 const currentLogistic = ref<any>(null);
 
-const dataList = ref([]);
+const dataList = ref<any[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -43,7 +43,7 @@ const orderTypeOptions = [
   { label: "调拨订单", value: "transfer-order" }
 ];
 
-const columns = ref([
+const columns = ref<TableColumnList>([
   {
     label: "订单UID",
     prop: "uid"
@@ -60,12 +60,12 @@ const columns = ref([
     label: "物流状态",
     prop: "logisticsStatus",
     formatter: (row, column, cellValue) => {
-      const statusMap = {
+      const statusMap: Record<string, string> = {
         0: "待发货",
         1: "运送中",
         2: "已送达"
       };
-      return statusMap[cellValue] || "未知";
+      return statusMap[String(cellValue)] || "未知";
     }
   },
   {
@@ -126,7 +126,7 @@ const onSearch = async () => {
   await getLogisticListInfo();
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: any) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -137,7 +137,7 @@ async function handleCurrentChange(val: number) {
   await getLogisticListInfo();
 }
 
-async function handleConfirmShipment(row) {
+async function handleConfirmShipment(row: any) {
   try {
     await updateLogisticApi(row.uid, {
       type: row.type,
@@ -150,7 +150,7 @@ async function handleConfirmShipment(row) {
   }
 }
 
-async function handleConfirmArrival(row) {
+async function handleConfirmArrival(row: any) {
   try {
     await updateLogisticApi(row.uid, {
       type: row.type,
@@ -163,7 +163,7 @@ async function handleConfirmArrival(row) {
   }
 }
 
-async function handleCancel(row) {
+async function handleCancel(row: any) {
   try {
     await cancelLogisticApi(row.uid, row.type);
     message("取消物流状态成功", { type: "success" });
@@ -173,7 +173,7 @@ async function handleCancel(row) {
   }
 }
 
-function handleViewDetail(row) {
+function handleViewDetail(row: any) {
   currentLogistic.value = row;
   drawerVisible.value = true;
 }

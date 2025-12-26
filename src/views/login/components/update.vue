@@ -21,7 +21,11 @@ const ruleFormRef = ref<FormInstance>();
 const { isDisabled, text } = useCaptchaCode();
 const repeatPasswordRule = [
   {
-    validator: (rule, value, callback) => {
+    validator: (
+      _rule: unknown,
+      value: string,
+      callback: (error?: Error) => void
+    ) => {
       if (value === "") {
         callback(new Error("login.passwordSureReg"));
       } else if (ruleForm.password !== value) {

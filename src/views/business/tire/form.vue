@@ -26,22 +26,22 @@ interface FormItemProps {
   id?: number;
   uid?: string;
   group: string;
-  name: string;
+  name?: string;
   desc?: string;
   unit: string;
   unitId?: string;
-  pattern: string;
-  brand: string;
-  loadIndex: string;
-  speedLevel: string;
-  format: string;
-  weight: number;
-  purchasePriceWithTax: number;
-  purchasePrice: number;
-  salePriceWithTax: number;
-  salePrice: number;
+  pattern?: string;
+  brand?: string;
+  loadIndex?: string;
+  speedLevel?: string;
+  format?: string;
+  weight?: number;
+  purchasePriceWithTax?: number;
+  purchasePrice?: number;
+  salePriceWithTax?: number;
+  salePrice?: number;
   commissionType: number;
-  commission: string;
+  commission?: string;
   covers: any[];
   // 多单位设置
   enableMultiUnit?: boolean;
@@ -108,19 +108,26 @@ function getRef() {
 const Authorization = ref("");
 
 function getAuthorization() {
-  Authorization.value = formatToken(getToken().accessToken);
+  const token = getToken();
+  if (!token?.accessToken) return;
+  Authorization.value = formatToken(token.accessToken);
 }
 
 const uploadData = ref();
 
-async function handleSuccess(response, file, fileList, row?) {
+async function handleSuccess(
+  response: any,
+  _file: any,
+  _fileList: any,
+  _row?: any
+) {
   const { code, msg, data } = response;
   if (code !== 200) message(msg, { type: "error" });
   const params = { id: data.id };
   await setUploadedImages(params);
 }
 
-const onBeforeUpload = async file => {
+const onBeforeUpload = async (file: any) => {
   const { name, size, type, lastModified } = file;
   const hash = getFileMd5(lastModified, size);
   const [filename, ext] = name.split(".");

@@ -14,13 +14,21 @@ const showSalesChart = ref(false);
 const showInitDict = ref(false);
 
 const runOnIdle = (fn: () => void, timeout = 1500) => {
-  if ("requestIdleCallback" in window) {
-    (
-      window as unknown as { requestIdleCallback: Function }
-    ).requestIdleCallback(fn, { timeout });
-  } else {
-    window.setTimeout(fn, Math.min(800, timeout));
+  const requestIdleCallback = (
+    window as Window & {
+      requestIdleCallback?: (
+        callback: () => void,
+        options?: { timeout: number }
+      ) => void;
+    }
+  ).requestIdleCallback;
+
+  if (typeof requestIdleCallback === "function") {
+    requestIdleCallback(fn, { timeout });
+    return;
   }
+
+  window.setTimeout(fn, Math.min(800, timeout));
 };
 
 defineOptions({

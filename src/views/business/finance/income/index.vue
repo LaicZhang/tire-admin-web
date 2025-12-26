@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { http } from "@/utils/http";
 import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "Income"
@@ -60,9 +61,10 @@ const paymentList = ref<{ uid: string; name: string }[]>([]);
 // 获取结算账户列表
 const fetchPaymentList = async () => {
   try {
-    const { data } = await http.get<{ list: { uid: string; name: string }[] }>(
-      "/payment/1"
-    );
+    const { data } = await http.get<
+      never,
+      CommonResult<{ list: { uid: string; name: string }[] }>
+    >("/payment/1");
     paymentList.value = data.list;
   } catch (error) {
     console.error("获取结算账户失败", error);
@@ -73,14 +75,14 @@ const fetchPaymentList = async () => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const { data } = await http.get<{
-      count: number;
-      list: OtherTransaction[];
-    }>(`/finance-extension/other-transaction/${queryParams.index}`, {
+    const { data } = await http.get<
+      never,
+      CommonResult<PaginatedResponseDto<OtherTransaction>>
+    >(`/finance-extension/other-transaction/${queryParams.index}`, {
       params: { direction: "IN" }
     });
     tableData.value = data.list;
-    total.value = data.count;
+    total.value = data.total ?? data.count;
   } catch (error) {
     console.error("获取收入单列表失败", error);
   } finally {

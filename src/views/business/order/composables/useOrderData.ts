@@ -1,84 +1,98 @@
-import { ref } from "vue";
+import { ref, type Ref } from "vue";
 import {
   getEmployeeListApi,
   getRepoListApi,
   getTireListApi,
   getProviderListApi,
-  getAuditorListApi
+  getAuditorListApi,
+  getCustomerListApi
 } from "@/api";
+import type { Employee } from "@/api/company/employee";
+import type { Repo } from "@/api/company/repo";
+import type { Tire } from "@/api/business/tire";
+import type { Customer } from "@/api/business/customer";
+import type { Provider } from "@/api/business/provider";
 import { ALL_LIST, localForage, message, ORDER_TYPE } from "@/utils";
 
 /**
  * 订单相关数据获取 composable
  * 提取从 order/index.vue 中的数据获取逻辑
  */
-export function useOrderData(orderType: ReturnType<typeof ref<string>>) {
-  const employeeList = ref<any[]>([]);
-  const managerList = ref<any[]>([]);
-  const allRepoList = ref<any[]>([]);
-  const allTireList = ref<any[]>([]);
-  const allCustomerList = ref<any[]>([]);
-  const allProviderList = ref<any[]>([]);
+export function useOrderData(orderType: Ref<string>) {
+  const employeeList = ref<Employee[]>([]);
+  const managerList = ref<Employee[]>([]);
+  const allRepoList = ref<Repo[]>([]);
+  const allTireList = ref<Tire[]>([]);
+  const allCustomerList = ref<Customer[]>([]);
+  const allProviderList = ref<Provider[]>([]);
+
+  const LIST_CACHE_MINUTES = 30;
 
   const getAllEmployeeList = async () => {
-    const { data, code, msg } = await getEmployeeListApi(0);
-    if (code === 200) {
-      employeeList.value = data;
-      await localForage().setItem(ALL_LIST.employee, data);
-    } else {
-      message(msg, { type: "error" });
-    }
+    const res = await getEmployeeListApi(0);
+    if (res.code !== 200) return message(res.msg, { type: "error" });
+    employeeList.value = res.data.list;
+    await localForage().setItem(
+      ALL_LIST.employee,
+      res.data.list,
+      LIST_CACHE_MINUTES
+    );
   };
 
   const getAllRepoList = async () => {
-    const { data, code, msg } = await getRepoListApi(0);
-    if (code === 200) {
-      allRepoList.value = data;
-      await localForage().setItem(ALL_LIST.repo, data);
-    } else {
-      message(msg, { type: "error" });
-    }
+    const res = await getRepoListApi(0);
+    if (res.code !== 200) return message(res.msg, { type: "error" });
+    allRepoList.value = res.data.list;
+    await localForage().setItem(
+      ALL_LIST.repo,
+      res.data.list,
+      LIST_CACHE_MINUTES
+    );
   };
 
   const getAllCustomerList = async () => {
-    const { data, code, msg } = await getTireListApi(0);
-    if (code === 200) {
-      allCustomerList.value = data;
-      await localForage().setItem(ALL_LIST.customer, data);
-    } else {
-      message(msg, { type: "error" });
-    }
+    const res = await getCustomerListApi(0);
+    if (res.code !== 200) return message(res.msg, { type: "error" });
+    allCustomerList.value = res.data.list;
+    await localForage().setItem(
+      ALL_LIST.customer,
+      res.data.list,
+      LIST_CACHE_MINUTES
+    );
   };
 
   const getAllProviderList = async () => {
-    const { data, code, msg } = await getProviderListApi(0);
-    if (code === 200) {
-      allProviderList.value = data;
-      await localForage().setItem(ALL_LIST.provider, data);
-    } else {
-      message(msg, { type: "error" });
-    }
+    const res = await getProviderListApi(0);
+    if (res.code !== 200) return message(res.msg, { type: "error" });
+    allProviderList.value = res.data.list;
+    await localForage().setItem(
+      ALL_LIST.provider,
+      res.data.list,
+      LIST_CACHE_MINUTES
+    );
   };
 
   const getAllTireList = async () => {
-    const { data, code, msg } = await getTireListApi(0);
-    if (code === 200) {
-      allTireList.value = data;
-      await localForage().setItem(ALL_LIST.tire, data);
-    } else {
-      message(msg, { type: "error" });
-    }
+    const res = await getTireListApi(0);
+    if (res.code !== 200) return message(res.msg, { type: "error" });
+    allTireList.value = res.data.list;
+    await localForage().setItem(
+      ALL_LIST.tire,
+      res.data.list,
+      LIST_CACHE_MINUTES
+    );
   };
 
   const getManagerList = async () => {
     if (orderType.value === ORDER_TYPE.default) return;
-    const { data, code, msg } = await getAuditorListApi(orderType.value);
-    if (code === 200) {
-      managerList.value = data;
-      await localForage().setItem(ALL_LIST.manager, data);
-    } else {
-      message(msg, { type: "error" });
-    }
+    const res = await getAuditorListApi(orderType.value);
+    if (res.code !== 200) return message(res.msg, { type: "error" });
+    managerList.value = (res.data || []) as Employee[];
+    await localForage().setItem(
+      ALL_LIST.manager,
+      managerList.value,
+      LIST_CACHE_MINUTES
+    );
   };
 
   const loadAllData = async () => {

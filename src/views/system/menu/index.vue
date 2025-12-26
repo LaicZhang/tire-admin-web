@@ -51,8 +51,8 @@ async function onSearch() {
     const { data } = await getMenuListApi(); // API currently doesn't support filtering in mock maybe, but we can pass params
     // Assuming data is list, we might need to process it to tree if backend doesn't return tree
     // But usually backend returns tree for menu
-    dataList.value = data.list || [];
-    pagination.total = data.total || dataList.value.length;
+    dataList.value = data;
+    pagination.total = dataList.value.length;
   } catch (e) {
     console.error(e);
   } finally {
@@ -60,7 +60,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -103,13 +103,16 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     beforeSure: (done, { options }) => {
       const curData = options.props.formInline as FormItemProps;
       const FormRef = formRef.value.getRef();
-      FormRef.validate(valid => {
+      FormRef.validate((valid: boolean) => {
         if (valid) {
           // console.log("curData", curData);
           const promise =
             title === "新增"
               ? createMenuApi(curData)
-              : updateMenuApi((row as any)?.id, curData); // Assuming row has id
+              : updateMenuApi(
+                  String((row as any)?.uid ?? (row as any)?.id ?? ""),
+                  curData
+                );
 
           promise.then(() => {
             message("操作成功", { type: "success" });
@@ -122,8 +125,8 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const handleDelete = async row => {
-  await deleteMenuApi(row.id);
+const handleDelete = async (row: any) => {
+  await deleteMenuApi(String(row.uid ?? row.id));
   message("删除成功", { type: "success" });
   onSearch();
 };

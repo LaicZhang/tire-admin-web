@@ -68,7 +68,8 @@ watch(dialogVisible, val => {
 });
 
 function getAuthorization() {
-  Authorization.value = formatToken(getToken().accessToken);
+  const token = getToken();
+  Authorization.value = token ? formatToken(token.accessToken) : "";
 }
 
 function resetForm() {

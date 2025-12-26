@@ -19,7 +19,7 @@ export function useColumns() {
     {
       label: "模块",
       prop: "module",
-      hide: ({ method }) => !method // Simple heuristic: only show if it looks like an operation log
+      hide: ({ method }: { method?: string }) => !method // Simple heuristic: only show if it looks like an operation log
     },
     {
       label: "操作",
@@ -33,7 +33,7 @@ export function useColumns() {
           {row.success ? "成功" : "失败"}
         </el-tag>
       ),
-      hide: ({ method }) => !method // Only for op logs
+      hide: ({ method }: { method?: string }) => !method // Only for op logs
     },
     {
       label: "操作人",
@@ -46,12 +46,12 @@ export function useColumns() {
     {
       label: "操作系统",
       prop: "record.os",
-      hide: ({ method }) => !!method // Hide for op logs if they don't have record.os
+      hide: ({ method }: { method?: string }) => !!method // Hide for op logs if they don't have record.os
     },
     {
       label: "浏览器",
       prop: "record.browser",
-      hide: ({ method }) => !!method
+      hide: ({ method }: { method?: string }) => !!method
     },
     {
       label: "时间",
@@ -101,11 +101,11 @@ export function useColumns() {
     // zIndex: 100
   };
 
-  function onSizeChange(_val) {
+  function onSizeChange(_val: number) {
     // 处理尺寸变化
   }
 
-  function onCurrentChange(val) {
+  function onCurrentChange(val: number) {
     loadingConfig.text = `正在加载第${val}页...`;
     loading.value = true;
     delay(600).then(() => {

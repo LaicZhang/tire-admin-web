@@ -2,7 +2,7 @@ import { localForage } from "@/utils";
 
 const COVERS = "uploadedImagesList:covers";
 
-export async function setUploadedImages(image) {
+export async function setUploadedImages(image: Record<string, unknown>) {
   let images: any[] = await getUploadedImages();
   images.push(image);
   images = Array.from(new Set(images));

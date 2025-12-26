@@ -46,7 +46,7 @@ export const saleOrderFormRules = reactive({
 import { formatDate } from "@/utils";
 import { reactive } from "vue";
 
-export const saleOrderDeatailsColumns = [
+export const saleOrderDeatailsColumns: TableColumnList = [
   // {
   //   label: "索引",
   //   prop: "index",
@@ -95,7 +95,7 @@ export const saleOrderDeatailsColumns = [
   }
 ];
 
-export const saleOrderColumns = [
+export const saleOrderColumns: TableColumnList = [
   {
     label: "流水号",
     prop: "number"

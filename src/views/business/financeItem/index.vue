@@ -10,6 +10,7 @@ import {
   createIncomeExpenseItemApi,
   deleteIncomeExpenseItemApi
 } from "@/api/finance";
+import type { IncomeExpenseItem } from "@/api/finance";
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
@@ -18,7 +19,7 @@ defineOptions({
   name: "FinanceItem"
 });
 
-const dataList = ref([]);
+const dataList = ref<IncomeExpenseItem[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -27,9 +28,7 @@ const pagination = ref({
   background: true
 });
 
-const form = ref({
-  type: undefined
-});
+const form = ref<{ type?: IncomeExpenseItem["type"] }>({});
 
 const columns = [
   {
@@ -39,9 +38,12 @@ const columns = [
   {
     label: "类型",
     prop: "type",
-    cellRenderer: ({ row }) => {
-      const map = { income: "收入", expense: "支出" };
-      return map[row.type] || row.type;
+    cellRenderer: ({ row }: { row: IncomeExpenseItem }) => {
+      const map: Record<IncomeExpenseItem["type"], string> = {
+        income: "收入",
+        expense: "支出"
+      };
+      return map[row.type];
     }
   },
   {
@@ -70,12 +72,12 @@ const getData = async () => {
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: IncomeExpenseItem) => {
   await deleteIncomeExpenseItemApi(row.id);
   message("删除成功", { type: "success" });
   getData();
@@ -103,7 +105,7 @@ function openDialog() {
           h("el-form-item", { label: "名称", required: true }, [
             h("el-input", {
               modelValue: formInline.name,
-              "onUpdate:modelValue": val => (formInline.name = val),
+              "onUpdate:modelValue": (val: string) => (formInline.name = val),
               placeholder: "请输入项目名称"
             })
           ]),
@@ -112,7 +114,8 @@ function openDialog() {
               "el-radio-group",
               {
                 modelValue: formInline.type,
-                "onUpdate:modelValue": val => (formInline.type = val)
+                "onUpdate:modelValue": (val: IncomeExpenseItem["type"]) =>
+                  (formInline.type = val)
               },
               [
                 h("el-radio", { label: "income" }, () => "收入"),
@@ -123,7 +126,7 @@ function openDialog() {
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
               modelValue: formInline.desc,
-              "onUpdate:modelValue": val => (formInline.desc = val),
+              "onUpdate:modelValue": (val: string) => (formInline.desc = val),
               type: "textarea"
             })
           ])

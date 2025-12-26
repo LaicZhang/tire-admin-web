@@ -17,13 +17,14 @@ import {
   addFeedbackApi,
   updateFeedbackApi
 } from "@/api";
+import type { Feedback } from "@/api/business/feedback";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
   name: "feedback"
 });
-const dataList = ref([]);
+const dataList = ref<Feedback[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -70,7 +71,7 @@ const onSearch = async () => {
   loading.value = false;
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
@@ -82,7 +83,7 @@ async function handleCurrentChange(val: number) {
   await getFeedbackListInfo();
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: Feedback) {
   await deleteFeedbackApi(row.uid);
   message(`您删除了反馈：${row.content?.substring(0, 20)}...`, {
     type: "success"
@@ -165,7 +166,7 @@ onMounted(async () => {
           <el-button
             :icon="useRenderIcon(AddFill)"
             type="primary"
-            @click="() => openDialog('新增', null)"
+            @click="() => openDialog('新增')"
           >
             新增反馈
           </el-button>

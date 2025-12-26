@@ -39,11 +39,11 @@ const historyRef = ref();
 const scrollbarRef = ref();
 const activePath = ref("");
 const historyPath = ref("");
-const resultOptions = shallowRef([]);
-const historyOptions = shallowRef([]);
+const resultOptions = shallowRef<optionsItem[]>([]);
+const historyOptions = shallowRef<optionsItem[]>([]);
 const handleSearch = useDebounceFn(search, 300);
-const historyNum = getConfig().MenuSearchHistory;
-const inputRef = ref<HTMLInputElement | null>(null);
+const historyNum = getConfig().MenuSearchHistory ?? 10;
+const inputRef = ref<{ focus?: () => void; blur?: () => void } | null>(null);
 
 /** 菜单树形结构 */
 const menusData = computed(() => {
@@ -81,19 +81,19 @@ const showEmpty = computed(() => {
   );
 });
 
-function getStorageItem(key) {
+function getStorageItem(key: string): optionsItem[] {
   return storageLocal().getItem<optionsItem[]>(key) || [];
 }
 
-function setStorageItem(key, value) {
+function setStorageItem(key: string, value: optionsItem[]) {
   storageLocal().setItem(key, value);
 }
 
 /** 将菜单树形结构扁平化为一维数组，用于菜单查询 */
-function flatTree(arr) {
-  const res = [];
-  function deep(arr) {
-    arr.forEach(item => {
+function flatTree(arr: optionsItem[]): optionsItem[] {
+  const res: optionsItem[] = [];
+  function deep(arr: optionsItem[]) {
+    arr.forEach((item: optionsItem) => {
       res.push(item);
       item.children && deep(item.children);
     });
@@ -107,15 +107,11 @@ function search() {
   const flatMenusData = flatTree(menusData.value);
   resultOptions.value = flatMenusData.filter(menu =>
     keyword.value
-      ? menu.meta?.title
-          .toLocaleLowerCase()
-          .includes(keyword.value.toLocaleLowerCase().trim()) ||
-        !isAllEmpty(
-          match(
-            menu.meta?.title.toLocaleLowerCase(),
-            keyword.value.toLocaleLowerCase().trim()
-          )
-        )
+      ? (() => {
+          const title = menu.meta?.title?.toLocaleLowerCase() ?? "";
+          const key = keyword.value.toLocaleLowerCase().trim();
+          return title.includes(key) || !isAllEmpty(match(title, key));
+        })()
       : false
   );
   activePath.value =
@@ -132,7 +128,7 @@ function handleClose() {
   }, 200);
 }
 
-function scrollTo(index) {
+function scrollTo(index: number) {
   const ref = resultOptions.value.length ? resultRef.value : historyRef.value;
   const scrollTop = ref.handleScroll(index);
   scrollbarRef.value.setScrollTop(scrollTop);
@@ -147,7 +143,7 @@ function getCurrentOptionsAndPath() {
 }
 
 /** 更新路径并滚动到指定项 */
-function updatePathAndScroll(newIndex, isResultOptions) {
+function updatePathAndScroll(newIndex: number, isResultOptions: boolean) {
   if (isResultOptions) {
     activePath.value = resultOptions.value[newIndex].path;
   } else {
@@ -190,7 +186,7 @@ function handleEnter() {
 }
 
 /** 删除历史记录 */
-function handleDelete(item) {
+function handleDelete(item: optionsItem) {
   const key = item.type === HISTORY_TYPE ? LOCALEHISTORYKEY : LOCALECOLLECTKEY;
   let list = getStorageItem(key);
   list = list.filter(listItem => listItem.path !== item.path);
@@ -199,7 +195,7 @@ function handleDelete(item) {
 }
 
 /** 收藏历史记录 */
-function handleCollect(item) {
+function handleCollect(item: optionsItem) {
   let searchHistoryList = getStorageItem(LOCALEHISTORYKEY);
   let searchCollectList = getStorageItem(LOCALECOLLECTKEY);
   searchHistoryList = searchHistoryList.filter(
@@ -215,9 +211,9 @@ function handleCollect(item) {
 
 /** 存储搜索记录 */
 function saveHistory() {
-  const { path, meta } = resultOptions.value.find(
-    item => item.path === activePath.value
-  );
+  const cur = resultOptions.value.find(item => item.path === activePath.value);
+  if (!cur) return;
+  const { path, meta } = cur;
   const searchHistoryList = getStorageItem(LOCALEHISTORYKEY);
   const searchCollectList = getStorageItem(LOCALECOLLECTKEY);
   const isCollected = searchCollectList.some(item => item.path === path);
@@ -281,8 +277,8 @@ onKeyStroke("ArrowDown", handleDown);
       borderRadius: '6px'
     }"
     append-to-body
-    @opened="inputRef.focus()"
-    @closed="inputRef.blur()"
+    @opened="inputRef?.focus?.()"
+    @closed="inputRef?.blur?.()"
   >
     <el-input
       ref="inputRef"

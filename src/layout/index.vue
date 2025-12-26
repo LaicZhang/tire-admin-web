@@ -2,7 +2,6 @@
 import "animate.css";
 // 引入 src/components/ReIcon/src/offlineIcon.ts 文件中所有使用addIcon添加过的本地图标
 import "@/components/ReIcon/src/offlineIcon";
-import { setType } from "./types";
 import { useLayout } from "./hooks/useLayout";
 import { useAppStoreHook } from "@/store/modules/app";
 import { useSettingStoreHook } from "@/store/modules/settings";
@@ -31,38 +30,31 @@ import Vertical from "./components/sidebar/vertical.vue";
 import Horizontal from "./components/sidebar/horizontal.vue";
 import backTop from "@/assets/svg/back_top.svg?component";
 
-const appWrapperRef = ref();
+const appWrapperRef = ref<HTMLDivElement>(null!);
 const { isDark } = useDark();
 const { layout } = useLayout();
 const isMobile = deviceDetection();
 const pureSetting = useSettingStoreHook();
 const { $storage } = useGlobal<GlobalPropertiesApi>();
 
-const set: setType = reactive({
-  sidebar: computed(() => {
-    return useAppStoreHook().sidebar;
-  }),
+const sidebar = computed(() => useAppStoreHook().sidebar);
+const device = computed(() => useAppStoreHook().device);
+const fixedHeader = computed(() => pureSetting.fixedHeader);
+const hideTabs = computed(() => $storage?.configure.hideTabs);
 
-  device: computed(() => {
-    return useAppStoreHook().device;
-  }),
-
-  fixedHeader: computed(() => {
-    return pureSetting.fixedHeader;
-  }),
-
+const set = reactive({
+  sidebar,
+  device,
+  fixedHeader,
   classes: computed(() => {
     return {
-      hideSidebar: !set.sidebar.opened,
-      openSidebar: set.sidebar.opened,
-      withoutAnimation: set.sidebar.withoutAnimation,
-      mobile: set.device === "mobile"
+      hideSidebar: !sidebar.value.opened,
+      openSidebar: sidebar.value.opened,
+      withoutAnimation: sidebar.value.withoutAnimation,
+      mobile: device.value === "mobile"
     };
   }),
-
-  hideTabs: computed(() => {
-    return $storage?.configure.hideTabs;
-  })
+  hideTabs
 });
 
 function setTheme(layoutModel: string) {

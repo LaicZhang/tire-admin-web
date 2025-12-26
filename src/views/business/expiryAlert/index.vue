@@ -15,7 +15,7 @@ defineOptions({
   name: "ExpiryAlert"
 });
 
-const dataList = ref([]);
+const dataList = ref<any[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -58,7 +58,7 @@ const getData = async () => {
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
@@ -86,28 +86,30 @@ function openDialog(title = "新增") {
           h("el-form-item", { label: "规则名称", required: true }, [
             h("el-input", {
               modelValue: formInline.name,
-              "onUpdate:modelValue": val => (formInline.name = val),
+              "onUpdate:modelValue": (val: string) => (formInline.name = val),
               placeholder: "请输入规则名称"
             })
           ]),
           h("el-form-item", { label: "提前预警天数" }, [
             h("el-input-number", {
               modelValue: formInline.leadDays,
-              "onUpdate:modelValue": val => (formInline.leadDays = val),
+              "onUpdate:modelValue": (val: number) =>
+                (formInline.leadDays = val),
               min: 1
             })
           ]),
           h("el-form-item", { label: "紧急预警天数" }, [
             h("el-input-number", {
               modelValue: formInline.urgentDays,
-              "onUpdate:modelValue": val => (formInline.urgentDays = val),
+              "onUpdate:modelValue": (val: number) =>
+                (formInline.urgentDays = val),
               min: 1
             })
           ]),
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
               modelValue: formInline.desc,
-              "onUpdate:modelValue": val => (formInline.desc = val),
+              "onUpdate:modelValue": (val: string) => (formInline.desc = val),
               type: "textarea"
             })
           ])

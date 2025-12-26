@@ -10,9 +10,14 @@ const getOrderPrefix = (type: string) => {
 
 /** 订单详情 DTO */
 export interface OrderDetailDto {
+  uid?: string;
   tireId: string;
   count: number;
+  unitPrice?: number;
   total?: number;
+  desc?: string;
+  isArrival?: boolean;
+  companyId?: string;
   repoId?: string;
   batchNo?: string;
   expiryDate?: string;
@@ -20,28 +25,17 @@ export interface OrderDetailDto {
 
 /** 创建订单请求 DTO */
 export interface CreateOrderDto {
-  providerId?: string;
-  customerId?: string;
-  auditorId?: string;
-  desc?: string;
+  order: Record<string, unknown>;
   details: OrderDetailDto[];
 }
 
 /** 更新订单请求 DTO */
-export interface UpdateOrderDto {
-  providerId?: string;
-  customerId?: string;
-  auditorId?: string;
-  desc?: string;
-  total?: number;
-  paidAmount?: number;
-  details?: OrderDetailDto[];
-}
+export type UpdateOrderDto = Record<string, unknown>;
 
 /** 订单查询参数 DTO */
 /** 支付订单请求 DTO */
 export interface PayOrderDto {
-  total: number;
+  fee: number;
   paymentId?: string;
 }
 
@@ -49,6 +43,7 @@ export interface PayOrderDto {
 export interface ConfirmLogisticsDto {
   details?: Array<{
     uid: string;
+    count?: number;
     batchNo?: string;
     expiryDate?: string;
   }>;
@@ -61,6 +56,7 @@ export interface OrderQueryDto {
   startDate?: string;
   endDate?: string;
   keyword?: string;
+  pageSize?: number;
 }
 
 // ============ 通用订单 API ============

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import EditPen from "~icons/ep/edit-pen";
 import { getReserveListApi, updateReserveApi } from "@/api";
+import type { Reserve } from "@/api/business/reserve";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
@@ -16,7 +18,7 @@ defineOptions({
   name: "StockTaking"
 });
 
-const dataList = ref([]);
+const dataList = ref<Reserve[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -57,7 +59,7 @@ const onSearch = async () => {
   await getList();
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -68,7 +70,7 @@ async function handleCurrentChange(val: number) {
   await getList();
 }
 
-function openDialog(row) {
+function openDialog(row: Reserve) {
   addDialog({
     title: "盘点录入",
     props: {
@@ -90,7 +92,7 @@ function openDialog(row) {
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
       const curData = options.props.formInline;
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           try {
             // Directly update reserve count.

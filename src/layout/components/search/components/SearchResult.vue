@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Props } from "../types";
-import { useResizeObserver } from "@pureadmin/utils";
+import type { Props, optionsItem } from "../types";
+import { useResizeObserver, isArray } from "@pureadmin/utils";
 import { useEpThemeStoreHook } from "@/store/modules/epTheme";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { ref, computed, getCurrentInstance, onMounted } from "vue";
@@ -11,14 +11,14 @@ interface Emits {
   (e: "enter"): void;
 }
 
-const resultRef = ref();
-const innerHeight = ref();
+const resultRef = ref<HTMLDivElement>(null!);
+const innerHeight = ref(0);
 const emit = defineEmits<Emits>();
 const instance = getCurrentInstance()!;
 const props = withDefaults(defineProps<Props>(), {});
 
 const itemStyle = computed(() => {
-  return item => {
+  return (item: optionsItem) => {
     return {
       background:
         item?.path === active.value ? useEpThemeStoreHook().epThemeColor : "",
@@ -38,7 +38,7 @@ const active = computed({
 });
 
 /** 鼠标移入 */
-async function handleMouse(item) {
+async function handleMouse(item: optionsItem) {
   active.value = item.path;
 }
 
@@ -56,7 +56,10 @@ useResizeObserver(resultRef, resizeResult);
 function handleScroll(index: number) {
   const curInstance = instance?.proxy?.$refs[`resultItemRef${index}`];
   if (!curInstance) return 0;
-  const curRef = curInstance[0] as ElRef;
+  const curRef = isArray(curInstance)
+    ? (curInstance[0] as ElRef)
+    : (curInstance as ElRef);
+  if (!curRef) return 0;
   const scrollTop = curRef.offsetTop + 128; // 128 两个result-item（56px+56px=112px）高度加上下margin（8px+8px=16px）
   return scrollTop > innerHeight.value ? scrollTop - innerHeight.value : 0;
 }

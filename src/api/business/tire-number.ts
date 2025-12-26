@@ -11,10 +11,16 @@ export interface TireNumberQueryDto {
 
 export interface TireNumberDto {
   number: string;
-  tireId: string;
-  repoId: string;
+  tireId?: string;
+  repoId?: string;
   cost?: number;
   price?: number;
+  desc?: string;
+  isLocked?: boolean;
+  isInRepo?: boolean;
+  company?: { connect: { uid: string } };
+  tire?: { connect: { uid: string } };
+  repo?: { connect: { uid: string } };
 }
 
 export async function getTireNumberListApi(index: number, params?: object) {

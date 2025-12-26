@@ -14,7 +14,7 @@ defineOptions({
 
 // 用户角色和订单类型列表
 const userRoles = useUserStoreHook().roles;
-const orderTypeList = ref(getOrderTypeList(userRoles));
+const orderTypeList = ref(getOrderTypeList(userRoles ?? []));
 const formRef = ref();
 
 // 使用 composables

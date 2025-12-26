@@ -14,7 +14,7 @@ import { ReDialog } from "@/components/ReDialog";
 export default defineComponent({
   name: "app",
   components: {
-    [ElConfigProvider.name]: ElConfigProvider,
+    ElConfigProvider,
     ReDialog
   }
   // computed: {

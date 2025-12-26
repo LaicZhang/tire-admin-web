@@ -7,7 +7,8 @@ import {
   generateBarcodeApi,
   scanBarcodeApi,
   getPrintTemplateApi,
-  savePrintTemplateApi
+  savePrintTemplateApi,
+  type BarcodeProduct
 } from "@/api/tools";
 import { message } from "@/utils/message";
 import ImportDialog from "@/components/ImportExport/ImportDialog.vue";
@@ -32,7 +33,7 @@ const barcodeForm = ref({
 });
 const barcodeImage = ref<string | null>(null);
 const scanCode = ref("");
-const scanResult = ref<Record<string, unknown> | null>(null);
+const scanResult = ref<BarcodeProduct | null>(null);
 const barcodeLoading = ref(false);
 
 // 打印相关

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Logo from "./logo.vue";
-import { useRoute } from "vue-router";
+import { useRoute, type RouteRecordRaw } from "vue-router";
 import { emitter } from "@/utils/mitt";
 import SidebarItem from "./sidebarItem.vue";
 import LeftCollapse from "./leftCollapse.vue";
@@ -11,6 +11,7 @@ import { storageLocal, isAllEmpty } from "@pureadmin/utils";
 import { findRouteByPath, getParentPaths } from "@/router/utils";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import type { menuType } from "@/layout/types";
 
 const route = useRoute();
 const isShow = ref(false);
@@ -29,7 +30,7 @@ const {
   toggleSideBar
 } = useNav();
 
-const subMenuData = ref([]);
+const subMenuData = ref<RouteRecordRaw[]>([]);
 
 const menuData = computed(() => {
   return pureApp.layout === "mix" && device.value !== "mobile"
@@ -112,7 +113,7 @@ onBeforeUnmount(() => {
         <sidebar-item
           v-for="routes in menuData"
           :key="routes.path"
-          :item="routes"
+          :item="routes as unknown as menuType"
           :base-path="routes.path"
           class="outer-most select-none"
         />

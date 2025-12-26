@@ -6,19 +6,20 @@ import { getCompanyId, addEmployeeApi, updateEmployeeApi } from "@/api";
 import editForm from "./form.vue";
 import { getRandomName, getUsernameOfOnlyNumber } from "@/utils";
 import type { FormInstance } from "element-plus";
+import type { EmployeeNameDto, EmployeeUserDto } from "@/api/company/employee";
 
 export interface FormItemProps {
-  phone: string;
-  email: string;
-  username: string;
-  password: string;
-  name: string;
-  status: number;
-  id: number;
-  uid: string;
+  phone?: string;
+  email?: string;
+  username?: string;
+  password?: string;
+  name?: string;
+  status?: number;
+  id?: number;
+  uid?: string;
   desc?: string;
   nickname?: string;
-  jobs: unknown[];
+  jobs: Array<string | number>;
   user?: {
     username: string;
     password?: string;
@@ -51,7 +52,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         status: row?.status ?? undefined,
         password: row?.user?.password ?? undefined,
         id: row?.id ?? undefined,
-        jobs: row?.jobs ?? []
+        jobs: row?.jobs?.map((j: any) => j?.uid ?? j?.id ?? j) ?? []
       }
     },
     width: "40%",
@@ -86,14 +87,13 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             jobs,
             status
           } = curData;
-          const user = { phone, email, username, password },
-            nameInfo = {
-              name,
-              nickname,
-              desc,
-              status
-            };
           if (title === "新增") {
+            if (!username || !name) {
+              message("请完善用户名和姓名", { type: "error" });
+              return;
+            }
+            const user: EmployeeUserDto = { phone, email, username, password };
+            const nameInfo: EmployeeNameDto = { name, nickname, desc, status };
             await addEmployeeApi({
               user,
               connectEmployeeDto: {
@@ -104,7 +104,21 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             });
             chores();
           } else {
-            const { password: _password, ...userWithoutPassword } = user;
+            if (!uid) {
+              message("缺少员工UID", { type: "error" });
+              return;
+            }
+            const userWithoutPassword: Partial<EmployeeUserDto> = {
+              phone,
+              email,
+              username
+            };
+            const nameInfo: Partial<EmployeeNameDto> = {
+              name,
+              nickname,
+              desc,
+              status
+            };
             await updateEmployeeApi(uid, {
               user: userWithoutPassword,
               name: nameInfo,

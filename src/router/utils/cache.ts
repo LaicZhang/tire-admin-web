@@ -78,34 +78,35 @@ export function initRouter() {
  * 处理缓存路由（添加、删除、刷新）
  */
 export function handleAliveRoute({ name }: ToRouteType, mode?: string) {
+  const routeName = typeof name === "string" ? name : undefined;
   switch (mode) {
     case "add":
       usePermissionStoreHook().cacheOperate({
         mode: "add",
-        name
+        name: routeName
       });
       break;
     case "delete":
       usePermissionStoreHook().cacheOperate({
         mode: "delete",
-        name
+        name: routeName
       });
       break;
     case "refresh":
       usePermissionStoreHook().cacheOperate({
         mode: "refresh",
-        name
+        name: routeName
       });
       break;
     default:
       usePermissionStoreHook().cacheOperate({
         mode: "delete",
-        name
+        name: routeName
       });
       useTimeoutFn(() => {
         usePermissionStoreHook().cacheOperate({
           mode: "add",
-          name
+          name: routeName
         });
       }, CACHE_REFRESH_DELAY_MS);
   }

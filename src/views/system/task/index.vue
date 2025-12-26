@@ -107,13 +107,13 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl: any) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
 };
 
-async function handleDelete(row) {
+async function handleDelete(row: TaskItem) {
   try {
     await deleteTaskApi(row.id);
     message("删除成功", { type: "success" });
@@ -123,7 +123,7 @@ async function handleDelete(row) {
   }
 }
 
-async function handleRun(row) {
+async function handleRun(row: TaskItem) {
   try {
     await runTaskApi(row.id);
     message("执行指令已发送", { type: "success" });
@@ -219,35 +219,38 @@ function openDialog(title = "新增", row?: any) {
           h("el-form-item", { label: "任务名称", required: true }, [
             h("el-input", {
               modelValue: formInline.name,
-              "onUpdate:modelValue": val => (formInline.name = val),
+              "onUpdate:modelValue": (val: string) => (formInline.name = val),
               placeholder: "请输入任务名称"
             })
           ]),
           h("el-form-item", { label: "Service", required: true }, [
             h("el-input", {
               modelValue: formInline.service,
-              "onUpdate:modelValue": val => (formInline.service = val),
+              "onUpdate:modelValue": (val: string) =>
+                (formInline.service = val),
               placeholder: "例如: demoTask"
             })
           ]),
           h("el-form-item", { label: "Cron表达式", required: true }, [
             h("el-input", {
               modelValue: formInline.cron,
-              "onUpdate:modelValue": val => (formInline.cron = val),
+              "onUpdate:modelValue": (val: string) => (formInline.cron = val),
               placeholder: "例如: 0 0 12 * * ?"
             })
           ]),
           h("el-form-item", { label: "参数" }, [
             h("el-input", {
               modelValue: formInline.parameters,
-              "onUpdate:modelValue": val => (formInline.parameters = val),
+              "onUpdate:modelValue": (val: string) =>
+                (formInline.parameters = val),
               placeholder: "JSON 格式参数"
             })
           ]),
           h("el-form-item", { label: "状态" }, [
             h("el-switch", {
               modelValue: formInline.status,
-              "onUpdate:modelValue": val => (formInline.status = val),
+              "onUpdate:modelValue": (val: boolean) =>
+                (formInline.status = val),
               activeText: "启用",
               inactiveText: "禁用"
             })
@@ -255,7 +258,8 @@ function openDialog(title = "新增", row?: any) {
           h("el-form-item", { label: "描述" }, [
             h("el-input", {
               modelValue: formInline.description,
-              "onUpdate:modelValue": val => (formInline.description = val),
+              "onUpdate:modelValue": (val: string) =>
+                (formInline.description = val),
               type: "textarea",
               rows: 3
             })

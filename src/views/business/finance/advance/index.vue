@@ -5,7 +5,10 @@ import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete"; // Added import
-import { getAdvancePaymentList } from "@/api/business/advance-payment";
+import {
+  getAdvancePaymentList,
+  type AdvancePayment
+} from "@/api/business/advance-payment";
 import { message } from "@/utils/message";
 
 defineOptions({
@@ -17,7 +20,7 @@ const form = ref({
   targetName: ""
 });
 
-const dataList = ref([]);
+const dataList = ref<AdvancePayment[]>([]);
 const loading = ref(true);
 const pagination = ref({
   total: 0,
@@ -85,15 +88,16 @@ async function onSearch() {
       ...form.value
     });
     dataList.value = data.list;
-    pagination.value.total = data.total;
+    pagination.value.total = data.total ?? data.count;
   } catch (e) {
-    message(e.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "查询失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
 }
 
-function resetForm(formEl) {
+function resetForm(formEl: { resetFields: () => void } | undefined) {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -107,7 +111,7 @@ function handleAdd() {
   message("功能开发中", { type: "info" });
 }
 
-function handleDelete(row) {
+function handleDelete(_row: AdvancePayment) {
   message("功能开发中", { type: "info" });
 }
 </script>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
@@ -57,7 +58,7 @@ const openImportDialog = () => {
   message("暂未开放", { type: "warning" });
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
@@ -79,9 +80,15 @@ async function handleCurrentChange(val: number) {
   loading.value = false;
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: {
+  uid: string;
+  number?: string;
+  name?: string;
+}) {
   await deleteTireNumberApi(row.uid);
-  message(`您删除了${row.name}这条数据`, { type: "success" });
+  message(`您删除了${row.number ?? row.name ?? ""}这条数据`, {
+    type: "success"
+  });
   onSearch();
 }
 

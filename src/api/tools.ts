@@ -23,6 +23,7 @@ export interface ExportTask {
   status: "pending" | "processing" | "completed" | "failed";
   progress?: number;
   downloadUrl?: string;
+  error?: string;
 }
 
 export interface PrintTemplate {
@@ -32,6 +33,7 @@ export interface PrintTemplate {
 }
 
 export interface BarcodeProduct {
+  uid?: string;
   code: string;
   name: string;
   price?: number;

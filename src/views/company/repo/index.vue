@@ -14,13 +14,14 @@ import {
   stopRepoApi,
   setDefaultRepoApi
 } from "@/api";
+import type { Repo } from "@/api/company/repo";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
   name: "repo"
 });
-const dataList = ref([]);
+const dataList = ref<Repo[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -56,7 +57,7 @@ const onSearch = async () => {
   loading.value = false;
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
@@ -68,13 +69,13 @@ async function handleCurrentChange(val: number) {
   await getRepoListInfo();
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: Repo) {
   await deleteRepoApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
 }
 
-async function handleToggleRepo(row) {
+async function handleToggleRepo(row: Repo) {
   if (row.status === true) {
     await stopRepoApi(row.uid);
     message(`已停用仓库「${row.name}」`, { type: "success" });
@@ -85,7 +86,7 @@ async function handleToggleRepo(row) {
   onSearch();
 }
 
-async function handleSetDefault(row) {
+async function handleSetDefault(row: Repo) {
   await setDefaultRepoApi(row.uid);
   message(`已将「${row.name}」设为默认仓库`, { type: "success" });
   onSearch();

@@ -5,8 +5,13 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 const prefix = "/sales/";
 
 export interface SalesQuotationDto {
-  customerId: string;
+  customerId?: string;
+  customerName?: string;
+  desc?: string;
+  status?: string;
   validUntil?: string;
+  quotationNo?: string;
+  totalAmount?: number;
   items?: Array<{ tireId: string; price: number; count: number }>;
 }
 

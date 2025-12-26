@@ -59,7 +59,9 @@ function resetForm() {
 
 async function loadOrders() {
   try {
-    const { data, code } = await getOrderListApi(1, { pageSize: 100 });
+    const { data, code } = await getOrderListApi("sale-order", 1, {
+      pageSize: 100
+    });
     if (code === 200) {
       orderOptions.value = (data?.list || []).map((order: any) => ({
         uid: order.uid,

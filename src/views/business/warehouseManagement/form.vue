@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
-import { getEmployeeListApi } from "@/api/company/employee";
+import { getEmployeeListApi, type Employee } from "@/api/company/employee";
 import { message } from "@/utils";
 
 interface FormItemProps {
@@ -34,7 +34,7 @@ const formRules = reactive<FormRules>({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
-const employeeList = ref([]);
+const employeeList = ref<Employee[]>([]);
 
 const getEmployees = async () => {
   const { data, code, msg } = await getEmployeeListApi(0); // 0 for all if API supports it, or handle pagination

@@ -28,8 +28,8 @@ import { reactive } from "vue";
 export const wasteOrderFormRules = reactive({
   auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
 });
-export const wasteOrderDetailsColumns = [];
-export const wasteOrderColumns = [
+export const wasteOrderDetailsColumns: TableColumnList = [];
+export const wasteOrderColumns: TableColumnList = [
   {
     label: "流水号",
     prop: "number"

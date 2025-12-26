@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
+import type { FormInstance, UploadFile } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { message } from "@/utils/message";
@@ -99,23 +100,23 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
 };
 
-async function handleDelete(row) {
+async function handleDelete(row: FileItem) {
   try {
     await deleteFileApi(row.id);
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
-    message(e.message || "删除失败", { type: "error" });
+    message(e instanceof Error ? e.message : "删除失败", { type: "error" });
   }
 }
 
-function handleDownload(row) {
+function handleDownload(row: FileItem) {
   const link = document.createElement("a");
   link.href = row.fileUrl;
   link.download = row.fileName;
@@ -144,8 +145,8 @@ function openUploadDialog() {
             drag: true,
             limit: 1,
             autoUpload: false,
-            onChange: file => {
-              uploadFile.value = file.raw;
+            onChange: (file: UploadFile) => {
+              uploadFile.value = file.raw ?? null;
             },
             onExceed: () => {
               message("只能上传一个文件", { type: "warning" });
@@ -186,7 +187,7 @@ function openUploadDialog() {
         done();
         onSearch();
       } catch (e) {
-        message(e.message || "上传失败", { type: "error" });
+        message(e instanceof Error ? e.message : "上传失败", { type: "error" });
       } finally {
         uploading.value = false;
       }

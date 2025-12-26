@@ -5,7 +5,7 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import * as echarts from "echarts";
+import * as echarts from "echarts/core";
 
 defineOptions({
   name: "AnalysisProfit"

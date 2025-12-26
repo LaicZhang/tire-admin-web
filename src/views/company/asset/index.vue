@@ -65,7 +65,7 @@ const onSearch = async () => {
   await getAssetListInfo();
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -76,7 +76,7 @@ async function handleCurrentChange(val: number) {
   await getAssetListInfo();
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: any) {
   try {
     await deleteAssetApi(row.uid);
     message("删除成功", { type: "success" });
@@ -87,7 +87,7 @@ async function handleDelete(row) {
   }
 }
 
-function openDialog(title = "新增", row?) {
+function openDialog(title = "新增", row?: any) {
   addDialog({
     title: `${title}资产`,
     props: {
@@ -115,12 +115,16 @@ function openDialog(title = "新增", row?) {
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
       const curData = options.props.formInline;
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           try {
             if (title === "新增") {
               const cid = await getCompanyId();
               const uid = useUserStoreHook().uid;
+              if (!uid) {
+                message("用户信息缺失，请重新登录", { type: "error" });
+                return;
+              }
               await addAssetApi({
                 company: { connect: { uid: cid } },
                 creator: { connect: { uid } },

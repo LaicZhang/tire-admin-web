@@ -26,12 +26,24 @@ interface FormProps {
   formInline: FormItemProps;
 }
 
+interface TagItem {
+  id: number;
+  name: string;
+  color?: string;
+}
+
+interface LevelItem {
+  id: number;
+  name: string;
+  discount?: number;
+}
+
 const props = defineProps<FormProps>();
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
-const tagList = ref([]);
-const levelList = ref([]);
+const tagList = ref<TagItem[]>([]);
+const levelList = ref<LevelItem[]>([]);
 
 const formRules = reactive({
   name: [{ required: true, message: "客户名称为必填项", trigger: "blur" }]

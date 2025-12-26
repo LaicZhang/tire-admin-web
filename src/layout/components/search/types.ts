@@ -5,6 +5,7 @@ interface optionsItem {
     icon?: string;
     title?: string;
   };
+  children?: optionsItem[];
 }
 
 interface dragItem {

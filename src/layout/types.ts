@@ -1,4 +1,5 @@
 import type { IconifyIcon } from "@iconify/vue";
+import type { LocationQueryRaw, RouteParamsRaw } from "vue-router";
 const { VITE_HIDE_HOME } = import.meta.env;
 
 export const routerArrays: Array<RouteConfigs> =
@@ -25,11 +26,12 @@ export type routeMetaType = {
 
 export type RouteConfigs = {
   path?: string;
-  query?: object;
-  params?: object;
+  query?: LocationQueryRaw;
+  params?: RouteParamsRaw;
   meta?: routeMetaType;
   children?: RouteConfigs[];
   name?: string;
+  redirect?: string;
 };
 
 export type multiTagsType = {

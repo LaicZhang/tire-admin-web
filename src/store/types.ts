@@ -1,8 +1,6 @@
-import type { RouteRecordName } from "vue-router";
-
 export type cacheType = {
   mode: string;
-  name?: RouteRecordName;
+  name?: string;
 };
 
 export type positionType = {

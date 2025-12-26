@@ -11,6 +11,7 @@ export interface RepoDto {
   startAt?: string | Date;
   endAt?: string | Date;
   company?: { connect: { uid: string } };
+  manager?: { connect: { uid: string } };
   isPrimary?: boolean;
   status?: boolean;
 }

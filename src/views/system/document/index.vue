@@ -10,7 +10,14 @@ defineOptions({
 });
 
 const loading = ref(false);
-const settings = ref([]);
+interface SettingItem {
+  uid: string;
+  group?: string;
+  key?: string;
+  desc?: string;
+  value: string;
+}
+const settings = ref<SettingItem[]>([]);
 
 async function loadSettings() {
   loading.value = true;
@@ -28,12 +35,12 @@ async function loadSettings() {
   }
 }
 
-async function handleSave(row) {
+async function handleSave(row: SettingItem) {
   try {
     await updateSettingApi(row.uid, { value: row.value });
     message("保存成功", { type: "success" });
   } catch (e) {
-    message(e.message || "保存失败", { type: "error" });
+    message(e instanceof Error ? e.message : "保存失败", { type: "error" });
   }
 }
 

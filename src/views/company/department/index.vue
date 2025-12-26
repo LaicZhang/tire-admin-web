@@ -14,6 +14,7 @@ import {
   setDepartmentRolesApi,
   removeDepartmentRolesApi
 } from "@/api";
+import type { Department } from "@/api/company/department";
 import { getRolesApi } from "@/api/system/role";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -21,7 +22,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 defineOptions({
   name: "department"
 });
-const dataList = ref([]);
+const dataList = ref<Department[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -65,7 +66,7 @@ const onSearch = async () => {
   loading.value = false;
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
@@ -77,7 +78,7 @@ async function handleCurrentChange(val: number) {
   await getDepartmentListInfo();
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: Department) {
   await deleteDepartmentApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();
@@ -99,9 +100,7 @@ async function openRolesDialog(row: { uid: string; name: string }) {
     // 获取部门当前角色
     const deptRolesRes = await getDepartmentRolesApi(row.uid);
     if (deptRolesRes.code === 200) {
-      departmentRoles.value = (deptRolesRes.data || []).map(
-        (r: { uid: string }) => r.uid
-      );
+      departmentRoles.value = deptRolesRes.data || [];
       selectedRoles.value = [...departmentRoles.value];
     }
   } catch {

@@ -201,7 +201,7 @@ import {
 } from "@/api/auth";
 import { message } from "@/utils/message";
 import type { ComponentSize } from "element-plus";
-import { userInfoTemplate } from "./info";
+import { userInfoTemplate, type UserInfoType } from "./info";
 import { User, Connection, Loading } from "@element-plus/icons-vue";
 import { ElMessageBox } from "element-plus";
 
@@ -210,7 +210,7 @@ defineOptions({
 });
 
 const size = ref<ComponentSize>("default");
-const userInfo = ref(userInfoTemplate);
+const userInfo = ref<UserInfoType>(userInfoTemplate);
 const wxLoading = ref(false);
 const wxBindDialogVisible = ref(false);
 const wxQrUrl = ref("");
@@ -300,7 +300,7 @@ const formattedBirthday = computed(() => {
 const getUserInfo = async () => {
   const { data, code, msg } = await getUserInfoApi();
   if (code === 200) {
-    userInfo.value = data;
+    userInfo.value = data as UserInfoType;
   } else {
     message(msg, { type: "error" });
   }
@@ -310,11 +310,17 @@ const getWxBindStatus = async () => {
   try {
     const { data, code } = await getWxBindStatusApi();
     if (code === 200 && data) {
+      const bindData = data as {
+        isBound?: boolean;
+        nickname?: string;
+        avatar?: string;
+        bindTime?: string;
+      };
       wxBindStatus.value = {
-        isBound: data.isBound || false,
-        nickname: data.nickname || "",
-        avatar: data.avatar || "",
-        bindTime: data.bindTime || ""
+        isBound: bindData.isBound || false,
+        nickname: bindData.nickname || "",
+        avatar: bindData.avatar || "",
+        bindTime: bindData.bindTime || ""
       };
     }
   } catch {
@@ -326,8 +332,9 @@ const handleBindWx = async () => {
   wxLoading.value = true;
   try {
     const { data, code, msg } = await getWxQrLoginUrlApi();
-    if (code === 200 && data?.url) {
-      wxQrUrl.value = data.url;
+    const qrData = data as { url?: string };
+    if (code === 200 && qrData?.url) {
+      wxQrUrl.value = qrData.url;
       wxBindDialogVisible.value = true;
     } else {
       message(msg || "获取二维码失败", { type: "error" });

@@ -4,31 +4,36 @@ import { useRoute, useRouter } from "vue-router";
 import { ref, watch, onMounted, toRaw } from "vue";
 import { getParentPaths, findRouteByPath } from "@/router/utils";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import type { RouteConfigs } from "@/layout/types";
 
 const route = useRoute();
-const levelList = ref([]);
+type BreadcrumbRoute = RouteConfigs & {
+  meta: NonNullable<RouteConfigs["meta"]>;
+};
+const levelList = ref<BreadcrumbRoute[]>([]);
 const router = useRouter();
 const routes: any = router.options.routes;
 const multiTags: any = useMultiTagsStoreHook().multiTags;
 
 const getBreadcrumb = (): void => {
   // 当前路由信息
-  let currentRoute;
+  let currentRoute: RouteConfigs | undefined;
 
   if (Object.keys(route.query).length > 0) {
-    multiTags.forEach(item => {
+    multiTags.forEach((item: RouteConfigs) => {
       if (isEqual(route.query, item?.query)) {
         currentRoute = toRaw(item);
       }
     });
   } else if (Object.keys(route.params).length > 0) {
-    multiTags.forEach(item => {
+    multiTags.forEach((item: RouteConfigs) => {
       if (isEqual(route.params, item?.params)) {
         currentRoute = toRaw(item);
       }
     });
   } else {
-    currentRoute = findRouteByPath(router.currentRoute.value.path, routes);
+    const found = findRouteByPath(router.currentRoute.value.path, routes);
+    currentRoute = found ? (found as unknown as RouteConfigs) : undefined;
   }
 
   // 当前路由的父级路径组成的数组
@@ -38,11 +43,13 @@ const getBreadcrumb = (): void => {
     "name"
   );
   // 存放组成面包屑的数组
-  const matched = [];
+  const matched: (RouteConfigs | undefined)[] = [];
 
   // 获取每个父级路径对应的路由信息
   parentRoutes.forEach(path => {
-    if (path !== "/") matched.push(findRouteByPath(path, routes));
+    if (path === "/") return;
+    const found = findRouteByPath(path, routes);
+    if (found) matched.push(found as unknown as RouteConfigs);
   });
 
   matched.push(currentRoute);
@@ -50,7 +57,7 @@ const getBreadcrumb = (): void => {
   matched.forEach((item, index) => {
     if (currentRoute?.query || currentRoute?.params) return;
     if (item?.children) {
-      item.children.forEach(v => {
+      item.children.forEach((v: RouteConfigs) => {
         if (v?.meta?.title === item?.meta?.title) {
           matched.splice(index, 1);
         }
@@ -59,11 +66,14 @@ const getBreadcrumb = (): void => {
   });
 
   levelList.value = matched.filter(
-    item => item?.meta && item?.meta.title !== false
+    (item): item is BreadcrumbRoute =>
+      item !== undefined &&
+      item?.meta !== undefined &&
+      Boolean(item?.meta?.title)
   );
 };
 
-const handleLink = item => {
+const handleLink = (item: RouteConfigs) => {
   const { redirect, name, path } = item;
   if (redirect) {
     router.push(redirect as any);
@@ -83,7 +93,7 @@ const handleLink = item => {
         router.push({ name });
       }
     } else {
-      router.push({ path });
+      path && router.push({ path });
     }
   }
 };

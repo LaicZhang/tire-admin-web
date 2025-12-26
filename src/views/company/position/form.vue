@@ -5,7 +5,7 @@ import type { FormRules } from "element-plus";
 
 interface FormItemProps {
   name: string;
-  id: number;
+  id?: number;
   desc?: string;
 }
 
@@ -15,9 +15,9 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    name: undefined,
+    name: "",
     id: undefined,
-    desc: undefined
+    desc: ""
   })
 });
 /** 自定义表单规则校验 */

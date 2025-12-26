@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, Ref, ref } from "vue";
+import { onMounted, ref } from "vue";
 import {
   PurchaseFormProps,
   SaleFormProps,
@@ -26,56 +26,59 @@ const props = withDefaults(
     PurchaseFormProps | SaleFormProps | ClaimFormProps | ReturnFormProps
   >(),
   {
-    formInline: () => ({
-      number: undefined,
-      uid: undefined,
-      id: undefined,
-      desc: undefined,
-      operatorId: undefined,
-      auditorId: undefined,
-      warehouseEmployeeId: undefined,
-      count: 0,
-      total: 0,
-      showTotal: 0,
-      orderStatus: 0,
-      logisticsStatus: 0,
-      paidAmount: 0,
-      isApproved: false,
-      isLocked: false,
-      rejectReason: undefined,
-      paymentId: undefined,
-      auditAt: null,
-      arrivalAt: null,
-      payAt: null,
-      updateAt: null,
-      providerId: undefined,
-      customerId: undefined,
-      fee: 0,
-      isReceive: false,
-      details: [] as any
-    })
+    formInline: () =>
+      ({
+        number: undefined,
+        uid: undefined,
+        id: undefined,
+        desc: undefined,
+        operatorId: undefined,
+        auditorId: undefined,
+        warehouseEmployeeId: undefined,
+        count: 0,
+        total: 0,
+        showTotal: 0,
+        orderStatus: 0,
+        logisticsStatus: 0,
+        paidAmount: 0,
+        isApproved: false,
+        isLocked: false,
+        rejectReason: undefined,
+        paymentId: undefined,
+        auditAt: null,
+        arrivalAt: null,
+        payAt: null,
+        updateAt: null,
+        providerId: undefined,
+        customerId: undefined,
+        fee: 0,
+        isReceive: false,
+        details: [] as any
+      }) as any
   }
 );
-const orderType: Ref<ORDER_TYPE> = ref();
+const orderType = ref<ORDER_TYPE>(ORDER_TYPE.default);
 
 const formRules = ref(getFormRules(orderType.value));
 
 const ruleFormRef = ref();
-const newFormInline = ref(props.formInline);
+// 订单表单字段较多，且不同订单类型字段存在差异；这里以运行时为准
+
+const newFormInline = ref<any>(props.formInline);
 const formTitle = ref("新增");
 function getRef() {
   return ruleFormRef.value;
 }
 
 async function getOrderType() {
-  const curOrderType: ORDER_TYPE = await localForage().getItem(CUR_ORDER_TYPE);
+  const curOrderType = await localForage().getItem<ORDER_TYPE>(CUR_ORDER_TYPE);
   if (curOrderType) orderType.value = curOrderType;
   return orderType.value;
 }
 
-const managerList = ref([]);
+const managerList = ref<any[]>([]);
 
-const detailsColumns = ref([]);
+const detailsColumns = ref<TableColumnList>([]);
 
 function setDetailsColumnsAndFormRules() {
   detailsColumns.value = getColumns(orderType.value);
@@ -123,7 +126,7 @@ function onAdd(item?: any) {
     newFormInline.value.count += 1;
   }
 }
-function onDel(row) {
+function onDel(row: any) {
   const index = newFormInline.value.details.indexOf(row);
   if (index !== -1) newFormInline.value.details.splice(index, 1);
   const { count, total } = newFormInline.value;
@@ -132,11 +135,11 @@ function onDel(row) {
   newFormInline.value.showTotal = newFormInline.value.total;
 }
 
-const allRepoList = ref([]);
-const allTireList = ref([]);
-const allCustomerList = ref([]);
-const allProviderList = ref([]);
-const allPaymentList = ref([]);
+const allRepoList = ref<any[]>([]);
+const allTireList = ref<any[]>([]);
+const allCustomerList = ref<any[]>([]);
+const allProviderList = ref<any[]>([]);
+const allPaymentList = ref<any[]>([]);
 async function getALlList() {
   try {
     const [managerData, repoData, tireData, customerData, providerData] =
@@ -159,12 +162,13 @@ async function getALlList() {
     allPaymentList.value = Array.isArray(paymentData)
       ? paymentData
       : paymentData.list;
-  } catch (error) {
-    message(error.message, { type: "error" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "加载基础数据失败";
+    message(msg, { type: "error" });
   }
 }
 
-async function getDisabled(arr: string[]) {
+function getDisabled(arr: string[]) {
   return arr.includes(formTitle.value);
 }
 
@@ -181,7 +185,7 @@ async function handleScan() {
     const { data } = await scanBarcodeApi(code);
     if (data) {
       const existing = newFormInline.value.details.find(
-        d => d.tireId === data.uid
+        (d: { tireId: string }) => d.tireId === data.uid
       );
       if (existing) {
         existing.count = (existing.count || 0) + 1;
@@ -209,7 +213,7 @@ async function handleScan() {
     } else {
       message("未找到对应条码的商品", { type: "warning" });
     }
-  } catch (error) {
+  } catch {
     message("扫码查询失败", { type: "error" });
   } finally {
     barcodeLoading.value = false;

@@ -8,7 +8,8 @@ import { delay } from "@pureadmin/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 export function useColumns() {
-  const dataList = ref([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dataList = ref<any[]>([]);
   const loading = ref(true);
 
   const columns: TableColumnList = [

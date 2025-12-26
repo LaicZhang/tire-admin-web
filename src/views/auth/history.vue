@@ -40,7 +40,7 @@ async function getHistory() {
   }
 }
 
-async function handleApiResponse({ data, code }) {
+async function handleApiResponse({ data, code }: { data: any; code: number }) {
   if (code === 200) {
     dataList.value = data.list;
     pagination.total = data.total || data.count; // Adapt to different API returns

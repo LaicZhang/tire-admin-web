@@ -70,9 +70,11 @@ watch(
     if (frameInfo?.fullPath === path && isRedirect) {
       loading.value = true;
       clearFallbackTimer();
-      const url = new URL(frameInfo.frameSrc, window.location.origin);
+      const src = frameInfo.frameSrc;
+      if (!src) return;
+      const url = new URL(src, window.location.origin);
       const joinChar = url.search ? "&" : "?";
-      frameSrc.value = `${frameInfo.frameSrc}${joinChar}t=${Date.now()}`;
+      frameSrc.value = `${src}${joinChar}t=${Date.now()}`;
       fallbackTimer.value = window.setTimeout(() => {
         if (loading.value) {
           hideLoading();

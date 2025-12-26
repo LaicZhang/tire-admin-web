@@ -7,7 +7,8 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import {
   getUnitListApi,
   createUnitApi,
-  deleteUnitApi
+  deleteUnitApi,
+  type Unit
 } from "@/api/business/unit";
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
@@ -17,7 +18,7 @@ defineOptions({
   name: "Unit"
 });
 
-const dataList = ref([]);
+const dataList = ref<Unit[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -52,12 +53,12 @@ const getData = async () => {
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: Unit) => {
   await deleteUnitApi(row.id);
   message("删除成功", { type: "success" });
   getData();
@@ -80,7 +81,8 @@ function openDialog() {
           h("el-form-item", { label: "名称", required: true }, [
             h("el-input", {
               modelValue: options.props.name,
-              "onUpdate:modelValue": val => (options.props.name = val),
+              "onUpdate:modelValue": (val: string) =>
+                (options.props.name = val),
               placeholder: "请输入单位名称 (如: 个、箱)"
             })
           ])

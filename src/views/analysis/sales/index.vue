@@ -11,7 +11,7 @@ import { message } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import * as echarts from "echarts";
+import * as echarts from "echarts/core";
 
 defineOptions({
   name: "AnalysisSales"
@@ -158,7 +158,7 @@ const updateChart = () => {
     chartInstance = echarts.init(chartRef.value);
   }
 
-  const option: echarts.EChartsOption = {
+  const option: echarts.EChartsCoreOption = {
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" }

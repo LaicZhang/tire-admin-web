@@ -91,13 +91,13 @@ async function onSearch() {
   }
 }
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
 };
 
-async function handleDelete(row) {
+async function handleDelete(row: NoticeItem) {
   try {
     await deleteNoticeApi(row.id);
     message("删除成功", { type: "success" });
@@ -180,7 +180,7 @@ function openDialog(title = "新增", row?: any) {
           h("el-form-item", { label: "公告标题", required: true }, [
             h("el-input", {
               modelValue: formInline.title,
-              "onUpdate:modelValue": val => (formInline.title = val),
+              "onUpdate:modelValue": (val: string) => (formInline.title = val),
               placeholder: "请输入标题"
             })
           ]),
@@ -189,7 +189,7 @@ function openDialog(title = "新增", row?: any) {
               "el-select",
               {
                 modelValue: formInline.type,
-                "onUpdate:modelValue": val => (formInline.type = val),
+                "onUpdate:modelValue": (val: number) => (formInline.type = val),
                 class: "w-full"
               },
               {
@@ -205,7 +205,8 @@ function openDialog(title = "新增", row?: any) {
               "el-radio-group",
               {
                 modelValue: formInline.status,
-                "onUpdate:modelValue": val => (formInline.status = val)
+                "onUpdate:modelValue": (val: boolean) =>
+                  (formInline.status = val)
               },
               {
                 default: () => [
@@ -218,7 +219,8 @@ function openDialog(title = "新增", row?: any) {
           h("el-form-item", { label: "内容" }, [
             h("el-input", {
               modelValue: formInline.content,
-              "onUpdate:modelValue": val => (formInline.content = val),
+              "onUpdate:modelValue": (val: string) =>
+                (formInline.content = val),
               type: "textarea",
               rows: 6
             })

@@ -9,11 +9,21 @@ defineOptions({
   name: "AnalysisAssets"
 });
 
+interface AssetStatItem {
+  name: string;
+  value: number;
+}
+
+interface AssetItem {
+  type: number;
+  currentValue?: { value: number | string };
+}
+
 const loading = ref(false);
 const totalAssets = ref(0);
 const totalValue = ref(0);
 // Placeholder for charts or detailed stats
-const assetStats = ref([]);
+const assetStats = ref<AssetStatItem[]>([]);
 
 const getStats = async () => {
   loading.value = true;
@@ -22,16 +32,17 @@ const getStats = async () => {
     // Ideally should be a dedicated stats API
     const { data, code, msg } = await getAssetListApi(1, { pageSize: 1000 }); // Fetch a large batch to calculate
     if (code === 200) {
-      const list = data.list || [];
+      const list = (data.list || []) as AssetItem[];
       totalAssets.value = data.count || list.length;
       totalValue.value = list.reduce(
-        (acc, cur) => acc + (Number(cur.currentValue?.value) || 0),
+        (acc: number, cur: AssetItem) =>
+          acc + (Number(cur.currentValue?.value) || 0),
         0
       );
 
       // Group by type
-      const typeMap = {};
-      list.forEach(item => {
+      const typeMap: Record<string, number> = {};
+      list.forEach((item: AssetItem) => {
         const type = item.type === 0 ? "固定资产" : "消耗品";
         if (!typeMap[type]) typeMap[type] = 0;
         typeMap[type]++;
@@ -43,8 +54,10 @@ const getStats = async () => {
     } else {
       message(msg, { type: "error" });
     }
-  } catch (error) {
-    message(error.message || "获取资产数据失败", { type: "error" });
+  } catch (error: unknown) {
+    const errorMsg =
+      error instanceof Error ? error.message : "获取资产数据失败";
+    message(errorMsg, { type: "error" });
   } finally {
     loading.value = false;
   }

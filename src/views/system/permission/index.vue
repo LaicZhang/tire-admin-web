@@ -12,7 +12,8 @@ import {
   getPermissionListApi,
   createPermissionApi,
   updatePermissionApi,
-  deletePermissionApi
+  deletePermissionApi,
+  type PermissionItem
 } from "@/api/system/permission";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import "plus-pro-components/es/components/search/style/css";
@@ -103,25 +104,33 @@ const openDialog = (title = "新增", row?: FormItemProps & { id?: string }) => 
     beforeSure: (done, { options }) => {
       const curData = options.props.formInline as FormItemProps;
       const FormRef = formRef.value.getRef();
-      FormRef.validate(valid => {
-        if (valid) {
-          const promise =
-            title === "新增"
-              ? createPermissionApi(curData)
-              : updatePermissionApi(row?.id, curData);
+      FormRef.validate((valid: boolean) => {
+        if (!valid) return;
 
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            onSearch();
-          });
+        const promise =
+          title === "新增"
+            ? createPermissionApi(curData)
+            : row?.id
+              ? updatePermissionApi(row.id, curData)
+              : null;
+
+        if (!promise) {
+          message("缺少权限ID", { type: "error" });
+          return;
         }
+
+        promise.then(() => {
+          message("操作成功", { type: "success" });
+          done();
+          onSearch();
+        });
       });
     }
   });
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: PermissionItem) => {
+  if (!row.id) return;
   await deletePermissionApi(row.id);
   message("删除成功", { type: "success" });
   onSearch();

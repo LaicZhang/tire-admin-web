@@ -20,45 +20,47 @@ import {
   localForage,
   ORDER_TYPE
 } from "@/utils";
+import type { FormInstance } from "element-plus";
 
-const formRef = ref(null);
-export function handleSelectionChange(_val) {
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
+export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
-const orderType = ref("");
+const orderType = ref<string>(ORDER_TYPE.default);
 
-export const allTireList = ref([]);
-export const allRepoList = ref([]);
-export const allCustomerList = ref([]);
-export const allProviderList = ref([]);
-export const managerList = ref([]);
+export const allTireList = ref<any[]>([]);
+export const allRepoList = ref<any[]>([]);
+export const allCustomerList = ref<any[]>([]);
+export const allProviderList = ref<any[]>([]);
+export const managerList = ref<any[]>([]);
 
 export async function getAllRepoList() {
-  const res: any[] = await localForage().getItem(ALL_LIST.repo);
+  const res = await localForage().getItem<any[]>(ALL_LIST.repo);
   if (res) allRepoList.value = res;
 }
 export async function getAllTireList() {
-  const res: any[] = await localForage().getItem(ALL_LIST.tire);
+  const res = await localForage().getItem<any[]>(ALL_LIST.tire);
   if (res) allTireList.value = res;
 }
 
 export async function getAllCustomerList() {
-  const res: any[] = await localForage().getItem(ALL_LIST.customer);
+  const res = await localForage().getItem<any[]>(ALL_LIST.customer);
   if (res) allCustomerList.value = res;
 }
 
 export async function getAllProviderList() {
-  const res: any[] = await localForage().getItem(ALL_LIST.provider);
+  const res = await localForage().getItem<any[]>(ALL_LIST.provider);
   if (res) allProviderList.value = res;
 }
 
 export async function getOrderType() {
-  orderType.value = await localForage().getItem(CUR_ORDER_TYPE);
+  const cur = await localForage().getItem<string>(CUR_ORDER_TYPE);
+  orderType.value = (cur ?? ORDER_TYPE.default) as string;
   return orderType.value;
 }
 const formTitle = ref("");
 export async function getFormTileInLocal() {
-  const title: string = await localForage().getItem(CUR_FORM_TITLE);
+  const title = await localForage().getItem<string>(CUR_FORM_TITLE);
   if (title) formTitle.value = title;
   return formTitle.value;
 }
@@ -66,7 +68,8 @@ export async function getFormTileInLocal() {
 import { v7 as uuid } from "uuid";
 import { getCommonData } from "./handleData";
 import { getFooterButtons } from "./props";
-export async function openDialog(title = "新增", type, row?) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function openDialog(title = "新增", type: string, row?: any) {
   addDialog({
     title: `${title}`,
     props: {
@@ -99,7 +102,8 @@ export async function openDialog(title = "新增", type, row?) {
     closeOnClickModal: false,
     contentRenderer: () => h(editForm, { ref: formRef }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
@@ -107,10 +111,12 @@ export async function openDialog(title = "新增", type, row?) {
         });
         done(); // 关闭弹框
       }
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
-          if (curData.details.length === 0)
-            return message("请添加订单详情项", { type: "error" });
+          if (curData.details.length === 0) {
+            message("请添加订单详情项", { type: "error" });
+            return;
+          }
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, uid, details, ...orderData } = curData;
           const companyId = await getCompanyId();
@@ -124,8 +130,8 @@ export async function openDialog(title = "新增", type, row?) {
                 }
               };
               delete orderData.providerId;
-              const detailsRes = [];
-              details.map(item => {
+              const detailsRes: any[] = [];
+              details.map((item: any) => {
                 delete item.index;
                 detailsRes.push({ companyId, ...item });
               });
@@ -206,8 +212,8 @@ export async function openDialog(title = "新增", type, row?) {
             });
             chores();
           } else if (title === "确认到货") {
-            const arrivalDetails = curData.details.map(item => ({
-              id: item.uid, // assuming uid is the detail ID
+            const arrivalDetails = curData.details.map((item: any) => ({
+              uid: item.uid,
               count: item.count,
               batchNo: item.batchNo,
               expiryDate: item.expiryDate

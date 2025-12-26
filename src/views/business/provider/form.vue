@@ -23,15 +23,15 @@ interface FormProps {
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    uid: undefined,
-    name: undefined,
-    id: undefined,
-    desc: undefined,
-    operatorId: undefined,
+    uid: "",
+    name: "",
+    id: 0,
+    desc: "",
+    operatorId: "",
     isIndividual: false,
     isPublic: false,
-    contactName: undefined,
-    province: undefined,
+    contactName: "",
+    province: "",
     status: true,
     initialPayable: 0
   })

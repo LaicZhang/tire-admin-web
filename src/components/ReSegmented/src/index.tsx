@@ -6,7 +6,8 @@ import {
   watch,
   nextTick,
   defineComponent,
-  getCurrentInstance
+  getCurrentInstance,
+  type PropType
 } from "vue";
 import type { OptionsType } from "./type";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -24,8 +25,8 @@ const props = {
   },
   /** 默认选中，按照第一个索引为 `0` 的模式，可选（`modelValue`只有传`number`类型时才为响应式） */
   modelValue: {
-    type: undefined,
-    require: false,
+    type: [Number, String] as PropType<number | string>,
+    required: false,
     default: "0"
   },
   /** 将宽度调整为父元素宽度	 */

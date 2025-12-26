@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import { getOperationLogListApi } from "@/api/system/log";
+import {
+  getOperationLogListApi,
+  type OperationLogItem
+} from "@/api/system/log";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { addDialog } from "@/components/ReDialog";
@@ -15,7 +18,7 @@ defineOptions({
 });
 
 const loading = ref(true);
-const dataList = ref([]);
+const dataList = ref<OperationLogItem[]>([]);
 const formRef = ref<FormInstance>();
 const pagination = reactive({
   total: 0,

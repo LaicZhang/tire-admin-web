@@ -382,7 +382,7 @@ const handleCurrentChange = (val: number) => {
   loadData();
 };
 
-const handleTabChange = (tab: string) => {
+const handleTabChange = (tab: string | number | boolean | undefined) => {
   if (tab === "task") {
     loadTaskList();
   }

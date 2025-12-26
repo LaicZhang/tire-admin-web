@@ -21,7 +21,7 @@ defineOptions({
   name: "PriceList"
 });
 
-const dataList = ref([]);
+const dataList = ref<any[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -42,9 +42,9 @@ const columns = [
   {
     label: "类型",
     prop: "type",
-    cellRenderer: ({ row }) => {
-      const map = { SYSTEM: "系统", CUSTOM: "自定义" };
-      return map[row.type] || row.type;
+    cellRenderer: ({ row }: { row: any }) => {
+      const map: Record<string, string> = { SYSTEM: "系统", CUSTOM: "自定义" };
+      return map[String(row.type)] || row.type;
     }
   },
   {
@@ -73,12 +73,12 @@ const getData = async () => {
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: any) => {
   await deletePriceListApi(row.id);
   message("删除成功", { type: "success" });
   getData();

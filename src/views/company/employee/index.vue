@@ -10,11 +10,13 @@ import { openDialog } from "./table";
 import { getEmployeeListApi, deleteEmployeeApi, getSysDictApi } from "@/api";
 import { localForage, message, SYS } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import type { Employee } from "@/api/company/employee";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "Employee"
 });
-const dataList = ref([]);
+const dataList = ref<Employee[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -63,7 +65,7 @@ const onSearch = async () => {
   loading.value = false;
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
@@ -75,7 +77,7 @@ async function handleCurrentChange(val: number) {
   await getEmployeeListInfo();
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: Employee) {
   await deleteEmployeeApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   await onSearch();
@@ -86,7 +88,7 @@ const getSysDict = async () => {
   employeeStatus.value = dict.employeeStatus;
 };
 
-const employeeStatus = ref([]);
+const employeeStatus = ref<Array<{ id: number; key: string; cn: string }>>([]);
 
 onMounted(async () => {
   await getSysDict();
@@ -176,9 +178,8 @@ onMounted(async () => {
             <template #employeeStatus="{ row }">
               <div>
                 {{
-                  employeeStatus.find(item => {
-                    if (item.key === row.status) return item.cn;
-                  })["cn"]
+                  employeeStatus.find(item => item.key === row.status)?.cn ||
+                  "-"
                 }}
               </div>
             </template>

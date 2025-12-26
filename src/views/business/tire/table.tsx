@@ -4,6 +4,7 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addTireApi, updateTireApi } from "@/api";
 import editForm from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 import {
   clearUploadedImages,
@@ -37,9 +38,9 @@ interface FormProps {
 
 export type { FormItemProps, FormProps };
 
-const formRef = ref(null);
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
-export function handleSelectionChange(_val) {
+export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
@@ -77,7 +78,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     contentRenderer: ({ options }) =>
       h(editForm, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline as FormItemProps;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
@@ -85,33 +87,32 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         });
         done(); // 关闭弹框
       }
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, uid, ...tireData } = curData;
+          const { id: _id, uid, covers: formCovers, ...tireData } = curData;
+
+          const uploadedImagesList = await getUploadedImages();
+          const covers =
+            uploadedImagesList.length > 0 ? uploadedImagesList : formCovers;
+
+          const payload = {
+            ...tireData,
+            ...(covers.length > 0 ? { covers } : {}),
+            company: {
+              connect: { uid: await getCompanyId() }
+            }
+          };
 
           if (title === "新增") {
-            const uploadedImagesList: any[] = await getUploadedImages();
-            if (uploadedImagesList) tireData.covers = uploadedImagesList;
-            if (tireData.covers.length === 0) delete tireData.covers;
-            const tire = await addTireApi({
-              ...tireData,
-              company: {
-                connect: { uid: await getCompanyId() }
-              }
-            });
+            const tire = await addTireApi(payload);
             if (tire.code === 200) await clearUploadedImages();
             chores();
           } else {
-            const uploadedImagesList: any[] = await getUploadedImages();
-            if (uploadedImagesList) tireData.covers = uploadedImagesList;
-            if (tireData.covers.length === 0) delete tireData.covers;
-            const tire = await updateTireApi(uid, {
-              ...tireData,
-              company: {
-                connect: { uid: await getCompanyId() }
-              }
-            });
+            if (!uid) {
+              message("缺少轮胎ID，无法更新", { type: "error" });
+              return;
+            }
+            const tire = await updateTireApi(uid, payload);
             if (tire.code === 200) await clearUploadedImages();
             chores();
           }

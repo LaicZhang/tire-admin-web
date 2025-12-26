@@ -18,7 +18,7 @@ defineOptions({
   name: "StockAlert"
 });
 
-const dataList = ref([]);
+const dataList = ref<any[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -61,15 +61,15 @@ const getData = async () => {
     pageSize: pagination.value.pageSize
   });
   if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
+    dataList.value = data || [];
+    pagination.value.total = dataList.value.length;
   } else {
     message(msg, { type: "error" });
   }
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
@@ -108,42 +108,46 @@ function openDialog(title = "新增") {
           h("el-form-item", { label: "规则名称", required: true }, [
             h("el-input", {
               modelValue: formInline.name,
-              "onUpdate:modelValue": val => (formInline.name = val),
+              "onUpdate:modelValue": (val: string) => (formInline.name = val),
               placeholder: "请输入规则名称"
             })
           ]),
           h("el-form-item", { label: "轮胎规格" }, [
             h("el-input", {
               modelValue: formInline.tireSpec,
-              "onUpdate:modelValue": val => (formInline.tireSpec = val),
+              "onUpdate:modelValue": (val: string) =>
+                (formInline.tireSpec = val),
               placeholder: "暂支持手动输入，后续关联商品选择"
             })
           ]),
           h("el-form-item", { label: "安全库存" }, [
             h("el-input-number", {
               modelValue: formInline.safeStock,
-              "onUpdate:modelValue": val => (formInline.safeStock = val),
+              "onUpdate:modelValue": (val: number | undefined) =>
+                (formInline.safeStock = val ?? 0),
               min: 0
             })
           ]),
           h("el-form-item", { label: "最低库存" }, [
             h("el-input-number", {
               modelValue: formInline.minStock,
-              "onUpdate:modelValue": val => (formInline.minStock = val),
+              "onUpdate:modelValue": (val: number | undefined) =>
+                (formInline.minStock = val ?? 0),
               min: 0
             })
           ]),
           h("el-form-item", { label: "最高库存" }, [
             h("el-input-number", {
               modelValue: formInline.maxStock,
-              "onUpdate:modelValue": val => (formInline.maxStock = val),
+              "onUpdate:modelValue": (val: number | undefined) =>
+                (formInline.maxStock = val ?? 0),
               min: 0
             })
           ]),
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
               modelValue: formInline.desc,
-              "onUpdate:modelValue": val => (formInline.desc = val),
+              "onUpdate:modelValue": (val: string) => (formInline.desc = val),
               type: "textarea"
             })
           ])

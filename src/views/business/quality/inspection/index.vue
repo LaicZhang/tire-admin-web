@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { getInspectionRecordListApi } from "@/api/business/quality";
+import {
+  getInspectionRecordListApi,
+  type InspectionRecord
+} from "@/api/business/quality";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
@@ -13,7 +16,7 @@ defineOptions({
 });
 
 const loading = ref(true);
-const dataList = ref([]);
+const dataList = ref<InspectionRecord[]>([]);
 const formRef = ref<FormInstance>();
 const pagination = reactive({
   total: 0,
@@ -58,7 +61,7 @@ async function onSearch() {
       ...form
     });
     dataList.value = data.list;
-    pagination.total = data.total;
+    pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
     console.error(e);
   } finally {

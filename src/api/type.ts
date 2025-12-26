@@ -1,4 +1,4 @@
-export type CommonResult<T = unknown> = {
+export type CommonResult<T = any> = {
   code: number;
   msg: string;
   data: T;
@@ -43,6 +43,8 @@ export type RefreshTokenResult = {
 
 export type PaginatedResponseDto<T = any> = {
   count: number;
+  /** 兼容部分接口返回字段 */
+  total?: number;
   list: T[];
 };
 
@@ -116,6 +118,12 @@ export type CreatePaymentDto = {
   companyUid: string;
   /** 账户名称 */
   name?: string;
+  /** 支付类型（如支付宝/微信/银行卡等，后端字段可能为 type/accountType） */
+  type?: string;
+  /** 账号 */
+  account?: string;
+  /** 实名 */
+  realName?: string;
   /** 银行名称 */
   bankName?: string;
   /** 银行账号 */

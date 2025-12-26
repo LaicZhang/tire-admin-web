@@ -53,7 +53,7 @@ defineExpose({ getRef });
           <el-input
             v-model="newFormInline.description"
             type="textarea"
-            rows="3"
+            :rows="3"
             clearable
             placeholder="请输入描述"
           />

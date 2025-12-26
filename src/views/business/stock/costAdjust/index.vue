@@ -23,12 +23,12 @@ const total = ref(0);
 // 查询参数
 const queryParams = reactive({
   index: 1,
-  isApproved: undefined as boolean | undefined
+  isApproved: "all" as "all" | boolean
 });
 
 // 筛选选项
 const approvalOptions = [
-  { label: "全部", value: undefined },
+  { label: "全部", value: "all" },
   { label: "待审核", value: false },
   { label: "已审核", value: true }
 ];
@@ -37,7 +37,11 @@ const approvalOptions = [
 const fetchData = async () => {
   loading.value = true;
   try {
-    const { data } = await getCostAdjustOrderList(queryParams);
+    const data = await getCostAdjustOrderList({
+      index: queryParams.index,
+      isApproved:
+        queryParams.isApproved === "all" ? undefined : queryParams.isApproved
+    });
     tableData.value = data.list;
     total.value = data.count;
   } catch (error) {
@@ -56,7 +60,7 @@ const handleSearch = () => {
 // 重置搜索
 const handleReset = () => {
   queryParams.index = 1;
-  queryParams.isApproved = undefined;
+  queryParams.isApproved = "all";
   fetchData();
 };
 

@@ -134,7 +134,7 @@ watch(loginDay, value => {
         inline-prompt
         :active-icon="dayIcon"
         :inactive-icon="darkIcon"
-        @change="dataThemeChange"
+        @change="() => dataThemeChange()"
       />
     </div>
     <div class="login-container">

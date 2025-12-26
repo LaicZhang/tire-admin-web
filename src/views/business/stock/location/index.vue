@@ -7,7 +7,8 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import {
   getRepoZoneListApi,
   createRepoZoneApi,
-  deleteRepoZoneApi
+  deleteRepoZoneApi,
+  type Zone
 } from "@/api/business/stock";
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
@@ -17,7 +18,7 @@ defineOptions({
   name: "StockLocation"
 });
 
-const dataList = ref([]);
+const dataList = ref<Zone[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -60,13 +61,13 @@ const getData = async () => {
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
 
-const handleDelete = async row => {
-  await deleteRepoZoneApi(row.id);
+const handleDelete = async (row: Zone) => {
+  await deleteRepoZoneApi(String(row.id));
   message("删除成功", { type: "success" });
   getData();
 };
@@ -89,14 +90,16 @@ function openDialog(title = "新增", row?: any) {
           h("el-form-item", { label: "仓库ID" }, [
             h("el-input", {
               modelValue: options.props.repoId,
-              "onUpdate:modelValue": val => (options.props.repoId = val),
+              "onUpdate:modelValue": (val: string) =>
+                (options.props.repoId = val),
               placeholder: "请输入仓库ID (后期改为下拉)"
             })
           ]),
           h("el-form-item", { label: "库区名称" }, [
             h("el-input", {
               modelValue: options.props.name,
-              "onUpdate:modelValue": val => (options.props.name = val),
+              "onUpdate:modelValue": (val: string) =>
+                (options.props.name = val),
               placeholder: "例如：A区"
             })
           ])

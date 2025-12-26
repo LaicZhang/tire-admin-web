@@ -43,8 +43,8 @@ const columns = ref([
     label: "计划日期",
     prop: "plannedDate",
     minWidth: 120,
-    formatter: (row, column, cellValue) => {
-      return cellValue ? new Date(cellValue).toLocaleDateString() : "-";
+    formatter: (_row: ShippingPlan, _column: unknown, cellValue: unknown) => {
+      return cellValue ? new Date(String(cellValue)).toLocaleDateString() : "-";
     }
   },
   {
@@ -62,8 +62,8 @@ const columns = ref([
     label: "创建时间",
     prop: "createdAt",
     minWidth: 160,
-    formatter: (row, column, cellValue) => {
-      return cellValue ? new Date(cellValue).toLocaleString() : "-";
+    formatter: (_row: ShippingPlan, _column: unknown, cellValue: unknown) => {
+      return cellValue ? new Date(String(cellValue)).toLocaleString() : "-";
     }
   },
   {

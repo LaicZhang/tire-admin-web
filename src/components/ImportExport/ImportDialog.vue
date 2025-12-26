@@ -19,7 +19,7 @@ interface TemplateField {
   name: string;
   label: string;
   required: boolean;
-  type: string;
+  type?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -125,20 +125,28 @@ async function handleImport() {
     );
 
     if (code === 200) {
-      importResult.value = {
+      const errors = Array.isArray(data?.errors)
+        ? (data.errors as Array<string | { row: number; message: string }>).map(
+            e => (typeof e === "string" ? e : `第${e.row}行：${e.message}`)
+          )
+        : [];
+
+      const result = {
         success: data?.success || 0,
         failed: data?.failed || 0,
-        errors: data?.errors || []
+        errors
       };
 
-      if (importResult.value.failed === 0) {
-        message(`成功导入 ${importResult.value.success} 条数据`, {
+      importResult.value = result;
+
+      if (result.failed === 0) {
+        message(`成功导入 ${result.success} 条数据`, {
           type: "success"
         });
         emit("success");
       } else {
         message(
-          `导入完成：成功 ${importResult.value.success} 条，失败 ${importResult.value.failed} 条`,
+          `导入完成：成功 ${result.success} 条，失败 ${result.failed} 条`,
           { type: "warning" }
         );
       }

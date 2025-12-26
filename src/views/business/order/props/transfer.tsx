@@ -28,9 +28,9 @@ import { reactive } from "vue";
 export const transferOrderFormRules = reactive({
   auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
 });
-export const transferOrderDetailsColumns = [];
+export const transferOrderDetailsColumns: TableColumnList = [];
 
-export const transferOrderColumns = [
+export const transferOrderColumns: TableColumnList = [
   {
     label: "流水号",
     prop: "number"

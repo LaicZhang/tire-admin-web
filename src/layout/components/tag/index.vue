@@ -57,7 +57,7 @@ const containerDom = ref();
 const scrollbarDom = ref();
 const contextmenuRef = ref();
 const isShowArrow = ref(false);
-const topPath = getTopMenu()?.path;
+const topPath = getTopMenu()?.path ?? "/";
 const { VITE_HIDE_HOME } = import.meta.env;
 
 const dynamicTagView = async () => {
@@ -76,11 +76,13 @@ const dynamicTagView = async () => {
 
 const moveToView = async (index: number): Promise<void> => {
   await nextTick();
+  if (!instance) return;
   const tabNavPadding = 10;
-  if (!instance.refs["dynamic" + index]) return;
-  const tabItemEl = instance.refs["dynamic" + index][0];
-  const tabItemElOffsetLeft = (tabItemEl as HTMLElement)?.offsetLeft;
-  const tabItemOffsetWidth = (tabItemEl as HTMLElement)?.offsetWidth;
+  const refEl = (instance.refs as Record<string, unknown>)[`dynamic${index}`];
+  const tabItemEl = Array.isArray(refEl) ? refEl[0] : refEl;
+  if (!(tabItemEl instanceof HTMLElement)) return;
+  const tabItemElOffsetLeft = tabItemEl.offsetLeft;
+  const tabItemOffsetWidth = tabItemEl.offsetWidth;
   // 标签页导航栏可视长度（不包含溢出部分）
   const scrollbarDomWidth = scrollbarDom.value
     ? scrollbarDom.value?.offsetWidth
@@ -279,12 +281,12 @@ function deleteDynamicTag(obj: any, current: any, tag?: string) {
   }
 }
 
-function deleteMenu(item, tag?: string) {
+function deleteMenu(item: RouteConfigs, tag?: string) {
   deleteDynamicTag(item, item.path, tag);
   handleAliveRoute(route as ToRouteType);
 }
 
-function onClickDrop(key, item, selectRoute?: RouteConfigs) {
+function onClickDrop(key: number, item: any, selectRoute?: RouteConfigs) {
   if (item && item.disabled) return;
 
   let selectTagRoute;
@@ -358,7 +360,7 @@ function handleCommand(command: any) {
 }
 
 /** 触发右键中菜单的点击事件 */
-function selectTag(key, item) {
+function selectTag(key: number, item: any) {
   closeMenu();
   onClickDrop(key, item, currentSelect.value);
 }
@@ -427,7 +429,7 @@ function showMenuModel(
   }
 }
 
-function openMenu(tag, e) {
+function openMenu(tag: RouteConfigs, e: MouseEvent) {
   closeMenu();
   if (tag.path === topPath) {
     // 右键菜单为顶级菜单，只显示刷新
@@ -436,14 +438,14 @@ function openMenu(tag, e) {
   } else if (route.path !== tag.path && route.name !== tag.name) {
     // 右键菜单不匹配当前路由，隐藏刷新
     tagsViews[0].show = false;
-    showMenuModel(tag.path, tag.query);
+    tag.path && showMenuModel(tag.path, tag.query ?? {});
   } else if (multiTags.value.length === 2 && route.path !== tag.path) {
     showMenus(true);
     // 只有两个标签时不显示关闭其他标签页
     tagsViews[4].show = false;
   } else if (route.path === tag.path) {
     // 右键当前激活的菜单
-    showMenuModel(tag.path, tag.query, true);
+    tag.path && showMenuModel(tag.path, tag.query ?? {}, true);
   }
 
   currentSelect.value = tag;
@@ -464,7 +466,7 @@ function openMenu(tag, e) {
 }
 
 /** 触发tags标签切换 */
-function tagOnClick(item) {
+function tagOnClick(item: RouteConfigs) {
   const { name, path, query, params } = item;
   if (name) {
     if (query) {
@@ -481,7 +483,7 @@ function tagOnClick(item) {
       router.push({ name });
     }
   } else {
-    router.push({ path });
+    path && router.push({ path });
   }
   // showMenuModel(item?.path, item?.query);
 }

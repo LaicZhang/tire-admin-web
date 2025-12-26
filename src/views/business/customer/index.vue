@@ -25,7 +25,17 @@ import UserFollowIcon from "~icons/ri/user-follow-line";
 defineOptions({
   name: "tire"
 });
-const dataList = ref([]);
+
+interface Customer {
+  uid: string;
+  name: string;
+  desc?: string;
+  levelId?: number;
+  tagIds?: number[];
+  creditLimit?: number;
+}
+
+const dataList = ref<Customer[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -48,7 +58,7 @@ const showFollowUpDialog = ref(false);
 const currentCustomerUid = ref("");
 
 // Handlers
-function handleFollowUp(row) {
+function handleFollowUp(row: Customer) {
   currentCustomerUid.value = row.uid;
   showFollowUpDialog.value = true;
 }
@@ -56,7 +66,7 @@ const getCustomerListInfo = async () => {
   const { data, code, msg } = await getCustomerListApi(
     pagination.value.currentPage
   );
-  if (code === 200) dataList.value = data.list;
+  if (code === 200) dataList.value = (data.list || []) as Customer[];
   else message(msg, { type: "error" });
   pagination.value.total = data.count;
 };
@@ -70,12 +80,12 @@ const onSearch = async () => {
     desc: form.value.desc
   });
 
-  dataList.value = data.list;
+  dataList.value = (data.list || []) as Customer[];
   pagination.value.total = data.count;
   loading.value = false;
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
@@ -87,7 +97,7 @@ async function handleCurrentChange(val: number) {
   await getCustomerListInfo();
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: Customer) {
   await deleteCustomerApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   onSearch();

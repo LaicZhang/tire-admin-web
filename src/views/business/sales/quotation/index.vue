@@ -14,12 +14,13 @@ import {
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import type { SalesQuotation } from "@/api/business/sales";
 
 defineOptions({
   name: "SalesQuotation"
 });
 
-const dataList = ref([]);
+const dataList = ref<SalesQuotation[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -28,7 +29,7 @@ const pagination = ref({
   background: true
 });
 
-const columns = [
+const columns: TableColumnList = [
   {
     label: "报价单号",
     prop: "quotationNo"
@@ -45,7 +46,11 @@ const columns = [
     label: "状态",
     prop: "status",
     cellRenderer: ({ row }) => {
-      const map = { DRAFT: "草稿", SENT: "已发送", CONFIRMED: "已确认" };
+      const map: Record<string, string> = {
+        DRAFT: "草稿",
+        SENT: "已发送",
+        CONFIRMED: "已确认"
+      };
       return map[row.status] || row.status;
     }
   },
@@ -74,12 +79,12 @@ const getData = async () => {
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: any) => {
   await deleteSalesQuotationApi(row.id);
   message("删除成功", { type: "success" });
   getData();
@@ -103,14 +108,16 @@ function openDialog(title = "新增", row?: any) {
           h("el-form-item", { label: "客户" }, [
             h("el-input", {
               modelValue: options.props.customerName,
-              "onUpdate:modelValue": val => (options.props.customerName = val),
+              "onUpdate:modelValue": (val: string) =>
+                (options.props.customerName = val),
               placeholder: "请输入客户名称"
             })
           ]),
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
               modelValue: options.props.desc,
-              "onUpdate:modelValue": val => (options.props.desc = val),
+              "onUpdate:modelValue": (val: string) =>
+                (options.props.desc = val),
               placeholder: "暂支持备注录入",
               type: "textarea"
             })

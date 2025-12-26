@@ -14,12 +14,13 @@ import { ImportDialog, ExportDialog } from "@/components/ImportExport";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import StockIcon from "~icons/ri/stack-line";
+import type { Tire } from "@/api/business/tire";
 
 defineOptions({
   name: "Tire"
 });
 // const allTireList = ref([]);
-const dataList = ref([]),
+const dataList = ref<Tire[]>([]),
   loading = ref(false),
   formRef = ref(),
   form = ref({
@@ -50,8 +51,8 @@ const getAllTires = async () => {
   const { data, code, msg } = await getTireListApi(0);
   const tasks = [];
   if (code === 200) {
-    tasks.push(localForage().setItem(ALL_LIST.tire, data));
-    data.forEach(element => {
+    tasks.push(localForage().setItem(ALL_LIST.tire, data.list));
+    data.list.forEach((element: Tire) => {
       tasks.push(localForage().setItem("tire:" + element.name, element));
     });
   } else message(msg, { type: "error" });
@@ -89,7 +90,7 @@ const onSearch = async () => {
   loading.value = false;
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
@@ -101,7 +102,7 @@ async function handleCurrentChange(val: number) {
   await getTireListInfo();
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: Tire) {
   await deleteTireApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
   await onSearch();
@@ -216,7 +217,7 @@ onMounted(async () => {
                 preview-teleported
                 style="height: 30px"
                 :preview-src-list="
-                  row.covers.map(item => {
+                  row.covers.map((item: any) => {
                     return BaseImagePath + item.hash + '.' + item.ext;
                   })
                 "

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
-import { getTireListApi } from "@/api";
+import { getTireListApi, type Tire } from "@/api";
 import { ALL_LIST, localForage, message } from "@/utils";
 
 interface FormItemProps {
-  id: number;
+  id?: number;
   desc?: string;
   number: string;
   tireId: string;
@@ -20,8 +20,8 @@ interface FormProps {
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     id: undefined,
-    tireId: undefined,
-    number: undefined,
+    tireId: "",
+    number: "",
     isLocked: false,
     isInRepo: false,
     desc: undefined
@@ -31,7 +31,7 @@ const props = withDefaults(defineProps<FormProps>(), {
 const formRules = reactive({
   tireId: [{ required: true, message: "轮胎类型为必填项", trigger: "blur" }]
 });
-const allTireList = ref([]);
+const allTireList = ref<Tire[]>([]);
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
@@ -43,9 +43,9 @@ function getRef() {
 const getAllTires = async () => {
   const { data, code, msg } = await getTireListApi(0);
   if (code === 200) {
-    allTireList.value = data;
-    await localForage().setItem(ALL_LIST.tire, data);
-    data.forEach(element => {
+    allTireList.value = data.list;
+    await localForage().setItem(ALL_LIST.tire, data.list);
+    data.list.forEach(element => {
       localForage().setItem("tire-name:" + element.name, element);
       localForage().setItem("tire-uid:" + element.uid, element);
     });

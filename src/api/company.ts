@@ -25,11 +25,14 @@ export async function addCompanyApi(data: object) {
   });
 }
 
-export async function getCompanyApi(uid = cid) {
+export async function getCompanyApi(uid: string | number = cid) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
-export async function updateCompanyApi(uid = cid, data: object) {
+export async function updateCompanyApi(
+  uid: string | number = cid,
+  data: object
+) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
     data
   });

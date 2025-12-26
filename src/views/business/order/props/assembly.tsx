@@ -30,9 +30,9 @@ export const assemblyOrderFormRules = reactive({
 import { formatDate } from "@/utils";
 import { reactive } from "vue";
 
-export const assemblyOrderDeatailsColumns = [];
+export const assemblyOrderDeatailsColumns: TableColumnList = [];
 
-export const assemblyOrderColumns = [
+export const assemblyOrderColumns: TableColumnList = [
   // {
   //   label: "ID",
   //   prop: "id"

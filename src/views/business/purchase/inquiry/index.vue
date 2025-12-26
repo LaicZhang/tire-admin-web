@@ -14,12 +14,13 @@ import {
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import type { PurchaseInquiry } from "@/api/business/purchase";
 
 defineOptions({
   name: "PurchaseInquiry"
 });
 
-const dataList = ref([]);
+const dataList = ref<PurchaseInquiry[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -28,7 +29,7 @@ const pagination = ref({
   background: true
 });
 
-const columns = [
+const columns: TableColumnList = [
   {
     label: "询价单号",
     prop: "inquiryNo"
@@ -45,7 +46,11 @@ const columns = [
     label: "状态",
     prop: "status",
     cellRenderer: ({ row }) => {
-      const map = { PENDING: "待回复", REPLIED: "已回复", CLOSED: "已关闭" };
+      const map: Record<string, string> = {
+        PENDING: "待回复",
+        REPLIED: "已回复",
+        CLOSED: "已关闭"
+      };
       return map[row.status] || row.status;
     }
   },
@@ -74,12 +79,12 @@ const getData = async () => {
   loading.value = false;
 };
 
-const handleCurrentChange = val => {
+const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
   getData();
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: any) => {
   await deletePurchaseInquiryApi(row.id);
   message("删除成功", { type: "success" });
   getData();
@@ -103,14 +108,16 @@ function openDialog(title = "新增", row?: any) {
           h("el-form-item", { label: "供应商" }, [
             h("el-input", {
               modelValue: options.props.providerName,
-              "onUpdate:modelValue": val => (options.props.providerName = val),
+              "onUpdate:modelValue": (val: string) =>
+                (options.props.providerName = val),
               placeholder: "请输入供应商名称"
             })
           ]),
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
               modelValue: options.props.desc,
-              "onUpdate:modelValue": val => (options.props.desc = val),
+              "onUpdate:modelValue": (val: string) =>
+                (options.props.desc = val),
               placeholder: "暂支持备注录入",
               type: "textarea"
             })

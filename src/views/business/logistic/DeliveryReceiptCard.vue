@@ -43,7 +43,8 @@ const fileList = ref([]);
 const uploadData = ref({});
 
 function getAuthorization() {
-  Authorization.value = formatToken(getToken().accessToken);
+  const token = getToken();
+  Authorization.value = token ? formatToken(token.accessToken) : "";
 }
 
 async function handleBeforeUpload(file: File) {

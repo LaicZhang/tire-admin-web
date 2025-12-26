@@ -35,8 +35,11 @@ export interface AgingData {
   }>;
   details: Array<{
     name: string;
-    amount: string;
-    aging: string;
+    orderNumber?: string;
+    orderDate?: string;
+    dueAmount: string;
+    agingDays: number;
+    agingBucket?: string;
   }>;
 }
 
@@ -70,7 +73,8 @@ export interface PurchaseSummary {
 }
 
 export interface TrendData {
-  data: Array<{ period: string; amount: string; count: number }>;
+  data?: Array<{ period: string; amount: string; count: number }>;
+  trend?: unknown[];
 }
 
 export interface RankingData {
@@ -81,6 +85,13 @@ export interface RankingData {
     count?: number;
     quantity?: number;
   }>;
+}
+
+export interface ReturnRateData {
+  rate: number;
+  totalOrders: number;
+  returnOrders: number;
+  trend: Array<{ date: string; rate: number }>;
 }
 
 export interface ProfitData {
@@ -112,6 +123,16 @@ export interface SlowMovingData {
     lastSaleDate: string;
     stockQuantity: number;
   }>;
+}
+
+export interface ExpiryDistributionData {
+  list?: Array<{ range: string; count: number; percentage: number }>;
+  buckets?: unknown[];
+}
+
+export interface StockoutData {
+  list?: Array<{ name: string; currentStock: number; minStock: number }>;
+  items?: unknown[];
 }
 
 // 销售汇总
@@ -275,7 +296,7 @@ export async function getReturnRateApi(params?: {
   endDate?: string;
   dimension?: "tire" | "provider";
 }) {
-  return await http.request<CommonResult<{ list: unknown[] }>>(
+  return await http.request<CommonResult<ReturnRateData>>(
     "get",
     baseUrlApi(prefix + "return-rate"),
     { params }
@@ -317,7 +338,7 @@ export async function getExpiryDistributionApi(params?: {
   repoId?: string;
   days?: string;
 }) {
-  return await http.request<CommonResult<{ list: unknown[] }>>(
+  return await http.request<CommonResult<ExpiryDistributionData>>(
     "get",
     baseUrlApi(prefix + "expiry-distribution"),
     { params }
@@ -326,7 +347,7 @@ export async function getExpiryDistributionApi(params?: {
 
 // 缺货分析
 export async function getStockoutApi() {
-  return await http.request<CommonResult<{ list: unknown[] }>>(
+  return await http.request<CommonResult<StockoutData>>(
     "get",
     baseUrlApi(prefix + "stockout")
   );

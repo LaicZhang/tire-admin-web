@@ -18,14 +18,16 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import AccountOperationDialog from "./accountOperationDialog.vue";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "Payment"
 });
 
-const dataList = ref([]);
+const dataList = ref<any[]>([]);
 const loading = ref(false);
 const formRef = ref();
+const editFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 const form = ref({
   companyUid: undefined
 });
@@ -41,13 +43,16 @@ const showOperationDialog = ref(false);
 const currentPayment = ref<any>(null);
 const operationType = ref<"top-up" | "pay" | "freeze" | "unfreeze">("top-up");
 
-function handleOperation(row, type: "top-up" | "pay" | "freeze" | "unfreeze") {
+function handleOperation(
+  row: any,
+  type: "top-up" | "pay" | "freeze" | "unfreeze"
+) {
   currentPayment.value = row;
   operationType.value = type;
   showOperationDialog.value = true;
 }
 
-const columns = ref([
+const columns = ref<TableColumnList>([
   {
     label: "账户UID",
     prop: "uid"
@@ -104,7 +109,7 @@ const onSearch = async () => {
   await getPaymentListInfo();
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: any) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -132,11 +137,12 @@ async function handleCreate() {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: formRef }),
+    contentRenderer: () => h(editForm, { ref: editFormRef }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = editFormRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline;
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           try {
             const companyUid = await getCompanyId();
@@ -162,7 +168,7 @@ async function handleCreate() {
 
 // function handleRecharge(row) { ... } // Replaced by handleOperation
 
-async function handleCheckBalance(row) {
+async function handleCheckBalance(row: any) {
   try {
     const { data, code, msg } = await checkPaymentBalanceApi(row.uid, 0);
     if (code === 200) {
@@ -176,7 +182,7 @@ async function handleCheckBalance(row) {
   }
 }
 
-async function handleDelete(row) {
+async function handleDelete(row: any) {
   try {
     await deletePaymentApi(row.uid);
     message("删除成功", { type: "success" });
