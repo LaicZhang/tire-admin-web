@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { getPurchaseSalesApi } from "@/api";
 import type { DailySummaryItem } from "@/api/dashboard";
 import { message } from "@/utils";
-import * as echarts from "echarts";
+import type { ECharts, EChartsOption } from "echarts";
 
 defineOptions({
   name: "SalesChart"
 });
 
+type EChartsModule = typeof import("echarts");
+let echartsModulePromise: Promise<EChartsModule> | null = null;
+const getEcharts = () => {
+  echartsModulePromise ||= import("echarts");
+  return echartsModulePromise;
+};
+
 const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
-let chartInstance: echarts.ECharts | null = null;
+let chartInstance: ECharts | null = null;
 
 // 当前选择的天数 (7 或 30)
 const selectedDays = ref(7);
@@ -39,7 +46,7 @@ const loadData = async () => {
       dailySummary.value = data.dailySummary || [];
       totalPurchase.value = data.totalPurchaseAmount || "0";
       totalSales.value = data.totalSalesAmount || "0";
-      updateChart();
+      await updateChart();
     } else if (msg) {
       message(msg, { type: "warning" });
     }
@@ -50,10 +57,11 @@ const loadData = async () => {
   }
 };
 
-const updateChart = () => {
+const updateChart = async () => {
   if (!chartRef.value) return;
 
   if (!chartInstance) {
+    const echarts = await getEcharts();
     chartInstance = echarts.init(chartRef.value);
   }
 
@@ -63,7 +71,8 @@ const updateChart = () => {
   );
   const salesData = dailySummary.value.map(item => Number(item.salesAmount));
 
-  const option: echarts.EChartsOption = {
+  const echarts = await getEcharts();
+  const option: EChartsOption = {
     tooltip: {
       trigger: "axis",
       axisPointer: {

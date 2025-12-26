@@ -1,6 +1,6 @@
 import type { VNode } from "vue";
 import { isFunction } from "@pureadmin/utils";
-import { type MessageHandler, ElMessage } from "element-plus";
+import { type MessageHandler, ElMessage, ElMessageBox } from "element-plus";
 
 type messageStyle = "el" | "antd";
 type messageTypes = "info" | "success" | "warning" | "error";
@@ -89,4 +89,21 @@ const message = (
  */
 const closeAllMessage = (): void => ElMessage.closeAll();
 
-export { message, closeAllMessage };
+/**
+ * `MessageBox.confirm` 二次封装（统一按钮文案与默认类型）
+ */
+const confirmBox = (
+  content: string,
+  title = "提示",
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  options: any = {}
+) => {
+  return ElMessageBox.confirm(content, title, {
+    type: "warning",
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    ...options
+  });
+};
+
+export { message, closeAllMessage, confirmBox };
