@@ -258,6 +258,36 @@ export default [
           title: "更新历史",
           icon: null
         }
+      },
+      {
+        id: 58,
+        uid: "ee0e0f69-b995-43bf-a18f-dc2599bb4696",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "documentNumber",
+        path: "/system/documentNumber",
+        redirect: null,
+        component: () => import("@/views/system/documentNumber/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "编号规则",
+          icon: null
+        }
+      },
+      {
+        id: 59,
+        uid: "ff0e0f69-b995-43bf-a18f-dc2599bb4697",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "backup",
+        path: "/system/backup",
+        redirect: null,
+        component: () => import("@/views/system/backup/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin"],
+          title: "备份管理",
+          icon: null
+        }
       }
     ]
   },
