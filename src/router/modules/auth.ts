@@ -660,6 +660,21 @@ export default [
           title: "审核中心",
           icon: null
         }
+      },
+      {
+        id: 57,
+        uid: "3dd4bf61-a0bf-449f-b4d4-cf8254745b41",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "serialNumber",
+        path: "/business/serialNumber",
+        component: () =>
+          import("@/views/business/stock/serialNumber/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "warehouseManager"],
+          title: "序列号管理",
+          icon: null
+        }
       }
     ]
   },
