@@ -45,6 +45,14 @@ export default {
       meta: {
         title: "提醒管理"
       }
+    },
+    {
+      path: "/finance/writeOff",
+      name: "FinanceWriteOff",
+      component: () => import("@/views/business/finance/writeOff/index.vue"),
+      meta: {
+        title: "核销单管理"
+      }
     }
   ]
 } satisfies RouteConfigsTable;
