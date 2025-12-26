@@ -12,9 +12,17 @@ export interface DepartmentDto {
   name: string;
   desc?: string;
   parentId?: string;
+  company?: { connect: { uid: string } };
+  managers?: { connect: Array<{ uid: string }> };
+  employees?: { connect: Array<{ uid: string }> };
 }
 
-export interface Department extends DepartmentDto {
+export type DepartmentCreateDto = DepartmentDto;
+
+export interface Department extends Omit<
+  DepartmentDto,
+  "managers" | "employees" | "company"
+> {
   id: number;
   uid: string;
   employees?: Array<{
@@ -32,7 +40,7 @@ export async function getDepartmentListApi(index: number, params?: object) {
   );
 }
 
-export async function addDepartmentApi(data: DepartmentDto) {
+export async function addDepartmentApi(data: DepartmentCreateDto) {
   return await http.request<CommonResult<Department>>(
     "post",
     baseUrlApi(prefix),
@@ -51,7 +59,7 @@ export async function getDepartmentApi(uid: string) {
 
 export async function updateDepartmentApi(
   uid: string,
-  data: Partial<DepartmentDto>
+  data: Partial<DepartmentCreateDto>
 ) {
   return await http.request<CommonResult<Department>>(
     "patch",

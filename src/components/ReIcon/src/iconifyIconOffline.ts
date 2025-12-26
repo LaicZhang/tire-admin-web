@@ -1,5 +1,6 @@
-import { h, defineComponent } from "vue";
-import { Icon as IconifyIcon, addIcon } from "@iconify/vue/dist/offline";
+import { h, defineComponent, type PropType } from "vue";
+import { Icon as IconifyIcon } from "@iconify/vue/dist/offline";
+import type { IconifyIcon as IconifyIconData } from "@iconify/types";
 
 // Iconify Icon在Vue里本地使用（用于内网环境）
 export default defineComponent({
@@ -7,41 +8,20 @@ export default defineComponent({
   components: { IconifyIcon },
   props: {
     icon: {
+      type: [String, Object] as PropType<string | IconifyIconData | null>,
       default: null
     }
   },
   render() {
-    if (typeof this.icon === "object") addIcon(this.icon, this.icon);
     const attrs = this.$attrs;
-    if (typeof this.icon === "string") {
-      return h(
-        IconifyIcon,
-        {
-          icon: this.icon,
-          "aria-hidden": false,
-          style: attrs?.style
-            ? Object.assign(attrs.style, { outline: "none" })
-            : { outline: "none" },
-          ...attrs
-        },
-        {
-          default: () => []
-        }
-      );
-    } else {
-      return h(
-        this.icon,
-        {
-          "aria-hidden": false,
-          style: attrs?.style
-            ? Object.assign(attrs.style, { outline: "none" })
-            : { outline: "none" },
-          ...attrs
-        },
-        {
-          default: () => []
-        }
-      );
-    }
+    if (!this.icon) return null;
+    return h(IconifyIcon, {
+      icon: this.icon,
+      "aria-hidden": false,
+      style: attrs?.style
+        ? Object.assign(attrs.style as object, { outline: "none" })
+        : { outline: "none" },
+      ...attrs
+    });
   }
 });

@@ -8,20 +8,44 @@ import type {
 
 const prefix = "/employee/";
 
-export interface EmployeeDto {
-  name: string;
+export interface EmployeeUserDto {
+  username: string;
   phone?: string;
   email?: string;
-  departmentId?: string;
-  positionId?: string;
-  salaryId?: string;
+  password?: string;
 }
 
-export interface Employee extends EmployeeDto {
+export interface EmployeeNameDto {
+  name: string;
+  nickname?: string;
+  desc?: string;
+  status?: number;
+}
+
+export interface EmployeeCreateDto {
+  user: EmployeeUserDto;
+  connectEmployeeDto: {
+    jobs: unknown[];
+    companyId: string;
+  };
+  name: EmployeeNameDto;
+}
+
+export interface EmployeeUpdateDto {
+  user?: Partial<EmployeeUserDto>;
+  name?: Partial<EmployeeNameDto>;
+  jobs?: unknown[];
+}
+
+export interface Employee {
   id: number;
   uid: string;
-  department?: { name: string };
-  position?: { name: string };
+  name: string;
+  nickname?: string;
+  desc?: string;
+  status?: number;
+  jobs?: unknown[];
+  user?: EmployeeUserDto;
 }
 
 export async function getAllEmployeeApi(params?: object) {
@@ -42,7 +66,7 @@ export async function getEmployeeListApi(index: number, params?: object) {
   );
 }
 
-export async function addEmployeeApi(data: EmployeeDto) {
+export async function addEmployeeApi(data: EmployeeCreateDto) {
   return await http.request<CommonResult<Employee>>(
     "post",
     baseUrlApi(prefix),
@@ -59,10 +83,7 @@ export async function getEmployeeApi(uid: string) {
   );
 }
 
-export async function updateEmployeeApi(
-  uid: string,
-  data: Partial<EmployeeDto>
-) {
+export async function updateEmployeeApi(uid: string, data: EmployeeUpdateDto) {
   return await http.request<CommonResult<Employee>>(
     "patch",
     baseUrlApi(prefix + uid),

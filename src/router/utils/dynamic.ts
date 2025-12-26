@@ -15,12 +15,45 @@ import { buildHierarchyTree } from "@/utils/tree";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { ascending } from "./filter";
+// 导入静态路由配置，用于组件映射
+import staticRoutes from "../modules/auth";
 
 const IFrame = () => import("@/layout/frameView.vue");
 
 // https://cn.vitejs.dev/guide/features.html#glob-import
 const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
 const modulesRoutesKeys = Object.keys(modulesRoutes);
+
+/**
+ * 构建静态路由组件映射表
+ * 将静态路由的 path -> component 映射缓存起来
+ */
+type StaticRouteItem = {
+  path: string;
+  name?: string;
+  component?: RouteRecordRaw["component"];
+  children?: StaticRouteItem[];
+};
+
+function buildStaticComponentMap(
+  routes: StaticRouteItem[],
+  map: Map<string, RouteRecordRaw["component"]> = new Map()
+): Map<string, RouteRecordRaw["component"]> {
+  routes.forEach(route => {
+    if (route.component) {
+      map.set(route.path, route.component);
+    }
+    if (route.children && route.children.length > 0) {
+      buildStaticComponentMap(route.children, map);
+    }
+  });
+  return map;
+}
+
+// 构建静态组件映射表
+const staticComponentMap = buildStaticComponentMap(
+  staticRoutes as unknown as StaticRouteItem[]
+);
 
 function extractImportPath(component: string): string {
   const match = component.match(/import\((['"`])([^'"`]+)\1\)/);
@@ -57,7 +90,17 @@ function resolveViewsModuleKeyByComponent(component: unknown): string | null {
 }
 
 function resolveViewsModuleKeyByRoutePath(routePath: string): string | null {
-  const candidates = [`${routePath}/index.`, `${routePath}.`, routePath];
+  // 路由路径如 /system/updateHistory 需要映射到 /src/views/system/updateHistory/index.vue
+  const viewsPath = `/views${routePath}`;
+  const candidates = [
+    `${viewsPath}/index.`,
+    `${viewsPath}.`,
+    viewsPath,
+    // 保留原始路径作为回退
+    `${routePath}/index.`,
+    `${routePath}.`,
+    routePath
+  ];
   for (const candidate of candidates) {
     const hit = modulesRoutesKeys.find(k => k.includes(candidate));
     if (hit) return hit;
@@ -160,22 +203,24 @@ export function formatFlatteningRoutes(routesList: RouteRecordRaw[]) {
  */
 export function formatTwoStageRoutes(routesList: RouteRecordRaw[]) {
   if (routesList.length === 0) return routesList;
-  const newRoutesList: RouteRecordRaw[] = [];
+  const rootRoute = routesList.find(v => v.path === "/");
+  if (!rootRoute) return routesList;
+
+  const children: RouteRecordRaw[] = [];
   routesList.forEach((v: RouteRecordRaw) => {
-    if (v.path === "/") {
-      newRoutesList.push({
-        component: v.component,
-        name: v.name,
-        path: v.path,
-        redirect: v.redirect,
-        meta: v.meta,
-        children: []
-      });
-    } else {
-      newRoutesList[0]?.children?.push({ ...v });
-    }
+    if (v.path !== "/") children.push({ ...v });
   });
-  return newRoutesList;
+
+  return [
+    {
+      component: rootRoute.component,
+      name: rootRoute.name,
+      path: rootRoute.path,
+      redirect: rootRoute.redirect,
+      meta: rootRoute.meta,
+      children
+    }
+  ];
 }
 
 /**
@@ -201,18 +246,30 @@ export function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
     if (v.meta?.frameSrc) {
       v.component = IFrame;
     } else {
-      const moduleKeyFromComponent = resolveViewsModuleKeyByComponent(
-        v.component
-      );
-      const moduleKeyFromPath =
-        v?.children && v.children.length
-          ? null
-          : resolveViewsModuleKeyByRoutePath(v.path);
-      const resolvedModuleKey = moduleKeyFromComponent ?? moduleKeyFromPath;
-      if (resolvedModuleKey) {
-        v.component = modulesRoutes[resolvedModuleKey];
-      } else if (isString(v.component)) {
-        v.component = modulesRoutes["/src/views/error/404.vue"];
+      // 1. 优先从静态路由映射表中查找组件
+      const staticComponent = staticComponentMap.get(v.path);
+      if (staticComponent) {
+        v.component = staticComponent;
+      } else {
+        // 2. 尝试根据后端返回的 component 字符串解析
+        const moduleKeyFromComponent = resolveViewsModuleKeyByComponent(
+          v.component
+        );
+        // 3. 根据路径自动查找对应的 views 文件
+        const moduleKeyFromPath =
+          v?.children && v.children.length
+            ? null
+            : resolveViewsModuleKeyByRoutePath(v.path);
+        const resolvedModuleKey = moduleKeyFromComponent ?? moduleKeyFromPath;
+        if (resolvedModuleKey) {
+          v.component = modulesRoutes[resolvedModuleKey];
+        } else if (!v?.children || v.children.length === 0) {
+          // 没有找到对应组件且没有子路由时，使用404页面作为兜底
+          console.warn(
+            `[Route] No component found for path: ${v.path}, falling back to 404`
+          );
+          v.component = modulesRoutes["/src/views/error/404.vue"];
+        }
       }
     }
     if (v?.children && v.children.length) {

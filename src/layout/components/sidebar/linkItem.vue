@@ -12,25 +12,21 @@ const props = defineProps<{
 }>();
 
 const isExternalLink = computed(() => isUrl(props.to.name));
-const getLinkProps = (item: menuType) => {
-  if (isExternalLink.value) {
-    return {
-      href: item.name,
-      target: "_blank",
-      rel: "noopener"
-    };
-  }
-  return {
-    to: item
-  };
-};
 </script>
 
 <template>
-  <component
-    :is="isExternalLink ? 'a' : 'router-link'"
-    v-bind="getLinkProps(to)"
+  <!--
+    内部菜单：不要用 router-link 包裹 el-menu-item（会导致不合法 DOM 结构，且影响 el-menu 的 router/index 跳转）
+    直接依赖 el-menu 的 `router` 模式 + el-menu-item 的 `index` 完成跳转
+  -->
+  <a
+    v-if="isExternalLink"
+    :href="to.name"
+    target="_blank"
+    rel="noopener"
+    @click.stop
   >
     <slot />
-  </component>
+  </a>
+  <slot v-else />
 </template>

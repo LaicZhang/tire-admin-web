@@ -4,18 +4,16 @@ import { getConfig } from "@/config";
 import NProgress from "@/utils/progress";
 import { buildHierarchyTree } from "@/utils/tree";
 import remainingRouter from "./modules/remaining";
-import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { isUrl, openLink, storageLocal } from "@pureadmin/utils";
 import {
   ascending,
   isOneOfArray,
   getHistoryMode,
-  findRouteByPath,
   handleAliveRoute,
   formatTwoStageRoutes,
-  formatFlatteningRoutes,
-  addPathMatch
+  formatFlatteningRoutes
 } from "./utils";
 import {
   type Router,
@@ -36,7 +34,7 @@ import {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const modules: Record<string, any> = import.meta.glob(
-  ["./modules/**/*.ts", "!./modules/**/remaining.ts"],
+  ["./modules/**/*.ts", "!./modules/**/remaining.ts", "!./modules/**/auth.ts"],
   {
     eager: true
   }
@@ -51,18 +49,28 @@ Object.keys(modules).forEach(key => {
 
 /** 导出处理后的静态路由（三级及以上的路由全部拍成二级） */
 export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(
-  formatFlatteningRoutes(buildHierarchyTree(ascending(routes.flat(Infinity))))
+  formatFlatteningRoutes(
+    buildHierarchyTree(
+      ascending(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        routes.flat(Infinity) as unknown as any[]
+      ) as unknown as import("@/utils/tree").TreeNode[]
+    ) as unknown as RouteRecordRaw[]
+  )
 );
 
 /** 用于渲染菜单，保持原始层级 */
-export const constantMenus: Array<RouteComponent> = ascending(
-  routes.flat(Infinity)
-).concat(...remainingRouter);
+
+export const constantMenus: Array<RouteComponent> =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (ascending(routes.flat(Infinity) as unknown as any[]) as any[])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .concat(remainingRouter as any);
 
 /** 不参与菜单的路由 */
-export const remainingPaths = Object.keys(remainingRouter).map(v => {
-  return remainingRouter[v].path;
-});
+export const remainingPaths = (remainingRouter as RouteRecordRaw[]).map(
+  route => route.path
+);
 
 /** 记录已经加载的页面路径 */
 const loadedPaths = new Set<string>();
@@ -100,7 +108,12 @@ export function resetRouter() {
       router.removeRoute(name);
       router.options.routes = formatTwoStageRoutes(
         formatFlatteningRoutes(
-          buildHierarchyTree(ascending(routes.flat(Infinity)))
+          buildHierarchyTree(
+            ascending(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              routes.flat(Infinity) as unknown as any[]
+            ) as unknown as import("@/utils/tree").TreeNode[]
+          ) as unknown as RouteRecordRaw[]
         )
       );
     }
@@ -142,7 +155,7 @@ router.beforeEach((to: ToRouteType, _from, next) => {
   }
   if (Cookies.get(multipleTabsKey) && userInfo) {
     // 无权限跳转403页面
-    if (to.meta?.roles && !isOneOfArray(to.meta?.roles, userInfo?.roles)) {
+    if (to.meta?.roles && !isOneOfArray(to.meta.roles, userInfo?.roles ?? [])) {
       next({ path: "/error/403" });
     }
     // 开启隐藏首页后在浏览器地址栏手动输入首页welcome路由则跳转到404页面
@@ -163,24 +176,19 @@ router.beforeEach((to: ToRouteType, _from, next) => {
         usePermissionStoreHook().wholeMenus.length === 0 &&
         to.path !== "/login"
       ) {
-        // 使用静态路由代替 initRouter 动态路由
-        usePermissionStoreHook().handleWholeMenus([]);
-        addPathMatch();
-        if (!useMultiTagsStoreHook().getMultiTagsCache) {
-          const { path } = to;
-          const route = findRouteByPath(
-            path,
-            router.options.routes[0].children
-          );
-          // query、params模式路由传参数的标签页不在此处处理
-          if (route && route.meta?.title) {
-            useMultiTagsStoreHook().handleTags("push", {
-              path: route.path,
-              name: route.name,
-              meta: route.meta
+        // 从后端获取动态路由（使用动态导入避免循环依赖）
+        import("./utils/cache").then(({ initRouter }) => {
+          initRouter()
+            .then(() => {
+              next({ ...to, replace: true });
+            })
+            .catch(error => {
+              console.error("[Router] initRouter failed:", error);
+              removeToken();
+              next({ path: "/login", replace: true });
             });
-          }
-        }
+        });
+        return;
       }
       toCorrectRoute();
     }

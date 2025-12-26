@@ -46,12 +46,15 @@ export default defineComponent({
     const initStatus = ref(false);
     const curMouseActive = ref(-1);
     const segmentedItembg = ref("");
-    const instance = getCurrentInstance()!;
+    const instance = getCurrentInstance();
     const curIndex = isNumber(props.modelValue)
       ? toRef(props, "modelValue")
       : ref(0);
 
-    function handleChange({ option, index }, event: Event) {
+    function handleChange(
+      { option, index }: { option: OptionsType; index: number },
+      event: MouseEvent
+    ) {
       if (option.disabled) return;
       event.preventDefault();
       isNumber(props.modelValue)
@@ -61,7 +64,10 @@ export default defineComponent({
       emit("change", { index, option });
     }
 
-    function handleMouseenter({ option, index }, event: Event) {
+    function handleMouseenter(
+      { option, index }: { option: OptionsType; index: number },
+      event: MouseEvent
+    ) {
       event.preventDefault();
       curMouseActive.value = index;
       if (option.disabled || curIndex.value === index) {
@@ -73,14 +79,17 @@ export default defineComponent({
       }
     }
 
-    function handleMouseleave(_, event: Event) {
+    function handleMouseleave(_payload: unknown, event: MouseEvent) {
       event.preventDefault();
       curMouseActive.value = -1;
     }
 
     function handleInit(index = curIndex.value) {
       nextTick(() => {
-        const curLabelRef = instance?.proxy?.$refs[`labelRef${index}`] as ElRef;
+        const curLabelRef = instance?.proxy?.$refs[`labelRef${index}`] as
+          | HTMLElement
+          | undefined;
+        if (!curLabelRef) return;
         width.value = curLabelRef.clientWidth;
         translateX.value = curLabelRef.offsetLeft;
         initStatus.value = true;
@@ -128,9 +137,15 @@ export default defineComponent({
                     : "rgba(0,0,0,.88)"
                   : ""
             }}
-            onMouseenter={event => handleMouseenter({ option, index }, event)}
-            onMouseleave={event => handleMouseleave({ option, index }, event)}
-            onClick={event => handleChange({ option, index }, event)}
+            onMouseenter={(event: MouseEvent) =>
+              handleMouseenter({ option, index }, event)
+            }
+            onMouseleave={(event: MouseEvent) =>
+              handleMouseleave({ option, index }, event)
+            }
+            onClick={(event: MouseEvent) =>
+              handleChange({ option, index }, event)
+            }
           >
             <input type="radio" name="segmented" />
             <div

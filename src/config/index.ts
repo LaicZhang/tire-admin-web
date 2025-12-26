@@ -1,18 +1,24 @@
 import type { App } from "vue";
 import axios from "axios";
 
-let config: object = {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let config: Record<string, any> = {};
 const { VITE_PUBLIC_PATH } = import.meta.env;
 
 const setConfig = (cfg?: unknown) => {
   config = Object.assign(config, cfg);
 };
 
-const getConfig = (key?: string): PlatformConfigs => {
+function getConfig(): PlatformConfigs;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getConfig(key: string): any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getConfig(key?: string): any {
   if (typeof key === "string") {
     const arr = key.split(".");
-    if (arr && arr.length) {
-      let data = config;
+    if (arr.length) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let data: any = config;
       arr.forEach(v => {
         if (data && typeof data[v] !== "undefined") {
           data = data[v];
@@ -23,8 +29,8 @@ const getConfig = (key?: string): PlatformConfigs => {
       return data;
     }
   }
-  return config;
-};
+  return config as PlatformConfigs;
+}
 
 /** 获取项目动态全局配置 */
 export const getPlatformConfig = async (app: App): Promise<PlatformConfigs> => {

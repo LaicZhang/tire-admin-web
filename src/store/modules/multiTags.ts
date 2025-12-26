@@ -15,26 +15,38 @@ import {
 import { usePermissionStoreHook } from "./permission";
 
 export const useMultiTagsStore = defineStore("pure-multiTags", {
-  state: () => ({
+  state: (): {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    multiTags: any[];
+    multiTagsCache: boolean;
+  } => ({
     // 存储标签页信息（路由信息）
-    multiTags: storageLocal().getItem<StorageConfigs>(
-      `${responsiveStorageNameSpace()}configure`
-    )?.multiTagsCache
-      ? storageLocal().getItem<StorageConfigs>(
+    multiTags: (() => {
+      const cacheEnabled =
+        storageLocal().getItem<StorageConfigs>(
+          `${responsiveStorageNameSpace()}configure`
+        )?.multiTagsCache ?? false;
+      if (cacheEnabled) {
+        const cached = storageLocal().getItem(
           `${responsiveStorageNameSpace()}tags`
-        )
-      : ([
-          ...routerArrays,
-          ...usePermissionStoreHook().flatteningRoutes.filter(
-            v => v?.meta?.fixedTag
-          )
-        ] as any),
-    multiTagsCache: storageLocal().getItem<StorageConfigs>(
-      `${responsiveStorageNameSpace()}configure`
-    )?.multiTagsCache
+        ) as unknown as multiType[] | null;
+        if (cached && Array.isArray(cached)) return cached;
+      }
+      return [
+        ...routerArrays,
+        ...(usePermissionStoreHook().flatteningRoutes.filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          v => (v as any)?.meta?.fixedTag
+        ) as unknown as multiType[])
+      ] as unknown as multiType[];
+    })(),
+    multiTagsCache:
+      storageLocal().getItem<StorageConfigs>(
+        `${responsiveStorageNameSpace()}configure`
+      )?.multiTagsCache ?? false
   }),
   getters: {
-    getMultiTagsCache(state) {
+    getMultiTagsCache(state): boolean {
       return state.multiTagsCache;
     }
   },
@@ -50,21 +62,24 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
         storageLocal().removeItem(`${responsiveStorageNameSpace()}tags`);
       }
     },
-    tagsCache(multiTags) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tagsCache(multiTags: any[]) {
       this.getMultiTagsCache &&
         storageLocal().setItem(
           `${responsiveStorageNameSpace()}tags`,
           multiTags
         );
     },
-    handleTags<T>(
+    handleTags(
       mode: string,
-      value?: T | multiType,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      value?: any,
       position?: positionType
-    ): T {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ): any {
       switch (mode) {
         case "equal":
-          this.multiTags = value;
+          this.multiTags = value ?? [];
           this.tagsCache(this.multiTags);
           break;
         case "push":
@@ -75,7 +90,7 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
             // 如果是外链无需添加信息到标签页
             if (isUrl(tagVal?.name)) return;
             // 如果title为空拒绝添加空信息到标签页
-            if (tagVal?.meta?.title.length === 0) return;
+            if (!tagVal?.meta?.title || tagVal.meta.title.length === 0) return;
             // showLink:false 不添加到标签页
             if (isBoolean(tagVal?.meta?.showLink) && !tagVal?.meta?.showLink)
               return;
@@ -111,15 +126,14 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
                 index !== -1 && this.multiTags.splice(index, 1);
               }
             }
-            this.multiTags.push(value);
+            this.multiTags.push(tagVal);
             this.tagsCache(this.multiTags);
+            const maxTagsLevel = getConfig()?.MaxTagsLevel;
             if (
-              getConfig()?.MaxTagsLevel &&
-              isNumber(getConfig().MaxTagsLevel)
+              isNumber(maxTagsLevel) &&
+              this.multiTags.length > maxTagsLevel
             ) {
-              if (this.multiTags.length > getConfig().MaxTagsLevel) {
-                this.multiTags.splice(1, 1);
-              }
+              this.multiTags.splice(1, 1);
             }
           }
           break;
@@ -129,7 +143,10 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
             if (index === -1) return;
             this.multiTags.splice(index, 1);
           } else {
-            this.multiTags.splice(position?.startIndex, position?.length);
+            this.multiTags.splice(
+              position.startIndex ?? 0,
+              position.length ?? 1
+            );
           }
           this.tagsCache(this.multiTags);
           return this.multiTags;

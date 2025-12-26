@@ -1,4 +1,5 @@
 import { delay } from "@pureadmin/utils";
+import { ElDivider } from "element-plus";
 import { ref, computed, defineComponent, getCurrentInstance } from "vue";
 
 import Fullscreen from "~icons/ri/fullscreen-fill";
@@ -126,7 +127,7 @@ export default defineComponent({
                     )}
                     onClick={() => onExpand()}
                   />
-                  <el-divider direction="vertical" />
+                  <ElDivider direction="vertical" />
                 </>
               ) : null}
               <RefreshIcon
@@ -138,11 +139,11 @@ export default defineComponent({
                 v-tippy={rendTippyProps("刷新")}
                 onClick={() => onReFresh()}
               />
-              <el-divider direction="vertical" />
+              <ElDivider direction="vertical" />
               {renderDensityDropdown()}
-              <el-divider direction="vertical" />
+              <ElDivider direction="vertical" />
               {renderColumnSettings()}
-              <el-divider direction="vertical" />
+              <ElDivider direction="vertical" />
 
               <iconifyIconOffline
                 class={["w-[16px]", iconClass.value]}

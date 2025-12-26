@@ -19,30 +19,38 @@ interface LocalForageOptions extends LocalForageDbInstanceOptions {
 interface LocalForageDbMethodsCore {
   getItem<T>(
     key: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback?: (err: any, value: T | null) => void
   ): Promise<T | null>;
 
   setItem<T>(
     key: string,
     value: T,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback?: (err: any, value: T) => void
   ): Promise<T>;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   removeItem(key: string, callback?: (err: any) => void): Promise<void>;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   clear(callback?: (err: any) => void): Promise<void>;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   length(callback?: (err: any, numberOfKeys: number) => void): Promise<number>;
 
   key(
     keyIndex: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback?: (err: any, key: string) => void
   ): Promise<string>;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   keys(callback?: (err: any, keys: string[]) => void): Promise<string[]>;
 
   iterate<T, U>(
     iteratee: (value: T, key: string, iterationNumber: number) => U,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback?: (err: any, result: U) => void
   ): Promise<U>;
 }
@@ -50,6 +58,7 @@ interface LocalForageDbMethodsCore {
 interface LocalForageDropInstanceFn {
   (
     dbInstanceOptions?: LocalForageDbInstanceOptions,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback?: (err: any) => void
   ): Promise<void>;
 }
@@ -82,6 +91,7 @@ interface LocalForageDriver extends LocalForageDriverDbMethods {
 interface LocalForageSerializer {
   serialize<T>(
     value: T | ArrayBuffer | Blob,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback: (value: string, error: any) => void
   ): void;
 
@@ -106,6 +116,7 @@ export interface LocalForage extends LocalForageDbMethods {
    * @param {LocalForageOptions} options?
    */
   config(options: LocalForageOptions): boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config(options: string): any;
   config(): LocalForageOptions;
 
@@ -125,12 +136,14 @@ export interface LocalForage extends LocalForageDbMethods {
   setDriver(
     driver: string | string[],
     callback?: () => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     errorCallback?: (error: any) => void
   ): Promise<void>;
 
   defineDriver(
     driver: LocalForageDriver,
     callback?: () => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     errorCallback?: (error: any) => void
   ): Promise<void>;
 
@@ -146,6 +159,7 @@ export interface LocalForage extends LocalForageDbMethods {
 
   supports(driverName: string): boolean;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ready(callback?: (error: any) => void): Promise<void>;
 }
 
@@ -153,7 +167,7 @@ export interface LocalForage extends LocalForageDbMethods {
 
 export interface ProxyStorage {
   setItem<T>(k: string, v: T, m: number): Promise<T>;
-  getItem<T>(k: string): Promise<T>;
+  getItem<T>(k: string): Promise<T | null>;
   removeItem(k: string): Promise<void>;
   clear(): Promise<void>;
 }

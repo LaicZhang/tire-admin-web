@@ -4,6 +4,7 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addProviderApi, updateProviderApi } from "@/api";
 import editForm from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 interface FormItemProps {
   id: number;
@@ -24,9 +25,9 @@ interface FormProps {
 
 export type { FormItemProps, FormProps };
 
-const formRef = ref(null);
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
-export function handleSelectionChange(_val) {
+export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
@@ -56,7 +57,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     contentRenderer: ({ options }) =>
       h(editForm, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline as FormItemProps;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
@@ -64,7 +66,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         });
         done(); // 关闭弹框
       }
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, uid, operatorId, ...customerData } = curData;
@@ -76,9 +78,9 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                 ...(customerData.initialPayable
                   ? { initialPayable: customerData.initialPayable }
                   : {}),
-                operator: {
-                  connect: { uid: null }
-                },
+                ...(operatorId
+                  ? { operator: { connect: { uid: operatorId } } }
+                  : {}),
                 company: {
                   connect: { uid: getCompanyId() }
                 }
@@ -89,9 +91,9 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             await updateProviderApi(uid, {
               provider: {
                 ...customerData,
-                operator: {
-                  connect: { uid: operatorId }
-                },
+                ...(operatorId
+                  ? { operator: { connect: { uid: operatorId } } }
+                  : {}),
                 company: {
                   connect: { uid: getCompanyId() }
                 }

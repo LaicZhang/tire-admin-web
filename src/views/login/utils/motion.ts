@@ -12,12 +12,21 @@ export default defineComponent({
   render() {
     const { delay } = this;
     const motion = resolveDirective("motion");
+    if (!motion) {
+      return h(
+        "div",
+        {},
+        {
+          default: () => [this.$slots.default?.()]
+        }
+      );
+    }
     return withDirectives(
       h(
         "div",
         {},
         {
-          default: () => [this.$slots.default()]
+          default: () => [this.$slots.default?.()]
         }
       ),
       [

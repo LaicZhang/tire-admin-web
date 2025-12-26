@@ -8,6 +8,9 @@ export interface RepoDto {
   name: string;
   address?: string;
   desc?: string;
+  startAt?: string | Date;
+  endAt?: string | Date;
+  company?: { connect: { uid: string } };
   isPrimary?: boolean;
   status?: boolean;
 }

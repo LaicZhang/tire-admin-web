@@ -50,7 +50,7 @@ const __APP_INFO__ = {
 /** 处理环境变量 */
 const wrapperEnv = (envConf: Recordable): ViteEnv => {
   // 默认值
-  const ret: ViteEnv = {
+  const ret = {
     VITE_PORT: 8848,
     VITE_PUBLIC_PATH: "",
     VITE_ROUTER_HISTORY: "",
@@ -58,7 +58,7 @@ const wrapperEnv = (envConf: Recordable): ViteEnv => {
     VITE_HIDE_HOME: "false",
     VITE_COMPRESSION: "none"
     // VITE_SERVER_URL: "http://localhost:3000"
-  };
+  } as ViteEnv & Record<string, unknown>;
 
   for (const envName of Object.keys(envConf)) {
     let realName = envConf[envName].replace(/\\n/g, "\n");

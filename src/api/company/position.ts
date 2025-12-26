@@ -7,6 +7,7 @@ const prefix = "/role/";
 export interface PositionDto {
   name: string;
   desc?: string;
+  company?: { connect: { uid: string } };
 }
 
 export interface Position extends PositionDto {

@@ -6,6 +6,7 @@ const prefix = "/salary/";
 
 export interface SalaryDto {
   name: string;
+  company?: { connect: { uid: string } };
   base?: number;
   performance?: number;
   fulltimeAttendanceAward?: number;

@@ -5,7 +5,8 @@ import {
   reactive,
   onMounted,
   type CSSProperties,
-  getCurrentInstance
+  getCurrentInstance,
+  type ComponentInternalInstance
 } from "vue";
 import type { tagsViewsType } from "../types";
 import { useRoute, useRouter } from "vue-router";
@@ -32,7 +33,7 @@ import type { IconifyIcon } from "@iconify/vue";
 export function useTags() {
   const route = useRoute();
   const router = useRouter();
-  const instance = getCurrentInstance();
+  const instance = getCurrentInstance() as ComponentInternalInstance | null;
   const pureSetting = useSettingStoreHook();
 
   const buttonTop = ref(0);
@@ -51,15 +52,13 @@ export function useTags() {
     )?.showModel || "smart"
   );
   /** 是否隐藏标签页，默认显示 */
-  const showTags =
-    ref(
-      storageLocal().getItem<StorageConfigs>(
-        `${responsiveStorageNameSpace()}configure`
-      ).hideTabs
-    ) ?? ref("false");
-  const multiTags: any = computed(() => {
-    return useMultiTagsStoreHook().multiTags;
-  });
+  const showTags = ref(
+    storageLocal().getItem<StorageConfigs>(
+      `${responsiveStorageNameSpace()}configure`
+    )?.hideTabs ?? false
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const multiTags = computed(() => useMultiTagsStoreHook().multiTags as any[]);
 
   const tagsViews = reactive<Array<tagsViewsType>>([
     {
@@ -113,7 +112,8 @@ export function useTags() {
     }
   ]);
 
-  function conditionHandle(item, previous, next) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function conditionHandle(item: any, previous: any, next: any) {
     if (isBoolean(route?.meta?.showLink) && route?.meta?.showLink === false) {
       if (Object.keys(route.query).length > 0) {
         return isEqual(route.query, item.query) ? previous : next;
@@ -126,20 +126,23 @@ export function useTags() {
   }
 
   const iconIsActive = computed(() => {
-    return (item, index) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (item: any, index: number) => {
       if (index === 0) return;
       return conditionHandle(item, true, false);
     };
   });
 
   const linkIsActive = computed(() => {
-    return item => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (item: any) => {
       return conditionHandle(item, "is-active", "");
     };
   });
 
   const scheduleIsActive = computed(() => {
-    return item => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (item: any) => {
       return conditionHandle(item, "schedule-active", "");
     };
   });
@@ -159,33 +162,44 @@ export function useTags() {
     visible.value = false;
   };
 
+  const getRefEl = (key: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (instance?.refs?.[key] as any)?.[0] as HTMLElement | undefined;
+  };
+
   /** 鼠标移入添加激活样式 */
-  function onMouseenter(index) {
+  function onMouseenter(index: number) {
     if (index) activeIndex.value = index;
     if (unref(showModel) === "smart") {
-      if (hasClass(instance.refs["schedule" + index][0], "schedule-active"))
-        return;
-      toggleClass(true, "schedule-in", instance.refs["schedule" + index][0]);
-      toggleClass(false, "schedule-out", instance.refs["schedule" + index][0]);
+      const el = getRefEl(`schedule${index}`);
+      if (!el) return;
+      if (hasClass(el, "schedule-active")) return;
+      toggleClass(true, "schedule-in", el);
+      toggleClass(false, "schedule-out", el);
     } else {
-      if (hasClass(instance.refs["dynamic" + index][0], "is-active")) return;
-      toggleClass(true, "card-in", instance.refs["dynamic" + index][0]);
-      toggleClass(false, "card-out", instance.refs["dynamic" + index][0]);
+      const el = getRefEl(`dynamic${index}`);
+      if (!el) return;
+      if (hasClass(el, "is-active")) return;
+      toggleClass(true, "card-in", el);
+      toggleClass(false, "card-out", el);
     }
   }
 
   /** 鼠标移出恢复默认样式 */
-  function onMouseleave(index) {
+  function onMouseleave(index: number) {
     activeIndex.value = -1;
     if (unref(showModel) === "smart") {
-      if (hasClass(instance.refs["schedule" + index][0], "schedule-active"))
-        return;
-      toggleClass(false, "schedule-in", instance.refs["schedule" + index][0]);
-      toggleClass(true, "schedule-out", instance.refs["schedule" + index][0]);
+      const el = getRefEl(`schedule${index}`);
+      if (!el) return;
+      if (hasClass(el, "schedule-active")) return;
+      toggleClass(false, "schedule-in", el);
+      toggleClass(true, "schedule-out", el);
     } else {
-      if (hasClass(instance.refs["dynamic" + index][0], "is-active")) return;
-      toggleClass(false, "card-in", instance.refs["dynamic" + index][0]);
-      toggleClass(true, "card-out", instance.refs["dynamic" + index][0]);
+      const el = getRefEl(`dynamic${index}`);
+      if (!el) return;
+      if (hasClass(el, "is-active")) return;
+      toggleClass(false, "card-in", el);
+      toggleClass(true, "card-out", el);
     }
   }
 

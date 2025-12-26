@@ -41,7 +41,7 @@ export async function getCustomerListApi(
   );
 }
 
-export async function addCustomerApi(data: CustomerDto) {
+export async function addCustomerApi(data: Record<string, unknown>) {
   return await http.request<CommonResult<Customer>>(
     "post",
     baseUrlApi(prefix),
@@ -60,7 +60,7 @@ export async function getCustomerApi(uid: string) {
 
 export async function updateCustomerApi(
   uid: string,
-  data: Partial<CustomerDto>
+  data: Record<string, unknown>
 ) {
   return await http.request<CommonResult<Customer>>(
     "patch",

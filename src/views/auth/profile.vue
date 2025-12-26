@@ -1,134 +1,144 @@
 <template>
-  <el-card class="m-1">
-    <el-descriptions
-      class="margin-top"
-      title="个人基础信息"
-      :column="2"
-      :size="size"
-      border
-    >
-      <template #extra>
-        <el-button type="primary">更新</el-button>
-      </template>
-      <el-descriptions-item>
-        <template #label>
-          <div class="cell-item">用户名</div>
-        </template>
-        {{ userInfo.username }}
-      </el-descriptions-item>
-      <el-descriptions-item>
-        <template #label>
-          <div class="cell-item">昵称</div>
-        </template>
-        {{ userInfo.info?.nickname }}
-      </el-descriptions-item>
-      <el-descriptions-item>
-        <template #label>
-          <div class="cell-item">手机号</div>
-        </template>
-        {{ userInfo.phone }}
-      </el-descriptions-item>
-      <el-descriptions-item>
-        <template #label>
-          <div class="cell-item">邮箱</div>
-        </template>
-        {{ userInfo.email }}
-      </el-descriptions-item>
-      <el-descriptions-item>
-        <template #label>
-          <div class="cell-item">性别</div>
-        </template>
-        <el-tag size="small">{{
-          userInfo.info.gender === 1 ? "男" : "女"
-        }}</el-tag>
-      </el-descriptions-item>
-      <el-descriptions-item>
-        <template #label>
-          <div class="cell-item">实名状态</div>
-        </template>
-        <el-tag size="small">{{
-          userInfo.info.isRealName === true ? "已实名" : "未实名"
-        }}</el-tag>
-      </el-descriptions-item>
-      <el-descriptions-item>
-        <template #label>
-          <div class="cell-item">生日</div>
-        </template>
-        {{ userInfo.info.birthday?.substring(0, 10) }}
-      </el-descriptions-item>
-    </el-descriptions>
-  </el-card>
-
-  <!-- 微信绑定卡片 -->
-  <el-card class="m-1 mt-4">
-    <template #header>
-      <div class="flex items-center justify-between">
-        <span class="font-medium">微信账号绑定</span>
-        <el-button
-          v-if="!wxBindStatus.isBound"
-          type="primary"
-          size="small"
-          :loading="wxLoading"
-          @click="handleBindWx"
-        >
-          绑定微信
-        </el-button>
-        <el-button
-          v-else
-          type="danger"
-          size="small"
-          :loading="wxLoading"
-          @click="handleUnbindWx"
-        >
-          解除绑定
-        </el-button>
-      </div>
-    </template>
-
-    <div v-if="wxBindStatus.isBound" class="flex items-center gap-4">
-      <el-avatar :size="48" :src="wxBindStatus.avatar">
-        <el-icon><User /></el-icon>
-      </el-avatar>
-      <div>
-        <div class="font-medium">{{ wxBindStatus.nickname || "微信用户" }}</div>
-        <div class="text-sm text-gray-400">
-          绑定时间: {{ wxBindStatus.bindTime || "未知" }}
-        </div>
-      </div>
-      <el-tag type="success" size="small">已绑定</el-tag>
-    </div>
-
-    <div v-else class="text-center py-6">
-      <el-icon class="text-4xl text-gray-300 mb-2"><Connection /></el-icon>
-      <p class="text-gray-400">暂未绑定微信账号</p>
-      <p class="text-xs text-gray-300 mt-1">绑定后可使用微信扫码登录</p>
-    </div>
-  </el-card>
-
-  <!-- 微信绑定对话框 -->
-  <el-dialog v-model="wxBindDialogVisible" title="绑定微信" width="400px">
-    <div class="text-center">
-      <p class="mb-4">请使用微信扫描二维码完成绑定</p>
-      <div v-if="wxQrUrl" class="flex justify-center">
-        <img :src="wxQrUrl" alt="微信二维码" class="w-48 h-48 border rounded" />
-      </div>
-      <div
-        v-else
-        class="w-48 h-48 mx-auto flex items-center justify-center bg-gray-100 rounded"
+  <div>
+    <el-card class="m-1">
+      <el-descriptions
+        class="margin-top"
+        title="个人基础信息"
+        :column="2"
+        :size="size"
+        border
       >
-        <el-icon class="text-4xl text-gray-300 is-loading"><Loading /></el-icon>
+        <template #extra>
+          <el-button type="primary">更新</el-button>
+        </template>
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">用户名</div>
+          </template>
+          {{ userInfo.username }}
+        </el-descriptions-item>
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">昵称</div>
+          </template>
+          {{ userInfo.info?.nickname }}
+        </el-descriptions-item>
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">手机号</div>
+          </template>
+          {{ userInfo.phone }}
+        </el-descriptions-item>
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">邮箱</div>
+          </template>
+          {{ userInfo.email }}
+        </el-descriptions-item>
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">性别</div>
+          </template>
+          <el-tag size="small">{{
+            userInfo.info.gender === 1 ? "男" : "女"
+          }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">实名状态</div>
+          </template>
+          <el-tag size="small">{{
+            userInfo.info.isRealName === true ? "已实名" : "未实名"
+          }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item>
+          <template #label>
+            <div class="cell-item">生日</div>
+          </template>
+          {{ formattedBirthday }}
+        </el-descriptions-item>
+      </el-descriptions>
+    </el-card>
+
+    <!-- 微信绑定卡片 -->
+    <el-card class="m-1 mt-4">
+      <template #header>
+        <div class="flex items-center justify-between">
+          <span class="font-medium">微信账号绑定</span>
+          <el-button
+            v-if="!wxBindStatus.isBound"
+            type="primary"
+            size="small"
+            :loading="wxLoading"
+            @click="handleBindWx"
+          >
+            绑定微信
+          </el-button>
+          <el-button
+            v-else
+            type="danger"
+            size="small"
+            :loading="wxLoading"
+            @click="handleUnbindWx"
+          >
+            解除绑定
+          </el-button>
+        </div>
+      </template>
+
+      <div v-if="wxBindStatus.isBound" class="flex items-center gap-4">
+        <el-avatar :size="48" :src="wxBindStatus.avatar">
+          <el-icon><User /></el-icon>
+        </el-avatar>
+        <div>
+          <div class="font-medium">
+            {{ wxBindStatus.nickname || "微信用户" }}
+          </div>
+          <div class="text-sm text-gray-400">
+            绑定时间: {{ wxBindStatus.bindTime || "未知" }}
+          </div>
+        </div>
+        <el-tag type="success" size="small">已绑定</el-tag>
       </div>
-      <p class="text-xs text-gray-400 mt-4">二维码有效期 5 分钟</p>
-    </div>
-    <template #footer>
-      <el-button @click="wxBindDialogVisible = false">取消</el-button>
-      <el-button type="primary" @click="checkBindStatus">已扫码</el-button>
-    </template>
-  </el-dialog>
+
+      <div v-else class="text-center py-6">
+        <el-icon class="text-4xl text-gray-300 mb-2"><Connection /></el-icon>
+        <p class="text-gray-400">暂未绑定微信账号</p>
+        <p class="text-xs text-gray-300 mt-1">绑定后可使用微信扫码登录</p>
+      </div>
+    </el-card>
+
+    <!-- 微信绑定对话框 -->
+    <el-dialog v-model="wxBindDialogVisible" title="绑定微信" width="400px">
+      <div class="text-center">
+        <p class="mb-4">请使用微信扫描二维码完成绑定</p>
+        <div v-if="wxQrUrl" class="flex justify-center">
+          <img
+            :src="wxQrUrl"
+            alt="微信二维码"
+            class="w-48 h-48 border rounded"
+          />
+        </div>
+        <div
+          v-else
+          class="w-48 h-48 mx-auto flex items-center justify-center bg-gray-100 rounded"
+        >
+          <el-icon class="text-4xl text-gray-300 is-loading"
+            ><Loading
+          /></el-icon>
+        </div>
+        <p class="text-xs text-gray-400 mt-4">二维码有效期 5 分钟</p>
+      </div>
+      <template #footer>
+        <el-button @click="wxBindDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="checkBindStatus">已扫码</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { getUserInfoApi } from "@/api";
 import {
   getWxBindStatusApi,
@@ -156,6 +166,19 @@ const wxBindStatus = ref({
   nickname: "",
   avatar: "",
   bindTime: ""
+});
+
+const formattedBirthday = computed(() => {
+  const birthday = userInfo.value.info?.birthday;
+  if (!birthday) return "";
+  try {
+    // Handle both Date objects and date strings
+    const date = new Date(birthday as string | Date);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().substring(0, 10);
+  } catch {
+    return "";
+  }
 });
 
 const getUserInfo = async () => {

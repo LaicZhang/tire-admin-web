@@ -56,18 +56,18 @@ export function useNav() {
 
   const { $storage, $config } = useGlobal<GlobalPropertiesApi>();
   const layout = computed(() => {
-    return $storage?.layout?.layout;
+    return $storage?.layout?.layout ?? pureApp.layout;
   });
 
   const title = computed(() => {
-    return $config.Title;
+    return $config?.Title ?? getConfig().Title ?? "";
   });
 
   /** 动态title */
   function changeTitle(meta: routeMetaType) {
     const Title = getConfig().Title;
-    if (Title) document.title = `${meta.title} | ${Title}`;
-    else document.title = meta.title;
+    if (Title) document.title = `${meta.title ?? ""} | ${Title}`;
+    else document.title = meta.title ?? "";
   }
 
   /** 退出登录 */
@@ -76,7 +76,8 @@ export function useNav() {
   }
 
   function backTopMenu() {
-    router.push(getTopMenu()?.path);
+    const path = getTopMenu()?.path;
+    if (path) router.push(path);
   }
 
   function onPanel() {

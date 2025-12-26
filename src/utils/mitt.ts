@@ -3,7 +3,7 @@ import mitt from "mitt";
 
 /** 全局公共事件需要在此处添加类型 */
 type Events = {
-  openPanel: string;
+  openPanel: void;
   tagViewsChange: string;
   tagViewsShowModel: string;
   logoChange: boolean;

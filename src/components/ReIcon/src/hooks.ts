@@ -9,6 +9,7 @@ import { FontIcon, IconifyIconOnline, IconifyIconOffline } from "../index";
  * @param attrs 可选 iconType 属性
  * @returns Component
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useRenderIcon(icon: any, attrs?: iconType): Component {
   // iconfont
   const ifReg = /^IF-/;
@@ -33,7 +34,12 @@ export function useRenderIcon(icon: any, attrs?: iconType): Component {
     });
   } else if (typeof icon === "function" || typeof icon?.render === "function") {
     // svg
-    return attrs ? h(icon, { ...attrs }) : icon;
+    return defineComponent({
+      name: "SvgIcon",
+      render() {
+        return h(icon, { ...attrs });
+      }
+    });
   } else if (typeof icon === "object") {
     return defineComponent({
       name: "OfflineIcon",

@@ -1,4 +1,4 @@
-const cachedResults = {};
+const cachedResults: Record<string, string> = {};
 
 export const baseUrlApi = (url: string): string => {
   if (cachedResults[url]) {

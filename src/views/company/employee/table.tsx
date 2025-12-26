@@ -5,6 +5,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addEmployeeApi, updateEmployeeApi } from "@/api";
 import editForm from "./form.vue";
 import { getRandomName, getUsernameOfOnlyNumber } from "@/utils";
+import type { FormInstance } from "element-plus";
 
 export interface FormItemProps {
   phone: string;
@@ -17,7 +18,7 @@ export interface FormItemProps {
   uid: string;
   desc?: string;
   nickname?: string;
-  jobs: any[];
+  jobs: unknown[];
   user?: {
     username: string;
     password?: string;
@@ -29,9 +30,9 @@ export interface FormProps {
   formInline: FormItemProps;
 }
 
-const formRef = ref(null);
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
-export function handleSelectionChange(_val) {
+export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
@@ -44,11 +45,11 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         nickname: row?.nickname ?? getRandomName(),
         uid: row?.uid ?? undefined,
         desc: row?.desc ?? undefined,
-        phone: row?.user.phone ?? undefined,
-        email: row?.user.email ?? undefined,
-        username: row?.user.username ?? getUsernameOfOnlyNumber(),
+        phone: row?.user?.phone ?? undefined,
+        email: row?.user?.email ?? undefined,
+        username: row?.user?.username ?? getUsernameOfOnlyNumber(),
         status: row?.status ?? undefined,
-        password: row?.user.password ?? undefined,
+        password: row?.user?.password ?? undefined,
         id: row?.id ?? undefined,
         jobs: row?.jobs ?? []
       }
@@ -59,9 +60,11 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
+    contentRenderer: ({ options }) =>
+      h(editForm, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline as FormItemProps;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
@@ -69,7 +72,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         });
         done(); // 关闭弹框
       }
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           const {
             uid,
@@ -101,9 +104,9 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             });
             chores();
           } else {
-            delete user.password;
+            const { password: _password, ...userWithoutPassword } = user;
             await updateEmployeeApi(uid, {
-              user,
+              user: userWithoutPassword,
               name: nameInfo,
               jobs
             });

@@ -20,7 +20,8 @@ export function getParentPaths(
     for (let i = 0; i < routes.length; i++) {
       const item = routes[i];
       // 返回父级path
-      if (item[key] === value) return parents;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((item as any)[key] === value) return parents;
       // children不存在或为空则不递归
       if (!item.children || !item.children.length) continue;
       // 往下查找时将当前path入栈
@@ -40,17 +41,20 @@ export function getParentPaths(
 /**
  * 查找对应 `path` 的路由信息
  */
-export function findRouteByPath(path: string, routes: RouteRecordRaw[]) {
-  let res = routes.find((item: { path: string }) => item.path == path);
+export function findRouteByPath(
+  path: string,
+  routes: RouteRecordRaw[]
+): RouteRecordRaw | null {
+  let res: RouteRecordRaw | null | undefined = routes.find(
+    item => item.path === path
+  );
   if (res) {
     return isProxy(res) ? toRaw(res) : res;
   } else {
     for (let i = 0; i < routes.length; i++) {
-      if (
-        routes[i].children instanceof Array &&
-        routes[i].children.length > 0
-      ) {
-        res = findRouteByPath(path, routes[i].children);
+      const children = routes[i].children;
+      if (Array.isArray(children) && children.length > 0) {
+        res = findRouteByPath(path, children);
         if (res) {
           return isProxy(res) ? toRaw(res) : res;
         }
@@ -60,13 +64,12 @@ export function findRouteByPath(path: string, routes: RouteRecordRaw[]) {
   }
 }
 
-function handleTopMenu(route) {
+function handleTopMenu(route: RouteRecordRaw) {
   if (route?.children && route.children.length > 1) {
-    if (route.redirect) {
-      return route.children.filter(cur => cur.path === route.redirect)[0];
-    } else {
-      return route.children[0];
-    }
+    const match = route.redirect
+      ? route.children.find(cur => cur.path === route.redirect)
+      : undefined;
+    return match ?? route.children[0];
   } else {
     return route;
   }
@@ -76,9 +79,15 @@ function handleTopMenu(route) {
  * 获取所有菜单中的第一个菜单（顶级菜单）
  */
 export function getTopMenu(tag = false): menuType {
-  const topMenu = handleTopMenu(
-    usePermissionStoreHook().wholeMenus[0]?.children[0]
-  );
+  const wholeMenus = usePermissionStoreHook()
+    .wholeMenus as unknown as RouteRecordRaw[];
+  // 菜单未加载时返回空对象，防止模板渲染时报错
+  const firstMenu = wholeMenus?.[0];
+  const firstChild = firstMenu?.children?.[0];
+  if (!wholeMenus || wholeMenus.length === 0 || !firstChild) {
+    return {} as menuType;
+  }
+  const topMenu = handleTopMenu(firstChild) as unknown as menuType;
   tag && useMultiTagsStoreHook().handleTags("push", topMenu);
   return topMenu;
 }

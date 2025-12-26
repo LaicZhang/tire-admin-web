@@ -4,8 +4,10 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addSalaryApi, updateSalaryApi } from "@/api";
 import editForm from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 interface FormItemProps {
+  uid: string;
   name: string;
   id: number;
   desc?: string;
@@ -20,9 +22,9 @@ interface FormProps {
 
 export type { FormItemProps, FormProps };
 
-const formRef = ref(null);
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
-export function handleSelectionChange(_val) {
+export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
@@ -31,8 +33,9 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     title: `${title}部门`,
     props: {
       formInline: {
+        uid: row?.uid ?? "",
         name: row?.name ?? "",
-        id: row?.id ?? "",
+        id: row?.id ?? 0,
         base: row?.base ?? 0,
         performance: row?.performance ?? 0,
         fulltimeAttendanceAward: row?.fulltimeAttendanceAward ?? 0,
@@ -49,7 +52,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     contentRenderer: ({ options }) =>
       h(editForm, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline as FormItemProps;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
@@ -57,7 +61,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         });
         done(); // 关闭弹框
       }
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           if (title === "新增") {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -70,8 +74,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             });
             chores();
           } else {
-            const { id, ...curSalaryData } = curData;
-            await updateSalaryApi(id, { ...curSalaryData });
+            const { uid, id: _id, ...curSalaryData } = curData;
+            await updateSalaryApi(uid, { ...curSalaryData });
             chores();
           }
         }

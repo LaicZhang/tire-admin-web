@@ -39,14 +39,14 @@ import { subBefore, getQueryMap } from "@pureadmin/utils";
     // 保存新信息到本地
     setToken(params);
 
-    // 删除不需要显示在 url 的参数
-    delete params.roles;
-    delete params.accessToken;
+    // 移除不需要显示在 url 的参数
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { roles: _roles, accessToken: _accessToken, ...rest } = params as any;
 
     const newUrl = `${location.origin}${location.pathname}${subBefore(
       location.hash,
       "?"
-    )}?${JSON.stringify(params)
+    )}?${JSON.stringify(rest)
       .replace(/["{}]/g, "")
       .replace(/:/g, "=")
       .replace(/,/g, "&")}`;

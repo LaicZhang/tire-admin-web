@@ -39,7 +39,7 @@ export async function getProviderListApi(
   );
 }
 
-export async function addProviderApi(data: ProviderDto) {
+export async function addProviderApi(data: Record<string, unknown>) {
   return await http.request<CommonResult<Provider>>(
     "post",
     baseUrlApi(prefix),
@@ -58,7 +58,7 @@ export async function getProviderApi(uid: string) {
 
 export async function updateProviderApi(
   uid: string,
-  data: Partial<ProviderDto>
+  data: Record<string, unknown>
 ) {
   return await http.request<CommonResult<Provider>>(
     "patch",

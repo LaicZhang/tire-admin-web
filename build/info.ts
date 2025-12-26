@@ -42,7 +42,7 @@ export function viteBuildInfo(): Plugin {
         endTime = dayjs(new Date());
         getPackageSize({
           folder: outDir,
-          callback: (size: string) => {
+          callback: (size: string | number) => {
             console.log(
               boxen(
                 gradient(["cyan", "magenta"]).multiline(

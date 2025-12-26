@@ -32,12 +32,16 @@ export function useDataThemeChange() {
   ]);
 
   const { $storage } = useGlobal<GlobalPropertiesApi>();
-  const dataTheme = ref<boolean>($storage?.layout?.darkMode);
-  const overallStyle = ref<string>($storage?.layout?.overallStyle);
+  const dataTheme = ref<boolean>(!!$storage?.layout?.darkMode);
+  const overallStyle = ref<string>($storage?.layout?.overallStyle ?? "");
   const body = document.documentElement as HTMLElement;
 
-  function toggleClass(flag: boolean, clsName: string, target?: HTMLElement) {
-    const targetEl = target || document.body;
+  function toggleClass(
+    flag: boolean,
+    clsName: string,
+    target?: HTMLElement | null
+  ) {
+    const targetEl = target ?? document.body;
     let { className } = targetEl;
     className = className.replace(clsName, "").trim();
     targetEl.className = flag ? `${className} ${clsName}` : className;
@@ -63,10 +67,10 @@ export function useDataThemeChange() {
     };
 
     if (theme === "default" || theme === "light") {
-      setEpThemeColor(getConfig().EpThemeColor);
+      setEpThemeColor(getConfig().EpThemeColor ?? "#4091f7");
     } else {
       const colors = themeColors.value.find(v => v.themeColor === theme);
-      setEpThemeColor(colors.color);
+      setEpThemeColor(colors?.color ?? "#4091f7");
     }
   }
 
@@ -91,7 +95,7 @@ export function useDataThemeChange() {
 
   /** 浅色、深色整体风格切换 */
   function dataThemeChange(overall?: string) {
-    overallStyle.value = overall;
+    overallStyle.value = overall ?? "";
     if (useEpThemeStoreHook().epTheme === "light" && dataTheme.value) {
       setLayoutThemeColor("default", false);
     } else {
@@ -113,11 +117,11 @@ export function useDataThemeChange() {
     removeToken();
     storageLocal().clear();
     const { Grey, Weak, MultiTagsCache, EpThemeColor, Layout } = getConfig();
-    useAppStoreHook().setLayout(Layout);
-    setEpThemeColor(EpThemeColor);
-    useMultiTagsStoreHook().multiTagsCacheChange(MultiTagsCache);
-    toggleClass(Grey, "html-grey", document.querySelector("html"));
-    toggleClass(Weak, "html-weakness", document.querySelector("html"));
+    if (Layout) useAppStoreHook().setLayout(Layout);
+    setEpThemeColor(EpThemeColor ?? "#4091f7");
+    useMultiTagsStoreHook().multiTagsCacheChange(!!MultiTagsCache);
+    toggleClass(!!Grey, "html-grey", document.documentElement);
+    toggleClass(!!Weak, "html-weakness", document.documentElement);
     router.push("/login");
     useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
     resetRouter();

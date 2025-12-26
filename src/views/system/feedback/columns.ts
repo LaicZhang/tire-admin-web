@@ -22,12 +22,17 @@ export const columns: TableColumnList = [
     prop: "status",
     width: 120,
     cellRenderer: ({ row }) => {
-      const statusMap = {
+      const statusMap: Record<
+        number,
+        { text: string; type: "warning" | "info" | "success" }
+      > = {
         0: { text: "待处理", type: "warning" },
         1: { text: "处理中", type: "info" },
         2: { text: "已处理", type: "success" }
       };
-      const status = statusMap[row.status] || { text: "未知", type: "info" };
+      const status =
+        statusMap[Number(row.status)] ||
+        ({ text: "未知", type: "info" } as const);
       return h(
         "el-tag",
         {
@@ -42,12 +47,12 @@ export const columns: TableColumnList = [
     prop: "type",
     width: 120,
     cellRenderer: ({ row }) => {
-      const typeMap = {
+      const typeMap: Record<number, string> = {
         0: "建议",
         1: "问题",
         2: "其他"
       };
-      return typeMap[row.type] || "未知";
+      return typeMap[Number(row.type)] || "未知";
     }
   },
   {

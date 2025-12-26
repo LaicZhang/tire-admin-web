@@ -12,12 +12,12 @@ export const columns: TableColumnList = [
     label: "资产类型",
     prop: "type",
     formatter: row => {
-      const typeMap = {
+      const typeMap: Record<number, string> = {
         0: "固定资产",
         1: "无形资产",
         2: "其他资产"
       };
-      return typeMap[row.type] || "未知";
+      return typeMap[Number(row.type)] || "未知";
     }
   },
   {

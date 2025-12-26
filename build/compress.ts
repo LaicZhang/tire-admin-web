@@ -1,10 +1,10 @@
-import type { Plugin } from "vite";
+import type { PluginOption } from "vite";
 import { isArray } from "@pureadmin/utils";
 import compressPlugin from "vite-plugin-compression";
 
 export const configCompressPlugin = (
   compress: ViteCompression
-): Plugin | Plugin[] => {
+): PluginOption => {
   if (compress === "none") return null;
 
   const gz = {
@@ -31,7 +31,7 @@ export const configCompressPlugin = (
     { k: "both", v: [gz, br] }
   ];
 
-  const plugins: Plugin[] = [];
+  const plugins: PluginOption[] = [];
 
   codeList.forEach(item => {
     if (compress.includes(item.k)) {

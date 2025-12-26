@@ -1,5 +1,5 @@
 export function getRandomName(length = 3) {
-  function randomAccess(min, max) {
+  function randomAccess(min: number, max: number) {
     return Math.floor(Math.random() * (min - max) + max);
   }
 

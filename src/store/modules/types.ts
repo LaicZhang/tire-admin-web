@@ -27,7 +27,7 @@ export type appType = {
 
 export interface RouteMeta {
   title?: string;
-  icon?: string;
+  icon?: string | null;
   roles?: string[];
   keepAlive?: boolean;
   showLink?: boolean;
@@ -74,6 +74,6 @@ export type userType = {
 };
 
 export type currentCompanyType = {
-  companyName?: string;
-  companyId?: string;
+  companyName: string;
+  companyId: string;
 };

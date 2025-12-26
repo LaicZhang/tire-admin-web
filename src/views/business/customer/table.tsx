@@ -4,6 +4,7 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addCustomerApi, updateCustomerApi } from "@/api";
 import editForm from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 interface FormItemProps {
   uid: string;
@@ -28,12 +29,13 @@ interface FormProps {
 
 export type { FormItemProps, FormProps };
 
-const formRef = ref(null);
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
-export function handleSelectionChange(_val) {
+export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function openDialog(title = "新增", row?: any) {
   addDialog({
     title: `${title}客户`,
@@ -45,7 +47,7 @@ export function openDialog(title = "新增", row?: any) {
         id: row?.id,
         operatorId: row?.operator?.uid,
         levelId: row?.level?.id,
-        tagIds: row?.tags?.map(t => t.id) ?? [],
+        tagIds: row?.tags?.map((t: { id: number }) => t.id) ?? [],
         creditLimit: row?.creditLimit ?? 0,
         initialBalance: 0, // Only logic for new customers
         totalTransactionAmount: row?.totalTransactionAmount ?? 0,
@@ -64,7 +66,8 @@ export function openDialog(title = "新增", row?: any) {
     contentRenderer: ({ options }) =>
       h(editForm, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline as FormItemProps;
       function chores() {
         message(`您${title}了客户「${curData.name}」`, {
@@ -74,12 +77,13 @@ export function openDialog(title = "新增", row?: any) {
         // 刷新列表（需要父组件配合，或者在这里通过其他方式触发刷新，目前保持原有逻辑）
         location.reload(); // Temporary fallback to ensure list refresh if not handled by parent
       }
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           const companyId = await getCompanyId();
 
           // 构建基础数据
-          const baseData = {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const baseData: Record<string, any> = {
             name: curData.name,
             desc: curData.desc,
             from: curData.from,
@@ -93,13 +97,13 @@ export function openDialog(title = "新增", row?: any) {
 
           // 处理关联关系
           if (curData.levelId) {
-            baseData["level"] = {
+            baseData.level = {
               connect: { id: curData.levelId }
             };
           }
 
           if (curData.tagIds && curData.tagIds.length > 0) {
-            baseData["tags"] = {
+            baseData.tags = {
               connect: curData.tagIds.map(id => ({ id }))
             };
           }
@@ -109,7 +113,7 @@ export function openDialog(title = "新增", row?: any) {
             // 注意：initialBalance 通常不直接存在于 customer 表，而是作为 debtProfile 或 transaction 存在。
             // 这里仅传递给后端，看后端如何处理。如果不支持会报错。
             if (curData.initialBalance) {
-              baseData["initialBalance"] = curData.initialBalance;
+              baseData.initialBalance = curData.initialBalance;
             }
 
             await addCustomerApi({
@@ -120,7 +124,7 @@ export function openDialog(title = "新增", row?: any) {
             // 更新时，tag 需要先 disconnect 再 connect，或者用 set (Prisma update input)
             // 为了简单，我们使用 set 来替换
             if (curData.tagIds) {
-              baseData["tags"] = {
+              baseData.tags = {
                 set: curData.tagIds.map(id => ({ id }))
               };
             }

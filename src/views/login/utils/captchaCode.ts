@@ -3,7 +3,7 @@ import { clone } from "@pureadmin/utils";
 import { ref } from "vue";
 
 const isDisabled = ref(false);
-const timer = ref(null);
+const timer = ref<ReturnType<typeof setInterval>>();
 const text = ref("");
 
 export const useCaptchaCode = () => {
@@ -16,7 +16,7 @@ export const useCaptchaCode = () => {
     const initTime = clone(time, true);
     await formEl.validateField(props, isValid => {
       if (isValid) {
-        clearInterval(timer.value);
+        if (timer.value) clearInterval(timer.value);
         isDisabled.value = true;
         text.value = `${time}`;
         timer.value = setInterval(() => {
@@ -26,7 +26,7 @@ export const useCaptchaCode = () => {
           } else {
             text.value = "";
             isDisabled.value = false;
-            clearInterval(timer.value);
+            if (timer.value) clearInterval(timer.value);
             time = initTime;
           }
         }, 1000);
@@ -37,7 +37,7 @@ export const useCaptchaCode = () => {
   const end = () => {
     text.value = "";
     isDisabled.value = false;
-    clearInterval(timer.value);
+    if (timer.value) clearInterval(timer.value);
   };
 
   return {

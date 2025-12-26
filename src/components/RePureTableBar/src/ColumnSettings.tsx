@@ -1,5 +1,14 @@
 import { ref, unref, nextTick, type ComponentInternalInstance } from "vue";
 import { cloneDeep, isBoolean, isFunction, getKeyList } from "@pureadmin/utils";
+import {
+  ElSpace,
+  ElPopover,
+  ElCheckbox,
+  ElCheckboxGroup,
+  ElButton,
+  ElScrollbar,
+  type CheckboxValueType
+} from "element-plus";
 import Sortable from "sortablejs";
 import DragIcon from "@/assets/table-bar/drag.svg?component";
 import SettingIcon from "@/assets/table-bar/settings.svg?component";
@@ -144,7 +153,7 @@ export function useColumnSettings({
   };
 
   const renderColumnSettings = () => (
-    <el-popover
+    <ElPopover
       v-slots={reference}
       placement="bottom-start"
       popper-style={{ padding: 0 }}
@@ -152,26 +161,30 @@ export function useColumnSettings({
       trigger="click"
     >
       <div class={topClass}>
-        <el-checkbox
+        <ElCheckbox
           class="-mr-1!"
           label="列展示"
           v-model={checkAll.value}
           indeterminate={isIndeterminate.value}
-          onChange={(value: boolean) => handleCheckAllChange(value)}
+          onChange={(value: CheckboxValueType) =>
+            handleCheckAllChange(value === true)
+          }
         />
-        <el-button type="primary" link onClick={() => onReset()}>
+        <ElButton type="primary" link onClick={() => onReset()}>
           重置
-        </el-button>
+        </ElButton>
       </div>
 
       <div class="pt-[6px] pl-[11px]">
-        <el-scrollbar max-height="36vh">
-          <el-checkbox-group
+        <ElScrollbar max-height="36vh">
+          <ElCheckboxGroup
             ref={`GroupRef${unref(tableKey)}`}
             modelValue={checkedColumns.value}
-            onChange={(value: string[]) => handleCheckedColumnsChange(value)}
+            onChange={(value: CheckboxValueType[]) =>
+              handleCheckedColumnsChange(value.map(String))
+            }
           >
-            <el-space direction="vertical" alignment="flex-start" size={0}>
+            <ElSpace direction="vertical" alignment="flex-start" size={0}>
               {checkColumnList.map((item: string, index: number) => {
                 return (
                   <div class="flex items-center">
@@ -184,12 +197,12 @@ export function useColumnSettings({
                         rowDrop(event)
                       }
                     />
-                    <el-checkbox
+                    <ElCheckbox
                       key={index}
                       label={item}
                       value={item}
-                      onChange={(value: boolean) =>
-                        handleCheckColumnListChange(value, item)
+                      onChange={(value: CheckboxValueType) =>
+                        handleCheckColumnListChange(value === true, item)
                       }
                     >
                       <span
@@ -198,15 +211,15 @@ export function useColumnSettings({
                       >
                         {item}
                       </span>
-                    </el-checkbox>
+                    </ElCheckbox>
                   </div>
                 );
               })}
-            </el-space>
-          </el-checkbox-group>
-        </el-scrollbar>
+            </ElSpace>
+          </ElCheckboxGroup>
+        </ElScrollbar>
       </div>
-    </el-popover>
+    </ElPopover>
   );
 
   return {

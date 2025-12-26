@@ -11,12 +11,17 @@ import {
   formatFlatteningRoutes
 } from "../utils";
 import { useMultiTagsStoreHook } from "./multiTags";
-import type { RouteRecordRaw } from "vue-router";
+import type { RouteRecordName, RouteRecordRaw } from "vue-router";
 
 export const usePermissionStore = defineStore("pure-permission", {
-  state: () => ({
+  state: (): {
+    constantMenus: RouteRecordRaw[];
+    wholeMenus: RouteRecordRaw[];
+    flatteningRoutes: RouteRecordRaw[];
+    cachePageList: Array<RouteRecordName>;
+  } => ({
     // 静态路由生成的菜单
-    constantMenus,
+    constantMenus: constantMenus as unknown as RouteRecordRaw[],
     // 整体路由生成的菜单（静态、动态）
     wholeMenus: [],
     // 整体路由（一维数组格式）
@@ -27,11 +32,14 @@ export const usePermissionStore = defineStore("pure-permission", {
   actions: {
     /** 组装整体路由生成的菜单 */
     handleWholeMenus(routes: RouteRecordRaw[]) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const merged = (this.constantMenus as any[]).concat(routes as any[]);
       this.wholeMenus = filterNoPermissionTree(
-        filterTree(ascending(this.constantMenus.concat(routes)))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        filterTree(ascending(merged as any))
       ) as unknown as RouteRecordRaw[];
       this.flatteningRoutes = formatFlatteningRoutes(
-        this.constantMenus.concat(routes)
+        merged as unknown as RouteRecordRaw[]
       ) as unknown as RouteRecordRaw[];
     },
     cacheOperate({ mode, name }: cacheType) {

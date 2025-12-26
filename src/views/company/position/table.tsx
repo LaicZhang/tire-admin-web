@@ -5,6 +5,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addPositionApi, updatePositionApi } from "@/api";
 import editForm from "./form.vue";
 import menuForm from "./menuForm.vue";
+import type { FormInstance } from "element-plus";
 
 interface FormItemProps {
   uid: string;
@@ -19,10 +20,10 @@ interface FormProps {
 
 export type { FormItemProps, FormProps };
 
-const formRef = ref(null);
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 const menuFormRef = ref<{ submit: () => Promise<boolean> } | null>(null);
 
-export function handleSelectionChange(_val) {
+export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
@@ -45,7 +46,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     contentRenderer: ({ options }) =>
       h(editForm, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
       const curData = options.props.formInline as FormItemProps;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
@@ -53,7 +55,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         });
         done(); // 关闭弹框
       }
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           if (title === "新增") {
             const { name, desc } = curData;

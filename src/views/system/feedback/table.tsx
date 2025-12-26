@@ -3,9 +3,18 @@ import { addDialog } from "@/components/ReDialog";
 import { message } from "@/utils";
 import { addFeedbackApi, updateFeedbackApi } from "@/api";
 import Form from "./form.vue";
+import type { FormInstance } from "element-plus";
 
-export function openDialog(title = "新增", row?) {
-  const formRef = ref();
+interface FeedbackRow {
+  uid: string;
+  content: string;
+  rating?: number;
+  status: number;
+  type: number;
+}
+
+export function openDialog(title = "新增", row?: FeedbackRow) {
+  const formRef = ref<{ getRef: () => FormInstance } | null>(null);
   addDialog({
     title: `${title}反馈`,
     props: {
@@ -31,10 +40,12 @@ export function openDialog(title = "新增", row?) {
     contentRenderer: ({ options }) =>
       h(Form, { ref: formRef, formInline: options.props.formInline }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const curData = options.props.formInline as any;
 
-      FormRef.validate(async valid => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           if (title === "新增") {
             await addFeedbackApi({
@@ -45,6 +56,7 @@ export function openDialog(title = "新增", row?) {
             });
             message(`您${title}了反馈`, { type: "success" });
           } else {
+            if (!row?.uid) return;
             await updateFeedbackApi(row.uid, {
               content: curData.content,
               rating: curData.rating,

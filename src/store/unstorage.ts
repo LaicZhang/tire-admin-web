@@ -10,19 +10,22 @@ export class IndexedDbStorage {
     });
   }
 
-  setItems(key, value) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setItems(key: any, value: any) {
     this.indexedDbStorage.setItems(key, value);
   }
 
-  getItems(key) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getItems(key: any) {
     return this.indexedDbStorage.getItems(key);
   }
 
-  setItem(key, value) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setItem(key: string, value: any) {
     return this.indexedDbStorage.setItem(key, value);
   }
 
-  getItem(key) {
+  getItem(key: string) {
     return this.indexedDbStorage.getItem(key);
   }
 }
@@ -35,19 +38,22 @@ export class LStorage {
     });
   }
 
-  setItems(key, value) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setItems(key: any, value: any) {
     this.lStorage.setItems(key, value);
   }
 
-  getItems(key) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getItems(key: any) {
     return this.lStorage.getItems(key);
   }
 
-  setItem(key, value) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setItem(key: string, value: any) {
     return this.lStorage.setItem(key, value);
   }
 
-  getItem(key) {
+  getItem(key: string) {
     return this.lStorage.getItem(key);
   }
 }

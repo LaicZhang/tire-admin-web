@@ -5,9 +5,9 @@ import type { setType } from "./types";
 
 export const useSettingStore = defineStore("pure-setting", {
   state: (): setType => ({
-    title: getConfig().Title,
-    fixedHeader: getConfig().FixedHeader,
-    hiddenSideBar: getConfig().HiddenSideBar
+    title: getConfig().Title ?? "",
+    fixedHeader: getConfig().FixedHeader ?? false,
+    hiddenSideBar: getConfig().HiddenSideBar ?? false
   }),
   getters: {
     getTitle(state) {
@@ -21,12 +21,15 @@ export const useSettingStore = defineStore("pure-setting", {
     }
   },
   actions: {
-    CHANGE_SETTING({ key, value }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    CHANGE_SETTING({ key, value }: { key: keyof setType; value: any }) {
       if (Reflect.has(this, key)) {
-        this[key] = value;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this as any)[key] = value;
       }
     },
-    changeSetting(data) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    changeSetting(data: { key: keyof setType; value: any }) {
       this.CHANGE_SETTING(data);
     }
   }

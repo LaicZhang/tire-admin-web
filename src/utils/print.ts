@@ -1,4 +1,5 @@
-interface PrintFunction {
+// PrintFunction interface is used for documentation purposes
+interface _PrintFunction {
   extendOptions: Function;
   getStyle: Function;
   setDomHeight: Function;
@@ -18,18 +19,22 @@ interface PrintInstance {
   getHtml: () => Element;
   writeIframe: (content: string) => void;
   toPrint: (frameWindow: Document | Window) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   isDOM: (obj: any) => boolean;
   setDomHeight: (arr: string[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extendOptions: <T>(obj: any, obj2: T) => T;
 }
 
 const Print = function (
   this: PrintInstance,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dom: string | Element | any,
   options?: Partial<PrintInstance["conf"]>
-): PrintFunction {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any {
   options = options || {};
-  // @ts-expect-error
+  // @ts-expect-error Check if called with new operator
   if (!(this instanceof Print)) return new Print(dom, options);
   this.conf = {
     styleStr: "",
@@ -40,9 +45,12 @@ const Print = function (
     // Callback after printing
     printDoneCallBack: null
   };
-  for (const key in this.conf) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const conf = this.conf as Record<string, any>;
+  for (const key in conf) {
     if (key && Object.prototype.hasOwnProperty.call(options, key)) {
-      this.conf[key] = options[key];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      conf[key] = (options as any)[key];
     }
   }
   if (typeof dom === "string") {
@@ -54,6 +62,7 @@ const Print = function (
     this.setDomHeight(this.conf.setDomHeightArr);
   }
   this.init();
+  return this;
 };
 
 Print.prototype = {
@@ -69,6 +78,7 @@ Print.prototype = {
    * @param {Object} obj
    * @param {Object} obj2
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extendOptions: function <T>(this: PrintInstance, obj: any, obj2: T): T {
     for (const k in obj2) {
       obj[k] = obj2[k];
@@ -119,6 +129,7 @@ Print.prototype = {
         const child = selects[k3].children;
         for (const i in child) {
           if (child[i].tagName == "OPTION") {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if ((child[i] as any).selected == true) {
               child[i].setAttribute("selected", "selected");
             } else {
@@ -135,7 +146,9 @@ Print.prototype = {
       img.src = imageURL;
       img.setAttribute("style", "max-width: 100%;");
       img.className = "isNeedRemove";
-      canvass[k4].parentNode.insertBefore(img, canvass[k4].nextElementSibling);
+      const parentNode = canvass[k4].parentNode;
+      if (parentNode)
+        parentNode.insertBefore(img, canvass[k4].nextElementSibling);
     }
 
     return this.dom?.outerHTML || "";
@@ -144,8 +157,6 @@ Print.prototype = {
     create iframe
   */
   writeIframe: function (this: PrintInstance, content: string) {
-    let w: Document | Window;
-    let doc: Document;
     const iframe: HTMLIFrameElement = document.createElement("iframe");
     const f: HTMLIFrameElement = document.body.appendChild(iframe);
     iframe.id = "myIframe";
@@ -153,17 +164,16 @@ Print.prototype = {
       "style",
       "position:absolute;width:0;height:0;top:-10px;left:-10px;"
     );
-    // eslint-disable-next-line prefer-const
-    w = f.contentWindow || f.contentDocument;
-    // eslint-disable-next-line prefer-const
-    doc = f.contentDocument || f.contentWindow.document;
+    const w = f.contentWindow;
+    const doc = f.contentDocument ?? w?.document;
+    if (!doc) return;
     doc.open();
     doc.write(content);
     doc.close();
 
     const removes = document.querySelectorAll(".isNeedRemove");
     for (let k = 0; k < removes.length; k++) {
-      removes[k].parentNode.removeChild(removes[k]);
+      removes[k].parentNode?.removeChild(removes[k]);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -173,7 +183,7 @@ Print.prototype = {
       if (_this.conf.printBeforeFn) {
         _this.conf.printBeforeFn({ doc });
       }
-      _this.toPrint(w);
+      if (w) _this.toPrint(w);
       setTimeout(function () {
         document.body.removeChild(iframe);
         // After popup, callback
@@ -197,7 +207,7 @@ Print.prototype = {
           win.focus();
         }
         try {
-          if (win.document && !win.document.execCommand("print", false, null)) {
+          if (win.document && !win.document.execCommand("print", false)) {
             win.print();
           } else if (win.print) {
             win.print();
@@ -217,10 +227,12 @@ Print.prototype = {
   },
   isDOM:
     typeof HTMLElement === "object"
-      ? function (obj) {
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        function (obj: any) {
           return obj instanceof HTMLElement;
         }
-      : function (obj) {
+      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        function (obj: any) {
           return (
             obj &&
             typeof obj === "object" &&
