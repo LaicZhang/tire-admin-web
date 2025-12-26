@@ -87,8 +87,12 @@ class PureHttp {
     this.httpInterceptorsResponse();
   }
 
-  /** token过期后，暂存待执行的请求 */
-  private static requests: Array<(token: string) => void> = [];
+  /** token 过期后，暂存待执行的请求（保存 resolve/reject，避免 refresh 失败时请求挂起） */
+  private static requests: Array<{
+    config: PureHttpRequestConfig;
+    resolve: (config: PureHttpRequestConfig) => void;
+    reject: (error: unknown) => void;
+  }> = [];
 
   /** 防止重复刷新token */
   private static isRefreshing = false;
@@ -99,15 +103,24 @@ class PureHttp {
   /** 保存当前Axios实例对象 */
   private static axiosInstance: AxiosInstance = Axios.create(defaultConfig);
 
-  /** 重连原始请求 */
-  private static retryOriginalRequest(config: PureHttpRequestConfig) {
-    return new Promise(resolve => {
-      PureHttp.requests.push((token: string) => {
-        config.headers ??= {};
-        config.headers["Authorization"] = formatToken(token);
-        resolve(config);
-      });
+  private static enqueueRequest(config: PureHttpRequestConfig) {
+    return new Promise<PureHttpRequestConfig>((resolve, reject) => {
+      PureHttp.requests.push({ config, resolve, reject });
     });
+  }
+
+  private static resolveRequests(token: string) {
+    PureHttp.requests.forEach(({ config, resolve }) => {
+      config.headers ??= {};
+      config.headers["Authorization"] = formatToken(token);
+      resolve(config);
+    });
+    PureHttp.requests = [];
+  }
+
+  private static rejectRequests(error: unknown) {
+    PureHttp.requests.forEach(({ reject }) => reject(error));
+    PureHttp.requests = [];
   }
 
   /** 请求拦截 */
@@ -123,51 +136,49 @@ class PureHttp {
           PureHttp.initConfig.beforeRequestCallback(config);
           return config;
         }
-        /** 请求白名单，放置一些不需要token的接口（通过设置请求白名单，防止token过期后再请求造成的死循环问题） */
-        const whiteList = ["/refresh-token", "/login"];
-        return whiteList.find(url => url === config.url)
-          ? config
-          : new Promise(resolve => {
-              const data = getToken();
-              if (data) {
-                const now = new Date().getTime(),
-                  expired = parseInt(data.expires) - now <= 0;
-                if (expired) {
-                  // Token 已过期，将当前请求加入等待队列
-                  // 无论是否正在刷新，都需要等待新 token
-                  if (!PureHttp.isRefreshing) {
-                    PureHttp.isRefreshing = true;
-                    // token过期刷新
-                    useUserStoreHook()
-                      .handRefreshToken({ refreshToken: data.refreshToken })
-                      .then(res => {
-                        const token = res.data.accessToken;
-                        // 通知所有等待的请求使用新 token
-                        PureHttp.requests.forEach(cb => cb(token));
-                        PureHttp.requests = [];
-                      })
-                      .catch(() => {
-                        // Token 刷新失败，清空队列并登出
-                        PureHttp.requests = [];
-                        useUserStoreHook().logOut();
-                      })
-                      .finally(() => {
-                        PureHttp.isRefreshing = false;
-                      });
-                  }
-                  // 当前请求也加入等待队列，等待新 token
-                  resolve(PureHttp.retryOriginalRequest(config));
-                } else {
-                  config.headers ??= {};
-                  config.headers["Authorization"] = formatToken(
-                    data.accessToken
-                  );
-                  resolve(config);
-                }
-              } else {
-                resolve(config);
-              }
+        // 跳过鉴权（登录/刷新等接口）
+        if (config.skipAuth) return config;
+
+        /** 请求白名单：不需要 token 的接口（避免 refresh-token 请求再次触发 refresh 导致死循环） */
+        const whiteList = ["/api/auth/login", "/api/auth/refresh-token"];
+        if (whiteList.includes(config.url ?? "")) return config;
+
+        const data = getToken();
+        if (!data?.accessToken) return config;
+
+        const expires = Number(data.expires);
+        const expired = expires <= Date.now();
+        if (!expired) {
+          config.headers ??= {};
+          config.headers["Authorization"] = formatToken(data.accessToken);
+          return config;
+        }
+
+        // accessToken 已过期，但 refreshToken 不存在：直接登出并快速失败
+        if (!data.refreshToken) {
+          useUserStoreHook().logOut();
+          return Promise.reject(new Error("登录已过期，请重新登录"));
+        }
+
+        // Token 过期：将当前请求加入等待队列，等待刷新完成后重试
+        if (!PureHttp.isRefreshing) {
+          PureHttp.isRefreshing = true;
+          useUserStoreHook()
+            .handRefreshToken({ refreshToken: data.refreshToken })
+            .then(res => {
+              const token = res.data.accessToken;
+              PureHttp.resolveRequests(token);
+            })
+            .catch(error => {
+              PureHttp.rejectRequests(error);
+              useUserStoreHook().logOut();
+            })
+            .finally(() => {
+              PureHttp.isRefreshing = false;
             });
+        }
+
+        return PureHttp.enqueueRequest(config);
       },
       error => {
         return Promise.reject(error);

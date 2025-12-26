@@ -46,6 +46,8 @@ export interface PureHttpRequestConfig extends AxiosRequestConfig {
   beforeRequestCallback?: (request: PureHttpRequestConfig) => void;
   /** 响应前回调 */
   beforeResponseCallback?: (response: PureHttpResponse) => void;
+  /** 跳过鉴权与无感刷新（用于登录/刷新等接口） */
+  skipAuth?: boolean;
 }
 
 /**

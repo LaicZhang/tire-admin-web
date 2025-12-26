@@ -3,14 +3,19 @@ import { baseUrlApi } from "./utils";
 import type { CommonResult, RefreshTokenResult, UserResult } from "./type";
 
 /** 登录请求参数 */
-export interface LoginDto {
-  username: string;
-  password: string;
-  code?: string;
-  /** 图形验证码（密码登录时必填） */
-  captchaCode?: string;
-  isRemember?: boolean;
-}
+export type LoginDto =
+  | {
+      username: string;
+      password: string;
+      /** 图形验证码（密码登录时必填） */
+      captchaCode?: string;
+      isRemember?: boolean;
+    }
+  | {
+      username: string;
+      code: string;
+      isRemember?: boolean;
+    };
 
 /** 刷新 Token 请求参数 */
 export interface RefreshTokenDto {
@@ -26,7 +31,7 @@ interface DetermineCurrentCompanyDto {
 interface SendVerifyCodeDto {
   email?: string;
   phone?: string;
-  type: "register" | "reset-password" | "bind";
+  type: number | "register" | "reset-password" | "bind";
 }
 
 /** 更新公司信息参数 */
@@ -61,7 +66,12 @@ interface LoginHistoryQueryDto {
  * @returns 用户信息和 token
  */
 export const getLogin = (data: LoginDto) => {
-  return http.request<UserResult>("post", baseUrlApi("/auth/login"), { data });
+  return http.request<UserResult>(
+    "post",
+    baseUrlApi("/auth/login"),
+    { data },
+    { skipAuth: true }
+  );
 };
 
 /**
@@ -73,7 +83,8 @@ export const refreshTokenApi = (data: RefreshTokenDto) => {
   return http.request<RefreshTokenResult>(
     "post",
     baseUrlApi("/auth/refresh-token"),
-    { data }
+    { data },
+    { skipAuth: true }
   );
 };
 

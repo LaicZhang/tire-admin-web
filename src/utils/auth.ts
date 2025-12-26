@@ -40,10 +40,40 @@ export const multipleTabsKey = "multiple-tabs";
 export function getToken(): DataInfo<number> | null {
   try {
     const cookieToken = Cookies.get(TokenKey);
+    const localToken = storageLocal().getItem<DataInfo<number>>(userKey);
+
+    let cookieData: Partial<DataInfo<number>> | null = null;
     if (cookieToken) {
-      return JSON.parse(cookieToken);
+      const parsed = JSON.parse(cookieToken) as {
+        accessToken?: string;
+        expires?: number;
+      };
+      cookieData = {
+        accessToken: parsed?.accessToken ?? "",
+        expires: parsed?.expires ?? 0
+      };
     }
-    return storageLocal().getItem<DataInfo<number>>(userKey);
+
+    // Cookie 仅保存 accessToken/expires；localStorage 保存 refreshToken/用户信息
+    if (!cookieData && !localToken) return null;
+
+    const accessToken = cookieData?.accessToken ?? "";
+    const expires = Number(cookieData?.expires ?? localToken?.expires ?? 0);
+    const refreshToken = localToken?.refreshToken ?? "";
+
+    if (!accessToken) return null;
+
+    return {
+      accessToken,
+      expires,
+      refreshToken,
+      username: localToken?.username,
+      avatar: localToken?.avatar,
+      nickname: localToken?.nickname,
+      permissions: localToken?.permissions,
+      roles: localToken?.roles,
+      uid: localToken?.uid
+    };
   } catch (error) {
     console.error("Failed to parse token:", error);
     return null;
