@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import path from "path";
 import { getConfig } from "@/config";
 import LinkItem from "./linkItem.vue";
 import { menuType } from "../../types";
@@ -70,9 +69,12 @@ const expandCloseIcon = computed(() => {
   };
 });
 
-const onlyOneChild: menuType = ref(null);
+const onlyOneChild = ref<menuType | null>(null);
 
-function hasOneShowingChild(children: menuType[] = [], parent: menuType) {
+function hasOneShowingChild(
+  children: menuType[] = [],
+  parent: menuType | undefined
+) {
   const showingChildren = children.filter((item: any) => {
     onlyOneChild.value = item;
     return true;
@@ -87,19 +89,37 @@ function hasOneShowingChild(children: menuType[] = [], parent: menuType) {
   }
 
   if (showingChildren.length === 0) {
-    onlyOneChild.value = { ...parent, path: "", noShowingChildren: true };
+    onlyOneChild.value = {
+      ...parent,
+      path: "",
+      noShowingChildren: true
+    } as menuType;
     return true;
   }
   return false;
 }
 
-function resolvePath(routePath) {
+function resolvePath(routePath: string) {
   const httpReg = /^http(s?):\/\//;
   if (httpReg.test(routePath) || httpReg.test(props.basePath)) {
     return routePath || props.basePath;
   } else {
-    // 使用path.posix.resolve替代path.resolve 避免windows环境下使用electron出现盘符问题
-    return path.posix.resolve(props.basePath, routePath);
+    const normalizePath = (input: string) => {
+      const segments = input.split("/").filter(Boolean);
+      const stack: string[] = [];
+      for (const segment of segments) {
+        if (segment === ".") continue;
+        if (segment === "..") stack.pop();
+        else stack.push(segment);
+      }
+      return `/${stack.join("/")}`;
+    };
+
+    const basePath = props.basePath || "/";
+    const combined = routePath.startsWith("/")
+      ? routePath
+      : `${basePath.replace(/\/+$/, "")}/${routePath}`;
+    return normalizePath(combined);
   }
 }
 </script>
@@ -107,38 +127,38 @@ function resolvePath(routePath) {
 <template>
   <link-item
     v-if="
-      hasOneShowingChild(props.item.children, props.item) &&
-      (!onlyOneChild.children || onlyOneChild.noShowingChildren)
+      hasOneShowingChild(props.item?.children, props.item) &&
+      (!onlyOneChild?.children || onlyOneChild?.noShowingChildren)
     "
-    :to="onlyOneChild.noShowingChildren ? item : onlyOneChild"
+    :to="(onlyOneChild?.noShowingChildren ? item : onlyOneChild) as menuType"
   >
     <el-menu-item
-      :index="resolvePath(onlyOneChild.path)"
+      :index="resolvePath(onlyOneChild?.path || '')"
       :class="{ 'submenu-title-noDropdown': !isNest }"
       :style="getNoDropdownStyle"
       v-bind="attrs"
     >
       <div
-        v-if="toRaw(props.item.meta.icon)"
+        v-if="toRaw(props.item?.meta?.icon)"
         class="sub-menu-icon"
         :style="getSubMenuIconStyle"
       >
         <component
           :is="
             useRenderIcon(
-              toRaw(onlyOneChild.meta.icon) ||
-                (props.item.meta && toRaw(props.item.meta.icon))
+              toRaw(onlyOneChild?.meta?.icon) ||
+                (props.item?.meta && toRaw(props.item?.meta?.icon))
             )
           "
         />
       </div>
       <el-text
         v-if="
-          (!props.item?.meta.icon &&
+          (!props.item?.meta?.icon &&
             isCollapse &&
             layout === 'vertical' &&
             props.item?.pathList?.length === 1) ||
-          (!onlyOneChild.meta.icon &&
+          (!onlyOneChild?.meta?.icon &&
             isCollapse &&
             layout === 'mix' &&
             props.item?.pathList?.length === 2)
@@ -146,7 +166,7 @@ function resolvePath(routePath) {
         truncated
         class="px-4! text-inherit!"
       >
-        {{ onlyOneChild.meta.title }}
+        {{ onlyOneChild?.meta?.title }}
       </el-text>
 
       <template #title>
@@ -158,9 +178,9 @@ function resolvePath(routePath) {
             }"
             class="text-inherit!"
           >
-            {{ onlyOneChild.meta.title }}
+            {{ onlyOneChild?.meta?.title }}
           </ReText>
-          <extraIcon :extraIcon="onlyOneChild.meta.extraIcon" />
+          <extraIcon :extraIcon="onlyOneChild?.meta?.extraIcon" />
         </div>
       </template>
     </el-menu-item>
@@ -169,17 +189,17 @@ function resolvePath(routePath) {
     v-else
     ref="subMenu"
     teleported
-    :index="resolvePath(props.item.path)"
+    :index="resolvePath(props.item?.path || '')"
     v-bind="expandCloseIcon"
   >
     <template #title>
       <div
-        v-if="toRaw(props.item.meta.icon)"
+        v-if="toRaw(props.item?.meta?.icon)"
         :style="getSubMenuIconStyle"
         class="sub-menu-icon"
       >
         <component
-          :is="useRenderIcon(props.item.meta && toRaw(props.item.meta.icon))"
+          :is="useRenderIcon(props.item?.meta && toRaw(props.item?.meta?.icon))"
         />
       </div>
       <ReText
@@ -187,8 +207,8 @@ function resolvePath(routePath) {
           !(
             layout === 'vertical' &&
             isCollapse &&
-            toRaw(props.item.meta.icon) &&
-            props.item.parentId === null
+            toRaw(props.item?.meta?.icon) &&
+            props.item?.parentId === null
           )
         "
         :tippyProps="{
@@ -200,21 +220,21 @@ function resolvePath(routePath) {
           'px-4!':
             layout !== 'horizontal' &&
             isCollapse &&
-            !toRaw(props.item.meta.icon) &&
-            props.item.parentId === null
+            !toRaw(props.item?.meta?.icon) &&
+            props.item?.parentId === null
         }"
       >
-        {{ props.item.meta.title }}
+        {{ props.item?.meta?.title }}
       </ReText>
-      <extraIcon v-if="!isCollapse" :extraIcon="props.item.meta.extraIcon" />
+      <extraIcon v-if="!isCollapse" :extraIcon="props.item?.meta?.extraIcon" />
     </template>
 
     <sidebar-item
-      v-for="child in props.item.children"
+      v-for="child in props.item?.children"
       :key="child.path"
       :is-nest="true"
       :item="child"
-      :base-path="resolvePath(child.path)"
+      :base-path="resolvePath(child.path || '')"
       class="nest-menu"
     />
   </el-sub-menu>
