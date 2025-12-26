@@ -18,9 +18,13 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
 export function getPluginsList(
   VITE_CDN: boolean,
-  VITE_COMPRESSION: ViteCompression
+  VITE_COMPRESSION: ViteCompression,
+  command: "build" | "serve",
+  mode: string
 ): PluginOption[] {
   const lifecycle = process.env.npm_lifecycle_event;
+  const isBuild = command === "build";
+  const isProdBuild = isBuild && mode === "production";
   return [
     tailwindcss(),
     vue(),
@@ -42,10 +46,12 @@ export function getPluginsList(
      * Windows 默认组合键 Alt + Shift
      * 更多用法看 https://inspector.fe-dev.cn/guide/start.html
      */
-    codeInspectorPlugin({
-      bundler: "vite",
-      hideConsole: true
-    }),
+    command === "serve"
+      ? codeInspectorPlugin({
+          bundler: "vite",
+          hideConsole: true
+        })
+      : null,
     viteBuildInfo(),
     /**
      * 开发环境下移除非必要的vue-router动态路由警告No match found for location with path
@@ -63,8 +69,10 @@ export function getPluginsList(
     }),
     VITE_CDN ? cdn : null,
     configCompressPlugin(VITE_COMPRESSION),
-    // 线上环境删除console
-    removeConsole({ external: ["src/assets/iconfont/iconfont.js"] }),
+    // 仅生产构建删除 console（避免影响本地调试）
+    isProdBuild
+      ? removeConsole({ external: ["src/assets/iconfont/iconfont.js"] })
+      : null,
     // 打包分析
     lifecycle === "report"
       ? visualizer({ open: true, brotliSize: true, filename: "report.html" })

@@ -9,7 +9,7 @@ import {
   __APP_INFO__
 } from "./build/utils";
 
-export default ({ mode }: ConfigEnv): UserConfigExport => {
+export default ({ mode, command }: ConfigEnv): UserConfigExport => {
   const { VITE_CDN, VITE_PORT, VITE_COMPRESSION, VITE_PUBLIC_PATH } =
     warpperEnv(loadEnv(mode, root));
   return {
@@ -35,7 +35,7 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
         clientFiles: ["./index.html", "./src/{views,components}/*"]
       }
     },
-    plugins: getPluginsList(VITE_CDN, VITE_COMPRESSION),
+    plugins: getPluginsList(VITE_CDN, VITE_COMPRESSION, command, mode),
     // https://cn.vitejs.dev/config/dep-optimization-options.html#dep-optimization-options
     optimizeDeps: {
       include,
@@ -45,8 +45,8 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       // https://cn.vitejs.dev/guide/build.html#browser-compatibility
       target: "es2020",
       sourcemap: false,
-      // 消除打包大小警告（降低阈值以便早期发现问题）
-      chunkSizeWarningLimit: 2000,
+      // 降低阈值以便早期发现异常大 chunk
+      chunkSizeWarningLimit: 800,
       rollupOptions: {
         input: {
           index: pathResolve("./index.html", import.meta.url)
