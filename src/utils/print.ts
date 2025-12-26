@@ -16,7 +16,7 @@ interface PrintInstance {
   dom: Element | null;
   init: () => void;
   getStyle: () => string;
-  getHtml: () => Element;
+  getHtml: () => string;
   writeIframe: (content: string) => void;
   toPrint: (frameWindow: Document | Window) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -99,91 +99,93 @@ Print.prototype = {
   },
   // form assignment
   getHtml: function (this: PrintInstance): string {
-    const inputs = document.querySelectorAll("input");
-    const selects = document.querySelectorAll("select");
-    const textareas = document.querySelectorAll("textarea");
-    const canvass = document.querySelectorAll("canvas");
+    const root = this.dom as HTMLElement | null;
+    if (!root) return "";
 
-    for (let k = 0; k < inputs.length; k++) {
-      if (inputs[k].type == "checkbox" || inputs[k].type == "radio") {
-        if (inputs[k].checked == true) {
-          inputs[k].setAttribute("checked", "checked");
-        } else {
-          inputs[k].removeAttribute("checked");
-        }
-      } else if (inputs[k].type == "text") {
-        inputs[k].setAttribute("value", inputs[k].value);
-      } else {
-        inputs[k].setAttribute("value", inputs[k].value);
+    const clone = root.cloneNode(true) as HTMLElement;
+
+    // 同步 input 值/勾选状态
+    const originInputs = root.querySelectorAll<HTMLInputElement>("input");
+    const cloneInputs = clone.querySelectorAll<HTMLInputElement>("input");
+    originInputs.forEach((input, index) => {
+      const target = cloneInputs[index];
+      if (!target) return;
+
+      if (input.type === "checkbox" || input.type === "radio") {
+        if (input.checked) target.setAttribute("checked", "checked");
+        else target.removeAttribute("checked");
+        return;
       }
-    }
 
-    for (let k2 = 0; k2 < textareas.length; k2++) {
-      if (textareas[k2].type == "textarea") {
-        textareas[k2].innerHTML = textareas[k2].value;
+      target.setAttribute("value", input.value);
+    });
+
+    // 同步 textarea 值
+    const originTextareas =
+      root.querySelectorAll<HTMLTextAreaElement>("textarea");
+    const cloneTextareas =
+      clone.querySelectorAll<HTMLTextAreaElement>("textarea");
+    originTextareas.forEach((textarea, index) => {
+      const target = cloneTextareas[index];
+      if (!target) return;
+      target.textContent = textarea.value;
+    });
+
+    // 同步 select 选中项
+    const originSelects = root.querySelectorAll<HTMLSelectElement>("select");
+    const cloneSelects = clone.querySelectorAll<HTMLSelectElement>("select");
+    originSelects.forEach((select, index) => {
+      const target = cloneSelects[index];
+      if (!target) return;
+      for (let i = 0; i < target.options.length; i++) {
+        const option = target.options[i];
+        const isSelected = select.options[i]?.selected ?? false;
+        if (isSelected) option.setAttribute("selected", "selected");
+        else option.removeAttribute("selected");
       }
-    }
+    });
 
-    for (let k3 = 0; k3 < selects.length; k3++) {
-      if (selects[k3].type == "select-one") {
-        const child = selects[k3].children;
-        for (const i in child) {
-          if (child[i].tagName == "OPTION") {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if ((child[i] as any).selected == true) {
-              child[i].setAttribute("selected", "selected");
-            } else {
-              child[i].removeAttribute("selected");
-            }
-          }
-        }
+    // canvas 转图片（避免打印空白）
+    const originCanvases = root.querySelectorAll<HTMLCanvasElement>("canvas");
+    const cloneCanvases = clone.querySelectorAll<HTMLCanvasElement>("canvas");
+    originCanvases.forEach((canvas, index) => {
+      const target = cloneCanvases[index];
+      if (!target) return;
+      try {
+        const imageURL = canvas.toDataURL("image/png");
+        const img = document.createElement("img");
+        img.src = imageURL;
+        img.style.maxWidth = "100%";
+        target.parentNode?.replaceChild(img, target);
+      } catch {
+        // ignore
       }
-    }
+    });
 
-    for (let k4 = 0; k4 < canvass.length; k4++) {
-      const imageURL = canvass[k4].toDataURL("image/png");
-      const img = document.createElement("img");
-      img.src = imageURL;
-      img.setAttribute("style", "max-width: 100%;");
-      img.className = "isNeedRemove";
-      const parentNode = canvass[k4].parentNode;
-      if (parentNode)
-        parentNode.insertBefore(img, canvass[k4].nextElementSibling);
-    }
-
-    return this.dom?.outerHTML || "";
+    return clone.outerHTML;
   },
   /**
     create iframe
   */
   writeIframe: function (this: PrintInstance, content: string) {
     const iframe: HTMLIFrameElement = document.createElement("iframe");
-    const f: HTMLIFrameElement = document.body.appendChild(iframe);
     iframe.id = "myIframe";
     iframe.setAttribute(
       "style",
       "position:absolute;width:0;height:0;top:-10px;left:-10px;"
     );
-    const w = f.contentWindow;
-    const doc = f.contentDocument ?? w?.document;
-    if (!doc) return;
-    doc.open();
-    doc.write(content);
-    doc.close();
-
-    const removes = document.querySelectorAll(".isNeedRemove");
-    for (let k = 0; k < removes.length; k++) {
-      removes[k].parentNode?.removeChild(removes[k]);
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
     iframe.onload = function (): void {
+      const w = iframe.contentWindow;
+      const doc = iframe.contentDocument ?? w?.document;
+      if (!doc || !w) return;
       // Before popping, callback
       if (_this.conf.printBeforeFn) {
         _this.conf.printBeforeFn({ doc });
       }
-      if (w) _this.toPrint(w);
+      _this.toPrint(w);
       setTimeout(function () {
         document.body.removeChild(iframe);
         // After popup, callback
@@ -192,6 +194,9 @@ Print.prototype = {
         }
       }, 100);
     };
+
+    const f: HTMLIFrameElement = document.body.appendChild(iframe);
+    f.srcdoc = content;
   },
   /**
     Print
