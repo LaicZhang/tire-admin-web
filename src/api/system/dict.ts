@@ -2,23 +2,22 @@ import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
 
-const prefix = "/system/dict/";
+const prefix = "/dict/";
 
 export interface DictItem {
   id: number;
-  code: string;
-  name: string;
-  value: string;
-  description?: string;
-  sort?: number;
+  name: string; // 字典类型名称
+  key: number; // 字典项键值
+  cn: string | null; // 中文标签
+  en: string | null; // 英文标签
+  isPublic?: boolean;
 }
 
 export interface DictDto {
-  code: string;
   name: string;
-  value: string;
-  description?: string;
-  sort?: number;
+  key: number;
+  cn?: string | null;
+  en?: string | null;
 }
 
 export async function getDictListApi(index: number, params?: object) {

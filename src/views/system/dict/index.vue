@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
+import type { FormInstance } from "element-plus";
+import type { DictItem } from "@/api/system/dict";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
@@ -21,7 +23,7 @@ defineOptions({
   name: "DictManagement"
 });
 
-const dataList = ref([]);
+const dataList = ref<DictItem[]>([]);
 const loading = ref(false);
 const searchFormRef = ref();
 const pagination = reactive({
@@ -32,30 +34,39 @@ const pagination = reactive({
 });
 
 const form = reactive({
-  name: "",
-  code: ""
+  name: undefined,
+  key: undefined,
+  cn: undefined,
+  en: undefined,
+  isPublic: undefined
 });
 
 const columns: TableColumnList = [
   {
-    label: "字典名称",
+    label: "字典类型",
     prop: "name",
     minWidth: 120
   },
   {
-    label: "字典编码",
-    prop: "code",
+    label: "键值",
+    prop: "key",
+    minWidth: 80
+  },
+  {
+    label: "中文标签",
+    prop: "cn",
     minWidth: 120
   },
   {
-    label: "备注",
-    prop: "desc",
-    minWidth: 200
+    label: "英文标签",
+    prop: "en",
+    minWidth: 120
   },
   {
-    label: "创建时间",
-    prop: "createdAt",
-    minWidth: 160
+    label: "公开",
+    prop: "isPublic",
+    minWidth: 80,
+    cellRenderer: ({ row }) => h("span", row.isPublic ? "是" : "否")
   },
   {
     label: "操作",
@@ -85,75 +96,90 @@ const getData = async () => {
   }
 };
 
-const resetForm = formEl => {
+const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   getData();
 };
 
-const handleDelete = async row => {
+const handleDelete = async (row: DictItem) => {
   try {
     await deleteDictApi(row.id);
     message("删除成功", { type: "success" });
     getData();
-  } catch (e) {
-    message(e.message || "删除失败", { type: "error" });
+  } catch (e: unknown) {
+    const err = e as Error;
+    message(err.message || "删除失败", { type: "error" });
   }
 };
 
-function openDialog(title = "新增", row?: any) {
+function openDialog(title = "新增", row?: DictItem) {
   addDialog({
     title: `${title}字典`,
     props: {
       formInline: {
         name: row?.name ?? "",
-        code: row?.code ?? "",
-        desc: row?.desc ?? ""
+        key: row?.key ?? 0,
+        cn: row?.cn ?? "",
+        en: row?.en ?? ""
       }
     },
-    width: "40%",
+    width: "46%",
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props;
+      const { formInline } = options.props as {
+        formInline: { name: string; key: number; cn: string; en: string };
+      };
       return h("div", [
-        h("el-form", { model: formInline, labelWidth: "80px" }, [
-          h("el-form-item", { label: "字典名称", required: true }, [
+        h("el-form", { model: formInline, labelWidth: "90px" }, [
+          h("el-form-item", { label: "字典类型", required: true }, [
             h("el-input", {
               modelValue: formInline.name,
-              "onUpdate:modelValue": val => (formInline.name = val),
-              placeholder: "例如：性别"
+              "onUpdate:modelValue": (val: string) => (formInline.name = val),
+              placeholder: "例如：gender"
             })
           ]),
-          h("el-form-item", { label: "字典编码", required: true }, [
-            h("el-input", {
-              modelValue: formInline.code,
-              "onUpdate:modelValue": val => (formInline.code = val),
-              placeholder: "例如：gender",
-              disabled: title === "修改"
+          h("el-form-item", { label: "键值", required: true }, [
+            h("el-input-number", {
+              modelValue: formInline.key,
+              "onUpdate:modelValue": (val: number) => (formInline.key = val),
+              min: 0,
+              style: { width: "100%" }
             })
           ]),
-          h("el-form-item", { label: "备注" }, [
+          h("el-form-item", { label: "中文标签" }, [
             h("el-input", {
-              modelValue: formInline.desc,
-              "onUpdate:modelValue": val => (formInline.desc = val),
-              type: "textarea",
-              rows: 3
+              modelValue: formInline.cn,
+              "onUpdate:modelValue": (val: string) => (formInline.cn = val),
+              placeholder: "例如：男"
+            })
+          ]),
+          h("el-form-item", { label: "英文标签" }, [
+            h("el-input", {
+              modelValue: formInline.en,
+              "onUpdate:modelValue": (val: string) => (formInline.en = val),
+              placeholder: "例如：Male"
             })
           ])
         ])
       ]);
     },
     beforeSure: (done, { options }) => {
-      const data = options.props.formInline;
-      if (!data.name || !data.code) {
-        message("请输入名称和编码", { type: "warning" });
+      const data = options.props.formInline as {
+        name: string;
+        key: number;
+        cn: string;
+        en: string;
+      };
+      if (!data.name) {
+        message("请输入字典类型名称", { type: "warning" });
         return;
       }
       const promise =
-        title === "新增" ? createDictApi(data) : updateDictApi(row.id, data);
+        title === "新增" ? createDictApi(data) : updateDictApi(row!.id, data);
 
       promise.then(() => {
         message("操作成功", { type: "success" });
@@ -177,20 +203,12 @@ onMounted(() => {
       :model="form"
       class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
     >
-      <el-form-item label="字典名称" prop="name">
+      <el-form-item label="字典类型" prop="name">
         <el-input
           v-model="form.name"
-          placeholder="请输入字典名称"
+          placeholder="请输入字典类型名称"
           clearable
-          class="!w-[180px]"
-        />
-      </el-form-item>
-      <el-form-item label="字典编码" prop="code">
-        <el-input
-          v-model="form.code"
-          placeholder="请输入字典编码"
-          clearable
-          class="!w-[180px]"
+          class="!w-[200px]"
         />
       </el-form-item>
       <el-form-item>
