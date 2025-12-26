@@ -13,6 +13,8 @@ import PureDescriptions from "@pureadmin/descriptions";
 
 // 引入重置样式
 import "./style/reset.scss";
+// @pureadmin/table 内部使用了 el-table / el-pagination 等组件，需显式引入其样式，避免被全局 reset 影响导致显示异常
+import "@pureadmin/table/dist/style.css";
 // 导入公共样式
 import "./style/index.scss";
 // 一定要在main.ts中导入tailwind.css，防止vite每次hmr都会请求src/style/index.scss整体css文件导致热更新慢的问题
