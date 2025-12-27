@@ -1,7 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import Cookies from "js-cookie";
 import { storageLocal } from "@pureadmin/utils";
-import { formatToken, getToken, TokenKey, userKey } from "../auth";
+import {
+  formatToken,
+  getToken,
+  refreshTokenKey,
+  TokenKey,
+  userKey
+} from "../auth";
+
+if (!("sessionStorage" in globalThis)) {
+  let store: Record<string, string> = {};
+  // @ts-expect-error test polyfill
+  globalThis.sessionStorage = {
+    getItem: (key: string) => (key in store ? store[key] : null),
+    setItem: (key: string, value: string) => {
+      store[key] = String(value);
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    }
+  };
+}
 
 // Mock dependencies
 const cookiesMock = vi.hoisted(() => ({
@@ -37,6 +60,7 @@ vi.mock("@/store/modules/user", () => ({
 describe("auth utils", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -64,6 +88,8 @@ describe("auth utils", () => {
         expires: 1710000000000
       });
 
+      sessionStorage.setItem(refreshTokenKey, "refresh-token");
+
       vi.mocked(Cookies.get).mockImplementation((key?: string) => {
         if (key === TokenKey) return cookieValue;
         return undefined as any;
@@ -72,7 +98,6 @@ describe("auth utils", () => {
       vi.mocked(storageLocal().getItem).mockImplementation((key?: string) => {
         if (key === userKey)
           return {
-            refreshToken: "refresh-token",
             expires: 1710000000000,
             username: "u",
             roles: ["admin"],
@@ -95,9 +120,9 @@ describe("auth utils", () => {
     });
 
     it("should return null when cookie is missing", () => {
+      sessionStorage.setItem(refreshTokenKey, "refresh-token");
       vi.mocked(Cookies.get).mockReturnValue(undefined as any);
       vi.mocked(storageLocal().getItem).mockReturnValue({
-        refreshToken: "refresh-token",
         expires: 1710000000000
       } as any);
 

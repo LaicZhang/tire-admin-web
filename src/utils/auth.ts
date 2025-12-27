@@ -27,6 +27,7 @@ export interface CurrentCompanyInfo {
 
 export const userKey = "user-info";
 export const TokenKey = "authorized-token";
+export const refreshTokenKey = "refresh-token";
 export const currentCompanyKey = "current-company";
 /**
  * 通过`multiple-tabs`是否在`cookie`中，判断用户是否已经登录系统，
@@ -41,6 +42,7 @@ export function getToken(): DataInfo<number> | null {
   try {
     const cookieToken = Cookies.get(TokenKey);
     const localToken = storageLocal().getItem<DataInfo<number>>(userKey);
+    const refreshToken = sessionStorage.getItem(refreshTokenKey) ?? "";
 
     let cookieData: Partial<DataInfo<number>> | null = null;
     if (cookieToken) {
@@ -59,7 +61,6 @@ export function getToken(): DataInfo<number> | null {
 
     const accessToken = cookieData?.accessToken ?? "";
     const expires = Number(cookieData?.expires ?? localToken?.expires ?? 0);
-    const refreshToken = localToken?.refreshToken ?? "";
 
     if (!accessToken) return null;
 
@@ -84,7 +85,8 @@ export function getToken(): DataInfo<number> | null {
  * @description 设置`token`以及一些必要信息并采用无感刷新`token`方案
  * 无感刷新：后端返回`accessToken`（访问接口使用的`token`）、`refreshToken`（用于调用刷新`accessToken`的接口时所需的`token`，`refreshToken`的过期时间（比如30天）应大于`accessToken`的过期时间（比如2小时））、`expires`（`accessToken`的过期时间）
  * 将`accessToken`、`expires`这两条信息放在key值为authorized-token的cookie里（过期自动销毁）
- * 将`username`、`roles`、`refreshToken`、`expires`这四条信息放在key值为`user-info`的localStorage里（利用`multipleTabsKey`当浏览器完全关闭后自动销毁）
+ * 将`username`、`roles`、`expires`这三条信息放在 key 值为`user-info`的 localStorage 里（利用`multipleTabsKey`当浏览器完全关闭后自动销毁）
+ * 将 `refreshToken` 放在 sessionStorage（浏览器关闭后自动清理），作为 HttpOnly Cookie 迁移前的过渡方案
  */
 export function setToken(data: DataInfo<Date>) {
   let expires = 0;
@@ -109,12 +111,13 @@ export function setToken(data: DataInfo<Date>) {
     ...(isRemember ? { expires: loginDay } : {})
   });
 
+  sessionStorage.setItem(refreshTokenKey, refreshToken);
+
   function setUserKey(username: string, roles: Array<string>, uid: string) {
     useUserStoreHook().setUsername(username);
     useUserStoreHook().setRoles(roles);
     useUserStoreHook().setUid(uid);
     storageLocal().setItem(userKey, {
-      refreshToken,
       expires,
       username,
       roles,
@@ -140,6 +143,7 @@ export function removeToken() {
   Cookies.remove(TokenKey);
   Cookies.remove(multipleTabsKey);
   storageLocal().removeItem(userKey);
+  sessionStorage.removeItem(refreshTokenKey);
 }
 
 /** 格式化token（jwt格式） */
