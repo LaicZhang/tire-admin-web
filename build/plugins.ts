@@ -24,7 +24,8 @@ export function getPluginsList(
 ): PluginOption[] {
   const lifecycle = process.env.npm_lifecycle_event;
   const isBuild = command === "build";
-  const isProdBuild = isBuild && mode === "production";
+  const isProdLikeBuild =
+    isBuild && (mode === "production" || mode === "staging");
   return [
     tailwindcss(),
     vue(),
@@ -69,8 +70,8 @@ export function getPluginsList(
     }),
     VITE_CDN ? cdn : null,
     configCompressPlugin(VITE_COMPRESSION),
-    // 仅生产构建删除 console（避免影响本地调试）
-    isProdBuild
+    // staging/production 构建删除 console（避免泄露敏感信息）
+    isProdLikeBuild
       ? removeConsole({ external: ["src/assets/iconfont/iconfont.js"] })
       : null,
     // 打包分析

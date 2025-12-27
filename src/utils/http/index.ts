@@ -28,14 +28,13 @@ const resolveBaseURL = (): string => {
   // 开发环境：使用相对路径，通过 Vite proxy 将 /api 转发到后端
   if (DEV) return "";
 
-  // 生产/预发：必须配置环境变量
-  if (PROD && VITE_SERVER_URL) return VITE_SERVER_URL;
+  // 非 DEV：优先使用环境变量（staging/production 都需要）
+  if (VITE_SERVER_URL) return VITE_SERVER_URL;
 
-  // 生产环境未配置时输出错误并返回空字符串（请求会失败）
-  if (PROD) {
-    console.error("[HTTP] 生产环境必须配置 VITE_SERVER_URL 环境变量");
-    return "";
-  }
+  // 未配置时输出错误并返回空字符串（请求会失败）
+  console.error(
+    `[HTTP] ${PROD ? "生产" : "非开发"}环境必须配置 VITE_SERVER_URL 环境变量`
+  );
 
   return "";
 };
