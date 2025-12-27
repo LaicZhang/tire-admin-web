@@ -11,7 +11,13 @@ import type {
   PureHttpRequestConfig
 } from "./types.d";
 import { stringify } from "qs";
-import { getToken, formatToken } from "@/utils/auth";
+import {
+  getToken,
+  formatToken,
+  getCsrfToken,
+  csrfHeaderName,
+  useHttpOnlyCookie
+} from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
 import { ElMessage } from "element-plus";
 
@@ -69,6 +75,8 @@ const defaultConfig: AxiosRequestConfig = {
   baseURL: resolveBaseURL(),
   // 请求超时时间
   timeout: 10000,
+  // HttpOnly Cookie 模式：发送 cookies 跨域
+  withCredentials: useHttpOnlyCookie,
   headers: {
     Accept: "application/json, text/plain, */*",
     "Content-Type": "application/json",
@@ -142,13 +150,28 @@ class PureHttp {
         const whiteList = ["/api/auth/login", "/api/auth/refresh-token"];
         if (whiteList.includes(config.url ?? "")) return config;
 
+        config.headers ??= {};
+
+        // HttpOnly Cookie 模式：不发 Authorization header，添加 CSRF token
+        if (useHttpOnlyCookie) {
+          const method = config.method?.toLowerCase() ?? "get";
+          // 非 GET/HEAD/OPTIONS 请求需要 CSRF token
+          if (!["get", "head", "options"].includes(method)) {
+            const csrfToken = getCsrfToken();
+            if (csrfToken) {
+              config.headers[csrfHeaderName] = csrfToken;
+            }
+          }
+          return config;
+        }
+
+        // 传统模式：Bearer token
         const data = getToken();
         if (!data?.accessToken) return config;
 
         const expires = Number(data.expires);
         const expired = expires <= Date.now();
         if (!expired) {
-          config.headers ??= {};
           config.headers["Authorization"] = formatToken(data.accessToken);
           return config;
         }

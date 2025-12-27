@@ -2,6 +2,24 @@ import Cookies from "js-cookie";
 import { storageLocal } from "@pureadmin/utils";
 import { useUserStoreHook } from "@/store/modules/user";
 
+/**
+ * HttpOnly Cookie Mode (AUDIT-040)
+ * When enabled:
+ * - accessToken/refreshToken are stored as HttpOnly cookies by the backend
+ * - Frontend does NOT read or write tokens directly
+ * - Frontend sends credentials: 'include' with all requests
+ * - CSRF token is read from a non-HttpOnly cookie and sent in headers
+ *
+ * Set to true after backend migration is complete and tested
+ */
+export const useHttpOnlyCookie =
+  import.meta.env.VITE_USE_HTTPONLY_COOKIE === "true";
+
+/** CSRF Token cookie name (readable by JS, set by backend) */
+export const csrfCookieName = "_csrf";
+/** CSRF Token header name (must match backend CSRF guard) */
+export const csrfHeaderName = "x-csrf-token";
+
 export interface DataInfo<T> {
   /** token */
   accessToken: string;
@@ -37,8 +55,34 @@ export const currentCompanyKey = "current-company";
  * */
 export const multipleTabsKey = "multiple-tabs";
 
+/**
+ * 获取 CSRF Token（用于 HttpOnly Cookie 模式）
+ */
+export function getCsrfToken(): string | undefined {
+  return Cookies.get(csrfCookieName);
+}
+
 /** 获取`token` */
 export function getToken(): DataInfo<number> | null {
+  // HttpOnly Cookie 模式：token 由浏览器自动管理，无法读取
+  // 仅返回用户信息和假的过期时间（永不过期，让后端处理过期）
+  if (useHttpOnlyCookie) {
+    const localToken = storageLocal().getItem<DataInfo<number>>(userKey);
+    if (!localToken) return null;
+    return {
+      accessToken: "__httponly__", // 占位符，实际 token 在 HttpOnly cookie 中
+      refreshToken: "__httponly__",
+      expires: Date.now() + 86400000, // 假设 1 天后过期，实际由后端管理
+      username: localToken?.username,
+      avatar: localToken?.avatar,
+      nickname: localToken?.nickname,
+      permissions: localToken?.permissions,
+      roles: localToken?.roles,
+      uid: localToken?.uid
+    };
+  }
+
+  // 传统模式：从 Cookie/localStorage 读取 token
   try {
     const cookieToken = Cookies.get(TokenKey);
     const localToken = storageLocal().getItem<DataInfo<number>>(userKey);
@@ -93,7 +137,6 @@ export function setToken(data: DataInfo<Date>) {
   const { accessToken, refreshToken } = data;
   const { isRemember, loginDay } = useUserStoreHook();
   expires = new Date(data.expires).getTime(); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
-  const cookieString = JSON.stringify({ accessToken, expires });
 
   /** Cookie 安全配置 */
   const secureCookieOptions: Cookies.CookieAttributes = {
@@ -101,17 +144,20 @@ export function setToken(data: DataInfo<Date>) {
     sameSite: "strict" // 防止 CSRF 攻击
   };
 
-  Cookies.set(TokenKey, cookieString, {
-    ...secureCookieOptions,
-    ...(expires > 0 ? { expires: (expires - Date.now()) / 86400000 } : {})
-  });
+  // HttpOnly Cookie 模式：token 由后端设置，前端只保存用户信息
+  if (!useHttpOnlyCookie) {
+    const cookieString = JSON.stringify({ accessToken, expires });
+    Cookies.set(TokenKey, cookieString, {
+      ...secureCookieOptions,
+      ...(expires > 0 ? { expires: (expires - Date.now()) / 86400000 } : {})
+    });
+    sessionStorage.setItem(refreshTokenKey, refreshToken);
+  }
 
   Cookies.set(multipleTabsKey, "true", {
     ...secureCookieOptions,
     ...(isRemember ? { expires: loginDay } : {})
   });
-
-  sessionStorage.setItem(refreshTokenKey, refreshToken);
 
   function setUserKey(username: string, roles: Array<string>, uid: string) {
     useUserStoreHook().setUsername(username);
