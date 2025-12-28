@@ -30,7 +30,7 @@ interface FormItemProps {
   salePrice: string;
   commissionType: number;
   commission: string;
-  covers: any[];
+  covers: Record<string, unknown>[];
 }
 interface FormProps {
   formInline: FormItemProps;
