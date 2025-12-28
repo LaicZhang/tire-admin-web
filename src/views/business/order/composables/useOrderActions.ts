@@ -3,9 +3,9 @@ import {
   deleteOrderApi,
   confirmSaleOrderShipmentApi,
   confirmSaleOrderDeliveryApi,
-  confirmReturnOrderCustomerArrivalApi,
-  confirmReturnOrderProviderShipmentApi,
-  confirmReturnOrderProviderDeliveryApi,
+  confirmReturnOrderArrivalApi,
+  confirmReturnOrderShipmentApi,
+  confirmReturnOrderDeliveryApi,
   confirmTransferOrderShipmentApi,
   confirmTransferOrderArrivalApi,
   reverseSaleOrderApi,
@@ -121,7 +121,7 @@ export function useOrderActions(
   // 退货订单：确认客户退货到货
   const handleConfirmReturnCustomerArrival = async (row: OrderRow) => {
     try {
-      await confirmReturnOrderCustomerArrivalApi(row.uid, {});
+      await confirmReturnOrderArrivalApi(row.uid, { detailUid: row.uid });
       message("确认客户退货到货成功", { type: "success" });
       await onSearch();
     } catch (error: unknown) {
@@ -134,7 +134,7 @@ export function useOrderActions(
   // 退货订单：确认退供应商发货
   const handleConfirmReturnProviderShipment = async (row: OrderRow) => {
     try {
-      await confirmReturnOrderProviderShipmentApi(row.uid, {});
+      await confirmReturnOrderShipmentApi(row.uid, { detailUid: row.uid });
       message("确认退供应商发货成功", { type: "success" });
       await onSearch();
     } catch (error: unknown) {
@@ -147,7 +147,7 @@ export function useOrderActions(
   // 退货订单：确认退供应商送达
   const handleConfirmReturnProviderDelivery = async (row: OrderRow) => {
     try {
-      await confirmReturnOrderProviderDeliveryApi(row.uid, {});
+      await confirmReturnOrderDeliveryApi(row.uid, { detailUid: row.uid });
       message("确认退供应商送达成功", { type: "success" });
       await onSearch();
     } catch (error: unknown) {

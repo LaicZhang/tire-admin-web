@@ -272,35 +272,35 @@ export async function processClaimOrderPaymentApi(
 }
 
 // 退货订单特定接口
-export async function confirmReturnOrderCustomerArrivalApi(
+export async function confirmReturnOrderArrivalApi(
   uid: string,
-  data: ConfirmLogisticsDto
+  data: { detailUid: string }
 ) {
   return await http.request<CommonResult>(
     "patch",
-    baseUrlApi(`/return-order/customer-arrival/${uid}`),
+    baseUrlApi(`/return-order/confirm-arrival/${uid}`),
     { data }
   );
 }
 
-export async function confirmReturnOrderProviderShipmentApi(
+export async function confirmReturnOrderShipmentApi(
   uid: string,
-  data: ConfirmLogisticsDto
+  data: { detailUid: string }
 ) {
   return await http.request<CommonResult>(
     "patch",
-    baseUrlApi(`/return-order/provider-shipment/${uid}`),
+    baseUrlApi(`/return-order/confirm-shipment/${uid}`),
     { data }
   );
 }
 
-export async function confirmReturnOrderProviderDeliveryApi(
+export async function confirmReturnOrderDeliveryApi(
   uid: string,
-  data: ConfirmLogisticsDto
+  data: { detailUid: string }
 ) {
   return await http.request<CommonResult>(
     "patch",
-    baseUrlApi(`/return-order/provider-delivery/${uid}`),
+    baseUrlApi(`/return-order/confirm-delivery/${uid}`),
     { data }
   );
 }
