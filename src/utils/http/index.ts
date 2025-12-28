@@ -49,7 +49,7 @@ const resolveBaseURL = (): string => {
  * 判断是否应该重试请求
  * 仅对网络错误和幂等请求进行重试
  */
-const shouldRetry = (error: AxiosError): boolean => {
+export const shouldRetry = (error: AxiosError): boolean => {
   // 仅重试 GET/HEAD/OPTIONS 等幂等请求
   const idempotentMethods = ["get", "head", "options"];
   const method = error.config?.method?.toLowerCase() || "";
@@ -67,7 +67,7 @@ const shouldRetry = (error: AxiosError): boolean => {
 /**
  * 指数退避延迟
  */
-const getRetryDelay = (retryCount: number): number => {
+export const getRetryDelay = (retryCount: number): number => {
   return Math.min(1000 * Math.pow(2, retryCount), 10000);
 };
 
