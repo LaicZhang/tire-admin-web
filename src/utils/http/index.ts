@@ -133,6 +133,7 @@ class PureHttp {
   /** 请求拦截 */
   private httpInterceptorsRequest(): void {
     PureHttp.axiosInstance.interceptors.request.use(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async (config: PureHttpRequestConfig): Promise<any> => {
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
         if (typeof config.beforeRequestCallback === "function") {

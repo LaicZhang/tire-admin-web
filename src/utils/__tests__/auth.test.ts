@@ -90,21 +90,23 @@ describe("auth utils", () => {
 
       sessionStorage.setItem(refreshTokenKey, "refresh-token");
 
-      vi.mocked(Cookies.get).mockImplementation((key?: string) => {
+      vi.mocked(Cookies.get).mockImplementation(((key?: string) => {
         if (key === TokenKey) return cookieValue;
-        return undefined as any;
-      });
+        return undefined;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any);
 
-      vi.mocked(storageLocal().getItem).mockImplementation((key?: string) => {
+      vi.mocked(storageLocal().getItem).mockImplementation(((key?: string) => {
         if (key === userKey)
           return {
             expires: 1710000000000,
             username: "u",
             roles: ["admin"],
             uid: "uid-1"
-          } as any;
-        return null as any;
-      });
+          };
+        return null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any);
 
       expect(getToken()).toEqual({
         accessToken: "access-token",
@@ -121,16 +123,21 @@ describe("auth utils", () => {
 
     it("should return null when cookie is missing", () => {
       sessionStorage.setItem(refreshTokenKey, "refresh-token");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(Cookies.get).mockReturnValue(undefined as any);
+
       vi.mocked(storageLocal().getItem).mockReturnValue({
         expires: 1710000000000
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       expect(getToken()).toBeNull();
     });
 
     it("should return null when cookie token is invalid JSON", () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(Cookies.get).mockReturnValue("{invalid json" as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(storageLocal().getItem).mockReturnValue(null as any);
 
       expect(getToken()).toBeNull();
