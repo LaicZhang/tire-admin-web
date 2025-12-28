@@ -33,7 +33,7 @@ async function loadTracking() {
   try {
     const { data, code, msg } = await getTrackingApi(props.trackingNo);
     if (code === 200) {
-      trackingInfo.value = data || null;
+      trackingInfo.value = (data as TrackingInfo) || null;
     } else {
       message(msg || "加载物流跟踪信息失败", { type: "error" });
     }

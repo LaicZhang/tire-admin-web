@@ -126,7 +126,10 @@ const handleViewTransactions = async (row: any) => {
   try {
     const { data, code } = await getBatchTransactionsApi(row.id || row.uid); // 使用id或uid
     if (code === 200) {
-      transactions.value = Array.isArray(data) ? data : data.list || [];
+      const typedData = data as { list?: unknown[] } | unknown[];
+      transactions.value = Array.isArray(typedData)
+        ? typedData
+        : typedData.list || [];
     }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "获取流水失败";

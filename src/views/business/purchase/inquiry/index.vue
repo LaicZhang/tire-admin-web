@@ -107,17 +107,17 @@ function openDialog(title = "新增", row?: any) {
         h("el-form", {}, [
           h("el-form-item", { label: "供应商" }, [
             h("el-input", {
-              modelValue: options.props.providerName,
+              modelValue: options.props!.providerName,
               "onUpdate:modelValue": (val: string) =>
-                (options.props.providerName = val),
+                (options.props!.providerName = val),
               placeholder: "请输入供应商名称"
             })
           ]),
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
-              modelValue: options.props.desc,
+              modelValue: options.props!.desc,
               "onUpdate:modelValue": (val: string) =>
-                (options.props.desc = val),
+                (options.props!.desc = val),
               placeholder: "暂支持备注录入",
               type: "textarea"
             })
@@ -127,8 +127,8 @@ function openDialog(title = "新增", row?: any) {
     },
     beforeSure: (done, { options }) => {
       const data = {
-        providerName: options.props.providerName,
-        desc: options.props.desc,
+        providerName: options.props!.providerName as string,
+        desc: options.props!.desc as string,
         status: "PENDING"
       };
       const promise =
