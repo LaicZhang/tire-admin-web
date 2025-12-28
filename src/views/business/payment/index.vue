@@ -92,8 +92,15 @@ const getPaymentListInfo = async () => {
     const companyUid = await getCompanyId();
     const { data, code, msg } = await getPaymentListApi(companyUid);
     if (code === 200) {
-      dataList.value = Array.isArray(data) ? data : data.list || [];
-      pagination.value.total = data.count || dataList.value.length;
+      const typedData = data as
+        | { list?: unknown[]; count?: number }
+        | unknown[];
+      dataList.value = Array.isArray(typedData)
+        ? typedData
+        : typedData.list || [];
+      pagination.value.total = Array.isArray(typedData)
+        ? typedData.length
+        : typedData.count || dataList.value.length;
     } else {
       message(msg, { type: "error" });
     }
@@ -141,7 +148,16 @@ async function handleCreate() {
     beforeSure: (done, { options }) => {
       const FormRef = editFormRef.value?.getRef();
       if (!FormRef) return;
-      const curData = options.props.formInline;
+      const curData = (
+        options.props! as {
+          formInline: {
+            name: string;
+            type: string;
+            account: string;
+            realName: string;
+          };
+        }
+      ).formInline;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           try {

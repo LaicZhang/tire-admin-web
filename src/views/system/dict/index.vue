@@ -168,7 +168,7 @@ function openDialog(title = "新增", row?: DictItem) {
       ]);
     },
     beforeSure: (done, { options }) => {
-      const data = options.props.formInline as {
+      const data = options.props!.formInline as {
         name: string;
         key: number;
         cn: string;

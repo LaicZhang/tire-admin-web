@@ -56,10 +56,10 @@ async function loadOptions() {
   ]);
 
   if (tagRes.code === 200) {
-    tagList.value = tagRes.data || [];
+    tagList.value = (tagRes.data || []) as TagItem[];
   }
   if (levelRes.code === 200) {
-    levelList.value = levelRes.data || [];
+    levelList.value = (levelRes.data || []) as LevelItem[];
   }
 }
 

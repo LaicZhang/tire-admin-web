@@ -109,8 +109,9 @@ const getLogisticListInfo = async () => {
       }
     );
     if (code === 200) {
-      dataList.value = data.list || [];
-      pagination.value.total = data.count || 0;
+      const typedData = data as { list?: unknown[]; count?: number };
+      dataList.value = typedData.list || [];
+      pagination.value.total = typedData.count || 0;
     } else {
       message(msg, { type: "error" });
     }

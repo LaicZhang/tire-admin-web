@@ -81,8 +81,9 @@ async function loadData() {
       pagination.value.currentPage
     );
     if (code === 200) {
-      dataList.value = data?.list || [];
-      pagination.value.total = data?.count || 0;
+      const typedData = data as { list?: LoadingTask[]; count?: number };
+      dataList.value = typedData.list || [];
+      pagination.value.total = typedData.count || 0;
     } else {
       message(msg || "加载失败", { type: "error" });
     }

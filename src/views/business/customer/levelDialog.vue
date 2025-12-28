@@ -37,7 +37,7 @@ async function loadLevels() {
   try {
     const { data, code } = await getCustomerLevelListApi();
     if (code === 200) {
-      levelList.value = data || [];
+      levelList.value = (data || []) as Level[];
     }
   } finally {
     loading.value = false;

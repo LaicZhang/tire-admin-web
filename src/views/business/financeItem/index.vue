@@ -99,7 +99,9 @@ function openDialog() {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props; // Simple inline render or create separate file
+      const { formInline } = options.props! as {
+        formInline: { name: string; type: "income" | "expense"; desc: string };
+      };
       return h("div", [
         h("el-form", { model: formInline, labelWidth: "80px" }, [
           h("el-form-item", { label: "名称", required: true }, [
@@ -134,7 +136,15 @@ function openDialog() {
       ]);
     },
     beforeSure: (done, { options }) => {
-      const curData = options.props.formInline;
+      const curData = (
+        options.props! as {
+          formInline: {
+            name: string;
+            type: "income" | "expense";
+            desc: string;
+          };
+        }
+      ).formInline;
       if (!curData.name) {
         message("请输入名称", { type: "warning" });
         return;

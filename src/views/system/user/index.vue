@@ -118,7 +118,8 @@ const getDetails = async (row: { uid: string }) => {
       contentRenderer: ({ options }) =>
         h(UserForm, {
           ref: formRef,
-          formInline: options.props.formInline,
+          formInline: (options.props! as { formInline: FormItemProps })
+            .formInline,
           disabled: true
         })
     });
@@ -149,10 +150,10 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     contentRenderer: ({ options }) =>
       h(UserForm, {
         ref: formRef,
-        formInline: options.props.formInline
+        formInline: (options.props! as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const curData = options.props.formInline as FormItemProps;
+      const curData = options.props!.formInline as FormItemProps;
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {

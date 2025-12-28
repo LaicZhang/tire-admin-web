@@ -99,10 +99,10 @@ const openDialog = (title = "新增", row?: FormItemProps & { id?: string }) => 
     contentRenderer: ({ options }) =>
       h(PermissionForm, {
         ref: formRef,
-        formInline: options.props.formInline
+        formInline: (options.props! as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const curData = options.props.formInline as FormItemProps;
+      const curData = options.props!.formInline as FormItemProps;
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (!valid) return;

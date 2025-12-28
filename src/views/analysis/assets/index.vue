@@ -32,8 +32,9 @@ const getStats = async () => {
     // Ideally should be a dedicated stats API
     const { data, code, msg } = await getAssetListApi(1, { pageSize: 1000 }); // Fetch a large batch to calculate
     if (code === 200) {
-      const list = (data.list || []) as AssetItem[];
-      totalAssets.value = data.count || list.length;
+      const typedData = data as { list?: AssetItem[]; count?: number };
+      const list = typedData.list || [];
+      totalAssets.value = typedData.count || list.length;
       totalValue.value = list.reduce(
         (acc: number, cur: AssetItem) =>
           acc + (Number(cur.currentValue?.value) || 0),

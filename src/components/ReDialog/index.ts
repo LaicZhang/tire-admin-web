@@ -44,7 +44,12 @@ const closeDialog = (
   args?: ArgsType
 ) => {
   dialogStore.value[index].visible = false;
-  options.closeCallBack && options.closeCallBack({ options, index, args });
+  options.closeCallBack &&
+    options.closeCallBack({
+      options,
+      index,
+      args: args ?? { command: "close" }
+    });
   useTimeoutFn(() => {
     dialogStore.value.splice(index, 1);
   }, DIALOG_CLOSE_DELAY);

@@ -174,7 +174,14 @@ function openDialog(title = "新增", row?: any) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props;
+      const { formInline } = options.props! as {
+        formInline: {
+          title: string;
+          type: number;
+          content: string;
+          status: boolean;
+        };
+      };
       return h("div", [
         h("el-form", { model: formInline, labelWidth: "80px" }, [
           h("el-form-item", { label: "公告标题", required: true }, [
@@ -229,7 +236,16 @@ function openDialog(title = "新增", row?: any) {
       ]);
     },
     beforeSure: (done, { options }) => {
-      const data = options.props.formInline;
+      const data = (
+        options.props! as {
+          formInline: {
+            title: string;
+            type: number;
+            content: string;
+            status: boolean;
+          };
+        }
+      ).formInline;
       if (!data.title) {
         message("请输入标题", { type: "warning" });
         return;

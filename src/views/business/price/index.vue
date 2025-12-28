@@ -101,14 +101,31 @@ function openDialog(title = "新增", row?: any) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
-      h(Form, { formInline: options.props.formInline }),
+      h(Form, {
+        formInline: options.props!.formInline as {
+          id?: number;
+          name: string;
+          desc: string;
+          type: string;
+        }
+      }),
     beforeSure: (done, { options }) => {
-      const curData = options.props.formInline;
+      const curData = options.props!.formInline as {
+        id?: number;
+        name: string;
+        desc: string;
+        type: string;
+      };
       // Verification logic here if needed
       const promise =
         title === "新增"
-          ? createPriceListApi(curData)
-          : updatePriceListApi(curData.id, curData);
+          ? createPriceListApi(
+              curData as Parameters<typeof createPriceListApi>[0]
+            )
+          : updatePriceListApi(
+              curData.id!,
+              curData as Parameters<typeof updatePriceListApi>[1]
+            );
 
       promise.then(() => {
         message("操作成功", { type: "success" });

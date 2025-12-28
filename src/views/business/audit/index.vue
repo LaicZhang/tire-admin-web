@@ -32,8 +32,9 @@ async function loadData() {
       { pageSize: pageSize.value }
     );
     if (code === 200) {
-      tableData.value = data?.list || [];
-      total.value = data?.total || 0;
+      const typedData = data as { list?: unknown[]; total?: number };
+      tableData.value = typedData.list || [];
+      total.value = typedData.total || 0;
     } else {
       message(msg || "加载失败", { type: "error" });
     }

@@ -106,11 +106,11 @@ export function useOrderList() {
           PaginatedResponseDto<OrderRow>
         >;
       } else {
-        res = await getOrderListApi(
+        res = (await getOrderListApi(
           orderType.value,
           pagination.value.currentPage,
           form.value
-        );
+        )) as CommonResult<PaginatedResponseDto<OrderRow>>;
       }
 
       const { data, code, msg } = res;

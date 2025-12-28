@@ -39,7 +39,7 @@ async function loadTags() {
   try {
     const { data, code } = await getCustomerTagListApi();
     if (code === 200) {
-      tagList.value = data || [];
+      tagList.value = (data || []) as Tag[];
     }
   } finally {
     loading.value = false;

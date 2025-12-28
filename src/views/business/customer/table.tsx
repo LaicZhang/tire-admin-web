@@ -64,11 +64,11 @@ export function openDialog(title = "新增", row?: any) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
-      h(editForm, { ref: formRef, formInline: options.props.formInline }),
+      h(editForm, { ref: formRef, formInline: options.props!.formInline }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
-      const curData = options.props.formInline as FormItemProps;
+      const curData = options.props!.formInline as FormItemProps;
       function chores() {
         message(`您${title}了客户「${curData.name}」`, {
           type: "success"

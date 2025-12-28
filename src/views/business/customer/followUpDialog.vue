@@ -51,7 +51,7 @@ async function loadFollowUps() {
   try {
     const { data, code } = await getCustomerFollowUpListApi(props.customerUid);
     if (code === 200) {
-      followUpList.value = data || [];
+      followUpList.value = (data || []) as FollowUp[];
     }
   } finally {
     loading.value = false;

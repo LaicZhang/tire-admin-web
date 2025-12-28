@@ -213,7 +213,16 @@ function openDialog(title = "新增", row?: any) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props;
+      const { formInline } = options.props! as {
+        formInline: {
+          name: string;
+          service: string;
+          cron: string;
+          parameters: string;
+          description: string;
+          status: boolean;
+        };
+      };
       return h("div", [
         h("el-form", { model: formInline, labelWidth: "100px" }, [
           h("el-form-item", { label: "任务名称", required: true }, [
@@ -268,7 +277,18 @@ function openDialog(title = "新增", row?: any) {
       ]);
     },
     beforeSure: (done, { options }) => {
-      const data = options.props.formInline;
+      const data = (
+        options.props! as {
+          formInline: {
+            name: string;
+            service: string;
+            cron: string;
+            parameters: string;
+            description: string;
+            status: boolean;
+          };
+        }
+      ).formInline;
       if (!data.name || !data.cron || !data.service) {
         message("请补全必填信息", { type: "warning" });
         return;

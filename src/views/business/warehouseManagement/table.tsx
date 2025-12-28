@@ -49,11 +49,14 @@ export function openDialog(
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
-      h(editForm, { ref: formRef, formInline: options.props.formInline }),
+      h(editForm, { ref: formRef, formInline: options.props!.formInline }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
-      const curData = options.props.formInline as FormItemProps;
+      const curData = options.props!.formInline as FormItemProps;
+      const refreshCb = options.props!.refreshCallback as
+        | (() => void)
+        | undefined;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"
@@ -101,7 +104,7 @@ export function openDialog(
             // Since we can't easily reach parent, we might rely on window reload or just let user refresh.
             // A better way is to pass a "refresh" callback to openDialog.
             // I'll add `refreshCallback` to openDialog signature.
-            if (options.props.refreshCallback) options.props.refreshCallback();
+            if (refreshCb) refreshCb();
           } else {
             const { uid, name, address, managerId, desc, status } = curData;
             if (!uid) {
@@ -116,7 +119,7 @@ export function openDialog(
               status
             });
             chores();
-            if (options.props.refreshCallback) options.props.refreshCallback();
+            if (refreshCb) refreshCb();
           }
         }
       });

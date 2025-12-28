@@ -75,11 +75,14 @@ const loadData = async () => {
     // API定义里 getBatchListApi 只接受 repoId, tireId, batchNo，没有明确分页参数
     // 我们假设后端返回所有或支持分页。如果只返回列表:
     if (code === 200) {
-      const list = Array.isArray(data) ? data : data.list || [];
+      const typedData = data as
+        | { list?: unknown[]; total?: number }
+        | unknown[];
+      const list = Array.isArray(typedData) ? typedData : typedData.list || [];
       tableData.value = list;
-      pagination.value.total = Array.isArray(data)
-        ? data.length
-        : data.total || list.length;
+      pagination.value.total = Array.isArray(typedData)
+        ? typedData.length
+        : typedData.total || list.length;
     }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载批次列表失败";
