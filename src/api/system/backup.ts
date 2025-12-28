@@ -48,7 +48,7 @@ export const restoreBackupApi = (uid: string) => {
 
 // 删除备份
 export const deleteBackupApi = (uid: string) => {
-  return http.request<{ data: any; code: number }>(
+  return http.request<{ data: { uid: string }; code: number }>(
     "delete",
     `/api/backup/${uid}`
   );

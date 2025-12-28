@@ -71,7 +71,7 @@ export const upsertDocumentNumberRuleApi = (
 
 // 删除规则
 export const deleteDocumentNumberRuleApi = (documentType: string) => {
-  return http.request<{ data: any; code: number }>(
+  return http.request<{ data: { documentType: string }; code: number }>(
     "delete",
     `/api/document-number/rule/${documentType}`
   );

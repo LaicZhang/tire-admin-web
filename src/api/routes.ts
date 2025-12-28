@@ -4,7 +4,7 @@ import { baseUrlApi } from "./utils";
 type Result = {
   code: number;
   msg: string;
-  data: Array<any>;
+  data: Array<unknown>;
 };
 
 export const getAsyncRoutes = async () => {

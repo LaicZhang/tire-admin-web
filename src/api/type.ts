@@ -1,4 +1,4 @@
-export type CommonResult<T = any> = {
+export type CommonResult<T = unknown> = {
   code: number;
   msg: string;
   data: T;
@@ -41,7 +41,7 @@ export type RefreshTokenResult = {
   };
 };
 
-export type PaginatedResponseDto<T = any> = {
+export type PaginatedResponseDto<T = unknown> = {
   count: number;
   /** 兼容部分接口返回字段 */
   total?: number;
