@@ -22,7 +22,7 @@ export const copyStyle = computed(() => {
 });
 
 export function onCopy(
-  value: string | any[] | RefValue<string>,
+  value: string | string[] | RefValue<string>,
   index: string | number
 ) {
   if (copied.value) return;

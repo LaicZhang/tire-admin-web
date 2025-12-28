@@ -20,7 +20,7 @@ export interface ClaimFormItemProps {
   fee?: number;
   isReceive?: boolean;
   showTotal?: number;
-  details?: any[];
+  details?: unknown[];
 }
 
 export interface ClaimFormProps {

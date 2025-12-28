@@ -226,7 +226,7 @@ export function useOrderActions(
 
   const handleSendInquiry = async (row: OrderRow) => {
     try {
-      await sendPurchaseInquiryApi(row.id!);
+      await sendPurchaseInquiryApi(row.id ?? 0);
       message("询价单发送成功", { type: "success" });
       await onSearch();
     } catch (error: unknown) {
@@ -237,7 +237,7 @@ export function useOrderActions(
 
   const handleConvertQuotation = async (row: OrderRow) => {
     try {
-      await convertSaleQuotationApi(row.id!);
+      await convertSaleQuotationApi(row.id ?? 0);
       message("报价单转订单成功", { type: "success" });
       await onSearch();
     } catch (error: unknown) {

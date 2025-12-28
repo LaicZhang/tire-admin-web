@@ -28,28 +28,45 @@ export function handleSelectionChange(_val: unknown) {
 }
 const orderType = ref<string>(ORDER_TYPE.default);
 
-export const allTireList = ref<any[]>([]);
-export const allRepoList = ref<any[]>([]);
-export const allCustomerList = ref<any[]>([]);
-export const allProviderList = ref<any[]>([]);
-export const managerList = ref<any[]>([]);
+// 通用数据类型
+interface BasicEntity {
+  uid?: string;
+  id?: number;
+  name?: string;
+  [key: string]: unknown;
+}
+
+interface _OrderDetail {
+  uid?: string;
+  index?: number;
+  count?: number;
+  batchNo?: string;
+  expiryDate?: string;
+  [key: string]: unknown;
+}
+
+export const allTireList = ref<BasicEntity[]>([]);
+export const allRepoList = ref<BasicEntity[]>([]);
+export const allCustomerList = ref<BasicEntity[]>([]);
+export const allProviderList = ref<BasicEntity[]>([]);
+export const managerList = ref<BasicEntity[]>([]);
 
 export async function getAllRepoList() {
-  const res = await localForage().getItem<any[]>(ALL_LIST.repo);
+  const res = await localForage().getItem<BasicEntity[]>(ALL_LIST.repo);
   if (res) allRepoList.value = res;
 }
 export async function getAllTireList() {
-  const res = await localForage().getItem<any[]>(ALL_LIST.tire);
+  const res = await localForage().getItem<BasicEntity[]>(ALL_LIST.tire);
   if (res) allTireList.value = res;
 }
 
 export async function getAllCustomerList() {
-  const res = await localForage().getItem<any[]>(ALL_LIST.customer);
+  const res = await localForage().getItem<BasicEntity[]>(ALL_LIST.customer);
   if (res) allCustomerList.value = res;
 }
 
 export async function getAllProviderList() {
-  const res = await localForage().getItem<any[]>(ALL_LIST.provider);
+  const res = await localForage().getItem<BasicEntity[]>(ALL_LIST.provider);
   if (res) allProviderList.value = res;
 }
 
@@ -104,7 +121,8 @@ export async function openDialog(title = "新增", type: string, row?: any) {
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
-      const curData = options.props.formInline;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const curData = options.props?.formInline as any;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"
@@ -130,10 +148,11 @@ export async function openDialog(title = "新增", type: string, row?: any) {
                 }
               };
               delete orderData.providerId;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const detailsRes: any[] = [];
-              details.map((item: any) => {
-                delete item.index;
-                detailsRes.push({ companyId, ...item });
+              details.map((item: _OrderDetail) => {
+                const { index: _idx, ...rest } = item;
+                detailsRes.push({ companyId, ...rest });
               });
               await addOrderApi(type, {
                 order: {
@@ -212,12 +231,14 @@ export async function openDialog(title = "新增", type: string, row?: any) {
             });
             chores();
           } else if (title === "确认到货") {
-            const arrivalDetails = curData.details.map((item: any) => ({
-              uid: item.uid,
-              count: item.count,
-              batchNo: item.batchNo,
-              expiryDate: item.expiryDate
-            }));
+            const arrivalDetails = curData.details.map(
+              (item: _OrderDetail) => ({
+                uid: item.uid,
+                count: item.count,
+                batchNo: item.batchNo,
+                expiryDate: item.expiryDate
+              })
+            );
             await confirmPurchaseOrderArrivalApi(uid, {
               details: arrivalDetails
             });

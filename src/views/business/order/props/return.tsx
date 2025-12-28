@@ -19,7 +19,7 @@ export interface ReturnFormItemProps {
   payAt: Date;
   fee?: number;
   showTotal?: number;
-  details?: any[];
+  details?: unknown[];
 }
 
 export interface ReturnFormProps {
