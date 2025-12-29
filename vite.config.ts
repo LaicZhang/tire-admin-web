@@ -10,8 +10,16 @@ import {
 } from "./build/utils";
 
 export default ({ mode, command }: ConfigEnv): UserConfigExport => {
-  const { VITE_CDN, VITE_PORT, VITE_COMPRESSION, VITE_PUBLIC_PATH } =
-    warpperEnv(loadEnv(mode, root));
+  const {
+    VITE_CDN,
+    VITE_PORT,
+    VITE_COMPRESSION,
+    VITE_PUBLIC_PATH,
+    VITE_PROXY_TARGET,
+    VITE_SERVER_URL
+  } = warpperEnv(loadEnv(mode, root));
+  const proxyTarget =
+    VITE_PROXY_TARGET || VITE_SERVER_URL || "http://localhost:3000";
   return {
     base: VITE_PUBLIC_PATH,
     root,
@@ -26,7 +34,7 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
       // 本地跨域代理 https://cn.vitejs.dev/config/server-options.html#server-proxy
       proxy: {
         "/api": {
-          target: "http://localhost:3000",
+          target: proxyTarget,
           changeOrigin: true
         }
       },

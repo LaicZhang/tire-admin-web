@@ -38,7 +38,7 @@ The project currently supports version 1.x.x; versions below 1.0 will no longer 
 
 ## Environment & BaseURL
 
-- `DEV`：HTTP `baseURL` 为空字符串，走相对路径 + Vite 代理（`/api` → 后端）
+- `DEV`：HTTP `baseURL` 为空字符串，走相对路径 + Vite 代理（`/api` → `VITE_PROXY_TARGET`，未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
 - `staging/production`：必须配置 `VITE_SERVER_URL`，构建产物会使用该值作为 HTTP `baseURL`
 - 构建硬化：`staging/production` 构建默认移除 `console.*`（避免泄露敏感信息）
 

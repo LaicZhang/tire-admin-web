@@ -44,7 +44,7 @@
 - 本地开发：
   - `pnpm dev`
   - 默认端口通过 `.env.*` 的 `VITE_PORT` 控制（默认 8848），开放 `0.0.0.0` 监听。
-  - 开发代理：`/api` → `http://localhost:3000`（可在 vite.config.ts:server.proxy 调整）。
+  - 开发代理：`/api` → `VITE_PROXY_TARGET`（未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）。
 
 - 类型检查与规范：
   - `pnpm typecheck`（tsc + vue-tsc）
@@ -176,10 +176,11 @@
   - `VITE_CDN: boolean`（生产是否使用 CDN 外链依赖）
   - `VITE_HIDE_HOME: 'true' | 'false'`（是否隐藏首页菜单）
   - `VITE_COMPRESSION: 'none' | 'gzip' | 'brotli' | 'both' | 'gzip-clear' | 'brotli-clear' | 'both-clear'`
+  - `VITE_PROXY_TARGET?: string`（仅 dev server：Vite proxy 的后端地址）
 
-- 开发代理：`/api` → `http://localhost:3000`
+- 开发代理：`/api` → `VITE_PROXY_TARGET`（未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
 - Axios `baseURL` 解析规则：
-  - 开发环境：使用相对路径配合 Vite 代理（`/api` → `http://localhost:3000`）。
+  - 开发环境：使用相对路径配合 Vite 代理（`/api` → `VITE_PROXY_TARGET`，未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）。
   - 生产/预发：优先读取 `.env.*` 中的 `VITE_SERVER_URL`；若未设置，则回落到 `https://tire-api.laiczhang.com`。
 
 参考文件：
