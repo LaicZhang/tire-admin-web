@@ -28,7 +28,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "node scripts/only-allow-pnpm.mjs"
   },
   "keywords": [
     "vue-pure-admin",

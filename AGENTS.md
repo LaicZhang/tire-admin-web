@@ -198,6 +198,7 @@
 - 示例：`feat(business): add provider CRUD pages`
 - 预提交钩子：Husky + lint-staged
   - 针对暂存区文件执行 Prettier/ESLint/Stylelint 修复。
+- 脚本执行策略：本地默认启用 `preinstall`/`prepare`（only-allow pnpm + husky）；CI 通过 `CI=true` 跳过 hooks，必要时可设置 `PNPM_ENABLE_PRE_POST_SCRIPTS=false` 禁用 pre/post 脚本执行。
 - 手动质量检查：
   - `pnpm typecheck`、`pnpm lint`、`pnpm svgo`（压缩 SVG）、`pnpm cloc`（代码统计）。
 
