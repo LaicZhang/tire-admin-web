@@ -3,7 +3,6 @@
 declare global {
   interface Window {
     global?: typeof globalThis;
-    process?: Record<string, unknown>;
   }
 }
 
@@ -12,8 +11,9 @@ if (typeof window.global === "undefined") {
 }
 
 // Some dependencies expect `process` to exist (e.g. browser builds).
-if (typeof window.process === "undefined") {
-  window.process = {};
+const windowAny = window as unknown as { process?: unknown };
+if (typeof windowAny.process === "undefined") {
+  windowAny.process = {};
 }
 
 export {};

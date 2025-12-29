@@ -171,7 +171,7 @@ onMounted(() => {
           :on-success="handleUploadSuccess"
           :on-remove="handleRemove"
           list-type="picture-card"
-          accept="image/*"
+          accept=".jpg,.jpeg,.png,.gif,.webp,.bmp"
           :limit="5"
         >
           <el-icon><component :is="'ep-plus'" /></el-icon>
