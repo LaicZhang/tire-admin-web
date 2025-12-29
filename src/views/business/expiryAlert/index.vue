@@ -26,28 +26,19 @@ const pagination = ref({
 
 const columns = [
   {
-    label: "预警规则",
-    prop: "name"
+    label: "仓库",
+    prop: "repoId"
   },
   {
     label: "提前预警天数",
-    prop: "leadDays"
-  },
-  {
-    label: "紧急预警天数",
-    prop: "urgentDays"
-  },
-  {
-    label: "备注",
-    prop: "desc"
+    prop: "daysBefore"
   }
 ];
 
 const getData = async () => {
   loading.value = true;
   const { data, code, msg } = await getExpiryAlertListApi({
-    page: pagination.value.currentPage,
-    pageSize: pagination.value.pageSize
+    index: pagination.value.currentPage
   });
   if (code === 200) {
     dataList.value = data.list;
@@ -68,10 +59,8 @@ function openDialog(title = "新增") {
     title: `${title}效期预警配置`,
     props: {
       formInline: {
-        name: "",
-        leadDays: 30,
-        urgentDays: 7,
-        desc: ""
+        repoId: "",
+        daysBefore: 30
       }
     },
     width: "40%",
@@ -80,44 +69,24 @@ function openDialog(title = "新增") {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props! as {
-        formInline: {
-          name: string;
-          leadDays: number;
-          urgentDays: number;
-          desc: string;
-        };
+      const { formInline } = options.props as {
+        formInline: { repoId: string; daysBefore: number };
       };
       return h("div", [
         h("el-form", { model: formInline, labelWidth: "100px" }, [
-          h("el-form-item", { label: "规则名称", required: true }, [
+          h("el-form-item", { label: "仓库ID（可选）" }, [
             h("el-input", {
-              modelValue: formInline.name,
-              "onUpdate:modelValue": (val: string) => (formInline.name = val),
-              placeholder: "请输入规则名称"
+              modelValue: formInline.repoId,
+              "onUpdate:modelValue": (val: string) => (formInline.repoId = val),
+              placeholder: "为空表示所有仓库"
             })
           ]),
           h("el-form-item", { label: "提前预警天数" }, [
             h("el-input-number", {
-              modelValue: formInline.leadDays,
+              modelValue: formInline.daysBefore,
               "onUpdate:modelValue": (val: number) =>
-                (formInline.leadDays = val),
+                (formInline.daysBefore = val),
               min: 1
-            })
-          ]),
-          h("el-form-item", { label: "紧急预警天数" }, [
-            h("el-input-number", {
-              modelValue: formInline.urgentDays,
-              "onUpdate:modelValue": (val: number) =>
-                (formInline.urgentDays = val),
-              min: 1
-            })
-          ]),
-          h("el-form-item", { label: "备注" }, [
-            h("el-input", {
-              modelValue: formInline.desc,
-              "onUpdate:modelValue": (val: string) => (formInline.desc = val),
-              type: "textarea"
             })
           ])
         ])
@@ -125,20 +94,12 @@ function openDialog(title = "新增") {
     },
     beforeSure: (done, { options }) => {
       const data = (
-        options.props! as {
-          formInline: {
-            name: string;
-            leadDays: number;
-            urgentDays: number;
-            desc: string;
-          };
-        }
+        options.props as { formInline: { repoId: string; daysBefore: number } }
       ).formInline;
-      if (!data.name) {
-        message("请输入名称", { type: "warning" });
-        return;
-      }
-      createExpiryAlertApi(data).then(() => {
+      createExpiryAlertApi({
+        repoId: data.repoId || undefined,
+        daysBefore: data.daysBefore
+      }).then(() => {
         message("操作成功", { type: "success" });
         done();
         getData();

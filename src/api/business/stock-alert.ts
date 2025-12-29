@@ -16,13 +16,14 @@ export interface StockAlert extends StockAlertDto {
 }
 
 export interface ExpiryAlertDto {
-  tireId: string;
+  /** 仓库ID，可为空表示所有仓库 */
+  repoId?: string;
   daysBefore: number;
 }
 
 export interface ExpiryAlert extends ExpiryAlertDto {
   id: number;
-  uid: string;
+  uid?: string;
 }
 
 // 库存预警

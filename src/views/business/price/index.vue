@@ -79,7 +79,7 @@ const handleCurrentChange = (val: number) => {
 };
 
 const handleDelete = async (row: any) => {
-  await deletePriceListApi(row.id);
+  await deletePriceListApi(row.uid);
   message("删除成功", { type: "success" });
   getData();
 };
@@ -89,7 +89,7 @@ function openDialog(title = "新增", row?: any) {
     title: `${title}价目表`,
     props: {
       formInline: {
-        id: row?.id,
+        id: row?.uid,
         name: row?.name ?? "",
         desc: row?.desc ?? "",
         type: row?.type ?? "CUSTOM"
@@ -103,7 +103,7 @@ function openDialog(title = "新增", row?: any) {
     contentRenderer: ({ options }) =>
       h(Form, {
         formInline: options.props!.formInline as {
-          id?: number;
+          id?: string;
           name: string;
           desc: string;
           type: string;
@@ -111,7 +111,7 @@ function openDialog(title = "新增", row?: any) {
       }),
     beforeSure: (done, { options }) => {
       const curData = options.props!.formInline as {
-        id?: number;
+        id?: string;
         name: string;
         desc: string;
         type: string;

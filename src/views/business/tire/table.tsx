@@ -15,7 +15,7 @@ interface FormItemProps {
   id?: number;
   uid?: string;
   group: string;
-  name: string;
+  name?: string;
   desc?: string;
   unit: string;
   pattern: string;
@@ -23,13 +23,13 @@ interface FormItemProps {
   loadIndex: string;
   speedLevel: string;
   format: string;
-  weight: number;
-  purchasePriceWithTax: number;
-  purchasePrice: number;
-  salePriceWithTax: number;
-  salePrice: string;
+  weight?: number;
+  purchasePriceWithTax?: number;
+  purchasePrice?: number;
+  salePriceWithTax?: number;
+  salePrice?: number;
   commissionType: number;
-  commission: string;
+  commission?: string;
   covers: Record<string, unknown>[];
 }
 interface FormProps {
@@ -50,6 +50,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     props: {
       formInline: {
         id: row?.id ?? undefined,
+        group: row?.group ?? "默认",
         name: row?.name ?? undefined,
         uid: row?.uid ?? undefined,
         desc: row?.desc ?? undefined,
@@ -63,8 +64,13 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         purchasePriceWithTax: row?.purchasePriceWithTax ?? undefined,
         purchasePrice: row?.purchasePrice ?? undefined,
         salePriceWithTax: row?.salePriceWithTax ?? undefined,
-        salePrice: row?.salePrice ?? undefined,
-        commissionType: row?.commissionType ?? undefined,
+        salePrice:
+          row?.salePrice == null
+            ? undefined
+            : typeof row.salePrice === "number"
+              ? row.salePrice
+              : Number(row.salePrice),
+        commissionType: row?.commissionType ?? 0,
         commission: row?.commission ?? undefined,
         covers: row?.covers ?? []
       }
@@ -76,11 +82,15 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
-      h(editForm, { ref: formRef, formInline: options.props!.formInline }),
+      h(editForm, {
+        ref: formRef,
+        formInline: (options.props as { formInline: FormItemProps }).formInline
+      }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"
@@ -89,6 +99,10 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       }
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
+          if (!curData.name) {
+            message("名称为必填项", { type: "warning" });
+            return;
+          }
           const { id: _id, uid, covers: formCovers, ...tireData } = curData;
 
           const uploadedImagesList = await getUploadedImages();
@@ -97,6 +111,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
 
           const payload = {
             ...tireData,
+            name: curData.name,
             ...(covers.length > 0 ? { covers } : {}),
             company: {
               connect: { uid: await getCompanyId() }

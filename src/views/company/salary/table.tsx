@@ -50,11 +50,15 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
-      h(editForm, { ref: formRef, formInline: options.props!.formInline }),
+      h(editForm, {
+        ref: formRef,
+        formInline: (options.props as { formInline: FormItemProps }).formInline
+      }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"

@@ -48,11 +48,12 @@ export function openDialog(title = "更新", row?: Partial<CompanyInfo>): void {
     contentRenderer: ({ options }) =>
       h(editForm, {
         ref: formRef,
-        formInline: options.props!.formInline as FormItemProps
+        formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       function chores() {
         message(`公司信息${title}成功`, {
           type: "success"

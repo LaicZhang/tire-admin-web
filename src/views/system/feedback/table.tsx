@@ -13,6 +13,8 @@ interface FeedbackRow {
   type: number;
 }
 
+type FeedbackFormInline = Partial<FeedbackRow>;
+
 export function openDialog(title = "新增", row?: FeedbackRow) {
   const formRef = ref<{ getRef: () => FormInstance } | null>(null);
   addDialog({
@@ -38,12 +40,16 @@ export function openDialog(title = "新增", row?: FeedbackRow) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
-      h(Form, { ref: formRef, formInline: options.props!.formInline }),
+      h(Form, {
+        ref: formRef,
+        formInline: (options.props as { formInline: FeedbackFormInline })
+          .formInline
+      }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const curData = options.props!.formInline as any;
+      const curData = (options.props as { formInline: any }).formInline;
 
       FormRef.validate(async (valid: boolean) => {
         if (valid) {

@@ -7,13 +7,13 @@ import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
 
 interface FormItemProps {
-  uid: string;
+  uid?: string;
   name: string;
   /** 仓库编号 */
-  id: number;
+  id?: number;
   desc?: string;
-  startAt: string | Date;
-  endAt: string | Date;
+  startAt: Date;
+  endAt: Date;
   address: string;
   status: boolean;
 }
@@ -29,7 +29,15 @@ export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
+function toDate(value: string | Date | undefined, fallback: Date): Date {
+  if (!value) return fallback;
+  return value instanceof Date ? value : new Date(value);
+}
+
 export function openDialog(title = "新增", row?: FormItemProps) {
+  const defaultStartAt = new Date();
+  const defaultEndAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
   addDialog({
     title: `${title}仓库`,
     props: {
@@ -37,8 +45,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         name: row?.name ?? "",
         uid: row?.uid ?? "",
         desc: row?.desc ?? "",
-        startAt: row?.startAt ?? "",
-        endAt: row?.endAt ?? "",
+        startAt: toDate(row?.startAt, defaultStartAt),
+        endAt: toDate(row?.endAt, defaultEndAt),
         address: row?.address ?? "",
         status: row?.status ?? true
       }
@@ -50,11 +58,15 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
-      h(editForm, { ref: formRef, formInline: options.props!.formInline }),
+      h(editForm, {
+        ref: formRef,
+        formInline: (options.props as { formInline: FormItemProps }).formInline
+      }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"
@@ -79,6 +91,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
           } else {
             const { uid, name, desc, startAt, endAt, address, status } =
               curData;
+            if (!uid) return;
             await updateRepoApi(uid, {
               name,
               desc,

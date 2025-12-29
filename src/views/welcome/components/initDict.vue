@@ -32,7 +32,7 @@ const refreshDict = async (silent = false) => {
     if (code === 200) {
       await localForage().setItem(
         SYS.dict,
-        groupByName(Array.isArray(data) ? data : [])
+        groupByName(Array.isArray(data) ? (data as DictItem[]) : [])
       );
       await localForage().setItem(SYS_DICT_UPDATED_AT_KEY, Date.now());
     } else {
