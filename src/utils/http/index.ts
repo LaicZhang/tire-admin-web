@@ -19,30 +19,43 @@ import {
   useHttpOnlyCookie
 } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { resolveBaseURLFromViteEnv } from "./baseurl";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 // 优先使用环境变量，其次：开发环境走相对路径配合 Vite 代理，生产环境兜底到公网 API
+export { resolveBaseURLFromViteEnv } from "./baseurl";
+
+let fatalApiConfigError: string | undefined;
+let fatalApiConfigNotified = false;
+const fatalApiConfigErrorCode = "ERR_FATAL_CONFIG";
+const notifyFatalApiConfigOnce = () => {
+  if (!fatalApiConfigError || fatalApiConfigNotified) return;
+  fatalApiConfigNotified = true;
+
+  // 保留排障信息（不依赖用户打开控制台）
+  console.error(fatalApiConfigError);
+  void ElMessageBox.alert(fatalApiConfigError, "配置错误", {
+    type: "error",
+    closeOnClickModal: false,
+    closeOnPressEscape: false,
+    confirmButtonText: "我知道了"
+  }).catch(() => {
+    // ignore
+  });
+};
+
 const resolveBaseURL = (): string => {
   // Vite 注入的环境变量（仅在构建产物中可用）
-  const { VITE_SERVER_URL, DEV, PROD } = import.meta.env as unknown as {
+  const env = import.meta.env as unknown as {
     VITE_SERVER_URL?: string;
     DEV: boolean;
     PROD: boolean;
   };
-
-  // 开发环境：使用相对路径，通过 Vite proxy 将 /api 转发到后端
-  if (DEV) return "";
-
-  // 非 DEV：优先使用环境变量（staging/production 都需要）
-  if (VITE_SERVER_URL) return VITE_SERVER_URL;
-
-  // 未配置时输出错误并返回空字符串（请求会失败）
-  console.error(
-    `[HTTP] ${PROD ? "生产" : "非开发"}环境必须配置 VITE_SERVER_URL 环境变量`
-  );
-
-  return "";
+  const resolved = resolveBaseURLFromViteEnv(env);
+  fatalApiConfigError = resolved.fatalError;
+  if (fatalApiConfigError) queueMicrotask(notifyFatalApiConfigOnce);
+  return resolved.baseURL;
 };
 
 /**
@@ -50,6 +63,7 @@ const resolveBaseURL = (): string => {
  * 仅对网络错误和幂等请求进行重试
  */
 export const shouldRetry = (error: AxiosError): boolean => {
+  if (error.code === fatalApiConfigErrorCode) return false;
   // 仅重试 GET/HEAD/OPTIONS 等幂等请求
   const idempotentMethods = ["get", "head", "options"];
   const method = error.config?.method?.toLowerCase() || "";
@@ -164,6 +178,15 @@ class PureHttp {
     PureHttp.axiosInstance.interceptors.request.use(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async (config: PureHttpRequestConfig): Promise<any> => {
+        if (fatalApiConfigError) {
+          notifyFatalApiConfigOnce();
+          const error = new Error(fatalApiConfigError) as Error & {
+            code?: string;
+          };
+          error.code = fatalApiConfigErrorCode;
+          return Promise.reject(error);
+        }
+
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
         if (typeof config.beforeRequestCallback === "function") {
           config.beforeRequestCallback(config);
@@ -315,7 +338,7 @@ class PureHttp {
         }
 
         // 非取消请求时显示错误提示
-        if (!$error.isCancelRequest) {
+        if (!$error.isCancelRequest && $error.code !== fatalApiConfigErrorCode) {
           const response = $error.response as { data?: { msg?: string } };
           const message =
             response?.data?.msg || $error.message || "请求失败，请稍后重试";
