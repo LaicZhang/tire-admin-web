@@ -1,6 +1,7 @@
-import type { Ref } from "vue";
+import { h, ref, type Ref } from "vue";
 import {
   deleteOrderApi,
+  confirmPurchaseOrderArrivalApi,
   confirmSaleOrderShipmentApi,
   confirmSaleOrderDeliveryApi,
   confirmReturnOrderArrivalApi,
@@ -17,10 +18,12 @@ import {
   sendPurchaseInquiryApi,
   convertSaleQuotationApi
 } from "@/api";
+import { addDialog } from "@/components/ReDialog";
 import { ElMessageBox } from "element-plus";
 import { CUR_FORM_TITLE, localForage, message, ORDER_TYPE } from "@/utils";
 import { openDialog } from "../table";
 import type { CommonResult } from "@/api/type";
+import ConfirmOrderDetailAction from "../components/ConfirmOrderDetailAction.vue";
 
 /**
  * 订单行数据接口
@@ -45,6 +48,75 @@ export function useOrderActions(
   onSearch: () => Promise<void>
 ) {
   const formTitle = { value: "" };
+
+  const openConfirmDetailActionDialog = async (
+    title: string,
+    action:
+      | "purchase-arrival"
+      | "sale-shipment"
+      | "sale-delivery"
+      | "return-arrival"
+      | "return-shipment"
+      | "return-delivery"
+      | "transfer-shipment"
+      | "transfer-arrival",
+    row: OrderRow,
+    onSubmit: (payload: {
+      detailUid: string;
+      shipCount?: number;
+      batchNo?: string;
+      productionDate?: string;
+      expiryDate?: string;
+    }) => Promise<unknown>
+  ) => {
+    const formRef = ref<{
+      getPayload: () => {
+        detailUid: string;
+        shipCount?: number;
+        batchNo?: string;
+        productionDate?: string;
+        expiryDate?: string;
+      };
+    } | null>(null);
+
+    addDialog({
+      title,
+      width: "520px",
+      draggable: true,
+      closeOnClickModal: false,
+      contentRenderer: () =>
+        h(ConfirmOrderDetailAction, {
+          ref: formRef,
+          orderType: orderType.value,
+          action,
+          orderUid: row.uid
+        }),
+      beforeSure: async done => {
+        try {
+          const payload = formRef.value?.getPayload();
+          if (!payload?.detailUid) {
+            message("请选择明细", { type: "warning" });
+            return;
+          }
+          if (
+            action === "sale-shipment" &&
+            (!payload.shipCount || payload.shipCount <= 0)
+          ) {
+            message("请输入有效的发货数量", { type: "warning" });
+            return;
+          }
+
+          await onSubmit(payload);
+          message(`${title}成功`, { type: "success" });
+          done();
+          await onSearch();
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : `${title}失败`;
+          message(msg, { type: "error" });
+        }
+      }
+    });
+  };
 
   const handleOpenDialog = async (
     title: string,
@@ -86,31 +158,38 @@ export function useOrderActions(
 
   // 采购订单：确认到货
   const handleConfirmPurchaseArrival = async (row: OrderRow) => {
-    handleOpenDialog("确认到货", orderType.value, row);
+    await openConfirmDetailActionDialog(
+      "确认到货",
+      "purchase-arrival",
+      row,
+      async payload => {
+        return confirmPurchaseOrderArrivalApi(row.uid, payload);
+      }
+    );
   };
 
   // 销售订单：确认发货
   const handleConfirmSaleShipment = async (row: OrderRow) => {
-    try {
-      await confirmSaleOrderShipmentApi(row.uid, {});
-      message("确认发货成功", { type: "success" });
-      await onSearch();
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "确认发货失败";
-      message(msg, { type: "error" });
-    }
+    await openConfirmDetailActionDialog(
+      "确认发货",
+      "sale-shipment",
+      row,
+      async payload => {
+        return confirmSaleOrderShipmentApi(row.uid, payload);
+      }
+    );
   };
 
   // 销售订单：确认送达
   const handleConfirmSaleDelivery = async (row: OrderRow) => {
-    try {
-      await confirmSaleOrderDeliveryApi(row.uid, {});
-      message("确认送达成功", { type: "success" });
-      await onSearch();
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "确认送达失败";
-      message(msg, { type: "error" });
-    }
+    await openConfirmDetailActionDialog(
+      "确认送达",
+      "sale-delivery",
+      row,
+      async payload => {
+        return confirmSaleOrderDeliveryApi(row.uid, payload);
+      }
+    );
   };
 
   // 理赔订单：处理理赔费用
@@ -120,41 +199,38 @@ export function useOrderActions(
 
   // 退货订单：确认客户退货到货
   const handleConfirmReturnCustomerArrival = async (row: OrderRow) => {
-    try {
-      await confirmReturnOrderArrivalApi(row.uid, { detailUid: row.uid });
-      message("确认客户退货到货成功", { type: "success" });
-      await onSearch();
-    } catch (error: unknown) {
-      const msg =
-        error instanceof Error ? error.message : "确认客户退货到货失败";
-      message(msg, { type: "error" });
-    }
+    await openConfirmDetailActionDialog(
+      "确认客户退货到货",
+      "return-arrival",
+      row,
+      async payload => {
+        return confirmReturnOrderArrivalApi(row.uid, payload);
+      }
+    );
   };
 
   // 退货订单：确认退供应商发货
   const handleConfirmReturnProviderShipment = async (row: OrderRow) => {
-    try {
-      await confirmReturnOrderShipmentApi(row.uid, { detailUid: row.uid });
-      message("确认退供应商发货成功", { type: "success" });
-      await onSearch();
-    } catch (error: unknown) {
-      const msg =
-        error instanceof Error ? error.message : "确认退供应商发货失败";
-      message(msg, { type: "error" });
-    }
+    await openConfirmDetailActionDialog(
+      "确认退供应商发货",
+      "return-shipment",
+      row,
+      async payload => {
+        return confirmReturnOrderShipmentApi(row.uid, payload);
+      }
+    );
   };
 
   // 退货订单：确认退供应商送达
   const handleConfirmReturnProviderDelivery = async (row: OrderRow) => {
-    try {
-      await confirmReturnOrderDeliveryApi(row.uid, { detailUid: row.uid });
-      message("确认退供应商送达成功", { type: "success" });
-      await onSearch();
-    } catch (error: unknown) {
-      const msg =
-        error instanceof Error ? error.message : "确认退供应商送达失败";
-      message(msg, { type: "error" });
-    }
+    await openConfirmDetailActionDialog(
+      "确认退供应商送达",
+      "return-delivery",
+      row,
+      async payload => {
+        return confirmReturnOrderDeliveryApi(row.uid, payload);
+      }
+    );
   };
 
   // 退货订单：退款
@@ -164,26 +240,26 @@ export function useOrderActions(
 
   // 调拨订单：确认发货
   const handleConfirmTransferShipment = async (row: OrderRow) => {
-    try {
-      await confirmTransferOrderShipmentApi(row.uid, {});
-      message("确认发货成功", { type: "success" });
-      await onSearch();
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "确认发货失败";
-      message(msg, { type: "error" });
-    }
+    await openConfirmDetailActionDialog(
+      "确认调拨发货",
+      "transfer-shipment",
+      row,
+      async payload => {
+        return confirmTransferOrderShipmentApi(row.uid, payload);
+      }
+    );
   };
 
   // 调拨订单：确认到货
   const handleConfirmTransferArrival = async (row: OrderRow) => {
-    try {
-      await confirmTransferOrderArrivalApi(row.uid, {});
-      message("确认到货成功", { type: "success" });
-      await onSearch();
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "确认到货失败";
-      message(msg, { type: "error" });
-    }
+    await openConfirmDetailActionDialog(
+      "确认调拨到货",
+      "transfer-arrival",
+      row,
+      async payload => {
+        return confirmTransferOrderArrivalApi(row.uid, payload);
+      }
+    );
   };
 
   // 订单作废

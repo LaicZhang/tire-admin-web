@@ -231,17 +231,25 @@ export async function openDialog(title = "新增", type: string, row?: any) {
             });
             chores();
           } else if (title === "确认到货") {
-            const arrivalDetails = curData.details.map(
-              (item: _OrderDetail) => ({
-                uid: item.uid,
-                count: item.count,
+            const selected = (
+              curData.details as Array<_OrderDetail & { isArrival?: boolean }>
+            ).filter(item => Boolean(item.isArrival));
+
+            if (selected.length === 0) {
+              message("请在明细中勾选要确认到货的行（是否到货）", {
+                type: "warning"
+              });
+              return;
+            }
+
+            for (const item of selected) {
+              if (!item.uid) continue;
+              await confirmPurchaseOrderArrivalApi(uid, {
+                detailUid: item.uid,
                 batchNo: item.batchNo,
                 expiryDate: item.expiryDate
-              })
-            );
-            await confirmPurchaseOrderArrivalApi(uid, {
-              details: arrivalDetails
-            });
+              });
+            }
             chores();
           } else {
             await updateOrderApi(type, uid, {

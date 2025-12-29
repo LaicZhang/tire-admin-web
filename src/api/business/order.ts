@@ -40,14 +40,21 @@ export interface PayOrderDto {
 }
 
 /** 确认物流状态请求 DTO */
-export interface ConfirmLogisticsDto {
-  details?: Array<{
-    uid: string;
-    count?: number;
-    batchNo?: string;
-    expiryDate?: string;
-  }>;
-}
+export type ConfirmDetailUidDto = {
+  detailUid: string;
+};
+
+export type PurchaseOrderConfirmArrivalDto = {
+  detailUid: string;
+  batchNo?: string;
+  productionDate?: string;
+  expiryDate?: string;
+};
+
+export type SaleOrderConfirmShipmentDto = {
+  detailUid: string;
+  shipCount?: number;
+};
 
 export interface OrderQueryDto {
   orderStatus?: number;
@@ -154,7 +161,7 @@ export async function deletePurchaseOrderDetailApi(uid: string) {
 
 export async function confirmPurchaseOrderArrivalApi(
   uid: string,
-  data: ConfirmLogisticsDto
+  data: PurchaseOrderConfirmArrivalDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -206,7 +213,7 @@ export async function deleteSaleOrderDetailApi(uid: string) {
 
 export async function confirmSaleOrderShipmentApi(
   uid: string,
-  data: ConfirmLogisticsDto
+  data: SaleOrderConfirmShipmentDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -217,7 +224,7 @@ export async function confirmSaleOrderShipmentApi(
 
 export async function confirmSaleOrderDeliveryApi(
   uid: string,
-  data: ConfirmLogisticsDto
+  data: ConfirmDetailUidDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -274,7 +281,7 @@ export async function processClaimOrderPaymentApi(
 // 退货订单特定接口
 export async function confirmReturnOrderArrivalApi(
   uid: string,
-  data: { detailUid: string }
+  data: ConfirmDetailUidDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -285,7 +292,7 @@ export async function confirmReturnOrderArrivalApi(
 
 export async function confirmReturnOrderShipmentApi(
   uid: string,
-  data: { detailUid: string }
+  data: ConfirmDetailUidDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -296,7 +303,7 @@ export async function confirmReturnOrderShipmentApi(
 
 export async function confirmReturnOrderDeliveryApi(
   uid: string,
-  data: { detailUid: string }
+  data: ConfirmDetailUidDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -327,7 +334,7 @@ export async function getReturnOrderExchangeListApi(
 // 调拨订单特定接口
 export async function confirmTransferOrderShipmentApi(
   uid: string,
-  data: ConfirmLogisticsDto
+  data: ConfirmDetailUidDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -338,7 +345,7 @@ export async function confirmTransferOrderShipmentApi(
 
 export async function confirmTransferOrderArrivalApi(
   uid: string,
-  data: ConfirmLogisticsDto
+  data: ConfirmDetailUidDto
 ) {
   return await http.request<CommonResult>(
     "patch",
@@ -508,7 +515,7 @@ export async function getPendingAuditOrdersApi(
   index: number,
   params?: OrderQueryDto
 ) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<PaginatedResponseDto>>(
     "get",
     baseUrlApi(prefix + "pending/" + type + "/page/" + index),
     { params }

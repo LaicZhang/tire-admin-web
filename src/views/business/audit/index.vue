@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { getPendingAuditOrdersApi } from "@/api/business/order";
 import { message } from "@/utils/message";
 import { useRouter } from "vue-router";
+import type { PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "AuditCenter"
@@ -32,9 +33,9 @@ async function loadData() {
       { pageSize: pageSize.value }
     );
     if (code === 200) {
-      const typedData = data as { list?: unknown[]; total?: number };
+      const typedData = data as PaginatedResponseDto;
       tableData.value = typedData.list || [];
-      total.value = typedData.total || 0;
+      total.value = typedData.total ?? typedData.count ?? 0;
     } else {
       message(msg || "加载失败", { type: "error" });
     }
