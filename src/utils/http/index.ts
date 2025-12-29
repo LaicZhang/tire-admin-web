@@ -280,6 +280,22 @@ class PureHttp {
         const $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
 
+        const responseData = $error.response?.data as unknown;
+        const isApiEnvelope = (
+          value: unknown
+        ): value is {
+          code: number;
+          msg: string;
+          data?: unknown;
+          meta?: unknown;
+        } =>
+          !!value &&
+          typeof value === "object" &&
+          "code" in value &&
+          "msg" in value &&
+          typeof (value as { code?: unknown }).code === "number" &&
+          typeof (value as { msg?: unknown }).msg === "string";
+
         // HttpOnly Cookie 模式：401 自动 refresh 并重试（并发只 refresh 一次）
         const originalConfig = error.config as
           | (PureHttpRequestConfig & { __cookieAuthRetry?: boolean })
@@ -338,12 +354,22 @@ class PureHttp {
         }
 
         // 非取消请求时显示错误提示
-        if (!$error.isCancelRequest && $error.code !== fatalApiConfigErrorCode) {
+        if (
+          !$error.isCancelRequest &&
+          $error.code !== fatalApiConfigErrorCode
+        ) {
+          if (isApiEnvelope(responseData)) {
+            ElMessage.error(responseData.msg || "请求失败，请稍后重试");
+            return Promise.resolve(responseData);
+          }
+
           const response = $error.response as { data?: { msg?: string } };
           const message =
             response?.data?.msg || $error.message || "请求失败，请稍后重试";
           ElMessage.error(message);
         }
+
+        if (isApiEnvelope(responseData)) return Promise.resolve(responseData);
         return Promise.reject($error);
       }
     );
