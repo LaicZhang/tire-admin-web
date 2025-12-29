@@ -145,7 +145,11 @@ export function setToken(data: DataInfo<Date>) {
   };
 
   // HttpOnly Cookie 模式：token 由后端设置，前端只保存用户信息
-  if (!useHttpOnlyCookie) {
+  if (useHttpOnlyCookie) {
+    // 清理旧模式遗留的可读 token（避免灰度切换后仍残留）
+    Cookies.remove(TokenKey);
+    sessionStorage.removeItem(refreshTokenKey);
+  } else {
     const cookieString = JSON.stringify({ accessToken, expires });
     Cookies.set(TokenKey, cookieString, {
       ...secureCookieOptions,

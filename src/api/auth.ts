@@ -76,14 +76,14 @@ export const getLogin = (data: LoginDto) => {
 
 /**
  * 刷新访问令牌
- * @param data - 包含 refreshToken 的对象
+ * @param data - Bearer-token 模式下传 refreshToken；HttpOnly Cookie 模式下可不传（由后端从 HttpOnly cookie 读取）
  * @returns 新的 accessToken 和 refreshToken
  */
-export const refreshTokenApi = (data: RefreshTokenDto) => {
+export const refreshTokenApi = (data?: RefreshTokenDto) => {
   return http.request<RefreshTokenResult>(
     "post",
     baseUrlApi("/auth/refresh-token"),
-    { data },
+    data ? { data } : {},
     { skipAuth: true }
   );
 };

@@ -71,6 +71,9 @@ export const getRetryDelay = (retryCount: number): number => {
   return Math.min(1000 * Math.pow(2, retryCount), 10000);
 };
 
+/** 请求白名单：不需要 token 的接口（避免 refresh-token 请求再次触发 refresh 导致死循环） */
+const authWhiteList = ["/api/auth/login", "/api/auth/refresh-token"];
+
 const defaultConfig: AxiosRequestConfig = {
   baseURL: resolveBaseURL(),
   // 请求超时时间
@@ -104,6 +107,16 @@ class PureHttp {
   /** 防止重复刷新token */
   private static isRefreshing = false;
 
+  /** HttpOnly Cookie 模式：防止重复 refresh */
+  private static isCookieRefreshing = false;
+
+  /** HttpOnly Cookie 模式：暂存待重试的请求 */
+  private static cookieRequests: Array<{
+    config: PureHttpRequestConfig;
+    resolve: (config: PureHttpRequestConfig) => void;
+    reject: (error: unknown) => void;
+  }> = [];
+
   /** 初始化配置对象 */
   private static initConfig: PureHttpRequestConfig = {};
 
@@ -130,6 +143,22 @@ class PureHttp {
     PureHttp.requests = [];
   }
 
+  private static enqueueCookieRequest(config: PureHttpRequestConfig) {
+    return new Promise<PureHttpRequestConfig>((resolve, reject) => {
+      PureHttp.cookieRequests.push({ config, resolve, reject });
+    });
+  }
+
+  private static resolveCookieRequests() {
+    PureHttp.cookieRequests.forEach(({ config, resolve }) => resolve(config));
+    PureHttp.cookieRequests = [];
+  }
+
+  private static rejectCookieRequests(error: unknown) {
+    PureHttp.cookieRequests.forEach(({ reject }) => reject(error));
+    PureHttp.cookieRequests = [];
+  }
+
   /** 请求拦截 */
   private httpInterceptorsRequest(): void {
     PureHttp.axiosInstance.interceptors.request.use(
@@ -147,9 +176,7 @@ class PureHttp {
         // 跳过鉴权（登录/刷新等接口）
         if (config.skipAuth) return config;
 
-        /** 请求白名单：不需要 token 的接口（避免 refresh-token 请求再次触发 refresh 导致死循环） */
-        const whiteList = ["/api/auth/login", "/api/auth/refresh-token"];
-        if (whiteList.includes(config.url ?? "")) return config;
+        if (authWhiteList.includes(config.url ?? "")) return config;
 
         config.headers ??= {};
 
@@ -229,6 +256,45 @@ class PureHttp {
       async (error: PureHttpError) => {
         const $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
+
+        // HttpOnly Cookie 模式：401 自动 refresh 并重试（并发只 refresh 一次）
+        const originalConfig = error.config as
+          | (PureHttpRequestConfig & { __cookieAuthRetry?: boolean })
+          | undefined;
+        const status = $error.response?.status;
+        if (
+          useHttpOnlyCookie &&
+          status === 401 &&
+          originalConfig &&
+          !originalConfig.skipAuth &&
+          !authWhiteList.includes(originalConfig.url ?? "") &&
+          !originalConfig.__cookieAuthRetry
+        ) {
+          originalConfig.__cookieAuthRetry = true;
+
+          if (PureHttp.isCookieRefreshing) {
+            return PureHttp.enqueueCookieRequest(originalConfig).then(config =>
+              instance.request(config)
+            );
+          }
+
+          PureHttp.isCookieRefreshing = true;
+          try {
+            await instance.request({
+              method: "post",
+              url: "/api/auth/refresh-token",
+              skipAuth: true
+            } as PureHttpRequestConfig);
+            PureHttp.resolveCookieRequests();
+            return instance.request(originalConfig);
+          } catch (refreshError) {
+            PureHttp.rejectCookieRequests(refreshError);
+            useUserStoreHook().logOut();
+            return Promise.reject(refreshError);
+          } finally {
+            PureHttp.isCookieRefreshing = false;
+          }
+        }
 
         // 重试逻辑：仅对网络错误和幂等请求进行重试
         const config = error.config as PureHttpRequestConfig & {
