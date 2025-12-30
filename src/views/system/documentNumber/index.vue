@@ -11,6 +11,7 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Edit from "~icons/ep/edit";
 import Refresh from "~icons/ep/refresh";
+import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
   name: "SystemDocumentNumber"
@@ -19,6 +20,52 @@ defineOptions({
 const loading = ref(false);
 const rules = ref<DocumentNumberRule[]>([]);
 const showEditDialog = ref(false);
+
+const columns: TableColumnList = [
+  {
+    label: "单据类型",
+    width: 150,
+    slot: "documentType"
+  },
+  {
+    label: "前缀",
+    width: 100,
+    prop: "prefix"
+  },
+  {
+    label: "日期格式",
+    width: 150,
+    slot: "dateFormat"
+  },
+  {
+    label: "序号位数",
+    width: 100,
+    prop: "sequenceDigits",
+    align: "center"
+  },
+  {
+    label: "分隔符",
+    width: 80,
+    align: "center",
+    slot: "separator"
+  },
+  {
+    label: "重置周期",
+    width: 120,
+    slot: "resetCycle"
+  },
+  {
+    label: "示例",
+    minWidth: 200,
+    slot: "example"
+  },
+  {
+    label: "操作",
+    width: 100,
+    fixed: "right",
+    slot: "operation"
+  }
+];
 
 // 日期格式选项
 const dateFormatOptions = [
@@ -176,68 +223,61 @@ onMounted(() => {
 
 <template>
   <div class="main p-4">
-    <el-card>
-      <template #header>
-        <div class="flex items-center justify-between">
-          <span class="font-bold">单据编号规则配置</span>
-          <div class="flex space-x-2">
-            <el-button :icon="useRenderIcon(Refresh)" @click="loadRules">
-              刷新
-            </el-button>
-            <el-button type="primary" @click="handleEdit()">
-              添加规则
-            </el-button>
-          </div>
-        </div>
-      </template>
-
-      <el-table v-loading="loading" :data="rules" stripe border>
-        <el-table-column label="单据类型" width="150">
-          <template #default="{ row }">
-            {{ getDocumentTypeLabel(row.documentType) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="prefix" label="前缀" width="100" />
-        <el-table-column label="日期格式" width="150">
-          <template #default="{ row }">
-            {{ row.dateFormat || "无" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="序号位数" width="100" align="center">
-          <template #default="{ row }">
-            {{ row.sequenceDigits }}
-          </template>
-        </el-table-column>
-        <el-table-column label="分隔符" width="80" align="center">
-          <template #default="{ row }">
-            <code v-if="row.separator">{{ row.separator }}</code>
-            <span v-else class="text-gray-400">无</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="重置周期" width="120">
-          <template #default="{ row }">
-            {{ getResetCycleText(row) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="示例" min-width="200">
-          <template #default="{ row }">
-            <code class="bg-gray-100 px-2 py-1 rounded">{{ row.example }}</code>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
-          <template #default="{ row }">
-            <el-button
-              type="primary"
-              size="small"
-              text
-              :icon="useRenderIcon(Edit)"
-              @click="handleEdit(row)"
-            >
-              编辑
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <div class="bg-white p-4">
+      <PureTableBar
+        title="单据编号规则配置"
+        :columns="columns"
+        @refresh="loadRules"
+      >
+        <template #buttons>
+          <el-button type="primary" @click="handleEdit()"> 添加规则 </el-button>
+        </template>
+        <template v-slot="{ size, dynamicColumns }">
+          <pure-table
+            border
+            stripe
+            align-whole="center"
+            :loading="loading"
+            :size="size"
+            :data="rules"
+            :columns="dynamicColumns"
+            :header-cell-style="{
+              background: 'var(--el-fill-color-light)',
+              color: 'var(--el-text-color-primary)'
+            }"
+          >
+            <template #documentType="{ row }">
+              {{ getDocumentTypeLabel(row.documentType) }}
+            </template>
+            <template #dateFormat="{ row }">
+              {{ row.dateFormat || "无" }}
+            </template>
+            <template #separator="{ row }">
+              <code v-if="row.separator">{{ row.separator }}</code>
+              <span v-else class="text-gray-400">无</span>
+            </template>
+            <template #resetCycle="{ row }">
+              {{ getResetCycleText(row) }}
+            </template>
+            <template #example="{ row }">
+              <code class="bg-gray-100 px-2 py-1 rounded">{{
+                row.example
+              }}</code>
+            </template>
+            <template #operation="{ row }">
+              <el-button
+                type="primary"
+                size="small"
+                text
+                :icon="useRenderIcon(Edit)"
+                @click="handleEdit(row)"
+              >
+                编辑
+              </el-button>
+            </template>
+          </pure-table>
+        </template>
+      </PureTableBar>
 
       <!-- 提示信息 -->
       <div class="mt-4 text-sm text-gray-500">
@@ -248,8 +288,125 @@ onMounted(() => {
           <li>未配置规则的单据将使用系统默认编号格式</li>
         </ul>
       </div>
-    </el-card>
+    </div>
 
+    <!-- 编辑弹窗 -->
+    <el-dialog
+      v-model="showEditDialog"
+      :title="editForm.documentType ? '编辑编号规则' : '添加编号规则'"
+      width="600px"
+    >
+      <el-form :model="editForm" label-width="100px">
+        <el-form-item label="单据类型" required>
+          <el-select
+            v-model="editForm.documentType"
+            :disabled="
+              !!editForm.documentType &&
+              rules.some(r => r.documentType === editForm.documentType)
+            "
+            placeholder="请选择单据类型"
+            class="w-full"
+          >
+            <el-option
+              v-for="item in DocumentTypeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+              :disabled="
+                rules.some(r => r.documentType === item.value) &&
+                editForm.documentType !== item.value
+              "
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="前缀" required>
+          <el-input
+            v-model="editForm.prefix"
+            placeholder="如：SO、PO、RO"
+            maxlength="10"
+            show-word-limit
+          />
+        </el-form-item>
+
+        <el-form-item label="日期格式">
+          <el-select v-model="editForm.dateFormat" class="w-full">
+            <el-option
+              v-for="item in dateFormatOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="序号位数">
+          <el-input-number
+            v-model="editForm.sequenceDigits"
+            :min="2"
+            :max="10"
+          />
+        </el-form-item>
+
+        <el-form-item label="分隔符">
+          <el-select v-model="editForm.separator" class="w-full">
+            <el-option
+              v-for="item in separatorOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="重置周期">
+          <el-radio-group v-model="editForm.resetYearly">
+            <el-radio
+              :value="false"
+              @click="
+                editForm.resetDaily = true;
+                editForm.resetMonthly = false;
+                editForm.resetYearly = false;
+              "
+              >每日</el-radio
+            >
+            <el-radio
+              :value="false"
+              @click="
+                editForm.resetDaily = false;
+                editForm.resetMonthly = true;
+                editForm.resetYearly = false;
+              "
+              >每月</el-radio
+            >
+            <el-radio
+              :value="true"
+              @click="
+                editForm.resetDaily = false;
+                editForm.resetMonthly = false;
+                editForm.resetYearly = true;
+              "
+              >每年</el-radio
+            >
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="示例预览">
+          <code class="bg-gray-100 px-4 py-2 rounded text-lg font-mono">
+            {{ examplePreview }}
+          </code>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="showEditDialog = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="handleSave">
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
+  </div>
+  <div>
     <!-- 编辑弹窗 -->
     <el-dialog
       v-model="showEditDialog"
