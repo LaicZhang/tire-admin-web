@@ -1,0 +1,310 @@
+<script setup lang="ts">
+import { ref, reactive, onMounted, h } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import type { FormInstance } from "element-plus";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Refresh from "~icons/ep/refresh";
+import AddFill from "~icons/ri/add-circle-line";
+import View from "~icons/ep/view";
+import Delete from "~icons/ep/delete";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
+import { columns } from "./columns";
+import editForm from "./form.vue";
+import {
+  type CostRecalcTask,
+  type RecalcTaskQuery,
+  RecalcStatus,
+  recalcStatusMap
+} from "./types";
+import {
+  cancelCostRecalcTaskApi,
+  createCostRecalcTaskApi,
+  deleteCostRecalcTaskApi,
+  getCostRecalcTaskListApi,
+  restoreCostRecalcTaskApi
+} from "@/api/inventory";
+
+defineOptions({
+  name: "InventoryCostRecalc"
+});
+
+const dataList = ref<CostRecalcTask[]>([]);
+const loading = ref(false);
+const formRef = ref<FormInstance>();
+const editFormRef = ref();
+
+const queryParams = reactive<RecalcTaskQuery>({
+  status: undefined
+});
+
+const pagination = ref({
+  total: 0,
+  pageSize: 15,
+  currentPage: 1,
+  background: true
+});
+
+const statusOptions = Object.entries(recalcStatusMap).map(
+  ([value, config]) => ({
+    value,
+    label: config.label
+  })
+);
+
+const fetchData = async () => {
+  loading.value = true;
+  try {
+    const { data, code } = await getCostRecalcTaskListApi(
+      pagination.value.currentPage,
+      {
+        status: queryParams.status || undefined
+      }
+    );
+    if (code === 200) {
+      dataList.value = data.list as unknown as CostRecalcTask[];
+      pagination.value.total = data.count;
+    }
+  } catch (error) {
+    console.error("获取成本重算任务列表失败", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleSearch = () => {
+  pagination.value.currentPage = 1;
+  fetchData();
+};
+
+const handleReset = (formEl: FormInstance | undefined) => {
+  if (formEl) formEl.resetFields();
+  queryParams.status = undefined;
+  handleSearch();
+};
+
+const handleCurrentChange = (page: number) => {
+  pagination.value.currentPage = page;
+  fetchData();
+};
+
+const openCreateDialog = () => {
+  addDialog({
+    title: "创建成本重算任务",
+    props: {
+      formInline: {}
+    },
+    width: "50%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () => h(editForm, { ref: editFormRef }),
+    beforeSure: async done => {
+      const formInstance = editFormRef.value?.getRef();
+      if (!formInstance) return;
+
+      await formInstance.validate(async (valid: boolean) => {
+        if (valid) {
+          try {
+            await ElMessageBox.confirm(
+              "成本重算将重新计算指定期间的成本,此操作不可撤销。系统将自动备份当前数据。确认执行?",
+              "确认重算",
+              { type: "warning" }
+            );
+            const formData = editFormRef.value?.getFormData();
+            await createCostRecalcTaskApi(formData);
+            ElMessage.success("任务创建成功,正在后台执行");
+            done();
+            fetchData();
+          } catch (error) {
+            if (error !== "cancel") {
+              ElMessage.error("操作失败");
+            }
+          }
+        }
+      });
+    }
+  });
+};
+
+const handleViewDetail = (row: CostRecalcTask) => {
+  ElMessage.info("查看详情功能开发中");
+};
+
+const handleCancel = async (row: CostRecalcTask) => {
+  try {
+    await ElMessageBox.confirm("确认取消该重算任务?", "确认取消", {
+      type: "warning"
+    });
+    await cancelCostRecalcTaskApi(row.uid);
+    ElMessage.success("已取消");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error("操作失败");
+    }
+  }
+};
+
+const handleRestore = async (row: CostRecalcTask) => {
+  if (!row.backupId) {
+    ElMessage.warning("该任务没有备份数据");
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      "确认恢复到重算前的数据?此操作将覆盖当前成本数据。",
+      "确认恢复",
+      { type: "warning" }
+    );
+    await restoreCostRecalcTaskApi(row.uid);
+    ElMessage.success("恢复成功");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error("操作失败");
+    }
+  }
+};
+
+const handleDelete = async (row: CostRecalcTask) => {
+  try {
+    await ElMessageBox.confirm("确认删除该重算记录?", "确认删除", {
+      type: "warning"
+    });
+    await deleteCostRecalcTaskApi(row.uid);
+    ElMessage.success("删除成功");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error("删除失败");
+    }
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
+</script>
+
+<template>
+  <div class="main">
+    <!-- 注意事项提示 -->
+    <el-alert title="成本重算说明" type="info" :closable="false" class="mb-4">
+      成本重算适用于因做单顺序、参数设置等导致成本错误或对计算后成本存在疑问时,
+      对商品的成本进行重新计算。重算前系统会自动备份数据,可在需要时恢复。
+    </el-alert>
+
+    <el-card class="mb-4">
+      <el-form ref="formRef" :model="queryParams" :inline="true">
+        <el-form-item label="状态" prop="status">
+          <el-select
+            v-model="queryParams.status"
+            placeholder="请选择状态"
+            clearable
+            class="w-[120px]"
+          >
+            <el-option
+              v-for="item in statusOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon('ri:search-line')"
+            :loading="loading"
+            @click="handleSearch"
+          >
+            搜索
+          </el-button>
+          <el-button
+            :icon="useRenderIcon(Refresh)"
+            @click="handleReset(formRef)"
+          >
+            重置
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <el-card>
+      <PureTableBar title="成本重算任务列表" @refresh="fetchData">
+        <template #buttons>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon(AddFill)"
+            @click="openCreateDialog"
+          >
+            创建重算任务
+          </el-button>
+        </template>
+        <template v-slot="{ size }">
+          <pure-table
+            row-key="id"
+            adaptive
+            :size="size"
+            :columns="columns"
+            border
+            :data="dataList"
+            :loading="loading"
+            showOverflowTooltip
+            :pagination="{ ...pagination, size }"
+            @page-current-change="handleCurrentChange"
+          >
+            <template #operation="{ row }">
+              <el-button
+                link
+                type="primary"
+                :icon="useRenderIcon(View)"
+                @click="handleViewDetail(row)"
+              >
+                详情
+              </el-button>
+              <el-button
+                v-if="row.status === 'pending' || row.status === 'processing'"
+                link
+                type="warning"
+                @click="handleCancel(row)"
+              >
+                取消
+              </el-button>
+              <el-button
+                v-if="row.status === 'completed' && row.backupId"
+                link
+                type="warning"
+                @click="handleRestore(row)"
+              >
+                恢复
+              </el-button>
+              <el-button
+                v-if="row.status !== 'processing'"
+                link
+                type="danger"
+                :icon="useRenderIcon(Delete)"
+                @click="handleDelete(row)"
+              >
+                删除
+              </el-button>
+            </template>
+          </pure-table>
+        </template>
+      </PureTableBar>
+    </el-card>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.main {
+  padding: 16px;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+</style>

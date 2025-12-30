@@ -1,0 +1,363 @@
+<script setup lang="ts">
+import { ref, reactive, onMounted, h } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import type { FormInstance } from "element-plus";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Refresh from "~icons/ep/refresh";
+import AddFill from "~icons/ri/add-circle-line";
+import EditPen from "~icons/ep/edit-pen";
+import View from "~icons/ep/view";
+import Delete from "~icons/ep/delete";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
+import { columns } from "./columns";
+import editForm from "./form.vue";
+import {
+  type OtherOutboundOrder,
+  type OtherOutboundQuery,
+  OtherOutboundStatus,
+  OtherOutboundType,
+  otherOutboundStatusMap,
+  otherOutboundTypeMap
+} from "./types";
+import {
+  approveOtherOutboundOrderApi,
+  createOtherOutboundOrderApi,
+  deleteOtherOutboundOrderApi,
+  getOtherOutboundOrderListApi,
+  rejectOtherOutboundOrderApi,
+  updateOtherOutboundOrderApi
+} from "@/api/inventory";
+
+defineOptions({
+  name: "InventoryOtherOutbound"
+});
+
+const dataList = ref<OtherOutboundOrder[]>([]);
+const loading = ref(false);
+const formRef = ref<FormInstance>();
+const editFormRef = ref();
+
+const queryParams = reactive<OtherOutboundQuery>({
+  type: undefined,
+  status: undefined,
+  keyword: ""
+});
+
+const pagination = ref({
+  total: 0,
+  pageSize: 15,
+  currentPage: 1,
+  background: true
+});
+
+const statusOptions = Object.entries(otherOutboundStatusMap).map(
+  ([value, config]) => ({
+    value,
+    label: config.label
+  })
+);
+
+const typeOptions = Object.entries(otherOutboundTypeMap).map(
+  ([value, config]) => ({
+    value,
+    label: config.label
+  })
+);
+
+const fetchData = async () => {
+  loading.value = true;
+  try {
+    const { data, code } = await getOtherOutboundOrderListApi(
+      pagination.value.currentPage,
+      {
+        ...queryParams,
+        type: queryParams.type || undefined,
+        status: queryParams.status || undefined
+      }
+    );
+    if (code === 200) {
+      dataList.value = data.list as unknown as OtherOutboundOrder[];
+      pagination.value.total = data.count;
+    }
+  } catch (error) {
+    console.error("获取其他出库单列表失败", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleSearch = () => {
+  pagination.value.currentPage = 1;
+  fetchData();
+};
+
+const handleReset = (formEl: FormInstance | undefined) => {
+  if (formEl) formEl.resetFields();
+  queryParams.type = undefined;
+  queryParams.status = undefined;
+  queryParams.keyword = "";
+  handleSearch();
+};
+
+const handleCurrentChange = (page: number) => {
+  pagination.value.currentPage = page;
+  fetchData();
+};
+
+const openDialog = (
+  title: string,
+  row?: OtherOutboundOrder,
+  isView: boolean = false
+) => {
+  addDialog({
+    title,
+    props: {
+      formInline: row || {},
+      isView
+    },
+    width: "70%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () => h(editForm, { ref: editFormRef }),
+    beforeSure: async done => {
+      if (isView) {
+        done();
+        return;
+      }
+      const formInstance = editFormRef.value?.getRef();
+      if (!formInstance) return;
+
+      await formInstance.validate(async (valid: boolean) => {
+        if (valid) {
+          try {
+            const formData = editFormRef.value?.getFormData();
+            if (row?.uid) {
+              await updateOtherOutboundOrderApi(row.uid, formData);
+              ElMessage.success("更新成功");
+            } else {
+              await createOtherOutboundOrderApi(formData);
+              ElMessage.success("创建成功");
+            }
+            done();
+            fetchData();
+          } catch (error) {
+            ElMessage.error("操作失败");
+          }
+        }
+      });
+    }
+  });
+};
+
+const handleView = (row: OtherOutboundOrder) => {
+  openDialog("查看其他出库单", row, true);
+};
+
+const handleEdit = (row: OtherOutboundOrder) => {
+  openDialog("编辑其他出库单", row, false);
+};
+
+const handleDelete = async (row: OtherOutboundOrder) => {
+  try {
+    await ElMessageBox.confirm("确认删除该出库单?", "确认删除", {
+      type: "warning"
+    });
+    await deleteOtherOutboundOrderApi(row.uid);
+    ElMessage.success("删除成功");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error("删除失败");
+    }
+  }
+};
+
+const handleApprove = async (row: OtherOutboundOrder) => {
+  try {
+    await ElMessageBox.confirm(
+      "审核后将减少对应仓库的库存数量和成本。确认审核?",
+      "确认审核",
+      { type: "warning" }
+    );
+    await approveOtherOutboundOrderApi(row.uid);
+    ElMessage.success("审核成功");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error("审核失败");
+    }
+  }
+};
+
+const handleReject = async (row: OtherOutboundOrder) => {
+  try {
+    const { value } = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      inputPattern: /.+/,
+      inputErrorMessage: "请输入拒绝原因"
+    });
+    await rejectOtherOutboundOrderApi(row.uid, value);
+    ElMessage.success("已拒绝");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error("操作失败");
+    }
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
+</script>
+
+<template>
+  <div class="main">
+    <el-card class="mb-4">
+      <el-form ref="formRef" :model="queryParams" :inline="true">
+        <el-form-item label="业务类型" prop="type">
+          <el-select
+            v-model="queryParams.type"
+            placeholder="请选择类型"
+            clearable
+            class="w-[130px]"
+          >
+            <el-option
+              v-for="item in typeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态" prop="status">
+          <el-select
+            v-model="queryParams.status"
+            placeholder="请选择状态"
+            clearable
+            class="w-[120px]"
+          >
+            <el-option
+              v-for="item in statusOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关键字" prop="keyword">
+          <el-input
+            v-model="queryParams.keyword"
+            placeholder="单据编号/备注"
+            clearable
+            class="w-[180px]"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon('ri:search-line')"
+            :loading="loading"
+            @click="handleSearch"
+          >
+            搜索
+          </el-button>
+          <el-button
+            :icon="useRenderIcon(Refresh)"
+            @click="handleReset(formRef)"
+          >
+            重置
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <el-card>
+      <PureTableBar title="其他出库单列表" @refresh="fetchData">
+        <template #buttons>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon(AddFill)"
+            @click="openDialog('新增其他出库单')"
+          >
+            新增出库单
+          </el-button>
+        </template>
+        <template v-slot="{ size }">
+          <pure-table
+            row-key="id"
+            adaptive
+            :size="size"
+            :columns="columns"
+            border
+            :data="dataList"
+            :loading="loading"
+            showOverflowTooltip
+            :pagination="{ ...pagination, size }"
+            @page-current-change="handleCurrentChange"
+          >
+            <template #operation="{ row }">
+              <el-button
+                link
+                type="primary"
+                :icon="useRenderIcon(View)"
+                @click="handleView(row)"
+              >
+                查看
+              </el-button>
+              <el-button
+                v-if="!row.isApproved && !row.isLocked"
+                link
+                type="primary"
+                :icon="useRenderIcon(EditPen)"
+                @click="handleEdit(row)"
+              >
+                编辑
+              </el-button>
+              <el-button
+                v-if="row.status === 'pending'"
+                link
+                type="success"
+                @click="handleApprove(row)"
+              >
+                审核
+              </el-button>
+              <el-button
+                v-if="row.status === 'pending'"
+                link
+                type="warning"
+                @click="handleReject(row)"
+              >
+                拒绝
+              </el-button>
+              <el-button
+                v-if="!row.isApproved"
+                link
+                type="danger"
+                :icon="useRenderIcon(Delete)"
+                @click="handleDelete(row)"
+              >
+                删除
+              </el-button>
+            </template>
+          </pure-table>
+        </template>
+      </PureTableBar>
+    </el-card>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.main {
+  padding: 16px;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+</style>
