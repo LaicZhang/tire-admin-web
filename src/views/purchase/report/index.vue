@@ -11,10 +11,13 @@ import type {
   TrendData,
   ReportQueryParams
 } from "./types";
+import { useColumns } from "./columns";
 
 defineOptions({
   name: "PurchaseReport"
 });
+
+const { providerRankingColumns, trendDataColumns } = useColumns();
 
 const loading = ref(false);
 
@@ -338,30 +341,14 @@ onMounted(async () => {
           <template #header>
             <span>供应商采购排名 (Top 10)</span>
           </template>
-          <el-table :data="providerRanking" style="width: 100%">
-            <el-table-column type="index" label="排名" width="60" />
-            <el-table-column prop="providerName" label="供应商" />
-            <el-table-column prop="orderCount" label="订单数" width="80" />
-            <el-table-column
-              prop="totalQuantity"
-              label="采购数量"
-              width="100"
-            />
-            <el-table-column label="采购金额" width="120">
-              <template #default="{ row }">
-                ¥{{ row.totalAmount.toFixed(2) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="占比" width="100">
-              <template #default="{ row }">
-                <el-progress
-                  :percentage="row.percentage"
-                  :show-text="true"
-                  :format="() => row.percentage.toFixed(1) + '%'"
-                />
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            border
+            stripe
+            :loading="loading"
+            :data="providerRanking"
+            :columns="providerRankingColumns"
+            style="width: 100%"
+          />
         </el-card>
       </el-col>
       <el-col :span="12">
@@ -369,16 +356,14 @@ onMounted(async () => {
           <template #header>
             <span>采购趋势</span>
           </template>
-          <el-table :data="trendData" style="width: 100%">
-            <el-table-column prop="date" label="日期" />
-            <el-table-column prop="orderCount" label="订单数" width="80" />
-            <el-table-column prop="quantity" label="采购数量" width="100" />
-            <el-table-column label="采购金额" width="120">
-              <template #default="{ row }">
-                ¥{{ row.amount.toFixed(2) }}
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            border
+            stripe
+            :loading="loading"
+            :data="trendData"
+            :columns="trendDataColumns"
+            style="width: 100%"
+          />
         </el-card>
       </el-col>
     </el-row>

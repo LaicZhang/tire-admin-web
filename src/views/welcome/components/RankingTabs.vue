@@ -3,10 +3,18 @@ import { ref, onMounted } from "vue";
 import { getPurchaseSalesApi } from "@/api";
 import type { RankingItem } from "@/api/dashboard";
 import { message } from "@/utils";
+import { useColumns } from "./columns";
 
 defineOptions({
   name: "RankingTabs"
 });
+
+const {
+  salesProductsColumns,
+  purchaseProductsColumns,
+  providersColumns,
+  customersColumns
+} = useColumns();
 
 const loading = ref(false);
 const activeTab = ref("salesProducts");
@@ -16,16 +24,6 @@ const topSalesProducts = ref<RankingItem[]>([]);
 const topPurchaseProducts = ref<RankingItem[]>([]);
 const topProviders = ref<RankingItem[]>([]);
 const topCustomers = ref<RankingItem[]>([]);
-
-// 格式化金额
-const formatAmount = (val: string | number) => {
-  const num = Number(val);
-  if (isNaN(num)) return "0.00";
-  return num.toLocaleString("zh-CN", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-};
 
 // 获取排名徽章样式
 const getRankBadgeClass = (rank: number) => {
@@ -70,108 +68,78 @@ defineExpose({ refresh: loadData });
     <el-tabs v-model="activeTab" class="ranking-tabs">
       <!-- 销售 Top10 商品 -->
       <el-tab-pane label="销售商品 Top10" name="salesProducts">
-        <el-table :data="topSalesProducts" stripe max-height="340">
-          <el-table-column label="排名" width="70" align="center">
-            <template #default="{ row }">
-              <span class="rank-badge" :class="getRankBadgeClass(row.rank)">
-                {{ row.rank }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="name" label="商品名称" show-overflow-tooltip />
-          <el-table-column prop="count" label="销量" width="90" align="right" />
-          <el-table-column label="销售金额" width="140" align="right">
-            <template #default="{ row }">
-              <span class="text-blue-600 font-medium"
-                >¥{{ formatAmount(row.amount) }}</span
-              >
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-empty v-if="!topSalesProducts.length" description="暂无数据" />
+        <pure-table
+          stripe
+          max-height="340"
+          :data="topSalesProducts"
+          :columns="salesProductsColumns"
+        >
+          <template #rank="{ row }">
+            <span class="rank-badge" :class="getRankBadgeClass(row.rank)">
+              {{ row.rank }}
+            </span>
+          </template>
+          <template #empty>
+            <el-empty description="暂无数据" />
+          </template>
+        </pure-table>
       </el-tab-pane>
 
       <!-- 采购 Top10 商品 -->
       <el-tab-pane label="采购商品 Top10" name="purchaseProducts">
-        <el-table :data="topPurchaseProducts" stripe max-height="340">
-          <el-table-column label="排名" width="70" align="center">
-            <template #default="{ row }">
-              <span class="rank-badge" :class="getRankBadgeClass(row.rank)">
-                {{ row.rank }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="name" label="商品名称" show-overflow-tooltip />
-          <el-table-column prop="count" label="数量" width="90" align="right" />
-          <el-table-column label="采购金额" width="140" align="right">
-            <template #default="{ row }">
-              <span class="text-green-600 font-medium"
-                >¥{{ formatAmount(row.amount) }}</span
-              >
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-empty v-if="!topPurchaseProducts.length" description="暂无数据" />
+        <pure-table
+          stripe
+          max-height="340"
+          :data="topPurchaseProducts"
+          :columns="purchaseProductsColumns"
+        >
+          <template #rank="{ row }">
+            <span class="rank-badge" :class="getRankBadgeClass(row.rank)">
+              {{ row.rank }}
+            </span>
+          </template>
+          <template #empty>
+            <el-empty description="暂无数据" />
+          </template>
+        </pure-table>
       </el-tab-pane>
 
       <!-- Top10 供应商 -->
       <el-tab-pane label="供应商 Top10" name="providers">
-        <el-table :data="topProviders" stripe max-height="340">
-          <el-table-column label="排名" width="70" align="center">
-            <template #default="{ row }">
-              <span class="rank-badge" :class="getRankBadgeClass(row.rank)">
-                {{ row.rank }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="name"
-            label="供应商名称"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            prop="count"
-            label="订单数"
-            width="90"
-            align="right"
-          />
-          <el-table-column label="采购金额" width="140" align="right">
-            <template #default="{ row }">
-              <span class="text-green-600 font-medium"
-                >¥{{ formatAmount(row.amount) }}</span
-              >
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-empty v-if="!topProviders.length" description="暂无数据" />
+        <pure-table
+          stripe
+          max-height="340"
+          :data="topProviders"
+          :columns="providersColumns"
+        >
+          <template #rank="{ row }">
+            <span class="rank-badge" :class="getRankBadgeClass(row.rank)">
+              {{ row.rank }}
+            </span>
+          </template>
+          <template #empty>
+            <el-empty description="暂无数据" />
+          </template>
+        </pure-table>
       </el-tab-pane>
 
       <!-- Top10 客户 -->
       <el-tab-pane label="客户 Top10" name="customers">
-        <el-table :data="topCustomers" stripe max-height="340">
-          <el-table-column label="排名" width="70" align="center">
-            <template #default="{ row }">
-              <span class="rank-badge" :class="getRankBadgeClass(row.rank)">
-                {{ row.rank }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="name" label="客户名称" show-overflow-tooltip />
-          <el-table-column
-            prop="count"
-            label="订单数"
-            width="90"
-            align="right"
-          />
-          <el-table-column label="交易金额" width="140" align="right">
-            <template #default="{ row }">
-              <span class="text-blue-600 font-medium"
-                >¥{{ formatAmount(row.amount) }}</span
-              >
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-empty v-if="!topCustomers.length" description="暂无数据" />
+        <pure-table
+          stripe
+          max-height="340"
+          :data="topCustomers"
+          :columns="customersColumns"
+        >
+          <template #rank="{ row }">
+            <span class="rank-badge" :class="getRankBadgeClass(row.rank)">
+              {{ row.rank }}
+            </span>
+          </template>
+          <template #empty>
+            <el-empty description="暂无数据" />
+          </template>
+        </pure-table>
       </el-tab-pane>
     </el-tabs>
   </el-card>

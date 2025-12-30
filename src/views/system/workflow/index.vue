@@ -19,6 +19,8 @@ import {
   Check,
   Close
 } from "@element-plus/icons-vue";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 defineOptions({
   name: "WorkflowIndex"
@@ -35,6 +37,55 @@ const queryForm = reactive<WorkflowQuery>({
   status: undefined,
   pageNum: 1,
   pageSize: 10
+});
+
+const columns: TableColumnList = [
+  {
+    label: "序号",
+    type: "index",
+    width: 60,
+    align: "center"
+  },
+  {
+    label: "流程名称",
+    prop: "name",
+    minWidth: 150
+  },
+  {
+    label: "描述",
+    prop: "description",
+    minWidth: 200,
+    showOverflowTooltip: true
+  },
+  {
+    label: "状态",
+    prop: "status",
+    width: 100,
+    align: "center",
+    slot: "status"
+  },
+  {
+    label: "创建时间",
+    prop: "createTime",
+    width: 180,
+    align: "center"
+  },
+  {
+    label: "操作",
+    width: 180,
+    fixed: "right",
+    align: "center",
+    slot: "operation"
+  }
+];
+
+const pagination = reactive({
+  total: 0,
+  pageSize: 10,
+  currentPage: 1,
+  pageSizes: [10, 20, 50, 100],
+  background: true,
+  layout: "total, sizes, prev, pager, next, jumper"
 });
 
 const formData = reactive<WorkflowForm>({
@@ -58,12 +109,24 @@ const handleQuery = async () => {
   try {
     const { data } = await getWorkflowListApi(queryForm);
     tableData.value = data.list;
-    total.value = data.total ?? data.count ?? 0;
+    pagination.total = data.total ?? data.count ?? 0;
+    pagination.currentPage = queryForm.pageNum;
+    pagination.pageSize = queryForm.pageSize;
   } catch (e) {
     console.error(e);
   } finally {
     loading.value = false;
   }
+};
+
+const onPageSizeChange = (val: number) => {
+  queryForm.pageSize = val;
+  handleQuery();
+};
+
+const onCurrentPageChange = (val: number) => {
+  queryForm.pageNum = val;
+  handleQuery();
 };
 
 // Reset Query
@@ -179,66 +242,61 @@ onMounted(() => {
       </el-form>
     </el-card>
 
-    <el-card shadow="never" class="table-wrapper">
-      <template #header>
-        <div class="flex justify-between items-center">
-          <span class="font-bold">审批流程列表</span>
+    <div class="table-wrapper bg-white p-4">
+      <PureTableBar
+        title="审批流程列表"
+        :columns="columns"
+        @refresh="handleQuery"
+      >
+        <template #buttons>
           <el-button type="primary" :icon="Plus" @click="handleAdd"
             >新增流程</el-button
           >
-        </div>
-      </template>
-
-      <el-table v-loading="loading" :data="tableData" border stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="name" label="流程名称" min-width="150" />
-        <el-table-column
-          prop="description"
-          label="描述"
-          min-width="200"
-          show-overflow-tooltip
-        />
-        <el-table-column prop="status" label="状态" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'info'">
-              {{ row.status === 1 ? "启用" : "禁用" }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="createTime"
-          label="创建时间"
-          width="180"
-          align="center"
-        />
-        <el-table-column label="操作" width="180" fixed="right" align="center">
-          <template #default="{ row }">
-            <el-button link type="primary" :icon="Edit" @click="handleEdit(row)"
-              >编辑</el-button
-            >
-            <el-button
-              link
-              type="danger"
-              :icon="Delete"
-              @click="handleDelete(row)"
-              >删除</el-button
-            >
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="queryForm.pageNum"
-          v-model:page-size="queryForm.pageSize"
-          :total="total"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleQuery"
-          @current-change="handleQuery"
-        />
-      </div>
-    </el-card>
+        </template>
+        <template v-slot="{ size, dynamicColumns }">
+          <pure-table
+            border
+            align-whole="center"
+            showOverflowTooltip
+            table-layout="auto"
+            :loading="loading"
+            :size="size"
+            :data="tableData"
+            :columns="dynamicColumns"
+            :pagination="pagination"
+            :paginationSmall="size === 'small' ? true : false"
+            :header-cell-style="{
+              background: 'var(--el-fill-color-light)',
+              color: 'var(--el-text-color-primary)'
+            }"
+            @page-size-change="onPageSizeChange"
+            @page-current-change="onCurrentPageChange"
+          >
+            <template #status="{ row }">
+              <el-tag :type="row.status === 1 ? 'success' : 'info'">
+                {{ row.status === 1 ? "启用" : "禁用" }}
+              </el-tag>
+            </template>
+            <template #operation="{ row }">
+              <el-button
+                link
+                type="primary"
+                :icon="Edit"
+                @click="handleEdit(row)"
+                >编辑</el-button
+              >
+              <el-button
+                link
+                type="danger"
+                :icon="Delete"
+                @click="handleDelete(row)"
+                >删除</el-button
+              >
+            </template>
+          </pure-table>
+        </template>
+      </PureTableBar>
+    </div>
 
     <!-- Dialog -->
     <el-dialog
@@ -310,7 +368,7 @@ onMounted(() => {
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
+          <el-button type="primary" :click="handleSubmit">确定</el-button>
         </div>
       </template>
     </el-dialog>

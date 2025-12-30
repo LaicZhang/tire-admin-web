@@ -8,10 +8,14 @@ import {
   getStockoutApi
 } from "@/api/analysis";
 import { message } from "@/utils/message";
+import { useColumns } from "./columns";
 
 defineOptions({
   name: "ComprehensiveAnalysis"
 });
+
+const { claimLossColumns, slowMovingColumns, expiryColumns, stockoutColumns } =
+  useColumns();
 
 const activeTab = ref("return-rate");
 const loading = ref(false);
@@ -273,91 +277,56 @@ onMounted(() => {
               </el-statistic>
             </el-col>
           </el-row>
-          <el-table
-            v-if="claimLossData.byReason.length"
+          <pure-table
             :data="claimLossData.byReason"
+            :columns="claimLossColumns"
             border
           >
-            <el-table-column prop="reason" label="理赔原因" />
-            <el-table-column prop="count" label="次数" />
-            <el-table-column label="金额">
-              <template #default="{ row }"
-                >¥{{ formatMoney(row.amount) }}</template
-              >
-            </el-table-column>
-          </el-table>
-          <el-empty v-else description="暂无理赔记录" />
+            <template #empty>
+              <el-empty description="暂无理赔记录" />
+            </template>
+          </pure-table>
         </div>
       </el-tab-pane>
 
       <!-- 滞销商品分析 -->
       <el-tab-pane label="滞销商品" name="slow-moving">
         <div v-loading="loading" class="min-h-[300px]">
-          <el-table
-            v-if="slowMovingData.list.length"
+          <pure-table
             :data="slowMovingData.list"
+            :columns="slowMovingColumns"
             border
           >
-            <el-table-column prop="name" label="商品名称" min-width="150" />
-            <el-table-column prop="stock" label="当前库存" width="100" />
-            <el-table-column
-              prop="lastSaleDate"
-              label="最后销售日期"
-              width="150"
-            />
-            <el-table-column
-              prop="daysWithoutSale"
-              label="滞销天数"
-              width="100"
-            >
-              <template #default="{ row }">
-                <el-tag :type="row.daysWithoutSale > 90 ? 'danger' : 'warning'">
-                  {{ row.daysWithoutSale }} 天
-                </el-tag>
-              </template>
-            </el-table-column>
-          </el-table>
-          <el-empty v-else description="暂无滞销商品" />
+            <template #empty>
+              <el-empty description="暂无滞销商品" />
+            </template>
+          </pure-table>
         </div>
       </el-tab-pane>
 
       <!-- 临期分布分析 -->
       <el-tab-pane label="临期分布" name="expiry">
         <div v-loading="loading" class="min-h-[300px]">
-          <el-table
-            v-if="expiryData.list.length"
-            :data="expiryData.list"
-            border
-          >
-            <el-table-column prop="range" label="保质期范围" />
-            <el-table-column prop="count" label="商品数量" width="120" />
-            <el-table-column label="占比" width="120">
-              <template #default="{ row }"
-                >{{ row.percentage.toFixed(1) }}%</template
-              >
-            </el-table-column>
-          </el-table>
-          <el-empty v-else description="暂无临期数据" />
+          <pure-table :data="expiryData.list" :columns="expiryColumns" border>
+            <template #empty>
+              <el-empty description="暂无临期数据" />
+            </template>
+          </pure-table>
         </div>
       </el-tab-pane>
 
       <!-- 缺货分析 -->
       <el-tab-pane label="缺货分析" name="stockout">
         <div v-loading="loading" class="min-h-[300px]">
-          <el-table
-            v-if="stockoutData.list.length"
+          <pure-table
             :data="stockoutData.list"
+            :columns="stockoutColumns"
             border
           >
-            <el-table-column prop="name" label="商品名称" min-width="150" />
-            <el-table-column prop="currentStock" label="当前库存" width="100">
-              <template #default="{ row }">
-                <el-tag type="danger">{{ row.currentStock }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="minStock" label="安全库存" width="100" />
-          </el-table>
-          <el-empty v-else description="暂无缺货商品" />
+            <template #empty>
+              <el-empty description="暂无缺货商品" />
+            </template>
+          </pure-table>
         </div>
       </el-tab-pane>
     </el-tabs>

@@ -4,6 +4,7 @@ import { getSettingGroupApi, updateSettingApi } from "@/api/setting";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Save from "~icons/ep/check";
 import { message } from "@/utils/message";
+import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
   name: "SystemDocument"
@@ -18,6 +19,13 @@ interface SettingItem {
   value: string;
 }
 const settings = ref<SettingItem[]>([]);
+
+const columns: TableColumnList = [
+  { label: "分组", prop: "group", width: 180 },
+  { label: "配置项键名", prop: "key", width: 180 },
+  { label: "描述", prop: "desc" },
+  { label: "配置值", width: 300, slot: "value" }
+];
 
 async function loadSettings() {
   loading.value = true;
@@ -50,26 +58,23 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="main">
-    <el-card>
-      <template #header>
-        <div class="flex justify-between items-center">
-          <span>单据设置</span>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon(Save)"
-            @click="loadSettings"
-            >刷新</el-button
-          >
-        </div>
-      </template>
-
-      <el-table v-loading="loading" :data="settings" style="width: 100%">
-        <el-table-column prop="group" label="分组" width="180" />
-        <el-table-column prop="key" label="配置项键名" width="180" />
-        <el-table-column prop="desc" label="描述" />
-        <el-table-column label="配置值" width="300">
-          <template #default="{ row }">
+  <div class="main p-4 bg-white">
+    <PureTableBar title="单据设置" :columns="columns" @refresh="loadSettings">
+      <template v-slot="{ size, dynamicColumns }">
+        <pure-table
+          border
+          align-whole="center"
+          showOverflowTooltip
+          :loading="loading"
+          :size="size"
+          :data="settings"
+          :columns="dynamicColumns"
+          :header-cell-style="{
+            background: 'var(--el-fill-color-light)',
+            color: 'var(--el-text-color-primary)'
+          }"
+        >
+          <template #value="{ row }">
             <el-input v-model="row.value" placeholder="请输入配置值">
               <template #append>
                 <el-button
@@ -79,8 +84,8 @@ onMounted(() => {
               </template>
             </el-input>
           </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+        </pure-table>
+      </template>
+    </PureTableBar>
   </div>
 </template>

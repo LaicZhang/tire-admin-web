@@ -109,22 +109,24 @@ export const detailColumns: TableColumnList = [
   {
     label: "实际库存",
     prop: "actualCount",
-    width: 100
+    width: 120,
+    slot: "actualCount"
   },
   {
     label: "差异",
     prop: "difference",
     width: 100,
-    cellRenderer: ({ row }) => {
-      const diff = row.difference || 0;
-      const color =
-        diff > 0 ? "text-green-600" : diff < 0 ? "text-red-600" : "";
-      return <span class={color}>{diff}</span>;
-    }
+    slot: "difference"
   },
   {
     label: "备注",
     prop: "remark",
     minWidth: 120
+  },
+  {
+    label: "操作",
+    fixed: "right",
+    width: 100,
+    slot: "operation"
   }
 ];

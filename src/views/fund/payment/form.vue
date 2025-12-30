@@ -196,6 +196,35 @@ function addDetailRow() {
 function removeDetailRow(index: number) {
   formData.details.splice(index, 1);
 }
+
+const formColumns: TableColumnList = [
+  {
+    label: "源单据编号",
+    slot: "sourceOrderNo",
+    minWidth: 150
+  },
+  {
+    label: "源单据类型",
+    slot: "sourceOrderType",
+    width: 120
+  },
+  {
+    label: "应付金额",
+    slot: "payableAmount",
+    width: 130
+  },
+  {
+    label: "本次核销",
+    slot: "writeOffAmount",
+    width: 130
+  },
+  {
+    label: "操作",
+    width: 80,
+    align: "center",
+    slot: "operation"
+  }
+];
 </script>
 
 <template>
@@ -323,56 +352,52 @@ function removeDetailRow(index: number) {
         </el-button>
       </div>
 
-      <el-table :data="formData.details" border size="small" class="mb-4">
-        <el-table-column label="源单据编号" min-width="150">
-          <template #default="{ row }">
-            <el-input v-model="row.sourceOrderNo" placeholder="输入单据编号" />
-          </template>
-        </el-table-column>
-        <el-table-column label="源单据类型" width="120">
-          <template #default="{ row }">
-            <el-select v-model="row.sourceOrderType" placeholder="选择类型">
-              <el-option label="采购入库单" value="PURCHASE_IN" />
-              <el-option label="期初应付" value="INITIAL" />
-            </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column label="应付金额" width="130">
-          <template #default="{ row }">
-            <el-input-number
-              v-model="row.payableAmount"
-              :min="0"
-              :precision="2"
-              size="small"
-              controls-position="right"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="本次核销" width="130">
-          <template #default="{ row }">
-            <el-input-number
-              v-model="row.writeOffAmount"
-              :min="0"
-              :max="row.payableAmount"
-              :precision="2"
-              size="small"
-              controls-position="right"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="80" align="center">
-          <template #default="{ $index }">
-            <el-button
-              type="danger"
-              size="small"
-              link
-              @click="removeDetailRow($index)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <pure-table
+        :data="formData.details"
+        border
+        size="small"
+        class="mb-4"
+        :columns="formColumns"
+      >
+        <template #sourceOrderNo="{ row }">
+          <el-input v-model="row.sourceOrderNo" placeholder="输入单据编号" />
+        </template>
+        <template #sourceOrderType="{ row }">
+          <el-select v-model="row.sourceOrderType" placeholder="选择类型">
+            <el-option label="采购入库单" value="PURCHASE_IN" />
+            <el-option label="期初应付" value="INITIAL" />
+          </el-select>
+        </template>
+        <template #payableAmount="{ row }">
+          <el-input-number
+            v-model="row.payableAmount"
+            :min="0"
+            :precision="2"
+            size="small"
+            controls-position="right"
+          />
+        </template>
+        <template #writeOffAmount="{ row }">
+          <el-input-number
+            v-model="row.writeOffAmount"
+            :min="0"
+            :max="row.payableAmount"
+            :precision="2"
+            size="small"
+            controls-position="right"
+          />
+        </template>
+        <template #operation="{ index }">
+          <el-button
+            type="danger"
+            size="small"
+            link
+            @click="removeDetailRow(index)"
+          >
+            删除
+          </el-button>
+        </template>
+      </pure-table>
 
       <div class="flex justify-end text-sm text-gray-500">
         核销合计: ¥{{ (totalWriteOffAmount / 100).toFixed(2) }}

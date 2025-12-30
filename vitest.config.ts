@@ -2,13 +2,18 @@
 import { defineConfig } from "vitest/config";
 import { resolve } from "path";
 import vue from "@vitejs/plugin-vue";
+import vueJsx from "@vitejs/plugin-vue-jsx";
 import Icons from "unplugin-icons/vite";
 
 export default defineConfig({
-  plugins: [vue(), Icons({ compiler: "vue3", autoInstall: true })],
+  plugins: [vue(), vueJsx(), Icons({ compiler: "vue3", autoInstall: true })],
   test: {
     globals: true,
-    environment: "node",
+    environment: "happy-dom",
+    env: {
+      VITE_ROUTER_HISTORY: "hash"
+    },
+    setupFiles: ["tests/setup.ts"],
     include: [
       "src/**/*.{test,spec}.{js,ts,tsx}",
       "tests/**/*.{test,spec}.{js,ts,tsx}"

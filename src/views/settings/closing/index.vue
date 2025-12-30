@@ -61,6 +61,19 @@ const columns: TableColumnList = [
   }
 ];
 
+const checkColumns: TableColumnList = [
+  { label: "检查项", prop: "name", width: 120 },
+  { label: "说明", prop: "description" },
+  {
+    label: "结果",
+    prop: "passed",
+    width: 100,
+    align: "center",
+    slot: "passed"
+  },
+  { label: "错误信息", prop: "errorMessage" }
+];
+
 function parseListData<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
   if (data && typeof data === "object" && "list" in data) {
@@ -268,24 +281,19 @@ onMounted(() => {
 
       <div v-if="checkItems.length > 0" class="mb-4">
         <div class="text-sm font-medium text-gray-600 mb-2">检查结果</div>
-        <el-table :data="checkItems" border size="small">
-          <el-table-column prop="name" label="检查项" width="120" />
-          <el-table-column prop="description" label="说明" />
-          <el-table-column
-            prop="passed"
-            label="结果"
-            width="100"
-            align="center"
-          >
-            <template #default="{ row }">
-              <el-icon v-if="row.passed" class="text-green-500"
-                ><Check
-              /></el-icon>
-              <el-icon v-else class="text-red-500"><Close /></el-icon>
-            </template>
-          </el-table-column>
-          <el-table-column prop="errorMessage" label="错误信息" />
-        </el-table>
+        <pure-table
+          border
+          size="small"
+          :data="checkItems"
+          :columns="checkColumns"
+        >
+          <template #passed="{ row }">
+            <el-icon v-if="row.passed" class="text-green-500"
+              ><Check
+            /></el-icon>
+            <el-icon v-else class="text-red-500"><Close /></el-icon>
+          </template>
+        </pure-table>
       </div>
 
       <template #footer>

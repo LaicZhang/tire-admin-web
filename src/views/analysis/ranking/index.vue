@@ -10,10 +10,14 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
+import { useColumns } from "./columns";
 
 defineOptions({
   name: "AnalysisRanking"
 });
+
+const { customerColumns, providerColumns, productColumns, operatorColumns } =
+  useColumns();
 
 const loading = ref(false);
 const activeTab = ref("customer");
@@ -70,12 +74,6 @@ const dateParams = computed(() => {
     endDate: dayjs(dateRange.value[1]).format("YYYY-MM-DD")
   };
 });
-
-// 格式化金额
-const formatAmount = (val: string | number) => {
-  const num = Number(val) / 100;
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
 
 const getCustomerRank = async () => {
   const { data, code } = await getCustomerRankingApi({
@@ -172,143 +170,50 @@ onMounted(() => {
     </el-card>
 
     <!-- 排行榜 Tabs -->
-    <el-card v-loading="loading">
+    <el-card>
       <el-tabs v-model="activeTab">
         <!-- 客户排行 -->
         <el-tab-pane label="客户业绩排行" name="customer">
-          <el-table :data="customerRanking" stripe border>
-            <el-table-column
-              type="index"
-              label="排名"
-              width="80"
-              align="center"
-            >
-              <template #default="{ $index }">
-                <span
-                  :class="{
-                    'text-red-500 font-bold': $index < 3,
-                    'text-gray-600': $index >= 3
-                  }"
-                  >{{ $index + 1 }}</span
-                >
-              </template>
-            </el-table-column>
-            <el-table-column prop="name" label="客户名称" />
-            <el-table-column prop="count" label="订单数" width="120" sortable />
-            <el-table-column prop="amount" label="交易总额" sortable>
-              <template #default="{ row }">
-                <span class="font-bold text-blue-600"
-                  >¥{{ formatAmount(row.amount) }}</span
-                >
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            border
+            stripe
+            :loading="loading"
+            :data="customerRanking"
+            :columns="customerColumns"
+          />
         </el-tab-pane>
 
         <!-- 供应商排行 -->
         <el-tab-pane label="供应商采购排行" name="provider">
-          <el-table :data="providerRanking" stripe border>
-            <el-table-column
-              type="index"
-              label="排名"
-              width="80"
-              align="center"
-            >
-              <template #default="{ $index }">
-                <span
-                  :class="{
-                    'text-red-500 font-bold': $index < 3,
-                    'text-gray-600': $index >= 3
-                  }"
-                  >{{ $index + 1 }}</span
-                >
-              </template>
-            </el-table-column>
-            <el-table-column prop="name" label="供应商名称" />
-            <el-table-column prop="count" label="订单数" width="120" sortable />
-            <el-table-column prop="amount" label="采购总额" sortable>
-              <template #default="{ row }">
-                <span class="font-bold text-green-600"
-                  >¥{{ formatAmount(row.amount) }}</span
-                >
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            border
+            stripe
+            :loading="loading"
+            :data="providerRanking"
+            :columns="providerColumns"
+          />
         </el-tab-pane>
 
         <!-- 商品排行 -->
         <el-tab-pane label="热门商品排行" name="product">
-          <el-table :data="productRanking" stripe border>
-            <el-table-column
-              type="index"
-              label="排名"
-              width="80"
-              align="center"
-            >
-              <template #default="{ $index }">
-                <span
-                  :class="{
-                    'text-red-500 font-bold': $index < 3,
-                    'text-gray-600': $index >= 3
-                  }"
-                  >{{ $index + 1 }}</span
-                >
-              </template>
-            </el-table-column>
-            <el-table-column prop="name" label="商品名称" />
-            <el-table-column
-              prop="quantity"
-              label="交易量"
-              width="120"
-              sortable
-            />
-            <el-table-column prop="amount" label="交易总额" sortable>
-              <template #default="{ row }">
-                <span>¥{{ formatAmount(row.amount) }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="profit" label="利润预估" sortable>
-              <template #default="{ row }">
-                <span class="text-emerald-500"
-                  >¥{{ formatAmount(row.profit) }}</span
-                >
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            border
+            stripe
+            :loading="loading"
+            :data="productRanking"
+            :columns="productColumns"
+          />
         </el-tab-pane>
 
         <!-- 员工排行 -->
         <el-tab-pane label="员工业绩排行" name="operator">
-          <el-table :data="operatorRanking" stripe border>
-            <el-table-column
-              type="index"
-              label="排名"
-              width="80"
-              align="center"
-            >
-              <template #default="{ $index }">
-                <span
-                  :class="{
-                    'text-red-500 font-bold': $index < 3,
-                    'text-gray-600': $index >= 3
-                  }"
-                  >{{ $index + 1 }}</span
-                >
-              </template>
-            </el-table-column>
-            <el-table-column prop="name" label="员工姓名" />
-            <el-table-column
-              prop="count"
-              label="订单处理数"
-              width="150"
-              sortable
-            />
-            <el-table-column prop="amount" label="涉及金额" sortable>
-              <template #default="{ row }">
-                <span class="font-bold">¥{{ formatAmount(row.amount) }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            border
+            stripe
+            :loading="loading"
+            :data="operatorRanking"
+            :columns="operatorColumns"
+          />
         </el-tab-pane>
       </el-tabs>
     </el-card>

@@ -5,6 +5,8 @@ import { http } from "@/utils/http";
 import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import { PureTable } from "@pureadmin/table";
+import type { TableColumnList, PaginationProps } from "@pureadmin/table";
 
 defineOptions({
   name: "Income"
@@ -27,12 +29,57 @@ interface OtherTransaction {
 // 列表数据
 const tableData = ref<OtherTransaction[]>([]);
 const loading = ref(false);
-const total = ref(0);
 
 // 查询参数
 const queryParams = reactive({
-  index: 1
+  index: 1,
+  size: 20
 });
+
+const pagination = reactive<PaginationProps>({
+  total: 0,
+  pageSize: 20,
+  currentPage: 1,
+  background: true
+});
+
+const columns: TableColumnList = [
+  {
+    label: "收入类型",
+    prop: "type",
+    width: 120,
+    slot: "type"
+  },
+  {
+    label: "金额",
+    prop: "amount",
+    width: 150,
+    slot: "amount"
+  },
+  {
+    label: "收款账户",
+    prop: "payment.name",
+    width: 150,
+    slot: "payment"
+  },
+  {
+    label: "分类",
+    prop: "category",
+    width: 120
+  },
+  {
+    label: "备注",
+    prop: "remark",
+    minWidth: 200,
+    showOverflowTooltip: true
+  },
+  {
+    label: "创建时间",
+    prop: "createdAt",
+    width: 180,
+    slot: "createdAt"
+  }
+];
 
 // 新增对话框
 const dialogVisible = ref(false);
@@ -79,10 +126,12 @@ const fetchData = async () => {
       never,
       CommonResult<PaginatedResponseDto<OtherTransaction>>
     >(`/finance-extension/other-transaction/${queryParams.index}`, {
-      params: { direction: "IN" }
+      params: { direction: "IN", size: queryParams.size }
     });
     tableData.value = data.list;
-    total.value = data.total ?? data.count;
+    pagination.total = data.total ?? data.count;
+    pagination.currentPage = queryParams.index;
+    pagination.pageSize = queryParams.size;
   } catch (error) {
     console.error("获取收入单列表失败", error);
   } finally {
@@ -91,8 +140,9 @@ const fetchData = async () => {
 };
 
 // 翻页
-const handlePageChange = (page: number) => {
-  queryParams.index = page;
+const onPageChange = (val: PaginationProps) => {
+  queryParams.index = val.currentPage;
+  queryParams.size = val.pageSize;
   fetchData();
 };
 
@@ -177,46 +227,33 @@ onMounted(() => {
         </div>
       </template>
 
-      <el-table v-loading="loading" :data="tableData" stripe>
-        <el-table-column label="收入类型" width="120">
-          <template #default="{ row }">
-            <el-tag type="success" size="small">{{ row.type }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="金额" width="150">
-          <template #default="{ row }">
-            <span class="text-success">+{{ formatAmount(row.amount) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="收款账户" width="150">
-          <template #default="{ row }">
-            {{ row.payment?.name || "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="category" label="分类" width="120" />
-        <el-table-column
-          prop="remark"
-          label="备注"
-          min-width="200"
-          show-overflow-tooltip
-        />
-        <el-table-column label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.createdAt) }}
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <!-- 分页 -->
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="queryParams.index"
-          :total="total"
-          :page-size="20"
-          layout="total, prev, pager, next"
-          @current-change="handlePageChange"
-        />
-      </div>
+      <PureTable
+        border
+        stripe
+        :loading="loading"
+        :data="tableData"
+        :columns="columns"
+        :pagination="pagination"
+        @page-current-change="
+          val => onPageChange({ ...pagination, currentPage: val })
+        "
+        @page-size-change="
+          val => onPageChange({ ...pagination, pageSize: val })
+        "
+      >
+        <template #type="{ row }">
+          <el-tag type="success" size="small">{{ row.type }}</el-tag>
+        </template>
+        <template #amount="{ row }">
+          <span class="text-success">+{{ formatAmount(row.amount) }}</span>
+        </template>
+        <template #payment="{ row }">
+          {{ row.payment?.name || "-" }}
+        </template>
+        <template #createdAt="{ row }">
+          {{ formatDate(row.createdAt) }}
+        </template>
+      </PureTable>
     </el-card>
 
     <!-- 新增对话框 -->

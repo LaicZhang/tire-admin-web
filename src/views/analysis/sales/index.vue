@@ -12,10 +12,13 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
 import * as echarts from "echarts/core";
+import { useColumns } from "./columns";
 
 defineOptions({
   name: "AnalysisSales"
 });
+
+const { customerColumns, productColumns, operatorColumns } = useColumns();
 
 const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
@@ -328,40 +331,31 @@ onUnmounted(() => {
       </template>
       <el-tabs v-model="activeRankingTab">
         <el-tab-pane label="客户排行" name="customer">
-          <el-table :data="customerRanking" stripe max-height="300">
-            <el-table-column prop="rank" label="排名" width="80" />
-            <el-table-column prop="name" label="客户名称" />
-            <el-table-column prop="count" label="订单数" width="100" />
-            <el-table-column label="交易金额" width="150">
-              <template #default="{ row }">
-                ¥{{ formatAmount(row.amount) }}
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            stripe
+            max-height="300"
+            :loading="loading"
+            :data="customerRanking"
+            :columns="customerColumns"
+          />
         </el-tab-pane>
         <el-tab-pane label="商品排行" name="product">
-          <el-table :data="productRanking" stripe max-height="300">
-            <el-table-column prop="rank" label="排名" width="80" />
-            <el-table-column prop="name" label="商品名称" />
-            <el-table-column prop="quantity" label="销量" width="100" />
-            <el-table-column label="销售金额" width="150">
-              <template #default="{ row }">
-                ¥{{ formatAmount(row.amount) }}
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            stripe
+            max-height="300"
+            :loading="loading"
+            :data="productRanking"
+            :columns="productColumns"
+          />
         </el-tab-pane>
         <el-tab-pane label="员工排行" name="operator">
-          <el-table :data="operatorRanking" stripe max-height="300">
-            <el-table-column prop="rank" label="排名" width="80" />
-            <el-table-column prop="name" label="员工姓名" />
-            <el-table-column prop="count" label="订单数" width="100" />
-            <el-table-column label="业绩金额" width="150">
-              <template #default="{ row }">
-                ¥{{ formatAmount(row.amount) }}
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            stripe
+            max-height="300"
+            :loading="loading"
+            :data="operatorRanking"
+            :columns="operatorColumns"
+          />
         </el-tab-pane>
       </el-tabs>
     </el-card>

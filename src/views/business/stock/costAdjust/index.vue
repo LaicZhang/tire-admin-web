@@ -10,6 +10,11 @@ import {
 } from "@/api/business/costAdjust";
 import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { columns } from "./columns";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Refresh from "~icons/ep/refresh";
+import AddFill from "~icons/ri/add-circle-line";
 
 defineOptions({
   name: "CostAdjust"
@@ -18,11 +23,15 @@ defineOptions({
 // 列表数据
 const tableData = ref<CostAdjustOrder[]>([]);
 const loading = ref(false);
-const total = ref(0);
+const pagination = ref({
+  total: 0,
+  pageSize: 15,
+  currentPage: 1,
+  background: true
+});
 
 // 查询参数
 const queryParams = reactive({
-  index: 1,
   isApproved: "all" as "all" | boolean
 });
 
@@ -38,12 +47,12 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const data = await getCostAdjustOrderList({
-      index: queryParams.index,
+      index: pagination.value.currentPage,
       isApproved:
         queryParams.isApproved === "all" ? undefined : queryParams.isApproved
     });
     tableData.value = data.list;
-    total.value = data.count;
+    pagination.value.total = data.count;
   } catch (error) {
     console.error("获取成本调整单列表失败", error);
   } finally {
@@ -53,20 +62,19 @@ const fetchData = async () => {
 
 // 搜索
 const handleSearch = () => {
-  queryParams.index = 1;
+  pagination.value.currentPage = 1;
   fetchData();
 };
 
 // 重置搜索
 const handleReset = () => {
-  queryParams.index = 1;
   queryParams.isApproved = "all";
-  fetchData();
+  handleSearch();
 };
 
 // 翻页
-const handlePageChange = (page: number) => {
-  queryParams.index = page;
+const handlePageChange = (val: number) => {
+  pagination.value.currentPage = val;
   fetchData();
 };
 
@@ -134,16 +142,6 @@ const getStatusTag = (row: CostAdjustOrder) => {
   return { type: "warning" as const, text: "待审核" };
 };
 
-// 格式化金额
-const formatAmount = (amount: bigint | number) => {
-  return formatMoney(Number(amount));
-};
-
-// 格式化日期
-const formatDate = (date?: string) => {
-  return date ? dayjs(date).format("YYYY-MM-DD HH:mm") : "-";
-};
-
 onMounted(() => {
   fetchData();
 });
@@ -169,121 +167,79 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon('ri:search-line')"
+            :loading="loading"
+            @click="handleSearch"
+          >
+            查询
+          </el-button>
+          <el-button :icon="useRenderIcon(Refresh)" @click="handleReset">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
     <!-- 数据表格 -->
     <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>成本调整单列表</span>
-          <el-button type="primary" size="small">
-            <template #icon>
-              <i class="ep:plus" />
-            </template>
+      <PureTableBar title="成本调整单列表" @refresh="fetchData">
+        <template #buttons>
+          <el-button type="primary" :icon="useRenderIcon(AddFill)">
             新增调整单
           </el-button>
-        </div>
-      </template>
-
-      <el-table v-loading="loading" :data="tableData" stripe>
-        <el-table-column prop="number" label="单据编号" width="180">
-          <template #default="{ row }">
-            <span class="text-primary">#{{ row.number }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusTag(row).type" size="small">
-              {{ getStatusTag(row).text }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="调整金额" width="120">
-          <template #default="{ row }">
-            <span
-              :class="
-                Number(row.totalAdjustAmount) >= 0
-                  ? 'text-success'
-                  : 'text-danger'
-              "
-            >
-              {{ formatAmount(row.totalAdjustAmount) }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="reason"
-          label="调整原因"
-          min-width="150"
-          show-overflow-tooltip
-        />
-        <el-table-column label="操作人" width="100">
-          <template #default="{ row }">
-            {{ row.operator?.name || "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="审核人" width="100">
-          <template #default="{ row }">
-            {{ row.auditor?.name || "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="创建时间" width="160">
-          <template #default="{ row }">
-            {{ formatDate(row.createAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="审核时间" width="160">
-          <template #default="{ row }">
-            {{ formatDate(row.auditAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
-          <template #default="{ row }">
-            <el-button
-              v-if="!row.isApproved && !row.isLocked"
-              type="primary"
-              size="small"
-              link
-              @click="handleApprove(row)"
-            >
-              审核
-            </el-button>
-            <el-button
-              v-if="!row.isApproved && !row.isLocked"
-              type="warning"
-              size="small"
-              link
-              @click="handleReject(row)"
-            >
-              拒绝
-            </el-button>
-            <el-button
-              v-if="!row.isApproved"
-              type="danger"
-              size="small"
-              link
-              @click="handleDelete(row)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <!-- 分页 -->
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="queryParams.index"
-          :total="total"
-          :page-size="15"
-          layout="total, prev, pager, next"
-          @current-change="handlePageChange"
-        />
-      </div>
+        </template>
+        <template v-slot="{ size }">
+          <pure-table
+            row-key="id"
+            adaptive
+            :size="size"
+            :columns="columns"
+            border
+            :data="tableData"
+            :loading="loading"
+            showOverflowTooltip
+            :pagination="{ ...pagination, size }"
+            @page-current-change="handlePageChange"
+          >
+            <template #status="{ row }">
+              <el-tag :type="getStatusTag(row).type" size="small">
+                {{ getStatusTag(row).text }}
+              </el-tag>
+            </template>
+            <template #operation="{ row }">
+              <el-button
+                v-if="!row.isApproved && !row.isLocked"
+                type="primary"
+                size="small"
+                link
+                @click="handleApprove(row)"
+              >
+                审核
+              </el-button>
+              <el-button
+                v-if="!row.isApproved && !row.isLocked"
+                type="warning"
+                size="small"
+                link
+                @click="handleReject(row)"
+              >
+                拒绝
+              </el-button>
+              <el-button
+                v-if="!row.isApproved"
+                type="danger"
+                size="small"
+                link
+                @click="handleDelete(row)"
+              >
+                删除
+              </el-button>
+            </template>
+          </pure-table>
+        </template>
+      </PureTableBar>
     </el-card>
   </div>
 </template>

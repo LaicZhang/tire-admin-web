@@ -241,6 +241,29 @@ const actionMap: Record<string, string> = {
   ADJUST: "调整"
 };
 
+const logColumns: TableColumnList = [
+  { label: "操作", prop: "action", width: 100, slot: "action" },
+  {
+    label: "来源仓库",
+    prop: "fromRepoId",
+    minWidth: 120,
+    formatter: row => row.fromRepoId || "-"
+  },
+  {
+    label: "目标仓库",
+    prop: "toRepoId",
+    minWidth: 120,
+    formatter: row => row.toRepoId || "-"
+  },
+  {
+    label: "单据类型",
+    prop: "orderType",
+    width: 100,
+    formatter: row => row.orderType || "-"
+  },
+  { label: "时间", prop: "createdAt", width: 160 }
+];
+
 onSearch();
 </script>
 
@@ -440,29 +463,16 @@ onSearch();
       :title="`流转记录 - ${currentSerialNo}`"
       width="700px"
     >
-      <el-table v-loading="logsLoading" :data="logsList" border>
-        <el-table-column label="操作" prop="action" width="100">
-          <template #default="{ row }">
-            {{ actionMap[row.action] || row.action }}
-          </template>
-        </el-table-column>
-        <el-table-column label="来源仓库" prop="fromRepoId" min-width="120">
-          <template #default="{ row }">
-            {{ row.fromRepoId || "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="目标仓库" prop="toRepoId" min-width="120">
-          <template #default="{ row }">
-            {{ row.toRepoId || "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="单据类型" prop="orderType" width="100">
-          <template #default="{ row }">
-            {{ row.orderType || "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="时间" prop="createdAt" width="160" />
-      </el-table>
+      <pure-table
+        :loading="logsLoading"
+        :data="logsList"
+        border
+        :columns="logColumns"
+      >
+        <template #action="{ row }">
+          {{ actionMap[row.action] || row.action }}
+        </template>
+      </pure-table>
     </el-dialog>
   </div>
 </template>

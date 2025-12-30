@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { message } from "@/utils";
+import { PureTable } from "@pureadmin/table";
+import type { TableColumnList } from "@pureadmin/table";
 import {
   getCustomerLevelListApi,
   createCustomerLevelApi,
@@ -24,6 +26,30 @@ const formData = ref({
   discount: 100,
   minAmount: 0
 });
+
+const columns: TableColumnList = [
+  {
+    label: "等级名称",
+    prop: "name"
+  },
+  {
+    label: "折扣比例",
+    prop: "discount",
+    width: 120,
+    slot: "discount"
+  },
+  {
+    label: "最低消费金额",
+    prop: "minAmount",
+    width: 140,
+    slot: "minAmount"
+  },
+  {
+    label: "操作",
+    width: 180,
+    slot: "operation"
+  }
+];
 
 const formRules = {
   name: [{ required: true, message: "请输入等级名称", trigger: "blur" }],
@@ -102,32 +128,25 @@ onMounted(() => {
       <el-button type="primary" @click="openCreateForm">新增等级</el-button>
     </div>
 
-    <el-table v-loading="loading" :data="levelList" border>
-      <el-table-column label="等级名称" prop="name" />
-      <el-table-column label="折扣比例" prop="discount" width="120">
-        <template #default="{ row }"> {{ row.discount ?? 100 }}% </template>
-      </el-table-column>
-      <el-table-column label="最低消费金额" prop="minAmount" width="140">
-        <template #default="{ row }">
-          ¥{{ (row.minAmount ?? 0).toLocaleString() }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="180">
-        <template #default="{ row }">
-          <el-button link type="primary" @click="openEditForm(row)">
-            编辑
-          </el-button>
-          <el-popconfirm
-            :title="`确定删除等级「${row.name}」吗？`"
-            @confirm="handleDelete(row)"
-          >
-            <template #reference>
-              <el-button link type="danger">删除</el-button>
-            </template>
-          </el-popconfirm>
-        </template>
-      </el-table-column>
-    </el-table>
+    <PureTable border :loading="loading" :data="levelList" :columns="columns">
+      <template #discount="{ row }"> {{ row.discount ?? 100 }}% </template>
+      <template #minAmount="{ row }">
+        ¥{{ (row.minAmount ?? 0).toLocaleString() }}
+      </template>
+      <template #operation="{ row }">
+        <el-button link type="primary" @click="openEditForm(row)">
+          编辑
+        </el-button>
+        <el-popconfirm
+          :title="`确定删除等级「${row.name}」吗？`"
+          @confirm="handleDelete(row)"
+        >
+          <template #reference>
+            <el-button link type="danger">删除</el-button>
+          </template>
+        </el-popconfirm>
+      </template>
+    </PureTable>
 
     <!-- 新增/编辑表单弹窗 -->
     <el-dialog

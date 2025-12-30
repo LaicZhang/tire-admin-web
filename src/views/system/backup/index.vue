@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import {
   getBackupListApi,
   createBackupApi,
@@ -13,6 +13,7 @@ import Plus from "~icons/ep/plus";
 import Download from "~icons/ep/download";
 import Delete from "~icons/ep/delete";
 import Refresh from "~icons/ep/refresh";
+import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
   name: "SystemBackup"
@@ -20,20 +21,63 @@ defineOptions({
 
 const loading = ref(false);
 const backupList = ref<BackupTask[]>([]);
-const pagination = ref({
-  currentPage: 1,
+const pagination = reactive({
+  total: 0,
   pageSize: 10,
-  total: 0
+  currentPage: 1,
+  background: true
 });
+
+const columns: TableColumnList = [
+  {
+    label: "文件名",
+    minWidth: 200,
+    slot: "fileName"
+  },
+  {
+    label: "类型",
+    width: 100,
+    align: "center",
+    slot: "type"
+  },
+  {
+    label: "状态",
+    width: 100,
+    align: "center",
+    slot: "status"
+  },
+  {
+    label: "文件大小",
+    width: 120,
+    align: "right",
+    slot: "fileSize"
+  },
+  {
+    label: "创建时间",
+    width: 180,
+    slot: "createTime"
+  },
+  {
+    label: "完成时间",
+    width: 180,
+    slot: "finishAt"
+  },
+  {
+    label: "操作",
+    width: 150,
+    fixed: "right",
+    slot: "operation"
+  }
+];
 
 // 加载备份列表
 const loadData = async () => {
   loading.value = true;
   try {
-    const { data, code } = await getBackupListApi(pagination.value.currentPage);
+    const { data, code } = await getBackupListApi(pagination.currentPage);
     if (code === 200) {
       backupList.value = data.list || [];
-      pagination.value.total = data.count || 0;
+      pagination.total = data.count || 0;
     }
   } catch (error) {
     message("加载备份列表失败", { type: "error" });
@@ -146,7 +190,7 @@ const getStatusText = (status: string) => {
 };
 
 const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
+  pagination.currentPage = val;
   loadData();
 };
 
@@ -157,98 +201,88 @@ onMounted(() => {
 
 <template>
   <div class="main p-4">
-    <el-card>
-      <template #header>
-        <div class="flex items-center justify-between">
-          <span class="font-bold">数据库备份管理</span>
-          <div class="flex space-x-2">
-            <el-button :icon="useRenderIcon(Refresh)" @click="loadData">
-              刷新
-            </el-button>
-            <el-button
-              type="primary"
-              :icon="useRenderIcon(Plus)"
-              :loading="loading"
-              @click="handleCreateBackup"
-            >
-              创建备份
-            </el-button>
-          </div>
-        </div>
-      </template>
-
-      <el-table v-loading="loading" :data="backupList" stripe border>
-        <el-table-column label="文件名" min-width="200">
-          <template #default="{ row }">
-            {{ row.fileName || "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="类型" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag
-              :type="row.action === 'backup' ? 'primary' : 'warning'"
-              size="small"
-            >
-              {{ row.action === "backup" ? "备份" : "恢复" }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="文件大小" width="120" align="right">
-          <template #default="{ row }">
-            {{ formatFileSize(row.fileSize) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ new Date(row.createdAt).toLocaleString() }}
-          </template>
-        </el-table-column>
-        <el-table-column label="完成时间" width="180">
-          <template #default="{ row }">
-            {{ row.finishAt ? new Date(row.finishAt).toLocaleString() : "-" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
-          <template #default="{ row }">
-            <el-button
-              v-if="row.action === 'backup' && row.status === 'success'"
-              type="primary"
-              size="small"
-              text
-              :icon="useRenderIcon(Download)"
-              @click="handleDownload(row)"
-            >
-              下载
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              text
-              :icon="useRenderIcon(Delete)"
-              @click="handleDelete(row)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="mt-4 flex justify-end">
-        <el-pagination
-          v-model:current-page="pagination.currentPage"
-          :page-size="pagination.pageSize"
-          layout="total, prev, pager, next"
-          :total="pagination.total"
-          @current-change="handleCurrentChange"
-        />
-      </div>
+    <div class="bg-white p-4">
+      <PureTableBar
+        title="数据库备份管理"
+        :columns="columns"
+        @refresh="loadData"
+      >
+        <template #buttons>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon(Plus)"
+            :loading="loading"
+            @click="handleCreateBackup"
+          >
+            创建备份
+          </el-button>
+        </template>
+        <template v-slot="{ size, dynamicColumns }">
+          <pure-table
+            border
+            stripe
+            align-whole="center"
+            :loading="loading"
+            :size="size"
+            :data="backupList"
+            :columns="dynamicColumns"
+            :pagination="pagination"
+            :paginationSmall="size === 'small' ? true : false"
+            :header-cell-style="{
+              background: 'var(--el-fill-color-light)',
+              color: 'var(--el-text-color-primary)'
+            }"
+            @page-current-change="handleCurrentChange"
+          >
+            <template #fileName="{ row }">
+              {{ row.fileName || "-" }}
+            </template>
+            <template #type="{ row }">
+              <el-tag
+                :type="row.action === 'backup' ? 'primary' : 'warning'"
+                size="small"
+              >
+                {{ row.action === "backup" ? "备份" : "恢复" }}
+              </el-tag>
+            </template>
+            <template #status="{ row }">
+              <el-tag :type="getStatusType(row.status)" size="small">
+                {{ getStatusText(row.status) }}
+              </el-tag>
+            </template>
+            <template #fileSize="{ row }">
+              {{ formatFileSize(row.fileSize) }}
+            </template>
+            <template #createTime="{ row }">
+              {{ new Date(row.createdAt).toLocaleString() }}
+            </template>
+            <template #finishAt="{ row }">
+              {{ row.finishAt ? new Date(row.finishAt).toLocaleString() : "-" }}
+            </template>
+            <template #operation="{ row }">
+              <el-button
+                v-if="row.action === 'backup' && row.status === 'success'"
+                type="primary"
+                size="small"
+                text
+                :icon="useRenderIcon(Download)"
+                @click="handleDownload(row)"
+              >
+                下载
+              </el-button>
+              <el-button
+                type="danger"
+                size="small"
+                text
+                :icon="useRenderIcon(Delete)"
+                @click="handleDelete(row)"
+              >
+                删除
+              </el-button>
+            </template>
+          </pure-table>
+        </template>
+      </PureTableBar>
 
       <!-- 提示信息 -->
       <div class="mt-4 p-4 bg-yellow-50 rounded text-sm text-yellow-700">
@@ -259,6 +293,6 @@ onMounted(() => {
           <li>恢复备份将覆盖当前所有数据，请谨慎操作</li>
         </ul>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>

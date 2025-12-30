@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { message } from "@/utils";
+import { PureTable } from "@pureadmin/table";
+import type { TableColumnList } from "@pureadmin/table";
 import {
   getCustomerTagListApi,
   createCustomerTagApi,
@@ -32,6 +34,25 @@ const colors = [
   "#00d4ff",
   "#ff85c0",
   "#b37feb"
+];
+
+const columns: TableColumnList = [
+  {
+    label: "标签名称",
+    prop: "name",
+    slot: "name"
+  },
+  {
+    label: "颜色",
+    prop: "color",
+    width: 120,
+    slot: "color"
+  },
+  {
+    label: "操作",
+    width: 180,
+    slot: "operation"
+  }
 ];
 
 async function loadTags() {
@@ -102,36 +123,30 @@ onMounted(() => {
       <el-button type="primary" @click="openCreateForm">新增标签</el-button>
     </div>
 
-    <el-table v-loading="loading" :data="tagList" border>
-      <el-table-column label="标签名称" prop="name">
-        <template #default="{ row }">
-          <el-tag :color="row.color" effect="dark">{{ row.name }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="颜色" prop="color" width="120">
-        <template #default="{ row }">
-          <div
-            class="w-6 h-6 rounded"
-            :style="{ backgroundColor: row.color || '#409EFF' }"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="180">
-        <template #default="{ row }">
-          <el-button link type="primary" @click="openEditForm(row)">
-            编辑
-          </el-button>
-          <el-popconfirm
-            :title="`确定删除标签「${row.name}」吗？`"
-            @confirm="handleDelete(row)"
-          >
-            <template #reference>
-              <el-button link type="danger">删除</el-button>
-            </template>
-          </el-popconfirm>
-        </template>
-      </el-table-column>
-    </el-table>
+    <PureTable border :loading="loading" :data="tagList" :columns="columns">
+      <template #name="{ row }">
+        <el-tag :color="row.color" effect="dark">{{ row.name }}</el-tag>
+      </template>
+      <template #color="{ row }">
+        <div
+          class="w-6 h-6 rounded"
+          :style="{ backgroundColor: row.color || '#409EFF' }"
+        />
+      </template>
+      <template #operation="{ row }">
+        <el-button link type="primary" @click="openEditForm(row)">
+          编辑
+        </el-button>
+        <el-popconfirm
+          :title="`确定删除标签「${row.name}」吗？`"
+          @confirm="handleDelete(row)"
+        >
+          <template #reference>
+            <el-button link type="danger">删除</el-button>
+          </template>
+        </el-popconfirm>
+      </template>
+    </PureTable>
 
     <!-- 新增/编辑表单弹窗 -->
     <el-dialog

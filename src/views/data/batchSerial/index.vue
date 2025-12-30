@@ -113,6 +113,15 @@ const getStatusLabel = (status: string) => {
   return item?.label || status;
 };
 
+const expiryColumns: TableColumnList = [
+  { label: "批次号", prop: "batchNo" },
+  { label: "商品名称", prop: "tireName" },
+  { label: "仓库", prop: "repoName" },
+  { label: "数量", prop: "quantity" },
+  { label: "到期日期", prop: "expiryDate" },
+  { label: "剩余天数", slot: "remainingDays" }
+];
+
 // 模拟批次数据
 const mockBatchData: Batch[] = [
   {
@@ -572,26 +581,24 @@ onMounted(() => {
             v-if="expiringBatches.length === 0"
             description="暂无即将过期的批次"
           />
-          <el-table v-else :data="expiringBatches" border>
-            <el-table-column prop="batchNo" label="批次号" />
-            <el-table-column prop="tireName" label="商品名称" />
-            <el-table-column prop="repoName" label="仓库" />
-            <el-table-column prop="quantity" label="数量" />
-            <el-table-column prop="expiryDate" label="到期日期" />
-            <el-table-column label="剩余天数">
-              <template #default="{ row }">
-                <span class="text-red-500 font-bold">
-                  {{
-                    Math.ceil(
-                      (new Date(row.expiryDate).getTime() - Date.now()) /
-                        (1000 * 60 * 60 * 24)
-                    )
-                  }}
-                  天
-                </span>
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            v-else
+            :data="expiringBatches"
+            border
+            :columns="expiryColumns"
+          >
+            <template #remainingDays="{ row }">
+              <span class="text-red-500 font-bold">
+                {{
+                  Math.ceil(
+                    (new Date(row.expiryDate).getTime() - Date.now()) /
+                      (1000 * 60 * 60 * 24)
+                  )
+                }}
+                天
+              </span>
+            </template>
+          </pure-table>
         </el-tab-pane>
       </el-tabs>
     </el-card>

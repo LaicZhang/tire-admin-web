@@ -378,54 +378,44 @@ onMounted(() => {
       width="80%"
       destroy-on-close
     >
-      <el-table
-        v-loading="detailLoading"
+      <pure-table
+        border
+        :loading="detailLoading"
         :data="detailList"
-        stripe
+        :columns="
+          currentTask?.status === 'IN_PROGRESS'
+            ? detailColumns
+            : detailColumns.filter(col => col.slot !== 'operation')
+        "
         max-height="500"
       >
-        <el-table-column prop="tireName" label="商品名称" min-width="150" />
-        <el-table-column prop="tireBarcode" label="商品编码" width="140" />
-        <el-table-column prop="bookCount" label="系统库存" width="100" />
-        <el-table-column label="实际库存" width="120">
-          <template #default="{ row }">
-            <span v-if="row.actualCount !== undefined">{{
-              row.actualCount
-            }}</span>
-            <span v-else class="text-gray-400">未录入</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="差异" width="100">
-          <template #default="{ row }">
-            <span
-              v-if="row.difference !== undefined"
-              :class="
-                row.difference > 0
-                  ? 'text-green-600'
-                  : row.difference < 0
-                    ? 'text-red-600'
-                    : ''
-              "
-            >
-              {{ row.difference > 0 ? "+" : "" }}{{ row.difference }}
-            </span>
-            <span v-else>-</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="remark" label="备注" min-width="120" />
-        <el-table-column
-          v-if="currentTask?.status === 'IN_PROGRESS'"
-          label="操作"
-          width="100"
-          fixed="right"
-        >
-          <template #default="{ row }">
-            <el-button link type="primary" @click="handleUpdateDetail(row)">
-              录入
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        <template #actualCount="{ row }">
+          <span v-if="row.actualCount !== undefined">{{
+            row.actualCount
+          }}</span>
+          <span v-else class="text-gray-400">未录入</span>
+        </template>
+        <template #difference="{ row }">
+          <span
+            v-if="row.difference !== undefined"
+            :class="
+              row.difference > 0
+                ? 'text-green-600'
+                : row.difference < 0
+                  ? 'text-red-600'
+                  : ''
+            "
+          >
+            {{ row.difference > 0 ? "+" : "" }}{{ row.difference }}
+          </span>
+          <span v-else>-</span>
+        </template>
+        <template #operation="{ row }">
+          <el-button link type="primary" @click="handleUpdateDetail(row)">
+            录入
+          </el-button>
+        </template>
+      </pure-table>
     </el-dialog>
   </div>
 </template>

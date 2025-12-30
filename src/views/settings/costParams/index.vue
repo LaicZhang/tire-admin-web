@@ -35,6 +35,26 @@ const costCalcTypeOptions = [
   { label: "分仓核算", value: "sub_warehouse" }
 ];
 
+const columns: TableColumnList = [
+  {
+    label: "顺序",
+    type: "index",
+    width: 80,
+    align: "center"
+  },
+  {
+    label: "取值方式",
+    prop: "name",
+    minWidth: 200
+  },
+  {
+    label: "操作",
+    width: 150,
+    align: "center",
+    slot: "operation"
+  }
+];
+
 const loadSettings = async () => {
   loading.value = true;
   try {
@@ -202,37 +222,34 @@ onMounted(() => {
 
         <!-- 异常成本处理 -->
         <el-divider content-position="left">异常成本处理取值顺序</el-divider>
-        <el-table :data="formData.abnormalCostOrder" border style="width: 100%">
-          <el-table-column
-            type="index"
-            label="顺序"
-            width="80"
-            align="center"
-          />
-          <el-table-column prop="name" label="取值方式" min-width="200" />
-          <el-table-column label="操作" width="150" align="center">
-            <template #default="{ $index }">
-              <el-button
-                link
-                type="primary"
-                :icon="useRenderIcon(ArrowUp)"
-                :disabled="$index === 0"
-                @click="moveUp($index)"
-              >
-                前移
-              </el-button>
-              <el-button
-                link
-                type="primary"
-                :icon="useRenderIcon(ArrowDown)"
-                :disabled="$index === formData.abnormalCostOrder.length - 1"
-                @click="moveDown($index)"
-              >
-                后移
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        <pure-table
+          border
+          align-whole="center"
+          :data="formData.abnormalCostOrder"
+          :columns="columns"
+          style="width: 100%"
+        >
+          <template #operation="{ index }">
+            <el-button
+              link
+              type="primary"
+              :icon="useRenderIcon(ArrowUp)"
+              :disabled="index === 0"
+              @click="moveUp(index)"
+            >
+              前移
+            </el-button>
+            <el-button
+              link
+              type="primary"
+              :icon="useRenderIcon(ArrowDown)"
+              :disabled="index === formData.abnormalCostOrder.length - 1"
+              @click="moveDown(index)"
+            >
+              后移
+            </el-button>
+          </template>
+        </pure-table>
       </el-form>
     </div>
   </div>
