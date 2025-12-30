@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
@@ -18,22 +17,33 @@ import type { Department } from "@/api/company/department";
 import { getRolesApi } from "@/api/system/role";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/hooks/useCrud";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 
 defineOptions({
   name: "department"
 });
-const dataList = ref<Department[]>([]);
-const loading = ref(false);
-const formRef = ref();
+
 const form = ref({
   name: undefined,
   desc: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud({
+  api: async ({ page, pageSize, ...params }) => {
+    const res = await getDepartmentListApi(page, { ...params, pageSize });
+    if (res.code !== 200) throw new Error(res.msg);
+    return res;
+  },
+  params: form,
+  transform: ({ data }) => ({ list: data.list, total: data.count })
 });
 
 // 角色管理相关
@@ -44,44 +54,18 @@ const departmentRoles = ref<string[]>([]);
 const allRoles = ref<{ uid: string; name: string }[]>([]);
 const selectedRoles = ref<string[]>([]);
 
-const getDepartmentListInfo = async () => {
-  const { data, code, msg } = await getDepartmentListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
+const onReset = () => {
+  form.value = {
+    name: undefined,
+    desc: undefined
+  };
+  fetchData();
 };
-const onSearch = async () => {
-  loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined)
-    await getDepartmentListInfo();
-
-  const { data } = await getDepartmentListApi(pagination.value.currentPage, {
-    ...form.value
-  });
-
-  dataList.value = data.list;
-  pagination.value.total = data.count;
-  loading.value = false;
-};
-
-const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  loading.value = true;
-  if (!formEl) return;
-  formEl.resetFields();
-  loading.value = false;
-};
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getDepartmentListInfo();
-}
 
 async function handleDelete(row: Department) {
   await deleteDepartmentApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  fetchData();
 }
 
 // 打开角色管理对话框
@@ -142,54 +126,36 @@ async function saveRoles() {
     rolesLoading.value = false;
   }
 }
-
-onMounted(async () => {
-  await getDepartmentListInfo();
-});
 </script>
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="名称：" prop="name">
-          <el-input
-            v-model="form.name"
-            placeholder="请输入部门名称"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item label="备注：" prop="desc">
-          <el-input
-            v-model="form.desc"
-            placeholder="请输入备注"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      :form="form"
+      :loading="loading"
+      @search="fetchData"
+      @reset="onReset"
+    >
+      <el-form-item label="名称：" prop="name">
+        <el-input
+          v-model="form.name"
+          placeholder="请输入部门名称"
+          clearable
+          class="!w-[180px]"
+        />
+      </el-form-item>
+      <el-form-item label="备注：" prop="desc">
+        <el-input
+          v-model="form.desc"
+          placeholder="请输入备注"
+          clearable
+          class="!w-[180px]"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getDepartmentListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -209,7 +175,8 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-size-change="onSizeChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button

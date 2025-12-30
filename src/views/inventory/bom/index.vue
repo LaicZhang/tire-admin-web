@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, h } from "vue";
+import { ref, reactive, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
@@ -10,10 +9,12 @@ import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import { useCrud } from "@/hooks/useCrud";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";
-import { type Bom, type BomQuery, BomStatus, bomStatusMap } from "./types";
+import { type Bom, type BomQuery, bomStatusMap } from "./types";
 import {
   approveBomApi,
   createAssemblyOrderFromBomApi,
@@ -29,21 +30,10 @@ defineOptions({
   name: "InventoryBom"
 });
 
-const dataList = ref<Bom[]>([]);
-const loading = ref(false);
-const formRef = ref<FormInstance>();
 const editFormRef = ref();
-
 const queryParams = reactive<BomQuery>({
   status: undefined,
   keyword: ""
-});
-
-const pagination = ref({
-  total: 0,
-  pageSize: 15,
-  currentPage: 1,
-  background: true
 });
 
 const statusOptions = Object.entries(bomStatusMap).map(([value, config]) => ({
@@ -51,39 +41,45 @@ const statusOptions = Object.entries(bomStatusMap).map(([value, config]) => ({
   label: config.label
 }));
 
-const fetchData = async () => {
-  loading.value = true;
-  try {
-    const { data, code } = await getBomListApi(pagination.value.currentPage, {
-      ...queryParams,
-      status: queryParams.status || undefined
-    });
-    if (code === 200) {
-      dataList.value = data.list as unknown as Bom[];
-      pagination.value.total = data.count;
-    }
-  } catch (error) {
-    console.error("获取BOM列表失败", error);
-  } finally {
-    loading.value = false;
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud({
+  api: async params => {
+    const { page, ...rest } = params;
+    // Keep consistent with original logic: explicitly set undefined for empty status
+    const query = {
+      ...rest,
+      status: rest.status || undefined
+    };
+    return await getBomListApi(page, query);
+  },
+  params: queryParams,
+  pagination: {
+    pageSize: 15,
+    background: true
+  },
+  transform: res => {
+    return {
+      list: res.data.list,
+      total: res.data.count
+    };
   }
-};
+});
 
 const handleSearch = () => {
-  pagination.value.currentPage = 1;
+  onCurrentChange(1);
   fetchData();
 };
 
-const handleReset = (formEl: FormInstance | undefined) => {
-  if (formEl) formEl.resetFields();
+const handleReset = () => {
   queryParams.status = undefined;
   queryParams.keyword = "";
   handleSearch();
-};
-
-const handleCurrentChange = (page: number) => {
-  pagination.value.currentPage = page;
-  fetchData();
 };
 
 const openDialog = (title: string, row?: Bom, isView: boolean = false) => {
@@ -209,57 +205,40 @@ const handleCreateDisassembly = async (row: Bom) => {
     }
   }
 };
-
-onMounted(() => {
-  fetchData();
-});
 </script>
 
 <template>
   <div class="main">
-    <el-card class="mb-4">
-      <el-form ref="formRef" :model="queryParams" :inline="true">
-        <el-form-item label="状态" prop="status">
-          <el-select
-            v-model="queryParams.status"
-            placeholder="请选择状态"
-            clearable
-            class="w-[120px]"
-          >
-            <el-option
-              v-for="item in statusOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="关键字" prop="keyword">
-          <el-input
-            v-model="queryParams.keyword"
-            placeholder="BOM编码/名称"
-            clearable
-            class="w-[180px]"
+    <ReSearchForm
+      :form="queryParams"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="handleReset"
+    >
+      <el-form-item label="状态" prop="status">
+        <el-select
+          v-model="queryParams.status"
+          placeholder="请选择状态"
+          clearable
+          class="w-[120px]"
+        >
+          <el-option
+            v-for="item in statusOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
           />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="handleSearch"
-          >
-            搜索
-          </el-button>
-          <el-button
-            :icon="useRenderIcon(Refresh)"
-            @click="handleReset(formRef)"
-          >
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="关键字" prop="keyword">
+        <el-input
+          v-model="queryParams.keyword"
+          placeholder="BOM编码/名称"
+          clearable
+          class="w-[180px]"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card>
       <PureTableBar title="BOM表列表" @refresh="fetchData">
@@ -283,7 +262,8 @@ onMounted(() => {
             :loading="loading"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
+            @page-size-change="onSizeChange"
           >
             <template #operation="{ row }">
               <el-button
@@ -355,9 +335,5 @@ onMounted(() => {
 <style scoped lang="scss">
 .main {
   padding: 16px;
-}
-
-.mb-4 {
-  margin-bottom: 16px;
 }
 </style>
