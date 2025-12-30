@@ -109,7 +109,7 @@
     "@vue/test-utils": "^2.4.6",
     "boxen": "^8.0.1",
     "cloc": "^2.11.0",
-    "code-inspector-plugin": "^1.3.3",
+    "code-inspector-plugin": "^1.3.4",
     "cssnano": "^7.1.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
