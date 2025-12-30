@@ -30,11 +30,11 @@ export {
   getVerifyCodeApi as getVerifyCodeApiFromVerify,
   getCaptchaApi
 } from "./verify";
-export * from "./setting";
 export * from "./payment";
 export * from "./logistic";
 export * from "./asset";
 export * from "./analysis";
+export * from "./inventory";
 export * from "./batch";
 export * from "./finance";
 export * from "./tools";

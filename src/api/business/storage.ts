@@ -18,6 +18,27 @@ export async function getStorageZoneListApi(params?: object) {
   });
 }
 
+export async function getStorageZoneApi(uid: string) {
+  return await http.request<CommonResult>("get", baseUrlApi(zonePrefix + uid));
+}
+
+export async function updateStorageZoneApi(uid: string, data: object) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(zonePrefix + uid),
+    {
+      data
+    }
+  );
+}
+
+export async function deleteStorageZoneApi(uid: string) {
+  return await http.request<CommonResult>(
+    "delete",
+    baseUrlApi(zonePrefix + uid)
+  );
+}
+
 // 货位
 export async function createStorageLocationApi(data: object) {
   return await http.request<CommonResult>("post", baseUrlApi(locationPrefix), {

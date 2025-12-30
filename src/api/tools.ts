@@ -26,6 +26,21 @@ export interface ExportTask {
   error?: string;
 }
 
+type ExportContent = {
+  format: string;
+  content: string;
+};
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [meta, base64] = dataUrl.split(",");
+  const mime =
+    meta?.match(/data:(.*?);base64/i)?.[1] ?? "application/octet-stream";
+  const binary = atob(base64 || "");
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
 export interface PrintTemplate {
   type: string;
   name: string;
@@ -38,6 +53,43 @@ export interface BarcodeProduct {
   name: string;
   price?: number;
   stock?: number;
+}
+
+export interface ParsedSheetInfo {
+  name: string;
+  index: number;
+  rowCount: number;
+}
+
+export interface ParsedImportSheetsResult {
+  sheets: ParsedSheetInfo[];
+}
+
+export interface ParsedImportColumn {
+  index: number;
+  name: string;
+  sampleValues: string[];
+}
+
+export interface ParsedImportColumnsResult {
+  columns: ParsedImportColumn[];
+}
+
+export interface ImportPreviewRowError {
+  field: string;
+  message: string;
+  severity: "warning" | "error";
+}
+
+export interface ImportPreviewRow {
+  rowIndex: number;
+  data: Record<string, unknown>;
+  errors: ImportPreviewRowError[];
+  status: "valid" | "warning" | "error";
+}
+
+export interface ImportPreviewResult {
+  rows: ImportPreviewRow[];
 }
 
 // ============ 导入模板 ============
@@ -85,6 +137,44 @@ export async function importDataApi(
   );
 }
 
+// ============ smartImport 文件解析 ============
+
+/** 解析导入文件的 Sheet 列表（smartImport） */
+export async function parseImportSheetsApi(data: FormData) {
+  return await http.request<CommonResult<ParsedImportSheetsResult>>(
+    "post",
+    baseUrlApi(prefix + "import/parse/sheets"),
+    {
+      data,
+      headers: { "Content-Type": "multipart/form-data" }
+    }
+  );
+}
+
+/** 解析导入文件的列信息（smartImport） */
+export async function parseImportColumnsApi(data: FormData) {
+  return await http.request<CommonResult<ParsedImportColumnsResult>>(
+    "post",
+    baseUrlApi(prefix + "import/parse/columns"),
+    {
+      data,
+      headers: { "Content-Type": "multipart/form-data" }
+    }
+  );
+}
+
+/** 预览并校验导入数据（smartImport） */
+export async function previewImportApi(data: FormData) {
+  return await http.request<CommonResult<ImportPreviewResult>>(
+    "post",
+    baseUrlApi(prefix + "import/preview"),
+    {
+      data,
+      headers: { "Content-Type": "multipart/form-data" }
+    }
+  );
+}
+
 // ============ 数据导出 ============
 
 /** 同步导出数据 */
@@ -92,11 +182,19 @@ export async function exportDataApi(
   type: string,
   params?: { ids?: string[]; filters?: object }
 ) {
-  return await http.request<Blob>(
+  const filterPayload = {
+    ...(params?.filters ? { ...(params.filters as object) } : {}),
+    ...(params?.ids ? { ids: params.ids } : {})
+  };
+  const filter = JSON.stringify(filterPayload);
+
+  const res = await http.request<CommonResult<ExportContent>>(
     "get",
     baseUrlApi(prefix + `export/${type}`),
-    { params, responseType: "blob" }
+    { params: { type, filter } }
   );
+  if (res.code !== 200) throw new Error(res.msg || "导出失败");
+  return dataUrlToBlob(res.data?.content || "");
 }
 
 /** 创建异步导出任务 */
@@ -104,19 +202,45 @@ export async function createAsyncExportTaskApi(
   type: string,
   data: { filters?: object; fields?: string[] }
 ) {
-  return await http.request<CommonResult<ExportTask>>(
+  const filter = JSON.stringify({
+    ...(data.filters ? { filters: data.filters } : {}),
+    ...(data.fields ? { fields: data.fields } : {})
+  });
+  const res = await http.request<CommonResult<any>>(
     "post",
     baseUrlApi(prefix + `export/async/${type}`),
-    { data }
+    { params: { type, filter } }
   );
+  return {
+    ...res,
+    data: res.data
+      ? ({
+          taskId: res.data.id,
+          status: res.data.status,
+          progress: res.data.progress,
+          error: res.data.error
+        } as ExportTask)
+      : (res.data as ExportTask)
+  };
 }
 
 /** 查询导出任务状态 */
 export async function getExportTaskStatusApi(taskId: string) {
-  return await http.request<CommonResult<ExportTask>>(
+  const res = await http.request<CommonResult<any>>(
     "get",
     baseUrlApi(prefix + `export/task/${taskId}`)
   );
+  return {
+    ...res,
+    data: res.data
+      ? ({
+          taskId: res.data.id,
+          status: res.data.status,
+          progress: res.data.progress,
+          error: res.data.error
+        } as ExportTask)
+      : (res.data as ExportTask)
+  };
 }
 
 /** 下载导出文件 */
