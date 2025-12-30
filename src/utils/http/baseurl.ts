@@ -20,4 +20,3 @@ export const resolveBaseURLFromViteEnv = (
       "请在对应的 .env.* 中配置后重新构建部署（例如：VITE_SERVER_URL=https://api.your-domain.com）"
   };
 };
-
