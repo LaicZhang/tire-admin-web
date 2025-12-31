@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, h } from "vue";
 import { message } from "@/utils";
 import {
   downloadImportTemplateApi,
   importDataApi,
   getImportTemplateApi
 } from "@/api";
-import { ElUpload } from "element-plus";
+import { ElUpload, ElTag } from "element-plus";
 import type { UploadFile, UploadRawFile } from "element-plus";
+import type { TableColumnList } from "@pureadmin/table";
 
 interface Props {
   visible: boolean;
@@ -45,6 +46,45 @@ const importResult = ref<{
   failed: number;
   errors: string[];
 } | null>(null);
+
+const templateColumns: TableColumnList = [
+  {
+    label: "字段名",
+    prop: "label",
+    width: 120
+  },
+  {
+    label: "列名",
+    prop: "name",
+    width: 120
+  },
+  {
+    label: "必填",
+    prop: "required",
+    width: 80,
+    cellRenderer: ({ row }) => {
+      return row.required
+        ? h(ElTag, { type: "danger", size: "small" }, () => "是")
+        : h(ElTag, { type: "info", size: "small" }, () => "否");
+    }
+  },
+  {
+    label: "类型",
+    prop: "type"
+  }
+];
+
+const errorColumns: TableColumnList = [
+  {
+    label: "行号",
+    prop: "row",
+    width: 80
+  },
+  {
+    label: "错误信息",
+    prop: "message"
+  }
+];
 
 async function loadTemplate() {
   try {
@@ -198,19 +238,12 @@ function onOpen() {
       <div v-if="templateFields.length > 0" class="mb-6">
         <el-collapse>
           <el-collapse-item title="查看字段说明">
-            <el-table :data="templateFields" size="small" border>
-              <el-table-column prop="label" label="字段名" width="120" />
-              <el-table-column prop="name" label="列名" width="120" />
-              <el-table-column prop="required" label="必填" width="80">
-                <template #default="{ row }">
-                  <el-tag v-if="row.required" type="danger" size="small">
-                    是
-                  </el-tag>
-                  <el-tag v-else type="info" size="small">否</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="type" label="类型" />
-            </el-table>
+            <pure-table
+              :data="templateFields"
+              :columns="templateColumns"
+              size="small"
+              border
+            />
           </el-collapse-item>
         </el-collapse>
       </div>

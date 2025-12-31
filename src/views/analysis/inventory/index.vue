@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, nextTick, h } from "vue";
 import {
   getInventorySummaryApi,
   getSlowMovingApi,
@@ -11,6 +11,7 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import * as echarts from "echarts/core";
+import type { TableColumnList } from "@pureadmin/table";
 
 defineOptions({
   name: "AnalysisInventory"
@@ -38,6 +39,50 @@ const stockoutList = ref<any[]>([]);
 const turnoverData = ref<any>({ turnoverRate: 0, averageDays: 0, details: [] });
 // 临期分布
 const expiryData = ref<any[]>([]);
+
+// 表格列定义
+const slowMovingColumns: TableColumnList = [
+  {
+    label: "商品名称",
+    prop: "tireName"
+  },
+  {
+    label: "所在仓库",
+    prop: "repoName"
+  },
+  {
+    label: "库存数量",
+    prop: "quantity",
+    width: 100
+  },
+  {
+    label: "最后异动时间",
+    prop: "lastMoveDate"
+  }
+];
+
+const stockoutColumns: TableColumnList = [
+  {
+    label: "商品名称",
+    prop: "tireName"
+  },
+  {
+    label: "当前库存",
+    prop: "currentQuantity",
+    width: 100,
+    cellRenderer: ({ row }) =>
+      h("span", { class: "text-red-500 font-bold" }, row.currentQuantity)
+  },
+  {
+    label: "安全库存",
+    prop: "safetyStock",
+    width: 100
+  },
+  {
+    label: "建议采购",
+    prop: "suggestPurchase"
+  }
+];
 
 // 图表引用
 const turnoverChartRef = ref<HTMLElement | null>(null);
@@ -255,12 +300,12 @@ onUnmounted(() => {
               <span class="font-bold">滞销商品 (90天未动)</span>
             </div>
           </template>
-          <el-table :data="slowMovingList" stripe height="400">
-            <el-table-column prop="tireName" label="商品名称" />
-            <el-table-column prop="repoName" label="所在仓库" />
-            <el-table-column prop="quantity" label="库存数量" width="100" />
-            <el-table-column prop="lastMoveDate" label="最后异动时间" />
-          </el-table>
+          <pure-table
+            :data="slowMovingList"
+            :columns="slowMovingColumns"
+            stripe
+            height="400"
+          />
         </el-card>
       </el-col>
       <el-col :span="12">
@@ -270,22 +315,12 @@ onUnmounted(() => {
               <span class="font-bold">缺货预警</span>
             </div>
           </template>
-          <el-table :data="stockoutList" stripe height="400">
-            <el-table-column prop="tireName" label="商品名称" />
-            <el-table-column
-              prop="currentQuantity"
-              label="当前库存"
-              width="100"
-            >
-              <template #default="{ row }">
-                <span class="text-red-500 font-bold">{{
-                  row.currentQuantity
-                }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="safetyStock" label="安全库存" width="100" />
-            <el-table-column prop="suggestPurchase" label="建议采购" />
-          </el-table>
+          <pure-table
+            :data="stockoutList"
+            :columns="stockoutColumns"
+            stripe
+            height="400"
+          />
         </el-card>
       </el-col>
     </el-row>

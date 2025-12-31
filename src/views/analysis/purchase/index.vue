@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, h } from "vue";
 import {
   getPurchaseSummaryApi,
   getProviderRankingApi,
@@ -9,6 +9,7 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
+import type { TableColumnList } from "@pureadmin/table";
 
 defineOptions({
   name: "AnalysisPurchase"
@@ -78,6 +79,50 @@ const formatAmount = (val: string | number) => {
   const num = Number(val) / 100;
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 };
+
+const providerColumns: TableColumnList = [
+  {
+    label: "排名",
+    prop: "rank",
+    width: 80
+  },
+  {
+    label: "供应商名称",
+    prop: "name"
+  },
+  {
+    label: "订单数",
+    prop: "count",
+    width: 100
+  },
+  {
+    label: "采购金额",
+    width: 150,
+    cellRenderer: ({ row }) => h("span", {}, `¥${formatAmount(row.amount)}`)
+  }
+];
+
+const productColumns: TableColumnList = [
+  {
+    label: "排名",
+    prop: "rank",
+    width: 80
+  },
+  {
+    label: "商品名称",
+    prop: "name"
+  },
+  {
+    label: "交易量",
+    prop: "quantity",
+    width: 100
+  },
+  {
+    label: "交易金额",
+    width: 150,
+    cellRenderer: ({ row }) => h("span", {}, `¥${formatAmount(row.amount)}`)
+  }
+];
 
 const getSummary = async () => {
   try {
@@ -222,28 +267,20 @@ onMounted(() => {
       </template>
       <el-tabs v-model="activeRankingTab">
         <el-tab-pane label="供应商排行" name="provider">
-          <el-table :data="providerRanking" stripe max-height="400">
-            <el-table-column prop="rank" label="排名" width="80" />
-            <el-table-column prop="name" label="供应商名称" />
-            <el-table-column prop="count" label="订单数" width="100" />
-            <el-table-column label="采购金额" width="150">
-              <template #default="{ row }">
-                ¥{{ formatAmount(row.amount) }}
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            :data="providerRanking"
+            :columns="providerColumns"
+            stripe
+            max-height="400"
+          />
         </el-tab-pane>
         <el-tab-pane label="商品排行" name="product">
-          <el-table :data="productRanking" stripe max-height="400">
-            <el-table-column prop="rank" label="排名" width="80" />
-            <el-table-column prop="name" label="商品名称" />
-            <el-table-column prop="quantity" label="交易量" width="100" />
-            <el-table-column label="交易金额" width="150">
-              <template #default="{ row }">
-                ¥{{ formatAmount(row.amount) }}
-              </template>
-            </el-table-column>
-          </el-table>
+          <pure-table
+            :data="productRanking"
+            :columns="productColumns"
+            stripe
+            max-height="400"
+          />
         </el-tab-pane>
       </el-tabs>
     </el-card>

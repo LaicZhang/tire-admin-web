@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, h } from "vue";
 import {
   Upload,
   Document,
@@ -13,6 +13,8 @@ import {
   RefreshRight
 } from "@element-plus/icons-vue";
 import { message } from "@/utils/message";
+import type { TableColumnList } from "@pureadmin/table";
+import { ElTag, ElButton } from "element-plus";
 import {
   addCustomerApi,
   addProviderApi,
@@ -692,6 +694,58 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
+
+const detailColumns: TableColumnList = [
+  {
+    label: "商品名称",
+    minWidth: 150,
+    slot: "productName"
+  },
+  {
+    label: "数量",
+    width: 100,
+    slot: "quantity"
+  },
+  {
+    label: "单位",
+    width: 80,
+    slot: "unit"
+  },
+  {
+    label: "单价",
+    width: 100,
+    slot: "price"
+  },
+  {
+    label: "金额",
+    width: 100,
+    align: "right",
+    cellRenderer: ({ row }) =>
+      h(
+        "span",
+        { class: "text-blue-500" },
+        ((row.amount || 0) as number).toFixed(2)
+      )
+  },
+  {
+    label: "状态",
+    width: 80,
+    align: "center",
+    cellRenderer: ({ row }) => {
+      if (row.productUid)
+        return h(ElTag, { type: "success", size: "small" }, () => "已匹配");
+      if (row.isNew)
+        return h(ElTag, { type: "warning", size: "small" }, () => "新增");
+      return h(ElTag, { type: "danger", size: "small" }, () => "未匹配");
+    }
+  },
+  {
+    label: "操作",
+    width: 60,
+    align: "center",
+    slot: "action"
+  }
+];
 </script>
 
 <template>
@@ -1029,89 +1083,62 @@ function formatFileSize(bytes: number): string {
                 <el-icon><Plus /></el-icon> 添加
               </el-button>
             </div>
-            <el-table :data="orderForm.details" max-height="300" size="small">
-              <el-table-column label="商品名称" min-width="150">
-                <template #default="{ row, $index }">
-                  <el-input
-                    :model-value="row.productName"
-                    size="small"
-                    placeholder="商品名称"
-                    @update:model-value="
-                      updateDetailRow($index, 'productName', $event)
-                    "
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="数量" width="100">
-                <template #default="{ row, $index }">
-                  <el-input-number
-                    :model-value="row.quantity"
-                    size="small"
-                    :min="1"
-                    :controls="false"
-                    @update:model-value="
-                      updateDetailRow($index, 'quantity', $event)
-                    "
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="单位" width="80">
-                <template #default="{ row, $index }">
-                  <el-input
-                    :model-value="row.unit"
-                    size="small"
-                    placeholder="单位"
-                    @update:model-value="
-                      updateDetailRow($index, 'unit', $event)
-                    "
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="单价" width="100">
-                <template #default="{ row, $index }">
-                  <el-input-number
-                    :model-value="row.price"
-                    size="small"
-                    :min="0"
-                    :precision="2"
-                    :controls="false"
-                    @update:model-value="
-                      updateDetailRow($index, 'price', $event)
-                    "
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="金额" width="100" align="right">
-                <template #default="{ row }">
-                  <span class="text-blue-500">{{
-                    (row.amount || 0).toFixed(2)
-                  }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column label="状态" width="80" align="center">
-                <template #default="{ row }">
-                  <el-tag v-if="row.productUid" type="success" size="small">
-                    已匹配
-                  </el-tag>
-                  <el-tag v-else-if="row.isNew" type="warning" size="small">
-                    新增
-                  </el-tag>
-                  <el-tag v-else type="danger" size="small"> 未匹配 </el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="60" align="center">
-                <template #default="{ $index }">
-                  <el-button
-                    type="danger"
-                    text
-                    size="small"
-                    @click="removeDetailRow($index)"
-                  >
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
+            <pure-table
+              :data="orderForm.details"
+              :columns="detailColumns"
+              max-height="300"
+              size="small"
+            >
+              <template #productName="{ row, index }">
+                <el-input
+                  :model-value="row.productName"
+                  size="small"
+                  placeholder="商品名称"
+                  @update:model-value="
+                    updateDetailRow(index, 'productName', $event)
+                  "
+                />
+              </template>
+              <template #quantity="{ row, index }">
+                <el-input-number
+                  :model-value="row.quantity"
+                  size="small"
+                  :min="1"
+                  :controls="false"
+                  @update:model-value="
+                    updateDetailRow(index, 'quantity', $event)
+                  "
+                />
+              </template>
+              <template #unit="{ row, index }">
+                <el-input
+                  :model-value="row.unit"
+                  size="small"
+                  placeholder="单位"
+                  @update:model-value="updateDetailRow(index, 'unit', $event)"
+                />
+              </template>
+              <template #price="{ row, index }">
+                <el-input-number
+                  :model-value="row.price"
+                  size="small"
+                  :min="0"
+                  :precision="2"
+                  :controls="false"
+                  @update:model-value="updateDetailRow(index, 'price', $event)"
+                />
+              </template>
+              <template #action="{ index }">
+                <el-button
+                  type="danger"
+                  text
+                  size="small"
+                  @click="removeDetailRow(index)"
+                >
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </template>
+            </pure-table>
           </div>
 
           <!-- 合计 -->

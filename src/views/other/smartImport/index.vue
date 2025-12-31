@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, h } from "vue";
 import {
   Upload,
   Document,
@@ -9,6 +9,8 @@ import {
 } from "@element-plus/icons-vue";
 import { message } from "@/utils/message";
 import type { UploadFile, UploadRawFile } from "element-plus";
+import type { TableColumnList } from "@pureadmin/table";
+import { ElTag, ElProgress, ElSelect, ElButton } from "element-plus";
 import {
   importDataApi,
   parseImportColumnsApi,
@@ -511,6 +513,131 @@ function getRowStatusType(status: string) {
       return "info";
   }
 }
+
+const mappingColumns: TableColumnList = [
+  {
+    label: "源文件列",
+    width: 200,
+    cellRenderer: ({ row }) => {
+      return h("div", {}, [
+        h("p", { class: "font-medium" }, row.sourceColumn.name),
+        h(
+          "p",
+          { class: "text-xs text-gray-400 truncate" },
+          `示例: ${row.sourceColumn.sampleValues.slice(0, 2).join(", ")}`
+        )
+      ]);
+    }
+  },
+  {
+    label: "匹配置信度",
+    width: 120,
+    align: "center",
+    cellRenderer: ({ row }) => {
+      if (!row.targetField) return h("span", { class: "text-gray-400" }, "-");
+      const color =
+        row.confidence >= 80
+          ? "#67C23A"
+          : row.confidence >= 50
+            ? "#E6A23C"
+            : "#F56C6C";
+      return h(ElProgress, {
+        percentage: row.confidence,
+        color,
+        strokeWidth: 6
+      });
+    }
+  },
+  {
+    label: "系统字段",
+    minWidth: 200,
+    slot: "targetField"
+  },
+  {
+    label: "字段类型",
+    width: 100,
+    align: "center",
+    cellRenderer: ({ row }) => {
+      if (!row.targetField) return h("span", { class: "text-gray-400" }, "-");
+      return h(
+        ElTag,
+        { size: "small", type: "info" },
+        () => row.targetField.type
+      );
+    }
+  },
+  {
+    label: "操作",
+    width: 80,
+    align: "center",
+    slot: "action"
+  }
+];
+
+const errorColumns: TableColumnList = [
+  {
+    label: "行号",
+    prop: "row",
+    width: 80
+  },
+  {
+    label: "错误信息",
+    prop: "message"
+  }
+];
+
+const previewColumns = computed<TableColumnList>(() => {
+  const mappedFields = targetFields.value.filter(f =>
+    fieldMappings.value.some(fm => fm.targetField?.key === f.key)
+  );
+  const cols: TableColumnList = [
+    {
+      label: "行号",
+      width: 80,
+      align: "center",
+      cellRenderer: ({ row }) => row.rowIndex
+    },
+    ...mappedFields.map(field => ({
+      label: field.label,
+      prop: `data.${field.key}`,
+      minWidth: 120,
+      cellRenderer: ({ row }: any) => row.data[field.key] || "-"
+    })),
+    {
+      label: "状态",
+      width: 100,
+      align: "center",
+      fixed: "right",
+      cellRenderer: ({ row }) => {
+        const statusType = getRowStatusType(row.status);
+        const statusText =
+          row.status === "valid"
+            ? "有效"
+            : row.status === "warning"
+              ? "警告"
+              : "错误";
+        return h(ElTag, { type: statusType, size: "small" }, () => statusText);
+      }
+    },
+    {
+      label: "错误信息",
+      width: 200,
+      fixed: "right",
+      cellRenderer: ({ row }) => {
+        if (row.errors.length === 0)
+          return h("span", { class: "text-gray-400" }, "-");
+        return h(
+          "div",
+          { class: "text-red-500 text-xs" },
+          row.errors.map((err: any, i: number) =>
+            h("p", { key: i }, err.message)
+          )
+        );
+      }
+    }
+  ];
+  return cols;
+});
 </script>
 
 <template>
@@ -656,75 +783,40 @@ function getRowStatusType(status: string) {
       </div>
 
       <div class="overflow-x-auto">
-        <el-table :data="fieldMappings" border stripe>
-          <el-table-column label="源文件列" width="200">
-            <template #default="{ row }">
-              <div>
-                <p class="font-medium">{{ row.sourceColumn.name }}</p>
-                <p class="text-xs text-gray-400 truncate">
-                  示例:
-                  {{ row.sourceColumn.sampleValues.slice(0, 2).join(", ") }}
-                </p>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="匹配置信度" width="120" align="center">
-            <template #default="{ row }">
-              <el-progress
-                v-if="row.targetField"
-                :percentage="row.confidence"
-                :color="
-                  row.confidence >= 80
-                    ? '#67C23A'
-                    : row.confidence >= 50
-                      ? '#E6A23C'
-                      : '#F56C6C'
-                "
-                :stroke-width="6"
+        <pure-table
+          :data="fieldMappings"
+          :columns="mappingColumns"
+          border
+          stripe
+        >
+          <template #targetField="{ row, index }">
+            <el-select
+              :model-value="row.targetField?.key || null"
+              placeholder="请选择映射字段"
+              clearable
+              class="w-full"
+              @update:model-value="handleMappingChange(index, $event)"
+            >
+              <el-option
+                v-for="field in getAvailableTargetFields(index)"
+                :key="field.key"
+                :label="field.label + (field.required ? ' *' : '')"
+                :value="field.key"
               />
-              <span v-else class="text-gray-400">-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="系统字段" min-width="200">
-            <template #default="{ row, $index }">
-              <el-select
-                :model-value="row.targetField?.key || null"
-                placeholder="请选择映射字段"
-                clearable
-                class="w-full"
-                @update:model-value="handleMappingChange($index, $event)"
-              >
-                <el-option
-                  v-for="field in getAvailableTargetFields($index)"
-                  :key="field.key"
-                  :label="field.label + (field.required ? ' *' : '')"
-                  :value="field.key"
-                />
-              </el-select>
-            </template>
-          </el-table-column>
-          <el-table-column label="字段类型" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag v-if="row.targetField" size="small" type="info">
-                {{ row.targetField.type }}
-              </el-tag>
-              <span v-else class="text-gray-400">-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="80" align="center">
-            <template #default="{ row, $index }">
-              <el-button
-                v-if="row.targetField"
-                type="danger"
-                text
-                size="small"
-                @click="removeMapping($index)"
-              >
-                移除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+            </el-select>
+          </template>
+          <template #action="{ row, index }">
+            <el-button
+              v-if="row.targetField"
+              type="danger"
+              text
+              size="small"
+              @click="removeMapping(index)"
+            >
+              移除
+            </el-button>
+          </template>
+        </pure-table>
       </div>
 
       <div class="mt-6 flex justify-between">
@@ -750,50 +842,13 @@ function getRowStatusType(status: string) {
       </div>
 
       <div class="overflow-x-auto">
-        <el-table :data="previewData" border stripe max-height="400">
-          <el-table-column label="行号" width="80" align="center">
-            <template #default="{ row }">{{ row.rowIndex }}</template>
-          </el-table-column>
-          <el-table-column
-            v-for="field in targetFields.filter(f =>
-              fieldMappings.some(fm => fm.targetField?.key === f.key)
-            )"
-            :key="field.key"
-            :label="field.label"
-            :prop="'data.' + field.key"
-            min-width="120"
-          >
-            <template #default="{ row }">
-              {{ row.data[field.key] || "-" }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            label="状态"
-            width="100"
-            align="center"
-            fixed="right"
-          >
-            <template #default="{ row }">
-              <el-tag :type="getRowStatusType(row.status)" size="small">
-                {{
-                  row.status === "valid"
-                    ? "有效"
-                    : row.status === "warning"
-                      ? "警告"
-                      : "错误"
-                }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="错误信息" width="200" fixed="right">
-            <template #default="{ row }">
-              <div v-if="row.errors.length > 0" class="text-red-500 text-xs">
-                <p v-for="(err, i) in row.errors" :key="i">{{ err.message }}</p>
-              </div>
-              <span v-else class="text-gray-400">-</span>
-            </template>
-          </el-table-column>
-        </el-table>
+        <pure-table
+          :data="previewData"
+          :columns="previewColumns"
+          border
+          stripe
+          max-height="400"
+        />
       </div>
 
       <el-alert
@@ -870,10 +925,12 @@ function getRowStatusType(status: string) {
       >
         <el-collapse>
           <el-collapse-item title="查看错误详情">
-            <el-table :data="importResult.errors" border size="small">
-              <el-table-column prop="row" label="行号" width="80" />
-              <el-table-column prop="message" label="错误信息" />
-            </el-table>
+            <pure-table
+              :data="importResult.errors"
+              :columns="errorColumns"
+              border
+              size="small"
+            />
           </el-collapse-item>
         </el-collapse>
       </div>

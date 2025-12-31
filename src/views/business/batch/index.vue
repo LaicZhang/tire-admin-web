@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, h, reactive } from "vue";
 import {
   getBatchListApi,
   createBatchApi,
@@ -11,6 +11,9 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
 import Add from "~icons/ep/plus";
 import View from "~icons/ep/view";
+import { PureTableBar } from "@/components/RePureTableBar";
+import type { TableColumnList } from "@pureadmin/table";
+import { ElTag, ElButton } from "element-plus";
 
 defineOptions({
   name: "BusinessBatch"
@@ -57,6 +60,83 @@ const drawerVisible = ref(false);
 const transactions = ref<any[]>([]);
 const currentBatchNo = ref("");
 
+const columns: TableColumnList = [
+  {
+    label: "批次号",
+    prop: "batchNo",
+    minWidth: 120
+  },
+  {
+    label: "商品名称",
+    prop: "tireName",
+    minWidth: 150
+  },
+  {
+    label: "所在仓库",
+    prop: "repoName",
+    minWidth: 120
+  },
+  {
+    label: "当前数量",
+    prop: "quantity",
+    width: 100
+  },
+  {
+    label: "生产日期",
+    prop: "productionDate",
+    width: 120
+  },
+  {
+    label: "过期日期",
+    prop: "expiryDate",
+    width: 120
+  },
+  {
+    label: "操作",
+    fixed: "right",
+    width: 120,
+    slot: "operation"
+  }
+];
+
+const transactionColumns: TableColumnList = [
+  {
+    label: "时间",
+    prop: "createdAt",
+    width: 160
+  },
+  {
+    label: "类型",
+    prop: "type",
+    width: 80,
+    cellRenderer: ({ row }) => {
+      return h(ElTag, { type: row.type === "IN" ? "success" : "danger" }, () =>
+        row.type === "IN" ? "入库" : "出库"
+      );
+    }
+  },
+  {
+    label: "数量",
+    prop: "quantity",
+    width: 100
+  },
+  {
+    label: "来源类型",
+    prop: "sourceType"
+  },
+  {
+    label: "单号",
+    prop: "sourceId"
+  }
+];
+
+const pagination = reactive({
+  total: 0,
+  pageSize: 10,
+  currentPage: 1,
+  background: true
+});
+
 const getRepos = async () => {
   const { data, code } = await getRepoListApi(1, { limit: 100 });
   if (code === 200) {
@@ -80,7 +160,7 @@ const loadData = async () => {
         | unknown[];
       const list = Array.isArray(typedData) ? typedData : typedData.list || [];
       tableData.value = list;
-      pagination.value.total = Array.isArray(typedData)
+      pagination.total = Array.isArray(typedData)
         ? typedData.length
         : typedData.total || list.length;
     }
@@ -188,16 +268,24 @@ onMounted(() => {
       </el-form>
     </el-card>
 
-    <el-card>
-      <el-table v-loading="loading" :data="tableData" stripe border>
-        <el-table-column prop="batchNo" label="批次号" min-width="120" />
-        <el-table-column prop="tireName" label="商品名称" min-width="150" />
-        <el-table-column prop="repoName" label="所在仓库" min-width="120" />
-        <el-table-column prop="quantity" label="当前数量" width="100" />
-        <el-table-column prop="productionDate" label="生产日期" width="120" />
-        <el-table-column prop="expiryDate" label="过期日期" width="120" />
-        <el-table-column label="操作" width="120" fixed="right">
-          <template #default="{ row }">
+    <PureTableBar title="批次管理" @refresh="loadData">
+      <template v-slot="{ size, dynamicColumns }">
+        <pure-table
+          border
+          stripe
+          align-whole="center"
+          showOverflowTooltip
+          table-layout="auto"
+          :loading="loading"
+          :size="size"
+          :columns="dynamicColumns"
+          :data="tableData"
+          :header-cell-style="{
+            background: 'var(--el-fill-color-light)',
+            color: 'var(--el-text-color-primary)'
+          }"
+        >
+          <template #operation="{ row }">
             <el-button
               link
               type="primary"
@@ -207,9 +295,9 @@ onMounted(() => {
               查看流水
             </el-button>
           </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+        </pure-table>
+      </template>
+    </PureTableBar>
 
     <!-- 新增弹窗 -->
     <el-dialog v-model="dialogVisible" title="新增批次" width="500px">
@@ -277,19 +365,12 @@ onMounted(() => {
       :title="`批次流水: ${currentBatchNo}`"
       size="50%"
     >
-      <el-table :data="transactions" stripe border>
-        <el-table-column prop="createdAt" label="时间" width="160" />
-        <el-table-column prop="type" label="类型" width="80">
-          <template #default="{ row }">
-            <el-tag :type="row.type === 'IN' ? 'success' : 'danger'">
-              {{ row.type === "IN" ? "入库" : "出库" }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="quantity" label="数量" width="100" />
-        <el-table-column prop="sourceType" label="来源类型" />
-        <el-table-column prop="sourceId" label="单号" />
-      </el-table>
+      <pure-table
+        :data="transactions"
+        :columns="transactionColumns"
+        stripe
+        border
+      />
     </el-drawer>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, h, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { getRepoListApi } from "@/api/company/repo";
 import { getReserveListApi, batchStockTakingApi } from "@/api/business/reserve";
@@ -23,6 +23,9 @@ import Document from "~icons/ep/document";
 import Refresh from "~icons/ep/refresh";
 import Close from "~icons/ep/close";
 import List from "~icons/ep/list";
+import { PureTableBar } from "@/components/RePureTableBar";
+import type { TableColumnList } from "@pureadmin/table";
+import { ElTag, ElButton } from "element-plus";
 
 defineOptions({
   name: "BusinessStockTaking"
@@ -53,10 +56,11 @@ const pagination = ref({
 });
 
 // 任务分页
-const taskPagination = ref({
+const taskPagination = reactive({
   currentPage: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
+  background: true
 });
 
 // 计算盘点差异汇总
@@ -138,6 +142,9 @@ const loadData = async () => {
         actualCount: item.count, // 默认实盘数量等于账面数量
         description: ""
       }));
+      quickPagination.total = pagination.value.total;
+      quickPagination.currentPage = pagination.value.currentPage;
+      quickPagination.pageSize = pagination.value.pageSize;
     }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载库存数据失败";
@@ -414,6 +421,122 @@ const getStatusText = (status: string) => {
   }
 };
 
+const quickStockColumns: TableColumnList = [
+  {
+    label: "商品名称",
+    prop: "tireName",
+    minWidth: 150,
+    cellRenderer: ({ row }) => row.tire?.name || row.tireName
+  },
+  {
+    label: "规格",
+    prop: "tireSpec",
+    width: 120,
+    cellRenderer: ({ row }) => row.tire?.spec || row.tireSpec
+  },
+  {
+    label: "账面数量",
+    prop: "count",
+    width: 100,
+    align: "center"
+  },
+  {
+    label: "实盘数量",
+    width: 150,
+    align: "center",
+    slot: "actualCount"
+  },
+  {
+    label: "盘盈/盘亏",
+    width: 100,
+    align: "center",
+    slot: "difference"
+  },
+  {
+    label: "备注",
+    minWidth: 150,
+    slot: "description"
+  }
+];
+
+const taskDetailColumns: TableColumnList = [
+  {
+    label: "商品名称",
+    prop: "tireName",
+    minWidth: 150
+  },
+  {
+    label: "账面数量",
+    prop: "bookCount",
+    width: 100,
+    align: "center"
+  },
+  {
+    label: "实盘数量",
+    width: 150,
+    align: "center",
+    slot: "actualCount"
+  },
+  {
+    label: "盘盈/盘亏",
+    width: 100,
+    align: "center",
+    slot: "difference"
+  },
+  {
+    label: "备注",
+    minWidth: 150,
+    slot: "remark"
+  }
+];
+
+const taskListColumns: TableColumnList = [
+  {
+    label: "任务名称",
+    prop: "name",
+    minWidth: 200
+  },
+  {
+    label: "仓库",
+    width: 150,
+    cellRenderer: ({ row }) => row.repo?.name
+  },
+  {
+    label: "状态",
+    width: 100,
+    align: "center",
+    cellRenderer: ({ row }) => {
+      return h(ElTag, { type: getStatusType(row.status), size: "small" }, () =>
+        getStatusText(row.status)
+      );
+    }
+  },
+  {
+    label: "明细数量",
+    width: 100,
+    align: "center",
+    cellRenderer: ({ row }) => row.details?.length || 0
+  },
+  {
+    label: "创建时间",
+    width: 180,
+    cellRenderer: ({ row }) => new Date(row.createdAt).toLocaleString()
+  },
+  {
+    label: "操作",
+    width: 120,
+    fixed: "right",
+    slot: "operation"
+  }
+];
+
+const quickPagination = reactive({
+  total: 0,
+  pageSize: 10,
+  currentPage: 1,
+  background: true
+});
+
 onMounted(() => {
   getRepos();
 });
@@ -535,26 +658,28 @@ onMounted(() => {
       </el-card>
 
       <!-- 数据表格 -->
-      <el-card>
-        <el-table v-loading="loading" :data="tableData" stripe border>
-          <el-table-column prop="tireName" label="商品名称" min-width="150">
-            <template #default="{ row }">
-              <span>{{ row.tire?.name || row.tireName }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="tireSpec" label="规格" width="120">
-            <template #default="{ row }">
-              <span>{{ row.tire?.spec || row.tireSpec }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="count"
-            label="账面数量"
-            width="100"
-            align="center"
-          />
-          <el-table-column label="实盘数量" width="150" align="center">
-            <template #default="{ row }">
+      <PureTableBar title="快速盘点" @refresh="loadData">
+        <template v-slot="{ size, dynamicColumns }">
+          <pure-table
+            border
+            stripe
+            align-whole="center"
+            showOverflowTooltip
+            table-layout="auto"
+            :loading="loading"
+            :size="size"
+            :columns="dynamicColumns"
+            :data="tableData"
+            :pagination="quickPagination"
+            :paginationSmall="size === 'small'"
+            :header-cell-style="{
+              background: 'var(--el-fill-color-light)',
+              color: 'var(--el-text-color-primary)'
+            }"
+            @page-size-change="handleSizeChange"
+            @page-current-change="handleCurrentChange"
+          >
+            <template #actualCount="{ row }">
               <el-input-number
                 v-model="row.actualCount"
                 :min="0"
@@ -562,9 +687,7 @@ onMounted(() => {
                 size="small"
               />
             </template>
-          </el-table-column>
-          <el-table-column label="盘盈/盘亏" width="100" align="center">
-            <template #default="{ row }">
+            <template #difference="{ row }">
               <span
                 :class="{
                   'text-green-500': row.actualCount > row.count,
@@ -575,30 +698,16 @@ onMounted(() => {
                 {{ row.actualCount - row.count }}
               </span>
             </template>
-          </el-table-column>
-          <el-table-column label="备注" min-width="150">
-            <template #default="{ row }">
+            <template #description="{ row }">
               <el-input
                 v-model="row.description"
                 placeholder="差异说明"
                 size="small"
               />
             </template>
-          </el-table-column>
-        </el-table>
-
-        <div class="mt-4 flex justify-end">
-          <el-pagination
-            v-model:current-page="pagination.currentPage"
-            v-model:page-size="pagination.pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            layout="total, sizes, prev, pager, next, jumper"
-            :total="pagination.total"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          />
-        </div>
-      </el-card>
+          </pure-table>
+        </template>
+      </PureTableBar>
     </template>
 
     <!-- 盘点任务模式 -->
@@ -697,92 +806,73 @@ onMounted(() => {
           </div>
 
           <!-- 盘点明细表格 -->
-          <el-table
-            v-loading="loading"
+          <pure-table
+            :loading="loading"
             :data="currentTask.details"
+            :columns="taskDetailColumns"
             stripe
             border
           >
-            <el-table-column prop="tireName" label="商品名称" min-width="150" />
-            <el-table-column
-              prop="bookCount"
-              label="账面数量"
-              width="100"
-              align="center"
-            />
-            <el-table-column label="实盘数量" width="150" align="center">
-              <template #default="{ row }">
-                <el-input-number
-                  v-if="currentTask?.status === 'IN_PROGRESS'"
-                  v-model="row.actualCount"
-                  :min="0"
-                  :step="1"
-                  size="small"
-                />
-                <span v-else>{{ row.actualCount ?? "-" }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="盘盈/盘亏" width="100" align="center">
-              <template #default="{ row }">
-                <span
-                  v-if="
-                    row.actualCount !== null && row.actualCount !== undefined
-                  "
-                  :class="{
-                    'text-green-500': row.actualCount > row.bookCount,
-                    'text-red-500': row.actualCount < row.bookCount,
-                    'text-gray-400': row.actualCount === row.bookCount
-                  }"
-                >
-                  {{ row.actualCount - row.bookCount }}
-                </span>
-                <span v-else class="text-gray-400">-</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="备注" min-width="150">
-              <template #default="{ row }">
-                <el-input
-                  v-if="currentTask?.status === 'IN_PROGRESS'"
-                  v-model="row.remark"
-                  placeholder="差异说明"
-                  size="small"
-                />
-                <span v-else>{{ row.remark || "-" }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
+            <template #actualCount="{ row }">
+              <el-input-number
+                v-if="currentTask?.status === 'IN_PROGRESS'"
+                v-model="row.actualCount"
+                :min="0"
+                :step="1"
+                size="small"
+              />
+              <span v-else>{{ row.actualCount ?? "-" }}</span>
+            </template>
+            <template #difference="{ row }">
+              <span
+                v-if="row.actualCount !== null && row.actualCount !== undefined"
+                :class="{
+                  'text-green-500': row.actualCount > row.bookCount,
+                  'text-red-500': row.actualCount < row.bookCount,
+                  'text-gray-400': row.actualCount === row.bookCount
+                }"
+              >
+                {{ row.actualCount - row.bookCount }}
+              </span>
+              <span v-else class="text-gray-400">-</span>
+            </template>
+            <template #remark="{ row }">
+              <el-input
+                v-if="currentTask?.status === 'IN_PROGRESS'"
+                v-model="row.remark"
+                placeholder="差异说明"
+                size="small"
+              />
+              <span v-else>{{ row.remark || "-" }}</span>
+            </template>
+          </pure-table>
         </el-card>
       </template>
 
       <!-- 任务列表 -->
       <template v-else>
-        <el-card>
-          <el-table v-loading="loading" :data="taskList" stripe border>
-            <el-table-column prop="name" label="任务名称" min-width="200" />
-            <el-table-column label="仓库" width="150">
-              <template #default="{ row }">
-                {{ row.repo?.name }}
-              </template>
-            </el-table-column>
-            <el-table-column label="状态" width="100" align="center">
-              <template #default="{ row }">
-                <el-tag :type="getStatusType(row.status)" size="small">
-                  {{ getStatusText(row.status) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="明细数量" width="100" align="center">
-              <template #default="{ row }">
-                {{ row.details?.length || 0 }}
-              </template>
-            </el-table-column>
-            <el-table-column label="创建时间" width="180">
-              <template #default="{ row }">
-                {{ new Date(row.createdAt).toLocaleString() }}
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="120" fixed="right">
-              <template #default="{ row }">
+        <PureTableBar title="盘点任务列表" @refresh="loadTaskList">
+          <template v-slot="{ size, dynamicColumns }">
+            <pure-table
+              border
+              stripe
+              align-whole="center"
+              showOverflowTooltip
+              table-layout="auto"
+              :loading="loading"
+              :size="size"
+              :columns="dynamicColumns"
+              :data="taskList"
+              :pagination="taskPagination"
+              :paginationSmall="size === 'small'"
+              :header-cell-style="{
+                background: 'var(--el-fill-color-light)',
+                color: 'var(--el-text-color-primary)'
+              }"
+              @page-size-change="loadTaskList"
+              @page-current-change="loadTaskList"
+            >
+              <template #operation="{ row }">
                 <el-button
                   type="primary"
                   size="small"
@@ -792,21 +882,9 @@ onMounted(() => {
                   {{ row.status === "IN_PROGRESS" ? "继续盘点" : "查看详情" }}
                 </el-button>
               </template>
-            </el-table-column>
-          </el-table>
-
-          <div class="mt-4 flex justify-end">
-            <el-pagination
-              v-model:current-page="taskPagination.currentPage"
-              v-model:page-size="taskPagination.pageSize"
-              :page-sizes="[10, 20, 50, 100]"
-              layout="total, sizes, prev, pager, next, jumper"
-              :total="taskPagination.total"
-              @size-change="loadTaskList"
-              @current-change="loadTaskList"
-            />
-          </div>
-        </el-card>
+            </pure-table>
+          </template>
+        </PureTableBar>
       </template>
     </template>
 
