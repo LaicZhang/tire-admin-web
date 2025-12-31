@@ -190,7 +190,7 @@ onMounted(() => {
           v-model="form.name"
           placeholder="请输入单位名称"
           clearable
-          class="!w-[200px]"
+          class="w-[200px]"
           @keyup.enter="getData"
         />
       </el-form-item>

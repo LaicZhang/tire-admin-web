@@ -182,7 +182,7 @@ onMounted(() => {
           <el-radio-button value="quick">快速盘点</el-radio-button>
           <el-radio-button value="task">盘点任务</el-radio-button>
         </el-radio-group>
-        <div class="flex-grow" />
+        <div class="grow" />
         <el-button
           v-if="activeTab === 'task' && !currentTask"
           type="primary"
