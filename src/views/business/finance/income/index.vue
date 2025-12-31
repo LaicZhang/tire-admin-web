@@ -6,7 +6,7 @@ import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { PureTable } from "@pureadmin/table";
-import type { TableColumnList, PaginationProps } from "@pureadmin/table";
+import type { PaginationProps } from "@pureadmin/table";
 
 defineOptions({
   name: "Income"

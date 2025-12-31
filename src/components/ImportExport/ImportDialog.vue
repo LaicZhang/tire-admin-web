@@ -8,7 +8,6 @@ import {
 } from "@/api";
 import { ElUpload, ElTag } from "element-plus";
 import type { UploadFile, UploadRawFile } from "element-plus";
-import type { TableColumnList } from "@pureadmin/table";
 
 interface Props {
   visible: boolean;

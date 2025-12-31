@@ -2,7 +2,6 @@
 import { ref, onMounted } from "vue";
 import { message } from "@/utils";
 import { PureTable } from "@pureadmin/table";
-import type { TableColumnList } from "@pureadmin/table";
 import {
   getCustomerTagListApi,
   createCustomerTagApi,
