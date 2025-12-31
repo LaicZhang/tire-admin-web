@@ -1,5 +1,3 @@
-import type { TableColumnList } from "@pureadmin/table";
-
 // 格式化金额
 const formatAmount = (val: string | number) => {
   const num = Number(val);
@@ -10,11 +8,17 @@ const formatAmount = (val: string | number) => {
   });
 };
 
+interface RankRow {
+  name: string;
+  count: number;
+  amount: number | string;
+}
+
 export function useColumns() {
   const commonRankColumn = {
     label: "排名",
     width: 70,
-    align: "center",
+    align: "center" as const,
     slot: "rank"
   };
 
@@ -35,7 +39,7 @@ export function useColumns() {
       label: "销售金额",
       width: 140,
       align: "right",
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: RankRow }) => (
         <span class="text-blue-600 font-medium">
           ¥{formatAmount(row.amount)}
         </span>
@@ -60,7 +64,7 @@ export function useColumns() {
       label: "采购金额",
       width: 140,
       align: "right",
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: RankRow }) => (
         <span class="text-green-600 font-medium">
           ¥{formatAmount(row.amount)}
         </span>
@@ -85,7 +89,7 @@ export function useColumns() {
       label: "采购金额",
       width: 140,
       align: "right",
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: RankRow }) => (
         <span class="text-green-600 font-medium">
           ¥{formatAmount(row.amount)}
         </span>
@@ -110,7 +114,7 @@ export function useColumns() {
       label: "交易金额",
       width: 140,
       align: "right",
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: RankRow }) => (
         <span class="text-blue-600 font-medium">
           ¥{formatAmount(row.amount)}
         </span>

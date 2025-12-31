@@ -12,7 +12,6 @@ import Search from "~icons/ep/search";
 import Add from "~icons/ep/plus";
 import View from "~icons/ep/view";
 import { PureTableBar } from "@/components/RePureTableBar";
-import type { TableColumnList } from "@pureadmin/table";
 import { ElTag, ElButton } from "element-plus";
 
 defineOptions({

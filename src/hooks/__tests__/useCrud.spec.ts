@@ -16,6 +16,7 @@ function withSetup<T>(composable: () => T) {
   app.mount(container);
 
   return {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     result: result!,
     app,
     unmount: () => app.unmount()
@@ -71,7 +72,10 @@ describe("useCrud", () => {
       useCrud({
         api: mockApi,
         immediate: false,
-        transform: (res: any) => ({ list: res.items, total: res.count })
+        transform: (res: { items: Array<{ id: number }>; count: number }) => ({
+          list: res.items,
+          total: res.count
+        })
       })
     );
     const { fetchData, dataList, pagination } = result;
@@ -140,12 +144,14 @@ describe("useCrud", () => {
     const p1 = fetchData();
     const p2 = fetchData();
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     resolveFirst!({ list: [{ id: 1 }], total: 1 });
 
     await p1;
     await p2;
 
-    expect(dataList.value[0].id).toBe(2);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    expect(dataList.value[0]!.id).toBe(2);
   });
 
   it("should cleanup abortController on unmount", () => {
@@ -163,7 +169,7 @@ describe("useCrud", () => {
         abortSpy();
         super.abort();
       }
-    } as any;
+    } as typeof global.AbortController;
 
     const { result, unmount } = withSetup(() =>
       useCrud({ api: mockApi, immediate: false })
@@ -180,6 +186,7 @@ describe("useCrud", () => {
   });
 
   it("should handle fetchData error", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     mockApi.mockRejectedValue(new Error("Network error"));
@@ -200,6 +207,7 @@ describe("useCrud", () => {
   });
 
   it("should handle handleDelete error", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     mockDeleteApi.mockRejectedValue(new Error("Delete failed"));

@@ -1,369 +1,126 @@
-<script setup lang="tsx">
-import { computed, onMounted, ref, watch } from "vue";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import EditPen from "~icons/ep/edit-pen";
-import View from "~icons/ep/view";
-import Delete from "~icons/ep/delete";
-import Plus from "~icons/ep/plus";
-import Download from "~icons/ep/download";
-import Refresh from "~icons/ep/refresh";
-import { PureTableBar } from "@/components/RePureTableBar";
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
 import { message } from "@/utils";
-import { ElMessageBox } from "element-plus";
-import type { DataAuthUser, AuthItem } from "./types";
 import {
-  exportDataAuthApi,
-  getDataAuthUsersApi,
-  getUserDataAuthApi,
-  saveUserDataAuthApi,
-  syncCustomerAuthApi
-} from "@/api/setting";
-import { getCustomerListApi } from "@/api/business/customer";
-import { getProviderListApi } from "@/api/business/provider";
-import { getRepoListApi } from "@/api/company/repo";
+  downloadBlob,
+  downloadFromUrl,
+  generateFilenameWithTimestamp
+} from "@/utils/download";
+import { exportDataAuthApi } from "@/api/setting";
+import type { DataAuthUser, AuthItem } from "./types";
+import { useDataAuthUsers } from "./composables/useDataAuthUsers";
+import { useUserDataAuthDetail } from "./composables/useUserDataAuthDetail";
+import {
+  useAuthObjectSelector,
+  type SelectType
+} from "./composables/useAuthObjectSelector";
+import UserTable from "./components/UserTable.vue";
+import EditAuthDialog from "./components/EditAuthDialog.vue";
+import ViewAuthDialog from "./components/ViewAuthDialog.vue";
+import SelectAuthDialog from "./components/SelectAuthDialog.vue";
 
 defineOptions({
   name: "DataAuth"
 });
 
-const loading = ref(false);
-const detailLoading = ref(false);
-const userList = ref<DataAuthUser[]>([]);
+// 用户列表
+const { loading, userList, loadData } = useDataAuthUsers();
+
+// 当前用户
+const currentUser = ref<DataAuthUser | null>(null);
+
+// 对话框状态
 const editDialogVisible = ref(false);
 const viewDialogVisible = ref(false);
-const currentUser = ref<DataAuthUser | null>(null);
-const activeAuthTab = ref("customer");
 
-// 授权数据
-const customerList = ref<AuthItem[]>([]);
-const supplierList = ref<AuthItem[]>([]);
-const warehouseList = ref<AuthItem[]>([]);
-const customerAuthMode = ref<"all" | "partial">("partial");
-const supplierAuthMode = ref<"all" | "partial">("partial");
-const warehouseAuthMode = ref<"all" | "partial">("partial");
+// 用户授权详情
+const {
+  detailLoading,
+  customerList,
+  supplierList,
+  warehouseList,
+  customerAuthMode,
+  supplierAuthMode,
+  warehouseAuthMode,
+  loadUserAuthDetail,
+  syncCustomers,
+  reset: resetAuthDetail
+} = useUserDataAuthDetail();
 
-type SelectType = "customer" | "supplier" | "warehouse";
-type SelectRow = {
-  uid: string;
-  id?: number;
-  code?: string;
-  name: string;
-  phone?: string;
-};
+// 选择器
+const {
+  selectType,
+  selectKeyword,
+  selectLoading,
+  selectList,
+  selectSelectedRows,
+  selectPagination,
+  selectDialogTitle,
+  selectColumns,
+  loadSelectList,
+  openSelectDialog,
+  handleSelectSelectionChange,
+  handleSelectPageChange,
+  handleSelectSearch,
+  handleSelectReset
+} = useAuthObjectSelector();
 
 const selectDialogVisible = ref(false);
-const selectType = ref<SelectType>("customer");
-const selectKeyword = ref("");
-const selectLoading = ref(false);
-const selectList = ref<SelectRow[]>([]);
-const selectSelectedRows = ref<SelectRow[]>([]);
-const selectPagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
-const selectDialogTitle = computed(() => {
-  if (selectType.value === "customer") return "选择客户";
-  if (selectType.value === "supplier") return "选择供应商";
-  return "选择仓库";
-});
-
-const columns: TableColumnList = [
-  {
-    label: "用户名",
-    prop: "username",
-    minWidth: 120
-  },
-  {
-    label: "手机号",
-    prop: "phone",
-    minWidth: 120
-  },
-  {
-    label: "角色",
-    prop: "roleName",
-    minWidth: 100
-  },
-  {
-    label: "客户授权",
-    prop: "customerAuth",
-    minWidth: 100,
-    cellRenderer: ({ row }) => (
-      <el-tag
-        type={row.customerAuth === "all" ? "success" : "warning"}
-        effect="plain"
-      >
-        {row.customerAuth === "all" ? "全部" : "部分"}
-      </el-tag>
-    )
-  },
-  {
-    label: "供应商授权",
-    prop: "supplierAuth",
-    minWidth: 100,
-    cellRenderer: ({ row }) => (
-      <el-tag
-        type={row.supplierAuth === "all" ? "success" : "warning"}
-        effect="plain"
-      >
-        {row.supplierAuth === "all" ? "全部" : "部分"}
-      </el-tag>
-    )
-  },
-  {
-    label: "仓库授权",
-    prop: "warehouseAuth",
-    minWidth: 100,
-    cellRenderer: ({ row }) => (
-      <el-tag
-        type={row.warehouseAuth === "all" ? "success" : "warning"}
-        effect="plain"
-      >
-        {row.warehouseAuth === "all" ? "全部" : "部分"}
-      </el-tag>
-    )
-  },
-  {
-    label: "操作",
-    width: 200,
-    fixed: "right",
-    slot: "operation"
-  }
-];
-
-const authListColumns: TableColumnList = [
-  {
-    label: "编码",
-    prop: "code",
-    minWidth: 100
-  },
-  {
-    label: "名称",
-    prop: "name",
-    minWidth: 150
-  },
-  {
-    label: "授权时间",
-    prop: "authTime",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    width: 100,
-    fixed: "right",
-    slot: "operation"
-  }
-];
-
-const selectColumns = computed<TableColumnList>(() => {
-  const base: TableColumnList = [
-    { type: "selection", width: 50 },
-    {
-      label: "编码",
-      prop: "code",
-      minWidth: 120,
-      formatter: row => String(row.code ?? row.id ?? row.uid ?? "")
-    },
-    { label: "名称", prop: "name", minWidth: 180 }
-  ];
-  if (selectType.value !== "warehouse") {
-    base.push({ label: "电话", prop: "phone", minWidth: 120 });
-  }
-  return base;
-});
-
-const normalizeAuthItems = (items: unknown): AuthItem[] => {
-  if (!Array.isArray(items)) return [];
-  return items
-    .map((item: any) => {
-      const uid = String(item?.uid ?? item?.id ?? "");
-      const name = String(item?.name ?? item?.username ?? "");
-      const code = String(item?.code ?? item?.id ?? item?.uid ?? "");
-      const authTime = String(
-        item?.authTime ??
-          item?.authAt ??
-          item?.createdAt ??
-          item?.createTime ??
-          ""
-      );
-      return { uid, name, code, authTime } satisfies AuthItem;
-    })
-    .filter(i => i.uid && i.name);
-};
-
-const loadUserAuthDetail = async (userId: string) => {
-  detailLoading.value = true;
-  try {
-    const { code, data, msg } = await getUserDataAuthApi(userId);
-    if (code !== 200) {
-      message(msg || "加载用户授权数据失败", { type: "error" });
-      return;
-    }
-
-    const detail = data as any;
-    customerList.value = normalizeAuthItems(
-      detail?.customers ?? detail?.customerList
-    );
-    supplierList.value = normalizeAuthItems(
-      detail?.suppliers ?? detail?.supplierList
-    );
-    warehouseList.value = normalizeAuthItems(
-      detail?.warehouses ?? detail?.warehouseList
-    );
-
-    customerAuthMode.value =
-      detail?.customerAuth ??
-      detail?.customerAuthMode ??
-      currentUser.value?.customerAuth ??
-      "partial";
-    supplierAuthMode.value =
-      detail?.supplierAuth ??
-      detail?.supplierAuthMode ??
-      currentUser.value?.supplierAuth ??
-      "partial";
-    warehouseAuthMode.value =
-      detail?.warehouseAuth ??
-      detail?.warehouseAuthMode ??
-      currentUser.value?.warehouseAuth ??
-      "partial";
-  } catch {
-    message("加载用户授权数据失败", { type: "error" });
-  } finally {
-    detailLoading.value = false;
-  }
-};
-
-const loadData = async () => {
-  loading.value = true;
-  try {
-    const { code, data, msg } = await getDataAuthUsersApi();
-    if (code !== 200) {
-      message(msg || "加载数据授权用户列表失败", { type: "error" });
-      return;
-    }
-    userList.value = Array.isArray(data)
-      ? (data as DataAuthUser[])
-      : (data?.list ?? []);
-  } catch {
-    message("加载数据授权用户列表失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
-
+// 打开编辑对话框
 const openEditDialog = async (row: DataAuthUser) => {
   currentUser.value = row;
-  activeAuthTab.value = "customer";
-  customerList.value = [];
-  supplierList.value = [];
-  warehouseList.value = [];
+  resetAuthDetail();
   customerAuthMode.value = row.customerAuth ?? "partial";
   supplierAuthMode.value = row.supplierAuth ?? "partial";
   warehouseAuthMode.value = row.warehouseAuth ?? "partial";
   editDialogVisible.value = true;
-  await loadUserAuthDetail(row.uid);
+  await loadUserAuthDetail(row.uid, row);
 };
 
+// 打开查看对话框
 const openViewDialog = async (row: DataAuthUser) => {
   currentUser.value = row;
   customerList.value = [];
   viewDialogVisible.value = true;
-  await loadUserAuthDetail(row.uid);
+  await loadUserAuthDetail(row.uid, row);
 };
 
-const loadSelectList = async () => {
-  selectLoading.value = true;
-  try {
-    const page = selectPagination.value.currentPage;
-    if (selectType.value === "customer") {
-      const { code, data, msg } = await getCustomerListApi(page, {
-        keyword: selectKeyword.value || undefined
-      });
-      if (code !== 200) {
-        message(msg || "加载客户列表失败", { type: "error" });
-        return;
-      }
-      selectList.value = (data?.list ?? []) as SelectRow[];
-      selectPagination.value.total = data?.count ?? data?.total ?? 0;
-      return;
-    }
-
-    if (selectType.value === "supplier") {
-      const { code, data, msg } = await getProviderListApi(page, {
-        keyword: selectKeyword.value || undefined
-      });
-      if (code !== 200) {
-        message(msg || "加载供应商列表失败", { type: "error" });
-        return;
-      }
-      selectList.value = (data?.list ?? []) as SelectRow[];
-      selectPagination.value.total = data?.count ?? data?.total ?? 0;
-      return;
-    }
-
-    const { code, data, msg } = await getRepoListApi(page, {
-      keyword: selectKeyword.value || undefined
-    });
-    if (code !== 200) {
-      message(msg || "加载仓库列表失败", { type: "error" });
-      return;
-    }
-    selectList.value = (data?.list ?? []) as SelectRow[];
-    selectPagination.value.total = data?.count ?? data?.total ?? 0;
-  } catch {
-    message("加载选择列表失败", { type: "error" });
-  } finally {
-    selectLoading.value = false;
-  }
-};
-
-const openSelectDialog = async (type: SelectType) => {
+// 添加客户/供应商/仓库
+const addCustomer = async () => {
   if (!currentUser.value?.uid) {
     message("请先选择用户", { type: "warning" });
     return;
   }
-  selectType.value = type;
-  selectKeyword.value = "";
-  selectSelectedRows.value = [];
-  selectPagination.value.currentPage = 1;
-  selectDialogVisible.value = true;
-  await loadSelectList();
-};
-
-const addCustomer = async () => {
   await openSelectDialog("customer");
+  selectDialogVisible.value = true;
 };
 
 const addSupplier = async () => {
+  if (!currentUser.value?.uid) {
+    message("请先选择用户", { type: "warning" });
+    return;
+  }
   await openSelectDialog("supplier");
+  selectDialogVisible.value = true;
 };
 
 const addWarehouse = async () => {
+  if (!currentUser.value?.uid) {
+    message("请先选择用户", { type: "warning" });
+    return;
+  }
   await openSelectDialog("warehouse");
+  selectDialogVisible.value = true;
 };
 
-const handleSelectSelectionChange = (rows: SelectRow[]) => {
-  selectSelectedRows.value = rows;
+// 同步客户
+const handleSyncCustomers = async () => {
+  if (!currentUser.value?.uid) return;
+  await syncCustomers(currentUser.value.uid);
 };
 
-const handleSelectPageChange = (page: number) => {
-  selectPagination.value.currentPage = page;
-  loadSelectList();
-};
-
-const handleSelectSearch = () => {
-  selectPagination.value.currentPage = 1;
-  loadSelectList();
-};
-
-const handleSelectReset = () => {
-  selectKeyword.value = "";
-  selectPagination.value.currentPage = 1;
-  loadSelectList();
-};
-
+// 添加选中项到授权列表
 const addSelectedToAuthList = () => {
   const now = new Date().toISOString().replace("T", " ").slice(0, 19);
 
@@ -393,119 +150,23 @@ const addSelectedToAuthList = () => {
   selectDialogVisible.value = false;
 };
 
-const syncCustomers = async () => {
-  try {
-    await ElMessageBox.confirm(
-      "将同步该用户自己创建的客户到授权列表，是否继续？",
-      "同步客户",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "info"
-      }
-    );
-    if (!currentUser.value?.uid) return;
-    detailLoading.value = true;
-    const { code, msg } = await syncCustomerAuthApi(currentUser.value.uid);
-    if (code === 200) {
-      message("同步成功", { type: "success" });
-      await loadUserAuthDetail(currentUser.value.uid);
-    } else {
-      message(msg || "同步失败", { type: "error" });
-    }
-  } catch {
-    // cancelled
-  } finally {
-    detailLoading.value = false;
-  }
+// 保存授权
+const handleSaved = async () => {
+  await loadData();
 };
 
-const removeAuthItem = async (list: AuthItem[], item: AuthItem) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要移除 "${item.name}" 的授权吗？`,
-      "移除确认",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-    const index = list.findIndex(i => i.uid === item.uid);
-    if (index > -1) {
-      list.splice(index, 1);
-    }
-    message("移除成功", { type: "success" });
-  } catch {
-    // cancelled
-  }
-};
-
-const clearAll = async (list: AuthItem[]) => {
-  try {
-    await ElMessageBox.confirm("确定要清空所有授权吗？", "清空确认", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning"
-    });
-    list.length = 0;
-    message("清空成功", { type: "success" });
-  } catch {
-    // cancelled
-  }
-};
-
-const saveAuth = async () => {
-  if (!currentUser.value?.uid) return;
-  detailLoading.value = true;
-  try {
-    const payload = {
-      customerAuth: customerAuthMode.value,
-      supplierAuth: supplierAuthMode.value,
-      warehouseAuth: warehouseAuthMode.value,
-      customers:
-        customerAuthMode.value === "all"
-          ? []
-          : customerList.value.map(i => i.uid),
-      suppliers:
-        supplierAuthMode.value === "all"
-          ? []
-          : supplierList.value.map(i => i.uid),
-      warehouses:
-        warehouseAuthMode.value === "all"
-          ? []
-          : warehouseList.value.map(i => i.uid)
-    };
-
-    const { code, msg } = await saveUserDataAuthApi(
-      currentUser.value.uid,
-      payload
-    );
-    if (code !== 200) {
-      message(msg || "保存失败", { type: "error" });
-      return;
-    }
-    message("保存成功", { type: "success" });
-    editDialogVisible.value = false;
-    await loadData();
-  } catch {
-    message("保存失败", { type: "error" });
-  } finally {
-    detailLoading.value = false;
-  }
-};
-
+// 导出授权
 const exportAuth = async () => {
   try {
     const res: any = await exportDataAuthApi();
     if (res instanceof Blob) {
-      const url = window.URL.createObjectURL(res);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `data_auth_export_${Date.now()}.xlsx`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-      message("导出成功", { type: "success" });
+      downloadBlob(
+        res,
+        generateFilenameWithTimestamp("data_auth_export", "xlsx"),
+        {
+          showMessage: true
+        }
+      );
       return;
     }
 
@@ -521,12 +182,13 @@ const exportAuth = async () => {
 
     const url = data?.url ?? data?.downloadUrl ?? data?.fileUrl ?? data;
     if (typeof url === "string" && url.length > 0) {
-      const link = document.createElement("a");
-      link.href = url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.click();
-      message("导出成功", { type: "success" });
+      await downloadFromUrl(
+        url,
+        generateFilenameWithTimestamp("data_auth_export", "xlsx"),
+        {
+          showMessage: true
+        }
+      );
       return;
     }
 
@@ -534,27 +196,17 @@ const exportAuth = async () => {
     const blob = new Blob([JSON.stringify(data ?? {}, null, 2)], {
       type: "application/json"
     });
-    const blobUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = `data_auth_export_${Date.now()}.json`;
-    link.click();
-    window.URL.revokeObjectURL(blobUrl);
-    message("导出成功", { type: "success" });
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp("data_auth_export", "json"),
+      {
+        showMessage: true
+      }
+    );
   } catch {
     message("导出失败", { type: "error" });
   }
 };
-
-watch(customerAuthMode, mode => {
-  if (mode === "all") customerList.value = [];
-});
-watch(supplierAuthMode, mode => {
-  if (mode === "all") supplierList.value = [];
-});
-watch(warehouseAuthMode, mode => {
-  if (mode === "all") warehouseList.value = [];
-});
 
 onMounted(() => {
   loadData();
@@ -564,290 +216,57 @@ onMounted(() => {
 <template>
   <div class="main">
     <div class="bg-white p-4 rounded-md">
-      <PureTableBar title="数据授权" @refresh="loadData">
-        <template v-slot="{ size }">
-          <pure-table
-            border
-            adaptive
-            row-key="uid"
-            alignWhole="center"
-            showOverflowTooltip
-            :loading="loading"
-            :data="userList"
-            :columns="columns"
-          >
-            <template #operation="{ row }">
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :size="size"
-                :icon="useRenderIcon(EditPen)"
-                @click="openEditDialog(row)"
-              >
-                编辑授权
-              </el-button>
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :size="size"
-                :icon="useRenderIcon(View)"
-                @click="openViewDialog(row)"
-              >
-                授权查看
-              </el-button>
-            </template>
-          </pure-table>
-        </template>
-      </PureTableBar>
+      <UserTable
+        :loading="loading"
+        :user-list="userList"
+        @edit="openEditDialog"
+        @view="openViewDialog"
+        @refresh="loadData"
+      />
     </div>
 
     <!-- 编辑授权对话框 -->
-    <el-dialog
-      v-model="editDialogVisible"
-      :title="`编辑授权 - ${currentUser?.username}`"
-      width="800px"
-      destroy-on-close
-      :close-on-click-modal="false"
-    >
-      <el-tabs v-model="activeAuthTab">
-        <el-tab-pane label="客户授权" name="customer">
-          <div class="flex justify-between mb-4">
-            <div>
-              <el-radio-group
-                v-model="customerAuthMode"
-                :disabled="detailLoading"
-              >
-                <el-radio-button value="all">全部客户</el-radio-button>
-                <el-radio-button value="partial">部分客户</el-radio-button>
-              </el-radio-group>
-            </div>
-            <div class="space-x-2">
-              <el-button
-                :icon="useRenderIcon(Plus)"
-                :disabled="detailLoading || customerAuthMode === 'all'"
-                @click="addCustomer"
-              >
-                添加客户
-              </el-button>
-              <el-button
-                :icon="useRenderIcon(Refresh)"
-                :disabled="detailLoading || customerAuthMode === 'all'"
-                @click="syncCustomers"
-              >
-                同步客户
-              </el-button>
-              <el-button
-                type="danger"
-                :icon="useRenderIcon(Delete)"
-                :disabled="detailLoading"
-                @click="clearAll(customerList)"
-              >
-                全部清空
-              </el-button>
-            </div>
-          </div>
-          <pure-table
-            border
-            :data="customerList"
-            :columns="authListColumns"
-            max-height="300"
-          >
-            <template #operation="{ row }">
-              <el-button
-                link
-                type="danger"
-                :icon="useRenderIcon(Delete)"
-                @click="removeAuthItem(customerList, row)"
-              >
-                移除
-              </el-button>
-            </template>
-          </pure-table>
-        </el-tab-pane>
-
-        <el-tab-pane label="供应商授权" name="supplier">
-          <div class="flex justify-between mb-4">
-            <div>
-              <el-radio-group
-                v-model="supplierAuthMode"
-                :disabled="detailLoading"
-              >
-                <el-radio-button value="all">全部供应商</el-radio-button>
-                <el-radio-button value="partial">部分供应商</el-radio-button>
-              </el-radio-group>
-            </div>
-            <div class="space-x-2">
-              <el-button
-                :icon="useRenderIcon(Plus)"
-                :disabled="detailLoading || supplierAuthMode === 'all'"
-                @click="addSupplier"
-              >
-                添加供应商
-              </el-button>
-              <el-button
-                type="danger"
-                :icon="useRenderIcon(Delete)"
-                :disabled="detailLoading"
-                @click="clearAll(supplierList)"
-              >
-                全部清空
-              </el-button>
-            </div>
-          </div>
-          <pure-table
-            border
-            :data="supplierList"
-            :columns="authListColumns"
-            max-height="300"
-          >
-            <template #operation="{ row }">
-              <el-button
-                link
-                type="danger"
-                :icon="useRenderIcon(Delete)"
-                @click="removeAuthItem(supplierList, row)"
-              >
-                移除
-              </el-button>
-            </template>
-          </pure-table>
-        </el-tab-pane>
-
-        <el-tab-pane label="仓库授权" name="warehouse">
-          <div class="flex justify-between mb-4">
-            <div>
-              <el-radio-group
-                v-model="warehouseAuthMode"
-                :disabled="detailLoading"
-              >
-                <el-radio-button value="all">全部仓库</el-radio-button>
-                <el-radio-button value="partial">部分仓库</el-radio-button>
-              </el-radio-group>
-            </div>
-            <div class="space-x-2">
-              <el-button
-                :icon="useRenderIcon(Plus)"
-                :disabled="detailLoading || warehouseAuthMode === 'all'"
-                @click="addWarehouse"
-              >
-                添加仓库
-              </el-button>
-              <el-button
-                type="danger"
-                :icon="useRenderIcon(Delete)"
-                :disabled="detailLoading"
-                @click="clearAll(warehouseList)"
-              >
-                全部清空
-              </el-button>
-            </div>
-          </div>
-          <pure-table
-            border
-            :data="warehouseList"
-            :columns="authListColumns"
-            max-height="300"
-          >
-            <template #operation="{ row }">
-              <el-button
-                link
-                type="danger"
-                :icon="useRenderIcon(Delete)"
-                @click="removeAuthItem(warehouseList, row)"
-              >
-                移除
-              </el-button>
-            </template>
-          </pure-table>
-        </el-tab-pane>
-      </el-tabs>
-
-      <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="detailLoading" @click="saveAuth">
-          保存
-        </el-button>
-      </template>
-    </el-dialog>
+    <EditAuthDialog
+      v-model:visible="editDialogVisible"
+      v-model:customer-list="customerList"
+      v-model:supplier-list="supplierList"
+      v-model:warehouse-list="warehouseList"
+      v-model:customer-auth-mode="customerAuthMode"
+      v-model:supplier-auth-mode="supplierAuthMode"
+      v-model:warehouse-auth-mode="warehouseAuthMode"
+      :current-user="currentUser"
+      :detail-loading="detailLoading"
+      @add-customer="addCustomer"
+      @add-supplier="addSupplier"
+      @add-warehouse="addWarehouse"
+      @sync-customers="handleSyncCustomers"
+      @saved="handleSaved"
+    />
 
     <!-- 授权查看对话框 -->
-    <el-dialog
-      v-model="viewDialogVisible"
-      :title="`授权查看 - ${currentUser?.username}`"
-      width="600px"
-      destroy-on-close
-      :close-on-click-modal="false"
-    >
-      <div class="flex justify-end mb-4">
-        <el-button :icon="useRenderIcon(Download)" @click="exportAuth">
-          导出
-        </el-button>
-      </div>
-      <pure-table
-        border
-        :data="customerList"
-        :columns="[
-          { label: '编码', prop: 'code', minWidth: 100 },
-          { label: '名称', prop: 'name', minWidth: 150 },
-          { label: '授权时间', prop: 'authTime', minWidth: 160 }
-        ]"
-        max-height="400"
-      />
-      <template #footer>
-        <el-button @click="viewDialogVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
+    <ViewAuthDialog
+      v-model:visible="viewDialogVisible"
+      :current-user="currentUser"
+      :customer-list="customerList"
+      @export="exportAuth"
+    />
 
     <!-- 选择授权对象对话框 -->
-    <el-dialog
-      v-model="selectDialogVisible"
-      :title="selectDialogTitle"
-      width="800px"
-      destroy-on-close
-      :close-on-click-modal="false"
-    >
-      <div class="flex justify-between mb-4">
-        <el-input
-          v-model="selectKeyword"
-          placeholder="请输入关键字"
-          clearable
-          class="w-72"
-          @keyup.enter="handleSelectSearch"
-        />
-        <div class="space-x-2">
-          <el-button @click="handleSelectReset">重置</el-button>
-          <el-button type="primary" @click="handleSelectSearch">查询</el-button>
-        </div>
-      </div>
-      <pure-table
-        border
-        row-key="uid"
-        alignWhole="center"
-        showOverflowTooltip
-        :loading="selectLoading"
-        :data="selectList"
-        :columns="selectColumns"
-        @selection-change="handleSelectSelectionChange"
-      />
-      <div class="flex justify-end mt-4">
-        <el-pagination
-          background
-          layout="total, prev, pager, next"
-          :total="selectPagination.total"
-          :page-size="selectPagination.pageSize"
-          :current-page="selectPagination.currentPage"
-          @current-change="handleSelectPageChange"
-        />
-      </div>
-      <template #footer>
-        <el-button @click="selectDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="addSelectedToAuthList">
-          确定
-        </el-button>
-      </template>
-    </el-dialog>
+    <SelectAuthDialog
+      v-model:visible="selectDialogVisible"
+      v-model:select-keyword="selectKeyword"
+      :select-type="selectType"
+      :select-loading="selectLoading"
+      :select-list="selectList"
+      :select-selected-rows="selectSelectedRows"
+      :select-pagination="selectPagination"
+      :select-columns="selectColumns"
+      @selection-change="handleSelectSelectionChange"
+      @page-change="handleSelectPageChange"
+      @search="handleSelectSearch"
+      @reset="handleSelectReset"
+      @confirm="addSelectedToAuthList"
+    />
   </div>
 </template>
 

@@ -11,6 +11,7 @@ import Download from "~icons/ep/download";
 import Upload from "~icons/ep/upload";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { message } from "@/utils";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { ElMessageBox } from "element-plus";
 import {
   getPrintTemplatesApi,
@@ -221,13 +222,16 @@ const exportTemplates = async () => {
     const blob = await exportPrintTemplatesApi(
       selectedRows.value.map(row => row.uid)
     );
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `print_templates_${activeDocType.value}_${Date.now()}.json`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-    message("导出成功", { type: "success" });
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp(
+        `print_templates_${activeDocType.value}`,
+        "json"
+      ),
+      {
+        showMessage: true
+      }
+    );
   } catch {
     message("导出失败", { type: "error" });
   } finally {

@@ -7,19 +7,66 @@ export interface Pagination {
   pageSizes?: number[];
   background?: boolean;
   layout?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface UseCrudOptions<T, Res, Params> {
   api: (params: Params) => Promise<Res>;
-  deleteApi?: (id: string | number) => Promise<any>;
+  deleteApi?: (id: string | number) => Promise<unknown>;
   params?: Ref<Params> | Params | (() => Params);
   pagination?: Partial<Pagination>;
   immediate?: boolean;
   transform?: (res: Res) => { list: T[]; total?: number };
 }
 
-export function useCrud<T = any, Res = any, Params = any>(
+/**
+ * 类型守卫：检查值是否为包含 list 数组的对象
+ */
+function hasListProperty(
+  value: unknown
+): value is { list: unknown[]; total?: number } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "list" in value &&
+    Array.isArray((value as { list?: unknown }).list)
+  );
+}
+
+/**
+ * 类型守卫：检查值是否为包含 data.list 数组的对象
+ */
+function hasDataListProperty(
+  value: unknown
+): value is { data: { list: unknown[]; total?: number } } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "data" in value &&
+    typeof (value as { data?: unknown }).data === "object" &&
+    (value as { data?: unknown }).data !== null &&
+    "list" in ((value as { data?: unknown }).data as object) &&
+    Array.isArray(
+      ((value as { data?: { list?: unknown } }).data as { list?: unknown }).list
+    )
+  );
+}
+
+/**
+ * 类型守卫：检查值是否为包含 data 数组的对象
+ */
+function hasDataArrayProperty(
+  value: unknown
+): value is { data: unknown[]; total?: number } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "data" in value &&
+    Array.isArray((value as { data?: unknown }).data)
+  );
+}
+
+export function useCrud<T = unknown, Res = unknown, Params = unknown>(
   options: UseCrudOptions<T, Res, Params>
 ) {
   const {
@@ -75,19 +122,19 @@ export function useCrud<T = any, Res = any, Params = any>(
         list = result.list;
         total = result.total || 0;
       } else {
-        const r = res as any;
+        const r: unknown = res;
         if (Array.isArray(r)) {
-          list = r;
+          list = r as T[];
           total = r.length;
-        } else if (Array.isArray(r?.list)) {
-          list = r.list;
-          total = r.total || r.list.length;
-        } else if (Array.isArray(r?.data?.list)) {
-          list = r.data.list;
-          total = r.data.total || r.data.list.length;
-        } else if (Array.isArray(r?.data)) {
-          list = r.data;
-          total = r.total || r.data.length;
+        } else if (hasListProperty(r)) {
+          list = r.list as T[];
+          total = r.total ?? r.list.length;
+        } else if (hasDataListProperty(r)) {
+          list = r.data.list as T[];
+          total = r.data.total ?? r.data.list.length;
+        } else if (hasDataArrayProperty(r)) {
+          list = r.data as T[];
+          total = r.total ?? r.data.length;
         }
       }
 
@@ -96,8 +143,11 @@ export function useCrud<T = any, Res = any, Params = any>(
         ...pagination.value,
         total
       };
-    } catch (error: any) {
-      if (error.name !== "AbortError") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.error("fetchData error:", error);
+        dataList.value = [];
+      } else if (!(error instanceof Error)) {
         console.error("fetchData error:", error);
         dataList.value = [];
       }

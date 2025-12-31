@@ -8,636 +8,183 @@ import {
   Loading
 } from "@element-plus/icons-vue";
 import { message } from "@/utils/message";
-import type { UploadFile, UploadRawFile } from "element-plus";
-import type { TableColumnList } from "@pureadmin/table";
-import { ElTag, ElProgress, ElSelect, ElButton } from "element-plus";
+import type { UploadFile } from "element-plus";
+import { ElTag, ElProgress } from "element-plus";
 import {
-  importDataApi,
-  parseImportColumnsApi,
-  parseImportSheetsApi,
-  previewImportApi
-} from "@/api";
-import {
-  type UploadedFile,
-  type SheetInfo,
-  type SourceColumn,
-  type TargetField,
-  type FieldMapping,
-  type ImportDataRow,
-  type ImportProgress,
-  type ImportResult,
-  type ImportConfig,
   ImportStep,
   importStepNames,
-  defaultImportConfig
+  defaultImportConfig,
+  type ImportConfig
 } from "./types";
+import { importTypeOptions, targetFieldsMap } from "./constants";
+import { createMappingColumns, errorColumns } from "./columns";
+import { useSmartImportFile } from "./composables/useSmartImportFile";
+import { useSmartImportMapping } from "./composables/useSmartImportMapping";
+import { useSmartImportPreview } from "./composables/useSmartImportPreview";
+import { useSmartImportExecute } from "./composables/useSmartImportExecute";
 
 defineOptions({
   name: "SmartImport"
 });
 
-// 导入类型配置
-const importTypeOptions = [
-  { value: "customer", label: "客户导入" },
-  { value: "provider", label: "供应商导入" },
-  { value: "tire", label: "商品导入" },
-  { value: "user", label: "员工导入" },
-  { value: "order", label: "订单导入" }
-];
-
-// 各类型对应的目标字段
-const targetFieldsMap: Record<string, TargetField[]> = {
-  customer: [
-    { key: "name", label: "客户名称", required: true, type: "string" },
-    { key: "code", label: "客户编码", required: false, type: "string" },
-    { key: "contact", label: "联系人", required: false, type: "string" },
-    { key: "phone", label: "联系电话", required: false, type: "string" },
-    { key: "address", label: "地址", required: false, type: "string" },
-    { key: "remark", label: "备注", required: false, type: "string" }
-  ],
-  provider: [
-    { key: "name", label: "供应商名称", required: true, type: "string" },
-    { key: "code", label: "供应商编码", required: false, type: "string" },
-    { key: "contact", label: "联系人", required: false, type: "string" },
-    { key: "phone", label: "联系电话", required: false, type: "string" },
-    { key: "address", label: "地址", required: false, type: "string" },
-    { key: "remark", label: "备注", required: false, type: "string" }
-  ],
-  tire: [
-    { key: "name", label: "商品名称", required: true, type: "string" },
-    { key: "code", label: "商品编码", required: false, type: "string" },
-    { key: "spec", label: "规格型号", required: false, type: "string" },
-    { key: "unit", label: "单位", required: false, type: "string" },
-    { key: "price", label: "售价", required: false, type: "number" },
-    { key: "cost", label: "成本价", required: false, type: "number" },
-    { key: "category", label: "分类", required: false, type: "string" },
-    { key: "remark", label: "备注", required: false, type: "string" }
-  ],
-  user: [
-    { key: "name", label: "姓名", required: true, type: "string" },
-    { key: "phone", label: "手机号", required: true, type: "string" },
-    { key: "department", label: "部门", required: false, type: "string" },
-    { key: "position", label: "职位", required: false, type: "string" },
-    { key: "email", label: "邮箱", required: false, type: "string" },
-    { key: "remark", label: "备注", required: false, type: "string" }
-  ],
-  order: [
-    { key: "orderNo", label: "订单号", required: false, type: "string" },
-    { key: "customerName", label: "客户名称", required: true, type: "string" },
-    { key: "productName", label: "商品名称", required: true, type: "string" },
-    { key: "quantity", label: "数量", required: true, type: "number" },
-    { key: "price", label: "单价", required: false, type: "number" },
-    { key: "orderDate", label: "订单日期", required: false, type: "date" },
-    { key: "remark", label: "备注", required: false, type: "string" }
-  ]
-};
-
-// 状态
+// 配置和步骤
 const currentStep = ref<ImportStep>(ImportStep.UPLOAD);
 const config = ref<ImportConfig>({ ...defaultImportConfig });
-const uploadedFile = ref<UploadedFile | null>(null);
-const sheets = ref<SheetInfo[]>([]);
-const selectedSheet = ref<number>(0);
-const sourceColumns = ref<SourceColumn[]>([]);
-const fieldMappings = ref<FieldMapping[]>([]);
-const previewData = ref<ImportDataRow[]>([]);
-const progress = ref<ImportProgress>({
-  current: 0,
-  total: 0,
-  status: "idle"
-});
-const importResult = ref<ImportResult | null>(null);
-const loading = ref(false);
 
-// 计算属性
+// 文件处理
+const {
+  uploadedFile,
+  sheets,
+  selectedSheet,
+  sourceColumns,
+  loading: fileLoading,
+  handleFileChange,
+  handleFileRemove,
+  parseFileSheets,
+  handleSheetSelect: handleSheetSelectInternal
+} = useSmartImportFile();
+
+// 目标字段
 const targetFields = computed(() => {
   return targetFieldsMap[config.value.type] || [];
 });
 
-const requiredFieldsMapped = computed(() => {
-  const required = targetFields.value.filter(f => f.required);
-  return required.every(rf =>
-    fieldMappings.value.some(fm => fm.targetField?.key === rf.key)
-  );
+// 字段映射
+const {
+  fieldMappings,
+  requiredFieldsMapped,
+  mappedFieldsCount,
+  canProceedToPreview,
+  performSmartMapping,
+  handleMappingChange,
+  removeMapping,
+  getAvailableTargetFields,
+  reset: resetMapping
+} = useSmartImportMapping(targetFields);
+
+// 预览
+const {
+  previewData,
+  loading: previewLoading,
+  validRowsCount,
+  errorRowsCount,
+  generatePreviewColumns,
+  getRowStatusType,
+  loadPreview,
+  reset: resetPreview
+} = useSmartImportPreview();
+
+// 执行导入
+const {
+  progress,
+  importResult,
+  loading: importLoading,
+  startImport: startImportInternal,
+  reset: resetExecute
+} = useSmartImportExecute();
+
+const loading = computed(
+  () => fileLoading.value || previewLoading.value || importLoading.value
+);
+
+// 预览列
+const previewColumns = computed(() => {
+  return generatePreviewColumns(targetFields.value, fieldMappings.value);
 });
 
-const mappedFieldsCount = computed(() => {
-  return fieldMappings.value.filter(fm => fm.targetField !== null).length;
-});
-
-const canProceedToPreview = computed(() => {
-  return requiredFieldsMapped.value && mappedFieldsCount.value > 0;
-});
-
-const validRowsCount = computed(() => {
-  return previewData.value.filter(r => r.status === "valid").length;
-});
-
-const errorRowsCount = computed(() => {
-  return previewData.value.filter(r => r.status === "error").length;
-});
+// 映射列
+const mappingColumns = computed(() => createMappingColumns());
 
 // 监听导入类型变化
 watch(
   () => config.value.type,
   () => {
-    // 重新进行智能匹配
     if (sourceColumns.value.length > 0) {
-      performSmartMapping();
+      performSmartMapping(sourceColumns.value);
     }
   }
 );
 
 // 文件上传处理
-function handleFileChange(file: UploadFile) {
-  if (!file.raw) return;
-
-  const validTypes = [
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.ms-excel",
-    "text/csv"
-  ];
-
-  if (
-    !validTypes.includes(file.raw.type) &&
-    !file.name.match(/\.(xlsx|xls|csv)$/i)
-  ) {
-    message("请上传 Excel 或 CSV 文件", { type: "warning" });
-    return;
-  }
-
-  if (file.raw.size > 10 * 1024 * 1024) {
-    message("文件大小不能超过 10MB", { type: "warning" });
-    return;
-  }
-
-  uploadedFile.value = {
-    uid: file.uid,
-    name: file.name,
-    size: file.raw.size,
-    type: file.raw.type,
-    status: "success",
-    raw: file.raw
-  };
-
-  // 解析 Sheet
-  parseFileSheets();
-}
-
-function handleFileRemove() {
-  uploadedFile.value = null;
-  sheets.value = [];
-  sourceColumns.value = [];
-  fieldMappings.value = [];
-  previewData.value = [];
-  currentStep.value = ImportStep.UPLOAD;
-}
-
-function parseFileSheets() {
-  const raw = uploadedFile.value?.raw;
-  if (!raw) return;
-
-  loading.value = true;
-  progress.value = {
-    current: 0,
-    total: 100,
-    status: "parsing",
-    message: "正在解析文件..."
-  };
-
-  const fd = new FormData();
-  fd.append("file", raw);
-
-  parseImportSheetsApi(fd)
-    .then(res => {
-      if (res.code !== 200) {
-        message(res.msg || "解析文件失败", { type: "error" });
-        return;
-      }
-      sheets.value = res.data?.sheets || [];
-      if (sheets.value.length === 0) {
-        message("未解析到有效的 Sheet", { type: "warning" });
-        return;
-      }
-
-      if (sheets.value.length === 1) {
-        selectedSheet.value = 0;
-        currentStep.value = ImportStep.SELECT_SHEET;
-        handleSheetSelect();
-      } else {
-        currentStep.value = ImportStep.SELECT_SHEET;
-      }
-    })
-    .catch(() => {
-      message("解析文件失败", { type: "error" });
-    })
-    .finally(() => {
-      progress.value.status = "idle";
-      loading.value = false;
-    });
-}
-
-function handleSheetSelect() {
-  const raw = uploadedFile.value?.raw;
-  if (!raw) return;
-
-  loading.value = true;
-  progress.value = {
-    current: 0,
-    total: 100,
-    status: "parsing",
-    message: "正在读取列信息..."
-  };
-
-  const fd = new FormData();
-  fd.append("file", raw);
-  fd.append("sheetIndex", String(selectedSheet.value));
-  fd.append("headerRow", String(config.value.headerRow));
-  fd.append("startDataRow", String(config.value.startDataRow));
-  fd.append("sampleSize", "3");
-
-  parseImportColumnsApi(fd)
-    .then(res => {
-      if (res.code !== 200) {
-        message(res.msg || "读取列信息失败", { type: "error" });
-        return;
-      }
-      sourceColumns.value = res.data?.columns || [];
-      if (sourceColumns.value.length === 0) {
-        message("未读取到列信息", { type: "warning" });
-        return;
-      }
-
-      performSmartMapping();
-      currentStep.value = ImportStep.FIELD_MAPPING;
-    })
-    .catch(() => {
-      message("读取列信息失败", { type: "error" });
-    })
-    .finally(() => {
-      progress.value.status = "idle";
-      loading.value = false;
-    });
-}
-
-function performSmartMapping() {
-  progress.value = {
-    current: 0,
-    total: 100,
-    status: "mapping",
-    message: "正在智能匹配字段..."
-  };
-
-  // 智能匹配算法(模拟)
-  const mappingRules: Record<string, string[]> = {
-    name: ["名称", "姓名", "客户名", "供应商名", "商品名"],
-    code: ["编码", "编号", "代码"],
-    contact: ["联系人", "联络人"],
-    phone: ["电话", "手机", "联系方式"],
-    address: ["地址", "详细地址"],
-    remark: ["备注", "说明", "描述"],
-    spec: ["规格", "型号", "规格型号"],
-    unit: ["单位", "计量单位"],
-    price: ["价格", "单价", "售价"],
-    cost: ["成本", "成本价", "进价"],
-    category: ["分类", "类别", "类型"],
-    email: ["邮箱", "电子邮件", "email"],
-    department: ["部门", "所属部门"],
-    position: ["职位", "岗位"],
-    quantity: ["数量", "数目"],
-    orderNo: ["订单号", "单号"],
-    orderDate: ["日期", "订单日期", "下单日期"],
-    customerName: ["客户", "客户名称"],
-    productName: ["商品", "商品名称", "产品名称"]
-  };
-
-  fieldMappings.value = sourceColumns.value.map(col => {
-    let matchedField: TargetField | null = null;
-    let confidence = 0;
-
-    for (const field of targetFields.value) {
-      const rules = mappingRules[field.key] || [];
-      for (const rule of rules) {
-        if (col.name.includes(rule)) {
-          matchedField = field;
-          confidence = 85 + Math.random() * 15;
-          break;
-        }
-      }
-      if (matchedField) break;
-
-      // 精确匹配
-      if (
-        col.name === field.label ||
-        col.name.toLowerCase() === field.key.toLowerCase()
-      ) {
-        matchedField = field;
-        confidence = 100;
-        break;
-      }
+function handleFileChangeWrapper(file: UploadFile) {
+  handleFileChange(file);
+  parseFileSheets().then(() => {
+    if (sheets.value.length === 1) {
+      selectedSheet.value = 0;
+      currentStep.value = ImportStep.SELECT_SHEET;
+      handleSheetSelect();
+    } else if (sheets.value.length > 1) {
+      currentStep.value = ImportStep.SELECT_SHEET;
     }
-
-    return {
-      sourceColumn: col,
-      targetField: matchedField,
-      confidence: Math.round(confidence),
-      isManual: false
-    };
   });
-
-  progress.value.status = "idle";
 }
 
-function handleMappingChange(index: number, targetKey: string | null) {
-  if (targetKey === null) {
-    fieldMappings.value[index].targetField = null;
-    fieldMappings.value[index].confidence = 0;
-  } else {
-    const field = targetFields.value.find(f => f.key === targetKey);
-    if (field) {
-      fieldMappings.value[index].targetField = field;
-      fieldMappings.value[index].confidence = 100;
-      fieldMappings.value[index].isManual = true;
-    }
+// 选择 Sheet
+async function handleSheetSelect() {
+  const success = await handleSheetSelectInternal(config.value);
+  if (success && sourceColumns.value.length > 0) {
+    performSmartMapping(sourceColumns.value);
+    currentStep.value = ImportStep.FIELD_MAPPING;
   }
 }
 
-function removeMapping(index: number) {
-  fieldMappings.value[index].targetField = null;
-  fieldMappings.value[index].confidence = 0;
-  fieldMappings.value[index].isManual = false;
-}
-
-function goToPreview() {
+// 前往预览
+async function goToPreview() {
   if (!canProceedToPreview.value) {
     message("请确保所有必填字段都已映射", { type: "warning" });
     return;
   }
 
-  const raw = uploadedFile.value?.raw;
-  if (!raw) return;
+  await loadPreview(
+    uploadedFile.value,
+    selectedSheet.value,
+    config.value,
+    fieldMappings.value,
+    targetFields.value
+  );
 
-  loading.value = true;
-  progress.value = {
-    current: 0,
-    total: 100,
-    status: "validating",
-    message: "正在验证数据..."
-  };
-
-  const mappings = fieldMappings.value
-    .filter(fm => fm.targetField)
-    .map(fm => ({
-      sourceIndex: fm.sourceColumn.index,
-      targetKey: fm.targetField!.key
-    }));
-
-  const fd = new FormData();
-  fd.append("file", raw);
-  fd.append("sheetIndex", String(selectedSheet.value));
-  fd.append("headerRow", String(config.value.headerRow));
-  fd.append("startDataRow", String(config.value.startDataRow));
-  fd.append("mappings", JSON.stringify(mappings));
-  fd.append("targetFields", JSON.stringify(targetFields.value));
-  fd.append("maxRows", "200");
-
-  previewImportApi(fd)
-    .then(res => {
-      if (res.code !== 200) {
-        message(res.msg || "生成预览失败", { type: "error" });
-        return;
-      }
-      previewData.value = res.data?.rows || [];
-      if (previewData.value.length === 0) {
-        message("未生成预览数据（可能没有有效数据行）", { type: "warning" });
-        return;
-      }
-      currentStep.value = ImportStep.PREVIEW;
-    })
-    .catch(() => {
-      message("生成预览失败", { type: "error" });
-    })
-    .finally(() => {
-      progress.value.status = "idle";
-      loading.value = false;
-    });
+  if (previewData.value.length > 0) {
+    currentStep.value = ImportStep.PREVIEW;
+  }
 }
 
-function startImport() {
-  const raw = uploadedFile.value?.raw;
-  if (!raw) return;
+// 开始导入
+async function startImport() {
+  if (!uploadedFile.value) return;
 
-  loading.value = true;
-  progress.value = {
-    current: 0,
-    total: 100,
-    status: "importing",
-    message: "正在导入数据..."
-  };
   currentStep.value = ImportStep.IMPORTING;
-
-  const fd = new FormData();
-  fd.append("file", raw);
-
-  importDataApi(config.value.type, fd, p => {
+  await startImportInternal(config.value.type, uploadedFile.value, p => {
     progress.value.current = p;
-  })
-    .then(res => {
-      if (res.code !== 200) {
-        message(res.msg || "导入失败", { type: "error" });
-        progress.value.status = "error";
-        return;
-      }
-      const result = res.data;
-      importResult.value = {
-        success: (result?.failed || 0) === 0,
-        total: result?.total || 0,
-        successCount: result?.success || 0,
-        failedCount: result?.failed || 0,
-        errors: result?.errors
-      };
-      progress.value.status = "completed";
-      currentStep.value = ImportStep.RESULT;
-    })
-    .catch(() => {
-      progress.value.status = "error";
-      message("导入失败", { type: "error" });
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+  });
+
+  if (importResult.value) {
+    currentStep.value = ImportStep.RESULT;
+  }
 }
 
+// 重置
 function resetImport() {
   currentStep.value = ImportStep.UPLOAD;
   config.value = { ...defaultImportConfig };
-  uploadedFile.value = null;
-  sheets.value = [];
-  selectedSheet.value = 0;
-  sourceColumns.value = [];
-  fieldMappings.value = [];
-  previewData.value = [];
-  progress.value = { current: 0, total: 0, status: "idle" };
-  importResult.value = null;
+  handleFileRemove();
+  resetMapping();
+  resetPreview();
+  resetExecute();
 }
 
+// 返回上一步
 function goBack() {
   if (currentStep.value > ImportStep.UPLOAD) {
     currentStep.value--;
   }
 }
 
+// 格式化文件大小
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + " B";
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
-
-function getAvailableTargetFields(currentIndex: number) {
-  const usedKeys = fieldMappings.value
-    .filter((_, i) => i !== currentIndex)
-    .map(fm => fm.targetField?.key)
-    .filter(Boolean);
-  return targetFields.value.filter(f => !usedKeys.includes(f.key));
-}
-
-function getRowStatusType(status: string) {
-  switch (status) {
-    case "valid":
-      return "success";
-    case "warning":
-      return "warning";
-    case "error":
-      return "danger";
-    default:
-      return "info";
-  }
-}
-
-const mappingColumns: TableColumnList = [
-  {
-    label: "源文件列",
-    width: 200,
-    cellRenderer: ({ row }) => {
-      return h("div", {}, [
-        h("p", { class: "font-medium" }, row.sourceColumn.name),
-        h(
-          "p",
-          { class: "text-xs text-gray-400 truncate" },
-          `示例: ${row.sourceColumn.sampleValues.slice(0, 2).join(", ")}`
-        )
-      ]);
-    }
-  },
-  {
-    label: "匹配置信度",
-    width: 120,
-    align: "center",
-    cellRenderer: ({ row }) => {
-      if (!row.targetField) return h("span", { class: "text-gray-400" }, "-");
-      const color =
-        row.confidence >= 80
-          ? "#67C23A"
-          : row.confidence >= 50
-            ? "#E6A23C"
-            : "#F56C6C";
-      return h(ElProgress, {
-        percentage: row.confidence,
-        color,
-        strokeWidth: 6
-      });
-    }
-  },
-  {
-    label: "系统字段",
-    minWidth: 200,
-    slot: "targetField"
-  },
-  {
-    label: "字段类型",
-    width: 100,
-    align: "center",
-    cellRenderer: ({ row }) => {
-      if (!row.targetField) return h("span", { class: "text-gray-400" }, "-");
-      return h(
-        ElTag,
-        { size: "small", type: "info" },
-        () => row.targetField.type
-      );
-    }
-  },
-  {
-    label: "操作",
-    width: 80,
-    align: "center",
-    slot: "action"
-  }
-];
-
-const errorColumns: TableColumnList = [
-  {
-    label: "行号",
-    prop: "row",
-    width: 80
-  },
-  {
-    label: "错误信息",
-    prop: "message"
-  }
-];
-
-const previewColumns = computed<TableColumnList>(() => {
-  const mappedFields = targetFields.value.filter(f =>
-    fieldMappings.value.some(fm => fm.targetField?.key === f.key)
-  );
-  const cols: TableColumnList = [
-    {
-      label: "行号",
-      width: 80,
-      align: "center",
-      cellRenderer: ({ row }) => row.rowIndex
-    },
-    ...mappedFields.map(field => ({
-      label: field.label,
-      prop: `data.${field.key}`,
-      minWidth: 120,
-      cellRenderer: ({ row }: any) => row.data[field.key] || "-"
-    })),
-    {
-      label: "状态",
-      width: 100,
-      align: "center",
-      fixed: "right",
-      cellRenderer: ({ row }) => {
-        const statusType = getRowStatusType(row.status);
-        const statusText =
-          row.status === "valid"
-            ? "有效"
-            : row.status === "warning"
-              ? "警告"
-              : "错误";
-        return h(ElTag, { type: statusType, size: "small" }, () => statusText);
-      }
-    },
-    {
-      label: "错误信息",
-      width: 200,
-      fixed: "right",
-      cellRenderer: ({ row }) => {
-        if (row.errors.length === 0)
-          return h("span", { class: "text-gray-400" }, "-");
-        return h(
-          "div",
-          { class: "text-red-500 text-xs" },
-          row.errors.map((err: any, i: number) =>
-            h("p", { key: i }, err.message)
-          )
-        );
-      }
-    }
-  ];
-  return cols;
-});
 </script>
 
 <template>
@@ -688,7 +235,7 @@ const previewColumns = computed<TableColumnList>(() => {
         drag
         :auto-upload="false"
         :show-file-list="false"
-        :on-change="handleFileChange"
+        :on-change="handleFileChangeWrapper"
         accept=".xlsx,.xls,.csv"
         class="w-full"
         :disabled="!config.type"

@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type CommonResult<T = any> = {
+export type CommonResult<T = unknown> = {
   code: number;
   msg: string;
   data: T;

@@ -11,6 +11,7 @@ function withSetup<T>(composable: () => T) {
     defineComponent({
       setup() {
         result = composable();
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         return () => {};
       }
     })
@@ -119,6 +120,7 @@ describe("useCrud", () => {
 
   it("should handle fetch errors gracefully", async () => {
     mockApi.mockRejectedValue(new Error("Network Error"));
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const { result } = withSetup(() =>
@@ -171,10 +173,12 @@ describe("useCrud", () => {
     const rawData = { data: [{ id: 1, val: "raw" }], count: 10 };
     mockApi.mockResolvedValue(rawData);
 
-    const transform = vi.fn((res: any) => ({
-      list: res.data.map((i: any) => ({ ...i, val: "transformed" })),
-      total: res.count
-    }));
+    const transform = vi.fn(
+      (res: { data: Array<{ id: number; val: string }>; count: number }) => ({
+        list: res.data.map(i => ({ ...i, val: "transformed" })),
+        total: res.count
+      })
+    );
 
     const { result } = withSetup(() =>
       useCrud({
@@ -193,15 +197,23 @@ describe("useCrud", () => {
   });
 
   it("should cancel concurrent requests", async () => {
-    let resolveFirst: any;
-    const firstPromise = new Promise(resolve => {
-      resolveFirst = resolve;
-    });
+    let resolveFirst:
+      | ((value: { list: string[]; total: number }) => void)
+      | undefined;
+    const firstPromise = new Promise<{ list: string[]; total: number }>(
+      resolve => {
+        resolveFirst = resolve;
+      }
+    );
 
-    let resolveSecond: any;
-    const secondPromise = new Promise(resolve => {
-      resolveSecond = resolve;
-    });
+    let resolveSecond:
+      | ((value: { list: string[]; total: number }) => void)
+      | undefined;
+    const secondPromise = new Promise<{ list: string[]; total: number }>(
+      resolve => {
+        resolveSecond = resolve;
+      }
+    );
 
     mockApi.mockReturnValueOnce(firstPromise);
     mockApi.mockReturnValueOnce(secondPromise);
@@ -222,14 +234,16 @@ describe("useCrud", () => {
     const p2 = fetchData();
 
     // Resolve first request
-    resolveFirst({ list: ["first"], total: 1 });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    resolveFirst!({ list: ["first"], total: 1 });
     await p1;
 
     // First request should be ignored
     expect(dataList.value).toEqual([]);
 
     // Resolve second request
-    resolveSecond({ list: ["second"], total: 1 });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    resolveSecond!({ list: ["second"], total: 1 });
     await p2;
 
     // Second request should succeed
@@ -237,10 +251,14 @@ describe("useCrud", () => {
   });
 
   it("should abort request on unmount", async () => {
-    let resolveRequest: any;
-    const requestPromise = new Promise(resolve => {
-      resolveRequest = resolve;
-    });
+    let resolveRequest:
+      | ((value: { list: string[]; total: number }) => void)
+      | undefined;
+    const requestPromise = new Promise<{ list: string[]; total: number }>(
+      resolve => {
+        resolveRequest = resolve;
+      }
+    );
     mockApi.mockReturnValue(requestPromise);
 
     const { result, wrapper } = withSetup(() =>
@@ -257,7 +275,8 @@ describe("useCrud", () => {
     wrapper.unmount();
 
     // Resolve the request after unmount
-    resolveRequest({ list: ["test"], total: 1 });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    resolveRequest!({ list: ["test"], total: 1 });
     await p;
 
     // Logic: AbortController.abort() is called on unmount.
@@ -294,6 +313,7 @@ describe("useCrud", () => {
 
   it("should handle delete error", async () => {
     mockDeleteApi.mockRejectedValue(new Error("Delete Failed"));
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const { result } = withSetup(() =>
@@ -318,6 +338,7 @@ describe("useCrud", () => {
     const abortError = new Error("Aborted");
     abortError.name = "AbortError";
     mockApi.mockRejectedValue(abortError);
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const { result } = withSetup(() =>

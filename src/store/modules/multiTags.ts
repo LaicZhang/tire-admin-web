@@ -14,10 +14,23 @@ import {
 } from "../utils";
 import { usePermissionStoreHook } from "./permission";
 
+/**
+ * 类型守卫：检查路由是否有 fixedTag 属性
+ */
+function hasFixedTag(
+  route: unknown
+): route is { meta?: { fixedTag?: boolean } } {
+  return (
+    typeof route === "object" &&
+    route !== null &&
+    "meta" in route &&
+    typeof (route as { meta?: unknown }).meta === "object"
+  );
+}
+
 export const useMultiTagsStore = defineStore("pure-multiTags", {
   state: (): {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    multiTags: any[];
+    multiTags: multiType[];
     multiTagsCache: boolean;
   } => ({
     // 存储标签页信息（路由信息）
@@ -33,12 +46,39 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
         if (cached && Array.isArray(cached)) return cached;
       }
       return [
-        ...routerArrays,
-        ...(usePermissionStoreHook().flatteningRoutes.filter(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          v => (v as any)?.meta?.fixedTag
-        ) as unknown as multiType[])
-      ] as unknown as multiType[];
+        ...routerArrays
+          .filter(
+            (r): r is RouteConfigs & { path: string; name: string } =>
+              r.path !== undefined && r.name !== undefined
+          )
+          .map(r => ({
+            path: r.path,
+            name: r.name,
+            meta: r.meta || {},
+            query: r.query as multiType["query"],
+            params: r.params as multiType["params"]
+          })),
+        ...usePermissionStoreHook()
+          .flatteningRoutes.filter(v => hasFixedTag(v) && v.meta?.fixedTag)
+          .map(v => {
+            const route = v as {
+              path?: string;
+              name?: string;
+              meta?: unknown;
+              query?: unknown;
+              params?: unknown;
+            };
+            if (!route.path || !route.name) return null;
+            return {
+              path: route.path,
+              name: route.name,
+              meta: (route.meta as multiType["meta"]) || {},
+              query: route.query as multiType["query"],
+              params: route.params as multiType["params"]
+            };
+          })
+          .filter((v): v is multiType => v !== null)
+      ];
     })(),
     multiTagsCache:
       storageLocal().getItem<StorageConfigs>(
@@ -62,8 +102,7 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
         storageLocal().removeItem(`${responsiveStorageNameSpace()}tags`);
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tagsCache(multiTags: any[]) {
+    tagsCache(multiTags: multiType[]) {
       this.getMultiTagsCache &&
         storageLocal().setItem(
           `${responsiveStorageNameSpace()}tags`,
@@ -72,14 +111,12 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
     },
     handleTags(
       mode: string,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      value?: any,
+      value?: multiType | multiType[] | string,
       position?: positionType
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ): any {
+    ): multiType[] | undefined {
       switch (mode) {
         case "equal":
-          this.multiTags = value ?? [];
+          this.multiTags = (Array.isArray(value) ? value : []) as multiType[];
           this.tagsCache(this.multiTags);
           break;
         case "push":
@@ -139,8 +176,9 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
           break;
         case "splice":
           if (!position) {
+            if (typeof value !== "string") return undefined;
             const index = this.multiTags.findIndex(v => v.path === value);
-            if (index === -1) return;
+            if (index === -1) return undefined;
             this.multiTags.splice(index, 1);
           } else {
             this.multiTags.splice(
@@ -153,6 +191,7 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
         case "slice":
           return this.multiTags.slice(-1);
       }
+      return undefined;
     }
   }
 });

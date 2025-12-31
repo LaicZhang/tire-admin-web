@@ -9,7 +9,6 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import type { TableColumnList } from "@pureadmin/table";
 
 defineOptions({
   name: "AnalysisPurchase"

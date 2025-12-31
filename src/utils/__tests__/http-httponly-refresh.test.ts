@@ -90,7 +90,9 @@ describe("http (HttpOnly Cookie 401 refresh)", () => {
       response: { status: 401, data: { msg: "unauthorized" } }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const pA = responseRejectedHandler!(errorA);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const pB = responseRejectedHandler!(errorB);
 
     // refresh in-flight (only once)

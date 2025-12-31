@@ -38,7 +38,7 @@ const refreshDict = async (silent = false) => {
     } else {
       if (!silent) message(msg, { type: "error" });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (!silent) console.error("初始化字典失败:", error);
   }
 };

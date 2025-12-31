@@ -5,7 +5,7 @@ import { message } from "@/utils/message";
 import { useRouter } from "vue-router";
 import type { PaginatedResponseDto } from "@/api/type";
 import { PureTableBar } from "@/components/RePureTableBar";
-import type { TableColumnList } from "@pureadmin/table";
+
 import { ElTag, ElButton } from "element-plus";
 
 defineOptions({

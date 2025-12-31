@@ -194,7 +194,7 @@ onMounted(() => {
           v-model="queryForm.billNo"
           placeholder="请输入单据编号"
           clearable
-          class="!w-[160px]"
+          class="w-[160px]"
         />
       </el-form-item>
       <el-form-item label="支出类型" prop="expenseType">

@@ -206,11 +206,16 @@ export async function createAsyncExportTaskApi(
     ...(data.filters ? { filters: data.filters } : {}),
     ...(data.fields ? { fields: data.fields } : {})
   });
-  const res = await http.request<CommonResult<any>>(
-    "post",
-    baseUrlApi(prefix + `export/async/${type}`),
-    { params: { type, filter } }
-  );
+  const res = await http.request<
+    CommonResult<{
+      id: string;
+      status: string;
+      progress: number;
+      error?: string;
+    }>
+  >("post", baseUrlApi(prefix + `export/async/${type}`), {
+    params: { type, filter }
+  });
   return {
     ...res,
     data: res.data
@@ -226,10 +231,14 @@ export async function createAsyncExportTaskApi(
 
 /** 查询导出任务状态 */
 export async function getExportTaskStatusApi(taskId: string) {
-  const res = await http.request<CommonResult<any>>(
-    "get",
-    baseUrlApi(prefix + `export/task/${taskId}`)
-  );
+  const res = await http.request<
+    CommonResult<{
+      id: string;
+      status: string;
+      progress: number;
+      error?: string;
+    }>
+  >("get", baseUrlApi(prefix + `export/task/${taskId}`));
   return {
     ...res,
     data: res.data

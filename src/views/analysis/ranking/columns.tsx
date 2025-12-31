@@ -1,9 +1,14 @@
-import type { TableColumnList } from "@pureadmin/table";
-
 const formatAmount = (val: string | number) => {
   const num = Number(val) / 100;
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 };
+
+interface RankRow {
+  name: string;
+  count: number;
+  amount: number | string;
+  profit?: number | string;
+}
 
 export function useColumns() {
   const customerColumns: TableColumnList = [
@@ -12,7 +17,7 @@ export function useColumns() {
       type: "index",
       width: 80,
       align: "center",
-      cellRenderer: ({ index }) => (
+      cellRenderer: ({ index }: { index: number }) => (
         <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
           {index + 1}
         </span>
@@ -32,7 +37,7 @@ export function useColumns() {
       label: "交易总额",
       prop: "amount",
       sortable: true,
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: RankRow }) => (
         <span class="font-bold text-blue-600">¥{formatAmount(row.amount)}</span>
       )
     }
@@ -44,7 +49,7 @@ export function useColumns() {
       type: "index",
       width: 80,
       align: "center",
-      cellRenderer: ({ index }) => (
+      cellRenderer: ({ index }: { index: number }) => (
         <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
           {index + 1}
         </span>
@@ -64,7 +69,7 @@ export function useColumns() {
       label: "采购总额",
       prop: "amount",
       sortable: true,
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: RankRow }) => (
         <span class="font-bold text-green-600">
           ¥{formatAmount(row.amount)}
         </span>
@@ -78,7 +83,7 @@ export function useColumns() {
       type: "index",
       width: 80,
       align: "center",
-      cellRenderer: ({ index }) => (
+      cellRenderer: ({ index }: { index: number }) => (
         <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
           {index + 1}
         </span>
@@ -98,14 +103,16 @@ export function useColumns() {
       label: "交易总额",
       prop: "amount",
       sortable: true,
-      cellRenderer: ({ row }) => <span>¥{formatAmount(row.amount)}</span>
+      cellRenderer: ({ row }: { row: RankRow }) => (
+        <span>¥{formatAmount(row.amount)}</span>
+      )
     },
     {
       label: "利润预估",
       prop: "profit",
       sortable: true,
-      cellRenderer: ({ row }) => (
-        <span class="text-emerald-500">¥{formatAmount(row.profit)}</span>
+      cellRenderer: ({ row }: { row: RankRow }) => (
+        <span class="text-emerald-500">¥{formatAmount(row.profit ?? 0)}</span>
       )
     }
   ];
@@ -116,7 +123,7 @@ export function useColumns() {
       type: "index",
       width: 80,
       align: "center",
-      cellRenderer: ({ index }) => (
+      cellRenderer: ({ index }: { index: number }) => (
         <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
           {index + 1}
         </span>
@@ -136,7 +143,7 @@ export function useColumns() {
       label: "涉及金额",
       prop: "amount",
       sortable: true,
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: RankRow }) => (
         <span class="font-bold">¥{formatAmount(row.amount)}</span>
       )
     }

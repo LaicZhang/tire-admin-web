@@ -176,8 +176,7 @@ class PureHttp {
   /** 请求拦截 */
   private httpInterceptorsRequest(): void {
     PureHttp.axiosInstance.interceptors.request.use(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async (config: PureHttpRequestConfig): Promise<any> => {
+      async (config: PureHttpRequestConfig) => {
         if (fatalApiConfigError) {
           notifyFatalApiConfigOnce();
           const error = new Error(fatalApiConfigError) as Error & {

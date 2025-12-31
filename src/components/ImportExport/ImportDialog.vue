@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, h } from "vue";
 import { message } from "@/utils";
+import { downloadBlob } from "@/utils/download";
+import {
+  createUploadValidator,
+  FileTypePresets
+} from "@/composables/useFileValidation";
+import {
+  useTemplateDownload,
+  useImportFile
+} from "@/composables/useImportExport";
 import {
   downloadImportTemplateApi,
   importDataApi,
@@ -45,6 +54,10 @@ const importResult = ref<{
   failed: number;
   errors: string[];
 } | null>(null);
+
+// 使用 composable 中的工具函数
+const { downloadTemplate: downloadTemplateUtil } = useTemplateDownload();
+const beforeUpload = createUploadValidator(FileTypePresets.excel);
 
 const templateColumns: TableColumnList = [
   {
@@ -97,45 +110,11 @@ async function loadTemplate() {
 }
 
 async function downloadTemplate() {
-  loading.value = true;
-  try {
-    const blob = await downloadImportTemplateApi(props.type);
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${props.type}_import_template.xlsx`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-    message("模板下载成功", { type: "success" });
-  } catch {
-    message("模板下载失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
+  await downloadTemplateUtil(downloadImportTemplateApi, props.type);
 }
 
 function handleFileChange(file: UploadFile) {
   fileList.value = [file];
-}
-
-function beforeUpload(file: UploadRawFile) {
-  const isExcel =
-    file.type ===
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-    file.type === "application/vnd.ms-excel";
-
-  if (!isExcel) {
-    message("请上传 Excel 文件", { type: "warning" });
-    return false;
-  }
-
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  if (file.size > maxSize) {
-    message("文件大小不能超过 10MB", { type: "warning" });
-    return false;
-  }
-
-  return true;
 }
 
 async function handleImport() {

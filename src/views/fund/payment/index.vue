@@ -190,7 +190,7 @@ onMounted(() => {
           v-model="queryForm.billNo"
           placeholder="请输入单据编号"
           clearable
-          class="!w-[160px]"
+          class="w-[160px]"
         />
       </el-form-item>
       <el-form-item label="供应商" prop="providerName">
@@ -198,7 +198,7 @@ onMounted(() => {
           v-model="queryForm.providerName"
           placeholder="请输入供应商名称"
           clearable
-          class="!w-[160px]"
+          class="w-[160px]"
         />
       </el-form-item>
       <el-form-item label="状态" prop="status">

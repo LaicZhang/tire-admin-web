@@ -1,9 +1,15 @@
-import type { TableColumnList } from "@pureadmin/table";
-
 const formatAmount = (val: string | number) => {
   const num = Number(val) / 100;
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 };
+
+interface RankRow {
+  name: string;
+  count?: number;
+  quantity?: number;
+  amount: number | string;
+  profit?: number | string;
+}
 
 export function useColumns() {
   const customerColumns: TableColumnList = [
@@ -13,7 +19,9 @@ export function useColumns() {
     {
       label: "交易金额",
       width: 150,
-      cellRenderer: ({ row }) => <span>¥{formatAmount(row.amount)}</span>
+      cellRenderer: ({ row }: { row: RankRow }) => (
+        <span>¥{formatAmount(row.amount)}</span>
+      )
     }
   ];
 
@@ -24,7 +32,9 @@ export function useColumns() {
     {
       label: "销售金额",
       width: 150,
-      cellRenderer: ({ row }) => <span>¥{formatAmount(row.amount)}</span>
+      cellRenderer: ({ row }: { row: RankRow }) => (
+        <span>¥{formatAmount(row.amount)}</span>
+      )
     }
   ];
 
@@ -35,7 +45,9 @@ export function useColumns() {
     {
       label: "业绩金额",
       width: 150,
-      cellRenderer: ({ row }) => <span>¥{formatAmount(row.amount)}</span>
+      cellRenderer: ({ row }: { row: RankRow }) => (
+        <span>¥{formatAmount(row.amount)}</span>
+      )
     }
   ];
 

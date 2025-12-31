@@ -6,6 +6,11 @@ import UploadIcon from "~icons/ri/upload-cloud-2-line";
 import DownloadIcon from "~icons/ri/download-cloud-2-line";
 import DeleteIcon from "~icons/ep/delete";
 import { message } from "@/utils";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
+import {
+  createUploadValidator,
+  FileTypePresets
+} from "@/composables/useFileValidation";
 import { PureTableBar } from "@/components/RePureTableBar";
 import type { ImportExportTask, ModuleOption } from "./types";
 import {
@@ -168,31 +173,19 @@ const handleDownloadTemplate = async () => {
   }
   try {
     const blob = await downloadImportTemplateApi(toolType);
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${toolType}_import_template.xlsx`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-    message("模板下载成功", { type: "success" });
+    downloadBlob(blob, `${toolType}_import_template.xlsx`, {
+      showMessage: true
+    });
   } catch {
     message("模板下载失败", { type: "error" });
   }
 };
 
 // 文件上传前校验
+import { validateFile as validateFileUtil } from "@/composables/useFileValidation";
 const beforeUpload = (file: File) => {
-  const isExcel = /\.(xlsx|xls)$/.test(file.name);
-  if (!isExcel) {
-    message("只能上传Excel文件!", { type: "error" });
-    return false;
-  }
-  const isLt10M = file.size / 1024 / 1024 < 10;
-  if (!isLt10M) {
-    message("文件大小不能超过10MB!", { type: "error" });
-    return false;
-  }
-  return true;
+  const result = validateFileUtil(file, FileTypePresets.excel, true);
+  return result.valid;
 };
 
 const handleUpload = async (options: UploadRequestOptions) => {
@@ -237,8 +230,9 @@ const handleUpload = async (options: UploadRequestOptions) => {
     );
     options.onSuccess?.(data, options as any);
     getTaskList();
-  } catch (e: any) {
-    message(e?.message || "导入失败", { type: "error" });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : "导入失败";
+    message(errorMessage, { type: "error" });
     options.onError?.(e);
   }
 };
@@ -262,24 +256,24 @@ const handleExport = () => {
   loading.value = true;
   exportDataApi(toolType, { filters: { fields: selectedFieldNames } })
     .then(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${toolType}_export_${Date.now()}.xlsx`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      const filename = generateFilenameWithTimestamp(
+        `${toolType}_export`,
+        "xlsx"
+      );
+      downloadBlob(blob, filename, {
+        showMessage: true
+      });
 
       pushTask({
         id: Date.now(),
         uid: crypto.randomUUID(),
         type: "export",
         module: exportModule.value,
-        fileName: `${toolType}_export_${Date.now()}.xlsx`,
+        fileName: filename,
         status: "success",
         createdAt: nowText(),
         completedAt: nowText()
       });
-      message("导出成功", { type: "success" });
       getTaskList();
     })
     .catch(() => message("导出失败", { type: "error" }))

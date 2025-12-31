@@ -190,7 +190,7 @@ onMounted(() => {
           v-model="form.code"
           placeholder="请输入编码"
           clearable
-          class="!w-[160px]"
+          class="w-[160px]"
           @keyup.enter="getData"
         />
       </el-form-item>
@@ -199,7 +199,7 @@ onMounted(() => {
           v-model="form.name"
           placeholder="请输入名称"
           clearable
-          class="!w-[160px]"
+          class="w-[160px]"
           @keyup.enter="getData"
         />
       </el-form-item>

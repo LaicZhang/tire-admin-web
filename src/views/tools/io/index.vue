@@ -11,6 +11,7 @@ import {
   type BarcodeProduct
 } from "@/api/tools";
 import { message } from "@/utils/message";
+import { downloadBlob } from "@/utils/download";
 import ImportDialog from "@/components/ImportExport/ImportDialog.vue";
 import ExportDialog from "@/components/ImportExport/ExportDialog.vue";
 
@@ -63,15 +64,9 @@ const printTypeOptions = [
 async function downloadTemplate() {
   try {
     const blob = await downloadImportTemplateApi(templateType.value);
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `template_${templateType.value}.xlsx`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    message("模板下载成功", { type: "success" });
+    downloadBlob(blob, `template_${templateType.value}.xlsx`, {
+      showMessage: true
+    });
   } catch (error) {
     message("下载失败", { type: "error" });
   }
@@ -88,14 +83,7 @@ async function checkTask() {
       if (data.status === "completed") {
         message("任务已完成，开始下载", { type: "success" });
         const blob = await downloadExportFileApi(taskId.value);
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `export_${taskId.value}.xlsx`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        downloadBlob(blob, `export_${taskId.value}.xlsx`);
       } else if (data.status === "processing") {
         message("任务处理中，请稍后再试", { type: "info" });
       } else if (data.status === "failed") {

@@ -75,7 +75,7 @@ async function getList() {
       { ...searchForm.value, providerId: searchForm.value.providerId }
     );
     if (res.code === 200) {
-      dataList.value = res.data.list;
+      dataList.value = res.data.list as ReturnOrder[];
       pagination.value.total = res.data.count;
     } else {
       message(res.msg, { type: "error" });

@@ -7,3 +7,4 @@ export * from "./security";
 export * from "./file";
 export * from "./mock";
 export * from "./error";
+export * from "./download";

@@ -12,7 +12,18 @@ export function useLayout() {
       useMultiTagsStore().multiTagsCache &&
       (!$storage.tags || $storage.tags.length === 0)
     ) {
-      $storage.tags = routerArrays;
+      $storage.tags = routerArrays
+        .filter(
+          (r): r is RouteConfigs & { path: string; name: string } =>
+            r.path !== undefined && r.name !== undefined
+        )
+        .map(r => ({
+          path: r.path,
+          name: r.name,
+          meta: r.meta,
+          query: r.query as Record<string, unknown> | undefined,
+          params: r.params as Record<string, unknown> | undefined
+        }));
     }
     /** 导航 */
     if (!$storage.layout) {

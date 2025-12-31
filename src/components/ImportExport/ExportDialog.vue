@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { message } from "@/utils";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import {
   exportDataApi,
   createAsyncExportTaskApi,
@@ -46,14 +47,14 @@ async function handleSyncExport() {
       filters: props.filters
     });
 
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${props.type}_export_${Date.now()}.xlsx`;
-    link.click();
-    window.URL.revokeObjectURL(url);
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp(`${props.type}_export`, "xlsx"),
+      {
+        showMessage: true
+      }
+    );
 
-    message("导出成功", { type: "success" });
     emit("success");
     dialogVisible.value = false;
   } catch {
@@ -127,14 +128,14 @@ async function downloadAsyncFile() {
   try {
     const blob = await downloadExportFileApi(asyncTaskId.value);
 
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${props.type}_export_${Date.now()}.xlsx`;
-    link.click();
-    window.URL.revokeObjectURL(url);
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp(`${props.type}_export`, "xlsx"),
+      {
+        showMessage: true
+      }
+    );
 
-    message("导出成功", { type: "success" });
     emit("success");
     asyncTaskId.value = null;
     taskStatus.value = null;

@@ -11,7 +11,6 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import * as echarts from "echarts/core";
-import type { TableColumnList } from "@pureadmin/table";
 
 defineOptions({
   name: "AnalysisInventory"

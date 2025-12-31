@@ -8,6 +8,7 @@ import {
   type BackupTask
 } from "@/api/system/backup";
 import { message, confirmBox } from "@/utils/message";
+import { downloadBlob } from "@/utils/download";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Plus from "~icons/ep/plus";
 import Download from "~icons/ep/download";
@@ -112,15 +113,9 @@ const handleDownload = async (row: BackupTask) => {
   try {
     loading.value = true;
     const blob = await downloadBackupApi(row.uid);
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = row.fileName || `backup-${row.uid}.sql`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    message("下载已开始", { type: "success" });
+    downloadBlob(blob, row.fileName || `backup-${row.uid}.sql`, {
+      showMessage: true
+    });
   } catch (error) {
     message("下载失败", { type: "error" });
   } finally {

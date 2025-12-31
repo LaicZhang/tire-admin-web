@@ -143,6 +143,31 @@ declare global {
   }
 
   /**
+   * 路由标签的基础类型（用于 ResponsiveStorage.tags）
+   */
+  interface RouteTag {
+    path?: string;
+    name?: string;
+    meta?: {
+      title?: string;
+      icon?: string;
+      roles?: string[];
+      auths?: string[];
+      keepAlive?: boolean;
+      showLink?: boolean;
+      hiddenTag?: boolean;
+      dynamicLevel?: number;
+      frameSrc?: string;
+      fixedTag?: boolean;
+      [key: string]: unknown;
+    };
+    query?: Record<string, unknown>;
+    params?: Record<string, unknown>;
+    children?: RouteTag[];
+    redirect?: string;
+  }
+
+  /**
    * `responsive-storage` 本地响应式 `storage` 的类型声明
    */
   interface ResponsiveStorage {
@@ -168,7 +193,7 @@ declare global {
       multiTagsCache?: boolean;
       stretch?: boolean | number;
     };
-    tags?: Array<any>;
+    tags?: Array<RouteTag>;
   }
 
   /**

@@ -10,7 +10,7 @@ vi.mock("~icons/ep/refresh", () => ({ default: "IconRefresh" }));
 
 // Mock hook
 vi.mock("@/components/ReIcon/src/hooks", () => ({
-  useRenderIcon: (icon: any) => icon
+  useRenderIcon: (icon: string | unknown) => icon
 }));
 
 describe("ReSearchForm", () => {

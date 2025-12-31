@@ -1,5 +1,19 @@
-import type { TableColumnList } from "@pureadmin/table";
 import { ElProgress } from "element-plus";
+
+interface CustomerRankingRow {
+  customerName: string;
+  orderCount: number;
+  totalQuantity: number;
+  totalAmount: number | string;
+  percentage: number;
+}
+
+interface TrendDataRow {
+  date: string;
+  orderCount: number;
+  quantity: number;
+  amount: number | string;
+}
 
 export function useColumns() {
   const customerRankingColumns: TableColumnList = [
@@ -26,14 +40,14 @@ export function useColumns() {
       label: "销售金额",
       prop: "totalAmount",
       width: 120,
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: CustomerRankingRow }) => (
         <span>¥{Number(row.totalAmount).toFixed(2)}</span>
       )
     },
     {
       label: "占比",
       width: 150,
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: CustomerRankingRow }) => (
         <ElProgress
           percentage={row.percentage}
           showText={true}
@@ -62,7 +76,9 @@ export function useColumns() {
       label: "销售金额",
       prop: "amount",
       width: 120,
-      cellRenderer: ({ row }) => <span>¥{Number(row.amount).toFixed(2)}</span>
+      cellRenderer: ({ row }: { row: TrendDataRow }) => (
+        <span>¥{Number(row.amount).toFixed(2)}</span>
+      )
     }
   ];
 

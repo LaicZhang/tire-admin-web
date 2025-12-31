@@ -1,4 +1,12 @@
-import type { TableColumnList } from "@pureadmin/table";
+interface InventoryRow {
+  tireName: string;
+  repoName?: string;
+  quantity?: number;
+  lastMoveDate?: string;
+  currentQuantity?: number;
+  safetyStock?: number;
+  suggestPurchase?: number;
+}
 
 export function useColumns() {
   const slowMovingColumns: TableColumnList = [
@@ -14,7 +22,7 @@ export function useColumns() {
       label: "当前库存",
       prop: "currentQuantity",
       width: 100,
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row: InventoryRow }) => (
         <span class="text-red-500 font-bold">{row.currentQuantity}</span>
       )
     },
