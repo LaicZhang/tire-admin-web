@@ -44,8 +44,13 @@ vi.mock("axios", () => {
   };
 });
 
-vi.mock("@/utils/auth", () => ({
+vi.mock("@/utils/auth-config", () => ({
   useHttpOnlyCookie: true,
+  csrfCookieName: "_csrf",
+  csrfHeaderName: "x-csrf-token"
+}));
+
+vi.mock("@/utils/auth", () => ({
   getCsrfToken: () => undefined,
   csrfHeaderName: "x-csrf-token",
   getToken: () => null,

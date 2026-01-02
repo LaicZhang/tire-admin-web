@@ -15,9 +15,9 @@ import {
   getToken,
   formatToken,
   getCsrfToken,
-  csrfHeaderName,
-  useHttpOnlyCookie
+  csrfHeaderName
 } from "@/utils/auth";
+import { useHttpOnlyCookie } from "@/utils/auth-config";
 import { useUserStoreHook } from "@/store/modules/user";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { resolveBaseURLFromViteEnv } from "./baseurl";

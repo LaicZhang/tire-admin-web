@@ -15,12 +15,17 @@ vi.mock("@/store/modules/user", () => ({
   })
 }));
 
+vi.mock("@/utils/auth-config", () => ({
+  useHttpOnlyCookie: false,
+  csrfCookieName: "_csrf",
+  csrfHeaderName: "X-CSRF-TOKEN"
+}));
+
 vi.mock("@/utils/auth", () => ({
   getToken: vi.fn(),
   formatToken: vi.fn((token: string) => `Bearer ${token}`),
   getCsrfToken: vi.fn(() => "csrf-token"),
-  csrfHeaderName: "X-CSRF-TOKEN",
-  useHttpOnlyCookie: false
+  csrfHeaderName: "X-CSRF-TOKEN"
 }));
 
 // Import after mocks are set up

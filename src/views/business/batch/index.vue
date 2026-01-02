@@ -29,13 +29,6 @@ const queryForm = ref({
   batchNo: undefined
 });
 
-// 分页
-const pagination = ref({
-  currentPage: 1,
-  pageSize: 10,
-  total: 0
-});
-
 // 新增批次弹窗
 const dialogVisible = ref(false);
 const formRef = ref<any>(null);

@@ -1,24 +1,14 @@
 import Cookies from "js-cookie";
 import { storageLocal } from "@pureadmin/utils";
 import { useUserStoreHook } from "@/store/modules/user";
+import {
+  useHttpOnlyCookie,
+  csrfCookieName,
+  csrfHeaderName
+} from "./auth-config";
 
-/**
- * HttpOnly Cookie Mode (AUDIT-040)
- * When enabled:
- * - accessToken/refreshToken are stored as HttpOnly cookies by the backend
- * - Frontend does NOT read or write tokens directly
- * - Frontend sends credentials: 'include' with all requests
- * - CSRF token is read from a non-HttpOnly cookie and sent in headers
- *
- * Set to true after backend migration is complete and tested
- */
-export const useHttpOnlyCookie =
-  import.meta.env.VITE_USE_HTTPONLY_COOKIE === "true";
-
-/** CSRF Token cookie name (readable by JS, set by backend) */
-export const csrfCookieName = "_csrf";
-/** CSRF Token header name (must match backend CSRF guard) */
-export const csrfHeaderName = "x-csrf-token";
+// Re-export for backward compatibility (http -> auth -> user -> api -> http circular dependency fix)
+export { useHttpOnlyCookie, csrfCookieName, csrfHeaderName };
 
 export interface DataInfo<T> {
   /** token */
