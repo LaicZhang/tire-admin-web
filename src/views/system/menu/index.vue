@@ -137,19 +137,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="m-[20px]">
+  <div class="m-5">
     <el-form
       ref="searchFormRef"
       :inline="true"
       :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      class="search-form bg-bg_color w-full pl-8 pt-3"
     >
       <el-form-item label="菜单名称" prop="title">
         <el-input
           v-model="form.title"
           placeholder="请输入菜单名称"
           clearable
-          class="!w-[200px]"
+          class="w-48!"
         />
       </el-form-item>
       <el-form-item>

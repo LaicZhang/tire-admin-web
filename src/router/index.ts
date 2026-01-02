@@ -126,6 +126,9 @@ export function resetRouter() {
 const whiteList = ["/login"];
 const { VITE_HIDE_HOME } = import.meta.env;
 
+/** 动态路由初始化中的单例 Promise，避免并发重复初始化 */
+let initRouterPromise: Promise<unknown> | null = null;
+
 router.beforeEach((to: ToRouteType, _from, next) => {
   to.meta.loaded = loadedPaths.has(to.path);
   if (!to.meta.loaded) {
@@ -154,6 +157,32 @@ router.beforeEach((to: ToRouteType, _from, next) => {
     whiteList.includes(to.path) ? next(_from.fullPath) : next();
   }
   if (Cookies.get(multipleTabsKey) && userInfo) {
+    // 动态路由尚未初始化时，首次点击菜单可能会出现“加载后仍停留原页面”的现象
+    // 这里统一在登录态下兜底初始化一次，并在完成后重试当前导航
+    if (
+      !externalLink &&
+      to.path !== "/login" &&
+      (usePermissionStoreHook().wholeMenus.length === 0 ||
+        to.matched.length === 0)
+    ) {
+      if (!initRouterPromise) {
+        initRouterPromise = import("./utils/cache")
+          .then(({ initRouter }) => initRouter())
+          .finally(() => {
+            initRouterPromise = null;
+          });
+      }
+      initRouterPromise
+        .then(() => {
+          next({ ...to, replace: true });
+        })
+        .catch(error => {
+          console.error("[Router] initRouter failed:", error);
+          removeToken();
+          next({ path: "/login", replace: true });
+        });
+      return;
+    }
     // 无权限跳转403页面
     if (to.meta?.roles && !isOneOfArray(to.meta.roles, userInfo?.roles ?? [])) {
       next({ path: "/error/403" });
@@ -167,6 +196,7 @@ router.beforeEach((to: ToRouteType, _from, next) => {
       if (externalLink) {
         openLink(to?.name as string);
         NProgress.done();
+        next(false);
       } else {
         toCorrectRoute();
       }

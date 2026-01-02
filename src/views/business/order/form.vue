@@ -247,7 +247,7 @@ onMounted(async () => {
           v-model="(newFormInline as any).providerId"
           clearable
           placeholder="请输入供应商"
-          class="w-[15vw]!"
+          class="w-60!"
         >
           <el-option
             v-for="item in allProviderList"
@@ -269,7 +269,7 @@ onMounted(async () => {
           v-model="(newFormInline as any).customerId"
           clearable
           placeholder="请选择客户"
-          class="w-[15vw]!"
+          class="w-60!"
         >
           <el-option
             v-for="item in allCustomerList"
@@ -286,7 +286,7 @@ onMounted(async () => {
         <el-select
           v-model="newFormInline.auditorId"
           placeholder="请选择审核人"
-          class="w-[15vw]!"
+          class="w-60!"
         >
           <el-option
             v-for="item in managerList"
@@ -341,7 +341,7 @@ onMounted(async () => {
           v-model="newFormInline.total"
           :min="0"
           :precision="2"
-          class="w-[180px]!"
+          class="w-48!"
         />
       </el-form-item>
       <el-form-item label="支付账户" prop="paymentId">
@@ -349,7 +349,7 @@ onMounted(async () => {
           v-model="newFormInline.paymentId"
           placeholder="请选择支付账户"
           clearable
-          class="w-[15vw]!"
+          class="w-60!"
         >
           <!-- 支付账户选项需要从API获取 -->
           <el-option
@@ -371,7 +371,7 @@ onMounted(async () => {
           v-model="(newFormInline as any).fee"
           :min="0"
           :precision="2"
-          class="w-[180px]!"
+          class="w-48!"
         />
       </el-form-item>
       <el-form-item label="费用类型">
@@ -389,7 +389,7 @@ onMounted(async () => {
           v-model="(newFormInline as any).fee"
           :min="0"
           :precision="2"
-          class="w-[180px]!"
+          class="w-48!"
         />
       </el-form-item>
     </template>
@@ -403,7 +403,7 @@ onMounted(async () => {
         <el-input
           v-model="barcodeInput"
           placeholder="扫描或输入条码添加商品 (回车)"
-          class="w-[300px] mr-2"
+          class="w-72 mr-2"
           :prefix-icon="useRenderIcon(SearchLine)"
           :loading="barcodeLoading"
           @keyup.enter="handleScan"
@@ -519,30 +519,23 @@ onMounted(async () => {
 
     <div class="flex">
       <el-form-item label="总数" prop="count">
-        <el-input-number
-          v-model="newFormInline.count"
-          disabled
-          class="w-[180px]!"
-        />
+        <el-input-number v-model="newFormInline.count" disabled class="w-48!" />
       </el-form-item>
 
       <el-form-item label="应付货款" prop="showTotal">
         <el-input-number
           v-model="newFormInline.showTotal"
           disabled
-          class="w-[180px]!"
+          class="w-48!"
         />
       </el-form-item>
 
       <el-form-item label="实付货款" prop="total">
-        <el-input-number v-model="newFormInline.total" class="w-[180px]!" />
+        <el-input-number v-model="newFormInline.total" class="w-48!" />
       </el-form-item>
 
       <el-form-item label="已付货款" prop="paidAmount">
-        <el-input-number
-          v-model="newFormInline.paidAmount"
-          class="w-[180px]!"
-        />
+        <el-input-number v-model="newFormInline.paidAmount" class="w-48!" />
       </el-form-item>
     </div>
   </el-form>
