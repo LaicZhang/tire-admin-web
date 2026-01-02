@@ -187,3 +187,9 @@
     background: rgb(199 201 203); /* 滑块hover颜色 */
   }
 }
+
+/* 全局覆盖 el-card 样式，去除边框和阴影 */
+.el-card {
+  border: none !important;
+  box-shadow: none !important;
+}

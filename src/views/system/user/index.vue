@@ -200,7 +200,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="main">
+  <div class="m-[20px]">
     <PlusSearch
       v-model="state"
       class="bg-white mb-4 p-4 rounded-md"
@@ -279,14 +279,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.main {
-  margin: 20px;
-}
-
-:deep(.el-card) {
-  border: none;
-  box-shadow: none;
-}
-</style>

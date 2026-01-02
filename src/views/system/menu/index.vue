@@ -137,7 +137,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="main">
+  <div class="m-[20px]">
     <el-form
       ref="searchFormRef"
       :inline="true"
@@ -231,10 +231,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
-}
-
 .search-form {
   :deep(.el-form-item) {
     margin-bottom: 12px;
