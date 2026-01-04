@@ -5,11 +5,8 @@ import Add from "~icons/ep/plus";
 import { getShippingWaveListApi, createShippingWaveApi } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
-import {
-  type ShippingWave,
-  ShippingWaveStatus,
-  shippingWaveStatusMap
-} from "./types";
+import StatusTag from "@/components/StatusTag/index.vue";
+import { type ShippingWave, shippingWaveStatusMap } from "./types";
 import ShippingWaveDialog from "./ShippingWaveDialog.vue";
 
 defineOptions({
@@ -123,14 +120,6 @@ async function handleCreate(formData: any) {
   }
 }
 
-function getStatusType(status: ShippingWaveStatus) {
-  return shippingWaveStatusMap[status]?.type || "info";
-}
-
-function getStatusLabel(status: ShippingWaveStatus) {
-  return shippingWaveStatusMap[status]?.label || status;
-}
-
 onMounted(() => {
   loadData();
 });
@@ -158,9 +147,10 @@ onMounted(() => {
           @page-current-change="handleCurrentChange"
         >
           <template #status="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
+            <StatusTag
+              :status="row.status"
+              :status-map="shippingWaveStatusMap"
+            />
           </template>
           <template #operation>
             <el-button class="reset-margin" link type="primary">

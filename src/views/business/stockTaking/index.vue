@@ -9,7 +9,7 @@ import Minus from "~icons/ep/minus";
 import List from "~icons/ep/list";
 import Close from "~icons/ep/close";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { ElTag } from "element-plus";
+import StatusTag from "@/components/StatusTag/index.vue";
 import { useRepoSelector } from "./composables/useRepoSelector";
 import { useQuickStockTaking } from "./composables/useQuickStockTaking";
 import { useStockTakingTasks } from "./composables/useStockTakingTasks";
@@ -120,31 +120,11 @@ const handleTabChange = (tab: string | number | boolean | undefined) => {
   }
 };
 
-const getStatusType = (status: string) => {
-  switch (status) {
-    case "IN_PROGRESS":
-      return "warning";
-    case "COMPLETED":
-      return "success";
-    case "CANCELLED":
-      return "info";
-    default:
-      return "info";
-  }
-};
-
-const getStatusText = (status: string) => {
-  switch (status) {
-    case "IN_PROGRESS":
-      return "进行中";
-    case "COMPLETED":
-      return "已完成";
-    case "CANCELLED":
-      return "已取消";
-    default:
-      return status;
-  }
-};
+const taskStatusMap = {
+  IN_PROGRESS: { label: "进行中", type: "warning" },
+  COMPLETED: { label: "已完成", type: "success" },
+  CANCELLED: { label: "已取消", type: "info" }
+} as const;
 
 // 监听仓库变化
 watch(currentRepo, () => {
@@ -343,9 +323,11 @@ onMounted(() => {
                   返回列表
                 </el-button>
                 <span class="font-bold text-lg">{{ currentTask.name }}</span>
-                <el-tag :type="getStatusType(currentTask.status)">
-                  {{ getStatusText(currentTask.status) }}
-                </el-tag>
+                <StatusTag
+                  :status="currentTask.status"
+                  :status-map="taskStatusMap"
+                  size="default"
+                />
               </div>
               <div
                 v-if="currentTask.status === 'IN_PROGRESS'"

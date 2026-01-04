@@ -6,11 +6,8 @@ import Add from "~icons/ep/plus";
 import { getShippingPlanListApi, createShippingPlanApi } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
-import {
-  type ShippingPlan,
-  ShippingPlanStatus,
-  shippingPlanStatusMap
-} from "./types";
+import StatusTag from "@/components/StatusTag/index.vue";
+import { type ShippingPlan, shippingPlanStatusMap } from "./types";
 import ShippingPlanDialog from "./ShippingPlanDialog.vue";
 
 defineOptions({
@@ -119,14 +116,6 @@ async function handleCreate(formData: any) {
   }
 }
 
-function getStatusType(status: ShippingPlanStatus) {
-  return shippingPlanStatusMap[status]?.type || "info";
-}
-
-function getStatusLabel(status: ShippingPlanStatus) {
-  return shippingPlanStatusMap[status]?.label || status;
-}
-
 onMounted(() => {
   loadData();
 });
@@ -154,9 +143,10 @@ onMounted(() => {
           @page-current-change="handleCurrentChange"
         >
           <template #status="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
+            <StatusTag
+              :status="row.status"
+              :status-map="shippingPlanStatusMap"
+            />
           </template>
           <template #operation>
             <el-button class="reset-margin" link type="primary">
