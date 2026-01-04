@@ -40,8 +40,12 @@ import { subBefore, getQueryMap } from "@pureadmin/utils";
     setToken(params);
 
     // 移除不需要显示在 url 的参数
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { roles: _roles, accessToken: _accessToken, ...rest } = params as any;
+
+    const {
+      roles: _roles,
+      accessToken: _accessToken,
+      ...rest
+    } = params as unknown;
 
     const newUrl = `${location.origin}${location.pathname}${subBefore(
       location.hash,

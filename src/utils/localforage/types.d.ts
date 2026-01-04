@@ -19,47 +19,45 @@ interface LocalForageOptions extends LocalForageDbInstanceOptions {
 interface LocalForageDbMethodsCore {
   getItem<T>(
     key: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback?: (err: any, value: T | null) => void
+
+    callback?: (err: unknown, value: T | null) => void
   ): Promise<T | null>;
 
   setItem<T>(
     key: string,
     value: T,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback?: (err: any, value: T) => void
+
+    callback?: (err: unknown, value: T) => void
   ): Promise<T>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  removeItem(key: string, callback?: (err: any) => void): Promise<void>;
+  removeItem(key: string, callback?: (err: unknown) => void): Promise<void>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  clear(callback?: (err: any) => void): Promise<void>;
+  clear(callback?: (err: unknown) => void): Promise<void>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  length(callback?: (err: any, numberOfKeys: number) => void): Promise<number>;
+  length(
+    callback?: (err: unknown, numberOfKeys: number) => void
+  ): Promise<number>;
 
   key(
     keyIndex: number,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback?: (err: any, key: string) => void
+
+    callback?: (err: unknown, key: string) => void
   ): Promise<string>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  keys(callback?: (err: any, keys: string[]) => void): Promise<string[]>;
+  keys(callback?: (err: unknown, keys: string[]) => void): Promise<string[]>;
 
   iterate<T, U>(
     iteratee: (value: T, key: string, iterationNumber: number) => U,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback?: (err: any, result: U) => void
+
+    callback?: (err: unknown, result: U) => void
   ): Promise<U>;
 }
 
 interface LocalForageDropInstanceFn {
   (
     dbInstanceOptions?: LocalForageDbInstanceOptions,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback?: (err: any) => void
+
+    callback?: (err: unknown) => void
   ): Promise<void>;
 }
 
@@ -91,8 +89,8 @@ interface LocalForageDriver extends LocalForageDriverDbMethods {
 interface LocalForageSerializer {
   serialize<T>(
     value: T | ArrayBuffer | Blob,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback: (value: string, error: any) => void
+
+    callback: (value: string, error: unknown) => void
   ): void;
 
   deserialize<T>(value: string): T | ArrayBuffer | Blob;
@@ -116,8 +114,8 @@ export interface LocalForage extends LocalForageDbMethods {
    * @param {LocalForageOptions} options?
    */
   config(options: LocalForageOptions): boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  config(options: string): any;
+
+  config(options: string): unknown;
   config(): LocalForageOptions;
 
   /**
@@ -136,15 +134,15 @@ export interface LocalForage extends LocalForageDbMethods {
   setDriver(
     driver: string | string[],
     callback?: () => void,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    errorCallback?: (error: any) => void
+
+    errorCallback?: (error: unknown) => void
   ): Promise<void>;
 
   defineDriver(
     driver: LocalForageDriver,
     callback?: () => void,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    errorCallback?: (error: any) => void
+
+    errorCallback?: (error: unknown) => void
   ): Promise<void>;
 
   /**
@@ -159,8 +157,7 @@ export interface LocalForage extends LocalForageDbMethods {
 
   supports(driverName: string): boolean;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ready(callback?: (error: any) => void): Promise<void>;
+  ready(callback?: (error: unknown) => void): Promise<void>;
 }
 
 // Customize

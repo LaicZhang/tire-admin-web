@@ -19,11 +19,11 @@ interface PrintInstance {
   getHtml: () => string;
   writeIframe: (content: string) => void;
   toPrint: (frameWindow: Document | Window) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  isDOM: (obj: any) => boolean;
+
+  isDOM: (obj: unknown) => boolean;
   setDomHeight: (arr: string[]) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extendOptions: <T>(obj: any, obj2: T) => T;
+
+  extendOptions: <T>(obj: unknown, obj2: T) => T;
 }
 
 const Print = function (
@@ -45,12 +45,11 @@ const Print = function (
     // Callback after printing
     printDoneCallBack: null
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const conf = this.conf as Record<string, any>;
+
+  const conf = this.conf as Record<string, unknown>;
   for (const key in conf) {
     if (key && Object.prototype.hasOwnProperty.call(options, key)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      conf[key] = (options as any)[key];
+      conf[key] = (options as unknown)[key];
     }
   }
   if (typeof dom === "string") {
@@ -78,8 +77,8 @@ Print.prototype = {
    * @param {Object} obj
    * @param {Object} obj2
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extendOptions: function <T>(this: PrintInstance, obj: any, obj2: T): T {
+
+  extendOptions: function <T>(this: PrintInstance, obj: unknown, obj2: T): T {
     for (const k in obj2) {
       obj[k] = obj2[k];
     }
@@ -232,12 +231,10 @@ Print.prototype = {
   },
   isDOM:
     typeof HTMLElement === "object"
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function (obj: any) {
+      ? function (obj: unknown) {
           return obj instanceof HTMLElement;
         }
-      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function (obj: any) {
+      : function (obj: unknown) {
           return (
             obj &&
             typeof obj === "object" &&
