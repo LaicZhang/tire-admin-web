@@ -5,6 +5,7 @@ import { message } from "@/utils/message";
 import { formatDateTime } from "@/utils";
 import { openDialog } from "./table";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import StatusTag from "@/components/StatusTag/index.vue";
 import OfficeBuilding from "~icons/ep/office-building";
 import User from "~icons/ep/user";
 import Phone from "~icons/ep/phone";
@@ -20,13 +21,14 @@ defineOptions({
 const loading = ref(false);
 const companyInfo = ref<Partial<CompanyInfo>>({});
 
-const statusText = computed(() => {
-  return companyInfo.value?.status === true ? "正常运营" : "异常";
-});
+const companyStatusMap = {
+  1: { label: "正常运营", type: "success" },
+  0: { label: "异常", type: "danger" }
+} as const;
 
-const statusType = computed(() => {
-  return companyInfo.value?.status === true ? "success" : "danger";
-});
+const companyStatus = computed(() =>
+  companyInfo.value?.status === true ? 1 : 0
+);
 
 const getCompanyInfo = async () => {
   loading.value = true;
@@ -62,9 +64,11 @@ onMounted(async () => {
         <div class="overview-info">
           <div class="company-name">
             {{ companyInfo.name || "—" }}
-            <el-tag :type="statusType" size="small" class="ml-2">
-              {{ statusText }}
-            </el-tag>
+            <StatusTag
+              :status="companyStatus"
+              :status-map="companyStatusMap"
+              class="ml-2"
+            />
           </div>
           <div class="company-desc">
             {{ companyInfo.desc || "暂无备注信息" }}

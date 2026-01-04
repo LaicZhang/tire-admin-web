@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
@@ -99,43 +99,32 @@ onMounted(async () => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="仓库名称：" prop="name">
-          <el-input
-            v-model="form.name"
-            placeholder="请输入仓库名称"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item label="备注：" prop="desc">
-          <el-input
-            v-model="form.desc"
-            placeholder="请输入备注"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="formRef"
+      class="m-1"
+      :form="form"
+      :loading="loading"
+      :body-style="{ paddingBottom: '0', overflow: 'auto' }"
+      @search="onSearch"
+      @reset="resetForm(formRef)"
+    >
+      <el-form-item label="仓库名称：" prop="name">
+        <el-input
+          v-model="form.name"
+          placeholder="请输入仓库名称"
+          clearable
+          class="w-[180px]!"
+        />
+      </el-form-item>
+      <el-form-item label="备注：" prop="desc">
+        <el-input
+          v-model="form.desc"
+          placeholder="请输入备注"
+          clearable
+          class="w-[180px]!"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar :title="$route.meta.title" @refresh="getRepoListInfo">
