@@ -1,8 +1,7 @@
 import type { App } from "vue";
 import axios from "axios";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let config: Record<string, any> = {};
+let config: Record<string, unknown> = {};
 const { VITE_PUBLIC_PATH } = import.meta.env;
 
 const setConfig = (cfg?: unknown) => {
@@ -10,8 +9,8 @@ const setConfig = (cfg?: unknown) => {
 };
 
 function getConfig(): PlatformConfigs;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getConfig(key: string): any;
+
+function getConfig(key: string): unknown;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getConfig(key?: string): any {
   if (typeof key === "string") {

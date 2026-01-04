@@ -11,13 +11,13 @@ declare global {
     type Element = VNode;
     type ElementClass = Vue;
     interface ElementAttributesProperty {
-      $props: any;
+      $props: unknown;
     }
     interface IntrinsicElements {
-      [elem: string]: any;
+      [elem: string]: unknown;
     }
     interface IntrinsicAttributes {
-      [elem: string]: any;
+      [elem: string]: unknown;
     }
   }
 }
