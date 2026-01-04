@@ -6,6 +6,7 @@ import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
 import Setting from "~icons/ep/setting";
 import { PureTableBar } from "@/components/RePureTableBar";
+import StatusTag from "@/components/StatusTag/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
@@ -31,6 +32,11 @@ const activeTab = ref("users");
 const userList = ref<PermissionUser[]>([]);
 const roleList = ref<Role[]>([]);
 const formRef = ref();
+
+const enableStatusMap = {
+  1: { label: "启用", type: "success" },
+  0: { label: "禁用", type: "danger" }
+} as const;
 
 // 权限模块数据
 const permissionModules = ref<PermissionModule[]>([
@@ -95,9 +101,12 @@ const userColumns: TableColumnList = [
     prop: "status",
     minWidth: 80,
     cellRenderer: ({ row }) => (
-      <el-tag type={row.status === "1" ? "success" : "danger"} effect="plain">
-        {row.status === "1" ? "启用" : "禁用"}
-      </el-tag>
+      <StatusTag
+        status={row.status}
+        statusMap={enableStatusMap}
+        size="default"
+        effect="plain"
+      />
     )
   },
   {

@@ -6,6 +6,7 @@ import Upload from "~icons/ep/upload";
 import Delete from "~icons/ep/delete";
 import Refresh from "~icons/ep/refresh";
 import { PureTableBar } from "@/components/RePureTableBar";
+import StatusTag from "@/components/StatusTag/index.vue";
 import { message } from "@/utils";
 import {
   ElMessageBox,
@@ -36,6 +37,12 @@ const backupSettings = ref<BackupSettings>({
   keepDays: 30
 });
 
+const backupTaskStatusMap = {
+  success: { label: "成功", type: "success" },
+  failed: { label: "失败", type: "danger" },
+  processing: { label: "处理中", type: "warning" }
+} as const;
+
 const columns: TableColumnList = [
   {
     label: "备份文件",
@@ -64,18 +71,14 @@ const columns: TableColumnList = [
     label: "状态",
     prop: "statusName",
     minWidth: 100,
-    cellRenderer: ({ row }) => {
-      const typeMap: Record<string, string> = {
-        success: "success",
-        failed: "danger",
-        processing: "warning"
-      };
-      return (
-        <el-tag type={typeMap[row.status]} effect="plain">
-          {row.statusName}
-        </el-tag>
-      );
-    }
+    cellRenderer: ({ row }) => (
+      <StatusTag
+        status={row.status}
+        statusMap={backupTaskStatusMap}
+        size="default"
+        effect="plain"
+      />
+    )
   },
   {
     label: "备份时间",
