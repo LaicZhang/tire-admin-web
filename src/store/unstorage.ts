@@ -10,18 +10,15 @@ export class IndexedDbStorage {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setItems(key: any, value: any) {
+  setItems(key: unknown, value: unknown) {
     this.indexedDbStorage.setItems(key, value);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getItems(key: any) {
+  getItems(key: unknown) {
     return this.indexedDbStorage.getItems(key);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setItem(key: string, value: any) {
+  setItem(key: string, value: unknown) {
     return this.indexedDbStorage.setItem(key, value);
   }
 
@@ -38,18 +35,15 @@ export class LStorage {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setItems(key: any, value: any) {
+  setItems(key: unknown, value: unknown) {
     this.lStorage.setItems(key, value);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getItems(key: any) {
+  getItems(key: unknown) {
     return this.lStorage.getItems(key);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setItem(key: string, value: any) {
+  setItem(key: string, value: unknown) {
     return this.lStorage.setItem(key, value);
   }
 

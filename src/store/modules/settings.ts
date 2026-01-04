@@ -21,15 +21,13 @@ export const useSettingStore = defineStore("pure-setting", {
     }
   },
   actions: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    CHANGE_SETTING({ key, value }: { key: keyof setType; value: any }) {
+    CHANGE_SETTING({ key, value }: { key: keyof setType; value: unknown }) {
       if (Reflect.has(this, key)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (this as any)[key] = value;
+        (this as unknown)[key] = value;
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    changeSetting(data: { key: keyof setType; value: any }) {
+
+    changeSetting(data: { key: keyof setType; value: unknown }) {
       this.CHANGE_SETTING(data);
     }
   }

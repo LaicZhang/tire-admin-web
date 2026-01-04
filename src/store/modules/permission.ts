@@ -32,11 +32,11 @@ export const usePermissionStore = defineStore("pure-permission", {
   actions: {
     /** 组装整体路由生成的菜单 */
     handleWholeMenus(routes: RouteRecordRaw[]) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const merged = (this.constantMenus as any[]).concat(routes as any[]);
+      const merged = (this.constantMenus as unknown[]).concat(
+        routes as unknown[]
+      );
       this.wholeMenus = filterNoPermissionTree(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        filterTree(ascending(merged as any))
+        filterTree(ascending(merged as unknown))
       ) as unknown as RouteRecordRaw[];
       this.flatteningRoutes = formatFlatteningRoutes(
         merged as unknown as RouteRecordRaw[]
