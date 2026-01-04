@@ -27,11 +27,11 @@ const formRules: FormRules = {
   auditorId: [{ required: true, message: "请选择审核人", trigger: "change" }]
 };
 
-const allProviderList = ref<any[]>([]);
-const allTireList = ref<any[]>([]);
-const allRepoList = ref<any[]>([]);
-const managerList = ref<any[]>([]);
-const allPaymentList = ref<any[]>([]);
+const allProviderList = ref<unknown[]>([]);
+const allTireList = ref<unknown[]>([]);
+const allRepoList = ref<unknown[]>([]);
+const managerList = ref<unknown[]>([]);
+const allPaymentList = ref<unknown[]>([]);
 
 const isReadOnly = computed(() => ["查看", "审核"].includes(props.formTitle));
 
@@ -61,10 +61,10 @@ async function loadBaseData() {
       localForage().getItem(ALL_LIST.repo),
       localForage().getItem(ALL_LIST.manager)
     ]);
-    allProviderList.value = (providerData as any[]) || [];
-    allTireList.value = (tireData as any[]) || [];
-    allRepoList.value = (repoData as any[]) || [];
-    managerList.value = (managerData as any[]) || [];
+    allProviderList.value = (providerData as unknown[]) || [];
+    allTireList.value = (tireData as unknown[]) || [];
+    allRepoList.value = (repoData as unknown[]) || [];
+    managerList.value = (managerData as unknown[]) || [];
 
     const cid = await getCompanyId();
     const { data: paymentData } = await getPaymentListApi(cid);

@@ -30,7 +30,7 @@ const searchForm = ref<ReportQueryParams>({
 
 const dateRange = ref<[string, string] | null>(null);
 
-const providerList = ref<any[]>([]);
+const providerList = ref<unknown[]>([]);
 
 const statistics = ref<PurchaseStatistics>({
   totalOrders: 0,
@@ -54,7 +54,7 @@ const groupByOptions = [
 async function loadSelectData() {
   try {
     const providers = await localForage().getItem(ALL_LIST.provider);
-    providerList.value = (providers as any[]) || [];
+    providerList.value = (providers as unknown[]) || [];
   } catch (error) {
     handleApiError(error, "加载下拉数据失败");
   }
@@ -68,7 +68,7 @@ function toNumber(value: unknown) {
 
 function getGroupKey(date: unknown) {
   const groupBy = searchForm.value.groupBy || "month";
-  const d = dayjs(date as any);
+  const d = dayjs(date as unknown);
   switch (groupBy) {
     case "day":
       return d.format("YYYY-MM-DD");
@@ -92,7 +92,7 @@ async function loadReportData() {
     searchForm.value.startDate = startDate;
     searchForm.value.endDate = endDate;
 
-    const orders: any[] = [];
+    const orders: unknown[] = [];
     let pageIndex = 1;
     const pageSize = 200;
 
@@ -120,7 +120,7 @@ async function loadReportData() {
     const providerMap = new Map<string, ProviderRanking>();
     const dateMap = new Map<string, TrendData>();
 
-    orders.forEach((order: any) => {
+    orders.forEach((order: unknown) => {
       const orderTotal = toNumber(order.total);
       const paidAmount = toNumber(order.paidAmount);
       const quantity = toNumber(order.count);

@@ -105,7 +105,7 @@ function handleAdd() {
   dialogVisible.value = true;
 }
 
-async function handleCreate(formData: any) {
+async function handleCreate(formData: unknown) {
   try {
     const { code, msg } = await createShippingWaveApi(formData);
     if (code === 200) {

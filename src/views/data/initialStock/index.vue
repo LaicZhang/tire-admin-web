@@ -72,10 +72,12 @@ const getList = async () => {
       getInitialStockListApi(),
       getRepoListApi(1).catch(() => null)
     ]);
-    repoList.value = ((repoRes as any)?.data?.list || []).map((r: any) => ({
-      uid: r.uid,
-      name: r.name
-    }));
+    repoList.value = ((repoRes as unknown)?.data?.list || []).map(
+      (r: unknown) => ({
+        uid: r.uid,
+        name: r.name
+      })
+    );
 
     const tireIds = Array.from(new Set(rawList.map(i => i.tireId)));
     const repoIds = Array.from(new Set(rawList.map(i => i.repoId)));
@@ -85,7 +87,7 @@ const getList = async () => {
         tireIds.map(async uid => {
           try {
             const res = await getTireApi(uid);
-            return res.code === 200 ? (res.data as any) : null;
+            return res.code === 200 ? (res.data as unknown) : null;
           } catch {
             return null;
           }
@@ -95,7 +97,7 @@ const getList = async () => {
         repoIds.map(async uid => {
           try {
             const res = await getRepoApi(uid);
-            return (res as any).code === 200 ? (res as any).data : null;
+            return (res as unknown).code === 200 ? (res as unknown).data : null;
           } catch {
             return null;
           }
@@ -155,7 +157,7 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -172,7 +174,7 @@ const handleSelectionChange = (rows: InitialStock[]) => {
 
 const dialogFormRef = ref<{
   getRef: () => FormInstance;
-  getStockItems: () => any[];
+  getStockItems: () => unknown[];
 } | null>(null);
 
 const openDialog = (title = "新增", row?: InitialStock) => {

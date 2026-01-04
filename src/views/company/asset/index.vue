@@ -76,7 +76,7 @@ async function handleCurrentChange(val: number) {
   await getAssetListInfo();
 }
 
-async function handleDelete(row: any) {
+async function handleDelete(row: unknown) {
   try {
     await deleteAssetApi(row.uid);
     message("删除成功", { type: "success" });
@@ -87,7 +87,7 @@ async function handleDelete(row: any) {
   }
 }
 
-function openDialog(title = "新增", row?: any) {
+function openDialog(title = "新增", row?: unknown) {
   addDialog({
     title: `${title}资产`,
     props: {

@@ -82,7 +82,7 @@ async function fetchData() {
         ? { toRepositoryId: queryParams.toRepositoryId }
         : {}),
       ...(queryParams.auditorId ? { auditorId: queryParams.auditorId } : {})
-    } as any);
+    } as unknown);
 
     if (res.code !== 200) {
       message(res.msg || "获取调拨单列表失败", { type: "error" });
@@ -218,7 +218,7 @@ function openDialog(title: string, row?: TransferOrder, isView = false) {
                 isShipped: false,
                 isArrival: false
               }))
-            } as any);
+            } as unknown);
             message("创建成功", { type: "success" });
           } else if (row?.uid) {
             await updateOrderApi(ORDER_TYPE, row.uid, {
@@ -227,7 +227,7 @@ function openDialog(title: string, row?: TransferOrder, isView = false) {
               toRepository: { connect: { uid: data.toRepositoryId } },
               desc: data.desc || null,
               company: { connect: { uid: companyId } }
-            } as any);
+            } as unknown);
             message("更新成功", { type: "success" });
           }
 
@@ -268,7 +268,7 @@ async function handleApprove(row: TransferOrder) {
       isLocked: true,
       rejectReason: null,
       auditAt: new Date().toISOString()
-    } as any);
+    } as unknown);
     message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
@@ -291,7 +291,7 @@ async function handleReject(row: TransferOrder) {
       isLocked: false,
       rejectReason: value,
       auditAt: null
-    } as any);
+    } as unknown);
     message("已拒绝", { type: "success" });
     fetchData();
   } catch (error) {

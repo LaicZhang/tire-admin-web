@@ -158,7 +158,7 @@ const handleSaved = async () => {
 // 导出授权
 const exportAuth = async () => {
   try {
-    const res: any = await exportDataAuthApi();
+    const res = await exportDataAuthApi();
     if (res instanceof Blob) {
       downloadBlob(
         res,
@@ -172,7 +172,7 @@ const exportAuth = async () => {
 
     const { code, data, msg } = res as {
       code: number;
-      data: any;
+      data: unknown;
       msg?: string;
     };
     if (code !== 200) {

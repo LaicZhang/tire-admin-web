@@ -48,9 +48,9 @@ const pagination = ref({
   background: true
 });
 
-const employeeList = ref<any[]>([]);
-const managerList = ref<any[]>([]);
-const providerList = ref<any[]>([]);
+const employeeList = ref<unknown[]>([]);
+const managerList = ref<unknown[]>([]);
+const providerList = ref<unknown[]>([]);
 
 async function loadSelectData() {
   try {
@@ -59,9 +59,9 @@ async function loadSelectData() {
       localForage().getItem(ALL_LIST.manager),
       localForage().getItem(ALL_LIST.provider)
     ]);
-    employeeList.value = (employees as any[]) || [];
-    managerList.value = (managers as any[]) || [];
-    providerList.value = (providers as any[]) || [];
+    employeeList.value = (employees as unknown[]) || [];
+    managerList.value = (managers as unknown[]) || [];
+    providerList.value = (providers as unknown[]) || [];
   } catch (error) {
     handleApiError(error, "加载下拉数据失败");
   }

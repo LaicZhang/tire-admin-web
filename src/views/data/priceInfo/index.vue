@@ -92,7 +92,7 @@ const getList = async () => {
       return;
     }
     const extras = readExtra();
-    dataList.value = (data.list || []).map((t: any) => {
+    dataList.value = (data.list || []).map((t: unknown) => {
       const extra = extras[t.uid] || {};
       return {
         id: t.id,
@@ -123,7 +123,7 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -186,7 +186,7 @@ const openDialog = (row: PriceInfo) => {
           await updateTireApi(row.tireId, {
             salePrice: cur.retailPrice,
             purchasePrice: cur.maxPurchasePrice
-          } as any);
+          } as unknown);
 
           message("保存成功", { type: "success" });
           done();
@@ -235,7 +235,7 @@ const handleClear = (row: PriceInfo) => {
   updateTireApi(row.tireId, {
     salePrice: undefined,
     purchasePrice: undefined
-  } as any).catch(() => {});
+  } as unknown).catch(() => {});
   message(`已清空${row.tireName}的价格设置`, { type: "success" });
   getList();
 };

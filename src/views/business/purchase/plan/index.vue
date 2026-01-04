@@ -45,7 +45,7 @@ const columns: TableColumnList = [
     cellRenderer: ({ row }) => {
       return (
         row.items
-          ?.map((i: any) => `${i.tireName} x ${i.quantity}`)
+          ?.map((i: unknown) => `${i.tireName} x ${i.quantity}`)
           .join(", ") || "-"
       );
     }
@@ -94,13 +94,13 @@ const handleCurrentChange = (val: number) => {
   getData();
 };
 
-const handleDelete = async (row: any) => {
+const handleDelete = async (row: unknown) => {
   await deletePurchasePlanApi(row.id);
   message("删除成功", { type: "success" });
   getData();
 };
 
-function openDialog(title = "新增", row?: any) {
+function openDialog(title = "新增", row?: unknown) {
   // Simplified dialog for adding purchase plan: just entering details in desc for now
   // In real app, this should be a complex form with product selection table
   addDialog({

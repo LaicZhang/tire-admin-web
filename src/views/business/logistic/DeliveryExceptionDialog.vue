@@ -102,7 +102,7 @@ async function handleBeforeUpload(file: File) {
   return true;
 }
 
-function handleUploadSuccess(response: any) {
+function handleUploadSuccess(response: unknown) {
   const { code, msg, data } = response;
   if (code !== 200) {
     message(msg, { type: "error" });
@@ -113,8 +113,8 @@ function handleUploadSuccess(response: any) {
   }
 }
 
-function handleRemove(file: any) {
-  const index = fileList.value.findIndex((f: any) => f.uid === file.uid);
+function handleRemove(file: unknown) {
+  const index = fileList.value.findIndex((f: unknown) => f.uid === file.uid);
   if (index > -1) {
     formData.value.images.splice(index, 1);
   }

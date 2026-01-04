@@ -84,13 +84,13 @@ const handleCurrentChange = (val: number) => {
   getData();
 };
 
-const handleDelete = async (row: any) => {
+const handleDelete = async (row: unknown) => {
   await deleteSalesQuotationApi(row.id);
   message("删除成功", { type: "success" });
   getData();
 };
 
-function openDialog(title = "新增", row?: any) {
+function openDialog(title = "新增", row?: unknown) {
   addDialog({
     title: `${title}报价单`,
     props: {

@@ -70,9 +70,9 @@ const summaryData = ref({
 const trendData = ref<{ period: string; amount: string; count: number }[]>([]);
 
 // 排行榜数据
-const customerRanking = ref<any[]>([]);
-const productRanking = ref<any[]>([]);
-const operatorRanking = ref<any[]>([]);
+const customerRanking = ref<unknown[]>([]);
+const productRanking = ref<unknown[]>([]);
+const operatorRanking = ref<unknown[]>([]);
 
 // 当前选中的排行榜类型
 const activeRankingTab = ref("customer");

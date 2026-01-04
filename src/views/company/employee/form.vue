@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<FormProps>(), {
   })
 });
 
-const allPositionList = ref<any[]>([]);
+const allPositionList = ref<unknown[]>([]);
 /** 自定义表单规则校验 */
 const formRules = reactive({
   name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
@@ -48,12 +48,15 @@ const employeeStatus = ref<
   Array<{ id: number; key: string | number; cn: string }>
 >([]);
 const getEmployeeStatus = async () => {
-  const dict: any = await localForage().getItem(SYS.dict);
+  const dict = (await localForage().getItem(SYS.dict)) as Record<
+    string,
+    unknown
+  >;
   employeeStatus.value = dict.employeeStatus;
 };
 
 async function getPositionList() {
-  const cached: any = await localForage().getItem(ALL_LIST.position);
+  const cached = (await localForage().getItem(ALL_LIST.position)) as unknown;
   allPositionList.value = Array.isArray(cached) ? cached : cached?.list || [];
 }
 

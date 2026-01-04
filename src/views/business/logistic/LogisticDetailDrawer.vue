@@ -10,7 +10,7 @@ defineOptions({
 
 const props = defineProps<{
   visible: boolean;
-  logistic: any;
+  logistic: unknown;
 }>();
 
 const emit = defineEmits<{

@@ -52,12 +52,12 @@ const pagination = ref({
   background: true
 });
 
-const providerList = ref<any[]>([]);
+const providerList = ref<unknown[]>([]);
 
 async function loadSelectData() {
   try {
     const providers = await localForage().getItem(ALL_LIST.provider);
-    providerList.value = (providers as any[]) || [];
+    providerList.value = (providers as unknown[]) || [];
   } catch (error) {
     handleApiError(error, "加载下拉数据失败");
   }
@@ -92,7 +92,7 @@ async function getList() {
 
     const fetchByType: Record<
       string,
-      (index: number, params?: Record<string, any>) => Promise<any>
+      (index: number, params?: Record<string, unknown>) => Promise<unknown>
     > = {
       [PURCHASE_ORDER_TYPE]: getPurchaseOrderListApi,
       [PURCHASE_INBOUND_ORDER_TYPE]: getPurchaseInboundListApi,
@@ -107,9 +107,9 @@ async function getList() {
         if (res.code === 200 && res.data.list) {
           let items = res.data.list;
           if (orderType === PURCHASE_RETURN_ORDER_TYPE) {
-            items = items.filter((item: any) => item.providerId);
+            items = items.filter((item: unknown) => item.providerId);
           }
-          const mappedItems = items.map((item: any) => ({
+          const mappedItems = items.map((item: unknown) => ({
             ...item,
             type: Object.keys(typeMap).find(
               k => typeMap[k] === orderType

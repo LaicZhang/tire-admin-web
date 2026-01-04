@@ -55,8 +55,8 @@ const profitSummary = ref({
 });
 
 // 趋势数据
-const grossTrend = ref<any[]>([]);
-const netTrend = ref<any[]>([]);
+const grossTrend = ref<unknown[]>([]);
+const netTrend = ref<unknown[]>([]);
 
 // 图表
 const chartRef = ref<HTMLElement | null>(null);
@@ -115,7 +115,7 @@ const updateChart = () => {
   }
 
   // Merge trends (assuming same periods)
-  const periods = grossTrend.value.map((d: any) => d.period);
+  const periods = grossTrend.value.map((d: unknown) => d.period);
 
   chartInstance.setOption({
     tooltip: { trigger: "axis" },
@@ -132,26 +132,26 @@ const updateChart = () => {
         name: "销售收入",
         type: "bar",
         stack: "revenue",
-        data: grossTrend.value.map((d: any) => Number(d.revenue || 0)),
+        data: grossTrend.value.map((d: unknown) => Number(d.revenue || 0)),
         itemStyle: { color: "#409EFF" }
       },
       {
         name: "销售成本",
         type: "bar",
         stack: "cost",
-        data: grossTrend.value.map((d: any) => Number(d.cost || 0)),
+        data: grossTrend.value.map((d: unknown) => Number(d.cost || 0)),
         itemStyle: { color: "#E6A23C" }
       },
       {
         name: "毛利润",
         type: "line",
-        data: grossTrend.value.map((d: any) => Number(d.grossProfit || 0)),
+        data: grossTrend.value.map((d: unknown) => Number(d.grossProfit || 0)),
         itemStyle: { color: "#67C23A" }
       },
       {
         name: "净利润",
         type: "line",
-        data: netTrend.value.map((d: any) => Number(d.netProfit || 0)),
+        data: netTrend.value.map((d: unknown) => Number(d.netProfit || 0)),
         itemStyle: { color: "#F56C6C" }
       }
     ]

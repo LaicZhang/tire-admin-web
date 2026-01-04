@@ -82,7 +82,7 @@ const getList = async () => {
         customerIds.map(async uid => {
           try {
             const res = await getCustomerApi(uid);
-            return res.code === 200 ? (res.data as any) : null;
+            return res.code === 200 ? (res.data as unknown) : null;
           } catch {
             return null;
           }
@@ -92,7 +92,7 @@ const getList = async () => {
         tireIds.map(async uid => {
           try {
             const res = await getTireApi(uid);
-            return res.code === 200 ? (res.data as any) : null;
+            return res.code === 200 ? (res.data as unknown) : null;
           } catch {
             return null;
           }
@@ -125,7 +125,7 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();

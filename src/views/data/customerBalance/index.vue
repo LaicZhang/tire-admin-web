@@ -111,7 +111,7 @@ const getList = async () => {
     const customers = data.list || [];
     const rows = await Promise.all(
       customers.map(async c => {
-        const customerId = (c as any).uid as string;
+        const customerId = (c as unknown).uid as string;
         const [details, receivable, advance] = await Promise.all([
           getCustomerApi(customerId).catch(() => null),
           getInitialBalanceListApi(1, {
@@ -124,9 +124,9 @@ const getList = async () => {
           }).catch(() => null)
         ]);
 
-        const customer = (details as any)?.data ?? c;
-        const receivableRow = (receivable as any)?.data?.list?.[0];
-        const advanceRow = (advance as any)?.data?.list?.[0];
+        const customer = (details as unknown)?.data ?? c;
+        const receivableRow = (receivable as unknown)?.data?.list?.[0];
+        const advanceRow = (advance as unknown)?.data?.list?.[0];
 
         const receivableBalance = toYuan(receivableRow?.amount);
         const advanceBalance = toYuan(advanceRow?.amount);
@@ -140,13 +140,15 @@ const getList = async () => {
         if (form.value.hasBalance === false && hasAny) return null;
 
         return {
-          id: (customer as any).id ?? (c as any).id ?? 0,
+          id: (customer as unknown).id ?? (c as unknown).id ?? 0,
           uid: customerId,
           customerId,
-          customerName: (customer as any).name,
-          customerCode: (customer as any).code ?? "-",
+          customerName: (customer as unknown).name,
+          customerCode: (customer as unknown).code ?? "-",
           phone:
-            (customer as any)?.info?.phone ?? (customer as any).phone ?? "-",
+            (customer as unknown)?.info?.phone ??
+            (customer as unknown).phone ??
+            "-",
           receivableBalance,
           advanceBalance,
           balanceDate,
@@ -168,7 +170,7 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -237,9 +239,11 @@ const openDialog = (title = "新增", row?: CustomerBalance) => {
             })
           ];
           const results = await Promise.all(tasks);
-          const failed = results.find(r => (r as any).code !== 200);
+          const failed = results.find(r => (r as unknown).code !== 200);
           if (failed) {
-            message((failed as any).msg || `${title}失败`, { type: "error" });
+            message((failed as unknown).msg || `${title}失败`, {
+              type: "error"
+            });
             return;
           }
           message(`${title}成功`, { type: "success" });
@@ -269,7 +273,7 @@ const handleDelete = async (row: CustomerBalance) => {
       customerId: row.customerId
     })
   ]);
-  if ((r1 as any).code === 200 && (r2 as any).code === 200) {
+  if ((r1 as unknown).code === 200 && (r2 as unknown).code === 200) {
     message(`清空${row.customerName}的期初余额成功`, { type: "success" });
     getList();
   } else {

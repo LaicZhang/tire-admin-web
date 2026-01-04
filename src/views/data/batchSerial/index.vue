@@ -219,7 +219,7 @@ const onSearch = () => {
   }
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();

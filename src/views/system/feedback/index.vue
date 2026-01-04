@@ -8,7 +8,7 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import { openDialog } from "./table";
 
-const handleOpenDialog = (title: string, row?: any) => {
+const handleOpenDialog = (title: string, row?: unknown) => {
   openDialog(title, row);
 };
 import {

@@ -51,11 +51,11 @@ const pagination = ref({
   background: true
 });
 
-const customerList = ref<any[]>([]);
+const customerList = ref<unknown[]>([]);
 
 async function loadSelectData() {
   const customers = await localForage().getItem(ALL_LIST.customer);
-  customerList.value = (customers as any[]) || [];
+  customerList.value = (customers as unknown[]) || [];
 }
 
 async function getList() {
@@ -87,7 +87,7 @@ async function getList() {
 
     const fetchByType: Record<
       string,
-      (index: number, params?: Record<string, any>) => Promise<any>
+      (index: number, params?: Record<string, unknown>) => Promise<unknown>
     > = {
       [SALES_ORDER_TYPE]: getSalesOrderListApi,
       [SALES_OUTBOUND_ORDER_TYPE]: getSalesOutboundListApi,
@@ -102,9 +102,9 @@ async function getList() {
         if (res.code === 200 && res.data.list) {
           let items = res.data.list;
           if (orderType === "return-order") {
-            items = items.filter((item: any) => item.customerId);
+            items = items.filter((item: unknown) => item.customerId);
           }
-          const mappedItems = items.map((item: any) => ({
+          const mappedItems = items.map((item: unknown) => ({
             ...item,
             type: Object.keys(typeMap).find(
               k => typeMap[k] === orderType

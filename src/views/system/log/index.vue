@@ -85,7 +85,7 @@ const columns: TableColumnList = [
 async function onSearch() {
   loading.value = true;
   try {
-    const params: any = { ...form };
+    const params: Record<string, unknown> = { ...form };
     if (form.dateRange && form.dateRange.length === 2) {
       params.startDate = form.dateRange[0];
       params.endDate = form.dateRange[1];
@@ -112,7 +112,7 @@ const resetForm = (formEl?: { resetFields: () => void }) => {
   onSearch();
 };
 
-function viewDetail(row: any) {
+function viewDetail(row: unknown) {
   addDialog({
     title: "日志详情",
     width: "50%",

@@ -10,7 +10,7 @@ defineOptions({
 
 type DictItem = {
   name?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 const SYS_DICT_UPDATED_AT_KEY = `${SYS.dict}_updated_at`;

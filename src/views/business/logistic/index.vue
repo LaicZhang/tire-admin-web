@@ -20,9 +20,9 @@ defineOptions({
 
 const activeTab = ref("logistic");
 const drawerVisible = ref(false);
-const currentLogistic = ref<any>(null);
+const currentLogistic = ref<unknown>(null);
 
-const dataList = ref<any[]>([]);
+const dataList = ref<unknown[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -127,7 +127,7 @@ const onSearch = async () => {
   await getLogisticListInfo();
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -138,7 +138,7 @@ async function handleCurrentChange(val: number) {
   await getLogisticListInfo();
 }
 
-async function handleConfirmShipment(row: any) {
+async function handleConfirmShipment(row: unknown) {
   try {
     await updateLogisticApi(row.uid, {
       type: row.type,
@@ -151,7 +151,7 @@ async function handleConfirmShipment(row: any) {
   }
 }
 
-async function handleConfirmArrival(row: any) {
+async function handleConfirmArrival(row: unknown) {
   try {
     await updateLogisticApi(row.uid, {
       type: row.type,
@@ -164,7 +164,7 @@ async function handleConfirmArrival(row: any) {
   }
 }
 
-async function handleCancel(row: any) {
+async function handleCancel(row: unknown) {
   try {
     await cancelLogisticApi(row.uid, row.type);
     message("取消物流状态成功", { type: "success" });
@@ -174,7 +174,7 @@ async function handleCancel(row: any) {
   }
 }
 
-function handleViewDetail(row: any) {
+function handleViewDetail(row: unknown) {
   currentLogistic.value = row;
   drawerVisible.value = true;
 }

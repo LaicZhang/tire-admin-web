@@ -93,7 +93,7 @@ const getList = async () => {
       message(msg || "获取列表失败", { type: "error" });
       return;
     }
-    dataList.value = (data.list || []).map((t: any) => {
+    dataList.value = (data.list || []).map((t: unknown) => {
       const limit = limitMap[t.uid];
       return {
         id: t.id,
@@ -135,7 +135,7 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();

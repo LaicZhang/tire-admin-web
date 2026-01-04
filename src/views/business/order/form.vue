@@ -53,8 +53,8 @@ const props = withDefaults(
         customerId: undefined,
         fee: 0,
         isReceive: false,
-        details: [] as any
-      }) as any
+        details: [] as unknown
+      }) as unknown
   }
 );
 const orderType = ref<ORDER_TYPE>(ORDER_TYPE.default);
@@ -64,7 +64,7 @@ const formRules = ref(getFormRules(orderType.value));
 const ruleFormRef = ref();
 // 订单表单字段较多，且不同订单类型字段存在差异；这里以运行时为准
 
-const newFormInline = ref<any>(props.formInline);
+const newFormInline = ref<unknown>(props.formInline);
 const formTitle = ref("新增");
 function getRef() {
   return ruleFormRef.value;
@@ -76,7 +76,7 @@ async function getOrderType() {
   return orderType.value;
 }
 
-const managerList = ref<any[]>([]);
+const managerList = ref<unknown[]>([]);
 
 const detailsColumns = ref<TableColumnList>([]);
 
@@ -114,7 +114,7 @@ async function getFormTitle() {
   if (formTitle.value) return formTitle.value;
 }
 
-function onAdd(item?: any) {
+function onAdd(item?: unknown) {
   newFormInline.value.details.push({
     index: newFormInline.value.details.length + 1,
     count: item ? 1 : 0,
@@ -126,7 +126,7 @@ function onAdd(item?: any) {
     newFormInline.value.count += 1;
   }
 }
-function onDel(row: any) {
+function onDel(row: unknown) {
   const index = newFormInline.value.details.indexOf(row);
   if (index !== -1) newFormInline.value.details.splice(index, 1);
   const { count, total } = newFormInline.value;
@@ -135,11 +135,11 @@ function onDel(row: any) {
   newFormInline.value.showTotal = newFormInline.value.total;
 }
 
-const allRepoList = ref<any[]>([]);
-const allTireList = ref<any[]>([]);
-const allCustomerList = ref<any[]>([]);
-const allProviderList = ref<any[]>([]);
-const allPaymentList = ref<any[]>([]);
+const allRepoList = ref<unknown[]>([]);
+const allTireList = ref<unknown[]>([]);
+const allCustomerList = ref<unknown[]>([]);
+const allProviderList = ref<unknown[]>([]);
+const allPaymentList = ref<unknown[]>([]);
 async function getALlList() {
   try {
     const [managerData, repoData, tireData, customerData, providerData] =
@@ -149,7 +149,7 @@ async function getALlList() {
         localForage().getItem(ALL_LIST.tire),
         localForage().getItem(ALL_LIST.customer),
         localForage().getItem(ALL_LIST.provider)
-      ])) as any[];
+      ])) as unknown[];
 
     managerList.value = managerData;
     allRepoList.value = repoData;
@@ -244,7 +244,7 @@ onMounted(async () => {
         :disabled="getDisabled(['修改', '新增'])"
       >
         <el-select
-          v-model="(newFormInline as any).providerId"
+          v-model="(newFormInline as unknown).providerId"
           clearable
           placeholder="请输入供应商"
           class="w-60!"
@@ -266,7 +266,7 @@ onMounted(async () => {
         prop="customerId"
       >
         <el-select
-          v-model="(newFormInline as any).customerId"
+          v-model="(newFormInline as unknown).customerId"
           clearable
           placeholder="请选择客户"
           class="w-60!"
@@ -368,14 +368,14 @@ onMounted(async () => {
     >
       <el-form-item label="费用金额" prop="fee">
         <el-input-number
-          v-model="(newFormInline as any).fee"
+          v-model="(newFormInline as unknown).fee"
           :min="0"
           :precision="2"
           class="w-48!"
         />
       </el-form-item>
       <el-form-item label="费用类型">
-        <el-radio-group v-model="(newFormInline as any).isReceive">
+        <el-radio-group v-model="(newFormInline as unknown).isReceive">
           <el-radio :label="true">收到理赔金</el-radio>
           <el-radio :label="false">支付理赔金</el-radio>
         </el-radio-group>
@@ -386,7 +386,7 @@ onMounted(async () => {
     <template v-if="formTitle === '退款' && orderType === ORDER_TYPE.return">
       <el-form-item label="退款金额" prop="fee">
         <el-input-number
-          v-model="(newFormInline as any).fee"
+          v-model="(newFormInline as unknown).fee"
           :min="0"
           :precision="2"
           class="w-48!"

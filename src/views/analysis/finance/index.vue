@@ -57,9 +57,9 @@ const summaryData = ref({
 });
 
 // 现金流趋势
-const cashFlowTrend = ref<any[]>([]);
+const cashFlowTrend = ref<unknown[]>([]);
 // 账户余额趋势
-const balanceTrend = ref<any[]>([]);
+const balanceTrend = ref<unknown[]>([]);
 
 // 图表
 const cashFlowChartRef = ref<HTMLElement | null>(null);
@@ -129,7 +129,7 @@ const updateCashFlowChart = () => {
     cashFlowChart = echarts.init(cashFlowChartRef.value);
   }
 
-  const periods = cashFlowTrend.value.map((d: any) => d.period);
+  const periods = cashFlowTrend.value.map((d: unknown) => d.period);
 
   cashFlowChart.setOption({
     tooltip: { trigger: "axis" },
@@ -145,19 +145,19 @@ const updateCashFlowChart = () => {
       {
         name: "收入",
         type: "bar",
-        data: cashFlowTrend.value.map((d: any) => Number(d.income || 0)),
+        data: cashFlowTrend.value.map((d: unknown) => Number(d.income || 0)),
         itemStyle: { color: "#67C23A" }
       },
       {
         name: "支出",
         type: "bar",
-        data: cashFlowTrend.value.map((d: any) => Number(d.expense || 0)),
+        data: cashFlowTrend.value.map((d: unknown) => Number(d.expense || 0)),
         itemStyle: { color: "#F56C6C" }
       },
       {
         name: "净现金流",
         type: "line",
-        data: cashFlowTrend.value.map((d: any) => Number(d.netFlow || 0)),
+        data: cashFlowTrend.value.map((d: unknown) => Number(d.netFlow || 0)),
         itemStyle: { color: "#409EFF" }
       }
     ]
@@ -174,7 +174,7 @@ const updateBalanceChart = () => {
     tooltip: { trigger: "axis" },
     xAxis: {
       type: "category",
-      data: balanceTrend.value.map((d: any) => d.date || d.period)
+      data: balanceTrend.value.map((d: unknown) => d.date || d.period)
     },
     yAxis: {
       type: "value",
@@ -186,7 +186,7 @@ const updateBalanceChart = () => {
         type: "line",
         smooth: true,
         areaStyle: { opacity: 0.3 },
-        data: balanceTrend.value.map((d: any) => Number(d.balance || 0)),
+        data: balanceTrend.value.map((d: unknown) => Number(d.balance || 0)),
         itemStyle: { color: "#E6A23C" }
       }
     ]

@@ -81,9 +81,9 @@ const updateChart = async () => {
           color: "#999"
         }
       },
-      formatter: (params: any) => {
+      formatter: (params: unknown) => {
         let result = `<div style="font-weight:600;margin-bottom:8px">${params[0].axisValue}</div>`;
-        params.forEach((param: any) => {
+        params.forEach((param: unknown) => {
           result += `<div style="display:flex;justify-content:space-between;gap:16px">
             <span>${param.marker} ${param.seriesName}</span>
             <span style="font-weight:600">¥${formatAmount(param.value)}</span>

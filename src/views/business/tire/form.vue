@@ -42,7 +42,7 @@ interface FormItemProps {
   salePrice?: number;
   commissionType: number;
   commission?: string;
-  covers: any[];
+  covers: unknown[];
   // 多单位设置
   enableMultiUnit?: boolean;
   unitConversions?: UnitConversion[];
@@ -116,10 +116,10 @@ function getAuthorization() {
 const uploadData = ref();
 
 async function handleSuccess(
-  response: any,
-  _file: any,
-  _fileList: any,
-  _row?: any
+  response: unknown,
+  _file: unknown,
+  _fileList: unknown,
+  _row?: unknown
 ) {
   const { code, msg, data } = response;
   if (code !== 200) message(msg, { type: "error" });
@@ -127,7 +127,7 @@ async function handleSuccess(
   await setUploadedImages(params);
 }
 
-const onBeforeUpload = async (file: any) => {
+const onBeforeUpload = async (file: unknown) => {
   const { name, size, type, lastModified } = file;
   const hash = getFileMd5(lastModified, size);
   const [filename, ext] = name.split(".");

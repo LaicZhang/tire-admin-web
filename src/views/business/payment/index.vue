@@ -24,7 +24,7 @@ defineOptions({
   name: "Payment"
 });
 
-const dataList = ref<any[]>([]);
+const dataList = ref<unknown[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const editFormRef = ref<{ getRef: () => FormInstance } | null>(null);
@@ -44,7 +44,7 @@ const currentPayment = ref<any>(null);
 const operationType = ref<"top-up" | "pay" | "freeze" | "unfreeze">("top-up");
 
 function handleOperation(
-  row: any,
+  row: unknown,
   type: "top-up" | "pay" | "freeze" | "unfreeze"
 ) {
   currentPayment.value = row;
@@ -116,7 +116,7 @@ const onSearch = async () => {
   await getPaymentListInfo();
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -184,7 +184,7 @@ async function handleCreate() {
 
 // function handleRecharge(row) { ... } // Replaced by handleOperation
 
-async function handleCheckBalance(row: any) {
+async function handleCheckBalance(row: unknown) {
   try {
     const { data, code, msg } = await checkPaymentBalanceApi(row.uid, 0);
     if (code === 200) {
@@ -198,7 +198,7 @@ async function handleCheckBalance(row: any) {
   }
 }
 
-async function handleDelete(row: any) {
+async function handleDelete(row: unknown) {
   try {
     await deletePaymentApi(row.uid);
     message("删除成功", { type: "success" });

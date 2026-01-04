@@ -133,11 +133,11 @@ function openDialog(title = "新增", row?: SingleUnitItem) {
     closeOnClickModal: false,
     contentRenderer: () => h(Form, { ref: "formRef" }),
     beforeSure: async (done, { options }) => {
-      const formRef = (options as any).contentRef?.getRef?.();
+      const formRef = (options as unknown).contentRef?.getRef?.();
       if (!formRef) return;
       await formRef.validate(async (valid: boolean) => {
         if (!valid) return;
-        const formData = (options.props as any).formInline;
+        const formData = (options.props as unknown).formInline;
         try {
           const promise =
             title === "新增"

@@ -217,7 +217,7 @@ onMounted(async () => {
                 preview-teleported
                 style="height: 30px"
                 :preview-src-list="
-                  row.covers.map((item: any) => {
+                  row.covers.map((item: unknown) => {
                     return BaseImagePath + item.hash + '.' + item.ext;
                   })
                 "

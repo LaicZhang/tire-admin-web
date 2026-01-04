@@ -21,7 +21,7 @@ defineOptions({
   name: "PriceList"
 });
 
-const dataList = ref<any[]>([]);
+const dataList = ref<unknown[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -42,7 +42,7 @@ const columns = [
   {
     label: "类型",
     prop: "type",
-    cellRenderer: ({ row }: { row: any }) => {
+    cellRenderer: ({ row }: { row: Record<string, unknown> }) => {
       const map: Record<string, string> = { SYSTEM: "系统", CUSTOM: "自定义" };
       return map[String(row.type)] || row.type;
     }
@@ -78,13 +78,13 @@ const handleCurrentChange = (val: number) => {
   getData();
 };
 
-const handleDelete = async (row: any) => {
+const handleDelete = async (row: unknown) => {
   await deletePriceListApi(row.uid);
   message("删除成功", { type: "success" });
   getData();
 };
 
-function openDialog(title = "新增", row?: any) {
+function openDialog(title = "新增", row?: unknown) {
   addDialog({
     title: `${title}价目表`,
     props: {

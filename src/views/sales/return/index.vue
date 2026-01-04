@@ -45,9 +45,9 @@ const pagination = ref({
   background: true
 });
 
-const employeeList = ref<any[]>([]);
-const managerList = ref<any[]>([]);
-const customerList = ref<any[]>([]);
+const employeeList = ref<unknown[]>([]);
+const managerList = ref<unknown[]>([]);
+const customerList = ref<unknown[]>([]);
 
 async function loadSelectData() {
   const [employees, managers, customers] = await Promise.all([
@@ -55,9 +55,9 @@ async function loadSelectData() {
     localForage().getItem(ALL_LIST.manager),
     localForage().getItem(ALL_LIST.customer)
   ]);
-  employeeList.value = (employees as any[]) || [];
-  managerList.value = (managers as any[]) || [];
-  customerList.value = (customers as any[]) || [];
+  employeeList.value = (employees as unknown[]) || [];
+  managerList.value = (managers as unknown[]) || [];
+  customerList.value = (customers as unknown[]) || [];
 }
 
 async function getList() {
@@ -68,7 +68,7 @@ async function getList() {
       customerId: searchForm.value.customerId
     });
     if (res.code === 200) {
-      dataList.value = res.data.list.filter((item: any) => item.customerId);
+      dataList.value = res.data.list.filter((item: unknown) => item.customerId);
       pagination.value.total = dataList.value.length;
     } else {
       message(res.msg, { type: "error" });

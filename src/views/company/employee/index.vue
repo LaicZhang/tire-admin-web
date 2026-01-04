@@ -83,7 +83,10 @@ async function handleDelete(row: Employee) {
 }
 
 const getSysDict = async () => {
-  const dict: any = await localForage().getItem(SYS.dict);
+  const dict = (await localForage().getItem(SYS.dict)) as Record<
+    string,
+    unknown
+  >;
   employeeStatus.value = dict.employeeStatus;
 };
 

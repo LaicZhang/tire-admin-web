@@ -12,7 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "update:visible", value: boolean): void;
-  (e: "submit", data: any): void;
+  (e: "submit", data: unknown): void;
 }>();
 
 const dialogVisible = ref(props.visible);
@@ -72,7 +72,7 @@ async function loadOrders() {
       pageSize: 100
     });
     if (code === 200) {
-      orderOptions.value = (data?.list || []).map((order: any) => ({
+      orderOptions.value = (data?.list || []).map((order: unknown) => ({
         uid: order.uid,
         label: `${order.uid.slice(-8)} - ${order.type || "订单"}`
       }));

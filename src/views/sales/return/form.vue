@@ -30,11 +30,11 @@ const formRules: FormRules = {
   ]
 };
 
-const allCustomerList = ref<any[]>([]);
-const allTireList = ref<any[]>([]);
-const allRepoList = ref<any[]>([]);
-const managerList = ref<any[]>([]);
-const allPaymentList = ref<any[]>([]);
+const allCustomerList = ref<unknown[]>([]);
+const allTireList = ref<unknown[]>([]);
+const allRepoList = ref<unknown[]>([]);
+const managerList = ref<unknown[]>([]);
+const allPaymentList = ref<unknown[]>([]);
 
 const returnReasonOptions = RETURN_REASON_OPTIONS;
 
@@ -50,10 +50,10 @@ async function loadBaseData() {
       localForage().getItem(ALL_LIST.repo),
       localForage().getItem(ALL_LIST.manager)
     ]);
-    allCustomerList.value = (customerData as any[]) || [];
-    allTireList.value = (tireData as any[]) || [];
-    allRepoList.value = (repoData as any[]) || [];
-    managerList.value = (managerData as any[]) || [];
+    allCustomerList.value = (customerData as unknown[]) || [];
+    allTireList.value = (tireData as unknown[]) || [];
+    allRepoList.value = (repoData as unknown[]) || [];
+    managerList.value = (managerData as unknown[]) || [];
 
     const cid = await getCompanyId();
     const { data: paymentData } = await getPaymentListApi(cid);

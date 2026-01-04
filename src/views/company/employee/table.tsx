@@ -52,8 +52,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         status: row?.status ?? undefined,
         password: row?.user?.password ?? undefined,
         id: row?.id ?? undefined,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        jobs: row?.jobs?.map((j: any) => j?.uid ?? j?.id ?? j) ?? []
+
+        jobs: row?.jobs?.map((j: unknown) => j?.uid ?? j?.id ?? j) ?? []
       }
     },
     width: "40%",

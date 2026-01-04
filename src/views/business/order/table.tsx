@@ -85,8 +85,8 @@ export async function getFormTileInLocal() {
 import { v7 as uuid } from "uuid";
 import { getCommonData } from "./handleData";
 import { getFooterButtons } from "./props";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function openDialog(title = "新增", type: string, row?: any) {
+
+export async function openDialog(title = "新增", type: string, row?: unknown) {
   addDialog({
     title: `${title}`,
     props: {
@@ -121,8 +121,8 @@ export async function openDialog(title = "新增", type: string, row?: any) {
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const curData = options.props?.formInline as any;
+
+      const curData = options.props?.formInline as unknown;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"

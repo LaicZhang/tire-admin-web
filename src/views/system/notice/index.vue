@@ -156,7 +156,7 @@ function viewDetail(row: NoticeItem) {
   });
 }
 
-function openDialog(title = "新增", row?: any) {
+function openDialog(title = "新增", row?: unknown) {
   addDialog({
     title: `${title}公告`,
     props: {

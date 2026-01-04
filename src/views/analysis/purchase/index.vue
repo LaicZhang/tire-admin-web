@@ -59,8 +59,8 @@ const summaryData = ref({
 });
 
 // 排行榜数据
-const providerRanking = ref<any[]>([]);
-const productRanking = ref<any[]>([]);
+const providerRanking = ref<unknown[]>([]);
+const productRanking = ref<unknown[]>([]);
 
 // 当前选中的排行榜类型
 const activeRankingTab = ref("provider");

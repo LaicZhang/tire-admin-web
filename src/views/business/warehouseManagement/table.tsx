@@ -25,8 +25,8 @@ const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 export function openDialog(
   title = "新增",
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  row?: any,
+
+  row?: unknown,
   refreshCallback?: () => void
 ) {
   addDialog({

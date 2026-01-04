@@ -72,7 +72,7 @@ const handleDelete = async (row: Zone) => {
   getData();
 };
 
-function openDialog(title = "新增", row?: any) {
+function openDialog(title = "新增", row?: unknown) {
   addDialog({
     title: `${title}库区`,
     props: {

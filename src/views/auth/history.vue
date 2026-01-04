@@ -25,7 +25,7 @@ const type = ref(1);
 async function getHistory() {
   dataList.value = [];
   loading.value = true;
-  let params: any = {};
+  let params: Record<string, unknown> = {};
 
   if (type.value === 1) {
     // Login History
@@ -40,7 +40,13 @@ async function getHistory() {
   }
 }
 
-async function handleApiResponse({ data, code }: { data: any; code: number }) {
+async function handleApiResponse({
+  data,
+  code
+}: {
+  data: unknown;
+  code: number;
+}) {
   if (code === 200) {
     dataList.value = data.list;
     pagination.total = data.total || data.count; // Adapt to different API returns

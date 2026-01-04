@@ -62,10 +62,10 @@ const shortcuts = [
 ];
 
 // 排行榜数据
-const customerRanking = ref<any[]>([]);
-const providerRanking = ref<any[]>([]);
-const productRanking = ref<any[]>([]);
-const operatorRanking = ref<any[]>([]);
+const customerRanking = ref<unknown[]>([]);
+const providerRanking = ref<unknown[]>([]);
+const productRanking = ref<unknown[]>([]);
+const operatorRanking = ref<unknown[]>([]);
 
 const dateParams = computed(() => {
   if (!dateRange.value) return {};

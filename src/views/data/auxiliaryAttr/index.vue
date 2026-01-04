@@ -139,11 +139,11 @@ function openDialog(title = "新增", row?: AuxiliaryAttrItem) {
     closeOnClickModal: false,
     contentRenderer: () => h(Form, { ref: "formRef" }),
     beforeSure: async (done, { options }) => {
-      const formRef = (options as any).contentRef?.getRef?.();
+      const formRef = (options as unknown).contentRef?.getRef?.();
       if (!formRef) return;
       await formRef.validate(async (valid: boolean) => {
         if (!valid) return;
-        const formData = (options.props as any).formInline;
+        const formData = (options.props as unknown).formInline;
         try {
           const promise =
             title === "新增"
@@ -188,7 +188,7 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
     draggable: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const formData = (options.props as any).formInline;
+      const formData = (options.props as unknown).formInline;
       return h("el-form", { labelWidth: "80px" }, [
         h("el-form-item", { label: "属性值" }, [
           h("el-input", {
@@ -200,7 +200,7 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
       ]);
     },
     beforeSure: async (done, { options }) => {
-      const formData = (options.props as any).formInline;
+      const formData = (options.props as unknown).formInline;
       if (!formData.name?.trim()) {
         message("请输入属性值", { type: "warning" });
         return;

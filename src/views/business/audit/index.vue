@@ -25,7 +25,7 @@ const pagination = reactive({
   currentPage: 1,
   background: true
 });
-const tableData = ref<any[]>([]);
+const tableData = ref<unknown[]>([]);
 
 const tabOptions = [
   { label: "销售订单", value: "sale-order" },
@@ -129,7 +129,7 @@ function handlePageCurrentChange(page: number) {
   handlePageChange(page);
 }
 
-function viewDetail(row: any) {
+function viewDetail(row: unknown) {
   router.push(`/business/order/detail/${row.uid}`);
 }
 

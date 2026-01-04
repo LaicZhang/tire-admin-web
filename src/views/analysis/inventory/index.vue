@@ -31,13 +31,17 @@ const summaryData = ref({
 });
 
 // 滞销商品
-const slowMovingList = ref<any[]>([]);
+const slowMovingList = ref<unknown[]>([]);
 // 缺货分析
-const stockoutList = ref<any[]>([]);
+const stockoutList = ref<unknown[]>([]);
 // 库存周转
-const turnoverData = ref<any>({ turnoverRate: 0, averageDays: 0, details: [] });
+const turnoverData = ref<unknown>({
+  turnoverRate: 0,
+  averageDays: 0,
+  details: []
+});
 // 临期分布
-const expiryData = ref<any[]>([]);
+const expiryData = ref<unknown[]>([]);
 
 // 表格列定义
 const slowMovingColumns: TableColumnList = [
@@ -175,13 +179,13 @@ const updateTurnoverChart = () => {
     tooltip: { trigger: "axis" },
     xAxis: {
       type: "category",
-      data: details.map((d: any) => d.repoName || d.name)
+      data: details.map((d: unknown) => d.repoName || d.name)
     },
     yAxis: { type: "value", name: "周转次数" },
     series: [
       {
         type: "bar",
-        data: details.map((d: any) => d.turnoverRate || 0),
+        data: details.map((d: unknown) => d.turnoverRate || 0),
         itemStyle: { color: "#409EFF" }
       }
     ]
@@ -199,7 +203,7 @@ const updateExpiryChart = () => {
       {
         type: "pie",
         radius: "60%",
-        data: expiryData.value.map((d: any) => ({
+        data: expiryData.value.map((d: unknown) => ({
           name: d.label || d.bucket,
           value: d.count || d.quantity
         }))

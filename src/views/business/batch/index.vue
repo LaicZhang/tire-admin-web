@@ -19,8 +19,8 @@ defineOptions({
 });
 
 const loading = ref(false);
-const tableData = ref<any[]>([]);
-const repoList = ref<any[]>([]);
+const tableData = ref<unknown[]>([]);
+const repoList = ref<unknown[]>([]);
 
 // 查询条件
 const queryForm = ref({
@@ -49,7 +49,7 @@ const rules = {
 
 // 流水抽屉
 const drawerVisible = ref(false);
-const transactions = ref<any[]>([]);
+const transactions = ref<unknown[]>([]);
 const currentBatchNo = ref("");
 
 const columns: TableColumnList = [
@@ -180,7 +180,7 @@ const submitCreate = async () => {
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       try {
-        await createBatchApi(batchForm.value as any);
+        await createBatchApi(batchForm.value as unknown);
         message("批次创建成功", { type: "success" });
         dialogVisible.value = false;
         loadData();
@@ -192,7 +192,7 @@ const submitCreate = async () => {
   });
 };
 
-const handleViewTransactions = async (row: any) => {
+const handleViewTransactions = async (row: unknown) => {
   currentBatchNo.value = row.batchNo;
   drawerVisible.value = true;
   try {

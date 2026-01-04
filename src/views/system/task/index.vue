@@ -107,7 +107,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -194,7 +194,7 @@ function viewDetail(row: TaskItem) {
   });
 }
 
-function openDialog(title = "新增", row?: any) {
+function openDialog(title = "新增", row?: unknown) {
   addDialog({
     title: `${title}任务`,
     props: {

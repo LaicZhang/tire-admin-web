@@ -35,8 +35,7 @@ export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function openDialog(title = "新增", row?: any) {
+export function openDialog(title = "新增", row?: unknown) {
   addDialog({
     title: `${title}客户`,
     props: {
@@ -86,8 +85,8 @@ export function openDialog(title = "新增", row?: any) {
           const companyId = await getCompanyId();
 
           // 构建基础数据
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const baseData: Record<string, any> = {
+
+          const baseData: Record<string, unknown> = {
             name: curData.name,
             desc: curData.desc,
             from: curData.from,

@@ -188,7 +188,7 @@ const handleUpload = async (options: UploadRequestOptions) => {
     const formData = new FormData();
     formData.append("file", file);
     const { data, code, msg } = await importDataApi(toolType, formData, p =>
-      options.onProgress?.({ percent: p } as any)
+      options.onProgress?.({ percent: p } as unknown)
     );
     if (code !== 200) {
       message(msg || "导入失败", { type: "error" });
@@ -216,7 +216,7 @@ const handleUpload = async (options: UploadRequestOptions) => {
         : `导入成功：${data?.success ?? 0}条`,
       { type: data?.failed ? "warning" : "success" }
     );
-    options.onSuccess?.(data, options as any);
+    options.onSuccess?.(data, options as unknown);
     getTaskList();
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : "导入失败";

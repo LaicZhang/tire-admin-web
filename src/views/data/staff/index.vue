@@ -72,7 +72,7 @@ const handleSearch = async () => {
       }
     );
     if (code === 200) {
-      dataList.value = data.list.map((item: any) => ({
+      dataList.value = data.list.map((item: unknown) => ({
         ...item,
         phone: item.user?.phone || ""
       })) as FormItemProps[];
@@ -102,7 +102,7 @@ const getDetails = async (row: { uid: string }) => {
     addDialog({
       title: "职员详情",
       props: {
-        formInline: { ...staff, phone: (data as any).user?.phone || "" },
+        formInline: { ...staff, phone: (data as unknown).user?.phone || "" },
         disabled: true
       },
       width: "40%",

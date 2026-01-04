@@ -110,7 +110,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             title === "新增"
               ? createMenuApi(curData)
               : updateMenuApi(
-                  String((row as any)?.uid ?? (row as any)?.id ?? ""),
+                  String((row as unknown)?.uid ?? (row as unknown)?.id ?? ""),
                   curData
                 );
 
@@ -125,7 +125,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const handleDelete = async (row: any) => {
+const handleDelete = async (row: unknown) => {
   await deleteMenuApi(String(row.uid ?? row.id));
   message("删除成功", { type: "success" });
   onSearch();

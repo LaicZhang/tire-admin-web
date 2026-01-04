@@ -111,7 +111,7 @@ const getList = async () => {
     const providers = data.list || [];
     const rows = await Promise.all(
       providers.map(async p => {
-        const providerId = (p as any).uid as string;
+        const providerId = (p as unknown).uid as string;
         const [details, payable, prepaid] = await Promise.all([
           getProviderApi(providerId).catch(() => null),
           getInitialBalanceListApi(1, {
@@ -124,9 +124,9 @@ const getList = async () => {
           }).catch(() => null)
         ]);
 
-        const provider = (details as any)?.data ?? p;
-        const payableRow = (payable as any)?.data?.list?.[0];
-        const prepaidRow = (prepaid as any)?.data?.list?.[0];
+        const provider = (details as unknown)?.data ?? p;
+        const payableRow = (payable as unknown)?.data?.list?.[0];
+        const prepaidRow = (prepaid as unknown)?.data?.list?.[0];
 
         const payableBalance = toYuan(payableRow?.amount);
         const prepaidBalance = toYuan(prepaidRow?.amount);
@@ -140,12 +140,12 @@ const getList = async () => {
         if (form.value.hasBalance === false && hasAny) return null;
 
         return {
-          id: (provider as any).id ?? (p as any).id ?? 0,
+          id: (provider as unknown).id ?? (p as unknown).id ?? 0,
           uid: providerId,
           supplierId: providerId,
-          supplierName: (provider as any).name,
-          supplierCode: (provider as any).code ?? "-",
-          phone: (provider as any).phone ?? "-",
+          supplierName: (provider as unknown).name,
+          supplierCode: (provider as unknown).code ?? "-",
+          phone: (provider as unknown).phone ?? "-",
           payableBalance,
           prepaidBalance,
           balanceDate,
@@ -167,7 +167,7 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: any) => {
+const resetForm = (formEl: unknown) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -236,9 +236,11 @@ const openDialog = (title = "新增", row?: SupplierBalance) => {
             })
           ];
           const results = await Promise.all(tasks);
-          const failed = results.find(r => (r as any).code !== 200);
+          const failed = results.find(r => (r as unknown).code !== 200);
           if (failed) {
-            message((failed as any).msg || `${title}失败`, { type: "error" });
+            message((failed as unknown).msg || `${title}失败`, {
+              type: "error"
+            });
             return;
           }
           message(`${title}成功`, { type: "success" });
@@ -268,7 +270,7 @@ const handleDelete = async (row: SupplierBalance) => {
       providerId: row.supplierId
     })
   ]);
-  if ((r1 as any).code === 200 && (r2 as any).code === 200) {
+  if ((r1 as unknown).code === 200 && (r2 as unknown).code === 200) {
     message(`清空${row.supplierName}的期初余额成功`, { type: "success" });
     getList();
   } else {
