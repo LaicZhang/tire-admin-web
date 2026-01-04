@@ -1,5 +1,13 @@
 import type { ReturnOrder } from "./types";
 
+/** 退货原因选项 */
+export const RETURN_REASON_OPTIONS = [
+  { label: "质量问题", value: "quality" },
+  { label: "数量错误", value: "quantity" },
+  { label: "规格不符", value: "specification" },
+  { label: "其他", value: "other" }
+];
+
 type TableColumn = {
   label: string;
   prop?: string;
