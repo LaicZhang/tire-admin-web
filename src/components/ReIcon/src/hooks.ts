@@ -14,7 +14,7 @@ export function useRenderIcon(icon: any, attrs?: iconType): Component {
   // iconfont
   const ifReg = /^IF-/;
   // typeof icon === "function" 属于SVG
-  if (ifReg.test(icon)) {
+  if (ifReg.test(icon as string)) {
     // iconfont
     const name = icon.split(ifReg)[1];
     const iconName = name.slice(
