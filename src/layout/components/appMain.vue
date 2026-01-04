@@ -3,15 +3,42 @@ import Footer from "./footer/index.vue";
 import { useGlobal, isNumber } from "@pureadmin/utils";
 import KeepAliveFrame from "./keepAliveFrame/index.vue";
 import backTop from "@/assets/svg/back_top.svg?component";
-import { h, computed, Transition, defineComponent, type PropType } from "vue";
+import {
+  h,
+  ref,
+  computed,
+  Transition,
+  defineComponent,
+  type PropType
+} from "vue";
 import { usePermissionStoreHook } from "@/store/modules/permission";
-import type { RouteLocationNormalizedLoaded } from "vue-router";
+import { useRouter, type RouteLocationNormalizedLoaded } from "vue-router";
+import SkeletonPage from "@/components/SkeletonPage/index.vue";
 
 const props = defineProps({
   fixedHeader: Boolean
 });
 
 const { $storage, $config } = useGlobal<GlobalPropertiesApi>();
+
+// 路由加载状态
+const router = useRouter();
+const isRouteLoading = ref(false);
+let loadingTimer: ReturnType<typeof setTimeout> | null = null;
+
+router.beforeEach(() => {
+  if (loadingTimer) {
+    clearTimeout(loadingTimer);
+  }
+  isRouteLoading.value = true;
+});
+
+router.afterEach(() => {
+  // 最小显示 200ms，避免闪烁
+  loadingTimer = setTimeout(() => {
+    isRouteLoading.value = false;
+  }, 200);
+});
 
 const isKeepAlive = computed(() => {
   return $config?.KeepAlive;
@@ -101,7 +128,9 @@ const transitionMain = defineComponent({
     :class="[props.fixedHeader ? 'app-main' : 'app-main-nofixed-header']"
     :style="getSectionStyle"
   >
-    <router-view>
+    <!-- 骨架屏加载状态 -->
+    <SkeletonPage v-if="isRouteLoading" />
+    <router-view v-else>
       <template #default="{ Component, route }">
         <KeepAliveFrame :currComp="Component" :currRoute="route">
           <template #default="{ Comp, fullPath, frameInfo }">
