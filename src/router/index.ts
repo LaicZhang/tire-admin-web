@@ -53,7 +53,7 @@ export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(
     buildHierarchyTree(
       ascending(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        routes.flat(Infinity) as unknown as any[]
+        routes.flat(Infinity) as any
       ) as unknown as import("@/utils/tree").TreeNode[]
     ) as unknown as RouteRecordRaw[]
   )
@@ -63,7 +63,7 @@ export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(
 
 export const constantMenus: Array<RouteComponent> =
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (ascending(routes.flat(Infinity) as unknown as any[]) as any[])
+  (ascending(routes.flat(Infinity) as any) as any)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .concat(remainingRouter as any);
 
@@ -111,7 +111,7 @@ export function resetRouter() {
           buildHierarchyTree(
             ascending(
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              routes.flat(Infinity) as unknown as any[]
+              routes.flat(Infinity) as any
             ) as unknown as import("@/utils/tree").TreeNode[]
           ) as unknown as RouteRecordRaw[]
         )
