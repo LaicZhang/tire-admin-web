@@ -15,6 +15,7 @@ import Download from "~icons/ep/download";
 import Delete from "~icons/ep/delete";
 import Refresh from "~icons/ep/refresh";
 import { PureTableBar } from "@/components/RePureTableBar";
+import StatusTag from "@/components/StatusTag/index.vue";
 
 defineOptions({
   name: "SystemBackup"
@@ -70,6 +71,13 @@ const columns: TableColumnList = [
     slot: "operation"
   }
 ];
+
+const backupStatusMap = {
+  success: { label: "成功", type: "success" },
+  failed: { label: "失败", type: "danger" },
+  running: { label: "进行中", type: "warning" },
+  pending: { label: "等待中", type: "info" }
+} as const;
 
 // 加载备份列表
 const loadData = async () => {
@@ -152,38 +160,6 @@ const formatFileSize = (bytes: number | undefined) => {
   return (bytes / 1024 / 1024 / 1024).toFixed(2) + " GB";
 };
 
-// 获取状态标签类型
-const getStatusType = (status: string) => {
-  switch (status) {
-    case "success":
-      return "success";
-    case "failed":
-      return "danger";
-    case "running":
-      return "warning";
-    case "pending":
-      return "info";
-    default:
-      return "info";
-  }
-};
-
-// 获取状态文本
-const getStatusText = (status: string) => {
-  switch (status) {
-    case "success":
-      return "成功";
-    case "failed":
-      return "失败";
-    case "running":
-      return "进行中";
-    case "pending":
-      return "等待中";
-    default:
-      return status;
-  }
-};
-
 const handleCurrentChange = (val: number) => {
   pagination.currentPage = val;
   loadData();
@@ -241,9 +217,7 @@ onMounted(() => {
               </el-tag>
             </template>
             <template #status="{ row }">
-              <el-tag :type="getStatusType(row.status)" size="small">
-                {{ getStatusText(row.status) }}
-              </el-tag>
+              <StatusTag :status="row.status" :status-map="backupStatusMap" />
             </template>
             <template #fileSize="{ row }">
               {{ formatFileSize(row.fileSize) }}

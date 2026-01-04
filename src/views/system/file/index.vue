@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import type { FormInstance, UploadFile } from "element-plus";
+import type { UploadFile } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
@@ -13,8 +14,6 @@ import {
   type FileItem
 } from "@/api/system/file";
 import Delete from "~icons/ep/delete";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import UploadFilled from "~icons/ep/upload-filled";
 import Download from "~icons/ep/download";
 
@@ -100,7 +99,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl: FormInstance | undefined) => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -202,11 +201,12 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
+    <ReSearchForm
       ref="searchFormRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm(searchFormRef)"
     >
       <el-form-item label="文件名称" prop="fileName">
         <el-input
@@ -229,23 +229,7 @@ onMounted(() => {
           <el-option label="音频" value="audio/" />
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button
-          :icon="useRenderIcon(Refresh)"
-          @click="resetForm(searchFormRef)"
-        >
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="文件管理" @refresh="onSearch">
       <template #buttons>

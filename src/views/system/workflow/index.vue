@@ -21,6 +21,7 @@ import {
 } from "@element-plus/icons-vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import StatusTag from "@/components/StatusTag/index.vue";
 
 defineOptions({
   name: "WorkflowIndex"
@@ -100,6 +101,11 @@ const rules = {
   name: [{ required: true, message: "请输入流程名称", trigger: "blur" }],
   status: [{ required: true, message: "请选择状态", trigger: "change" }]
 };
+
+const workflowStatusMap = {
+  1: { label: "启用", type: "success" },
+  0: { label: "禁用", type: "info" }
+} as const;
 
 const formRef = ref();
 
@@ -273,9 +279,11 @@ onMounted(() => {
             @page-current-change="onCurrentPageChange"
           >
             <template #status="{ row }">
-              <el-tag :type="row.status === 1 ? 'success' : 'info'">
-                {{ row.status === 1 ? "启用" : "禁用" }}
-              </el-tag>
+              <StatusTag
+                :status="row.status"
+                :status-map="workflowStatusMap"
+                size="default"
+              />
             </template>
             <template #operation="{ row }">
               <el-button

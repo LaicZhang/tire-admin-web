@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, h } from "vue";
-import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useColumns } from "./columns";
 import { FormItemProps } from "./utils/types";
 import CompanyForm from "./form.vue";
@@ -20,8 +20,6 @@ import {
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
 import Delete from "~icons/ep/delete";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 
 defineOptions({
   name: "CompanyManagement"
@@ -60,7 +58,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl: FormInstance | undefined) => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -129,11 +127,12 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
+    <ReSearchForm
       ref="searchFormRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm(searchFormRef)"
     >
       <el-form-item label="公司名称" prop="name">
         <el-input
@@ -143,23 +142,7 @@ onMounted(() => {
           class="!w-[200px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button
-          :icon="useRenderIcon(Refresh)"
-          @click="resetForm(searchFormRef)"
-        >
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="公司管理" @refresh="onSearch">
       <template #buttons>

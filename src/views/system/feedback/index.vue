@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
@@ -98,68 +98,58 @@ onMounted(async () => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="内容：" prop="content">
-          <el-input
-            v-model="form.content"
-            placeholder="请输入反馈内容"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item label="评分：" prop="rating">
-          <el-input-number
-            v-model="form.rating"
-            :min="1"
-            :max="5"
-            placeholder="请输入评分"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item label="状态：" prop="status">
-          <el-select
-            v-model="form.status"
-            placeholder="请选择状态"
-            clearable
-            class="w-[180px]!"
-          >
-            <el-option label="待处理" :value="0" />
-            <el-option label="处理中" :value="1" />
-            <el-option label="已处理" :value="2" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="类型：" prop="type">
-          <el-select
-            v-model="form.type"
-            placeholder="请选择类型"
-            clearable
-            class="w-[180px]!"
-          >
-            <el-option label="建议" :value="0" />
-            <el-option label="问题" :value="1" />
-            <el-option label="其他" :value="2" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            :icon="useRenderIcon(Refresh)"
-            type="primary"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="formRef"
+      class="m-1"
+      :form="form"
+      :loading="loading"
+      :body-style="{ paddingBottom: '0', overflow: 'auto' }"
+      @search="onSearch"
+      @reset="resetForm(formRef)"
+    >
+      <el-form-item label="内容：" prop="content">
+        <el-input
+          v-model="form.content"
+          placeholder="请输入反馈内容"
+          clearable
+          class="w-[180px]!"
+        />
+      </el-form-item>
+      <el-form-item label="评分：" prop="rating">
+        <el-input-number
+          v-model="form.rating"
+          :min="1"
+          :max="5"
+          placeholder="请输入评分"
+          clearable
+          class="w-[180px]!"
+        />
+      </el-form-item>
+      <el-form-item label="状态：" prop="status">
+        <el-select
+          v-model="form.status"
+          placeholder="请选择状态"
+          clearable
+          class="w-[180px]!"
+        >
+          <el-option label="待处理" :value="0" />
+          <el-option label="处理中" :value="1" />
+          <el-option label="已处理" :value="2" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="类型：" prop="type">
+        <el-select
+          v-model="form.type"
+          placeholder="请选择类型"
+          clearable
+          class="w-[180px]!"
+        >
+          <el-option label="建议" :value="0" />
+          <el-option label="问题" :value="1" />
+          <el-option label="其他" :value="2" />
+        </el-select>
+      </el-form-item>
+    </ReSearchForm>
     <el-card class="m-1">
       <PureTableBar title="反馈管理" :columns="columns" @refresh="onSearch">
         <template #buttons>

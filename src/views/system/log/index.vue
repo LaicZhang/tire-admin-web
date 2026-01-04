@@ -6,12 +6,10 @@ import {
 } from "@/api/system/log";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import View from "~icons/ep/view";
-import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "SystemLog"
@@ -19,7 +17,7 @@ defineOptions({
 
 const loading = ref(true);
 const dataList = ref<OperationLogItem[]>([]);
-const formRef = ref<FormInstance>();
+const formRef = ref<{ resetFields: () => void }>();
 const pagination = reactive({
   total: 0,
   pageSize: 10,
@@ -107,7 +105,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl?: FormInstance) => {
+const resetForm = (formEl?: { resetFields: () => void }) => {
   if (!formEl) return;
   formEl.resetFields();
   form.dateRange = [];
@@ -201,11 +199,12 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
+    <ReSearchForm
       ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm(formRef)"
     >
       <el-form-item label="模块" prop="module">
         <el-input
@@ -245,20 +244,7 @@ onMounted(() => {
           class="!w-[240px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="操作日志" @refresh="onSearch">
       <template v-slot="{ size, dynamicColumns }">

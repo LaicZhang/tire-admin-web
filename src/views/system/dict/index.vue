@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import type { FormInstance } from "element-plus";
 import type { DictItem } from "@/api/system/dict";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import { PureTableBar } from "@/components/RePureTableBar";
 import {
   getDictListApi,
@@ -96,7 +94,7 @@ const getData = async () => {
   }
 };
 
-const resetForm = (formEl: FormInstance | undefined) => {
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   getData();
@@ -197,11 +195,12 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
+    <ReSearchForm
       ref="searchFormRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      :form="form"
+      :loading="loading"
+      @search="getData"
+      @reset="resetForm(searchFormRef)"
     >
       <el-form-item label="字典类型" prop="name">
         <el-input
@@ -211,23 +210,7 @@ onMounted(() => {
           class="!w-[200px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="getData"
-        >
-          搜索
-        </el-button>
-        <el-button
-          :icon="useRenderIcon(Refresh)"
-          @click="resetForm(searchFormRef)"
-        >
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="字典管理" @refresh="getData">
       <template #buttons>
