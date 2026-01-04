@@ -12,6 +12,7 @@ import {
   FileTypePresets
 } from "@/composables/useFileValidation";
 import { PureTableBar } from "@/components/RePureTableBar";
+import StatusTag from "@/components/StatusTag/index.vue";
 import type { ImportExportTask, ModuleOption } from "./types";
 import {
   downloadImportTemplateApi,
@@ -130,6 +131,13 @@ const columns = [
   }
 ];
 
+const taskStatusMap = {
+  pending: { label: "等待中", type: "info" },
+  processing: { label: "处理中", type: "warning" },
+  success: { label: "成功", type: "success" },
+  failed: { label: "失败", type: "danger" }
+} as const;
+
 const getTaskList = async () => {
   loading.value = true;
   try {
@@ -137,26 +145,6 @@ const getTaskList = async () => {
   } finally {
     loading.value = false;
   }
-};
-
-const getStatusType = (status: string) => {
-  const map: Record<string, string> = {
-    pending: "info",
-    processing: "warning",
-    success: "success",
-    failed: "danger"
-  };
-  return map[status] || "info";
-};
-
-const getStatusLabel = (status: string) => {
-  const map: Record<string, string> = {
-    pending: "等待中",
-    processing: "处理中",
-    success: "成功",
-    failed: "失败"
-  };
-  return map[status] || status;
 };
 
 const getModuleLabel = (module: string) => {
@@ -462,9 +450,7 @@ onMounted(() => {
                   </el-tag>
                 </template>
                 <template #status="{ row }">
-                  <el-tag :type="getStatusType(row.status)" size="small">
-                    {{ getStatusLabel(row.status) }}
-                  </el-tag>
+                  <StatusTag :status="row.status" :status-map="taskStatusMap" />
                 </template>
                 <template #progress="{ row }">
                   <template v-if="row.totalRows">

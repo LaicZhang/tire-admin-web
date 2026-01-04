@@ -2,11 +2,10 @@
 import { ref, reactive, onMounted, h, watch } from "vue";
 import type { AuxiliaryItem, AuxiliaryType, TabConfig } from "./types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import { PureTableBar } from "@/components/RePureTableBar";
 import {
   getAuxiliaryListApi,
@@ -235,11 +234,13 @@ onMounted(() => {
       />
     </el-tabs>
 
-    <el-form
+    <ReSearchForm
       ref="searchFormRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px] mt-4"
+      :form="form"
+      :loading="loading"
+      class="mt-4"
+      @search="getData"
+      @reset="resetForm"
     >
       <el-form-item label="编码" prop="code">
         <el-input
@@ -259,20 +260,7 @@ onMounted(() => {
           @keyup.enter="getData"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="getData"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar :title="getTabLabel(activeTab)" @refresh="getData">
       <template #buttons>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, h, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
 import Delete from "~icons/ep/delete";
@@ -9,6 +8,7 @@ import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
@@ -270,51 +270,39 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        :model="form"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="商品名称：" prop="keyword">
-          <el-input
-            v-model="form.keyword"
-            placeholder="请输入商品名称"
-            clearable
-            class="w-[180px]!"
+    <ReSearchForm
+      ref="formRef"
+      class="m-1"
+      :form="form"
+      :loading="loading"
+      :body-style="{ paddingBottom: '0', overflow: 'auto' }"
+      @search="onSearch"
+      @reset="resetForm(formRef)"
+    >
+      <el-form-item label="商品名称：" prop="keyword">
+        <el-input
+          v-model="form.keyword"
+          placeholder="请输入商品名称"
+          clearable
+          class="w-[180px]!"
+        />
+      </el-form-item>
+      <el-form-item label="仓库：" prop="repoId">
+        <el-select
+          v-model="form.repoId"
+          placeholder="请选择仓库"
+          clearable
+          class="w-[180px]!"
+        >
+          <el-option
+            v-for="item in repoList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
           />
-        </el-form-item>
-        <el-form-item label="仓库：" prop="repoId">
-          <el-select
-            v-model="form.repoId"
-            placeholder="请选择仓库"
-            clearable
-            class="w-[180px]!"
-          >
-            <el-option
-              v-for="item in repoList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        </el-select>
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar title="商品期初库存" @refresh="getList">

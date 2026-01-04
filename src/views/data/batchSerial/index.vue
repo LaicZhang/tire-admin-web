@@ -5,6 +5,7 @@ import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import StatusTag from "@/components/StatusTag/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
@@ -98,20 +99,20 @@ const statusOptions = [
   { label: "报废", value: "SCRAPPED" }
 ];
 
-const getStatusType = (status: string) => {
-  const map: Record<string, string> = {
-    IN_STOCK: "success",
-    SOLD: "info",
-    RETURNED: "warning",
-    SCRAPPED: "danger"
-  };
-  return map[status] || "info";
-};
+const serialStatusMap = {
+  IN_STOCK: { label: "在库", type: "success" },
+  SOLD: { label: "已售", type: "info" },
+  RETURNED: { label: "退货", type: "warning" },
+  SCRAPPED: { label: "报废", type: "danger" }
+} as const;
 
-const getStatusLabel = (status: string) => {
-  const item = statusOptions.find(s => s.value === status);
-  return item?.label || status;
-};
+const batchExpiryStatusMap = {
+  1: { label: "正常", type: "success" },
+  0: { label: "已过期", type: "danger" }
+} as const;
+
+const getBatchExpiryStatus = (expiryDate: string) =>
+  new Date(expiryDate) < new Date() ? 0 : 1;
 
 const expiryColumns: TableColumnList = [
   { label: "批次号", prop: "batchNo" },
@@ -317,7 +318,7 @@ const handleViewSerial = (row: SerialNumber) => {
           h(
             "el-descriptions-item",
             { label: "状态" },
-            getStatusLabel(row.status)
+            serialStatusMap[row.status]?.label || row.status
           ),
           h("el-descriptions-item", { label: "商品" }, row.tire?.name),
           h("el-descriptions-item", { label: "仓库" }, row.repo?.name),
@@ -449,18 +450,12 @@ onMounted(() => {
                 @page-current-change="handleBatchPageChange"
               >
                 <template #status="{ row }">
-                  <el-tag
+                  <StatusTag
                     v-if="row.expiryDate"
-                    :type="
-                      new Date(row.expiryDate) < new Date()
-                        ? 'danger'
-                        : 'success'
-                    "
-                  >
-                    {{
-                      new Date(row.expiryDate) < new Date() ? "已过期" : "正常"
-                    }}
-                  </el-tag>
+                    :status="getBatchExpiryStatus(row.expiryDate)"
+                    :status-map="batchExpiryStatusMap"
+                    size="default"
+                  />
                   <span v-else>-</span>
                 </template>
                 <template #operation="{ row }">
@@ -561,9 +556,11 @@ onMounted(() => {
                 @page-current-change="handleSerialPageChange"
               >
                 <template #serialStatus="{ row }">
-                  <el-tag :type="getStatusType(row.status)">
-                    {{ getStatusLabel(row.status) }}
-                  </el-tag>
+                  <StatusTag
+                    :status="row.status"
+                    :status-map="serialStatusMap"
+                    size="default"
+                  />
                 </template>
                 <template #serialOperation="{ row }">
                   <el-button link type="primary" @click="handleViewSerial(row)">

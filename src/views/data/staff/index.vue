@@ -9,6 +9,7 @@ import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { columns } from "./columns";
 import { PureTableBar } from "@/components/RePureTableBar";
+import StatusTag from "@/components/StatusTag/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import StaffForm from "./form.vue";
@@ -41,6 +42,11 @@ const state = ref({
   name: "",
   keyword: ""
 });
+
+const staffStatusMap = {
+  1: { label: "在职", type: "success" },
+  0: { label: "离职", type: "danger" }
+} as const;
 
 const formColumns: PlusColumn[] = [
   {
@@ -266,9 +272,11 @@ onMounted(() => {
               {{ row.user?.phone || row.phone || "-" }}
             </template>
             <template #status="{ row }">
-              <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-                {{ row.status === 1 ? "在职" : "离职" }}
-              </el-tag>
+              <StatusTag
+                :status="row.status"
+                :status-map="staffStatusMap"
+                size="default"
+              />
             </template>
             <template #operation="{ row }">
               <el-button
