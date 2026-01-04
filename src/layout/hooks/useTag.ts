@@ -57,8 +57,10 @@ export function useTags() {
       `${responsiveStorageNameSpace()}configure`
     )?.hideTabs ?? false
   );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const multiTags = computed(() => useMultiTagsStoreHook().multiTags as any[]);
+
+  const multiTags = computed(
+    () => useMultiTagsStoreHook().multiTags as unknown[]
+  );
 
   const tagsViews = reactive<Array<tagsViewsType>>([
     {
@@ -113,7 +115,7 @@ export function useTags() {
   ]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function conditionHandle(item: any, previous: any, next: any) {
+  function conditionHandle(item: any, previous: unknown, next: unknown) {
     if (isBoolean(route?.meta?.showLink) && route?.meta?.showLink === false) {
       if (Object.keys(route.query).length > 0) {
         return isEqual(route.query, item.query) ? previous : next;
@@ -141,8 +143,7 @@ export function useTags() {
   });
 
   const scheduleIsActive = computed(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (item: any) => {
+    return (item: unknown) => {
       return conditionHandle(item, "schedule-active", "");
     };
   });

@@ -38,7 +38,7 @@ function init() {
   nextTick(() => {
     const iframe = unref(frameRef);
     if (!iframe) return;
-    const _frame = iframe as any;
+    const _frame = iframe as unknown;
     if (_frame.attachEvent) {
       _frame.attachEvent("onload", hideLoading);
     } else {

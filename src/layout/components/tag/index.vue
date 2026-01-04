@@ -182,7 +182,7 @@ function dynamicRouteTag(value: string): void {
 
   function concatPath(arr: object[], value: string) {
     if (!hasValue) {
-      arr.forEach((arrItem: any) => {
+      arr.forEach((arrItem: unknown) => {
         if (arrItem.path === value) {
           useMultiTagsStoreHook().handleTags("push", {
             path: value,
@@ -198,7 +198,7 @@ function dynamicRouteTag(value: string): void {
       });
     }
   }
-  concatPath(router.options.routes as any, value);
+  concatPath(router.options.routes as unknown, value);
 }
 
 /** 刷新路由 */
@@ -213,8 +213,8 @@ function onFresh() {
   NProgress.done();
 }
 
-function deleteDynamicTag(obj: any, current: any, tag?: string) {
-  const valueIndex: number = multiTags.value.findIndex((item: any) => {
+function deleteDynamicTag(obj: unknown, current: unknown, tag?: string) {
+  const valueIndex: number = multiTags.value.findIndex((item: unknown) => {
     if (item.query) {
       if (item.path === obj.path) {
         return item.query === obj.query;
@@ -242,7 +242,7 @@ function deleteDynamicTag(obj: any, current: any, tag?: string) {
       useMultiTagsStoreHook().handleTags("splice", "", {
         startIndex,
         length
-      }) as any;
+      }) as unknown;
     }
     dynamicTagView();
   };
@@ -286,7 +286,7 @@ function deleteMenu(item: RouteConfigs, tag?: string) {
   handleAliveRoute(route as ToRouteType);
 }
 
-function onClickDrop(key: number, item: any, selectRoute?: RouteConfigs) {
+function onClickDrop(key: number, item: unknown, selectRoute?: RouteConfigs) {
   if (item && item.disabled) return;
 
   let selectTagRoute;
@@ -354,13 +354,13 @@ function onClickDrop(key: number, item: any, selectRoute?: RouteConfigs) {
   });
 }
 
-function handleCommand(command: any) {
+function handleCommand(command: unknown) {
   const { key, item } = command;
   onClickDrop(key, item);
 }
 
 /** 触发右键中菜单的点击事件 */
-function selectTag(key: number, item: any) {
+function selectTag(key: number, item: unknown) {
   closeMenu();
   onClickDrop(key, item, currentSelect.value);
 }
@@ -504,9 +504,9 @@ onMounted(() => {
   showMenuModel(route.fullPath);
 
   // 触发隐藏标签页
-  emitter.on("tagViewsChange", (key: any) => {
-    if (unref(showTags as any) === key) return;
-    (showTags as any).value = key;
+  emitter.on("tagViewsChange", (key: unknown) => {
+    if (unref(showTags as unknown) === key) return;
+    (showTags as unknown).value = key;
   });
 
   // 改变标签风格

@@ -12,8 +12,8 @@ type BreadcrumbRoute = RouteConfigs & {
 };
 const levelList = ref<BreadcrumbRoute[]>([]);
 const router = useRouter();
-const routes: any = router.options.routes;
-const multiTags: any = useMultiTagsStoreHook().multiTags;
+const routes = router.options.routes;
+const multiTags = useMultiTagsStoreHook().multiTags;
 
 const getBreadcrumb = (): void => {
   // 当前路由信息
@@ -76,7 +76,7 @@ const getBreadcrumb = (): void => {
 const handleLink = (item: RouteConfigs) => {
   const { redirect, name, path } = item;
   if (redirect) {
-    router.push(redirect as any);
+    router.push(redirect as unknown);
   } else {
     if (name) {
       if (item.query) {
@@ -100,7 +100,7 @@ const handleLink = (item: RouteConfigs) => {
 // const handleLink = item => {
 //   const { redirect, name, path, query, params } = item;
 //   if (redirect) {
-//     router.push(redirect as any);
+//     router.push(redirect as unknown);
 //   } else {
 //     const routeOptions = name
 //       ? { name, params: params || {}, query: query || {} }
