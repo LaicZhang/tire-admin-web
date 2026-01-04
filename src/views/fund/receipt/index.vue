@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
-import type { FormInstance } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import {
@@ -26,7 +24,7 @@ defineOptions({
 const loading = ref(false);
 const dataList = ref<AdvancePaymentListItem[]>([]);
 const selectedRows = ref<AdvancePaymentListItem[]>([]);
-const formRef = ref<FormInstance>();
+const formRef = ref<{ resetFields: () => void }>();
 
 const pagination = reactive({
   total: 0,
@@ -75,7 +73,7 @@ async function onSearch() {
   }
 }
 
-function resetForm(formEl?: FormInstance) {
+function resetForm(formEl?: { resetFields: () => void }) {
   if (!formEl) return;
   formEl.resetFields();
   queryForm.customerName = "";
@@ -201,11 +199,12 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
+    <ReSearchForm
       ref="formRef"
-      :inline="true"
-      :model="queryForm"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      :form="queryForm"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm(formRef)"
     >
       <el-form-item label="客户" prop="customerName">
         <el-input
@@ -230,20 +229,7 @@ onMounted(() => {
           />
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="预收款列表" :columns="columns" @refresh="onSearch">
       <template #buttons>

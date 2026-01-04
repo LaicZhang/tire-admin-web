@@ -3,13 +3,11 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
-import type { FormInstance } from "element-plus";
 import { http } from "@/utils/http";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
@@ -28,7 +26,7 @@ defineOptions({
 const loading = ref(true);
 const dataList = ref<OtherIncome[]>([]);
 const selectedRows = ref<OtherIncome[]>([]);
-const formRef = ref<FormInstance>();
+const formRef = ref<{ resetFields: () => void }>();
 const pagination = reactive({
   total: 0,
   pageSize: 20,
@@ -79,7 +77,7 @@ async function onSearch() {
   }
 }
 
-function resetForm(formEl?: FormInstance) {
+function resetForm(formEl?: { resetFields: () => void }) {
   if (!formEl) return;
   formEl.resetFields();
   Object.assign(queryForm, {
@@ -181,11 +179,12 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
+    <ReSearchForm
       ref="formRef"
-      :inline="true"
-      :model="queryForm"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      :form="queryForm"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm(formRef)"
     >
       <el-form-item label="单据编号" prop="billNo">
         <el-input
@@ -235,20 +234,7 @@ onMounted(() => {
           class="!w-[140px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="其他收入单列表" :columns="columns" @refresh="onSearch">
       <template #buttons>

@@ -4,15 +4,15 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { useRouter } from "vue-router";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import Upload from "~icons/ep/upload";
-import type { FormInstance } from "element-plus";
 import { http } from "@/utils/http";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import MoneyDisplay from "@/components/MoneyDisplay/index.vue";
 import {
   type FundDocument,
   type FundDocumentQueryParams,
@@ -20,7 +20,7 @@ import {
   DOCUMENT_STATUS_OPTIONS,
   DIRECTION_OPTIONS
 } from "./types";
-import { columns, getDocumentTypeInfo, getStatusInfo } from "./columns";
+import { columns, getDocumentTypeInfo } from "./columns";
 
 defineOptions({
   name: "FundDocuments"
@@ -30,7 +30,7 @@ const router = useRouter();
 const loading = ref(true);
 const dataList = ref<FundDocument[]>([]);
 const selectedRows = ref<FundDocument[]>([]);
-const formRef = ref<FormInstance>();
+const formRef = ref<{ resetFields: () => void }>();
 const pagination = reactive({
   total: 0,
   pageSize: 20,
@@ -47,6 +47,16 @@ const queryForm = reactive<FundDocumentQueryParams>({
   endDate: "",
   billNo: ""
 });
+
+type DocumentStatusTagType = (typeof DOCUMENT_STATUS_OPTIONS)[number]["type"];
+
+const documentStatusMap = DOCUMENT_STATUS_OPTIONS.reduce(
+  (acc, item) => {
+    acc[item.value] = { label: item.label, type: item.type };
+    return acc;
+  },
+  {} as Record<string, { label: string; type: DocumentStatusTagType }>
+);
 
 // 统计数据
 const statistics = reactive({
@@ -103,7 +113,7 @@ function calculateStatistics() {
   statistics.netAmount = income - expense;
 }
 
-function resetForm(formEl?: FormInstance) {
+function resetForm(formEl?: { resetFields: () => void }) {
   if (!formEl) return;
   formEl.resetFields();
   Object.assign(queryForm, {
@@ -193,12 +203,6 @@ function handleSelectionChange(rows: FundDocument[]) {
   selectedRows.value = rows;
 }
 
-/** 格式化金额 */
-function formatMoney(amount?: number): string {
-  if (amount === undefined || amount === null) return "-";
-  return (amount / 100).toFixed(2);
-}
-
 onMounted(() => {
   onSearch();
 });
@@ -206,11 +210,12 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
+    <ReSearchForm
       ref="formRef"
-      :inline="true"
-      :model="queryForm"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      :form="queryForm"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm(formRef)"
     >
       <el-form-item label="单据编号" prop="billNo">
         <el-input
@@ -290,33 +295,20 @@ onMounted(() => {
           class="!w-[140px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <!-- 统计卡片 -->
     <div class="statistics-cards mb-4 flex gap-4 px-4">
       <el-card shadow="never" class="flex-1">
         <div class="text-gray-500 text-sm">收入合计</div>
         <div class="text-xl font-bold text-green-600">
-          ¥{{ formatMoney(statistics.totalIncome) }}
+          <MoneyDisplay :value="statistics.totalIncome" unit="fen" />
         </div>
       </el-card>
       <el-card shadow="never" class="flex-1">
         <div class="text-gray-500 text-sm">支出合计</div>
         <div class="text-xl font-bold text-red-500">
-          ¥{{ formatMoney(statistics.totalExpense) }}
+          <MoneyDisplay :value="statistics.totalExpense" unit="fen" />
         </div>
       </el-card>
       <el-card shadow="never" class="flex-1">
@@ -325,7 +317,7 @@ onMounted(() => {
           class="text-xl font-bold"
           :class="statistics.netAmount >= 0 ? 'text-green-600' : 'text-red-500'"
         >
-          ¥{{ formatMoney(statistics.netAmount) }}
+          <MoneyDisplay :value="statistics.netAmount" unit="fen" />
         </div>
       </el-card>
     </div>
@@ -425,13 +417,16 @@ onMounted(() => {
                   : row.direction === "OUT"
                     ? "-"
                     : ""
-              }}{{ formatMoney(row.amount) }}
+              }}
+              <MoneyDisplay
+                :value="row.amount"
+                unit="fen"
+                :show-symbol="false"
+              />
             </span>
           </template>
           <template #status="{ row }">
-            <el-tag :type="getStatusInfo(row.status).type" size="small">
-              {{ getStatusInfo(row.status).label }}
-            </el-tag>
+            <StatusTag :status="row.status" :status-map="documentStatusMap" />
           </template>
           <template #operation="{ row, size }">
             <el-button
