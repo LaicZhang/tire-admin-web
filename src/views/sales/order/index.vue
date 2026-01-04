@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { h, onMounted, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
@@ -33,6 +33,7 @@ const formRef = ref<{
   getRef: () => FormInstance;
   getReceiveFee?: () => number;
 } | null>(null);
+const searchFormRef = ref<{ resetFields: () => void }>();
 
 const searchForm = ref<SalesOrderQueryParams>({
   operatorId: undefined,
@@ -88,7 +89,7 @@ function onSearch() {
   getList();
 }
 
-function onReset(formEl: FormInstance | undefined) {
+function onReset(formEl: { resetFields: () => void } | undefined) {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -267,77 +268,69 @@ onMounted(async () => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form :inline="true" class="search-form">
-        <el-form-item label="客户">
-          <el-select
-            v-model="searchForm.customerId"
-            placeholder="请选择客户"
-            clearable
-            filterable
-            class="w-[180px]"
-          >
-            <el-option
-              v-for="item in customerList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="操作人">
-          <el-select
-            v-model="searchForm.operatorId"
-            placeholder="请选择操作人"
-            clearable
-            class="w-[180px]"
-          >
-            <el-option
-              v-for="item in employeeList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="审核人">
-          <el-select
-            v-model="searchForm.auditorId"
-            placeholder="请选择审核人"
-            clearable
-            class="w-[180px]"
-          >
-            <el-option
-              v-for="item in managerList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input
-            v-model="searchForm.desc"
-            placeholder="请输入备注关键词"
-            clearable
-            class="w-[180px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      class="m-1"
+      :form="searchForm"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset(searchFormRef)"
+    >
+      <el-form-item label="客户">
+        <el-select
+          v-model="searchForm.customerId"
+          placeholder="请选择客户"
+          clearable
+          filterable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in customerList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
           />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="onReset">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="操作人">
+        <el-select
+          v-model="searchForm.operatorId"
+          placeholder="请选择操作人"
+          clearable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in employeeList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="审核人">
+        <el-select
+          v-model="searchForm.auditorId"
+          placeholder="请选择审核人"
+          clearable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in managerList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input
+          v-model="searchForm.desc"
+          placeholder="请输入备注关键词"
+          clearable
+          class="w-[180px]"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar title="销售订单" @refresh="getList">
