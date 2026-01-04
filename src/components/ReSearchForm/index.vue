@@ -1,12 +1,16 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import type { SearchFormProps, SearchFormEmits } from "./types";
 
 defineOptions({
   name: "ReSearchForm"
 });
+
+const formRef = ref<FormInstance>();
 
 const props = withDefaults(defineProps<SearchFormProps>(), {
   shadow: "never",
@@ -17,6 +21,10 @@ const props = withDefaults(defineProps<SearchFormProps>(), {
 });
 
 const emit = defineEmits<SearchFormEmits>();
+
+defineExpose({
+  resetFields: () => formRef.value?.resetFields()
+});
 
 const handleSearch = () => {
   emit("search");
@@ -55,6 +63,7 @@ const handleReset = () => {
           <el-button :icon="useRenderIcon(Refresh)" @click="handleReset">
             重置
           </el-button>
+          <slot name="extraActions" />
         </slot>
       </el-form-item>
     </el-form>
