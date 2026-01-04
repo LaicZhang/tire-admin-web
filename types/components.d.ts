@@ -57,6 +57,8 @@ declare module 'vue' {
     ElRow: typeof import('element-plus/es')['ElRow']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
+    ElSkeletonItem: typeof import('element-plus/es')['ElSkeletonItem']
     ElStatistic: typeof import('element-plus/es')['ElStatistic']
     ElStep: typeof import('element-plus/es')['ElStep']
     ElSteps: typeof import('element-plus/es')['ElSteps']
@@ -128,6 +130,8 @@ declare global {
   const ElRow: (typeof import("element-plus/es"))["ElRow"];
   const ElScrollbar: (typeof import("element-plus/es"))["ElScrollbar"];
   const ElSelect: (typeof import("element-plus/es"))["ElSelect"];
+  const ElSkeleton: (typeof import("element-plus/es"))["ElSkeleton"];
+  const ElSkeletonItem: (typeof import("element-plus/es"))["ElSkeletonItem"];
   const ElStatistic: (typeof import("element-plus/es"))["ElStatistic"];
   const ElStep: (typeof import("element-plus/es"))["ElStep"];
   const ElSteps: (typeof import("element-plus/es"))["ElSteps"];
