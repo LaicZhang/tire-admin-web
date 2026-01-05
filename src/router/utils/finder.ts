@@ -6,6 +6,7 @@ import type { RouteRecordRaw } from "vue-router";
 import type { menuType } from "@/layout/types";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
+import type { multiType } from "@/store/modules/types";
 
 /**
  * 通过指定 `key` 获取父级路径集合，默认 `key` 为 `path`
@@ -20,6 +21,7 @@ export function getParentPaths(
     for (let i = 0; i < routes.length; i++) {
       const item = routes[i];
       // 返回父级path
+      // Dynamic key access on route record
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((item as any)[key] === value) return parents;
       // children不存在或为空则不递归
@@ -88,6 +90,14 @@ export function getTopMenu(tag = false): menuType {
     return {} as menuType;
   }
   const topMenu = handleTopMenu(firstChild) as unknown as menuType;
-  tag && useMultiTagsStoreHook().handleTags("push", topMenu);
+  if (tag && topMenu.path && topMenu.name) {
+    useMultiTagsStoreHook().handleTags("push", {
+      path: topMenu.path,
+      name: topMenu.name,
+      meta: topMenu.meta ?? {},
+      query: undefined,
+      params: undefined
+    } as multiType);
+  }
   return topMenu;
 }

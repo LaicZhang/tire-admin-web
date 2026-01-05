@@ -5,7 +5,8 @@ import {
   router,
   resetRouter,
   routerArrays,
-  storageLocal
+  storageLocal,
+  toMultiTypeArray
 } from "../utils";
 import {
   type UserResult,
@@ -101,7 +102,10 @@ export const useUserStore = defineStore("pure-user", {
       // 使用 $reset() 清理所有用户状态
       this.$reset();
       removeToken();
-      useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
+      useMultiTagsStoreHook().handleTags(
+        "equal",
+        toMultiTypeArray([...routerArrays])
+      );
       resetRouter();
       router.push("/login");
     },

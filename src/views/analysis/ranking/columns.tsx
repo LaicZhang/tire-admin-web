@@ -17,11 +17,14 @@ export function useColumns() {
       type: "index",
       width: 80,
       align: "center",
-      cellRenderer: ({ index }: { index: number }) => (
-        <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
-          {index + 1}
-        </span>
-      )
+      cellRenderer: data => {
+        const index = data.index;
+        return (
+          <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
+            {index + 1}
+          </span>
+        );
+      }
     },
     {
       label: "客户名称",
@@ -37,9 +40,14 @@ export function useColumns() {
       label: "交易总额",
       prop: "amount",
       sortable: true,
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span class="font-bold text-blue-600">¥{formatAmount(row.amount)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return (
+          <span class="font-bold text-blue-600">
+            ¥{row ? formatAmount(row.amount) : "-"}
+          </span>
+        );
+      }
     }
   ];
 
@@ -49,11 +57,14 @@ export function useColumns() {
       type: "index",
       width: 80,
       align: "center",
-      cellRenderer: ({ index }: { index: number }) => (
-        <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
-          {index + 1}
-        </span>
-      )
+      cellRenderer: data => {
+        const index = data.index;
+        return (
+          <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
+            {index + 1}
+          </span>
+        );
+      }
     },
     {
       label: "供应商名称",
@@ -69,11 +80,14 @@ export function useColumns() {
       label: "采购总额",
       prop: "amount",
       sortable: true,
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span class="font-bold text-green-600">
-          ¥{formatAmount(row.amount)}
-        </span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return (
+          <span class="font-bold text-green-600">
+            ¥{row ? formatAmount(row.amount) : "-"}
+          </span>
+        );
+      }
     }
   ];
 
@@ -83,11 +97,14 @@ export function useColumns() {
       type: "index",
       width: 80,
       align: "center",
-      cellRenderer: ({ index }: { index: number }) => (
-        <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
-          {index + 1}
-        </span>
-      )
+      cellRenderer: data => {
+        const index = data.index;
+        return (
+          <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
+            {index + 1}
+          </span>
+        );
+      }
     },
     {
       label: "商品名称",
@@ -103,17 +120,23 @@ export function useColumns() {
       label: "交易总额",
       prop: "amount",
       sortable: true,
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span>¥{formatAmount(row.amount)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+      }
     },
     {
       label: "利润预估",
       prop: "profit",
       sortable: true,
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span class="text-emerald-500">¥{formatAmount(row.profit ?? 0)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return (
+          <span class="text-emerald-500">
+            ¥{row ? formatAmount(row.profit ?? 0) : "-"}
+          </span>
+        );
+      }
     }
   ];
 
@@ -123,11 +146,14 @@ export function useColumns() {
       type: "index",
       width: 80,
       align: "center",
-      cellRenderer: ({ index }: { index: number }) => (
-        <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
-          {index + 1}
-        </span>
-      )
+      cellRenderer: data => {
+        const index = data.index;
+        return (
+          <span class={index < 3 ? "text-red-500 font-bold" : "text-gray-600"}>
+            {index + 1}
+          </span>
+        );
+      }
     },
     {
       label: "员工姓名",
@@ -143,9 +169,12 @@ export function useColumns() {
       label: "涉及金额",
       prop: "amount",
       sortable: true,
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span class="font-bold">¥{formatAmount(row.amount)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return (
+          <span class="font-bold">¥{row ? formatAmount(row.amount) : "-"}</span>
+        );
+      }
     }
   ];
 

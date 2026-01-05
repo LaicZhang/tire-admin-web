@@ -40,20 +40,25 @@ export function useColumns() {
       label: "销售金额",
       prop: "totalAmount",
       width: 120,
-      cellRenderer: ({ row }: { row: CustomerRankingRow }) => (
-        <span>¥{Number(row.totalAmount).toFixed(2)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as CustomerRankingRow | undefined;
+        return <span>¥{row ? Number(row.totalAmount).toFixed(2) : "-"}</span>;
+      }
     },
     {
       label: "占比",
       width: 150,
-      cellRenderer: ({ row }: { row: CustomerRankingRow }) => (
-        <ElProgress
-          percentage={row.percentage}
-          showText={true}
-          format={() => row.percentage.toFixed(1) + "%"}
-        />
-      )
+      cellRenderer: data => {
+        const row = data.row as CustomerRankingRow | undefined;
+        if (!row) return "-";
+        return (
+          <ElProgress
+            percentage={row.percentage}
+            showText={true}
+            format={() => row.percentage.toFixed(1) + "%"}
+          />
+        );
+      }
     }
   ];
 
@@ -76,9 +81,10 @@ export function useColumns() {
       label: "销售金额",
       prop: "amount",
       width: 120,
-      cellRenderer: ({ row }: { row: TrendDataRow }) => (
-        <span>¥{Number(row.amount).toFixed(2)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as TrendDataRow | undefined;
+        return <span>¥{row ? Number(row.amount).toFixed(2) : "-"}</span>;
+      }
     }
   ];
 

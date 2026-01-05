@@ -2,7 +2,12 @@ import { formatTimeOnlyNumber } from "@/utils/time";
 import CryptoJS from "crypto-js";
 
 export function getMD5(data: string) {
-  return CryptoJS.MD5(data).toString().toLowerCase();
+  return (
+    CryptoJS as unknown as { MD5: (data: string) => { toString: () => string } }
+  )
+    .MD5(data)
+    .toString()
+    .toLowerCase();
   // return CryptoJS.MD5(CryptoJS.lib.WordArray.create(data)).toString();
 }
 

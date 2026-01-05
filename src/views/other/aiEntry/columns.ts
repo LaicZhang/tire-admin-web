@@ -27,21 +27,24 @@ export const detailColumns: TableColumnList = [
     label: "金额",
     width: 100,
     align: "right",
-    cellRenderer: ({ row }: { row: OrderDetailRow }) =>
-      h(
+    cellRenderer: data => {
+      const row = data.row as OrderDetailRow | undefined;
+      return h(
         "span",
         { class: "text-blue-500" },
-        ((row.amount || 0) as number).toFixed(2)
-      )
+        ((row?.amount || 0) as number).toFixed(2)
+      );
+    }
   },
   {
     label: "状态",
     width: 80,
     align: "center",
-    cellRenderer: ({ row }: { row: OrderDetailRow }) => {
-      if (row.productUid)
+    cellRenderer: data => {
+      const row = data.row as OrderDetailRow | undefined;
+      if (row?.productUid)
         return h(ElTag, { type: "success", size: "small" }, () => "已匹配");
-      if (row.isNew)
+      if (row?.isNew)
         return h(ElTag, { type: "warning", size: "small" }, () => "新增");
       return h(ElTag, { type: "danger", size: "small" }, () => "未匹配");
     }

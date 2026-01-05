@@ -11,23 +11,20 @@ export interface StockTakingItem {
  * 计算盘点差异汇总
  */
 export function calculateStockTakingSummary(data: StockTakingItem[]) {
-  const surplus = data.filter(
-    (item: StockTakingItem) =>
-      (item.actualCount ?? item.bookCount) > (item.bookCount ?? item.count)
-  );
-  const waste = data.filter(
-    (item: StockTakingItem) =>
-      (item.actualCount ?? item.bookCount) < (item.bookCount ?? item.count)
-  );
-  const unchanged = data.filter(
-    (item: StockTakingItem) =>
-      (item.actualCount ?? item.bookCount) === (item.bookCount ?? item.count)
-  );
-
   const getBookCount = (item: StockTakingItem) =>
     item.bookCount ?? item.count ?? 0;
   const getActualCount = (item: StockTakingItem) =>
     item.actualCount ?? item.bookCount ?? item.count ?? 0;
+
+  const surplus = data.filter(
+    (item: StockTakingItem) => getActualCount(item) > getBookCount(item)
+  );
+  const waste = data.filter(
+    (item: StockTakingItem) => getActualCount(item) < getBookCount(item)
+  );
+  const unchanged = data.filter(
+    (item: StockTakingItem) => getActualCount(item) === getBookCount(item)
+  );
 
   return {
     total: data.length,

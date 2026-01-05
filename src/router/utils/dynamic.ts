@@ -11,6 +11,7 @@ import {
 import { isString } from "@pureadmin/utils";
 import { router } from "../index";
 import { routerArrays } from "@/layout/types";
+import { toMultiTypeArray } from "@/store/utils";
 import { buildHierarchyTree } from "@/utils/tree";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -163,12 +164,19 @@ export function handleAsyncRoutes(routeList: RouteRecordRaw[]): void {
     usePermissionStoreHook().handleWholeMenus(routeList);
   }
   if (!useMultiTagsStoreHook().getMultiTagsCache) {
-    useMultiTagsStoreHook().handleTags("equal", [
-      ...routerArrays,
-      ...usePermissionStoreHook().flatteningRoutes.filter(
-        v => v?.meta?.fixedTag
-      )
-    ]);
+    const fixedRoutes = usePermissionStoreHook()
+      .flatteningRoutes.filter(v => v?.meta?.fixedTag)
+      .map(v => ({
+        path: v.path,
+        name: typeof v.name === "string" ? v.name : undefined,
+        meta: v.meta,
+        query: undefined,
+        params: undefined
+      }));
+    useMultiTagsStoreHook().handleTags(
+      "equal",
+      toMultiTypeArray([...routerArrays, ...fixedRoutes])
+    );
   }
   addPathMatch();
 }

@@ -5,8 +5,8 @@ import { cloneDeep, intersection, storageLocal } from "@pureadmin/utils";
 import { userKey, type DataInfo } from "@/utils/auth";
 
 /** 路由信息接口 */
-interface RouteInfo {
-  name?: string;
+export interface RouteInfo {
+  name?: string | symbol;
   path: string;
   parentId?: string;
   meta?: {

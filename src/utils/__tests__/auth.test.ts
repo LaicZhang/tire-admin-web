@@ -90,6 +90,7 @@ describe("auth utils", () => {
 
       sessionStorage.setItem(refreshTokenKey, "refresh-token");
 
+      // @ts-expect-error - Cookies.get has overloaded signatures that are complex to mock
       vi.mocked(Cookies.get).mockImplementation((key?: string) => {
         if (key === TokenKey) return cookieValue;
         return undefined;
@@ -121,6 +122,7 @@ describe("auth utils", () => {
 
     it("should return null when cookie is missing", () => {
       sessionStorage.setItem(refreshTokenKey, "refresh-token");
+      // @ts-expect-error - Cookies.get has overloaded signatures
       vi.mocked(Cookies.get).mockReturnValue(undefined);
 
       vi.mocked(storageLocal().getItem).mockReturnValue({
@@ -131,6 +133,7 @@ describe("auth utils", () => {
     });
 
     it("should return null when cookie token is invalid JSON", () => {
+      // @ts-expect-error - Cookies.get has overloaded signatures
       vi.mocked(Cookies.get).mockReturnValue("{invalid json");
       vi.mocked(storageLocal().getItem).mockReturnValue(null);
 

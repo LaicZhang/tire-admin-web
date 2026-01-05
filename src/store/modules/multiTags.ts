@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import {
   type multiType,
   type positionType,
+  type RouteConfigs,
   store,
   isUrl,
   isEqual,
@@ -51,20 +52,29 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
             (r): r is RouteConfigs & { path: string; name: string } =>
               r.path !== undefined && r.name !== undefined
           )
-          .map(r => ({
-            path: r.path,
-            name: r.name,
-            meta: r.meta || {},
-            query: r.query as multiType["query"],
-            params: r.params as multiType["params"]
-          })),
+          .map(
+            r =>
+              ({
+                path: r.path,
+                name: r.name,
+                meta: {
+                  title: r.meta?.title,
+                  icon:
+                    typeof r.meta?.icon === "string" ? r.meta.icon : undefined,
+                  showLink: r.meta?.showLink,
+                  auths: r.meta?.auths
+                },
+                query: r.query as multiType["query"],
+                params: r.params as multiType["params"]
+              }) as multiType
+          ),
         ...usePermissionStoreHook()
           .flatteningRoutes.filter(v => hasFixedTag(v) && v.meta?.fixedTag)
           .map(v => {
             const route = v as {
               path?: string;
               name?: string;
-              meta?: unknown;
+              meta?: Record<string, unknown>;
               query?: unknown;
               params?: unknown;
             };
@@ -72,13 +82,19 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
             return {
               path: route.path,
               name: route.name,
-              meta: (route.meta as multiType["meta"]) || {},
+              meta: {
+                title: route.meta?.title as string | undefined,
+                icon:
+                  typeof route.meta?.icon === "string"
+                    ? route.meta.icon
+                    : undefined
+              },
               query: route.query as multiType["query"],
               params: route.params as multiType["params"]
-            };
+            } as multiType;
           })
           .filter((v): v is multiType => v !== null)
-      ];
+      ] as multiType[];
     })(),
     multiTagsCache:
       storageLocal().getItem<StorageConfigs>(

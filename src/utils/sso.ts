@@ -45,7 +45,7 @@ import { subBefore, getQueryMap } from "@pureadmin/utils";
       roles: _roles,
       accessToken: _accessToken,
       ...rest
-    } = params as unknown;
+    } = params as DataInfo<Date> & { roles: unknown; accessToken: unknown };
 
     const newUrl = `${location.origin}${location.pathname}${subBefore(
       location.hash,

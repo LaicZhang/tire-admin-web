@@ -34,21 +34,28 @@ export function useSmartImportPreview() {
         label: "行号",
         width: 80,
         align: "center",
-        cellRenderer: ({ row }) => row.rowIndex
+        cellRenderer: data => {
+          const row = data.row as ImportDataRow | undefined;
+          return String(row?.rowIndex ?? "-");
+        }
       },
       ...mappedFields.map(field => ({
         label: field.label,
         prop: `data.${field.key}`,
         minWidth: 120,
-        cellRenderer: ({ row }: { row: ImportDataRow }) =>
-          row.data[field.key] || "-"
+        cellRenderer: (data: { row?: ImportDataRow }) => {
+          const row = data.row;
+          return String(row?.data[field.key] || "-");
+        }
       })),
       {
         label: "状态",
         width: 100,
         align: "center",
         fixed: "right",
-        cellRenderer: ({ row }) => {
+        cellRenderer: data => {
+          const row = data.row as ImportDataRow | undefined;
+          if (!row) return "-";
           const statusType = getRowStatusType(row.status);
           const statusText =
             row.status === "valid"
@@ -67,8 +74,9 @@ export function useSmartImportPreview() {
         label: "错误信息",
         width: 200,
         fixed: "right",
-        cellRenderer: ({ row }) => {
-          if (row.errors.length === 0)
+        cellRenderer: data => {
+          const row = data.row as ImportDataRow | undefined;
+          if (!row || row.errors.length === 0)
             return h("span", { class: "text-gray-400" }, "-");
           return h(
             "div",

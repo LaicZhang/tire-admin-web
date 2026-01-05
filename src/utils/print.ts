@@ -28,6 +28,7 @@ interface PrintInstance {
 
 const Print = function (
   this: PrintInstance,
+  // Vue component instance or DOM element - requires any for $el access
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dom: string | Element | any,
   options?: Partial<PrintInstance["conf"]>
@@ -49,7 +50,7 @@ const Print = function (
   const conf = this.conf as Record<string, unknown>;
   for (const key in conf) {
     if (key && Object.prototype.hasOwnProperty.call(options, key)) {
-      conf[key] = (options as unknown)[key];
+      conf[key] = (options as Record<string, unknown>)[key];
     }
   }
   if (typeof dom === "string") {
@@ -78,11 +79,15 @@ Print.prototype = {
    * @param {Object} obj2
    */
 
-  extendOptions: function <T>(this: PrintInstance, obj: unknown, obj2: T): T {
+  extendOptions: function <T extends Record<string, unknown>>(
+    this: PrintInstance,
+    obj: Record<string, unknown>,
+    obj2: T
+  ): T {
     for (const k in obj2) {
-      obj[k] = obj2[k];
+      obj[k] = obj2[k] as unknown;
     }
-    return obj;
+    return obj as T;
   },
   /**
     Copy all styles of the original page
@@ -238,8 +243,8 @@ Print.prototype = {
           return (
             obj &&
             typeof obj === "object" &&
-            obj.nodeType === 1 &&
-            typeof obj.nodeName === "string"
+            (obj as Node).nodeType === 1 &&
+            typeof (obj as Node).nodeName === "string"
           );
         },
   /**

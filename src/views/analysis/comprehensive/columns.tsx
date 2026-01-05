@@ -35,9 +35,10 @@ export function useColumns() {
     { label: "次数", prop: "count" },
     {
       label: "金额",
-      cellRenderer: ({ row }: { row: ClaimLossRow }) => (
-        <span>¥{formatMoney(row.amount)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as ClaimLossRow | undefined;
+        return <span>¥{row ? formatMoney(row.amount) : "-"}</span>;
+      }
     }
   ];
 
@@ -49,11 +50,15 @@ export function useColumns() {
       label: "滞销天数",
       prop: "daysWithoutSale",
       width: 100,
-      cellRenderer: ({ row }: { row: SlowMovingRow }) => (
-        <ElTag type={row.daysWithoutSale > 90 ? "danger" : "warning"}>
-          {row.daysWithoutSale} 天
-        </ElTag>
-      )
+      cellRenderer: data => {
+        const row = data.row as SlowMovingRow | undefined;
+        if (!row) return "-";
+        return (
+          <ElTag type={row.daysWithoutSale > 90 ? "danger" : "warning"}>
+            {row.daysWithoutSale} 天
+          </ElTag>
+        );
+      }
     }
   ];
 
@@ -63,9 +68,10 @@ export function useColumns() {
     {
       label: "占比",
       width: 120,
-      cellRenderer: ({ row }: { row: ExpiryRow }) => (
-        <span>{row.percentage.toFixed(1)}%</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as ExpiryRow | undefined;
+        return <span>{row ? row.percentage.toFixed(1) : "-"}%</span>;
+      }
     }
   ];
 
@@ -75,9 +81,10 @@ export function useColumns() {
       label: "当前库存",
       prop: "currentStock",
       width: 100,
-      cellRenderer: ({ row }: { row: StockoutRow }) => (
-        <ElTag type="danger">{row.currentStock}</ElTag>
-      )
+      cellRenderer: data => {
+        const row = data.row as StockoutRow | undefined;
+        return <ElTag type="danger">{row?.currentStock ?? "-"}</ElTag>;
+      }
     },
     { label: "安全库存", prop: "minStock", width: 100 }
   ];

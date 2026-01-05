@@ -22,9 +22,14 @@ export function useColumns() {
       label: "当前库存",
       prop: "currentQuantity",
       width: 100,
-      cellRenderer: ({ row }: { row: InventoryRow }) => (
-        <span class="text-red-500 font-bold">{row.currentQuantity}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as InventoryRow | undefined;
+        return (
+          <span class="text-red-500 font-bold">
+            {row?.currentQuantity ?? "-"}
+          </span>
+        );
+      }
     },
     { label: "安全库存", prop: "safetyStock", width: 100 },
     { label: "建议采购", prop: "suggestPurchase" }

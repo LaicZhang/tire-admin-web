@@ -151,7 +151,7 @@ describe("useCrud", () => {
     await p2;
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(dataList.value[0]!.id).toBe(2);
+    expect((dataList.value[0] as { id: number })!.id).toBe(2);
   });
 
   it("should cleanup abortController on unmount", () => {

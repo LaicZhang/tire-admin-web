@@ -23,7 +23,7 @@ export const useSettingStore = defineStore("pure-setting", {
   actions: {
     CHANGE_SETTING({ key, value }: { key: keyof setType; value: unknown }) {
       if (Reflect.has(this, key)) {
-        (this as unknown)[key] = value;
+        (this as unknown as Record<string, unknown>)[key] = value;
       }
     },
 

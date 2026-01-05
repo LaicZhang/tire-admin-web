@@ -61,14 +61,14 @@ const wrapperEnv = (envConf: Recordable): ViteEnv => {
   } as ViteEnv & Record<string, unknown>;
 
   for (const envName of Object.keys(envConf)) {
-    let realName = envConf[envName].replace(/\\n/g, "\n");
-    realName =
-      realName === "true" ? true : realName === "false" ? false : realName;
+    const rawValue = (envConf[envName] as string).replace(/\\n/g, "\n");
+    let realName: string | boolean | number =
+      rawValue === "true" ? true : rawValue === "false" ? false : rawValue;
 
     if (envName === "VITE_PORT") {
       realName = Number(realName);
     }
-    ret[envName] = realName;
+    (ret as Record<string, unknown>)[envName] = realName;
     if (typeof realName === "string") {
       process.env[envName] = realName;
     } else if (typeof realName === "object") {

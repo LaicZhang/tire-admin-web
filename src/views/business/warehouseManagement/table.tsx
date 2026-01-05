@@ -23,10 +23,19 @@ export type { FormItemProps, FormProps };
 
 const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
+interface WarehouseRow {
+  uid?: string;
+  name?: string;
+  address?: string;
+  manager?: { uid: string };
+  desc?: string;
+  status?: boolean;
+}
+
 export function openDialog(
   title = "新增",
 
-  row?: unknown,
+  row?: WarehouseRow,
   refreshCallback?: () => void
 ) {
   addDialog({

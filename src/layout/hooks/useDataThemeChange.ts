@@ -4,6 +4,7 @@ import { useLayout } from "./useLayout";
 import { removeToken } from "@/utils/auth";
 import { routerArrays } from "@/layout/types";
 import { router, resetRouter } from "@/router";
+import { toMultiTypeArray } from "@/store/utils";
 import type { themeColorsType } from "../types";
 import { useAppStoreHook } from "@/store/modules/app";
 import { useEpThemeStoreHook } from "@/store/modules/epTheme";
@@ -123,7 +124,10 @@ export function useDataThemeChange() {
     toggleClass(!!Grey, "html-grey", document.documentElement);
     toggleClass(!!Weak, "html-weakness", document.documentElement);
     router.push("/login");
-    useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
+    useMultiTagsStoreHook().handleTags(
+      "equal",
+      toMultiTypeArray([...routerArrays])
+    );
     resetRouter();
   }
 

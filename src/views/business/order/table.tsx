@@ -42,7 +42,29 @@ interface _OrderDetail {
   count?: number;
   batchNo?: string;
   expiryDate?: string;
+  tireId?: string;
   [key: string]: unknown;
+}
+
+interface OrderRow {
+  uid?: string;
+  providerId?: string;
+  customerId?: string;
+  auditorId?: string;
+  isApproved?: boolean;
+  isLocked?: boolean;
+  logisticsStatus?: number;
+  orderStatus?: number;
+  rejectReason?: string;
+  status?: boolean | string;
+  desc?: string;
+  total?: number | string;
+  count?: number;
+  paymentId?: string;
+  fee?: number;
+  isReceive?: boolean;
+  details?: _OrderDetail[];
+  name?: string;
 }
 
 export const allTireList = ref<BasicEntity[]>([]);
@@ -86,7 +108,7 @@ import { v7 as uuid } from "uuid";
 import { getCommonData } from "./handleData";
 import { getFooterButtons } from "./props";
 
-export async function openDialog(title = "新增", type: string, row?: unknown) {
+export async function openDialog(title = "新增", type: string, row?: OrderRow) {
   addDialog({
     title: `${title}`,
     props: {
@@ -122,7 +144,8 @@ export async function openDialog(title = "新增", type: string, row?: unknown) 
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
 
-      const curData = options.props?.formInline as unknown;
+      const curData = (options.props as { formInline?: OrderRow })
+        ?.formInline as OrderRow;
       function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"
@@ -131,12 +154,15 @@ export async function openDialog(title = "新增", type: string, row?: unknown) 
       }
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
-          if (curData.details.length === 0) {
+          if (!curData.details || curData.details.length === 0) {
             message("请添加订单详情项", { type: "error" });
             return;
           }
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, uid, details, ...orderData } = curData;
+
+          const { uid, details, ...orderData } = curData as Required<
+            Pick<OrderRow, "uid" | "details">
+          > &
+            Omit<OrderRow, "uid" | "details">;
           const companyId = await getCompanyId();
           if (title === "新增") {
             const commonData = getCommonData(uid, companyId, curData);
@@ -175,7 +201,9 @@ export async function openDialog(title = "新增", type: string, row?: unknown) 
                   ...commonData,
                   ...saleOrderData
                 },
-                details
+                details: details as unknown as Parameters<
+                  typeof addOrderApi
+                >[1]["details"]
               });
             }
             chores();
@@ -202,12 +230,12 @@ export async function openDialog(title = "新增", type: string, row?: unknown) 
               });
             } else if (title === "付款" && type === ORDER_TYPE.purchase) {
               await payPurchaseOrderApi(uid, {
-                fee: orderData.total || 0,
+                fee: Number(orderData.total) || 0,
                 paymentId: orderData.paymentId
               });
             } else if (title === "收款" && type === ORDER_TYPE.sale) {
               await paySaleOrderApi(uid, {
-                fee: orderData.total || 0,
+                fee: Number(orderData.total) || 0,
                 paymentId: orderData.paymentId
               });
             } else {

@@ -176,6 +176,7 @@ class PureHttp {
   /** 请求拦截 */
   private httpInterceptorsRequest(): void {
     PureHttp.axiosInstance.interceptors.request.use(
+      // @ts-expect-error PureHttpRequestConfig extends InternalAxiosRequestConfig with optional headers
       async (config: PureHttpRequestConfig) => {
         if (fatalApiConfigError) {
           notifyFatalApiConfigOnce();

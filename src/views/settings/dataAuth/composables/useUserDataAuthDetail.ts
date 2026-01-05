@@ -35,6 +35,9 @@ export function useUserDataAuthDetail() {
         customerAuth?: "all" | "partial";
         supplierAuth?: "all" | "partial";
         warehouseAuth?: "all" | "partial";
+        customerAuthMode?: "all" | "partial";
+        supplierAuthMode?: "all" | "partial";
+        warehouseAuthMode?: "all" | "partial";
       };
       customerList.value = normalizeAuthItems(
         detail?.customers ?? detail?.customerList

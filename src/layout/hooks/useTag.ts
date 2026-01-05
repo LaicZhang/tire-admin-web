@@ -114,6 +114,7 @@ export function useTags() {
     }
   ]);
 
+  // Tag item can have various properties (path, query, params, meta, etc.)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function conditionHandle(item: any, previous: unknown, next: unknown) {
     if (isBoolean(route?.meta?.showLink) && route?.meta?.showLink === false) {
@@ -164,6 +165,7 @@ export function useTags() {
   };
 
   const getRefEl = (key: string) => {
+    // Vue refs array access
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (instance?.refs?.[key] as any)?.[0] as HTMLElement | undefined;
   };

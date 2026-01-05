@@ -20,23 +20,8 @@ export type appType = {
   viewportSize: { width: number; height: number };
 };
 
-export type multiType = {
-  path: string;
-  name: string;
-  meta: {
-    title?: string;
-    icon?: string;
-    roles?: string[];
-    auths?: string[];
-    keepAlive?: boolean;
-    showLink?: boolean;
-    hiddenTag?: boolean;
-    dynamicLevel?: number;
-    frameSrc?: string;
-  };
-  query?: Record<string, string>;
-  params?: Record<string, string>;
-};
+// Re-export from modules/types for consistency
+export type { multiType } from "./modules/types";
 
 export type setType = {
   title: string;

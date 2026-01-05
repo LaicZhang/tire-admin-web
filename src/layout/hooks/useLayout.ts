@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { routerArrays } from "../types";
+import { routerArrays, type RouteConfigs } from "../types";
 import { useGlobal } from "@pureadmin/utils";
 import { useMultiTagsStore } from "@/store/modules/multiTags";
 
@@ -20,7 +20,10 @@ export function useLayout() {
         .map(r => ({
           path: r.path,
           name: r.name,
-          meta: r.meta,
+          meta: {
+            ...r.meta,
+            icon: typeof r.meta?.icon === "string" ? r.meta.icon : undefined
+          },
           query: r.query as Record<string, unknown> | undefined,
           params: r.params as Record<string, unknown> | undefined
         }));

@@ -1,6 +1,17 @@
-import { createStorage } from "unstorage";
+import {
+  createStorage,
+  type StorageValue,
+  type TransactionOptions
+} from "unstorage";
 import indexedDbDriver from "unstorage/drivers/indexedb";
 import localStorageDriver from "unstorage/drivers/localstorage";
+
+type SetItemsInput = {
+  key: string;
+  value: StorageValue;
+  options?: TransactionOptions;
+}[];
+type GetItemsInput = (string | { key: string; options?: TransactionOptions })[];
 
 export class IndexedDbStorage {
   private indexedDbStorage;
@@ -10,15 +21,15 @@ export class IndexedDbStorage {
     });
   }
 
-  setItems(key: unknown, value: unknown) {
-    this.indexedDbStorage.setItems(key, value);
+  setItems(items: SetItemsInput) {
+    return this.indexedDbStorage.setItems(items);
   }
 
-  getItems(key: unknown) {
-    return this.indexedDbStorage.getItems(key);
+  getItems(keys: GetItemsInput) {
+    return this.indexedDbStorage.getItems(keys);
   }
 
-  setItem(key: string, value: unknown) {
+  setItem(key: string, value: StorageValue) {
     return this.indexedDbStorage.setItem(key, value);
   }
 
@@ -35,15 +46,15 @@ export class LStorage {
     });
   }
 
-  setItems(key: unknown, value: unknown) {
-    this.lStorage.setItems(key, value);
+  setItems(items: SetItemsInput) {
+    return this.lStorage.setItems(items);
   }
 
-  getItems(key: unknown) {
-    return this.lStorage.getItems(key);
+  getItems(keys: GetItemsInput) {
+    return this.lStorage.getItems(keys);
   }
 
-  setItem(key: string, value: unknown) {
+  setItem(key: string, value: StorageValue) {
     return this.lStorage.setItem(key, value);
   }
 

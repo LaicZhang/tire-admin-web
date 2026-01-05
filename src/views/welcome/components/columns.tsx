@@ -39,11 +39,14 @@ export function useColumns() {
       label: "销售金额",
       width: 140,
       align: "right",
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span class="text-blue-600 font-medium">
-          ¥{formatAmount(row.amount)}
-        </span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return (
+          <span class="text-blue-600 font-medium">
+            ¥{row ? formatAmount(row.amount) : "-"}
+          </span>
+        );
+      }
     }
   ];
 
@@ -64,11 +67,14 @@ export function useColumns() {
       label: "采购金额",
       width: 140,
       align: "right",
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span class="text-green-600 font-medium">
-          ¥{formatAmount(row.amount)}
-        </span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return (
+          <span class="text-green-600 font-medium">
+            ¥{row ? formatAmount(row.amount) : "-"}
+          </span>
+        );
+      }
     }
   ];
 
@@ -89,11 +95,14 @@ export function useColumns() {
       label: "采购金额",
       width: 140,
       align: "right",
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span class="text-green-600 font-medium">
-          ¥{formatAmount(row.amount)}
-        </span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return (
+          <span class="text-green-600 font-medium">
+            ¥{row ? formatAmount(row.amount) : "-"}
+          </span>
+        );
+      }
     }
   ];
 
@@ -114,11 +123,14 @@ export function useColumns() {
       label: "交易金额",
       width: 140,
       align: "right",
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span class="text-blue-600 font-medium">
-          ¥{formatAmount(row.amount)}
-        </span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return (
+          <span class="text-blue-600 font-medium">
+            ¥{row ? formatAmount(row.amount) : "-"}
+          </span>
+        );
+      }
     }
   ];
 

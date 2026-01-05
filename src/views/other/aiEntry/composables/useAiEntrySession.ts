@@ -9,9 +9,10 @@ export function useAiEntrySession() {
   const initChatSession = async () => {
     try {
       const { data, code, msg } = await createChatApi();
-      if (code === 200) {
-        chatUid.value = data.uid || "";
-        batchId.value = data.batchId || "";
+      if (code === 200 && data) {
+        const sessionData = data as { uid?: string; batchId?: string };
+        chatUid.value = sessionData.uid || "";
+        batchId.value = sessionData.batchId || "";
       } else {
         message(msg || "初始化会话失败", { type: "error" });
       }

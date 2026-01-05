@@ -81,12 +81,16 @@ export function useQuickStockTaking(currentRepo: Ref<string | undefined>) {
       return;
     }
 
-    const items = itemsWithDifference.map(item => ({
-      repoId: item.repoId || currentRepo.value,
-      tireId: item.tireId,
-      actualCount: item.actualCount,
-      desc: item.description
-    }));
+    const items = itemsWithDifference
+      .filter(
+        item => item.repoId !== undefined && item.actualCount !== undefined
+      )
+      .map(item => ({
+        repoId: item.repoId || currentRepo.value || "",
+        tireId: item.tireId,
+        actualCount: item.actualCount!,
+        desc: item.description
+      }));
 
     try {
       await batchStockTakingApi({ items });

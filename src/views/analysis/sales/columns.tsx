@@ -19,9 +19,10 @@ export function useColumns() {
     {
       label: "交易金额",
       width: 150,
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span>¥{formatAmount(row.amount)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+      }
     }
   ];
 
@@ -32,9 +33,10 @@ export function useColumns() {
     {
       label: "销售金额",
       width: 150,
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span>¥{formatAmount(row.amount)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+      }
     }
   ];
 
@@ -45,9 +47,10 @@ export function useColumns() {
     {
       label: "业绩金额",
       width: 150,
-      cellRenderer: ({ row }: { row: RankRow }) => (
-        <span>¥{formatAmount(row.amount)}</span>
-      )
+      cellRenderer: data => {
+        const row = data.row as RankRow | undefined;
+        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+      }
     }
   ];
 

@@ -2,11 +2,11 @@ import { ref, type Ref, type ComputedRef } from "vue";
 import { message } from "@/utils/message";
 import { chatApi } from "@/api";
 import { ALL_LIST, localForage } from "@/utils";
+import { UploadMethod, ImageType } from "../types";
 import type {
-  UploadMethod,
-  ImageType,
   AIRecognitionResult,
-  RecognizedProduct
+  RecognizedProduct,
+  UploadedFile
 } from "../types";
 
 type DocumentTypeConfig = {
@@ -192,12 +192,12 @@ export function useAiEntryRecognition(
           confidence: matchedTire ? 95 : 60
         };
       })
-      .filter((p): p is RecognizedProduct => !!p);
+      .filter((p): p is NonNullable<typeof p> => !!p) as RecognizedProduct[];
 
     const remark = toString(obj.remark);
     const totalAmountFromAI = toNumber(obj.totalAmount);
     const computedTotal = recognizedProducts.reduce((sum, p) => {
-      return sum + (p.quantity || 0) * (p.price || 0);
+      return sum + (p?.quantity || 0) * (p?.price || 0);
     }, 0);
 
     recognitionResult.value = {
@@ -249,8 +249,8 @@ export function useAiEntryRecognition(
     }
 
     const { data, code, msg } = await chatApi({
-      uid: chatUid.value,
-      batchId: batchId.value,
+      uid: chatUid.value || "",
+      batchId: batchId.value || "",
       messages: [
         {
           role: "system",
@@ -277,8 +277,11 @@ export function useAiEntryRecognition(
       ]
     });
 
-    if (code === 200 && data.messages) {
-      const aiResponse = data.messages[data.messages.length - 1]?.content || "";
+    if (code === 200 && data) {
+      const responseData = data as { messages?: Array<{ content?: string }> };
+      const aiResponse =
+        responseData.messages?.[responseData.messages.length - 1]?.content ||
+        "";
       await parseAIResponse(aiResponse);
     } else {
       throw new Error(msg || "识别失败");

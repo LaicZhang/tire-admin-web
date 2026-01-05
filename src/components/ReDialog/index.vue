@@ -141,7 +141,7 @@ function handleClose(
       />
     </template>
     <component
-      v-bind="options?.props"
+      v-bind="options?.props ?? {}"
       :is="options?.contentRenderer?.({ options, index })"
       @close="
         (args: { command: 'close' | 'cancel' | 'sure' }) =>

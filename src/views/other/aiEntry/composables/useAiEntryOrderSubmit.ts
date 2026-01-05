@@ -7,12 +7,8 @@ import {
   createPurchaseInquiryApi,
   createSaleQuotationApi
 } from "@/api";
-import type {
-  OrderFormData,
-  DocumentType,
-  HistoryRecord,
-  UploadMethod
-} from "../types";
+import type { OrderFormData, HistoryRecord, UploadMethod } from "../types";
+import { DocumentType } from "../types";
 
 type DocumentTypeConfig = {
   label: string;
@@ -158,7 +154,10 @@ export function useAiEntryOrderSubmit(
           }))
         });
         if (res.code !== 200) throw new Error(res.msg || "创建失败");
-        createdId = res.data?.id ?? res.data?.uid;
+        const resData = res.data as
+          | { id?: string | number; uid?: string }
+          | undefined;
+        createdId = resData?.id ?? resData?.uid;
       } else {
         const res = await createPurchaseInquiryApi({
           providerId: partyUid,
@@ -170,7 +169,10 @@ export function useAiEntryOrderSubmit(
           }))
         });
         if (res.code !== 200) throw new Error(res.msg || "创建失败");
-        createdId = res.data?.id ?? res.data?.uid;
+        const resData = res.data as
+          | { id?: string | number; uid?: string }
+          | undefined;
+        createdId = resData?.id ?? resData?.uid;
       }
 
       historyRecords.value.unshift({

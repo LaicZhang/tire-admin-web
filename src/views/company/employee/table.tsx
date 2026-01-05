@@ -53,7 +53,11 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         password: row?.user?.password ?? undefined,
         id: row?.id ?? undefined,
 
-        jobs: row?.jobs?.map((j: unknown) => j?.uid ?? j?.id ?? j) ?? []
+        jobs:
+          row?.jobs?.map((j: unknown) => {
+            const jObj = j as { uid?: string; id?: number } | undefined;
+            return jObj?.uid ?? jObj?.id ?? j;
+          }) ?? []
       }
     },
     width: "40%",

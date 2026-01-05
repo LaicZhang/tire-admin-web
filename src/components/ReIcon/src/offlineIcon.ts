@@ -105,6 +105,7 @@ import RiCloseCircleLine from "~icons/ri/close-circle-line?raw";
 import RiCloseLine from "~icons/ri/close-line?raw";
 import RiCheckLine from "~icons/ri/check-line?raw";
 
+// Icon tuple: [icon-name, raw SVG module]
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const icons: Array<[string, any]> = [
   // ========== Element Plus Icons ==========

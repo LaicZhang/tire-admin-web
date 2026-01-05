@@ -32,8 +32,7 @@ import {
  * 如何匹配所有文件请看：https://github.com/mrmlnc/fast-glob#basic-syntax
  * 如何排除文件请看：https://cn.vitejs.dev/guide/features.html#negative-patterns
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const modules: Record<string, any> = import.meta.glob(
+const modules: Record<string, { default: RouteRecordRaw }> = import.meta.glob(
   ["./modules/**/*.ts", "!./modules/**/remaining.ts", "!./modules/**/auth.ts"],
   {
     eager: true
@@ -52,6 +51,7 @@ export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(
   formatFlatteningRoutes(
     buildHierarchyTree(
       ascending(
+        // flat(Infinity) returns unknown[], need type assertion for ascending()
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         routes.flat(Infinity) as any
       ) as unknown as import("@/utils/tree").TreeNode[]
@@ -62,6 +62,7 @@ export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(
 /** 用于渲染菜单，保持原始层级 */
 
 export const constantMenus: Array<RouteComponent> =
+  // ascending() returns RouteInfo[], need type coercion to RouteComponent[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (ascending(routes.flat(Infinity) as any) as any)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -110,6 +111,7 @@ export function resetRouter() {
         formatFlatteningRoutes(
           buildHierarchyTree(
             ascending(
+              // flat(Infinity) returns unknown[], need type assertion
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               routes.flat(Infinity) as any
             ) as unknown as import("@/utils/tree").TreeNode[]

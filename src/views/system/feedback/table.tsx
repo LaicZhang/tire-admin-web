@@ -48,14 +48,14 @@ export function openDialog(title = "新增", row?: FeedbackRow) {
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const curData = (options.props as { formInline: any }).formInline;
+      const curData = (options.props as { formInline: FeedbackFormInline })
+        .formInline;
 
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           if (title === "新增") {
             await addFeedbackApi({
-              content: curData.content,
+              content: curData.content ?? "",
               rating: curData.rating,
               status: curData.status,
               type: curData.type

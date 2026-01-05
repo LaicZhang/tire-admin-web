@@ -29,6 +29,8 @@ export interface InventoryCheckDetail {
   actualCount?: number;
   difference?: number;
   remark?: string;
+  repoId?: string;
+  tire?: { name: string };
 }
 
 export interface CreateInventoryCheckDto {

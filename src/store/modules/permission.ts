@@ -36,7 +36,7 @@ export const usePermissionStore = defineStore("pure-permission", {
         routes as unknown[]
       );
       this.wholeMenus = filterNoPermissionTree(
-        filterTree(ascending(merged as unknown))
+        filterTree(ascending(merged as RouteRecordRaw[]))
       ) as unknown as RouteRecordRaw[];
       this.flatteningRoutes = formatFlatteningRoutes(
         merged as unknown as RouteRecordRaw[]

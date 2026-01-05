@@ -35,7 +35,23 @@ export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
-export function openDialog(title = "新增", row?: unknown) {
+interface CustomerRow {
+  name?: string;
+  uid?: string;
+  desc?: string;
+  id?: number;
+  operator?: { uid: string };
+  level?: { id: number };
+  tags?: Array<{ id: number }>;
+  creditLimit?: number;
+  totalTransactionAmount?: number;
+  isPublic?: boolean;
+  province?: string;
+  isIndividual?: boolean;
+  from?: string;
+}
+
+export function openDialog(title = "新增", row?: CustomerRow) {
   addDialog({
     title: `${title}客户`,
     props: {

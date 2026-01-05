@@ -95,8 +95,7 @@ const closeAllMessage = (): void => ElMessage.closeAll();
 const confirmBox = (
   content: string,
   title = "提示",
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  options: any = {}
+  options: Record<string, unknown> = {}
 ) => {
   return ElMessageBox.confirm(content, title, {
     type: "warning",

@@ -17,7 +17,7 @@ export function useDataAuthUsers() {
       }
       userList.value = Array.isArray(data)
         ? (data as DataAuthUser[])
-        : (data?.list ?? []);
+        : ((data as { list?: DataAuthUser[] })?.list ?? []);
     } catch {
       message("加载数据授权用户列表失败", { type: "error" });
     } finally {

@@ -7,7 +7,9 @@ export function createMappingColumns(): TableColumnList {
     {
       label: "源文件列",
       width: 200,
-      cellRenderer: ({ row }: { row: FieldMapping }) => {
+      cellRenderer: data => {
+        const row = data.row as FieldMapping | undefined;
+        if (!row) return "";
         return h("div", {}, [
           h("p", { class: "font-medium" }, row.sourceColumn.name),
           h(
@@ -22,8 +24,10 @@ export function createMappingColumns(): TableColumnList {
       label: "匹配置信度",
       width: 120,
       align: "center",
-      cellRenderer: ({ row }: { row: FieldMapping }) => {
-        if (!row.targetField) return h("span", { class: "text-gray-400" }, "-");
+      cellRenderer: data => {
+        const row = data.row as FieldMapping | undefined;
+        if (!row?.targetField)
+          return h("span", { class: "text-gray-400" }, "-");
         const color =
           row.confidence >= 80
             ? "#67C23A"
@@ -46,8 +50,10 @@ export function createMappingColumns(): TableColumnList {
       label: "字段类型",
       width: 100,
       align: "center",
-      cellRenderer: ({ row }: { row: FieldMapping }) => {
-        if (!row.targetField) return h("span", { class: "text-gray-400" }, "-");
+      cellRenderer: data => {
+        const row = data.row as FieldMapping | undefined;
+        if (!row?.targetField)
+          return h("span", { class: "text-gray-400" }, "-");
         return h(
           ElTag,
           { size: "small", type: "info" },

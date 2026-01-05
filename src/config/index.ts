@@ -11,6 +11,7 @@ const setConfig = (cfg?: unknown) => {
 function getConfig(): PlatformConfigs;
 
 function getConfig(key: string): unknown;
+// Dynamic property access requires any for nested path traversal
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getConfig(key?: string): any {
   if (typeof key === "string") {

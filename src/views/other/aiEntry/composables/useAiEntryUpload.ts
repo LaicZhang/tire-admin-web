@@ -5,7 +5,8 @@ import {
   type FileTypeConfig
 } from "@/composables/useFileValidation";
 import type { UploadFile } from "element-plus";
-import type { UploadedFile, UploadMethod, ImageType } from "../types";
+import { UploadMethod, ImageType } from "../types";
+import type { UploadedFile } from "../types";
 
 export function useAiEntryUpload() {
   const textInput = ref("");
@@ -46,7 +47,7 @@ export function useAiEntryUpload() {
     }
 
     uploadedImages.value.push({
-      uid: file.uid,
+      uid: String(file.uid),
       name: file.name,
       size: file.raw.size,
       type: file.raw.type,
@@ -88,7 +89,7 @@ export function useAiEntryUpload() {
     }
 
     uploadedFile.value = {
-      uid: file.uid,
+      uid: String(file.uid),
       name: file.name,
       size: file.raw.size,
       type: file.raw.type,

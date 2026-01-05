@@ -15,6 +15,7 @@ import type {
   ImportResult,
   ExportParams
 } from "@/types/importExport";
+import type { CommonResult } from "@/api/type";
 
 /**
  * 导入导出任务管理
@@ -120,6 +121,7 @@ export function useImportFile(type: string) {
         errors?: Array<string | { row: number; message: string }>;
         success?: number;
         failed?: number;
+        total?: number;
       }>
     >
   ): Promise<ImportResult | null> => {
