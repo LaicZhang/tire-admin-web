@@ -29,6 +29,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:codegen": "playwright codegen http://localhost:8848",
     "preinstall": "node scripts/only-allow-pnpm.mjs"
   },
   "keywords": [
@@ -95,6 +100,7 @@
     "@iconify-json/ri": "^1.2.7",
     "@iconify/json": "^2.2.424",
     "@iconify/vue": "5.0.0",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.1.18",
     "@types/gradient-string": "^1.1.6",
     "@types/js-cookie": "^3.0.6",
