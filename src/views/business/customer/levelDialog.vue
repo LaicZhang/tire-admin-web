@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, watch } from "vue";
 import { message } from "@/utils";
 import { PureTable } from "@pureadmin/table";
 import {
@@ -15,6 +15,14 @@ interface Level {
   discount?: number;
   minAmount?: number;
 }
+
+const props = defineProps<{
+  modelValue: boolean;
+}>();
+
+const emit = defineEmits<{
+  "update:modelValue": [value: boolean];
+}>();
 
 const loading = ref(false);
 const levelList = ref<Level[]>([]);
@@ -116,76 +124,94 @@ async function handleDelete(level: Level) {
   }
 }
 
-onMounted(() => {
-  loadLevels();
-});
+function handleClose() {
+  emit("update:modelValue", false);
+}
+
+// 当弹窗打开时加载数据
+watch(
+  () => props.modelValue,
+  val => {
+    if (val) {
+      loadLevels();
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
-  <div class="level-manager">
-    <div class="header mb-4">
-      <el-button type="primary" @click="openCreateForm">新增等级</el-button>
-    </div>
+  <el-dialog
+    :model-value="modelValue"
+    title="等级管理"
+    width="650px"
+    @close="handleClose"
+  >
+    <div class="level-manager">
+      <div class="header mb-4">
+        <el-button type="primary" @click="openCreateForm">新增等级</el-button>
+      </div>
 
-    <PureTable border :loading="loading" :data="levelList" :columns="columns">
-      <template #discount="{ row }"> {{ row.discount ?? 100 }}% </template>
-      <template #minAmount="{ row }">
-        ¥{{ (row.minAmount ?? 0).toLocaleString() }}
-      </template>
-      <template #operation="{ row }">
-        <el-button link type="primary" @click="openEditForm(row)">
-          编辑
-        </el-button>
-        <el-popconfirm
-          :title="`确定删除等级「${row.name}」吗？`"
-          @confirm="handleDelete(row)"
-        >
-          <template #reference>
-            <el-button link type="danger">删除</el-button>
-          </template>
-        </el-popconfirm>
-      </template>
-    </PureTable>
+      <PureTable border :loading="loading" :data="levelList" :columns="columns">
+        <template #discount="{ row }"> {{ row.discount ?? 100 }}% </template>
+        <template #minAmount="{ row }">
+          ¥{{ (row.minAmount ?? 0).toLocaleString() }}
+        </template>
+        <template #operation="{ row }">
+          <el-button link type="primary" @click="openEditForm(row)">
+            编辑
+          </el-button>
+          <el-popconfirm
+            :title="`确定删除等级「${row.name}」吗？`"
+            @confirm="handleDelete(row)"
+          >
+            <template #reference>
+              <el-button link type="danger">删除</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+      </PureTable>
 
-    <!-- 新增/编辑表单弹窗 -->
-    <el-dialog
-      v-model="showForm"
-      :title="editingLevel ? '编辑等级' : '新增等级'"
-      width="450px"
-    >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="100px"
+      <!-- 新增/编辑表单弹窗 -->
+      <el-dialog
+        v-model="showForm"
+        :title="editingLevel ? '编辑等级' : '新增等级'"
+        width="450px"
       >
-        <el-form-item label="等级名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入等级名称" />
-        </el-form-item>
-        <el-form-item label="折扣比例" prop="discount">
-          <el-input-number
-            v-model="formData.discount"
-            :min="1"
-            :max="100"
-            :precision="0"
-          />
-          <span class="ml-2">%</span>
-        </el-form-item>
-        <el-form-item label="最低消费金额" prop="minAmount">
-          <el-input-number
-            v-model="formData.minAmount"
-            :min="0"
-            :precision="2"
-          />
-          <span class="ml-2">元</span>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showForm = false">取消</el-button>
-        <el-button type="primary" :loading="loading" @click="handleSubmit">
-          确定
-        </el-button>
-      </template>
-    </el-dialog>
-  </div>
+        <el-form
+          ref="formRef"
+          :model="formData"
+          :rules="formRules"
+          label-width="100px"
+        >
+          <el-form-item label="等级名称" prop="name">
+            <el-input v-model="formData.name" placeholder="请输入等级名称" />
+          </el-form-item>
+          <el-form-item label="折扣比例" prop="discount">
+            <el-input-number
+              v-model="formData.discount"
+              :min="1"
+              :max="100"
+              :precision="0"
+            />
+            <span class="ml-2">%</span>
+          </el-form-item>
+          <el-form-item label="最低消费金额" prop="minAmount">
+            <el-input-number
+              v-model="formData.minAmount"
+              :min="0"
+              :precision="2"
+            />
+            <span class="ml-2">元</span>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="showForm = false">取消</el-button>
+          <el-button type="primary" :loading="loading" @click="handleSubmit">
+            确定
+          </el-button>
+        </template>
+      </el-dialog>
+    </div>
+  </el-dialog>
 </template>
