@@ -4,7 +4,7 @@ import { type UserConfigExport, type ConfigEnv, loadEnv } from "vite";
 import {
   root,
   alias,
-  warpperEnv,
+  wrapperEnv,
   pathResolve,
   __APP_INFO__
 } from "./build/utils";
@@ -17,7 +17,7 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
     VITE_PUBLIC_PATH,
     VITE_PROXY_TARGET,
     VITE_SERVER_URL
-  } = warpperEnv(loadEnv(mode, root));
+  } = wrapperEnv(loadEnv(mode, root));
   const proxyTarget =
     VITE_PROXY_TARGET || VITE_SERVER_URL || "http://localhost:3000";
   return {

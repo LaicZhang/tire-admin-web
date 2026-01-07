@@ -78,9 +78,6 @@ const wrapperEnv = (envConf: Recordable): ViteEnv => {
   return ret;
 };
 
-/** @deprecated 使用 wrapperEnv 替代 */
-const warpperEnv = wrapperEnv;
-
 const fileListTotal: number[] = [];
 
 /** 获取指定文件夹中所有文件的总大小 */
@@ -117,12 +114,4 @@ const getPackageSize = (options: GetPackageSizeOptions): void => {
   });
 };
 
-export {
-  root,
-  pathResolve,
-  alias,
-  __APP_INFO__,
-  wrapperEnv,
-  warpperEnv,
-  getPackageSize
-};
+export { root, pathResolve, alias, __APP_INFO__, wrapperEnv, getPackageSize };
