@@ -12,6 +12,7 @@ import {
   updateSalesQuotationApi
 } from "@/api/business/sales";
 import { message } from "@/utils";
+import { fenToYuan } from "@/utils/formatMoney";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import type { SalesQuotation } from "@/api/business/sales";
@@ -40,7 +41,8 @@ const columns: TableColumnList = [
   },
   {
     label: "总金额",
-    prop: "totalAmount"
+    prop: "totalAmount",
+    formatter: row => `¥${fenToYuan(row.totalAmount)}`
   },
   {
     label: "状态",

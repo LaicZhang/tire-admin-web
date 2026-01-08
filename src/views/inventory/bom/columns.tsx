@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { bomStatusMap, type BomStatus } from "./types";
+import { fenToYuan } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -48,7 +49,9 @@ export const columns: TableColumnList = [
     prop: "estimatedMaterialCost",
     width: 120,
     formatter: row =>
-      row.estimatedMaterialCost ? row.estimatedMaterialCost.toFixed(2) : "-"
+      row.estimatedMaterialCost
+        ? `¥${fenToYuan(row.estimatedMaterialCost)}`
+        : "-"
   },
   {
     label: "版本",
@@ -101,7 +104,8 @@ export const componentColumns: TableColumnList = [
     label: "预计采购价",
     prop: "estimatedCost",
     width: 120,
-    formatter: row => (row.estimatedCost ? row.estimatedCost.toFixed(2) : "-")
+    formatter: row =>
+      row.estimatedCost ? `¥${fenToYuan(row.estimatedCost)}` : "-"
   },
   {
     label: "备注",

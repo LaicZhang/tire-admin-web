@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { fenToYuan } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -43,7 +44,7 @@ export const columns: TableColumnList = [
     cellRenderer: ({ row }) => {
       const amount = Number(row.totalAdjustAmount);
       const color = amount >= 0 ? "text-green-600" : "text-red-600";
-      return <span class={color}>{amount.toFixed(2)}</span>;
+      return <span class={color}>{fenToYuan(amount * 100)}</span>;
     }
   },
   {
@@ -114,13 +115,15 @@ export const detailColumns: TableColumnList = [
     label: "原成本",
     prop: "originalCost",
     width: 100,
-    formatter: row => (row.originalCost ? row.originalCost.toFixed(2) : "-")
+    formatter: row =>
+      row.originalCost ? `¥${fenToYuan(row.originalCost)}` : "-"
   },
   {
     label: "调整后成本",
     prop: "adjustedCost",
     width: 100,
-    formatter: row => (row.adjustedCost ? row.adjustedCost.toFixed(2) : "-")
+    formatter: row =>
+      row.adjustedCost ? `¥${fenToYuan(row.adjustedCost)}` : "-"
   },
   {
     label: "调整金额",
@@ -129,7 +132,7 @@ export const detailColumns: TableColumnList = [
     cellRenderer: ({ row }) => {
       const adjust = (row.adjustedCost - row.originalCost) * row.count;
       const color = adjust >= 0 ? "text-green-600" : "text-red-600";
-      return <span class={color}>{adjust.toFixed(2)}</span>;
+      return <span class={color}>{fenToYuan(adjust)}</span>;
     }
   },
   {

@@ -4,7 +4,7 @@
 
 /**
  * 格式化金额为千分位格式
- * @param value 金额数值
+ * @param value 金额数值（元）
  * @param decimals 小数位数，默认 2
  * @returns 格式化后的字符串
  * @example formatMoney(12345.6) => "12,345.60"
@@ -17,4 +17,45 @@ export function formatMoney(value: number, decimals = 2): string {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
   });
+}
+
+/**
+ * 分转元（用于展示）
+ * @param fen 金额（分）
+ * @param decimals 小数位数，默认 2
+ * @returns 格式化后的字符串 "x.xx"
+ * @example fenToYuan(12345) => "123.45"
+ */
+export function fenToYuan(
+  fen: number | bigint | null | undefined,
+  decimals = 2
+): string {
+  if (fen === null || fen === undefined) return "0.00";
+  const yuan = Number(fen) / 100;
+  return yuan.toFixed(decimals);
+}
+
+/**
+ * 元转分（用于提交到后端）
+ * @param yuan 金额（元）
+ * @returns 金额（分）
+ * @example yuanToFen(123.45) => 12345
+ */
+export function yuanToFen(yuan: number | null | undefined): number {
+  if (yuan === null || yuan === undefined) return 0;
+  return Math.round(yuan * 100);
+}
+
+/**
+ * 格式化金额（分→元，带千分位）
+ * @param fen 金额（分）
+ * @param decimals 小数位数，默认 2
+ * @returns 格式化后的字符串 "x,xxx.xx"
+ * @example formatMoneyFromFen(1234567) => "12,345.67"
+ */
+export function formatMoneyFromFen(
+  fen: number | bigint | null | undefined,
+  decimals = 2
+): string {
+  return formatMoney(Number(fen ?? 0) / 100, decimals);
 }

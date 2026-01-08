@@ -5,6 +5,7 @@ import {
   type DocumentType,
   type DocumentStatus
 } from "./types";
+import { fenToYuan } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -64,7 +65,7 @@ export const columns: TableColumnList = [
     label: "金额",
     prop: "totalAmount",
     width: 120,
-    formatter: row => (row.totalAmount ? row.totalAmount.toFixed(2) : "-")
+    formatter: row => (row.totalAmount ? `¥${fenToYuan(row.totalAmount)}` : "-")
   },
   {
     label: "操作人",

@@ -5,6 +5,7 @@ import {
   type OtherOutboundStatus,
   type OtherOutboundType
 } from "./types";
+import { fenToYuan } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -56,7 +57,8 @@ export const columns: TableColumnList = [
     label: "出库金额",
     prop: "totalAmount",
     width: 120,
-    formatter: row => (row.totalAmount ? row.totalAmount.toFixed(2) : "0.00")
+    formatter: row =>
+      row.totalAmount ? `¥${fenToYuan(row.totalAmount)}` : "¥0.00"
   },
   {
     label: "操作人",
@@ -116,13 +118,13 @@ export const detailColumns: TableColumnList = [
     label: "单位成本",
     prop: "unitCost",
     width: 120,
-    formatter: row => (row.unitCost ? row.unitCost.toFixed(2) : "-")
+    formatter: row => (row.unitCost ? `¥${fenToYuan(row.unitCost)}` : "-")
   },
   {
     label: "成本金额",
     prop: "totalCost",
     width: 120,
-    formatter: row => (row.totalCost ? row.totalCost.toFixed(2) : "-")
+    formatter: row => (row.totalCost ? `¥${fenToYuan(row.totalCost)}` : "-")
   },
   {
     label: "备注",

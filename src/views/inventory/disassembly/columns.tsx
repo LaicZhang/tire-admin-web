@@ -3,6 +3,7 @@ import {
   disassemblyOrderStatusMap,
   type DisassemblyOrderStatus
 } from "./types";
+import { fenToYuan } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -51,7 +52,7 @@ export const columns: TableColumnList = [
     prop: "disassemblyFee",
     width: 100,
     formatter: row =>
-      row.disassemblyFee ? row.disassemblyFee.toFixed(2) : "0.00"
+      row.disassemblyFee ? `¥${fenToYuan(row.disassemblyFee)}` : "¥0.00"
   },
   {
     label: "自动分摊",
@@ -114,13 +115,13 @@ export const componentColumns: TableColumnList = [
     label: "单位成本",
     prop: "unitCost",
     width: 100,
-    formatter: row => (row.unitCost ? row.unitCost.toFixed(2) : "-")
+    formatter: row => (row.unitCost ? `¥${fenToYuan(row.unitCost)}` : "-")
   },
   {
     label: "成本金额",
     prop: "totalCost",
     width: 100,
-    formatter: row => (row.totalCost ? row.totalCost.toFixed(2) : "-")
+    formatter: row => (row.totalCost ? `¥${fenToYuan(row.totalCost)}` : "-")
   },
   {
     label: "备注",

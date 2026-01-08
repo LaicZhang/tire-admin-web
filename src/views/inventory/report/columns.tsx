@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { fenToYuan } from "@/utils/formatMoney";
 
 export const balanceColumns: TableColumnList = [
   {
@@ -30,13 +31,13 @@ export const balanceColumns: TableColumnList = [
     label: "单位成本",
     prop: "unitCost",
     width: 100,
-    formatter: row => (row.unitCost ? row.unitCost.toFixed(2) : "-")
+    formatter: row => (row.unitCost ? `¥${fenToYuan(row.unitCost)}` : "-")
   },
   {
     label: "库存金额",
     prop: "totalCost",
     width: 120,
-    formatter: row => (row.totalCost ? row.totalCost.toFixed(2) : "-")
+    formatter: row => (row.totalCost ? `¥${fenToYuan(row.totalCost)}` : "-")
   },
   {
     label: "最近入库",
@@ -104,13 +105,13 @@ export const detailColumns: TableColumnList = [
     label: "单位成本",
     prop: "unitCost",
     width: 100,
-    formatter: row => (row.unitCost ? row.unitCost.toFixed(2) : "-")
+    formatter: row => (row.unitCost ? `¥${fenToYuan(row.unitCost)}` : "-")
   },
   {
     label: "金额",
     prop: "totalCost",
     width: 100,
-    formatter: row => (row.totalCost ? row.totalCost.toFixed(2) : "-")
+    formatter: row => (row.totalCost ? `¥${fenToYuan(row.totalCost)}` : "-")
   },
   {
     label: "操作人",
@@ -157,7 +158,7 @@ export const summaryColumns: TableColumnList = [
     label: "期初金额",
     prop: "openingCost",
     width: 100,
-    formatter: row => (row.openingCost ? row.openingCost.toFixed(2) : "-")
+    formatter: row => (row.openingCost ? `¥${fenToYuan(row.openingCost)}` : "-")
   },
   {
     label: "入库数量",
@@ -168,7 +169,7 @@ export const summaryColumns: TableColumnList = [
     label: "入库金额",
     prop: "inboundCost",
     width: 100,
-    formatter: row => (row.inboundCost ? row.inboundCost.toFixed(2) : "-")
+    formatter: row => (row.inboundCost ? `¥${fenToYuan(row.inboundCost)}` : "-")
   },
   {
     label: "出库数量",
@@ -179,7 +180,8 @@ export const summaryColumns: TableColumnList = [
     label: "出库金额",
     prop: "outboundCost",
     width: 100,
-    formatter: row => (row.outboundCost ? row.outboundCost.toFixed(2) : "-")
+    formatter: row =>
+      row.outboundCost ? `¥${fenToYuan(row.outboundCost)}` : "-"
   },
   {
     label: "期末数量",
@@ -190,6 +192,6 @@ export const summaryColumns: TableColumnList = [
     label: "期末金额",
     prop: "closingCost",
     width: 100,
-    formatter: row => (row.closingCost ? row.closingCost.toFixed(2) : "-")
+    formatter: row => (row.closingCost ? `¥${fenToYuan(row.closingCost)}` : "-")
   }
 ];

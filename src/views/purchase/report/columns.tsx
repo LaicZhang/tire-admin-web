@@ -1,4 +1,5 @@
 import { ElProgress } from "element-plus";
+import { fenToYuan } from "@/utils/formatMoney";
 
 interface ProviderRankingRow {
   providerName: string;
@@ -42,7 +43,7 @@ export function useColumns() {
       width: 120,
       cellRenderer: data => {
         const row = data.row as ProviderRankingRow | undefined;
-        return <span>¥{row ? Number(row.totalAmount).toFixed(2) : "-"}</span>;
+        return <span>¥{row ? fenToYuan(row.totalAmount) : "-"}</span>;
       }
     },
     {
@@ -83,7 +84,7 @@ export function useColumns() {
       width: 120,
       cellRenderer: data => {
         const row = data.row as TrendDataRow | undefined;
-        return <span>¥{row ? Number(row.amount).toFixed(2) : "-"}</span>;
+        return <span>¥{row ? fenToYuan(row.amount) : "-"}</span>;
       }
     }
   ];
