@@ -8,7 +8,7 @@ import {
   getCurrentInstance,
   type ComponentInternalInstance
 } from "vue";
-import type { tagsViewsType } from "../types";
+import type { tagsViewsType, RouteConfigs } from "../types";
 import { useRoute, useRouter } from "vue-router";
 import { responsiveStorageNameSpace } from "@/config";
 import { useSettingStoreHook } from "@/store/modules/settings";
@@ -115,8 +115,9 @@ export function useTags() {
   ]);
 
   // Tag item can have various properties (path, query, params, meta, etc.)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function conditionHandle(item: any, previous: unknown, next: unknown) {
+  type TagItem = Partial<RouteConfigs>;
+
+  function conditionHandle(item: TagItem, previous: unknown, next: unknown) {
     if (isBoolean(route?.meta?.showLink) && route?.meta?.showLink === false) {
       if (Object.keys(route.query).length > 0) {
         return isEqual(route.query, item.query) ? previous : next;
@@ -129,16 +130,14 @@ export function useTags() {
   }
 
   const iconIsActive = computed(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (item: any, index: number) => {
+    return (item: TagItem, index: number) => {
       if (index === 0) return;
       return conditionHandle(item, true, false);
     };
   });
 
   const linkIsActive = computed(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (item: any) => {
+    return (item: TagItem) => {
       return conditionHandle(item, "is-active", "");
     };
   });

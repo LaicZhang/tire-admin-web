@@ -8,12 +8,12 @@ const setConfig = (cfg?: unknown) => {
   config = Object.assign(config, cfg);
 };
 
-function getConfig(): PlatformConfigs;
+function getConfig<T = PlatformConfigs>(): T;
+function getConfig<T = unknown>(key: string): T;
 
-function getConfig(key: string): unknown;
 // Dynamic property access requires any for nested path traversal
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getConfig(key?: string): any {
+function getConfig<T = any>(key?: string): T {
   if (typeof key === "string") {
     const arr = key.split(".");
     if (arr.length) {
@@ -29,7 +29,7 @@ function getConfig(key?: string): any {
       return data;
     }
   }
-  return config as PlatformConfigs;
+  return config as T;
 }
 
 /** 获取项目动态全局配置 */

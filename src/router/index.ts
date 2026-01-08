@@ -21,6 +21,7 @@ import {
   type RouteRecordRaw,
   type RouteComponent
 } from "vue-router";
+import type { ExtendedRouteRecord } from "./types";
 import {
   type DataInfo,
   userKey,
@@ -40,10 +41,10 @@ const modules: Record<string, { default: RouteRecordRaw }> = import.meta.glob(
 );
 
 /** 原始静态路由（未做任何处理） */
-const routes: RouteRecordRaw[] = [];
+const routes: ExtendedRouteRecord[] = [];
 
 Object.keys(modules).forEach(key => {
-  routes.push(modules[key].default);
+  routes.push(modules[key].default as ExtendedRouteRecord);
 });
 
 /** 导出处理后的静态路由（三级及以上的路由全部拍成二级） */
@@ -52,21 +53,19 @@ export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(
     buildHierarchyTree(
       ascending(
         // flat(Infinity) returns unknown[], need type assertion for ascending()
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        routes.flat(Infinity) as any
+        routes.flat(Infinity) as ExtendedRouteRecord[]
       ) as unknown as import("@/utils/tree").TreeNode[]
-    ) as unknown as RouteRecordRaw[]
+    ) as unknown as ExtendedRouteRecord[]
   )
 );
 
 /** 用于渲染菜单，保持原始层级 */
 
-export const constantMenus: Array<RouteComponent> =
-  // ascending() returns RouteInfo[], need type coercion to RouteComponent[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (ascending(routes.flat(Infinity) as any) as any)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .concat(remainingRouter as any);
+export const constantMenus: Array<RouteComponent> = (
+  ascending(
+    routes.flat(Infinity) as ExtendedRouteRecord[]
+  ) as unknown as RouteComponent[]
+).concat(remainingRouter as unknown as RouteComponent[]);
 
 /** 不参与菜单的路由 */
 export const remainingPaths = (remainingRouter as RouteRecordRaw[]).map(
@@ -112,8 +111,7 @@ export function resetRouter() {
           buildHierarchyTree(
             ascending(
               // flat(Infinity) returns unknown[], need type assertion
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              routes.flat(Infinity) as any
+              routes.flat(Infinity) as ExtendedRouteRecord[]
             ) as unknown as import("@/utils/tree").TreeNode[]
           ) as unknown as RouteRecordRaw[]
         )

@@ -74,7 +74,7 @@ const fetchData = async () => {
       }
     );
     if (code === 200) {
-      dataList.value = data.list as unknown as StocktakingTask[];
+      dataList.value = data.list as StocktakingTask[];
       pagination.value.total = data.count;
     }
   } catch (error) {
@@ -153,7 +153,7 @@ const handleViewDetails = async (row: StocktakingTask) => {
   try {
     const { data, code } = await getInventoryCheckTaskApi(row.id);
     if (code === 200) {
-      detailList.value = (data.details || []) as unknown as StocktakingDetail[];
+      detailList.value = (data.details || []) as StocktakingDetail[];
     }
   } catch (error) {
     ElMessage.error("获取盘点明细失败");

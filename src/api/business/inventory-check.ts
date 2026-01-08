@@ -11,12 +11,14 @@ export interface InventoryCheckTask {
   startedAt: string;
   completedAt?: string;
   createdBy: string;
+  creatorName?: string;
   remark?: string;
   createdAt: string;
   repo?: {
     uid: string;
     name: string;
   };
+  repoName?: string;
   details?: InventoryCheckDetail[];
 }
 
@@ -25,6 +27,7 @@ export interface InventoryCheckDetail {
   taskId: number;
   tireId: string;
   tireName?: string;
+  tireBarcode?: string;
   bookCount: number;
   actualCount?: number;
   difference?: number;

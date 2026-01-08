@@ -18,6 +18,7 @@ import { usePermissionStoreHook } from "@/store/modules/permission";
 import { ascending } from "./filter";
 // 导入静态路由配置，用于组件映射
 import staticRoutes from "../modules/auth";
+import type { ExtendedRouteRecord } from "../types";
 
 const IFrame = () => import("@/layout/frameView.vue");
 
@@ -34,7 +35,7 @@ type StaticRouteItem = {
   name?: string;
   component?: RouteRecordRaw["component"];
   children?: StaticRouteItem[];
-};
+} & Partial<ExtendedRouteRecord>;
 
 function buildStaticComponentMap(
   routes: StaticRouteItem[],
