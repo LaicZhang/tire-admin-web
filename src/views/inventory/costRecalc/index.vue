@@ -63,7 +63,7 @@ const fetchData = async () => {
       }
     );
     if (code === 200) {
-      dataList.value = data.list as unknown as CostRecalcTask[];
+      dataList.value = data.list;
       pagination.value.total = data.count;
     }
   } catch (error) {

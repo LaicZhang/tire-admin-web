@@ -1,6 +1,12 @@
 import { http } from "../utils/http";
 import { baseUrlApi } from "./utils";
 import type { CommonResult, PaginatedResponseDto } from "./type";
+import type { OtherInboundOrder } from "@/views/inventory/otherInbound/types";
+import type { OtherOutboundOrder } from "@/views/inventory/otherOutbound/types";
+import type { InventoryDocument } from "@/views/inventory/documents/types";
+import type { AssemblyOrder } from "@/views/inventory/assembly/types";
+import type { DisassemblyOrder } from "@/views/inventory/disassembly/types";
+import type { CostRecalcTask } from "@/views/inventory/costRecalc/types";
 
 const disassemblyPrefix = "/disassembly-order/";
 const costRecalcPrefix = "/cost-recalc/";
@@ -17,11 +23,9 @@ export async function getDisassemblyOrderListApi(
   index: number,
   params?: Record<string, unknown>
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto<unknown>>>(
-    "get",
-    baseUrlApi(disassemblyPrefix + "page/" + index),
-    { params }
-  );
+  return await http.request<
+    CommonResult<PaginatedResponseDto<DisassemblyOrder>>
+  >("get", baseUrlApi(disassemblyPrefix + "page/" + index), { params });
 }
 
 export async function createDisassemblyOrderApi(data: unknown) {
@@ -84,7 +88,7 @@ export async function getBomListApi(
   index: number,
   params?: Record<string, unknown>
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto<unknown>>>(
+  return await http.request<CommonResult<PaginatedResponseDto<AssemblyOrder>>>(
     "get",
     baseUrlApi(bomPrefix + "page/" + index),
     { params }
@@ -145,7 +149,7 @@ export async function getCostRecalcTaskListApi(
   index: number,
   params?: Record<string, unknown>
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto<unknown>>>(
+  return await http.request<CommonResult<PaginatedResponseDto<CostRecalcTask>>>(
     "get",
     baseUrlApi(costRecalcPrefix + "page/" + index),
     { params }
@@ -189,11 +193,9 @@ export async function getOtherInboundOrderListApi(
   index: number,
   params?: Record<string, unknown>
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto<unknown>>>(
-    "get",
-    baseUrlApi(otherInboundPrefix + "page/" + index),
-    { params }
-  );
+  return await http.request<
+    CommonResult<PaginatedResponseDto<OtherInboundOrder>>
+  >("get", baseUrlApi(otherInboundPrefix + "page/" + index), { params });
 }
 
 export async function createOtherInboundOrderApi(data: unknown) {
@@ -242,11 +244,9 @@ export async function getOtherOutboundOrderListApi(
   index: number,
   params?: Record<string, unknown>
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto<unknown>>>(
-    "get",
-    baseUrlApi(otherOutboundPrefix + "page/" + index),
-    { params }
-  );
+  return await http.request<
+    CommonResult<PaginatedResponseDto<OtherOutboundOrder>>
+  >("get", baseUrlApi(otherOutboundPrefix + "page/" + index), { params });
 }
 
 export async function createOtherOutboundOrderApi(data: unknown) {
@@ -295,9 +295,7 @@ export async function getInventoryDocumentListApi(
   index: number,
   params?: Record<string, unknown>
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto<unknown>>>(
-    "get",
-    baseUrlApi(inventoryDocumentPrefix + "page/" + index),
-    { params }
-  );
+  return await http.request<
+    CommonResult<PaginatedResponseDto<InventoryDocument>>
+  >("get", baseUrlApi(inventoryDocumentPrefix + "page/" + index), { params });
 }
