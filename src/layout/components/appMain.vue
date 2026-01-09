@@ -26,11 +26,22 @@ const router = useRouter();
 const isRouteLoading = ref(false);
 let loadingTimer: ReturnType<typeof setTimeout> | null = null;
 
-router.beforeEach(() => {
+// 获取路由的一级菜单路径
+function getTopLevelPath(path: string): string {
+  const segments = path.split("/").filter(Boolean);
+  return segments.length > 0 ? `/${segments[0]}` : "/";
+}
+
+router.beforeEach((to, from) => {
   if (loadingTimer) {
     clearTimeout(loadingTimer);
   }
-  isRouteLoading.value = true;
+  // 只在跨一级菜单切换时显示骨架屏，二级菜单内部切换不触发
+  const toTop = getTopLevelPath(to.path);
+  const fromTop = getTopLevelPath(from.path);
+  if (toTop !== fromTop || !from.name) {
+    isRouteLoading.value = true;
+  }
 });
 
 router.afterEach(() => {
