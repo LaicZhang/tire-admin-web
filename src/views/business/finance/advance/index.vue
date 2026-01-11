@@ -7,7 +7,7 @@ import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete"; // Added import
 import {
   getAdvancePaymentList,
-  type AdvancePayment
+  type AdvancePaymentDto
 } from "@/api/business/advance-payment";
 import { message } from "@/utils/message";
 
@@ -20,7 +20,7 @@ const form = ref({
   targetName: ""
 });
 
-const dataList = ref<AdvancePayment[]>([]);
+const dataList = ref<AdvancePaymentDto[]>([]);
 const loading = ref(true);
 const pagination = ref({
   total: 0,
@@ -111,7 +111,7 @@ function handleAdd() {
   message("功能开发中", { type: "info" });
 }
 
-function handleDelete(_row: AdvancePayment) {
+function handleDelete(_row: AdvancePaymentDto) {
   message("功能开发中", { type: "info" });
 }
 </script>

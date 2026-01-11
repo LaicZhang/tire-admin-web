@@ -38,7 +38,10 @@ function init() {
   nextTick(() => {
     const iframe = unref(frameRef);
     if (!iframe) return;
-    const _frame = iframe as unknown;
+    // Legacy IE support with proper typing
+    const _frame = iframe as HTMLIFrameElement & {
+      attachEvent?: (event: string, listener: () => void) => void;
+    };
     if (_frame.attachEvent) {
       _frame.attachEvent("onload", hideLoading);
     } else {

@@ -81,7 +81,7 @@ const handleCurrentChange = (val: number) => {
   handleSearch();
 };
 
-const getDetails = async (row: { uid: string }) => {
+const getDetails = async (row: FormItemProps) => {
   loading.value = true;
   try {
     const { data, code } = await getTireApi(row.uid);
@@ -163,7 +163,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const deleteOne = async (row: { uid: string; name: string }) => {
+const deleteOne = async (row: FormItemProps) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除商品 "${row.name}" 吗？此操作不可恢复。`,

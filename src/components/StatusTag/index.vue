@@ -19,7 +19,7 @@ const statusConfig = computed(() => {
   );
 });
 
-const tagType = computed(() => statusConfig.value.type || "");
+const tagType = computed(() => statusConfig.value.type);
 const tagLabel = computed(() => statusConfig.value.label);
 </script>
 

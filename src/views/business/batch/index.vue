@@ -19,7 +19,18 @@ defineOptions({
 });
 
 const loading = ref(false);
-const tableData = ref<unknown[]>([]);
+interface BatchItem {
+  id?: string;
+  uid: string;
+  batchNo: string;
+  tireName: string;
+  repoName: string;
+  quantity: number;
+  productionDate: string;
+  expiryDate: string;
+}
+
+const tableData = ref<BatchItem[]>([]);
 const repoList = ref<unknown[]>([]);
 
 // 查询条件
@@ -49,7 +60,16 @@ const rules = {
 
 // 流水抽屉
 const drawerVisible = ref(false);
-const transactions = ref<unknown[]>([]);
+
+interface TransactionItem {
+  createdAt: string;
+  type: "IN" | "OUT";
+  quantity: number;
+  sourceType: string;
+  sourceId: string;
+}
+
+const transactions = ref<TransactionItem[]>([]);
 const currentBatchNo = ref("");
 
 const columns: TableColumnList = [
@@ -102,8 +122,11 @@ const transactionColumns: TableColumnList = [
     prop: "type",
     width: 80,
     cellRenderer: ({ row }) => {
-      return h(ElTag, { type: row.type === "IN" ? "success" : "danger" }, () =>
-        row.type === "IN" ? "入库" : "出库"
+      const item = row as TransactionItem;
+      return h(
+        ElTag,
+        { type: item.type === "IN" ? "success" : "danger" },
+        () => (item.type === "IN" ? "入库" : "出库")
       );
     }
   },
@@ -147,11 +170,11 @@ const loadData = async () => {
     // API定义里 getBatchListApi 只接受 repoId, tireId, batchNo，没有明确分页参数
     // 我们假设后端返回所有或支持分页。如果只返回列表:
     if (code === 200) {
-      const typedData = data as
-        | { list?: unknown[]; total?: number }
-        | unknown[];
+      const typedData = data as unknown as
+        | { list?: BatchItem[]; total?: number }
+        | BatchItem[];
       const list = Array.isArray(typedData) ? typedData : typedData.list || [];
-      tableData.value = list;
+      tableData.value = list as BatchItem[];
       pagination.total = Array.isArray(typedData)
         ? typedData.length
         : typedData.total || list.length;
@@ -180,7 +203,7 @@ const submitCreate = async () => {
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       try {
-        await createBatchApi(batchForm.value as unknown);
+        await createBatchApi(batchForm.value as any);
         message("批次创建成功", { type: "success" });
         dialogVisible.value = false;
         loadData();
@@ -192,16 +215,16 @@ const submitCreate = async () => {
   });
 };
 
-const handleViewTransactions = async (row: unknown) => {
+const handleViewTransactions = async (row: BatchItem) => {
   currentBatchNo.value = row.batchNo;
   drawerVisible.value = true;
   try {
     const { data, code } = await getBatchTransactionsApi(row.id || row.uid); // 使用id或uid
     if (code === 200) {
       const typedData = data as { list?: unknown[] } | unknown[];
-      transactions.value = Array.isArray(typedData)
-        ? typedData
-        : typedData.list || [];
+      transactions.value = (
+        Array.isArray(typedData) ? typedData : typedData.list || []
+      ) as TransactionItem[];
     }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "获取流水失败";

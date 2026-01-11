@@ -45,7 +45,10 @@ const columns: TableColumnList = [
     cellRenderer: ({ row }) => {
       return (
         row.items
-          ?.map((i: unknown) => `${i.tireName} x ${i.quantity}`)
+          ?.map(
+            (i: { tireName?: string; quantity?: number }) =>
+              `${i.tireName} x ${i.quantity}`
+          )
           .join(", ") || "-"
       );
     }
@@ -94,13 +97,18 @@ const handleCurrentChange = (val: number) => {
   getData();
 };
 
-const handleDelete = async (row: unknown) => {
+const handleDelete = async (row: PurchasePlan) => {
   await deletePurchasePlanApi(row.id);
   message("删除成功", { type: "success" });
   getData();
 };
 
-function openDialog(title = "新增", row?: unknown) {
+// Dialog options interface
+interface DialogProps {
+  desc: string;
+}
+
+function openDialog(title = "新增", row?: PurchasePlan) {
   // Simplified dialog for adding purchase plan: just entering details in desc for now
   // In real app, this should be a complex form with product selection table
   addDialog({
@@ -114,13 +122,13 @@ function openDialog(title = "新增", row?: unknown) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
+      const props = options.props as DialogProps;
       return h("div", [
         h("el-form", {}, [
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
-              modelValue: options.props.desc,
-              "onUpdate:modelValue": (val: string) =>
-                (options.props.desc = val),
+              modelValue: props.desc,
+              "onUpdate:modelValue": (val: string) => (props.desc = val),
               placeholder: "暂支持备注录入，详细商品选择开发中...",
               type: "textarea"
             })
@@ -129,15 +137,16 @@ function openDialog(title = "新增", row?: unknown) {
       ]);
     },
     beforeSure: (done, { options }) => {
+      const props = options.props as DialogProps;
       const data = {
-        desc: options.props.desc,
+        desc: props.desc,
         status: "DRAFT",
         items: [] // Mock items
       };
       const promise =
         title === "新增"
           ? createPurchasePlanApi(data)
-          : updatePurchasePlanApi(row.id, data);
+          : updatePurchasePlanApi(row!.id, data);
 
       promise.then(() => {
         message("操作成功", { type: "success" });

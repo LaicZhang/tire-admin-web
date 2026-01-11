@@ -40,16 +40,23 @@ async function getHistory() {
   }
 }
 
+// API response data interface
+interface ApiResponseData {
+  list: unknown[];
+  total?: number;
+  count?: number;
+}
+
 async function handleApiResponse({
   data,
   code
 }: {
-  data: unknown;
+  data: ApiResponseData;
   code: number;
 }) {
   if (code === 200) {
     dataList.value = data.list;
-    pagination.total = data.total || data.count; // Adapt to different API returns
+    pagination.total = data.total || data.count || 0;
     loading.value = false;
   } else {
     loading.value = false;

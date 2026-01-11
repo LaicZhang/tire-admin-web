@@ -21,7 +21,11 @@ import {
 import { getCompanyId } from "@/api/company";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import { purchaseOrderColumns } from "./columns";
-import type { PurchaseOrder, PurchaseOrderQueryParams } from "./types";
+import type {
+  PurchaseOrder,
+  PurchaseOrderQueryParams,
+  OptionItem
+} from "./types";
 import editForm from "./form.vue";
 
 defineOptions({
@@ -51,9 +55,9 @@ const pagination = ref({
   background: true
 });
 
-const employeeList = ref<unknown[]>([]);
-const managerList = ref<unknown[]>([]);
-const providerList = ref<unknown[]>([]);
+const employeeList = ref<OptionItem[]>([]);
+const managerList = ref<OptionItem[]>([]);
+const providerList = ref<OptionItem[]>([]);
 
 async function loadSelectData() {
   try {
@@ -62,9 +66,9 @@ async function loadSelectData() {
       localForage().getItem(ALL_LIST.manager),
       localForage().getItem(ALL_LIST.provider)
     ]);
-    employeeList.value = (employees as unknown[]) || [];
-    managerList.value = (managers as unknown[]) || [];
-    providerList.value = (providers as unknown[]) || [];
+    employeeList.value = (employees as OptionItem[]) || [];
+    managerList.value = (managers as OptionItem[]) || [];
+    providerList.value = (providers as OptionItem[]) || [];
   } catch (error) {
     handleApiError(error, "加载下拉数据失败");
   }

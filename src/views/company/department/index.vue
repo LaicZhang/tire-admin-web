@@ -102,10 +102,10 @@ async function saveRoles() {
   try {
     // 计算需要添加和删除的角色
     const toAdd = selectedRoles.value.filter(
-      r => !departmentRoles.value.includes(r)
+      (r: string) => !departmentRoles.value.includes(r)
     );
     const toRemove = departmentRoles.value.filter(
-      r => !selectedRoles.value.includes(r)
+      (r: string) => !selectedRoles.value.includes(r)
     );
 
     // 添加新角色

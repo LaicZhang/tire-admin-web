@@ -5,6 +5,14 @@ import type { DailySummaryItem } from "@/api/dashboard";
 import { message } from "@/utils";
 import type { ECharts, EChartsOption } from "echarts";
 
+// ECharts tooltip param interface
+interface TooltipParam {
+  axisValue: string;
+  marker: string;
+  seriesName: string;
+  value: number;
+}
+
 defineOptions({
   name: "SalesChart"
 });
@@ -81,9 +89,9 @@ const updateChart = async () => {
           color: "#999"
         }
       },
-      formatter: (params: unknown) => {
+      formatter: (params: TooltipParam[]) => {
         let result = `<div style="font-weight:600;margin-bottom:8px">${params[0].axisValue}</div>`;
-        params.forEach((param: unknown) => {
+        params.forEach((param: TooltipParam) => {
           result += `<div style="display:flex;justify-content:space-between;gap:16px">
             <span>${param.marker} ${param.seriesName}</span>
             <span style="font-weight:600">¥${formatAmount(param.value)}</span>

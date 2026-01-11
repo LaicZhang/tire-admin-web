@@ -8,7 +8,7 @@ import { userKey, type DataInfo } from "@/utils/auth";
 export interface RouteInfo {
   name?: string | symbol;
   path: string;
-  parentId?: string;
+  parentId?: string | number | null;
   meta?: {
     rank?: number;
     showLink?: boolean;

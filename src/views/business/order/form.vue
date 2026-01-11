@@ -2,9 +2,13 @@
 import { onMounted, ref } from "vue";
 import {
   PurchaseFormProps,
+  PurchaseFormItemProps,
   SaleFormProps,
+  SaleFormItemProps,
   ClaimFormProps,
-  ReturnFormProps
+  ClaimFormItemProps,
+  ReturnFormProps,
+  ReturnFormItemProps
 } from "./props";
 import {
   ALL_LIST,
@@ -53,8 +57,8 @@ const props = withDefaults(
         customerId: undefined,
         fee: 0,
         isReceive: false,
-        details: [] as unknown
-      }) as unknown
+        details: [] as OrderDetail[]
+      }) as unknown as OrderFormData
   }
 );
 const orderType = ref<ORDER_TYPE>(ORDER_TYPE.default);
@@ -64,7 +68,33 @@ const formRules = ref(getFormRules(orderType.value));
 const ruleFormRef = ref();
 // 订单表单字段较多，且不同订单类型字段存在差异；这里以运行时为准
 
-const newFormInline = ref<unknown>(props.formInline);
+// Union type for all order form data types
+type OrderFormData =
+  | PurchaseFormItemProps
+  | SaleFormItemProps
+  | ClaimFormItemProps
+  | ReturnFormItemProps;
+
+// Common list item type
+interface ListItem {
+  id?: string | number;
+  uid?: string;
+  name?: string;
+  balance?: number;
+}
+
+// Order detail item
+interface OrderDetail {
+  index: number;
+  count: number;
+  total: number;
+  tireId?: string;
+  isArrival?: boolean;
+  batchNo?: string;
+  expiryDate?: string;
+}
+
+const newFormInline = ref<OrderFormData>(props.formInline as OrderFormData);
 const formTitle = ref("新增");
 function getRef() {
   return ruleFormRef.value;
@@ -76,7 +106,7 @@ async function getOrderType() {
   return orderType.value;
 }
 
-const managerList = ref<unknown[]>([]);
+const managerList = ref<ListItem[]>([]);
 
 const detailsColumns = ref<TableColumnList>([]);
 
@@ -114,32 +144,39 @@ async function getFormTitle() {
   if (formTitle.value) return formTitle.value;
 }
 
-function onAdd(item?: unknown) {
-  newFormInline.value.details.push({
-    index: newFormInline.value.details.length + 1,
+function onAdd(item?: ListItem) {
+  if (!("details" in newFormInline.value) || !newFormInline.value.details) {
+    (newFormInline.value as unknown as { details: OrderDetail[] }).details = [];
+  }
+  const details = (newFormInline.value as unknown as { details: OrderDetail[] })
+    .details;
+  details.push({
+    index: details.length + 1,
     count: item ? 1 : 0,
     total: 0,
-    tireId: item ? item.uid : undefined,
+    tireId: item?.uid,
     isArrival: false
   });
   if (item) {
     newFormInline.value.count += 1;
   }
 }
-function onDel(row: unknown) {
-  const index = newFormInline.value.details.indexOf(row);
-  if (index !== -1) newFormInline.value.details.splice(index, 1);
-  const { count, total } = newFormInline.value;
-  newFormInline.value.count = count - row.count;
-  newFormInline.value.total = total - row.total;
-  newFormInline.value.showTotal = newFormInline.value.total;
+function onDel(row: OrderDetail) {
+  const details = newFormInline.value.details as OrderDetail[];
+  const index = details.indexOf(row);
+  if (index !== -1) details.splice(index, 1);
+  newFormInline.value.count = newFormInline.value.count - row.count;
+  newFormInline.value.total = newFormInline.value.total - row.total;
+  if ("showTotal" in newFormInline.value) {
+    newFormInline.value.showTotal = newFormInline.value.total;
+  }
 }
 
-const allRepoList = ref<unknown[]>([]);
-const allTireList = ref<unknown[]>([]);
-const allCustomerList = ref<unknown[]>([]);
-const allProviderList = ref<unknown[]>([]);
-const allPaymentList = ref<unknown[]>([]);
+const allRepoList = ref<ListItem[]>([]);
+const allTireList = ref<ListItem[]>([]);
+const allCustomerList = ref<ListItem[]>([]);
+const allProviderList = ref<ListItem[]>([]);
+const allPaymentList = ref<ListItem[]>([]);
 async function getALlList() {
   try {
     const [managerData, repoData, tireData, customerData, providerData] =
@@ -159,9 +196,9 @@ async function getALlList() {
 
     const cid = await getCompanyId();
     const { data: paymentData } = await getPaymentListApi(cid);
-    allPaymentList.value = Array.isArray(paymentData)
-      ? paymentData
-      : paymentData.list;
+    allPaymentList.value = (
+      Array.isArray(paymentData) ? paymentData : paymentData.list
+    ) as ListItem[];
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载基础数据失败";
     message(msg, { type: "error" });
@@ -184,7 +221,10 @@ async function handleScan() {
     barcodeLoading.value = true;
     const { data } = await scanBarcodeApi(code);
     if (data) {
-      const existing = newFormInline.value.details.find(
+      const formDetails = (
+        newFormInline.value as unknown as { details: OrderDetail[] }
+      ).details;
+      const existing = formDetails.find(
         (d: { tireId: string }) => d.tireId === data.uid
       );
       if (existing) {
@@ -244,7 +284,7 @@ onMounted(async () => {
         :disabled="getDisabled(['修改', '新增'])"
       >
         <el-select
-          v-model="(newFormInline as unknown).providerId"
+          v-model="(newFormInline as PurchaseFormItemProps).providerId"
           clearable
           placeholder="请输入供应商"
           class="w-60!"
@@ -266,7 +306,7 @@ onMounted(async () => {
         prop="customerId"
       >
         <el-select
-          v-model="(newFormInline as unknown).customerId"
+          v-model="(newFormInline as SaleFormItemProps).customerId"
           clearable
           placeholder="请选择客户"
           class="w-60!"
@@ -368,14 +408,16 @@ onMounted(async () => {
     >
       <el-form-item label="费用金额" prop="fee">
         <el-input-number
-          v-model="(newFormInline as unknown).fee"
+          v-model="(newFormInline as ClaimFormItemProps).fee"
           :min="0"
           :precision="2"
           class="w-48!"
         />
       </el-form-item>
       <el-form-item label="费用类型">
-        <el-radio-group v-model="(newFormInline as unknown).isReceive">
+        <el-radio-group
+          v-model="(newFormInline as ClaimFormItemProps).isReceive"
+        >
           <el-radio :label="true">收到理赔金</el-radio>
           <el-radio :label="false">支付理赔金</el-radio>
         </el-radio-group>
@@ -386,7 +428,7 @@ onMounted(async () => {
     <template v-if="formTitle === '退款' && orderType === ORDER_TYPE.return">
       <el-form-item label="退款金额" prop="fee">
         <el-input-number
-          v-model="(newFormInline as unknown).fee"
+          v-model="(newFormInline as ReturnFormItemProps).fee"
           :min="0"
           :precision="2"
           class="w-48!"
@@ -427,7 +469,7 @@ onMounted(async () => {
         adaptive
         :columns="detailsColumns"
         border
-        :data="newFormInline.details"
+        :data="(newFormInline as unknown as { details: OrderDetail[] }).details"
         showOverflowTooltip
       >
         <template #tireIdSelect="{ row }">
@@ -457,7 +499,7 @@ onMounted(async () => {
             @change="
               () => {
                 newFormInline.count = (
-                  newFormInline.details as Array<{ count: number }>
+                  (newFormInline.details || []) as Array<{ count: number }>
                 ).reduce((acc, cur) => acc + (cur.count || 0), 0);
               }
             "

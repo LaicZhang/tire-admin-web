@@ -1,4 +1,5 @@
 import type { FormRules } from "element-plus";
+import type { CSSProperties } from "vue";
 
 export interface SearchFormProps {
   form?: Record<string, unknown>;
@@ -7,7 +8,7 @@ export interface SearchFormProps {
   /** el-card shadow attribute */
   shadow?: "always" | "hover" | "never";
   /** el-card body-style attribute */
-  bodyStyle?: Record<string, unknown>;
+  bodyStyle?: CSSProperties;
 }
 
 export interface SearchFormEmits {

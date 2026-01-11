@@ -30,18 +30,52 @@ const summaryData = ref({
   belowAlarmCount: 0
 });
 
+// Data interfaces
+interface TurnoverDetailItem {
+  repoName?: string;
+  name?: string;
+  turnoverRate?: number;
+}
+
+interface TurnoverData {
+  turnoverRate: number;
+  averageDays: number;
+  details: TurnoverDetailItem[];
+}
+
+interface ExpiryDataItem {
+  label?: string;
+  bucket?: string;
+  count?: number;
+  quantity?: number;
+}
+
+interface SlowMovingItem {
+  tireName?: string;
+  repoName?: string;
+  quantity?: number;
+  lastMoveDate?: string;
+}
+
+interface StockoutItem {
+  tireName?: string;
+  currentQuantity?: number;
+  safetyStock?: number;
+  suggestPurchase?: number;
+}
+
 // 滞销商品
-const slowMovingList = ref<unknown[]>([]);
+const slowMovingList = ref<SlowMovingItem[]>([]);
 // 缺货分析
-const stockoutList = ref<unknown[]>([]);
+const stockoutList = ref<StockoutItem[]>([]);
 // 库存周转
-const turnoverData = ref<unknown>({
+const turnoverData = ref<TurnoverData>({
   turnoverRate: 0,
   averageDays: 0,
   details: []
 });
 // 临期分布
-const expiryData = ref<unknown[]>([]);
+const expiryData = ref<ExpiryDataItem[]>([]);
 
 // 表格列定义
 const slowMovingColumns: TableColumnList = [
@@ -74,7 +108,11 @@ const stockoutColumns: TableColumnList = [
     prop: "currentQuantity",
     width: 100,
     cellRenderer: ({ row }) =>
-      h("span", { class: "text-red-500 font-bold" }, row.currentQuantity)
+      h(
+        "span",
+        { class: "text-red-500 font-bold" },
+        (row as StockoutItem).currentQuantity
+      )
   },
   {
     label: "安全库存",
@@ -123,7 +161,9 @@ const getSlowMoving = async () => {
   try {
     const { data, code } = await getSlowMovingApi({ days: 90 });
     if (code === 200) {
-      slowMovingList.value = Array.isArray(data) ? data : data.items || [];
+      slowMovingList.value = (
+        Array.isArray(data) ? data : data.items || []
+      ) as SlowMovingItem[];
     }
   } catch (error) {
     console.error("获取滞销数据失败:", error);
@@ -134,7 +174,9 @@ const getStockout = async () => {
   try {
     const { data, code } = await getStockoutApi();
     if (code === 200) {
-      stockoutList.value = Array.isArray(data) ? data : data.items || [];
+      stockoutList.value = (
+        Array.isArray(data) ? data : data.items || []
+      ) as StockoutItem[];
     }
   } catch (error) {
     console.error("获取缺货数据失败:", error);
@@ -161,7 +203,9 @@ const getExpiry = async () => {
   try {
     const { data, code } = await getExpiryDistributionApi({});
     if (code === 200) {
-      expiryData.value = Array.isArray(data) ? data : data.buckets || [];
+      expiryData.value = (
+        Array.isArray(data) ? data : data.buckets || []
+      ) as ExpiryDataItem[];
       nextTick(() => updateExpiryChart());
     }
   } catch (error) {
@@ -179,13 +223,13 @@ const updateTurnoverChart = () => {
     tooltip: { trigger: "axis" },
     xAxis: {
       type: "category",
-      data: details.map((d: unknown) => d.repoName || d.name)
+      data: details.map((d: TurnoverDetailItem) => d.repoName || d.name)
     },
     yAxis: { type: "value", name: "周转次数" },
     series: [
       {
         type: "bar",
-        data: details.map((d: unknown) => d.turnoverRate || 0),
+        data: details.map((d: TurnoverDetailItem) => d.turnoverRate || 0),
         itemStyle: { color: "#409EFF" }
       }
     ]
@@ -203,7 +247,7 @@ const updateExpiryChart = () => {
       {
         type: "pie",
         radius: "60%",
-        data: expiryData.value.map((d: unknown) => ({
+        data: expiryData.value.map((d: ExpiryDataItem) => ({
           name: d.label || d.bucket,
           value: d.count || d.quantity
         }))

@@ -5,7 +5,7 @@ interface ProviderRankingRow {
   providerName: string;
   orderCount: number;
   totalQuantity: number;
-  totalAmount: number | string;
+  totalAmount: number;
   percentage: number;
 }
 
@@ -13,7 +13,7 @@ interface TrendDataRow {
   date: string;
   orderCount: number;
   quantity: number;
-  amount: number | string;
+  amount: number;
 }
 
 export function useColumns() {

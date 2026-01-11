@@ -112,7 +112,7 @@ const resetForm = (formEl?: { resetFields: () => void }) => {
   onSearch();
 };
 
-function viewDetail(row: unknown) {
+function viewDetail(row: OperationLogItem) {
   addDialog({
     title: "日志详情",
     width: "50%",

@@ -25,7 +25,18 @@ const pagination = reactive({
   currentPage: 1,
   background: true
 });
-const tableData = ref<unknown[]>([]);
+interface AuditOrder {
+  orderNo: string;
+  customerName?: string;
+  providerName?: string;
+  totalAmount: number;
+  createdAt: string;
+  creatorName: string;
+  auditStatus: string;
+  uid: string;
+}
+
+const tableData = ref<AuditOrder[]>([]);
 
 const tabOptions = [
   { label: "销售订单", value: "sale-order" },
@@ -43,17 +54,21 @@ const columns: TableColumnList = [
   {
     label: "客户/供应商",
     minWidth: 120,
-    cellRenderer: ({ row }) => row.customerName || row.providerName || "-"
+    cellRenderer: ({ row }) =>
+      (row as AuditOrder).customerName ||
+      (row as AuditOrder).providerName ||
+      "-"
   },
   {
     label: "金额",
     minWidth: 100,
-    cellRenderer: ({ row }) => `¥${((row.totalAmount || 0) / 100).toFixed(2)}`
+    cellRenderer: ({ row }) =>
+      `¥${(((row as AuditOrder).totalAmount || 0) / 100).toFixed(2)}`
   },
   {
     label: "创建时间",
     minWidth: 160,
-    cellRenderer: ({ row }) => formatDate(row.createdAt)
+    cellRenderer: ({ row }) => formatDate((row as AuditOrder).createdAt)
   },
   {
     label: "创建人",
@@ -64,7 +79,7 @@ const columns: TableColumnList = [
     label: "状态",
     minWidth: 100,
     cellRenderer: ({ row }) => {
-      const statusInfo = formatStatus(row.auditStatus);
+      const statusInfo = formatStatus((row as AuditOrder).auditStatus);
       return h(
         ElTag,
         { type: statusInfo.type, size: "small" },
@@ -89,7 +104,7 @@ async function loadData() {
       { pageSize: pageSize.value }
     );
     if (code === 200) {
-      const typedData = data as PaginatedResponseDto;
+      const typedData = data as PaginatedResponseDto<AuditOrder>;
       tableData.value = typedData.list || [];
       total.value = typedData.total ?? typedData.count ?? 0;
       pagination.total = total.value;
@@ -129,7 +144,7 @@ function handlePageCurrentChange(page: number) {
   handlePageChange(page);
 }
 
-function viewDetail(row: unknown) {
+function viewDetail(row: AuditOrder) {
   router.push(`/business/order/detail/${row.uid}`);
 }
 

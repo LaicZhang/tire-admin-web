@@ -67,6 +67,11 @@ export interface SalesOrderFormProps {
   formInline: SalesOrder;
 }
 
+export interface OptionItem {
+  uid: string;
+  name: string;
+}
+
 export const ORDER_STATUS_MAP: Record<number, string> = {
   0: "草稿",
   1: "待审核",

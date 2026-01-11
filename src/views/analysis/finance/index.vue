@@ -56,10 +56,24 @@ const summaryData = ref({
   currentBalance: "0"
 });
 
+// Chart data interfaces
+interface CashFlowTrendItem {
+  period: string;
+  income?: number | string;
+  expense?: number | string;
+  netFlow?: number | string;
+}
+
+interface BalanceTrendItem {
+  date?: string;
+  period?: string;
+  balance?: number | string;
+}
+
 // 现金流趋势
-const cashFlowTrend = ref<unknown[]>([]);
+const cashFlowTrend = ref<CashFlowTrendItem[]>([]);
 // 账户余额趋势
-const balanceTrend = ref<unknown[]>([]);
+const balanceTrend = ref<BalanceTrendItem[]>([]);
 
 // 图表
 const cashFlowChartRef = ref<HTMLElement | null>(null);
@@ -103,7 +117,9 @@ const getCashFlow = async () => {
       groupBy: "month"
     });
     if (code === 200 && data) {
-      cashFlowTrend.value = data.trend || data.data || [];
+      cashFlowTrend.value = (data.trend ||
+        data.data ||
+        []) as CashFlowTrendItem[];
       nextTick(() => updateCashFlowChart());
     }
   } catch (error) {
@@ -115,7 +131,9 @@ const getBalance = async () => {
   try {
     const { data, code } = await getBalanceTrendApi(dateParams.value);
     if (code === 200 && data) {
-      balanceTrend.value = data.trend || data.data || [];
+      balanceTrend.value = (data.trend ||
+        data.data ||
+        []) as BalanceTrendItem[];
       nextTick(() => updateBalanceChart());
     }
   } catch (error) {
@@ -129,7 +147,7 @@ const updateCashFlowChart = () => {
     cashFlowChart = echarts.init(cashFlowChartRef.value);
   }
 
-  const periods = cashFlowTrend.value.map((d: unknown) => d.period);
+  const periods = cashFlowTrend.value.map((d: CashFlowTrendItem) => d.period);
 
   cashFlowChart.setOption({
     tooltip: { trigger: "axis" },
@@ -145,19 +163,25 @@ const updateCashFlowChart = () => {
       {
         name: "收入",
         type: "bar",
-        data: cashFlowTrend.value.map((d: unknown) => Number(d.income || 0)),
+        data: cashFlowTrend.value.map((d: CashFlowTrendItem) =>
+          Number(d.income || 0)
+        ),
         itemStyle: { color: "#67C23A" }
       },
       {
         name: "支出",
         type: "bar",
-        data: cashFlowTrend.value.map((d: unknown) => Number(d.expense || 0)),
+        data: cashFlowTrend.value.map((d: CashFlowTrendItem) =>
+          Number(d.expense || 0)
+        ),
         itemStyle: { color: "#F56C6C" }
       },
       {
         name: "净现金流",
         type: "line",
-        data: cashFlowTrend.value.map((d: unknown) => Number(d.netFlow || 0)),
+        data: cashFlowTrend.value.map((d: CashFlowTrendItem) =>
+          Number(d.netFlow || 0)
+        ),
         itemStyle: { color: "#409EFF" }
       }
     ]
@@ -174,7 +198,7 @@ const updateBalanceChart = () => {
     tooltip: { trigger: "axis" },
     xAxis: {
       type: "category",
-      data: balanceTrend.value.map((d: unknown) => d.date || d.period)
+      data: balanceTrend.value.map((d: BalanceTrendItem) => d.date || d.period)
     },
     yAxis: {
       type: "value",
@@ -186,7 +210,9 @@ const updateBalanceChart = () => {
         type: "line",
         smooth: true,
         areaStyle: { opacity: 0.3 },
-        data: balanceTrend.value.map((d: unknown) => Number(d.balance || 0)),
+        data: balanceTrend.value.map((d: BalanceTrendItem) =>
+          Number(d.balance || 0)
+        ),
         itemStyle: { color: "#E6A23C" }
       }
     ]

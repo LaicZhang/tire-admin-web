@@ -60,7 +60,10 @@ const sendMessage = async () => {
 
     if (code === 200) {
       if (data.messages) {
-        chatHistory.value = data.messages;
+        const resData = data as {
+          messages: Array<{ role: string; content: string }>;
+        };
+        chatHistory.value = resData.messages;
       }
     } else {
       message(msg || "发送消息失败", { type: "error" });

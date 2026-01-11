@@ -59,7 +59,7 @@ export function useTags() {
   );
 
   const multiTags = computed(
-    () => useMultiTagsStoreHook().multiTags as unknown[]
+    () => useMultiTagsStoreHook().multiTags as RouteConfigs[]
   );
 
   const tagsViews = reactive<Array<tagsViewsType>>([
@@ -143,7 +143,7 @@ export function useTags() {
   });
 
   const scheduleIsActive = computed(() => {
-    return (item: unknown) => {
+    return (item: TagItem) => {
       return conditionHandle(item, "schedule-active", "");
     };
   });

@@ -20,7 +20,7 @@ import {
 } from "@/api/sales";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import { salesOrderColumns } from "./columns";
-import type { SalesOrder, SalesOrderQueryParams } from "./types";
+import type { SalesOrder, SalesOrderQueryParams, OptionItem } from "./types";
 import editForm from "./form.vue";
 
 defineOptions({
@@ -49,9 +49,9 @@ const pagination = ref({
   background: true
 });
 
-const employeeList = ref<unknown[]>([]);
-const managerList = ref<unknown[]>([]);
-const customerList = ref<unknown[]>([]);
+const employeeList = ref<OptionItem[]>([]);
+const managerList = ref<OptionItem[]>([]);
+const customerList = ref<OptionItem[]>([]);
 
 async function loadSelectData() {
   const [employees, managers, customers] = await Promise.all([
@@ -59,9 +59,9 @@ async function loadSelectData() {
     localForage().getItem(ALL_LIST.manager),
     localForage().getItem(ALL_LIST.customer)
   ]);
-  employeeList.value = (employees as unknown[]) || [];
-  managerList.value = (managers as unknown[]) || [];
-  customerList.value = (customers as unknown[]) || [];
+  employeeList.value = (employees as OptionItem[]) || [];
+  managerList.value = (managers as OptionItem[]) || [];
+  customerList.value = (customers as OptionItem[]) || [];
 }
 
 async function getList() {

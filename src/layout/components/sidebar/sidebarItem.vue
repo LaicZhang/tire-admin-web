@@ -75,7 +75,7 @@ function hasOneShowingChild(
   children: menuType[] = [],
   parent: menuType | undefined
 ) {
-  const showingChildren = children.filter((item: unknown) => {
+  const showingChildren = children.filter((item: menuType) => {
     onlyOneChild.value = item;
     return true;
   });

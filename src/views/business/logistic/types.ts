@@ -1,5 +1,16 @@
 // 物流模块类型定义
 
+// ============ 物流单 ============
+export interface LogisticOrder {
+  uid: string;
+  type: string;
+  logisticsStatus: number;
+  isArrival: boolean;
+  departureAt?: string;
+  arrivalAt?: string;
+  trackingNo?: string;
+}
+
 // ============ 发运计划 ============
 export interface ShippingPlan {
   uid: string;
@@ -143,4 +154,7 @@ export interface DeliveryException {
   images?: string[];
   suggestion?: string;
   createdAt: string;
+  id?: string;
+  hash?: string;
+  ext?: string;
 }

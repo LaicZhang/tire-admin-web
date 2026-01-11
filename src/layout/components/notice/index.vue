@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { noticesData, type TabItem } from "./data";
+import { noticesData, type TabItem, type ListItem } from "./data";
 import NoticeList from "./noticeList.vue";
 import Bell from "~icons/ep/bell";
 import { getNoticeApi } from "@/api";
@@ -17,7 +17,7 @@ const getNotice = async () => {
     notices.value[0] = {
       key: "1",
       name: "通知",
-      list: data
+      list: data as ListItem[]
     };
   } else {
     message(msg, { type: "error" });

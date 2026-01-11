@@ -70,7 +70,7 @@
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.19",
     "echarts": "^6.0.0",
-    "element-plus": "^2.13.0",
+    "element-plus": "^2.13.1",
     "idb-keyval": "^6.2.2",
     "js-cookie": "^3.0.5",
     "localforage": "^1.10.0",
@@ -92,19 +92,19 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.7.3",
-    "@commitlint/cli": "^20.3.0",
-    "@commitlint/config-conventional": "^20.3.0",
-    "@commitlint/types": "^20.2.0",
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "@commitlint/types": "^20.3.1",
     "@eslint/js": "^9.39.2",
     "@iconify-json/ep": "^1.2.3",
     "@iconify-json/ri": "^1.2.7",
-    "@iconify/json": "^2.2.425",
+    "@iconify/json": "^2.2.427",
     "@iconify/vue": "5.0.0",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.1.18",
     "@types/gradient-string": "^1.1.6",
     "@types/js-cookie": "^3.0.6",
-    "@types/node": "^24.10.4",
+    "@types/node": "^24.10.7",
     "@types/nprogress": "^0.2.3",
     "@types/qs": "^6.14.0",
     "@types/sortablejs": "^1.15.9",
@@ -122,7 +122,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-vue": "^10.6.2",
     "gradient-string": "^3.0.0",
-    "happy-dom": "^20.0.11",
+    "happy-dom": "^20.1.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "postcss": "^8.5.6",
@@ -184,5 +184,5 @@
       "vue-demi"
     ]
   },
-  "packageManager": "pnpm@10.27.0"
+  "packageManager": "pnpm@10.28.0"
 }

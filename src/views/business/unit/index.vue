@@ -76,13 +76,13 @@ function openDialog() {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
+      const props = options.props as { name: string };
       return h("div", [
         h("el-form", {}, [
           h("el-form-item", { label: "名称", required: true }, [
             h("el-input", {
-              modelValue: options.props.name,
-              "onUpdate:modelValue": (val: string) =>
-                (options.props.name = val),
+              modelValue: props.name,
+              "onUpdate:modelValue": (val: string) => (props.name = val),
               placeholder: "请输入单位名称 (如: 个、箱)"
             })
           ])
@@ -90,7 +90,8 @@ function openDialog() {
       ]);
     },
     beforeSure: (done, { options }) => {
-      const name = options.props.name;
+      const props = options.props as { name: string };
+      const name = props.name;
       if (!name) {
         message("请输入名称", { type: "warning" });
         return;

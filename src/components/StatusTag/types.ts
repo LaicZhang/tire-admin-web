@@ -1,3 +1,5 @@
+import type { TagProps } from "element-plus";
+
 export interface StatusTagProps {
   /** 状态值 */
   status: string | number | boolean;
@@ -13,7 +15,7 @@ export interface StatusConfig {
   /** 显示文本 */
   label: string;
   /** 标签类型 */
-  type?: "success" | "warning" | "danger" | "info" | "";
+  type?: TagProps["type"];
 }
 
 // 预设状态映射
@@ -24,7 +26,7 @@ export const APPROVAL_STATUS_MAP: Record<string, StatusConfig> = {
 
 export const LOCK_STATUS_MAP: Record<string, StatusConfig> = {
   true: { label: "已锁定", type: "warning" },
-  false: { label: "未锁定", type: "" }
+  false: { label: "未锁定" }
 };
 
 export const ENABLE_STATUS_MAP: Record<string, StatusConfig> = {

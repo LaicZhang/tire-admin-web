@@ -19,12 +19,13 @@ import { h } from "vue";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import { useUserStoreHook } from "@/store/modules/user";
+import type { AssetItem, AssetFormItem } from "./types";
 
 defineOptions({
   name: "Asset"
 });
 
-const dataList = ref([]);
+const dataList = ref<AssetItem[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -47,7 +48,7 @@ const getAssetListInfo = async () => {
       }
     );
     if (code === 200) {
-      dataList.value = data.list;
+      dataList.value = data.list as AssetItem[];
       pagination.value.total = data.count;
     } else {
       message(msg, { type: "error" });
@@ -76,7 +77,7 @@ async function handleCurrentChange(val: number) {
   await getAssetListInfo();
 }
 
-async function handleDelete(row: unknown) {
+async function handleDelete(row: AssetItem) {
   try {
     await deleteAssetApi(row.uid);
     message("删除成功", { type: "success" });
@@ -87,7 +88,7 @@ async function handleDelete(row: unknown) {
   }
 }
 
-function openDialog(title = "新增", row?: unknown) {
+function openDialog(title = "新增", row?: AssetItem) {
   addDialog({
     title: `${title}资产`,
     props: {
@@ -114,7 +115,7 @@ function openDialog(title = "新增", row?: unknown) {
     contentRenderer: () => h(editForm, { ref: formRef }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
-      const curData = options.props.formInline;
+      const curData = options.props.formInline as AssetFormItem;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           try {

@@ -3,6 +3,7 @@ import { ref, watch, computed } from "vue";
 import TrackingPanel from "./TrackingPanel.vue";
 import DeliveryReceiptCard from "./DeliveryReceiptCard.vue";
 import DeliveryExceptionDialog from "./DeliveryExceptionDialog.vue";
+import type { LogisticOrder } from "./types";
 
 defineOptions({
   name: "LogisticDetailDrawer"
@@ -10,7 +11,7 @@ defineOptions({
 
 const props = defineProps<{
   visible: boolean;
-  logistic: unknown;
+  logistic: LogisticOrder | null;
 }>();
 
 const emit = defineEmits<{

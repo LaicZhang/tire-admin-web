@@ -4,6 +4,7 @@ import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 import { ALL_LIST, localForage, message, SYS } from "@/utils";
 import { FormProps } from "./table";
+import type { PositionItem } from "./types";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -21,7 +22,7 @@ const props = withDefaults(defineProps<FormProps>(), {
   })
 });
 
-const allPositionList = ref<unknown[]>([]);
+const allPositionList = ref<PositionItem[]>([]);
 /** 自定义表单规则校验 */
 const formRules = reactive({
   name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
@@ -56,7 +57,9 @@ const getEmployeeStatus = async () => {
 };
 
 async function getPositionList() {
-  const cached = (await localForage().getItem(ALL_LIST.position)) as unknown;
+  const cached = (await localForage().getItem(ALL_LIST.position)) as
+    | { list: PositionItem[] }
+    | PositionItem[];
   allPositionList.value = Array.isArray(cached) ? cached : cached?.list || [];
 }
 

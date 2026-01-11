@@ -13,6 +13,8 @@ import ShippingPlanTab from "./ShippingPlanTab.vue";
 import LoadingTaskTab from "./LoadingTaskTab.vue";
 import ShippingWaveTab from "./ShippingWaveTab.vue";
 import LogisticDetailDrawer from "./LogisticDetailDrawer.vue";
+import type { LogisticOrder } from "./types";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "Logistic"
@@ -20,9 +22,9 @@ defineOptions({
 
 const activeTab = ref("logistic");
 const drawerVisible = ref(false);
-const currentLogistic = ref<unknown>(null);
+const currentLogistic = ref<LogisticOrder | null>(null);
 
-const dataList = ref<unknown[]>([]);
+const dataList = ref<LogisticOrder[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -109,7 +111,7 @@ const getLogisticListInfo = async () => {
       }
     );
     if (code === 200) {
-      const typedData = data as { list?: unknown[]; count?: number };
+      const typedData = data as { list?: LogisticOrder[]; count?: number };
       dataList.value = typedData.list || [];
       pagination.value.total = typedData.count || 0;
     } else {
@@ -127,7 +129,7 @@ const onSearch = async () => {
   await getLogisticListInfo();
 };
 
-const resetForm = (formEl: unknown) => {
+const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -138,7 +140,7 @@ async function handleCurrentChange(val: number) {
   await getLogisticListInfo();
 }
 
-async function handleConfirmShipment(row: unknown) {
+async function handleConfirmShipment(row: LogisticOrder) {
   try {
     await updateLogisticApi(row.uid, {
       type: row.type,
@@ -151,7 +153,7 @@ async function handleConfirmShipment(row: unknown) {
   }
 }
 
-async function handleConfirmArrival(row: unknown) {
+async function handleConfirmArrival(row: LogisticOrder) {
   try {
     await updateLogisticApi(row.uid, {
       type: row.type,
@@ -164,7 +166,7 @@ async function handleConfirmArrival(row: unknown) {
   }
 }
 
-async function handleCancel(row: unknown) {
+async function handleCancel(row: LogisticOrder) {
   try {
     await cancelLogisticApi(row.uid, row.type);
     message("取消物流状态成功", { type: "success" });
@@ -174,7 +176,7 @@ async function handleCancel(row: unknown) {
   }
 }
 
-function handleViewDetail(row: unknown) {
+function handleViewDetail(row: LogisticOrder) {
   currentLogistic.value = row;
   drawerVisible.value = true;
 }

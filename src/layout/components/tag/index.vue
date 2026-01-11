@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { emitter } from "@/utils/mitt";
 import NProgress from "@/utils/progress";
-import { RouteConfigs } from "../../types";
+import { RouteConfigs, tagsViewsType } from "../../types";
 import { useTags } from "../../hooks/useTag";
 import { routerArrays } from "@/layout/types";
 import { onClickOutside } from "@vueuse/core";
@@ -62,7 +62,7 @@ const { VITE_HIDE_HOME } = import.meta.env;
 
 const dynamicTagView = async () => {
   await nextTick();
-  const index = multiTags.value.findIndex(item => {
+  const index = multiTags.value.findIndex((item: RouteConfigs) => {
     if (!isAllEmpty(route.query)) {
       return isEqual(route.query, item.query);
     } else if (!isAllEmpty(route.params)) {
@@ -176,29 +176,29 @@ const smoothScroll = (offset: number): void => {
 };
 
 function dynamicRouteTag(value: string): void {
-  const hasValue = multiTags.value.some(item => {
+  const hasValue = multiTags.value.some((item: RouteConfigs) => {
     return item.path === value;
   });
 
-  function concatPath(arr: object[], value: string) {
+  function concatPath(arr: RouteConfigs[], value: string) {
     if (!hasValue) {
-      arr.forEach((arrItem: unknown) => {
+      arr.forEach((arrItem: RouteConfigs) => {
         if (arrItem.path === value) {
           useMultiTagsStoreHook().handleTags("push", {
             path: value,
             meta: arrItem.meta,
             name: arrItem.name
-          });
+          } as RouteConfigs);
         } else {
           const children = arrItem.children;
           if (children && children.length > 0) {
-            concatPath(arrItem.children, value);
+            concatPath(arrItem.children as RouteConfigs[], value);
           }
         }
       });
     }
   }
-  concatPath(router.options.routes as unknown, value);
+  concatPath(router.options.routes as RouteConfigs[], value);
 }
 
 /** 刷新路由 */
@@ -213,8 +213,8 @@ function onFresh() {
   NProgress.done();
 }
 
-function deleteDynamicTag(obj: unknown, current: unknown, tag?: string) {
-  const valueIndex: number = multiTags.value.findIndex((item: unknown) => {
+function deleteDynamicTag(obj: RouteConfigs, current: unknown, tag?: string) {
+  const valueIndex: number = multiTags.value.findIndex((item: RouteConfigs) => {
     if (item.query) {
       if (item.path === obj.path) {
         return item.query === obj.query;
@@ -258,25 +258,29 @@ function deleteDynamicTag(obj: unknown, current: unknown, tag?: string) {
     spliceRoute(valueIndex, 1);
   }
   const newRoute = useMultiTagsStoreHook().handleTags("slice");
+  const firstRoute = newRoute?.[0];
   if (current === route.path) {
     // 如果删除当前激活tag就自动切换到最后一个tag
     if (tag === "left") return;
-    if (newRoute[0]?.query) {
-      router.push({ name: newRoute[0].name, query: newRoute[0].query });
-    } else if (newRoute[0]?.params) {
-      router.push({ name: newRoute[0].name, params: newRoute[0].params });
+    if (!firstRoute) return;
+    if (firstRoute.query) {
+      router.push({ name: firstRoute.name, query: firstRoute.query });
+    } else if (firstRoute.params) {
+      router.push({ name: firstRoute.name, params: firstRoute.params });
     } else {
-      router.push({ path: newRoute[0].path });
+      router.push({ path: firstRoute.path });
     }
   } else {
     if (!multiTags.value.length) return;
-    if (multiTags.value.some(item => item.path === route.path)) return;
-    if (newRoute[0]?.query) {
-      router.push({ name: newRoute[0].name, query: newRoute[0].query });
-    } else if (newRoute[0]?.params) {
-      router.push({ name: newRoute[0].name, params: newRoute[0].params });
+    if (multiTags.value.some((item: RouteConfigs) => item.path === route.path))
+      return;
+    if (!firstRoute) return;
+    if (firstRoute.query) {
+      router.push({ name: firstRoute.name, query: firstRoute.query });
+    } else if (firstRoute.params) {
+      router.push({ name: firstRoute.name, params: firstRoute.params });
     } else {
-      router.push({ path: newRoute[0].path });
+      router.push({ path: firstRoute.path });
     }
   }
 }
@@ -286,7 +290,11 @@ function deleteMenu(item: RouteConfigs, tag?: string) {
   handleAliveRoute(route as ToRouteType);
 }
 
-function onClickDrop(key: number, item: unknown, selectRoute?: RouteConfigs) {
+function onClickDrop(
+  key: number,
+  item: tagsViewsType | null | undefined,
+  selectRoute?: RouteConfigs
+) {
   if (item && item.disabled) return;
 
   let selectTagRoute;
@@ -354,15 +362,15 @@ function onClickDrop(key: number, item: unknown, selectRoute?: RouteConfigs) {
   });
 }
 
-function handleCommand(command: unknown) {
+function handleCommand(command: { key: number; item: tagsViewsType }) {
   const { key, item } = command;
   onClickDrop(key, item);
 }
 
 /** 触发右键中菜单的点击事件 */
-function selectTag(key: number, item: unknown) {
+function selectTag(key: number, item: tagsViewsType) {
   closeMenu();
-  onClickDrop(key, item, currentSelect.value);
+  onClickDrop(key, item, currentSelect.value as RouteConfigs);
 }
 
 function showMenus(value: boolean) {
@@ -387,9 +395,13 @@ function showMenuModel(
   const routeLength = allRoute.length;
   let currentIndex = -1;
   if (isAllEmpty(query)) {
-    currentIndex = allRoute.findIndex(v => v.path === currentPath);
+    currentIndex = allRoute.findIndex(
+      (v: RouteConfigs) => v.path === currentPath
+    );
   } else {
-    currentIndex = allRoute.findIndex(v => isEqual(v.query, query));
+    currentIndex = allRoute.findIndex((v: RouteConfigs) =>
+      isEqual(v.query, query)
+    );
   }
 
   showMenus(true);
@@ -505,8 +517,8 @@ onMounted(() => {
 
   // 触发隐藏标签页
   emitter.on("tagViewsChange", (key: unknown) => {
-    if (unref(showTags as unknown) === key) return;
-    (showTags as unknown).value = key;
+    if (unref(showTags) === key) return;
+    (showTags as { value: boolean }).value = key as boolean;
   });
 
   // 改变标签风格
@@ -558,7 +570,7 @@ onBeforeUnmount(() => {
           <span
             class="tag-title dark:text-text_color_primary! dark:hover:text-primary!"
           >
-            {{ item.meta.title }}
+            {{ item.meta?.title }}
           </span>
           <span
             v-if="

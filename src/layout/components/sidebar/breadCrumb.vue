@@ -76,7 +76,7 @@ const getBreadcrumb = (): void => {
 const handleLink = (item: RouteConfigs) => {
   const { redirect, name, path } = item;
   if (redirect) {
-    router.push(redirect as unknown);
+    router.push(redirect);
   } else {
     if (name) {
       if (item.query) {
