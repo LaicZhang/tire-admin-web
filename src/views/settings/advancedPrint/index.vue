@@ -13,6 +13,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { message } from "@/utils";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { ElMessageBox } from "element-plus";
+import StatusTag from "@/components/StatusTag/index.vue";
 import {
   getPrintTemplatesApi,
   setDefaultPrintTemplateApi,
@@ -77,9 +78,13 @@ const columns: TableColumnList = [
     prop: "isDefault",
     minWidth: 100,
     cellRenderer: ({ row }) => (
-      <el-tag type={row.isDefault ? "success" : "info"} effect="plain">
-        {row.isDefault ? "默认" : "非默认"}
-      </el-tag>
+      <StatusTag
+        status={row.isDefault}
+        statusMap={{
+          true: { label: "默认", type: "success" },
+          false: { label: "非默认", type: "info" }
+        }}
+      />
     )
   },
   {

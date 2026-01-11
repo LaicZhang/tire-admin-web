@@ -13,9 +13,9 @@ import {
   uploadFileApi,
   type FileItem
 } from "@/api/system/file";
-import Delete from "~icons/ep/delete";
 import UploadFilled from "~icons/ep/upload-filled";
 import Download from "~icons/ep/download";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 
 defineOptions({
   name: "FileManagement"
@@ -270,18 +270,7 @@ onMounted(() => {
             >
               下载
             </el-button>
-            <el-popconfirm title="确认删除?" @confirm="handleDelete(row)">
-              <template #reference>
-                <el-button
-                  class="reset-margin"
-                  link
-                  type="danger"
-                  :icon="useRenderIcon(Delete)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+            <DeleteButton :show-icon="false" @confirm="handleDelete(row)" />
           </template>
         </pure-table>
       </template>

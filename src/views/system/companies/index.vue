@@ -19,7 +19,7 @@ import {
 // Icons
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
-import Delete from "~icons/ep/delete";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 
 defineOptions({
   name: "CompanyManagement"
@@ -184,19 +184,11 @@ onMounted(() => {
             >
               修改
             </el-button>
-            <el-popconfirm title="确认删除?" @confirm="handleDelete(row)">
-              <template #reference>
-                <el-button
-                  class="reset-margin"
-                  link
-                  type="danger"
-                  :size="size"
-                  :icon="useRenderIcon(Delete)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+            <DeleteButton
+              :size="size"
+              :show-icon="false"
+              @confirm="handleDelete(row)"
+            />
           </template>
         </pure-table>
       </template>

@@ -12,6 +12,8 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
+import StatusTag from "@/components/StatusTag/index.vue";
+import { ENABLE_STATUS_MAP } from "@/components/StatusTag/types";
 import {
   getCodeRulesApi,
   saveCodeRuleApi,
@@ -130,9 +132,13 @@ const documentColumns: TableColumnList = [
     prop: "isActive",
     minWidth: 80,
     cellRenderer: ({ row }) => (
-      <el-tag type={row.isActive ? "success" : "info"} effect="plain">
-        {row.isActive ? "使用中" : "未启用"}
-      </el-tag>
+      <StatusTag
+        status={row.isActive}
+        statusMap={{
+          true: { label: "使用中", type: "success" },
+          false: { label: "未启用", type: "info" }
+        }}
+      />
     )
   },
   {

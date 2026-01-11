@@ -13,13 +13,13 @@ import {
   runTaskApi,
   type TaskItem
 } from "@/api/system/task";
-import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import Play from "~icons/ep/video-play";
 import View from "~icons/ep/view";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 
 defineOptions({
   name: "TaskManagement"
@@ -411,18 +411,7 @@ onMounted(() => {
             >
               修改
             </el-button>
-            <el-popconfirm title="确认删除?" @confirm="handleDelete(row)">
-              <template #reference>
-                <el-button
-                  class="reset-margin"
-                  link
-                  type="danger"
-                  :icon="useRenderIcon(Delete)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+            <DeleteButton :show-icon="false" @confirm="handleDelete(row)" />
           </template>
         </pure-table>
       </template>

@@ -4,6 +4,8 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
+import { APPROVAL_STATUS_MAP } from "@/components/StatusTag/types";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
@@ -301,9 +303,10 @@ onMounted(() => {
           "
         >
           <template #status="{ row }">
-            <el-tag :type="row.isApproved ? 'success' : 'warning'" size="small">
-              {{ row.isApproved ? "已审核" : "待审核" }}
-            </el-tag>
+            <StatusTag
+              :status="row.isApproved"
+              :status-map="APPROVAL_STATUS_MAP"
+            />
           </template>
           <template #operation="{ row, size }">
             <el-button

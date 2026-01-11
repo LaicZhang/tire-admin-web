@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
@@ -18,6 +19,7 @@ import {
 } from "./types";
 import { columns, getStatusInfo, getIncomeTypeText } from "./columns";
 import OtherIncomeForm from "./form.vue";
+import type { StatusConfig } from "@/components/StatusTag/types";
 
 defineOptions({
   name: "FundOtherIncome"
@@ -45,6 +47,15 @@ const queryForm = reactive<OtherIncomeQueryParams>({
 
 const dialogVisible = ref(false);
 const editData = ref<OtherIncome | null>(null);
+
+// Convert status options to StatusTag format
+const OTHER_INCOME_STATUS_MAP: Record<string, StatusConfig> =
+  Object.fromEntries(
+    OTHER_INCOME_STATUS_OPTIONS.map(opt => [
+      opt.value,
+      { label: opt.label, type: opt.type }
+    ])
+  );
 
 async function onSearch() {
   loading.value = true;
@@ -301,9 +312,10 @@ onMounted(() => {
             </span>
           </template>
           <template #status="{ row }">
-            <el-tag :type="getStatusInfo(row.status).type" size="small">
-              {{ getStatusInfo(row.status).label }}
-            </el-tag>
+            <StatusTag
+              :status="row.status"
+              :status-map="OTHER_INCOME_STATUS_MAP"
+            />
           </template>
           <template #operation="{ row, size }">
             <el-button
