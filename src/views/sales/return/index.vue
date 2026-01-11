@@ -4,6 +4,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
@@ -347,15 +348,12 @@ onMounted(async () => {
               >
                 退款
               </el-button>
-              <el-popconfirm
+              <DeleteButton
                 v-if="!row.isLocked"
+                :show-icon="false"
                 :title="`确认删除编号 ${row.number} 的退货单?`"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button link type="danger">删除</el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>
