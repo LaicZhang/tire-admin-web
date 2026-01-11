@@ -1,0 +1,85 @@
+文件路径,现有代码模式,建议替换组件,替换说明,优先级
+src/views/data/auxiliary/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/auxiliary/index.vue,el-popconfirm 批量删除,保持原样,批量删除按钮样式不同，不适合用DeleteButton,低
+src/views/data/auxiliaryAttr/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/incomeCategory/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/expenseCategory/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/settlement/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/singleUnit/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/multiUnit/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/productCategory/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/customerCategory/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/supplierCategory/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/customerProductCode/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/initialStock/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/supplierBalance/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/customerBalance/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/batchSerial/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/priceInfo/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/data/importExport/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/system/role/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/system/permission/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/system/dict/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/system/companies/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/system/task/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/system/menu/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/system/notice/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/system/file/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/company/repo/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/company/employee/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/company/position/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/company/salary/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/company/asset/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/company/department/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/purchase/order/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/purchase/inbound/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/purchase/return/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/sales/order/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/sales/outbound/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/sales/return/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/customer/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/provider/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/tire/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/tireNumber/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/warehouseManagement/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/order/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/payment/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/unit/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/price/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/stock/location/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/finance/advance/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/purchase/plan/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/purchase/inquiry/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/sales/quotation/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/quality/defect/index.vue,el-popconfirm + el-button 删除,DeleteButton,行内删除按钮可复用 DeleteButton 组件,中
+src/views/business/audit/index.vue,(totalAmount / 100).toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/fund/otherIncome/index.vue,(amount / 100).toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/fund/otherExpense/index.vue,(amount / 100).toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/fund/report/index.vue,(amount / 100).toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/business/finance/writeOff/index.vue,(amount / 100).toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/business/finance/transfer/index.vue,(balance / 100).toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/data/supplierBalance/index.vue,row.payableBalance.toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/data/customerBalance/index.vue,row.receivableBalance.toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/data/account/index.vue,num.toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/other/aiEntry/index.vue,totalAmount.toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,中
+src/views/analysis/comprehensive/index.vue,(value / 100).toFixed(2),MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/analysis/sales/index.vue,Number(val) / 100,MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/analysis/aging/index.vue,Number(val) / 100,MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/analysis/inventory/index.vue,Number(val) / 100,MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/analysis/finance/index.vue,Number(val) / 100,MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/analysis/purchase/index.vue,Number(val) / 100,MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/analysis/profit/index.vue,Number(val) / 100,MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高
+src/views/business/audit/index.vue,h(ElTag) + statusMap,StatusTag,状态标签可复用 StatusTag 组件,中
+src/views/fund/otherIncome/index.vue,el-tag type=success/warning,StatusTag,状态标签可复用 StatusTag 组件,中
+src/views/fund/writeOff/index.vue,el-tag :type=row.isApproved,StatusTag,状态标签可复用 StatusTag 组件,中
+src/views/business/finance/writeOff/index.vue,el-tag :type=row.isApproved,StatusTag,状态标签可复用 StatusTag 组件,中
+src/views/business/finance/income/index.vue,el-tag type=success,StatusTag,状态标签可复用 StatusTag 组件,低
+src/views/settings/codeRule/index.vue,el-tag type={row.isActive},StatusTag,状态标签可复用 StatusTag 组件,中
+src/views/settings/advancedPrint/index.vue,el-tag type={row.isDefault},StatusTag,状态标签可复用 StatusTag 组件,中
+src/views/settings/printTemplate/index.vue,el-tag type={row.isDefault},StatusTag,状态标签可复用 StatusTag 组件,中
+src/views/purchase/order/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高
+src/views/purchase/inbound/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高
+src/views/purchase/return/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高
+src/views/sales/order/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高
+src/views/sales/outbound/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高
+src/views/sales/return/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高
