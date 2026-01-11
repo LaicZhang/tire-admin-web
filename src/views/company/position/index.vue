@@ -4,9 +4,9 @@ import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog, openMenuDialog } from "./table";
 import { getPositionListApi, deletePositionApi } from "@/api";
 import type { Position } from "@/api/company/position";
@@ -170,16 +170,11 @@ onMounted(async () => {
               >
                 菜单
               </el-button>
-              <el-popconfirm
+              <DeleteButton
                 :title="`是否确认删除${row.name}这条数据`"
+                :show-icon="false"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="danger">
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>

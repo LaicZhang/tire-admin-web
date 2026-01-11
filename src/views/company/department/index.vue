@@ -2,9 +2,9 @@
 import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
 import {
   getDepartmentListApi,
@@ -141,7 +141,7 @@ async function saveRoles() {
           v-model="form.name"
           placeholder="请输入部门名称"
           clearable
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
       </el-form-item>
       <el-form-item label="备注：" prop="desc">
@@ -149,7 +149,7 @@ async function saveRoles() {
           v-model="form.desc"
           placeholder="请输入备注"
           clearable
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
       </el-form-item>
     </ReSearchForm>
@@ -204,21 +204,11 @@ async function saveRoles() {
               >
                 角色
               </el-button>
-              <el-popconfirm
+              <DeleteButton
                 :title="`是否确认删除${row.name}这条数据`"
+                :show-icon="false"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="danger"
-                    :icon="useRenderIcon(Delete)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>
