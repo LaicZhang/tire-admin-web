@@ -3,10 +3,10 @@ import { ref, reactive, onMounted, h } from "vue";
 import type { MultiUnitItem, UnitOption } from "./types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
-import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import {
   getMultiUnitListApi,
@@ -220,7 +220,7 @@ onMounted(async () => {
           v-model="form.name"
           placeholder="请输入单位组名称"
           clearable
-          class="!w-[200px]"
+          class="w-[200px]!"
           @keyup.enter="getData"
         />
       </el-form-item>
@@ -279,18 +279,7 @@ onMounted(async () => {
             >
               修改
             </el-button>
-            <el-popconfirm title="确认删除?" @confirm="handleDelete(row)">
-              <template #reference>
-                <el-button
-                  class="reset-margin"
-                  link
-                  type="danger"
-                  :icon="useRenderIcon(Delete)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+            <DeleteButton :show-icon="false" @confirm="handleDelete(row)" />
           </template>
         </pure-table>
       </template>

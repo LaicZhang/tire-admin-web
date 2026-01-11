@@ -69,7 +69,7 @@ defineExpose({ getRef });
           <el-input
             v-model="newValue"
             placeholder="输入属性值后按回车添加"
-            class="!w-[200px]"
+            class="w-[200px]!"
             @keyup.enter="addValue"
           />
           <el-button

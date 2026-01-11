@@ -104,7 +104,7 @@ defineExpose({ getRef });
           <el-select
             v-model="conv.unitUid"
             placeholder="选择单位"
-            class="!w-[120px]"
+            class="w-[120px]!"
           >
             <el-option
               v-for="unit in [
@@ -121,7 +121,7 @@ defineExpose({ getRef });
             v-model="conv.ratio"
             :min="0.0001"
             :precision="4"
-            class="!w-[120px]"
+            class="w-[120px]!"
           />
           <span class="whitespace-nowrap">{{
             baseUnitName || "基本单位"
