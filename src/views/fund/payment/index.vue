@@ -205,7 +205,7 @@ onMounted(() => {
           v-model="queryForm.status"
           placeholder="请选择状态"
           clearable
-          class="!w-[120px]"
+          class="w-[120px]!"
         >
           <el-option
             v-for="item in PAYMENT_STATUS_OPTIONS"

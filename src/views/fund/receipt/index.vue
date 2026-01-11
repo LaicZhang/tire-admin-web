@@ -211,7 +211,7 @@ onMounted(() => {
           v-model="queryForm.customerName"
           placeholder="请输入客户名称"
           clearable
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
       </el-form-item>
       <el-form-item label="状态" prop="status">
@@ -219,7 +219,7 @@ onMounted(() => {
           v-model="queryForm.status"
           placeholder="请选择状态"
           clearable
-          class="!w-[120px]"
+          class="w-[120px]!"
         >
           <el-option
             v-for="item in RECEIPT_STATUS_OPTIONS"

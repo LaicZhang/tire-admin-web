@@ -224,7 +224,7 @@ onMounted(() => {
           v-model="queryForm.isApproved"
           placeholder="请选择状态"
           clearable
-          class="!w-[120px]"
+          class="w-[120px]!"
         >
           <el-option label="待审核" value="false" />
           <el-option label="已审核" value="true" />

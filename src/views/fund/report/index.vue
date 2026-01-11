@@ -339,7 +339,7 @@ onMounted(() => {
           v-model="queryForm.targetType"
           placeholder="全部"
           clearable
-          class="!w-[120px]"
+          class="w-[120px]!"
         >
           <el-option label="客户" value="CUSTOMER" />
           <el-option label="供应商" value="PROVIDER" />
