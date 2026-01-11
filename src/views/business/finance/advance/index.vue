@@ -4,7 +4,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
-import Delete from "~icons/ep/delete"; // Added import
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import {
   getAdvancePaymentList,
   type AdvancePaymentDto
@@ -190,14 +190,11 @@ function handleDelete(_row: AdvancePaymentDto) {
           "
         >
           <template #operation="{ row }">
-            <el-popconfirm
-              :title="`确认删除该记录吗?`"
+            <DeleteButton
+              :show-icon="false"
+              size="small"
               @confirm="handleDelete(row)"
-            >
-              <template #reference>
-                <el-button link type="primary" :size="size"> 删除 </el-button>
-              </template>
-            </el-popconfirm>
+            />
           </template>
         </pure-table>
       </template>

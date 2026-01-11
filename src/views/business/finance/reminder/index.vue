@@ -91,7 +91,7 @@ onMounted(() => {
           v-model="form.status"
           placeholder="请选择状态"
           clearable
-          class="!w-[180px]"
+          class="w-[180px]!"
         >
           <el-option label="待处理" value="pending" />
           <el-option label="已处理" value="processed" />

@@ -5,6 +5,7 @@ import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { getOrderTypeList, message, ORDER_TYPE } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useOrderList, useOrderData, useOrderActions } from "./composables";
 
@@ -429,17 +430,12 @@ onMounted(async () => {
                 修改
               </el-button>
 
-              <el-popconfirm
+              <DeleteButton
                 v-if="row.isLocked === false"
+                :show-icon="false"
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="danger">
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>

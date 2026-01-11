@@ -12,8 +12,8 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import Add from "~icons/ep/plus";
-import Delete from "~icons/ep/delete";
 import Edit from "~icons/ep/edit";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { message } from "@/utils/message";
 
 defineOptions({
@@ -199,18 +199,11 @@ onMounted(() => {
             >
               编辑
             </el-button>
-            <el-popconfirm title="是否确认删除?" @confirm="handleDelete(row)">
-              <template #reference>
-                <el-button
-                  link
-                  type="danger"
-                  :size="size"
-                  :icon="useRenderIcon(Delete)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+            <DeleteButton
+              :show-icon="false"
+              size="small"
+              @confirm="handleDelete(row)"
+            />
           </template>
         </pure-table>
       </template>

@@ -5,6 +5,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
 import { getTireListApi, deleteTireApi, getDepartmentWithEmpApi } from "@/api";
 import { message, localForage, ALL_LIST } from "@/utils";
@@ -242,16 +243,11 @@ onMounted(async () => {
                 修改
               </el-button>
 
-              <el-popconfirm
+              <DeleteButton
+                :show-icon="false"
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="danger">
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>

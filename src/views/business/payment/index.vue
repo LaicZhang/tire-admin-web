@@ -13,6 +13,7 @@ import {
 } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { getCompanyId } from "@/api/company";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
@@ -298,16 +299,11 @@ onMounted(async () => {
                 查询余额
               </el-button>
 
-              <el-popconfirm
+              <DeleteButton
+                :show-icon="false"
                 :title="`是否确认删除该支付账户`"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="danger">
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>

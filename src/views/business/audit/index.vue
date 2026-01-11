@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, h, reactive, computed } from "vue";
+import { ref, onMounted, h, reactive } from "vue";
 import { getPendingAuditOrdersApi } from "@/api/business/order";
 import { message } from "@/utils/message";
 import { useRouter } from "vue-router";
 import type { PaginatedResponseDto } from "@/api/type";
 import { PureTableBar } from "@/components/RePureTableBar";
-
-import { ElTag, ElButton } from "element-plus";
+import StatusTag from "@/components/StatusTag/index.vue";
+import { DOCUMENT_STATUS_MAP } from "@/components/StatusTag/types";
 
 defineOptions({
   name: "AuditCenter"
@@ -78,14 +78,11 @@ const columns: TableColumnList = [
   {
     label: "状态",
     minWidth: 100,
-    cellRenderer: ({ row }) => {
-      const statusInfo = formatStatus((row as AuditOrder).auditStatus);
-      return h(
-        ElTag,
-        { type: statusInfo.type, size: "small" },
-        () => statusInfo.text
-      );
-    }
+    cellRenderer: ({ row }) =>
+      h(StatusTag, {
+        status: (row as AuditOrder).auditStatus,
+        statusMap: DOCUMENT_STATUS_MAP
+      })
   },
   {
     label: "操作",
@@ -148,20 +145,7 @@ function viewDetail(row: AuditOrder) {
   router.push(`/business/order/detail/${row.uid}`);
 }
 
-function formatStatus(status: string) {
-  const statusMap: Record<
-    string,
-    {
-      text: string;
-      type: "success" | "warning" | "danger" | "info" | "primary";
-    }
-  > = {
-    pending: { text: "待审核", type: "warning" },
-    approved: { text: "已通过", type: "success" },
-    rejected: { text: "已驳回", type: "danger" }
-  };
-  return statusMap[status] || { text: status, type: "info" };
-}
+// Status mapping is now handled by DOCUMENT_STATUS_MAP from StatusTag
 
 function formatDate(date: string) {
   if (!date) return "-";

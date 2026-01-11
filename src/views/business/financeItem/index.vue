@@ -3,8 +3,8 @@ import { ref, onMounted, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
-import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import {
   getIncomeExpenseItemListApi,
   createIncomeExpenseItemApi,
@@ -217,18 +217,7 @@ onMounted(() => {
             @page-current-change="handleCurrentChange"
           >
             <template #operation="{ row }">
-              <el-popconfirm title="确认删除?" @confirm="handleDelete(row)">
-                <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="danger"
-                    :icon="useRenderIcon(Delete)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              <DeleteButton @confirm="handleDelete(row)" />
             </template>
           </pure-table>
         </template>
