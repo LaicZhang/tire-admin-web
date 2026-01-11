@@ -101,7 +101,7 @@ onMounted(() => {
           type="date"
           placeholder="开始日期"
           value-format="YYYY-MM-DD"
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
         <span class="mx-2">-</span>
         <el-date-picker
@@ -109,7 +109,7 @@ onMounted(() => {
           type="date"
           placeholder="结束日期"
           value-format="YYYY-MM-DD"
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
       </el-form-item>
       <el-form-item>
