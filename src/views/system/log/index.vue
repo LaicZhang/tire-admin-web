@@ -211,7 +211,7 @@ onMounted(() => {
           v-model="form.module"
           placeholder="请输入模块"
           clearable
-          class="!w-[180px]"
+          class="w-[180px]!"
         />
       </el-form-item>
       <el-form-item label="操作人" prop="operator">
@@ -219,15 +219,15 @@ onMounted(() => {
           v-model="form.operator"
           placeholder="请输入操作人"
           clearable
-          class="!w-[180px]"
-        />
+          class="w-[180px]!"
+        />s
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select
           v-model="form.status"
           placeholder="请选择状态"
           clearable
-          class="!w-[120px]"
+          class="w-[120px]!"
         >
           <el-option label="成功" :value="true" />
           <el-option label="失败" :value="false" />

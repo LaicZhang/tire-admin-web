@@ -139,7 +139,7 @@ onMounted(() => {
           v-model="form.name"
           placeholder="请输入公司名称"
           clearable
-          class="!w-[200px]"
+          class="w-[200px]!"
         />
       </el-form-item>
     </ReSearchForm>

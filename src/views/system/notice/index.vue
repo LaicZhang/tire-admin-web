@@ -281,7 +281,7 @@ onMounted(() => {
           v-model="form.title"
           placeholder="请输入公告标题"
           clearable
-          class="!w-[200px]"
+          class="w-[200px]!"
         />
       </el-form-item>
       <el-form-item label="类型" prop="type">
@@ -289,7 +289,7 @@ onMounted(() => {
           v-model="form.type"
           placeholder="请选择类型"
           clearable
-          class="!w-[120px]"
+          class="w-[120px]!"
         >
           <el-option label="通知" :value="1" />
           <el-option label="公告" :value="2" />

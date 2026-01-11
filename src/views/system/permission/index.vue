@@ -21,9 +21,9 @@ import "plus-pro-components/es/components/search/style/css";
 // Icons
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
-import Delete from "~icons/ep/delete";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 
 defineOptions({
   name: "PermissionManagement"
@@ -195,19 +195,11 @@ onMounted(() => {
               >
                 修改
               </el-button>
-              <el-popconfirm title="确认删除?" @confirm="handleDelete(row)">
-                <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="danger"
-                    :size="size"
-                    :icon="useRenderIcon(Delete)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              <DeleteButton
+                :size="size"
+                :show-icon="false"
+                @confirm="handleDelete(row)"
+              />
             </template>
           </pure-table>
         </template>

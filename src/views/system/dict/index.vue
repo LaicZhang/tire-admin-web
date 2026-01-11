@@ -4,8 +4,8 @@ import type { DictItem } from "@/api/system/dict";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
-import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import {
   getDictListApi,
@@ -207,7 +207,7 @@ onMounted(() => {
           v-model="form.name"
           placeholder="请输入字典类型名称"
           clearable
-          class="!w-[200px]"
+          class="w-[200px]!"
         />
       </el-form-item>
     </ReSearchForm>
@@ -252,18 +252,7 @@ onMounted(() => {
             >
               修改
             </el-button>
-            <el-popconfirm title="确认删除?" @confirm="handleDelete(row)">
-              <template #reference>
-                <el-button
-                  class="reset-margin"
-                  link
-                  type="danger"
-                  :icon="useRenderIcon(Delete)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+            <DeleteButton :show-icon="false" @confirm="handleDelete(row)" />
           </template>
         </pure-table>
       </template>

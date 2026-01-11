@@ -3,8 +3,8 @@ import { onMounted, ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
-import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { useColumns } from "./columns";
@@ -196,19 +196,11 @@ onMounted(() => {
               >
                 修改
               </el-button>
-              <el-popconfirm title="确认删除?" @confirm="deleteOne(row)">
-                <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="danger"
-                    :size="size"
-                    :icon="useRenderIcon(Delete)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              <DeleteButton
+                :size="size"
+                :show-icon="false"
+                @confirm="deleteOne(row)"
+              />
             </template>
           </pure-table>
         </template>

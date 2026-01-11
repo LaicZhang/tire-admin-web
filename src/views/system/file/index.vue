@@ -213,7 +213,7 @@ onMounted(() => {
           v-model="form.fileName"
           placeholder="请输入文件名称"
           clearable
-          class="!w-[200px]"
+          class="w-[200px]!"
         />
       </el-form-item>
       <el-form-item label="文件类型" prop="fileType">
