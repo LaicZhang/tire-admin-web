@@ -18,8 +18,8 @@ src/views/analysis/purchase/index.vue,Number(val) / 100,MoneyDisplay,金额格�
 src/views/analysis/profit/index.vue,Number(val) / 100,MoneyDisplay,金额格式化可复用 MoneyDisplay 组件,高,跳过-图表上下文
 src/views/business/audit/index.vue,h(ElTag) + statusMap,StatusTag,状态标签可复用 StatusTag 组件,中,已完成
 src/views/fund/otherIncome/index.vue,el-tag type=success/warning,StatusTag,状态标签可复用 StatusTag 组件,中,已完成
-src/views/fund/writeOff/index.vue,el-tag :type=row.isApproved,StatusTag,状态标签可复用 StatusTag 组件,中,待处理
-src/views/business/finance/writeOff/index.vue,el-tag :type=row.isApproved,StatusTag,状态标签可复用 StatusTag 组件,中,待处理
+src/views/fund/writeOff/index.vue,el-tag :type=row.isApproved,StatusTag,状态标签可复用 StatusTag 组件,中,已完成
+src/views/business/finance/writeOff/index.vue,el-tag :type=row.isApproved,StatusTag,状态标签可复用 StatusTag 组件,中,已完成
 src/views/business/finance/income/index.vue,el-tag type=success,StatusTag,状态标签可复用 StatusTag 组件,低,跳过
 src/views/settings/codeRule/index.vue,el-tag type={row.isActive},StatusTag,状态标签可复用 StatusTag 组件,中,已完成
 src/views/settings/advancedPrint/index.vue,el-tag type={row.isDefault},StatusTag,状态标签可复用 StatusTag 组件,中,已完成

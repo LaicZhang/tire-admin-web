@@ -4,6 +4,8 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
+import StatusTag from "@/components/StatusTag/index.vue";
+import { APPROVAL_STATUS_MAP } from "@/components/StatusTag/types";
 import {
   getWriteOffList,
   createWriteOff,
@@ -329,9 +331,10 @@ onSearch();
           "
         >
           <template #status="{ row }">
-            <el-tag :type="row.isApproved ? 'success' : 'warning'">
-              {{ row.isApproved ? "已审核" : "待审核" }}
-            </el-tag>
+            <StatusTag
+              :status="row.isApproved"
+              :status-map="APPROVAL_STATUS_MAP"
+            />
           </template>
           <template #operation="{ row, size }">
             <el-button
