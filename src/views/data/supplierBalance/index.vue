@@ -7,6 +7,7 @@ import EditPen from "~icons/ep/edit-pen";
 import Delete from "~icons/ep/delete";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
@@ -462,14 +463,11 @@ onMounted(() => {
               <el-button link type="primary" @click="openDialog('编辑', row)">
                 编辑
               </el-button>
-              <el-popconfirm
+              <DeleteButton
+                :show-icon="false"
                 :title="`确认删除${row.supplierName}的期初余额?`"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button link type="danger">删除</el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>

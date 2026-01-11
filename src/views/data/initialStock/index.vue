@@ -6,6 +6,7 @@ import EditPen from "~icons/ep/edit-pen";
 import Delete from "~icons/ep/delete";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -345,14 +346,11 @@ onMounted(() => {
               <el-button link type="primary" @click="openDialog('编辑', row)">
                 编辑
               </el-button>
-              <el-popconfirm
+              <DeleteButton
+                :show-icon="false"
                 :title="`确认删除${row.tireName}在${row.repoName}的期初库存?`"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button link type="danger">删除</el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>

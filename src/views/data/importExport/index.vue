@@ -7,6 +7,7 @@ import DownloadIcon from "~icons/ri/download-cloud-2-line";
 import DeleteIcon from "~icons/ep/delete";
 import { message } from "@/utils";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import {
   createUploadValidator,
   FileTypePresets
@@ -481,14 +482,11 @@ onMounted(() => {
                   >
                     下载
                   </el-button>
-                  <el-popconfirm
+                  <DeleteButton
+                    :show-icon="false"
                     :title="`确认删除任务${row.id}?`"
                     @confirm="handleDelete(row)"
-                  >
-                    <template #reference>
-                      <el-button link type="danger">删除</el-button>
-                    </template>
-                  </el-popconfirm>
+                  />
                 </template>
               </pure-table>
             </template>

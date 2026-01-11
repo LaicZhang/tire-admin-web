@@ -3,11 +3,11 @@ import { ref, reactive, onMounted, h } from "vue";
 import type { TreeCategoryItem } from "./types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
-import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import Plus from "~icons/ep/plus";
 import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import {
   getSupplierCategoryTreeApi,
@@ -271,21 +271,11 @@ onMounted(() => {
               >
                 修改
               </el-button>
-              <el-popconfirm
+              <DeleteButton
                 title="确认删除该类别?"
+                :show-icon="false"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="danger"
-                    :icon="useRenderIcon(Delete)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>

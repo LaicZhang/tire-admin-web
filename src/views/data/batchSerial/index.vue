@@ -6,6 +6,7 @@ import AddFill from "~icons/ri/add-circle-line";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
@@ -466,14 +467,11 @@ onMounted(() => {
                   >
                     编辑
                   </el-button>
-                  <el-popconfirm
+                  <DeleteButton
+                    :show-icon="false"
                     :title="`确认删除批次${row.batchNo}?`"
                     @confirm="handleDeleteBatch(row)"
-                  >
-                    <template #reference>
-                      <el-button link type="danger">删除</el-button>
-                    </template>
-                  </el-popconfirm>
+                  />
                 </template>
               </pure-table>
             </template>

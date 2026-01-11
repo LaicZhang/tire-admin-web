@@ -6,6 +6,7 @@ import EditPen from "~icons/ep/edit-pen";
 import ClearIcon from "~icons/ep/delete";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import { message } from "@/utils";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
@@ -337,14 +338,12 @@ onMounted(() => {
               <el-button link type="primary" @click="openDialog(row)">
                 编辑
               </el-button>
-              <el-popconfirm
+              <DeleteButton
+                :show-icon="false"
                 :title="`确认清空${row.tireName}的价格?`"
+                text="清空"
                 @confirm="handleClear(row)"
-              >
-                <template #reference>
-                  <el-button link type="danger">清空</el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>

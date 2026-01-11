@@ -4,7 +4,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
-import Delete from "~icons/ep/delete";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
@@ -288,16 +288,11 @@ onMounted(() => {
               >
                 编辑
               </el-button>
-              <el-popconfirm
+              <DeleteButton
+                :show-icon="false"
                 :title="`确认删除${row.customerCode}?`"
                 @confirm="handleDelete(row)"
-              >
-                <template #reference>
-                  <el-button class="reset-margin" link type="danger">
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+              />
             </template>
           </pure-table>
         </template>
