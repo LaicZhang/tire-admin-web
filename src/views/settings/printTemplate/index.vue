@@ -193,7 +193,7 @@ onMounted(() => {
   <div class="main">
     <div class="flex flex-col md:flex-row gap-4">
       <!-- 左侧单据类型列表 -->
-      <div class="w-full md:w-48 bg-white p-4 rounded-md flex-shrink-0">
+      <div class="w-full md:w-48 bg-white p-4 rounded-md shrink-0">
         <div class="text-sm font-medium text-gray-600 mb-3">单据类型</div>
         <el-menu :default-active="activeDocType" @select="filterByDocType">
           <el-menu-item

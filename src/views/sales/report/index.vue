@@ -34,7 +34,21 @@ const searchForm = ref<ReportQueryParams>({
 
 const dateRange = ref<[string, string] | null>(null);
 
-const customerList = ref<unknown[]>([]);
+interface SelectItem {
+  uid: string;
+  name: string;
+}
+
+interface OrderItem {
+  total?: number;
+  paidAmount?: number;
+  count?: number;
+  customer?: { name?: string };
+  customerId?: string;
+  createdAt?: string;
+}
+
+const customerList = ref<SelectItem[]>([]);
 
 const statistics = ref<SalesStatistics>({
   totalOrders: 0,
@@ -57,7 +71,7 @@ const groupByOptions = [
 
 async function loadSelectData() {
   const customers = await localForage().getItem(ALL_LIST.customer);
-  customerList.value = (customers as unknown[]) || [];
+  customerList.value = (customers as SelectItem[]) || [];
 }
 
 async function loadReportData() {
@@ -83,7 +97,7 @@ async function loadReportData() {
       const customerMap = new Map<string, CustomerRanking>();
       const dateMap = new Map<string, TrendData>();
 
-      orders.forEach((order: unknown) => {
+      (orders as OrderItem[]).forEach((order: OrderItem) => {
         totalAmount += order.total || 0;
         totalReceived += order.paidAmount || 0;
         totalQuantity += order.count || 0;

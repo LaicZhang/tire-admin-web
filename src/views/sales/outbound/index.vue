@@ -46,9 +46,14 @@ const pagination = ref({
   background: true
 });
 
-const employeeList = ref<unknown[]>([]);
-const managerList = ref<unknown[]>([]);
-const customerList = ref<unknown[]>([]);
+interface SelectItem {
+  uid: string;
+  name: string;
+}
+
+const employeeList = ref<SelectItem[]>([]);
+const managerList = ref<SelectItem[]>([]);
+const customerList = ref<SelectItem[]>([]);
 
 async function loadSelectData() {
   const [employees, managers, customers] = await Promise.all([
@@ -56,9 +61,9 @@ async function loadSelectData() {
     localForage().getItem(ALL_LIST.manager),
     localForage().getItem(ALL_LIST.customer)
   ]);
-  employeeList.value = (employees as unknown[]) || [];
-  managerList.value = (managers as unknown[]) || [];
-  customerList.value = (customers as unknown[]) || [];
+  employeeList.value = (employees as SelectItem[]) || [];
+  managerList.value = (managers as SelectItem[]) || [];
+  customerList.value = (customers as SelectItem[]) || [];
 }
 
 async function getList() {
@@ -69,8 +74,9 @@ async function getList() {
       searchForm.value
     );
     if (res.code === 200) {
-      dataList.value = res.data.list;
-      pagination.value.total = res.data.count;
+      const result = res.data as { list: OutboundOrder[]; count: number };
+      dataList.value = result.list;
+      pagination.value.total = result.count;
     } else {
       message(res.msg, { type: "error" });
     }

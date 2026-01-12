@@ -40,11 +40,10 @@ const loadSettings = async () => {
   try {
     const { code, data } = await getCompanyInfoApi();
     if (code === 200 && data) {
-      const info = data as CompanyInfo;
+      const info = data as Record<string, unknown>;
       Object.keys(formData.value).forEach(key => {
         if (key in info) {
-          (formData.value as Record<string, unknown>)[key] =
-            (info as Record<string, unknown>)[key] ?? "";
+          (formData.value as Record<string, unknown>)[key] = info[key] ?? "";
         }
       });
     }
@@ -106,7 +105,7 @@ onMounted(() => {
 
       <div class="flex gap-8">
         <!-- 左侧 Logo 上传 -->
-        <div class="flex-shrink-0">
+        <div class="shrink-0">
           <div class="text-sm text-gray-500 mb-2">公司 Logo</div>
           <el-upload
             class="logo-uploader"
