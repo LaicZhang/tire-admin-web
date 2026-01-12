@@ -80,7 +80,7 @@ function toNumber(value: unknown) {
   return 0;
 }
 
-function getGroupKey(date) {
+function getGroupKey(date: string) {
   const groupBy = searchForm.value.groupBy || "month";
   const d = dayjs(date);
   switch (groupBy) {
