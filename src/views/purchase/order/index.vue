@@ -85,8 +85,9 @@ async function getList() {
       searchForm.value
     );
     if (res.code === 200) {
-      dataList.value = res.data.list;
-      pagination.value.total = res.data.count;
+      const result = res.data as { list: PurchaseOrder[]; count: number };
+      dataList.value = result.list;
+      pagination.value.total = result.count;
     } else {
       message(res.msg, { type: "error" });
     }
