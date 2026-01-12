@@ -25,3 +25,20 @@ export interface TableOperationsEmits {
   (e: "audit", row: Record<string, unknown>): void;
   (e: "delete", row: Record<string, unknown>): void;
 }
+
+/** 自定义操作按钮配置 */
+export interface CustomAction {
+  /** 按钮文本 */
+  label: string;
+  /** 按钮类型 */
+  type?: "primary" | "success" | "warning" | "danger" | "info";
+  /** 是否显示（可以是布尔值或返回布尔值的函数） */
+  visible?: boolean | ((row: Record<string, unknown>) => boolean);
+  /** 点击事件处理 */
+  onClick: (row: Record<string, unknown>) => void;
+}
+
+export interface TableOperationsWithCustomizationProps extends TableOperationsProps {
+  /** 自定义操作按钮列表（在审核按钮之后、删除按钮之前渲染） */
+  customActions?: CustomAction[];
+}
