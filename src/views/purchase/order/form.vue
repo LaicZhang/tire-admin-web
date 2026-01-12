@@ -27,11 +27,17 @@ const formRules: FormRules = {
   auditorId: [{ required: true, message: "请选择审核人", trigger: "change" }]
 };
 
-const allProviderList = ref<unknown[]>([]);
-const allTireList = ref<unknown[]>([]);
-const allRepoList = ref<unknown[]>([]);
-const managerList = ref<unknown[]>([]);
-const allPaymentList = ref<unknown[]>([]);
+interface SelectItem {
+  uid: string;
+  name: string;
+  balance?: number;
+}
+
+const allProviderList = ref<SelectItem[]>([]);
+const allTireList = ref<SelectItem[]>([]);
+const allRepoList = ref<SelectItem[]>([]);
+const managerList = ref<SelectItem[]>([]);
+const allPaymentList = ref<SelectItem[]>([]);
 
 const isReadOnly = computed(() => ["查看", "审核"].includes(props.formTitle));
 
@@ -61,16 +67,17 @@ async function loadBaseData() {
       localForage().getItem(ALL_LIST.repo),
       localForage().getItem(ALL_LIST.manager)
     ]);
-    allProviderList.value = (providerData as unknown[]) || [];
-    allTireList.value = (tireData as unknown[]) || [];
-    allRepoList.value = (repoData as unknown[]) || [];
-    managerList.value = (managerData as unknown[]) || [];
+    allProviderList.value = (providerData as SelectItem[]) || [];
+    allTireList.value = (tireData as SelectItem[]) || [];
+    allRepoList.value = (repoData as SelectItem[]) || [];
+    managerList.value = (managerData as SelectItem[]) || [];
 
     const cid = await getCompanyId();
     const { data: paymentData } = await getPaymentListApi(cid);
-    allPaymentList.value = Array.isArray(paymentData)
-      ? paymentData
-      : paymentData?.list || [];
+    const paymentList = paymentData as SelectItem[] | { list?: SelectItem[] };
+    allPaymentList.value = Array.isArray(paymentList)
+      ? paymentList
+      : paymentList?.list || [];
   } catch {
     message("加载基础数据失败", { type: "error" });
   }
