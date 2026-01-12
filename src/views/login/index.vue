@@ -11,7 +11,7 @@ import { addPathMatch } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { ref, reactive, toRaw, onMounted, watch, computed } from "vue";
-import { useEventListener } from "@vueuse/core";
+import { useEventListener, useDebounceFn } from "@vueuse/core";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 import { baseUrlApi } from "@/api/utils";
 
@@ -63,14 +63,17 @@ const ruleForm = reactive({
   isRemember: checked.value
 });
 
-// 刷新后端验证码
-const refreshCaptcha = () => {
+// 刷新后端验证码（原始函数）
+const doRefreshCaptcha = () => {
   captchaTimestamp.value = Date.now();
   // 使用 URL 对象安全拼接验证码 URL
   const url = new URL(baseUrlApi("/verify/captcha"), window.location.origin);
   url.searchParams.set("t", captchaTimestamp.value.toString());
   captchaUrl.value = url.toString();
 };
+
+// 使用防抖避免频繁刷新（500ms 间隔）
+const refreshCaptcha = useDebounceFn(doRefreshCaptcha, 500);
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;

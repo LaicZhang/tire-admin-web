@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch, computed } from "vue";
-import type { FormRules } from "element-plus";
 import Add from "~icons/ep/plus";
 import Delete from "~icons/ep/delete";
 import {
@@ -101,6 +100,13 @@ const mainUnit = computed(() => {
   return unitList.value.find(u => u.uid === newFormInline.value.unitId);
 });
 
+// 缓存图片预览列表，避免每次渲染重新计算
+const coverPreviewList = computed(() => {
+  return newFormInline.value.covers.map(
+    item => BaseImagePath + item.hash + "." + item.ext
+  );
+});
+
 function getRef() {
   return ruleFormRef.value;
 }
@@ -122,7 +128,10 @@ async function handleSuccess(
   _row?: unknown
 ) {
   const { code, msg, data } = response;
-  if (code !== 200) message(msg, { type: "error" });
+  if (code !== 200) {
+    message(msg || "上传失败", { type: "error" });
+    return;
+  }
   const params = { id: data.id };
   await setUploadedImages(params);
 }
@@ -255,15 +264,11 @@ watch(
     <el-form-item label="实物图" prop="covers">
       <div v-if="newFormInline.covers.length !== 0">
         <el-image
-          v-for="item in newFormInline.covers"
+          v-for="(item, index) in newFormInline.covers"
           :key="item.id"
-          :src="BaseImagePath + item.hash + '.' + item.ext"
+          :src="coverPreviewList[index]"
           loading="lazy"
-          :preview-src-list="
-            newFormInline.covers.map(item => {
-              return BaseImagePath + item.hash + '.' + item.ext;
-            })
-          "
+          :preview-src-list="coverPreviewList"
         />
       </div>
       <div v-else>

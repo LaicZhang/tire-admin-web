@@ -2,8 +2,6 @@
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
-import { getProviderListApi } from "@/api/business/provider";
-import { getPaymentListApi } from "@/api/payment";
 import {
   PAYMENT_METHOD_OPTIONS,
   type PaymentOrder,
@@ -12,6 +10,8 @@ import {
   type PaymentDetailItem
 } from "./types";
 import dayjs from "dayjs";
+import { yuanToFen, fenToYuan } from "@/utils/money";
+import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -34,10 +34,10 @@ const dialogTitle = computed(() =>
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
-const providerList = ref<Array<{ uid: string; name: string }>>([]);
-const paymentList = ref<Array<{ uid: string; name: string; balance?: number }>>(
-  []
-);
+
+// 使用 fund 模块通用 composable
+const { providerList, paymentList, loadProviders, loadPayments } =
+  useFundForm();
 
 const formData = reactive<
   CreatePaymentOrderDto & { details: PaymentDetailItem[] }
@@ -75,35 +75,15 @@ const totalWriteOffAmount = computed(() => {
 
 // 计算预付金额（付款金额 - 核销金额）
 const advanceAmount = computed(() => {
-  const amount = Math.round(formData.amount * 100);
+  const amount = yuanToFen(formData.amount);
   return Math.max(0, amount - totalWriteOffAmount.value);
 });
 
 // 选中账户的余额
 const selectedPaymentBalance = computed(() => {
   const selected = paymentList.value.find(p => p.uid === formData.paymentId);
-  return selected?.balance !== undefined ? selected.balance / 100 : null;
+  return selected?.balance !== undefined ? fenToYuan(selected.balance) : null;
 });
-
-async function loadProviders() {
-  try {
-    const res = await getProviderListApi(1, { keyword: "" });
-    providerList.value = res.data?.list || [];
-  } catch (e) {
-    console.error("加载供应商列表失败", e);
-  }
-}
-
-async function loadPayments() {
-  try {
-    const res = await getPaymentListApi();
-    paymentList.value =
-      (res.data as Array<{ uid: string; name: string; balance?: number }>) ||
-      [];
-  } catch (e) {
-    console.error("加载账户列表失败", e);
-  }
-}
 
 function resetForm() {
   Object.assign(formData, {
@@ -165,7 +145,6 @@ async function handleSubmit() {
         writeOffAmount: Math.round((d.writeOffAmount || 0) * 100)
       }))
     };
-    console.log("提交数据:", submitData);
 
     ElMessage.success(props.editData ? "更新成功" : "创建成功");
     dialogVisible.value = false;

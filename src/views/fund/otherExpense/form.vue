@@ -2,8 +2,6 @@
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
-import { getProviderListApi } from "@/api/business/provider";
-import { getPaymentListApi } from "@/api/payment";
 import {
   EXPENSE_TYPE_OPTIONS,
   type OtherExpense,
@@ -11,6 +9,8 @@ import {
   type ExpenseType
 } from "./types";
 import dayjs from "dayjs";
+import { yuanToFen, fenToYuan } from "@/utils/money";
+import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -33,10 +33,10 @@ const dialogTitle = computed(() =>
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
-const providerList = ref<Array<{ uid: string; name: string }>>([]);
-const paymentList = ref<Array<{ uid: string; name: string; balance?: number }>>(
-  []
-);
+
+// 使用 fund 模块通用 composable
+const { providerList, paymentList, loadProviders, loadPayments } =
+  useFundForm();
 
 const formData = reactive<CreateOtherExpenseDto>({
   providerId: "",
@@ -70,26 +70,6 @@ const selectedPaymentBalance = computed(() => {
   const selected = paymentList.value.find(p => p.uid === formData.paymentId);
   return selected?.balance !== undefined ? selected.balance / 100 : null;
 });
-
-async function loadProviders() {
-  try {
-    const res = await getProviderListApi(1, { keyword: "" });
-    providerList.value = res.data?.list || [];
-  } catch (e) {
-    console.error("加载供应商列表失败", e);
-  }
-}
-
-async function loadPayments() {
-  try {
-    const res = await getPaymentListApi();
-    paymentList.value =
-      (res.data as Array<{ uid: string; name: string; balance?: number }>) ||
-      [];
-  } catch (e) {
-    console.error("加载账户列表失败", e);
-  }
-}
 
 function resetForm() {
   Object.assign(formData, {
@@ -167,8 +147,6 @@ async function handleSubmit() {
         ? Math.round(formData.paidAmount * 100)
         : undefined
     };
-    console.log("提交数据:", submitData);
-
     ElMessage.success(props.editData ? "更新成功" : "创建成功");
     dialogVisible.value = false;
     emit("success");

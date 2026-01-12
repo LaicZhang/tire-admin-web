@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import type { FormInstance } from "element-plus";
@@ -17,7 +18,8 @@ const props = withDefaults(defineProps<SearchFormProps>(), {
   loading: false,
   form: () => ({}),
   rules: () => ({}),
-  bodyStyle: () => ({ paddingBottom: "0" })
+  bodyStyle: () => ({ paddingBottom: "0" }),
+  debounceMs: 0
 });
 
 const emit = defineEmits<SearchFormEmits>();
@@ -26,8 +28,21 @@ defineExpose({
   resetFields: () => formRef.value?.resetFields()
 });
 
-const handleSearch = () => {
+// 原始搜索函数
+const doSearch = () => {
   emit("search");
+};
+
+// 根据 debounceMs 决定是否使用防抖
+const debouncedSearch = computed(() => {
+  if (props.debounceMs > 0) {
+    return useDebounceFn(doSearch, props.debounceMs);
+  }
+  return doSearch;
+});
+
+const handleSearch = () => {
+  debouncedSearch.value();
 };
 
 const handleReset = () => {

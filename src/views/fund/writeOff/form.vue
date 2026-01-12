@@ -2,8 +2,6 @@
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
-import { getCustomerListApi } from "@/api/business/customer";
-import { getProviderListApi } from "@/api/business/provider";
 import {
   BUSINESS_TYPE_OPTIONS,
   type WriteOffOrder,
@@ -11,6 +9,8 @@ import {
   type WriteOffBusinessType
 } from "./types";
 import dayjs from "dayjs";
+import { yuanToFen, fenToYuan } from "@/utils/money";
+import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -33,8 +33,10 @@ const dialogTitle = computed(() =>
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
-const customerList = ref<Array<{ uid: string; name: string }>>([]);
-const providerList = ref<Array<{ uid: string; name: string }>>([]);
+
+// 使用 fund 模块通用 composable
+const { customerList, providerList, loadCustomers, loadProviders } =
+  useFundForm();
 
 const formData = reactive<CreateWriteOffDto>({
   businessType: "ADVANCE_RECEIVABLE",
@@ -99,24 +101,6 @@ const showPayableAmount = computed(() => {
     formData.businessType
   );
 });
-
-async function loadCustomers() {
-  try {
-    const res = await getCustomerListApi(1, { keyword: "" });
-    customerList.value = res.data?.list || [];
-  } catch (e) {
-    console.error("加载客户列表失败", e);
-  }
-}
-
-async function loadProviders() {
-  try {
-    const res = await getProviderListApi(1, { keyword: "" });
-    providerList.value = res.data?.list || [];
-  } catch (e) {
-    console.error("加载供应商列表失败", e);
-  }
-}
 
 function resetForm() {
   Object.assign(formData, {
@@ -193,8 +177,6 @@ async function handleSubmit() {
         : undefined,
       writeOffAmount: Math.round(formData.writeOffAmount * 100)
     };
-    console.log("提交数据:", submitData);
-
     ElMessage.success(props.editData ? "更新成功" : "创建成功");
     dialogVisible.value = false;
     emit("success");

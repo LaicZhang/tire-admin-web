@@ -2,9 +2,10 @@
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
-import { getPaymentListApi } from "@/api/payment";
 import { type Transfer, type CreateTransferDto } from "./types";
 import dayjs from "dayjs";
+import { yuanToFen, fenToYuan } from "@/utils/money";
+import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -27,9 +28,9 @@ const dialogTitle = computed(() =>
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
-const paymentList = ref<Array<{ uid: string; name: string; balance?: number }>>(
-  []
-);
+
+// 使用 fund 模块通用 composable
+const { paymentList, loadPayments } = useFundForm();
 
 const formData = reactive<CreateTransferDto>({
   fromPaymentId: "",
@@ -78,17 +79,6 @@ const selectedFromAccount = computed(() => {
 const showFeePayment = computed(() => {
   return formData.fee && formData.fee > 0;
 });
-
-async function loadPayments() {
-  try {
-    const res = await getPaymentListApi();
-    paymentList.value =
-      (res.data as Array<{ uid: string; name: string; balance?: number }>) ||
-      [];
-  } catch (e) {
-    console.error("加载账户列表失败", e);
-  }
-}
 
 function resetForm() {
   Object.assign(formData, {
@@ -153,8 +143,6 @@ async function handleSubmit() {
       amount: Math.round(formData.amount * 100),
       fee: formData.fee ? Math.round(formData.fee * 100) : undefined
     };
-    console.log("提交数据:", submitData);
-
     ElMessage.success(props.editData ? "更新成功" : "创建成功");
     dialogVisible.value = false;
     emit("success");

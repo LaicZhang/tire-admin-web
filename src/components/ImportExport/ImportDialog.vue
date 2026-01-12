@@ -185,11 +185,7 @@ function handleClose() {
   dialogVisible.value = false;
 }
 
-// Load template info when dialog opens
-
-function onOpen() {
-  loadTemplate();
-}
+// Template info loaded via @open="loadTemplate" on dialog
 </script>
 
 <template>

@@ -9,6 +9,8 @@ export interface SearchFormProps {
   shadow?: "always" | "hover" | "never";
   /** el-card body-style attribute */
   bodyStyle?: CSSProperties;
+  /** 搜索按钮防抖时间（毫秒），0 或不设置表示不防抖 */
+  debounceMs?: number;
 }
 
 export interface SearchFormEmits {
