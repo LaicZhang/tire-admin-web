@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { ref, h, onMounted, computed } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
-import type { Batch, SerialNumber, BatchForm, SerialNumberForm } from "./types";
-import type { FormInstance } from "element-plus";
+import type { BatchForm } from "./types";
+import {
+  getBatchListApi,
+  createBatchApi,
+  updateBatchApi,
+  deleteBatchApi,
+  type Batch
+} from "@/api/batch";
 import {
   getSerialNumberList,
-  createSerialNumber,
-  createSerialNumberBatch
+  type SerialNumber
 } from "@/api/business/serialNumber";
-import { getBatchListApi, createBatchApi } from "@/api/batch";
+import type { FormInstance, TabPaneName } from "element-plus";
 
 defineOptions({
   name: "BatchSerial"
@@ -25,7 +30,8 @@ defineOptions({
 
 const activeTab = ref("batch");
 const loading = ref(false);
-const formRef = ref();
+const batchSearchFormRef = ref<InstanceType<typeof ReSearchForm>>();
+const serialSearchFormRef = ref<InstanceType<typeof ReSearchForm>>();
 
 // 批次相关
 const batchList = ref<Batch[]>([]);
@@ -124,75 +130,18 @@ const expiryColumns: TableColumnList = [
   { label: "剩余天数", slot: "remainingDays" }
 ];
 
-// 模拟批次数据
-const mockBatchData: Batch[] = [
-  {
-    id: 1,
-    uid: "b1",
-    batchNo: "BATCH-2024-001",
-    tireId: "t1",
-    tireName: "轮胎A",
-    repoId: "r1",
-    repoName: "主仓库",
-    quantity: 100,
-    productionDate: "2024-01-01",
-    expiryDate: "2025-01-01",
-    createdAt: "2024-01-01 10:00:00"
-  },
-  {
-    id: 2,
-    uid: "b2",
-    batchNo: "BATCH-2024-002",
-    tireId: "t2",
-    tireName: "轮胎B",
-    repoId: "r1",
-    repoName: "主仓库",
-    quantity: 50,
-    productionDate: "2024-02-01",
-    expiryDate: "2025-02-01",
-    createdAt: "2024-02-01 10:00:00"
-  }
-];
-
-// 模拟序列号数据
-const mockSerialData: SerialNumber[] = [
-  {
-    id: 1,
-    uid: "s1",
-    serialNo: "SN-2024-00001",
-    tireId: "t1",
-    repoId: "r1",
-    status: "IN_STOCK",
-    batchNo: "BATCH-2024-001",
-    productionDate: "2024-01-01",
-    expiryDate: "2025-01-01",
-    createdAt: "2024-01-01 10:00:00",
-    tire: { name: "轮胎A" },
-    repo: { name: "主仓库" }
-  },
-  {
-    id: 2,
-    uid: "s2",
-    serialNo: "SN-2024-00002",
-    tireId: "t1",
-    repoId: "r1",
-    status: "SOLD",
-    batchNo: "BATCH-2024-001",
-    productionDate: "2024-01-01",
-    expiryDate: "2025-01-01",
-    createdAt: "2024-01-01 10:00:00",
-    tire: { name: "轮胎A" },
-    repo: { name: "主仓库" }
-  }
-];
-
 const getBatchList = async () => {
   loading.value = true;
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 300));
-    batchList.value = mockBatchData;
-    batchPagination.value.total = mockBatchData.length;
+    const { data, code } = await getBatchListApi({
+      tireId: batchForm.value.tireId,
+      repoId: batchForm.value.repoId,
+      batchNo: batchForm.value.batchNo
+    });
+    if (code === 0) {
+      batchList.value = data || [];
+      batchPagination.value.total = batchList.value.length;
+    }
   } finally {
     loading.value = false;
   }
@@ -201,29 +150,39 @@ const getBatchList = async () => {
 const getSerialList = async () => {
   loading.value = true;
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 300));
-    serialList.value = mockSerialData;
-    serialPagination.value.total = mockSerialData.length;
+    const { data, code } = await getSerialNumberList({
+      tireId: serialForm.value.tireId,
+      repoId: serialForm.value.repoId,
+      status: serialForm.value.status,
+      keyword: serialForm.value.keyword
+    });
+    if (code === 0) {
+      serialList.value = data?.list || [];
+      serialPagination.value.total = data?.count || 0;
+    }
   } finally {
     loading.value = false;
   }
 };
 
-const onSearch = () => {
-  if (activeTab.value === "batch") {
-    batchPagination.value.currentPage = 1;
-    getBatchList();
-  } else {
-    serialPagination.value.currentPage = 1;
-    getSerialList();
-  }
+const onBatchSearch = () => {
+  batchPagination.value.currentPage = 1;
+  getBatchList();
 };
 
-const resetForm = (formEl: unknown) => {
-  if (!formEl) return;
-  formEl.resetFields();
-  onSearch();
+const onSerialSearch = () => {
+  serialPagination.value.currentPage = 1;
+  getSerialList();
+};
+
+const onBatchReset = () => {
+  batchSearchFormRef.value?.resetFields();
+  onBatchSearch();
+};
+
+const onSerialReset = () => {
+  serialSearchFormRef.value?.resetFields();
+  onSerialSearch();
 };
 
 const handleBatchPageChange = (val: number) => {
@@ -268,9 +227,41 @@ const openBatchDialog = (title = "新增", row?: Batch) => {
       if (!FormRef) return;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
-          message(`${title}成功`, { type: "success" });
-          done();
-          getBatchList();
+          const formData = (options.props as { formInline: BatchForm })
+            .formInline;
+          try {
+            if (formData.id) {
+              // 编辑
+              const { data, code } = await updateBatchApi(formData.id, {
+                batchNo: formData.batchNo,
+                quantity: formData.quantity,
+                productionDate: formData.productionDate,
+                expiryDate: formData.expiryDate
+              });
+              if (code === 0) {
+                message(`${title}成功`, { type: "success" });
+                done();
+                getBatchList();
+              }
+            } else {
+              // 新增
+              const { data, code } = await createBatchApi({
+                repoId: formData.repoId,
+                tireId: formData.tireId,
+                batchNo: formData.batchNo,
+                quantity: formData.quantity,
+                productionDate: formData.productionDate,
+                expiryDate: formData.expiryDate
+              });
+              if (code === 0) {
+                message(`${title}成功`, { type: "success" });
+                done();
+                getBatchList();
+              }
+            }
+          } catch (error) {
+            message(`${title}失败`, { type: "error" });
+          }
         }
       });
     }
@@ -303,8 +294,15 @@ const openSerialDialog = () => {
 };
 
 const handleDeleteBatch = async (row: Batch) => {
-  message(`删除批次${row.batchNo}成功`, { type: "success" });
-  getBatchList();
+  try {
+    const { data, code } = await deleteBatchApi(row.id);
+    if (code === 0) {
+      message(`删除批次${row.batchNo}成功`, { type: "success" });
+      getBatchList();
+    }
+  } catch (error) {
+    message(`删除批次失败`, { type: "error" });
+  }
 };
 
 const handleViewSerial = (row: SerialNumber) => {
@@ -351,7 +349,7 @@ const expiringBatches = computed(() => {
   });
 });
 
-const handleTabChange = (tab: string) => {
+const handleTabChange = (tab: TabPaneName) => {
   if (tab === "batch") {
     getBatchList();
   } else {
@@ -387,11 +385,14 @@ onMounted(() => {
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <!-- 批次管理 -->
         <el-tab-pane label="批次管理" name="batch">
-          <el-form
-            ref="formRef"
-            :inline="true"
-            :model="batchForm"
-            class="search-form mb-4"
+          <ReSearchForm
+            ref="batchSearchFormRef"
+            shadow="never"
+            :form="batchForm"
+            :loading="loading"
+            :body-style="{ padding: '16px 16px 0' }"
+            @search="onBatchSearch"
+            @reset="onBatchReset"
           >
             <el-form-item label="商品：" prop="tireId">
               <el-input
@@ -409,23 +410,7 @@ onMounted(() => {
                 class="w-[160px]!"
               />
             </el-form-item>
-            <el-form-item>
-              <el-button
-                type="primary"
-                :icon="useRenderIcon('ri:search-line')"
-                :loading="loading"
-                @click="onSearch"
-              >
-                搜索
-              </el-button>
-              <el-button
-                :icon="useRenderIcon(Refresh)"
-                @click="resetForm(formRef)"
-              >
-                重置
-              </el-button>
-            </el-form-item>
-          </el-form>
+          </ReSearchForm>
 
           <PureTableBar title="批次列表" @refresh="getBatchList">
             <template #buttons>
@@ -480,7 +465,15 @@ onMounted(() => {
 
         <!-- 序列号管理 -->
         <el-tab-pane label="序列号管理" name="serial">
-          <el-form :inline="true" :model="serialForm" class="search-form mb-4">
+          <ReSearchForm
+            ref="serialSearchFormRef"
+            shadow="never"
+            :form="serialForm"
+            :loading="loading"
+            :body-style="{ padding: '16px 16px 0' }"
+            @search="onSerialSearch"
+            @reset="onSerialReset"
+          >
             <el-form-item label="商品：" prop="tireId">
               <el-input
                 v-model="serialForm.tireId"
@@ -512,23 +505,7 @@ onMounted(() => {
                 class="w-[160px]!"
               />
             </el-form-item>
-            <el-form-item>
-              <el-button
-                type="primary"
-                :icon="useRenderIcon('ri:search-line')"
-                :loading="loading"
-                @click="onSearch"
-              >
-                搜索
-              </el-button>
-              <el-button
-                :icon="useRenderIcon(Refresh)"
-                @click="resetForm(formRef)"
-              >
-                重置
-              </el-button>
-            </el-form-item>
-          </el-form>
+          </ReSearchForm>
 
           <PureTableBar title="序列号列表" @refresh="getSerialList">
             <template #buttons>

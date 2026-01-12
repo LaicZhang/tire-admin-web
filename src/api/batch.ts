@@ -19,14 +19,52 @@ export async function createBatchApi(data: {
 }
 
 // 查询批次列表
-export async function getBatchListApi(params?: {
+export async function getBatchListApi<T = Batch[]>(params?: {
   repoId?: string;
   tireId?: string;
   batchNo?: string;
 }) {
-  return await http.request<CommonResult>("get", baseUrlApi(prefix), {
+  return await http.request<CommonResult<T>>("get", baseUrlApi(prefix), {
     params
   });
+}
+
+/** 批次信息 */
+export interface Batch {
+  id: number;
+  uid: string;
+  batchNo: string;
+  tireId: string;
+  tireName?: string;
+  repoId: string;
+  repoName?: string;
+  quantity: number;
+  productionDate?: string;
+  expiryDate?: string;
+  createdAt?: string;
+}
+
+// 更新批次
+export async function updateBatchApi(
+  id: number,
+  data: {
+    batchNo?: string;
+    quantity?: number;
+    productionDate?: string;
+    expiryDate?: string;
+  }
+) {
+  return await http.request<CommonResult>("put", baseUrlApi(prefix + `${id}`), {
+    data
+  });
+}
+
+// 删除批次
+export async function deleteBatchApi(id: number) {
+  return await http.request<CommonResult>(
+    "delete",
+    baseUrlApi(prefix + `${id}`)
+  );
 }
 
 // 记录批次出入库流水
