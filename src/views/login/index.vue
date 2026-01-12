@@ -10,10 +10,14 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { addPathMatch } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import { ref, reactive, toRaw, onMounted, watch, computed } from "vue";
-import { useEventListener, useDebounceFn } from "@vueuse/core";
+import { ref, toRaw, onMounted, computed } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
-import { baseUrlApi } from "@/api/utils";
+import {
+  useCaptcha,
+  useRememberLogin,
+  useLoginForm
+} from "./composables/useLoginForm";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
@@ -31,12 +35,18 @@ import { usePermissionStoreHook } from "@/store/modules/permission";
 defineOptions({
   name: "Login"
 });
+
 const router = useRouter();
-const loading = ref(false);
 const ruleFormRef = ref<FormInstance>();
-// 后端验证码 URL
-const captchaUrl = ref("");
-const captchaTimestamp = ref(Date.now());
+const showThirdPartyLogin = ref(false);
+
+// 使用 composables
+const { captchaUrl, refreshCaptcha } = useCaptcha();
+const { checked, loginDay } = useRememberLogin();
+const { loading, disabled, ruleForm } = useLoginForm();
+
+// 同步 isRemember 到 ruleForm
+ruleForm.isRemember = checked.value;
 
 const { initStorage } = useLayout();
 initStorage();
@@ -48,32 +58,6 @@ const { title } = useNav();
 const currentPage = computed(() => {
   return useUserStoreHook().currentPage;
 });
-
-const checked = ref(true);
-/** 登录天数选项类型 */
-type LoginDayOption = 1 | 7 | 30;
-const loginDay = ref<LoginDayOption>(7);
-const disabled = ref(false);
-const showThirdPartyLogin = ref(false);
-
-const ruleForm = reactive({
-  username: "",
-  password: "",
-  captchaCode: "",
-  isRemember: checked.value
-});
-
-// 刷新后端验证码（原始函数）
-const doRefreshCaptcha = () => {
-  captchaTimestamp.value = Date.now();
-  // 使用 URL 对象安全拼接验证码 URL
-  const url = new URL(baseUrlApi("/verify/captcha"), window.location.origin);
-  url.searchParams.set("t", captchaTimestamp.value.toString());
-  captchaUrl.value = url.toString();
-};
-
-// 使用防抖避免频繁刷新（500ms 间隔）
-const refreshCaptcha = useDebounceFn(doRefreshCaptcha, 500);
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
@@ -117,13 +101,6 @@ useEventListener(document, "keydown", onkeydown, { passive: true });
 onMounted(() => {
   // 初始化加载后端验证码
   refreshCaptcha();
-});
-
-watch(checked, bool => {
-  useUserStoreHook().setIsRemembered(bool);
-});
-watch(loginDay, value => {
-  useUserStoreHook().setLoginDay(value);
 });
 </script>
 
