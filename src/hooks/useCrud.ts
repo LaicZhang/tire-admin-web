@@ -144,10 +144,10 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
         total
       };
     } catch (error: unknown) {
-      if (error instanceof Error && error.name !== "AbortError") {
-        console.error("fetchData error:", error);
-        dataList.value = [];
-      } else if (!(error instanceof Error)) {
+      // 忽略请求被取消的情况
+      const isAbortError =
+        error instanceof Error && error.name === "AbortError";
+      if (!isAbortError) {
         console.error("fetchData error:", error);
         dataList.value = [];
       }

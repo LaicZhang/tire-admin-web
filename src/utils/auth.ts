@@ -52,6 +52,15 @@ export function getCsrfToken(): string | undefined {
   return Cookies.get(csrfCookieName);
 }
 
+/**
+ * 类型守卫：检查 token 是否有效（accessToken 非空）
+ */
+export function isValidToken(
+  token: DataInfo<number> | null
+): token is DataInfo<number> & { accessToken: string } {
+  return token !== null && !!token.accessToken;
+}
+
 /** 获取`token` */
 export function getToken(): DataInfo<number> | null {
   // HttpOnly Cookie 模式：token 由浏览器自动管理，无法读取
@@ -63,12 +72,12 @@ export function getToken(): DataInfo<number> | null {
       accessToken: "__httponly__", // 占位符，实际 token 在 HttpOnly cookie 中
       refreshToken: "__httponly__",
       expires: Date.now() + 86400000, // 假设 1 天后过期，实际由后端管理
-      username: localToken?.username,
-      avatar: localToken?.avatar,
-      nickname: localToken?.nickname,
-      permissions: localToken?.permissions,
-      roles: localToken?.roles,
-      uid: localToken?.uid
+      username: localToken.username ?? "",
+      avatar: localToken.avatar ?? "",
+      nickname: localToken.nickname ?? "",
+      permissions: localToken.permissions ?? [],
+      roles: localToken.roles ?? [],
+      uid: localToken.uid ?? ""
     };
   }
 
@@ -102,12 +111,12 @@ export function getToken(): DataInfo<number> | null {
       accessToken,
       expires,
       refreshToken,
-      username: localToken?.username,
-      avatar: localToken?.avatar,
-      nickname: localToken?.nickname,
-      permissions: localToken?.permissions,
-      roles: localToken?.roles,
-      uid: localToken?.uid
+      username: localToken?.username ?? "",
+      avatar: localToken?.avatar ?? "",
+      nickname: localToken?.nickname ?? "",
+      permissions: localToken?.permissions ?? [],
+      roles: localToken?.roles ?? [],
+      uid: localToken?.uid ?? ""
     };
   } catch (error) {
     console.error("Failed to parse token:", error);

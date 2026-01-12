@@ -33,8 +33,8 @@ const notifyFatalApiConfigOnce = () => {
   if (!fatalApiConfigError || fatalApiConfigNotified) return;
   fatalApiConfigNotified = true;
 
-  // 保留排障信息（不依赖用户打开控制台）
-  console.error(fatalApiConfigError);
+  // 保留排障信息（仅开发环境输出到控制台）
+  if (import.meta.env.DEV) console.error(fatalApiConfigError);
   void ElMessageBox.alert(fatalApiConfigError, "配置错误", {
     type: "error",
     closeOnClickModal: false,
@@ -344,10 +344,12 @@ class PureHttp {
           if (config.__retryCount < 3) {
             config.__retryCount++;
             const delay = getRetryDelay(config.__retryCount);
-            console.warn(
-              `[HTTP] 请求失败，${delay}ms 后进行第 ${config.__retryCount} 次重试:`,
-              config.url
-            );
+            if (import.meta.env.DEV) {
+              console.warn(
+                `[HTTP] 请求失败，${delay}ms 后进行第 ${config.__retryCount} 次重试:`,
+                config.url
+              );
+            }
             await new Promise(resolve => setTimeout(resolve, delay));
             return instance.request(config);
           }
