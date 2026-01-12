@@ -4,7 +4,8 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
-import DeleteButton from "@/components/DeleteButton/index.vue";
+import TableOperationsWithCustomization from "@/components/TableOperations/TableOperationsWithCustomization.vue";
+import type { CustomAction } from "@/components/TableOperations/types";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
@@ -383,48 +384,32 @@ onMounted(async () => {
             @page-current-change="handlePageChange"
           >
             <template #operation="{ row }">
-              <el-button link type="primary" @click="openDialog('查看', row)">
-                查看
-              </el-button>
-              <el-button
-                v-if="!row.isLocked"
-                link
-                type="primary"
-                @click="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
-              <el-button
-                v-if="!row.isApproved"
-                link
-                type="primary"
-                @click="openDialog('审核', row)"
-              >
-                审核
-              </el-button>
-              <el-button
-                v-if="
-                  row.isApproved && (row.paidAmount || 0) < (row.total || 0)
+              <TableOperationsWithCustomization
+                :row="row"
+                show-audit
+                :delete-title="`确认删除编号 ${row.number} 的订单?`"
+                :custom-actions="
+                  [
+                    {
+                      label: '付款',
+                      type: 'primary',
+                      visible:
+                        row.isApproved &&
+                        (row.paidAmount || 0) < (row.total || 0),
+                      onClick: () => openDialog('付款', row)
+                    },
+                    {
+                      label: '确认到货',
+                      type: 'success',
+                      visible: row.isApproved && row.logisticsStatus < 2,
+                      onClick: () => handleConfirmArrival(row)
+                    }
+                  ] as CustomAction[]
                 "
-                link
-                type="primary"
-                @click="openDialog('付款', row)"
-              >
-                付款
-              </el-button>
-              <el-button
-                v-if="row.isApproved && row.logisticsStatus < 2"
-                link
-                type="success"
-                @click="handleConfirmArrival(row)"
-              >
-                确认到货
-              </el-button>
-              <DeleteButton
-                v-if="!row.isLocked"
-                :show-icon="false"
-                :title="`确认删除编号 ${row.number} 的订单?`"
-                @confirm="handleDelete(row)"
+                @view="openDialog('查看', $event)"
+                @edit="openDialog('修改', $event)"
+                @audit="openDialog('审核', $event)"
+                @delete="handleDelete"
               />
             </template>
           </pure-table>

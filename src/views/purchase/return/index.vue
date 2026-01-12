@@ -4,7 +4,8 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
-import DeleteButton from "@/components/DeleteButton/index.vue";
+import TableOperationsWithCustomization from "@/components/TableOperations/TableOperationsWithCustomization.vue";
+import type { CustomAction } from "@/components/TableOperations/types";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
@@ -358,46 +359,30 @@ onMounted(async () => {
             @page-current-change="handlePageChange"
           >
             <template #operation="{ row }">
-              <el-button link type="primary" @click="openDialog('查看', row)">
-                查看
-              </el-button>
-              <el-button
-                v-if="!row.isLocked"
-                link
-                type="primary"
-                @click="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
-              <el-button
-                v-if="!row.isApproved"
-                link
-                type="primary"
-                @click="openDialog('审核', row)"
-              >
-                审核
-              </el-button>
-              <el-button
-                v-if="row.isApproved && row.logisticsStatus === 0"
-                link
-                type="success"
-                @click="handleConfirmShipment(row)"
-              >
-                确认发货
-              </el-button>
-              <el-button
-                v-if="row.isApproved"
-                link
-                type="warning"
-                @click="openDialog('退款', row)"
-              >
-                退款
-              </el-button>
-              <DeleteButton
-                v-if="!row.isLocked"
-                :show-icon="false"
-                :title="`确认删除编号 ${row.number} 的退货单?`"
-                @confirm="handleDelete(row)"
+              <TableOperationsWithCustomization
+                :row="row"
+                show-audit
+                :delete-title="`确认删除编号 ${row.number} 的退货单?`"
+                :custom-actions="
+                  [
+                    {
+                      label: '确认发货',
+                      type: 'success',
+                      visible: row.isApproved && row.logisticsStatus === 0,
+                      onClick: () => handleConfirmShipment(row)
+                    },
+                    {
+                      label: '退款',
+                      type: 'warning',
+                      visible: row.isApproved,
+                      onClick: () => openDialog('退款', row)
+                    }
+                  ] as CustomAction[]
+                "
+                @view="openDialog('查看', $event)"
+                @edit="openDialog('修改', $event)"
+                @audit="openDialog('审核', $event)"
+                @delete="handleDelete"
               />
             </template>
           </pure-table>

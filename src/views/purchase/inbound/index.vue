@@ -4,7 +4,8 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
-import DeleteButton from "@/components/DeleteButton/index.vue";
+import TableOperationsWithCustomization from "@/components/TableOperations/TableOperationsWithCustomization.vue";
+import type { CustomAction } from "@/components/TableOperations/types";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
@@ -32,6 +33,7 @@ const route = useRoute();
 const dataList = ref<InboundOrder[]>([]);
 const loading = ref(false);
 const formRef = ref<{ getRef: () => FormInstance } | null>(null);
+const searchFormRef = ref<FormInstance>();
 
 const searchForm = ref<InboundOrderQueryParams>({
   operatorId: undefined,
@@ -91,9 +93,8 @@ function onSearch() {
   getList();
 }
 
-function onReset(formEl: FormInstance | undefined) {
-  if (!formEl) return;
-  formEl.resetFields();
+function onReset() {
+  searchFormRef.value?.resetFields();
   onSearch();
 }
 
@@ -242,7 +243,7 @@ onMounted(async () => {
 <template>
   <div class="main">
     <el-card class="m-1">
-      <el-form :inline="true" class="search-form">
+      <el-form ref="searchFormRef" :inline="true" class="search-form">
         <el-form-item label="供应商">
           <el-select
             v-model="searchForm.providerId"
@@ -338,38 +339,24 @@ onMounted(async () => {
             @page-current-change="handlePageChange"
           >
             <template #operation="{ row }">
-              <el-button link type="primary" @click="openDialog('查看', row)">
-                查看
-              </el-button>
-              <el-button
-                v-if="!row.isLocked"
-                link
-                type="primary"
-                @click="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
-              <el-button
-                v-if="!row.isApproved"
-                link
-                type="primary"
-                @click="openDialog('审核', row)"
-              >
-                审核
-              </el-button>
-              <el-button
-                v-if="row.isApproved"
-                link
-                type="warning"
-                @click="handleGenerateReturnOrder(row)"
-              >
-                生成退货单
-              </el-button>
-              <DeleteButton
-                v-if="!row.isLocked"
-                :show-icon="false"
-                :title="`确认删除编号 ${row.number} 的入库单?`"
-                @confirm="handleDelete(row)"
+              <TableOperationsWithCustomization
+                :row="row"
+                show-audit
+                :delete-title="`确认删除编号 ${row.number} 的入库单?`"
+                :custom-actions="
+                  [
+                    {
+                      label: '生成退货单',
+                      type: 'warning',
+                      visible: row.isApproved,
+                      onClick: () => handleGenerateReturnOrder(row)
+                    }
+                  ] as CustomAction[]
+                "
+                @view="openDialog('查看', $event)"
+                @edit="openDialog('修改', $event)"
+                @audit="openDialog('审核', $event)"
+                @delete="handleDelete"
               />
             </template>
           </pure-table>
