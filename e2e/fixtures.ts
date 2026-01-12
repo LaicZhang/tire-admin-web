@@ -137,7 +137,165 @@ export async function resetSearch(page: TestPage) {
  */
 export async function confirmDelete(page: TestPage) {
   await expect(page.locator(".el-message-box")).toBeVisible();
-  await page.getByRole("button", { name: /确定删除/ }).click();
+  await page.getByRole("button", { name: /确定|确认/ }).click();
+}
+
+/**
+ * 保存单据
+ */
+export async function saveDocument(page: TestPage) {
+  await page.getByRole("button", { name: /保存/ }).click();
+  await page.waitForTimeout(500);
+}
+
+/**
+ * 删除单据
+ */
+export async function deleteDocument(page: TestPage) {
+  await page.getByRole("button", { name: /删除/ }).click();
+  await confirmDelete(page);
+}
+
+/**
+ * 复制单据
+ */
+export async function copyDocument(page: TestPage) {
+  await page.getByRole("button", { name: /复制/ }).click();
+  await page.waitForTimeout(500);
+}
+
+/**
+ * 审核单据
+ */
+export async function approveDocument(page: TestPage) {
+  const approveBtn = page.getByRole("button", { name: /审核/ });
+  if (await approveBtn.isVisible()) {
+    await approveBtn.click();
+    await page.waitForTimeout(500);
+  }
+}
+
+/**
+ * 反审核单据
+ */
+export async function unapproveDocument(page: TestPage) {
+  const unapproveBtn = page.getByRole("button", { name: /反审核/ });
+  if (await unapproveBtn.isVisible()) {
+    await unapproveBtn.click();
+    await page.waitForTimeout(500);
+  }
+}
+
+/**
+ * 打印预览
+ */
+export async function openPrintPreview(page: TestPage) {
+  const printBtn = page.getByRole("button", { name: /预览打印|打印/ });
+  if (await printBtn.isVisible()) {
+    await printBtn.click();
+    await page.waitForTimeout(1000);
+  }
+}
+
+/**
+ * 选择源单据
+ */
+export async function selectSourceDocument(page: TestPage) {
+  const sourceBtn = page.getByRole("button", { name: /选择源单/ });
+  if (await sourceBtn.isVisible()) {
+    await sourceBtn.click();
+    await waitForDialog(page);
+  }
+}
+
+/**
+ * 选择BOM表
+ */
+export async function selectBOM(page: TestPage) {
+  const bomBtn = page.getByRole("button", { name: /选择BOM|从BOM表选择/ });
+  if (await bomBtn.isVisible()) {
+    await bomBtn.click();
+    await waitForDialog(page);
+  }
+}
+
+/**
+ * 生成关联单据
+ */
+export async function generateRelatedDocument(page: TestPage, docType: string) {
+  const genBtn = page.getByRole("button", {
+    name: new RegExp(`生成${docType}`)
+  });
+  if (await genBtn.isVisible()) {
+    await genBtn.click();
+    await page.waitForTimeout(1000);
+  }
+}
+
+/**
+ * 填写表单字段
+ */
+export async function fillFormField(
+  page: TestPage,
+  label: string,
+  value: string
+) {
+  const field = page.getByLabel(label);
+  if (await field.isVisible()) {
+    await field.fill(value);
+  }
+}
+
+/**
+ * 选择下拉框选项
+ */
+export async function selectOption(
+  page: TestPage,
+  placeholder: string,
+  optionIndex = 0
+) {
+  const select = page.getByPlaceholder(placeholder);
+  if (await select.isVisible()) {
+    await select.click();
+    await page.waitForTimeout(300);
+    const options = page.locator(".el-select-dropdown__item");
+    const count = await options.count();
+    if (count > optionIndex) {
+      await options.nth(optionIndex).click();
+    }
+  }
+}
+
+/**
+ * 验证保存成功消息
+ */
+export async function expectSaveSuccess(page: TestPage) {
+  await expect(page.locator(selectors.messageSuccess)).toBeVisible({
+    timeout: 5000
+  });
+}
+
+/**
+ * 验证操作失败消息
+ */
+export async function expectError(page: TestPage) {
+  await expect(page.locator(selectors.messageError)).toBeVisible({
+    timeout: 5000
+  });
+}
+
+/**
+ * 点击表格第一行操作按钮
+ */
+export async function clickFirstRowAction(page: TestPage, actionName: string) {
+  const firstRow = page.locator(".pure-table tbody tr").first();
+  const rowCount = await page.locator(".pure-table tbody tr").count();
+  if (rowCount > 0) {
+    await firstRow
+      .getByRole("button", { name: new RegExp(actionName) })
+      .click();
+    await page.waitForTimeout(500);
+  }
 }
 
 /**
@@ -158,6 +316,10 @@ export const selectors = {
   viewButton: 'button:has-text("查看")',
   searchButton: 'button:has-text("搜索")',
   resetButton: 'button:has-text("重置")',
+  saveButton: 'button:has-text("保存")',
+  approveButton: 'button:has-text("审核")',
+  printButton: 'button:has-text("打印")',
+  copyButton: 'button:has-text("复制")',
 
   // Element Plus 组件选择器
   dialog: ".el-dialog",
@@ -169,5 +331,6 @@ export const selectors = {
   messageError: ".el-message--error",
   loading: ".el-loading-mask",
   formError: ".el-form-item__error",
-  tag: ".el-tag"
+  tag: ".el-tag",
+  messageBox: ".el-message-box"
 };
