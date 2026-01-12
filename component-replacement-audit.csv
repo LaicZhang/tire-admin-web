@@ -24,9 +24,9 @@ src/views/business/finance/income/index.vue,el-tag type=success,StatusTag,状态
 src/views/settings/codeRule/index.vue,el-tag type={row.isActive},StatusTag,状态标签可复用 StatusTag 组件,中,已完成
 src/views/settings/advancedPrint/index.vue,el-tag type={row.isDefault},StatusTag,状态标签可复用 StatusTag 组件,中,已完成
 src/views/settings/printTemplate/index.vue,el-tag type={row.isDefault},StatusTag,状态标签可复用 StatusTag 组件,中,已完成
-src/views/purchase/order/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,跳过-有自定义操作
-src/views/purchase/inbound/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,跳过-有自定义操作
-src/views/purchase/return/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,跳过-有自定义操作
-src/views/sales/order/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,跳过-有自定义操作
-src/views/sales/outbound/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,跳过-有自定义操作
-src/views/sales/return/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,跳过-有自定义操作
+src/views/purchase/order/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,已完成
+src/views/purchase/inbound/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,已完成
+src/views/purchase/return/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,已完成
+src/views/sales/order/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,已完成
+src/views/sales/outbound/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,已完成
+src/views/sales/return/index.vue,查看/修改/删除 按钮组合,TableOperations,表格操作按钮组合可复用 TableOperations 组件,高,已完成
