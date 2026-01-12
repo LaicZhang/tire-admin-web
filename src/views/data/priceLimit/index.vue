@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, h, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import EditPen from "~icons/ep/edit-pen";
 import SettingIcon from "~icons/ep/setting";
 import { message } from "@/utils";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
@@ -21,7 +21,7 @@ defineOptions({
 
 const dataList = ref<PriceLimit[]>([]);
 const loading = ref(false);
-const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const selectedRows = ref<PriceLimit[]>([]);
 const form = ref({
   keyword: undefined,
@@ -135,9 +135,8 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: unknown) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -328,58 +327,44 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        :model="form"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="商品名称：" prop="keyword">
-          <el-input
-            v-model="form.keyword"
-            placeholder="请输入商品名称"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item label="采购限价：" prop="enablePurchaseLimit">
-          <el-select
-            v-model="form.enablePurchaseLimit"
-            placeholder="全部"
-            clearable
-            class="w-[120px]!"
-          >
-            <el-option label="已启用" :value="true" />
-            <el-option label="未启用" :value="false" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="销售限价：" prop="enableSaleLimit">
-          <el-select
-            v-model="form.enableSaleLimit"
-            placeholder="全部"
-            clearable
-            class="w-[120px]!"
-          >
-            <el-option label="已启用" :value="true" />
-            <el-option label="未启用" :value="false" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="商品名称" prop="keyword">
+        <el-input
+          v-model="form.keyword"
+          placeholder="请输入商品名称"
+          clearable
+          class="w-[180px]"
+        />
+      </el-form-item>
+      <el-form-item label="采购限价" prop="enablePurchaseLimit">
+        <el-select
+          v-model="form.enablePurchaseLimit"
+          placeholder="全部"
+          clearable
+          class="w-[120px]"
+        >
+          <el-option label="已启用" :value="true" />
+          <el-option label="未启用" :value="false" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="销售限价" prop="enableSaleLimit">
+        <el-select
+          v-model="form.enableSaleLimit"
+          placeholder="全部"
+          clearable
+          class="w-[120px]"
+        >
+          <el-option label="已启用" :value="true" />
+          <el-option label="未启用" :value="false" />
+        </el-select>
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar title="采购销售限价" @refresh="getList">

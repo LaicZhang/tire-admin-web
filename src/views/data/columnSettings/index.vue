@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import SaveIcon from "~icons/ep/check";
 import ResetIcon from "~icons/ep/refresh-left";
 import UpIcon from "~icons/ep/arrow-up";
 import DownIcon from "~icons/ep/arrow-down";
 import { message } from "@/utils";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import type { ColumnSetting, ModuleOption } from "./types";
 import {
@@ -22,6 +22,7 @@ defineOptions({
 const loading = ref(false);
 const currentModule = ref("tire");
 const columnList = ref<ColumnSetting[]>([]);
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 // 模块选项
 const moduleOptions: ModuleOption[] = [
@@ -279,43 +280,35 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="模块选择：">
-          <el-select
-            v-model="currentModule"
-            placeholder="请选择模块"
-            class="w-[200px]!"
-            @change="handleModuleChange"
-          >
-            <el-option
-              v-for="item in moduleOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon(SaveIcon)"
-            @click="handleSave"
-          >
-            保存设置
-          </el-button>
-          <el-button
-            :icon="useRenderIcon(ResetIcon)"
-            @click="handleResetDefault"
-          >
-            恢复默认
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm ref="searchFormRef" :loading="loading">
+      <el-form-item label="模块选择">
+        <el-select
+          v-model="currentModule"
+          placeholder="请选择模块"
+          class="w-[200px]"
+          @change="handleModuleChange"
+        >
+          <el-option
+            v-for="item in moduleOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <template #actions>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(SaveIcon)"
+          @click="handleSave"
+        >
+          保存设置
+        </el-button>
+        <el-button :icon="useRenderIcon(ResetIcon)" @click="handleResetDefault">
+          恢复默认
+        </el-button>
+      </template>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar title="基础资料列设置" @refresh="loadColumnSettings">

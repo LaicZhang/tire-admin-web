@@ -2,7 +2,7 @@
 import { ref, onMounted, reactive, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { useColumns } from "./columns";
+import { useColumns, type MenuItem } from "./columns";
 import { FormItemProps } from "./utils/types";
 import MenuForm from "./form.vue";
 import { addDialog } from "@/components/ReDialog";
@@ -51,7 +51,7 @@ async function onSearch() {
     const { data } = await getMenuListApi(); // API currently doesn't support filtering in mock maybe, but we can pass params
     // Assuming data is list, we might need to process it to tree if backend doesn't return tree
     // But usually backend returns tree for menu
-    dataList.value = data;
+    dataList.value = data as MenuItem[];
     pagination.total = dataList.value.length;
   } catch (e) {
     console.error(e);
@@ -109,10 +109,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
           const promise =
             title === "新增"
               ? createMenuApi(curData)
-              : updateMenuApi(
-                  String((row as unknown)?.uid ?? (row as unknown)?.id ?? ""),
-                  curData
-                );
+              : updateMenuApi(String(row?.uid ?? row?.id ?? ""), curData);
 
           promise.then(() => {
             message("操作成功", { type: "success" });
@@ -125,7 +122,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const handleDelete = async (row: unknown) => {
+const handleDelete = async (row: MenuItem) => {
   await deleteMenuApi(String(row.uid ?? row.id));
   message("删除成功", { type: "success" });
   onSearch();

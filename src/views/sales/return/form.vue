@@ -30,11 +30,19 @@ const formRules: FormRules = {
   ]
 };
 
-const allCustomerList = ref<unknown[]>([]);
-const allTireList = ref<unknown[]>([]);
-const allRepoList = ref<unknown[]>([]);
-const managerList = ref<unknown[]>([]);
-const allPaymentList = ref<unknown[]>([]);
+interface SelectItem {
+  uid: string;
+  name: string;
+  balance?: number;
+  id?: string;
+  code?: string;
+}
+
+const allCustomerList = ref<SelectItem[]>([]);
+const allTireList = ref<SelectItem[]>([]);
+const allRepoList = ref<SelectItem[]>([]);
+const managerList = ref<SelectItem[]>([]);
+const allPaymentList = ref<SelectItem[]>([]);
 
 const returnReasonOptions = RETURN_REASON_OPTIONS;
 
@@ -50,16 +58,17 @@ async function loadBaseData() {
       localForage().getItem(ALL_LIST.repo),
       localForage().getItem(ALL_LIST.manager)
     ]);
-    allCustomerList.value = (customerData as unknown[]) || [];
-    allTireList.value = (tireData as unknown[]) || [];
-    allRepoList.value = (repoData as unknown[]) || [];
-    managerList.value = (managerData as unknown[]) || [];
+    allCustomerList.value = (customerData as SelectItem[]) || [];
+    allTireList.value = (tireData as SelectItem[]) || [];
+    allRepoList.value = (repoData as SelectItem[]) || [];
+    managerList.value = (managerData as SelectItem[]) || [];
 
     const cid = await getCompanyId();
     const { data: paymentData } = await getPaymentListApi(cid);
-    allPaymentList.value = Array.isArray(paymentData)
-      ? paymentData
-      : paymentData?.list || [];
+    const paymentList = paymentData as SelectItem[] | { list?: SelectItem[] };
+    allPaymentList.value = Array.isArray(paymentList)
+      ? paymentList
+      : paymentList?.list || [];
   } catch {
     message("加载基础数据失败", { type: "error" });
   }

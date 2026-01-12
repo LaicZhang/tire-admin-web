@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import type { FormInstance } from "element-plus";
 import {
   getPackingBoxListApi,
   createPackingBoxApi
 } from "@/api/business/packing-box";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import Add from "~icons/ep/plus";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
@@ -18,7 +16,7 @@ defineOptions({
   name: "StockPacking"
 });
 
-const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const loading = ref(true);
 const dataList = ref([]);
 const pagination = reactive({
@@ -74,9 +72,8 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -118,34 +115,22 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
     >
       <el-form-item label="单号" prop="code">
         <el-input
           v-model="form.code"
           placeholder="请输入装箱单号"
           clearable
-          class="w-[180px]!"
+          class="w-[180px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="装箱管理" @refresh="onSearch">
       <template #buttons>

@@ -4,12 +4,12 @@ import { ElMessageBox } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { v7 as uuid } from "uuid";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
@@ -36,7 +36,7 @@ const ORDER_TYPE = "transfer-order";
 
 const dataList = ref<TransferOrder[]>([]);
 const loading = ref(false);
-const formRef = ref<FormInstance>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{
   getRef: () => FormInstance;
   getFormData: () => any;
@@ -82,7 +82,7 @@ async function fetchData() {
         ? { toRepositoryId: queryParams.toRepositoryId }
         : {}),
       ...(queryParams.auditorId ? { auditorId: queryParams.auditorId } : {})
-    } as unknown);
+    });
 
     if (res.code !== 200) {
       message(res.msg || "获取调拨单列表失败", { type: "error" });
@@ -124,8 +124,8 @@ function handleSearch() {
   fetchData();
 }
 
-function handleReset(formEl: FormInstance | undefined) {
-  if (formEl) formEl.resetFields();
+function handleReset() {
+  searchFormRef.value?.resetFields();
   queryParams.fromRepositoryId = "";
   queryParams.toRepositoryId = "";
   queryParams.auditorId = "";
@@ -218,7 +218,7 @@ function openDialog(title: string, row?: TransferOrder, isView = false) {
                 isShipped: false,
                 isArrival: false
               }))
-            } as unknown);
+            });
             message("创建成功", { type: "success" });
           } else if (row?.uid) {
             await updateOrderApi(ORDER_TYPE, row.uid, {
@@ -227,7 +227,7 @@ function openDialog(title: string, row?: TransferOrder, isView = false) {
               toRepository: { connect: { uid: data.toRepositoryId } },
               desc: data.desc || null,
               company: { connect: { uid: companyId } }
-            } as unknown);
+            });
             message("更新成功", { type: "success" });
           }
 
@@ -268,7 +268,7 @@ async function handleApprove(row: TransferOrder) {
       isLocked: true,
       rejectReason: null,
       auditAt: new Date().toISOString()
-    } as unknown);
+    });
     message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
@@ -291,7 +291,7 @@ async function handleReject(row: TransferOrder) {
       isLocked: false,
       rejectReason: value,
       auditAt: null
-    } as unknown);
+    });
     message("已拒绝", { type: "success" });
     fetchData();
   } catch (error) {
@@ -359,94 +359,82 @@ onMounted(async () => {
 
 <template>
   <div class="main">
-    <el-card class="mb-4">
-      <el-form ref="formRef" :model="queryParams" :inline="true">
-        <el-form-item label="调出仓库" prop="fromRepositoryId">
-          <el-select
-            v-model="queryParams.fromRepositoryId"
-            placeholder="请选择调出仓库"
-            clearable
-            filterable
-            class="w-[180px]"
-          >
-            <el-option
-              v-for="item in repoList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="调入仓库" prop="toRepositoryId">
-          <el-select
-            v-model="queryParams.toRepositoryId"
-            placeholder="请选择调入仓库"
-            clearable
-            filterable
-            class="w-[180px]"
-          >
-            <el-option
-              v-for="item in repoList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="审核人" prop="auditorId">
-          <el-select
-            v-model="queryParams.auditorId"
-            placeholder="请选择审核人"
-            clearable
-            filterable
-            class="w-[160px]"
-          >
-            <el-option
-              v-for="item in managerList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="审核状态" prop="auditStatus">
-          <el-select
-            v-model="queryParams.auditStatus"
-            placeholder="请选择"
-            clearable
-            class="w-[140px]"
-          >
-            <el-option label="待审核" value="PENDING" />
-            <el-option label="已审核" value="APPROVED" />
-            <el-option label="已拒绝" value="REJECTED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="关键字" prop="keyword">
-          <el-input
-            v-model="queryParams.keyword"
-            placeholder="单号/备注/拒绝原因"
-            clearable
-            class="w-[200px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="queryParams"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="handleReset"
+    >
+      <el-form-item label="调出仓库" prop="fromRepositoryId">
+        <el-select
+          v-model="queryParams.fromRepositoryId"
+          placeholder="请选择调出仓库"
+          clearable
+          filterable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in repoList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
           />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="handleSearch"
-          >
-            搜索
-          </el-button>
-          <el-button
-            :icon="useRenderIcon(Refresh)"
-            @click="handleReset(formRef)"
-          >
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="调入仓库" prop="toRepositoryId">
+        <el-select
+          v-model="queryParams.toRepositoryId"
+          placeholder="请选择调入仓库"
+          clearable
+          filterable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in repoList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="审核人" prop="auditorId">
+        <el-select
+          v-model="queryParams.auditorId"
+          placeholder="请选择审核人"
+          clearable
+          filterable
+          class="w-[160px]"
+        >
+          <el-option
+            v-for="item in managerList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="审核状态" prop="auditStatus">
+        <el-select
+          v-model="queryParams.auditStatus"
+          placeholder="请选择"
+          clearable
+          class="w-[140px]"
+        >
+          <el-option label="待审核" value="PENDING" />
+          <el-option label="已审核" value="APPROVED" />
+          <el-option label="已拒绝" value="REJECTED" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="关键字" prop="keyword">
+        <el-input
+          v-model="queryParams.keyword"
+          placeholder="单号/备注/拒绝原因"
+          clearable
+          class="w-[200px]"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card>
       <PureTableBar title="调拨单列表" @refresh="fetchData">

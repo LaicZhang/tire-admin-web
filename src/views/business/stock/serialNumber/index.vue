@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import {
   getSerialNumberList,
@@ -125,13 +124,12 @@ async function onSearch() {
   }
 }
 
-function resetForm(formEl: { resetFields: () => void } | undefined) {
-  if (!formEl) return;
-  formEl.resetFields();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+
+function onReset() {
+  searchFormRef.value?.resetFields();
   onSearch();
 }
-
-const formRef = ref();
 
 function handleAdd(type: "single" | "batch") {
   dialogType.value = type;
@@ -269,18 +267,19 @@ onSearch();
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
     >
       <el-form-item label="序列号" prop="keyword">
         <el-input
           v-model="form.keyword"
           placeholder="请输入序列号"
           clearable
-          class="w-[200px]!"
+          class="w-[200px]"
         />
       </el-form-item>
       <el-form-item label="状态" prop="status">
@@ -288,7 +287,7 @@ onSearch();
           v-model="form.status"
           placeholder="请选择状态"
           clearable
-          class="w-[140px]!"
+          class="w-[140px]"
         >
           <el-option label="在库" value="IN_STOCK" />
           <el-option label="已售" value="SOLD" />
@@ -296,20 +295,7 @@ onSearch();
           <el-option label="已报废" value="SCRAPPED" />
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="序列号管理" :columns="columns" @refresh="onSearch">
       <template #buttons>

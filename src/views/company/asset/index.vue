@@ -2,10 +2,10 @@
 import { onMounted, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import {
   getAssetListApi,
   addAssetApi,
@@ -29,6 +29,7 @@ defineOptions({
 const dataList = ref<AssetItem[]>([]);
 const loading = ref(false);
 const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   name: undefined
 });
@@ -67,9 +68,8 @@ const onSearch = async () => {
   await getAssetListInfo();
 };
 
-const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const resetForm = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -175,35 +175,22 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="资产名称：" prop="name">
-          <el-input
-            v-model="form.name"
-            placeholder="请输入资产名称"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm"
+    >
+      <el-form-item label="资产名称：" prop="name">
+        <el-input
+          v-model="form.name"
+          placeholder="请输入资产名称"
+          clearable
+          class="w-[180px]!"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar :title="$route.meta.title" @refresh="getAssetListInfo">

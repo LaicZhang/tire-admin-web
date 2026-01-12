@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
@@ -27,7 +26,7 @@ defineOptions({
 
 const dataList = ref<CostAdjustOrder[]>([]);
 const loading = ref(false);
-const formRef = ref<FormInstance>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref();
 
 const queryParams = reactive<CostAdjustQuery>({
@@ -71,7 +70,8 @@ const handleSearch = () => {
   fetchData();
 };
 
-const handleReset = () => {
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   queryParams.isApproved = "all";
   handleSearch();
 };
@@ -184,38 +184,29 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="mb-4">
-      <el-form ref="formRef" :model="queryParams" :inline="true">
-        <el-form-item label="审核状态">
-          <el-select
-            v-model="queryParams.isApproved"
-            placeholder="请选择"
-            clearable
-            class="w-[120px]"
-          >
-            <el-option
-              v-for="item in approvalOptions"
-              :key="String(item.value)"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="handleSearch"
-          >
-            查询
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="handleReset">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="queryParams"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="审核状态">
+        <el-select
+          v-model="queryParams.isApproved"
+          placeholder="请选择"
+          clearable
+          class="w-[120px]"
+        >
+          <el-option
+            v-for="item in approvalOptions"
+            :key="String(item.value)"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card>
       <PureTableBar title="成本调整单列表" @refresh="fetchData">
@@ -286,9 +277,5 @@ onMounted(() => {
 <style scoped lang="scss">
 .main {
   padding: 16px;
-}
-
-.mb-4 {
-  margin-bottom: 16px;
 }
 </style>

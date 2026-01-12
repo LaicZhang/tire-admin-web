@@ -156,7 +156,7 @@ function viewDetail(row: NoticeItem) {
   });
 }
 
-function openDialog(title = "新增", row?: unknown) {
+function openDialog(title = "新增", row?: NoticeItem) {
   addDialog({
     title: `${title}公告`,
     props: {
@@ -252,7 +252,7 @@ function openDialog(title = "新增", row?: unknown) {
       const promise =
         title === "新增"
           ? createNoticeApi(data)
-          : updateNoticeApi(row.id, data);
+          : updateNoticeApi(row!.id, data);
       promise.then(() => {
         message("操作成功", { type: "success" });
         done();

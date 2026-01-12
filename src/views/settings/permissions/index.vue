@@ -180,13 +180,16 @@ const openUserDialog = (title = "新增", row?: PermissionUser) => {
     contentRenderer: ({ options }) =>
       h(UserForm, {
         ref: formRef,
-        formInline: options.props!.formInline
+        formInline: (options.props as { formInline: Record<string, unknown> })
+          .formInline
       }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
-          const curData = options.props!.formInline as Record<string, unknown>;
+          const curData = (
+            options.props as { formInline: Record<string, unknown> }
+          ).formInline;
           savePermissionUserApi(curData)
             .then(res => {
               if (res.code === 200) {

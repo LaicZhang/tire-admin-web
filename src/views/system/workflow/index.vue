@@ -116,8 +116,8 @@ const handleQuery = async () => {
     const { data } = await getWorkflowListApi(queryForm);
     tableData.value = data.list;
     pagination.total = data.total ?? data.count ?? 0;
-    pagination.currentPage = queryForm.pageNum;
-    pagination.pageSize = queryForm.pageSize;
+    pagination.currentPage = queryForm.pageNum ?? 1;
+    pagination.pageSize = queryForm.pageSize ?? 10;
   } catch (e) {
     console.error(e);
   } finally {

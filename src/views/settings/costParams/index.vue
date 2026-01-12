@@ -194,7 +194,7 @@ onMounted(() => {
         <el-form-item label="成本核算方法" prop="costMethod">
           <el-radio-group
             v-model="formData.costMethod"
-            @change="handleCostMethodChange"
+            @change="(val: unknown) => handleCostMethodChange(val as string)"
           >
             <el-radio
               v-for="item in costMethodOptions"
@@ -208,7 +208,7 @@ onMounted(() => {
         <el-form-item label="成本核算方式" prop="costCalcType">
           <el-radio-group
             v-model="formData.costCalcType"
-            @change="handleCostCalcTypeChange"
+            @change="(val: unknown) => handleCostCalcTypeChange(val as string)"
           >
             <el-radio
               v-for="item in costCalcTypeOptions"

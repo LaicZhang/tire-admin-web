@@ -5,11 +5,9 @@ import {
   type InspectionRecord
 } from "@/api/business/quality";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import Add from "~icons/ep/plus";
-import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "QualityInspection"
@@ -17,7 +15,7 @@ defineOptions({
 
 const loading = ref(true);
 const dataList = ref<InspectionRecord[]>([]);
-const formRef = ref<FormInstance>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const pagination = reactive({
   total: 0,
   pageSize: 10,
@@ -69,9 +67,8 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl?: FormInstance) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -82,11 +79,12 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
     >
       <el-form-item label="采购单号" prop="purchaseOrderNo">
         <el-input
@@ -101,7 +99,7 @@ onMounted(() => {
           type="date"
           placeholder="开始日期"
           value-format="YYYY-MM-DD"
-          class="w-[180px]!"
+          class="w-[180px]"
         />
         <span class="mx-2">-</span>
         <el-date-picker
@@ -109,23 +107,10 @@ onMounted(() => {
           type="date"
           placeholder="结束日期"
           value-format="YYYY-MM-DD"
-          class="w-[180px]!"
+          class="w-[180px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="质检记录" @refresh="onSearch">
       <template #buttons>

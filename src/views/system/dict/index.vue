@@ -166,12 +166,16 @@ function openDialog(title = "新增", row?: DictItem) {
       ]);
     },
     beforeSure: (done, { options }) => {
-      const data = options.props!.formInline as {
-        name: string;
-        key: number;
-        cn: string;
-        en: string;
-      };
+      const data = (
+        options.props as {
+          formInline: {
+            name: string;
+            key: number;
+            cn: string;
+            en: string;
+          };
+        }
+      ).formInline;
       if (!data.name) {
         message("请输入字典类型名称", { type: "warning" });
         return;

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import {
   getPaymentListApi,
@@ -13,6 +12,7 @@ import {
 } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { getCompanyId } from "@/api/company";
 import { addDialog } from "@/components/ReDialog";
@@ -28,6 +28,7 @@ defineOptions({
 const dataList = ref<unknown[]>([]);
 const loading = ref(false);
 const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 const form = ref({
   companyUid: undefined
@@ -117,9 +118,8 @@ const onSearch = async () => {
   await getPaymentListInfo();
 };
 
-const resetForm = (formEl: unknown) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const resetForm = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -217,27 +217,13 @@ onMounted(async () => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm"
+    />
 
     <el-card class="m-1">
       <PureTableBar :title="$route.meta.title" @refresh="getPaymentListInfo">

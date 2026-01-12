@@ -207,14 +207,16 @@ const openDialog = (title = "新增", row?: CodeRule) => {
     contentRenderer: ({ options }) =>
       h(CodeRuleForm, {
         ref: formRef,
-        formInline: options.props!.formInline
+        formInline: (options.props as { formInline: Partial<CodeRule> })
+          .formInline
       }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (!valid) return;
 
-        const formInline = options.props!.formInline as Partial<CodeRule>;
+        const formInline = (options.props as { formInline: Partial<CodeRule> })
+          .formInline;
         const payload = {
           name: formInline.name,
           targetType: formInline.targetType,

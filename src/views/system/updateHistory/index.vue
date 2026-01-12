@@ -32,8 +32,9 @@ async function loadData() {
   try {
     const { data, code, msg } = await getUpdateHistoryApi(currentPage.value);
     if (code === 200) {
-      dataList.value = data?.list || [];
-      total.value = data?.total || 0;
+      const result = data as { list?: typeof dataList.value; total?: number };
+      dataList.value = result?.list || [];
+      total.value = result?.total || 0;
     } else {
       message(msg || "加载失败", { type: "error" });
     }

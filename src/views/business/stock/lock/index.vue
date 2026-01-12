@@ -7,9 +7,8 @@ import {
 } from "@/api/business/stock";
 import type { Bin } from "@/api/business/stock";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import Lock from "~icons/ep/lock";
 import Unlock from "~icons/ep/unlock";
 import { message } from "@/utils/message";
@@ -19,7 +18,7 @@ defineOptions({
   name: "StockLock"
 });
 
-const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const loading = ref(true);
 const dataList = ref<Bin[]>([]);
 const pagination = reactive({
@@ -73,9 +72,8 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -113,34 +111,22 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
     >
       <el-form-item label="关键字" prop="keyword">
         <el-input
           v-model="form.keyword"
           placeholder="搜索货位"
           clearable
-          class="w-[180px]!"
+          class="w-[180px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="库存锁定管理" @refresh="onSearch">
       <template v-slot="{ size, dynamicColumns }">

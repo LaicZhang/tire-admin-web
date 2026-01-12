@@ -161,15 +161,17 @@ const handleUploadRequest = async (options: UploadRequestOptions) => {
     formData.append("file", options.file);
     const { code } = await createBackupApi(formData as unknown as object);
     if (code === 200) {
-      options.onSuccess?.({ code }, options.file);
+      options.onSuccess?.({ code });
       message("上传成功", { type: "success" });
       loadData();
     } else {
-      options.onError?.(new Error("上传失败"));
+      const error = new Error("上传失败");
+      options.onError?.(error);
       message("上传失败", { type: "error" });
     }
   } catch (err) {
-    options.onError?.(err as Error);
+    const error = err instanceof Error ? err : new Error(String(err));
+    options.onError?.(error);
     message("上传失败", { type: "error" });
   } finally {
     loading.value = false;

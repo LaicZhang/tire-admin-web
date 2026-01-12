@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import dayjs from "dayjs";
 import { getPurchaseOrderListApi } from "@/api/purchase";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
@@ -20,6 +19,7 @@ defineOptions({
 const { providerRankingColumns, trendDataColumns } = useColumns();
 
 const loading = ref(false);
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const searchForm = ref<ReportQueryParams>({
   startDate: undefined,
@@ -193,6 +193,7 @@ function onSearch() {
 }
 
 function onReset() {
+  searchFormRef.value?.resetFields();
   searchForm.value = {
     startDate: undefined,
     endDate: undefined,
@@ -215,61 +216,54 @@ onMounted(async () => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form :inline="true" class="search-form">
-        <el-form-item label="日期范围">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="w-[240px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="searchForm"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="日期范围">
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          class="w-[240px]"
+        />
+      </el-form-item>
+      <el-form-item label="供应商">
+        <el-select
+          v-model="searchForm.providerId"
+          placeholder="全部供应商"
+          clearable
+          filterable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in providerList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
           />
-        </el-form-item>
-        <el-form-item label="供应商">
-          <el-select
-            v-model="searchForm.providerId"
-            placeholder="全部供应商"
-            clearable
-            filterable
-            class="w-[180px]"
-          >
-            <el-option
-              v-for="item in providerList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="统计维度">
-          <el-select v-model="searchForm.groupBy" class="w-[120px]">
-            <el-option
-              v-for="item in groupByOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            查询
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="onReset">
-            重置
-          </el-button>
-          <el-button type="success" @click="handleExport"> 导出报表 </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="统计维度">
+        <el-select v-model="searchForm.groupBy" class="w-[120px]">
+          <el-option
+            v-for="item in groupByOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <template #extraActions>
+        <el-button type="success" @click="handleExport"> 导出报表 </el-button>
+      </template>
+    </ReSearchForm>
 
     <el-row :gutter="16" class="m-1">
       <el-col :span="6">

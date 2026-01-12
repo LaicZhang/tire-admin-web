@@ -20,6 +20,7 @@ import AddFill from "~icons/ri/add-circle-line";
 import Play from "~icons/ep/video-play";
 import View from "~icons/ep/view";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "TaskManagement"
@@ -27,7 +28,7 @@ defineOptions({
 
 const loading = ref(true);
 const dataList = ref<TaskItem[]>([]);
-const searchFormRef = ref();
+const searchFormRef = ref<FormInstance>();
 const pagination = reactive({
   total: 0,
   pageSize: 10,
@@ -107,7 +108,7 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl: unknown) => {
+const resetForm = (formEl?: FormInstance) => {
   if (!formEl) return;
   formEl.resetFields();
   onSearch();
@@ -194,7 +195,7 @@ function viewDetail(row: TaskItem) {
   });
 }
 
-function openDialog(title = "新增", row?: unknown) {
+function openDialog(title = "新增", row?: TaskItem) {
   addDialog({
     title: `${title}任务`,
     props: {
@@ -294,7 +295,7 @@ function openDialog(title = "新增", row?: unknown) {
         return;
       }
       const promise =
-        title === "新增" ? createTaskApi(data) : updateTaskApi(row.id, data);
+        title === "新增" ? createTaskApi(data) : updateTaskApi(row!.id, data);
       promise.then(() => {
         message("操作成功", { type: "success" });
         done();

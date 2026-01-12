@@ -16,7 +16,10 @@ export interface OperationLogItem {
   result?: string;
   success: boolean;
   errorMsg?: string;
+  error?: string;
   createTime: string;
+  createdAt?: string;
+  duration?: number;
 }
 
 /** 获取操作日志列表 */

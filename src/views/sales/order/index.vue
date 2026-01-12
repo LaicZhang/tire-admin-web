@@ -35,7 +35,7 @@ const formRef = ref<{
   getRef: () => FormInstance;
   getReceiveFee?: () => number;
 } | null>(null);
-const searchFormRef = ref<{ resetFields: () => void }>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const searchForm = ref<SalesOrderQueryParams>({
   operatorId: undefined,
@@ -91,10 +91,10 @@ function onSearch() {
   getList();
 }
 
-function onReset(formEl: { resetFields: () => void } | undefined) {
-  if (!formEl) return;
-  formEl.resetFields();
-  onSearch();
+function onReset() {
+  searchFormRef.value?.resetFields();
+  pagination.value.currentPage = 1;
+  getList();
 }
 
 function handlePageChange(page: number) {
@@ -276,7 +276,7 @@ onMounted(async () => {
       :form="searchForm"
       :loading="loading"
       @search="onSearch"
-      @reset="onReset(searchFormRef)"
+      @reset="onReset"
     >
       <el-form-item label="客户">
         <el-select

@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns, detailColumns } from "./columns";
@@ -36,7 +35,7 @@ defineOptions({
 
 const dataList = ref<StocktakingTask[]>([]);
 const loading = ref(false);
-const formRef = ref<FormInstance>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref();
 const repoList = ref<{ uid: string; name: string }[]>([]);
 const detailDialogVisible = ref(false);
@@ -100,8 +99,8 @@ const handleSearch = () => {
   fetchData();
 };
 
-const handleReset = (formEl: FormInstance | undefined) => {
-  if (formEl) formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   queryParams.status = undefined;
   queryParams.repoId = "";
   handleSearch();
@@ -256,56 +255,44 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="mb-4">
-      <el-form ref="formRef" :model="queryParams" :inline="true">
-        <el-form-item label="状态" prop="status">
-          <el-select
-            v-model="queryParams.status"
-            placeholder="请选择状态"
-            clearable
-            class="w-[150px]"
-          >
-            <el-option
-              v-for="item in statusOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="仓库" prop="repoId">
-          <el-select
-            v-model="queryParams.repoId"
-            placeholder="请选择仓库"
-            clearable
-            class="w-[150px]"
-          >
-            <el-option
-              v-for="repo in repoList"
-              :key="repo.uid"
-              :label="repo.name"
-              :value="repo.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="handleSearch"
-          >
-            搜索
-          </el-button>
-          <el-button
-            :icon="useRenderIcon(Refresh)"
-            @click="handleReset(formRef)"
-          >
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="queryParams"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="状态" prop="status">
+        <el-select
+          v-model="queryParams.status"
+          placeholder="请选择状态"
+          clearable
+          class="w-[150px]"
+        >
+          <el-option
+            v-for="item in statusOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="仓库" prop="repoId">
+        <el-select
+          v-model="queryParams.repoId"
+          placeholder="请选择仓库"
+          clearable
+          class="w-[150px]"
+        >
+          <el-option
+            v-for="repo in repoList"
+            :key="repo.uid"
+            :label="repo.name"
+            :value="repo.uid"
+          />
+        </el-select>
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card>
       <PureTableBar title="盘点单列表" @refresh="fetchData">
@@ -423,10 +410,6 @@ onMounted(() => {
 <style scoped lang="scss">
 .main {
   padding: 16px;
-}
-
-.mb-4 {
-  margin-bottom: 16px;
 }
 
 .text-gray-400 {

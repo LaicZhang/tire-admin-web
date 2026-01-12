@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, h, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import EditPen from "~icons/ep/edit-pen";
 import ClearIcon from "~icons/ep/delete";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import { message } from "@/utils";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
@@ -21,7 +21,7 @@ defineOptions({
 
 const dataList = ref<PriceInfo[]>([]);
 const loading = ref(false);
-const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const selectedRows = ref<PriceInfo[]>([]);
 const form = ref({
   keyword: undefined,
@@ -124,9 +124,8 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: unknown) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -260,44 +259,30 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        :model="form"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="商品名称：" prop="keyword">
-          <el-input
-            v-model="form.keyword"
-            placeholder="请输入商品名称"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item label="分组：" prop="group">
-          <el-input
-            v-model="form.group"
-            placeholder="请输入分组"
-            clearable
-            class="w-[180px]!"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="商品名称" prop="keyword">
+        <el-input
+          v-model="form.keyword"
+          placeholder="请输入商品名称"
+          clearable
+          class="w-[180px]"
+        />
+      </el-form-item>
+      <el-form-item label="分组" prop="group">
+        <el-input
+          v-model="form.group"
+          placeholder="请输入分组"
+          clearable
+          class="w-[180px]"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar title="商品价格资料" @refresh="getList">

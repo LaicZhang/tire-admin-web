@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import {
   getLogisticListApi,
   updateLogisticApi,
@@ -9,12 +7,12 @@ import {
 } from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import ShippingPlanTab from "./ShippingPlanTab.vue";
 import LoadingTaskTab from "./LoadingTaskTab.vue";
 import ShippingWaveTab from "./ShippingWaveTab.vue";
 import LogisticDetailDrawer from "./LogisticDetailDrawer.vue";
 import type { LogisticOrder } from "./types";
-import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "Logistic"
@@ -26,7 +24,7 @@ const currentLogistic = ref<LogisticOrder | null>(null);
 
 const dataList = ref<LogisticOrder[]>([]);
 const loading = ref(false);
-const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   type: undefined,
   isArrival: undefined
@@ -129,9 +127,8 @@ const onSearch = async () => {
   await getLogisticListInfo();
 };
 
-const resetForm = (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -192,17 +189,19 @@ onMounted(async () => {
       <el-tabs v-model="activeTab" type="border-card">
         <!-- 物流单列表 Tab -->
         <el-tab-pane label="物流单" name="logistic">
-          <el-form
-            ref="formRef"
-            :inline="true"
-            class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
+          <ReSearchForm
+            ref="searchFormRef"
+            :form="form"
+            :loading="loading"
+            @search="onSearch"
+            @reset="onReset"
           >
-            <el-form-item label="订单类型：" prop="type">
+            <el-form-item label="订单类型" prop="type">
               <el-select
                 v-model="form.type"
                 placeholder="请选择订单类型"
                 clearable
-                class="w-[180px]!"
+                class="w-[180px]"
               >
                 <el-option
                   v-for="item in orderTypeOptions"
@@ -212,36 +211,18 @@ onMounted(async () => {
                 />
               </el-select>
             </el-form-item>
-
-            <el-form-item label="是否已到达：" prop="isArrival">
+            <el-form-item label="是否已到达" prop="isArrival">
               <el-select
                 v-model="form.isArrival"
                 placeholder="请选择"
                 clearable
-                class="w-[180px]!"
+                class="w-[180px]"
               >
                 <el-option label="是" :value="true" />
                 <el-option label="否" :value="false" />
               </el-select>
             </el-form-item>
-
-            <el-form-item>
-              <el-button
-                type="primary"
-                :icon="useRenderIcon('ri:search-line')"
-                :loading="loading"
-                @click="onSearch"
-              >
-                搜索
-              </el-button>
-              <el-button
-                :icon="useRenderIcon(Refresh)"
-                @click="resetForm(formRef)"
-              >
-                重置
-              </el-button>
-            </el-form-item>
-          </el-form>
+          </ReSearchForm>
 
           <PureTableBar title="物流单列表" @refresh="getLogisticListInfo">
             <template v-slot="{ size }">

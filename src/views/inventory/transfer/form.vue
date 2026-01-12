@@ -25,7 +25,22 @@ const tireList = ref<{ uid: string; name: string; barcode?: string }[]>([]);
 const auditorList = ref<Array<{ uid: string; name: string }>>([]);
 const loading = ref(false);
 
-const formData = reactive({
+interface DetailItem {
+  uid?: string;
+  tireId: string;
+  tireName?: string;
+  count: number;
+  isShipped?: boolean;
+  isArrival?: boolean;
+}
+
+const formData = reactive<{
+  fromRepositoryId: string;
+  toRepositoryId: string;
+  auditorId: string;
+  desc: string;
+  details: DetailItem[];
+}>({
   fromRepositoryId: props.formInline.fromRepositoryId || "",
   toRepositoryId: props.formInline.toRepositoryId || "",
   auditorId: props.formInline.auditorId || "",
@@ -59,7 +74,7 @@ const filteredFromRepoList = computed(() =>
 );
 
 const addDetail = () => {
-  formData.details.push({ tireId: "", count: 1 } as TransferOrderDetail);
+  formData.details.push({ tireId: "", count: 1 });
 };
 
 const removeDetail = (index: number) => {

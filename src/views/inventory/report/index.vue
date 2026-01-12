@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
-import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import Download from "~icons/ep/download";
 import Printer from "~icons/ep/printer";
 import Setting from "~icons/ep/setting";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { balanceColumns, detailColumns, summaryColumns } from "./columns";
 import {
   type InventoryBalance,
@@ -27,7 +26,7 @@ defineOptions({
 
 const router = useRouter();
 const loading = ref(false);
-const formRef = ref<FormInstance>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const currentReportType = ref<ReportType>(ReportType.BALANCE);
 const balanceList = ref<InventoryBalance[]>([]);
@@ -146,8 +145,8 @@ const handleSearch = () => {
   fetchData();
 };
 
-const handleReset = (formEl: FormInstance | undefined) => {
-  if (formEl) formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   queryParams.repoId = "";
   queryParams.showZeroStock = false;
   queryParams.showNegativeStock = false;
@@ -210,70 +209,58 @@ onMounted(() => {
     </el-card>
 
     <!-- 查询条件 -->
-    <el-card class="mb-4">
-      <el-form ref="formRef" :model="queryParams" :inline="true">
-        <el-form-item label="仓库" prop="repoId">
-          <el-select
-            v-model="queryParams.repoId"
-            placeholder="请选择仓库"
-            clearable
-            class="w-[150px]"
-          >
-            <el-option
-              v-for="repo in repoList"
-              :key="repo.uid"
-              :label="repo.name"
-              :value="repo.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          v-if="currentReportType !== ReportType.BALANCE"
-          label="日期范围"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="queryParams"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="仓库" prop="repoId">
+        <el-select
+          v-model="queryParams.repoId"
+          placeholder="请选择仓库"
+          clearable
+          class="w-[150px]"
         >
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="w-[220px]"
+          <el-option
+            v-for="repo in repoList"
+            :key="repo.uid"
+            :label="repo.name"
+            :value="repo.uid"
           />
-        </el-form-item>
-        <el-form-item v-if="currentReportType === ReportType.BALANCE">
-          <el-checkbox v-model="queryParams.showZeroStock">
-            显示零库存商品
-          </el-checkbox>
-        </el-form-item>
-        <el-form-item v-if="currentReportType === ReportType.BALANCE">
-          <el-checkbox v-model="queryParams.showNegativeStock">
-            仅显示负库存商品
-          </el-checkbox>
-        </el-form-item>
-        <el-form-item v-if="currentReportType === ReportType.BALANCE">
-          <el-checkbox v-model="queryParams.showDisabledRepo">
-            显示禁用仓库
-          </el-checkbox>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="handleSearch"
-          >
-            查询
-          </el-button>
-          <el-button
-            :icon="useRenderIcon(Refresh)"
-            @click="handleReset(formRef)"
-          >
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        v-if="currentReportType !== ReportType.BALANCE"
+        label="日期范围"
+      >
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          class="w-[220px]"
+        />
+      </el-form-item>
+      <el-form-item v-if="currentReportType === ReportType.BALANCE">
+        <el-checkbox v-model="queryParams.showZeroStock">
+          显示零库存商品
+        </el-checkbox>
+      </el-form-item>
+      <el-form-item v-if="currentReportType === ReportType.BALANCE">
+        <el-checkbox v-model="queryParams.showNegativeStock">
+          仅显示负库存商品
+        </el-checkbox>
+      </el-form-item>
+      <el-form-item v-if="currentReportType === ReportType.BALANCE">
+        <el-checkbox v-model="queryParams.showDisabledRepo">
+          显示禁用仓库
+        </el-checkbox>
+      </el-form-item>
+    </ReSearchForm>
 
     <!-- 报表数据 -->
     <el-card>
@@ -326,10 +313,6 @@ onMounted(() => {
 <style scoped lang="scss">
 .main {
   padding: 16px;
-}
-
-.mb-4 {
-  margin-bottom: 16px;
 }
 
 .text-red-600 {

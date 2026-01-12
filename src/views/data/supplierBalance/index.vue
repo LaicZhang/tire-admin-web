@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, h, onMounted, computed } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
 import Delete from "~icons/ep/delete";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
@@ -27,7 +27,7 @@ defineOptions({
 
 const dataList = ref<SupplierBalance[]>([]);
 const loading = ref(false);
-const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const selectedRows = ref<SupplierBalance[]>([]);
 const form = ref({
   keyword: undefined,
@@ -168,9 +168,8 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: unknown) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const resetForm = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -356,47 +355,33 @@ onMounted(() => {
       </el-col>
     </el-row>
 
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        :model="form"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="供应商名称：" prop="keyword">
-          <el-input
-            v-model="form.keyword"
-            placeholder="请输入供应商名称/编码"
-            clearable
-            class="w-[200px]!"
-          />
-        </el-form-item>
-        <el-form-item label="有余额：" prop="hasBalance">
-          <el-select
-            v-model="form.hasBalance"
-            placeholder="全部"
-            clearable
-            class="w-[120px]!"
-          >
-            <el-option label="有应付" :value="true" />
-            <el-option label="无余额" :value="false" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm"
+    >
+      <el-form-item label="供应商名称：" prop="keyword">
+        <el-input
+          v-model="form.keyword"
+          placeholder="请输入供应商名称/编码"
+          clearable
+          class="w-[200px]!"
+        />
+      </el-form-item>
+      <el-form-item label="有余额：" prop="hasBalance">
+        <el-select
+          v-model="form.hasBalance"
+          placeholder="全部"
+          clearable
+          class="w-[120px]!"
+        >
+          <el-option label="有应付" :value="true" />
+          <el-option label="无余额" :value="false" />
+        </el-select>
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar title="供应商期初余额" @refresh="getList">

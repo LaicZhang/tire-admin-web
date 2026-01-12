@@ -8,10 +8,6 @@ import { ElMessageBox } from "element-plus";
 import { message } from "@/utils";
 import { saveUserDataAuthApi } from "@/api/setting";
 import type { DataAuthUser, AuthItem } from "../types";
-import type {
-  useUserDataAuthDetail,
-  useAuthObjectSelector
-} from "../composables";
 
 const props = defineProps<{
   visible: boolean;
@@ -82,7 +78,9 @@ const removeAuthItem = async (
       }
     );
     const newList = list.filter(i => i.uid !== item.uid);
-    emit(`update:${type}List`, newList);
+    if (type === "customer") emit("update:customerList", newList);
+    else if (type === "supplier") emit("update:supplierList", newList);
+    else emit("update:warehouseList", newList);
     message("移除成功", { type: "success" });
   } catch {
     // cancelled
@@ -100,7 +98,9 @@ const clearAll = async (
       type: "warning"
     });
     const newList: AuthItem[] = [];
-    emit(`update:${type}List`, newList);
+    if (type === "customer") emit("update:customerList", newList);
+    else if (type === "supplier") emit("update:supplierList", newList);
+    else emit("update:warehouseList", newList);
     message("清空成功", { type: "success" });
   } catch {
     // cancelled

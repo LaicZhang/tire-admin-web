@@ -56,6 +56,7 @@ export type SaleOrderConfirmShipmentDto = {
   shipCount?: number;
 };
 
+/** 订单查询参数 DTO */
 export interface OrderQueryDto {
   orderStatus?: number;
   logisticsStatus?: number;
@@ -64,6 +65,10 @@ export interface OrderQueryDto {
   endDate?: string;
   keyword?: string;
   pageSize?: number;
+  // Transfer order specific fields
+  fromRepositoryId?: string;
+  toRepositoryId?: string;
+  auditorId?: string;
 }
 
 // ============ 通用订单 API ============

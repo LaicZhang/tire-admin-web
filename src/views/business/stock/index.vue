@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import EditPen from "~icons/ep/edit-pen";
 import { getReserveListApi, updateReserveApi } from "@/api";
 import type { Reserve } from "@/api/business/reserve";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { h } from "vue";
 import { deviceDetection } from "@pureadmin/utils";
@@ -21,6 +20,7 @@ defineOptions({
 const dataList = ref<Reserve[]>([]);
 const loading = ref(false);
 const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   keyword: ""
 });
@@ -59,9 +59,8 @@ const onSearch = async () => {
   await getList();
 };
 
-const resetForm = (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const resetForm = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -120,31 +119,17 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form
-        ref="formRef"
-        :inline="true"
-        class="search-form bg-bg_color w-[99/100] pl-8 pt-3 overflow-auto"
-      >
-        <el-form-item label="关键字">
-          <el-input
-            v-model="form.keyword"
-            placeholder="搜索（预留）"
-            disabled
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="resetForm"
+    >
+      <el-form-item label="关键字">
+        <el-input v-model="form.keyword" placeholder="搜索（预留）" disabled />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar :title="$route.meta.title" @refresh="getList">

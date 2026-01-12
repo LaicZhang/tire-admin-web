@@ -7,8 +7,23 @@ import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
+export interface MenuItem {
+  uid?: string;
+  id?: string;
+  path?: string;
+  component?: string;
+  name?: string;
+  meta?: {
+    title?: string;
+    icon?: string;
+    rank?: number;
+    showLink?: boolean;
+  };
+  children?: MenuItem[];
+}
+
 export function useColumns() {
-  const dataList = ref<Record<string, unknown>[]>([]);
+  const dataList = ref<MenuItem[]>([]);
   const loading = ref(true);
 
   const columns: TableColumnList = [

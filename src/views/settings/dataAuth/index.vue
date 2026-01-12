@@ -180,7 +180,14 @@ const exportAuth = async () => {
       return;
     }
 
-    const url = data?.url ?? data?.downloadUrl ?? data?.fileUrl ?? data;
+    const urlData = data as Record<string, unknown> | string | undefined;
+    const url =
+      typeof urlData === "string"
+        ? urlData
+        : ((urlData as Record<string, unknown>)?.url ??
+          (urlData as Record<string, unknown>)?.downloadUrl ??
+          (urlData as Record<string, unknown>)?.fileUrl ??
+          urlData);
     if (typeof url === "string" && url.length > 0) {
       await downloadFromUrl(
         url,

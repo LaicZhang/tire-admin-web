@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { getStatementList, type Statement } from "@/api/business/statement";
 import { message } from "@/utils/message";
@@ -91,13 +90,12 @@ async function onSearch() {
   }
 }
 
-function resetForm(formEl: { resetFields: () => void } | undefined) {
-  if (!formEl) return;
-  formEl.resetFields();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+
+function onReset() {
+  searchFormRef.value?.resetFields();
   onSearch();
 }
-
-const formRef = ref();
 
 function handleAdd() {
   message("功能开发中", { type: "info" });
@@ -112,18 +110,19 @@ onSearch();
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
     >
       <el-form-item label="对账类型" prop="type">
         <el-select
           v-model="form.type"
           placeholder="请选择类型"
           clearable
-          class="w-[160px]!"
+          class="w-[160px]"
         >
           <el-option label="客户对账" value="CUSTOMER" />
           <el-option label="供应商对账" value="PROVIDER" />
@@ -134,23 +133,10 @@ onSearch();
           v-model="form.targetName"
           placeholder="请输入单位名称"
           clearable
-          class="w-[160px]!"
+          class="w-[160px]"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="对账单列表" :columns="columns" @refresh="onSearch">
       <template #buttons>

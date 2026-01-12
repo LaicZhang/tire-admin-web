@@ -31,7 +31,7 @@ defineOptions({
 const dataList = ref<SalesReturnOrder[]>([]);
 const loading = ref(false);
 const formRef = ref<{ getRef: () => FormInstance } | null>(null);
-const searchFormRef = ref<{ resetFields: () => void }>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const searchForm = ref<SalesReturnQueryParams>({
   operatorId: undefined,
@@ -47,9 +47,14 @@ const pagination = ref({
   background: true
 });
 
-const employeeList = ref<unknown[]>([]);
-const managerList = ref<unknown[]>([]);
-const customerList = ref<unknown[]>([]);
+interface SelectItem {
+  uid: string;
+  name: string;
+}
+
+const employeeList = ref<SelectItem[]>([]);
+const managerList = ref<SelectItem[]>([]);
+const customerList = ref<SelectItem[]>([]);
 
 async function loadSelectData() {
   const [employees, managers, customers] = await Promise.all([
@@ -57,9 +62,9 @@ async function loadSelectData() {
     localForage().getItem(ALL_LIST.manager),
     localForage().getItem(ALL_LIST.customer)
   ]);
-  employeeList.value = (employees as unknown[]) || [];
-  managerList.value = (managers as unknown[]) || [];
-  customerList.value = (customers as unknown[]) || [];
+  employeeList.value = (employees as SelectItem[]) || [];
+  managerList.value = (managers as SelectItem[]) || [];
+  customerList.value = (customers as SelectItem[]) || [];
 }
 
 async function getList() {
@@ -70,7 +75,8 @@ async function getList() {
       customerId: searchForm.value.customerId
     });
     if (res.code === 200) {
-      dataList.value = res.data.list.filter((item: unknown) => item.customerId);
+      const list = res.data.list as SalesReturnOrder[];
+      dataList.value = list.filter((item: SalesReturnOrder) => item.customerId);
       pagination.value.total = dataList.value.length;
     } else {
       message(res.msg, { type: "error" });
@@ -87,10 +93,10 @@ function onSearch() {
   getList();
 }
 
-function onReset(formEl: { resetFields: () => void } | undefined) {
-  if (!formEl) return;
-  formEl.resetFields();
-  onSearch();
+function onReset() {
+  searchFormRef.value?.resetFields();
+  pagination.value.currentPage = 1;
+  getList();
 }
 
 function handlePageChange(page: number) {
@@ -231,7 +237,7 @@ onMounted(async () => {
       :form="searchForm"
       :loading="loading"
       @search="onSearch"
-      @reset="onReset(searchFormRef)"
+      @reset="onReset"
     >
       <el-form-item label="客户">
         <el-select
@@ -334,10 +340,12 @@ onMounted(async () => {
                     }
                   ] as CustomAction[]
                 "
-                @view="openDialog('查看', $event)"
-                @edit="openDialog('修改', $event)"
-                @audit="openDialog('审核', $event)"
-                @delete="handleDelete"
+                @view="openDialog('查看', $event as SalesReturnOrder)"
+                @edit="openDialog('修改', $event as SalesReturnOrder)"
+                @audit="openDialog('审核', $event as SalesReturnOrder)"
+                @delete="
+                  (row: unknown) => handleDelete(row as SalesReturnOrder)
+                "
               />
             </template>
           </pure-table>

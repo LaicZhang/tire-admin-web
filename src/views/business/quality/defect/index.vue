@@ -8,9 +8,8 @@ import {
   type DefectCategory
 } from "@/api/business/quality";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import Add from "~icons/ep/plus";
 import Edit from "~icons/ep/edit";
 import DeleteButton from "@/components/DeleteButton/index.vue";
@@ -42,7 +41,7 @@ const dialogForm = reactive({
   solution: ""
 });
 const dialogLoading = ref(false);
-const formRef = ref();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const dialogFormRef = ref();
 
 const rules = {
@@ -83,9 +82,8 @@ async function onSearch() {
   }
 }
 
-const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   onSearch();
 };
 
@@ -144,29 +142,17 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="form"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
     >
       <el-form-item label="名称" prop="name">
         <el-input v-model="form.name" placeholder="请输入名称" clearable />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
     <PureTableBar title="缺陷分类" @refresh="onSearch">
       <template #buttons>

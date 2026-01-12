@@ -3,12 +3,12 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import Download from "~icons/ep/download";
 import Printer from "~icons/ep/printer";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { columns } from "./columns";
 import {
   type InventoryDocument,
@@ -36,7 +36,7 @@ defineOptions({
 const router = useRouter();
 const dataList = ref<InventoryDocument[]>([]);
 const loading = ref(false);
-const formRef = ref<FormInstance>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const selectedRows = ref<InventoryDocument[]>([]);
 
 const queryParams = reactive<DocumentQuery>({
@@ -97,8 +97,8 @@ const handleSearch = () => {
   fetchData();
 };
 
-const handleReset = (formEl: FormInstance | undefined) => {
-  if (formEl) formEl.resetFields();
+const handleReset = () => {
+  searchFormRef.value?.resetFields();
   queryParams.type = undefined;
   queryParams.status = undefined;
   queryParams.keyword = "";
@@ -221,75 +221,63 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <el-card class="mb-4">
-      <el-form ref="formRef" :model="queryParams" :inline="true">
-        <el-form-item label="单据类型" prop="type">
-          <el-select
-            v-model="queryParams.type"
-            placeholder="请选择类型"
-            clearable
-            class="w-[130px]"
-          >
-            <el-option
-              v-for="item in typeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select
-            v-model="queryParams.status"
-            placeholder="请选择状态"
-            clearable
-            class="w-[120px]"
-          >
-            <el-option
-              v-for="item in statusOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="日期范围">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="w-[220px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="queryParams"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="handleReset"
+    >
+      <el-form-item label="单据类型" prop="type">
+        <el-select
+          v-model="queryParams.type"
+          placeholder="请选择类型"
+          clearable
+          class="w-[130px]"
+        >
+          <el-option
+            v-for="item in typeOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
           />
-        </el-form-item>
-        <el-form-item label="关键字" prop="keyword">
-          <el-input
-            v-model="queryParams.keyword"
-            placeholder="单据编号/备注"
-            clearable
-            class="w-[160px]"
+        </el-select>
+      </el-form-item>
+      <el-form-item label="状态" prop="status">
+        <el-select
+          v-model="queryParams.status"
+          placeholder="请选择状态"
+          clearable
+          class="w-[120px]"
+        >
+          <el-option
+            v-for="item in statusOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
           />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="handleSearch"
-          >
-            搜索
-          </el-button>
-          <el-button
-            :icon="useRenderIcon(Refresh)"
-            @click="handleReset(formRef)"
-          >
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="日期范围">
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          class="w-[220px]"
+        />
+      </el-form-item>
+      <el-form-item label="关键字" prop="keyword">
+        <el-input
+          v-model="queryParams.keyword"
+          placeholder="单据编号/备注"
+          clearable
+          class="w-[160px]"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card>
       <PureTableBar title="库存单据列表" @refresh="fetchData">

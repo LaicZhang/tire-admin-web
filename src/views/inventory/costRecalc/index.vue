@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
@@ -32,7 +31,7 @@ defineOptions({
 
 const dataList = ref<CostRecalcTask[]>([]);
 const loading = ref(false);
-const formRef = ref<FormInstance>();
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref();
 
 const queryParams = reactive<RecalcTaskQuery>({
@@ -78,8 +77,8 @@ const handleSearch = () => {
   fetchData();
 };
 
-const handleReset = (formEl: FormInstance | undefined) => {
-  if (formEl) formEl.resetFields();
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   queryParams.status = undefined;
   handleSearch();
 };
@@ -197,41 +196,29 @@ onMounted(() => {
       对商品的成本进行重新计算。重算前系统会自动备份数据,可在需要时恢复。
     </el-alert>
 
-    <el-card class="mb-4">
-      <el-form ref="formRef" :model="queryParams" :inline="true">
-        <el-form-item label="状态" prop="status">
-          <el-select
-            v-model="queryParams.status"
-            placeholder="请选择状态"
-            clearable
-            class="w-[120px]"
-          >
-            <el-option
-              v-for="item in statusOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="handleSearch"
-          >
-            搜索
-          </el-button>
-          <el-button
-            :icon="useRenderIcon(Refresh)"
-            @click="handleReset(formRef)"
-          >
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="queryParams"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="状态" prop="status">
+        <el-select
+          v-model="queryParams.status"
+          placeholder="请选择状态"
+          clearable
+          class="w-[120px]"
+        >
+          <el-option
+            v-for="item in statusOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card>
       <PureTableBar title="成本重算任务列表" @refresh="fetchData">
@@ -302,9 +289,5 @@ onMounted(() => {
 <style scoped lang="scss">
 .main {
   padding: 16px;
-}
-
-.mb-4 {
-  margin-bottom: 16px;
 }
 </style>

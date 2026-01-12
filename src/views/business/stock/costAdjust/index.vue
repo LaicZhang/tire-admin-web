@@ -11,9 +11,9 @@ import {
 import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 
 defineOptions({
@@ -34,6 +34,8 @@ const pagination = ref({
 const queryParams = reactive({
   isApproved: "all" as "all" | boolean
 });
+
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 // 筛选选项
 const approvalOptions = [
@@ -67,7 +69,8 @@ const handleSearch = () => {
 };
 
 // 重置搜索
-const handleReset = () => {
+const onReset = () => {
+  searchFormRef.value?.resetFields();
   queryParams.isApproved = "all";
   handleSearch();
 };
@@ -150,37 +153,28 @@ onMounted(() => {
 <template>
   <div class="main">
     <!-- 搜索栏 -->
-    <el-card class="mb-4">
-      <el-form :inline="true" :model="queryParams" class="search-form">
-        <el-form-item label="审核状态">
-          <el-select
-            v-model="queryParams.isApproved"
-            placeholder="请选择"
-            clearable
-          >
-            <el-option
-              v-for="item in approvalOptions"
-              :key="String(item.value)"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="handleSearch"
-          >
-            查询
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="handleReset">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="queryParams"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="审核状态">
+        <el-select
+          v-model="queryParams.isApproved"
+          placeholder="请选择"
+          clearable
+        >
+          <el-option
+            v-for="item in approvalOptions"
+            :key="String(item.value)"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+    </ReSearchForm>
 
     <!-- 数据表格 -->
     <el-card>

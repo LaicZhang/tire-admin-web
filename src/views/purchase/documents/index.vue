@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRouter } from "vue-router";
-import type { FormInstance } from "element-plus";
 import {
   getPurchaseInboundListApi,
   getPurchaseOrderListApi,
@@ -32,6 +31,7 @@ const router = useRouter();
 
 const dataList = ref<DocumentItem[]>([]);
 const loading = ref(false);
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const searchForm = ref<DocumentQueryParams>({
   type: undefined,
@@ -144,11 +144,11 @@ function onSearch() {
   getList();
 }
 
-function onReset(formEl: FormInstance | undefined) {
-  if (!formEl) return;
-  formEl.resetFields();
+function onReset() {
+  searchFormRef.value?.resetFields();
   dateRange.value = null;
-  onSearch();
+  pagination.value.currentPage = 1;
+  getList();
 }
 
 function handlePageChange(page: number) {
@@ -208,84 +208,75 @@ onMounted(async () => {
 
 <template>
   <div class="main">
-    <el-card class="m-1">
-      <el-form :inline="true" class="search-form">
-        <el-form-item label="单据类型">
-          <el-select
-            v-model="searchForm.type"
-            placeholder="请选择单据类型"
-            clearable
-            class="w-[150px]"
-          >
-            <el-option
-              v-for="item in DOCUMENT_TYPE_OPTIONS"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="供应商">
-          <el-select
-            v-model="searchForm.providerId"
-            placeholder="请选择供应商"
-            clearable
-            filterable
-            class="w-[180px]"
-          >
-            <el-option
-              v-for="item in providerList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="审核状态">
-          <el-select
-            v-model="searchForm.isApproved"
-            placeholder="请选择审核状态"
-            clearable
-            class="w-[120px]"
-          >
-            <el-option label="已审核" :value="true" />
-            <el-option label="待审核" :value="false" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="日期范围">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            class="w-[240px]"
+    <ReSearchForm
+      ref="searchFormRef"
+      :form="searchForm"
+      :loading="loading"
+      @search="onSearch"
+      @reset="onReset"
+    >
+      <el-form-item label="单据类型">
+        <el-select
+          v-model="searchForm.type"
+          placeholder="请选择单据类型"
+          clearable
+          class="w-[150px]"
+        >
+          <el-option
+            v-for="item in DOCUMENT_TYPE_OPTIONS"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
           />
-        </el-form-item>
-        <el-form-item label="关键词">
-          <el-input
-            v-model="searchForm.keyword"
-            placeholder="单据编号/备注"
-            clearable
-            class="w-[180px]"
+        </el-select>
+      </el-form-item>
+      <el-form-item label="供应商">
+        <el-select
+          v-model="searchForm.providerId"
+          placeholder="请选择供应商"
+          clearable
+          filterable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in providerList"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
           />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon('ri:search-line')"
-            :loading="loading"
-            @click="onSearch"
-          >
-            搜索
-          </el-button>
-          <el-button :icon="useRenderIcon(Refresh)" @click="onReset">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="审核状态">
+        <el-select
+          v-model="searchForm.isApproved"
+          placeholder="请选择审核状态"
+          clearable
+          class="w-[120px]"
+        >
+          <el-option label="已审核" :value="true" />
+          <el-option label="待审核" :value="false" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="日期范围">
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          class="w-[240px]"
+        />
+      </el-form-item>
+      <el-form-item label="关键词">
+        <el-input
+          v-model="searchForm.keyword"
+          placeholder="单据编号/备注"
+          clearable
+          class="w-[180px]"
+        />
+      </el-form-item>
+    </ReSearchForm>
 
     <el-card class="m-1">
       <PureTableBar title="采购单据汇总" @refresh="getList">
