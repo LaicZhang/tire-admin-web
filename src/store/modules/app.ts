@@ -49,7 +49,7 @@ export const useAppStore = defineStore("pure-app", {
     }
   },
   actions: {
-    TOGGLE_SIDEBAR(opened?: boolean, resize?: string) {
+    toggleSideBar(opened?: boolean, resize?: string) {
       const layout = storageLocal().getItem<StorageConfigs>(
         `${responsiveStorageNameSpace()}layout`
       );
@@ -63,15 +63,12 @@ export const useAppStore = defineStore("pure-app", {
         layout.sidebarStatus = false;
       } else if (!opened && !resize) {
         this.sidebar.withoutAnimation = false;
-        const opened = this.sidebar.opened;
-        this.sidebar.opened = !opened;
-        this.sidebar.isClickCollapse = !opened;
-        layout.sidebarStatus = opened;
+        const currentOpened = this.sidebar.opened;
+        this.sidebar.opened = !currentOpened;
+        this.sidebar.isClickCollapse = !currentOpened;
+        layout.sidebarStatus = currentOpened;
       }
       storageLocal().setItem(`${responsiveStorageNameSpace()}layout`, layout);
-    },
-    async toggleSideBar(opened?: boolean, resize?: string) {
-      await this.TOGGLE_SIDEBAR(opened, resize);
     },
     toggleDevice(device: string) {
       this.device = device;

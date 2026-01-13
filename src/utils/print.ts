@@ -231,7 +231,10 @@ Print.prototype = {
         }
       }, 10);
     } catch (err) {
-      console.error(err);
+      // Print errors are non-critical, only log in development
+      if (import.meta.env.DEV) {
+        console.error("[Print] Error:", err);
+      }
     }
   },
   isDOM:

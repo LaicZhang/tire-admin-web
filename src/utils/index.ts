@@ -8,3 +8,4 @@ export * from "./file";
 export * from "./mock";
 export * from "./error";
 export * from "./download";
+export * from "./logger";
