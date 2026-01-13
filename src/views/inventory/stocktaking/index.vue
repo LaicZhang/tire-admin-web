@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
@@ -40,7 +40,7 @@ const repoList = ref<{ uid: string; name: string }[]>([]);
 
 const queryParams = reactive<StocktakingQuery>({
   status: undefined,
-  repoId: ""
+  repoId: undefined
 });
 
 const pagination = ref({

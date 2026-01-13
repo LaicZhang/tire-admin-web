@@ -4,7 +4,7 @@ import Motion from "../utils/motion";
 import ReQrcode from "@/components/ReQrcode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getWxQrLoginUrlApi, wxQrCallbackApi } from "@/api/auth";
-import { message } from "@/utils";
+import { message, authLogger } from "@/utils";
 import { useRouter } from "vue-router";
 import { addPathMatch } from "@/router/utils";
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -53,7 +53,7 @@ async function fetchQrLoginUrl() {
       message(msg || "获取二维码失败", { type: "error" });
     }
   } catch (e) {
-    console.error("获取微信扫码登录URL失败", e);
+    authLogger.error("获取微信扫码登录URL失败", e);
     message("获取二维码失败，请稍后重试", { type: "error" });
   } finally {
     loading.value = false;
@@ -127,7 +127,7 @@ async function checkUrlCallback() {
         message(msg || "登录失败", { type: "error" });
       }
     } catch (e) {
-      console.error("微信扫码登录失败", e);
+      authLogger.error("微信扫码登录失败", e);
       message("登录失败，请重试", { type: "error" });
     } finally {
       loading.value = false;

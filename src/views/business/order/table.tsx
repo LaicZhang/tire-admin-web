@@ -174,6 +174,7 @@ export async function openDialog(title = "新增", type: string, row?: OrderRow)
                 }
               };
               delete orderData.providerId;
+              // Type widening needed: _OrderDetail has optional fields populated at runtime
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const detailsRes: any[] = [];
               details.map((item: _OrderDetail) => {

@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, computed, h, defineAsyncComponent } from "vue";
+import {
+  ref,
+  reactive,
+  onMounted,
+  watch,
+  computed,
+  h,
+  defineAsyncComponent
+} from "vue";
 import Add from "~icons/ep/plus";
 import Delete from "~icons/ep/delete";
 import { addDialog } from "@/components/ReDialog";
@@ -177,16 +185,18 @@ const openAddConversionDialog = () => {
     draggable: true,
     closeOnClickModal: false,
     contentRenderer: () => {
-      const UnitConversionForm = defineAsyncComponent(() => import("./UnitConversionForm.vue"));
+      const UnitConversionForm = defineAsyncComponent(
+        () => import("./UnitConversionForm.vue")
+      );
       return h(UnitConversionForm, { ref: conversionFormRef });
     },
     beforeSure: done => {
       const formInstance = conversionFormRef.value;
       if (!formInstance || !formInstance.validate()) return;
-      
+
       const data = formInstance.getData();
       const targetUnit = unitList.value.find(u => u.uid === data.targetUnitId);
-      
+
       const conversions = newFormInline.value.unitConversions || [];
       conversions.push({
         id: Date.now(),
@@ -198,7 +208,7 @@ const openAddConversionDialog = () => {
         targetUnit: targetUnit
       });
       newFormInline.value.unitConversions = conversions;
-      
+
       message("已添加换算关系，保存商品时生效", { type: "success" });
       done();
     }
@@ -464,7 +474,8 @@ watch(
         type="textarea"
       />
     </el-form-item>
-  </template>
+  </el-form>
+</template>
 
 <style scoped>
 .cover-uploader .el-upload {

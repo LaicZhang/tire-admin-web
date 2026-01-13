@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { ref, unref, watch, onMounted, nextTick } from "vue";
+import { ref, unref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 
 defineOptions({
   name: "FrameView"
@@ -91,6 +91,10 @@ watch(
 
 onMounted(() => {
   init();
+});
+
+onBeforeUnmount(() => {
+  clearFallbackTimer();
 });
 </script>
 
