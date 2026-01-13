@@ -107,103 +107,25 @@
         <p class="text-xs text-gray-300 mt-1">绑定后可使用微信扫码登录</p>
       </div>
     </el-card>
-
-    <!-- 微信绑定对话框 -->
-    <el-dialog v-model="wxBindDialogVisible" title="绑定微信" width="400px">
-      <div class="text-center">
-        <p class="mb-4">请使用微信扫描二维码完成绑定</p>
-        <div v-if="wxQrUrl" class="flex justify-center">
-          <img
-            :src="wxQrUrl"
-            alt="微信二维码"
-            class="w-48 h-48 border rounded"
-          />
-        </div>
-        <div
-          v-else
-          class="w-48 h-48 mx-auto flex items-center justify-center bg-gray-100 rounded"
-        >
-          <el-icon class="text-4xl text-gray-300 is-loading"
-            ><Loading
-          /></el-icon>
-        </div>
-        <p class="text-xs text-gray-400 mt-4">二维码有效期 5 分钟</p>
-      </div>
-      <template #footer>
-        <el-button @click="wxBindDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="checkBindStatus">已扫码</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 编辑个人信息对话框 -->
-    <el-dialog v-model="editDialogVisible" title="编辑个人信息" width="500px">
-      <el-form :model="editForm" label-width="80px">
-        <el-form-item label="昵称">
-          <el-input
-            v-model="editForm.nickname"
-            placeholder="请输入昵称"
-            maxlength="50"
-          />
-        </el-form-item>
-        <el-form-item label="手机号">
-          <el-input
-            v-model="editForm.phone"
-            placeholder="请输入手机号"
-            maxlength="20"
-          />
-        </el-form-item>
-        <el-form-item label="邮箱">
-          <el-input
-            v-model="editForm.email"
-            placeholder="请输入邮箱"
-            type="email"
-          />
-        </el-form-item>
-        <el-form-item label="性别">
-          <el-radio-group v-model="editForm.gender">
-            <el-radio :value="1">男</el-radio>
-            <el-radio :value="0">女</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="生日">
-          <el-date-picker
-            v-model="editForm.birthday"
-            type="date"
-            placeholder="选择日期"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :loading="editLoading"
-          @click="handleUpdateUserInfo"
-        >
-          保存
-        </el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, h, onMounted, ref } from "vue";
 import { getUserInfoApi } from "@/api";
 import {
   getWxBindStatusApi,
   wxUnbindApi,
-  getWxQrLoginUrlApi,
-  updateUserInfoApi
+  getWxQrLoginUrlApi
 } from "@/api/auth";
 import { message } from "@/utils/message";
 import type { ComponentSize } from "element-plus";
 import { userInfoTemplate, type UserInfoType } from "./info";
-import { User, Connection, Loading } from "@element-plus/icons-vue";
+import { User, Connection } from "@element-plus/icons-vue";
 import { ElMessageBox } from "element-plus";
+import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import WxBindForm from "./WxBindForm.vue";
+import ProfileEditForm from "./ProfileEditForm.vue";
 
 defineOptions({
   name: "profile"
@@ -212,8 +134,6 @@ defineOptions({
 const size = ref<ComponentSize>("default");
 const userInfo = ref<UserInfoType>(userInfoTemplate);
 const wxLoading = ref(false);
-const wxBindDialogVisible = ref(false);
-const wxQrUrl = ref("");
 
 const wxBindStatus = ref({
   isBound: false,
@@ -221,68 +141,6 @@ const wxBindStatus = ref({
   avatar: "",
   bindTime: ""
 });
-
-// 编辑对话框相关
-const editDialogVisible = ref(false);
-const editLoading = ref(false);
-const editForm = ref({
-  nickname: "",
-  phone: "",
-  email: "",
-  gender: 1,
-  birthday: ""
-});
-
-const openEditDialog = () => {
-  editForm.value = {
-    nickname: userInfo.value.info?.nickname || "",
-    phone: userInfo.value.phone || "",
-    email: userInfo.value.email || "",
-    gender: userInfo.value.info?.gender ?? 1,
-    birthday: formattedBirthday.value || ""
-  };
-  editDialogVisible.value = true;
-};
-
-const handleUpdateUserInfo = async () => {
-  editLoading.value = true;
-  try {
-    const payload: {
-      nickname?: string;
-      phone?: string;
-      email?: string;
-      gender?: number;
-      birthday?: string;
-    } = {};
-    if (editForm.value.nickname !== undefined) {
-      payload.nickname = editForm.value.nickname;
-    }
-    if (editForm.value.phone !== undefined) {
-      payload.phone = editForm.value.phone;
-    }
-    if (editForm.value.email !== undefined) {
-      payload.email = editForm.value.email;
-    }
-    if (editForm.value.gender !== undefined) {
-      payload.gender = editForm.value.gender;
-    }
-    if (editForm.value.birthday) {
-      payload.birthday = editForm.value.birthday;
-    }
-    const { code, msg } = await updateUserInfoApi(payload);
-    if (code === 200) {
-      message("更新成功", { type: "success" });
-      editDialogVisible.value = false;
-      await getUserInfo();
-    } else {
-      message(msg || "更新失败", { type: "error" });
-    }
-  } catch {
-    message("更新失败", { type: "error" });
-  } finally {
-    editLoading.value = false;
-  }
-};
 
 const formattedBirthday = computed(() => {
   const birthday = userInfo.value.info?.birthday;
@@ -328,14 +186,35 @@ const getWxBindStatus = async () => {
   }
 };
 
+const checkBindStatus = async () => {
+  await getWxBindStatus();
+  if (wxBindStatus.value.isBound) {
+    message("绑定成功", { type: "success" });
+    closeAllDialog();
+  } else {
+    message("未检测到绑定，请确认已完成扫码", { type: "warning" });
+  }
+};
+
 const handleBindWx = async () => {
   wxLoading.value = true;
   try {
     const { data, code, msg } = await getWxQrLoginUrlApi();
     const qrData = data as { url?: string };
     if (code === 200 && qrData?.url) {
-      wxQrUrl.value = qrData.url;
-      wxBindDialogVisible.value = true;
+      addDialog({
+        title: "绑定微信",
+        width: "400px",
+        draggable: true,
+        closeOnClickModal: false,
+        hideFooter: true,
+        contentRenderer: () =>
+          h(WxBindForm, {
+            qrUrl: qrData.url,
+            onCheck: checkBindStatus,
+            onClose: () => closeAllDialog()
+          })
+      });
     } else {
       message(msg || "获取二维码失败", { type: "error" });
     }
@@ -378,14 +257,29 @@ const handleUnbindWx = async () => {
   }
 };
 
-const checkBindStatus = async () => {
-  await getWxBindStatus();
-  if (wxBindStatus.value.isBound) {
-    message("绑定成功", { type: "success" });
-    wxBindDialogVisible.value = false;
-  } else {
-    message("未检测到绑定，请确认已完成扫码", { type: "warning" });
-  }
+const openEditDialog = () => {
+  addDialog({
+    title: "编辑个人信息",
+    width: "500px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(ProfileEditForm, {
+        initialData: {
+          nickname: userInfo.value.info?.nickname || "",
+          phone: userInfo.value.phone || "",
+          email: userInfo.value.email || "",
+          gender: userInfo.value.info?.gender ?? 1,
+          birthday: formattedBirthday.value || ""
+        },
+        onSuccess: async () => {
+          closeAllDialog();
+          await getUserInfo();
+        },
+        onClose: () => closeAllDialog()
+      })
+  });
 };
 
 onMounted(async () => {

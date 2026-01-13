@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { h, ref, watch } from "vue";
 import { message } from "@/utils";
 import { PureTable } from "@pureadmin/table";
+import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import {
   getCustomerLevelListApi,
   createCustomerLevelApi,
   updateCustomerLevelApi,
   deleteCustomerLevelApi
 } from "@/api";
+import LevelEditForm from "./LevelEditForm.vue";
 
 interface Level {
   id: number;
@@ -26,13 +28,6 @@ const emit = defineEmits<{
 
 const loading = ref(false);
 const levelList = ref<Level[]>([]);
-const showForm = ref(false);
-const editingLevel = ref<Level | null>(null);
-const formData = ref({
-  name: "",
-  discount: 100,
-  minAmount: 0
-});
 
 const columns: TableColumnList = [
   {
@@ -58,13 +53,6 @@ const columns: TableColumnList = [
   }
 ];
 
-const formRules = {
-  name: [{ required: true, message: "请输入等级名称", trigger: "blur" }],
-  discount: [{ required: true, message: "请输入折扣比例", trigger: "blur" }]
-};
-
-const formRef = ref();
-
 async function loadLevels() {
   loading.value = true;
   try {
@@ -78,39 +66,57 @@ async function loadLevels() {
 }
 
 function openCreateForm() {
-  editingLevel.value = null;
-  formData.value = { name: "", discount: 100, minAmount: 0 };
-  showForm.value = true;
+  addDialog({
+    title: "新增等级",
+    width: "450px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(LevelEditForm, {
+        formData: { name: "", discount: 100, minAmount: 0 },
+        onSubmit: async (data: {
+          name: string;
+          discount: number;
+          minAmount: number;
+        }) => {
+          await createCustomerLevelApi(data);
+          message("等级创建成功", { type: "success" });
+          closeAllDialog();
+          await loadLevels();
+        },
+        onClose: () => closeAllDialog()
+      })
+  });
 }
 
 function openEditForm(level: Level) {
-  editingLevel.value = level;
-  formData.value = {
-    name: level.name,
-    discount: level.discount ?? 100,
-    minAmount: level.minAmount ?? 0
-  };
-  showForm.value = true;
-}
-
-async function handleSubmit() {
-  const valid = await formRef.value?.validate().catch(() => false);
-  if (!valid) return;
-
-  loading.value = true;
-  try {
-    if (editingLevel.value) {
-      await updateCustomerLevelApi(editingLevel.value.id, formData.value);
-      message("等级更新成功", { type: "success" });
-    } else {
-      await createCustomerLevelApi(formData.value);
-      message("等级创建成功", { type: "success" });
-    }
-    showForm.value = false;
-    await loadLevels();
-  } finally {
-    loading.value = false;
-  }
+  addDialog({
+    title: "编辑等级",
+    width: "450px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(LevelEditForm, {
+        formData: {
+          name: level.name,
+          discount: level.discount ?? 100,
+          minAmount: level.minAmount ?? 0
+        },
+        onSubmit: async (data: {
+          name: string;
+          discount: number;
+          minAmount: number;
+        }) => {
+          await updateCustomerLevelApi(level.id, data);
+          message("等级更新成功", { type: "success" });
+          closeAllDialog();
+          await loadLevels();
+        },
+        onClose: () => closeAllDialog()
+      })
+  });
 }
 
 async function handleDelete(level: Level) {
@@ -171,47 +177,6 @@ watch(
           </el-popconfirm>
         </template>
       </PureTable>
-
-      <!-- 新增/编辑表单弹窗 -->
-      <el-dialog
-        v-model="showForm"
-        :title="editingLevel ? '编辑等级' : '新增等级'"
-        width="450px"
-      >
-        <el-form
-          ref="formRef"
-          :model="formData"
-          :rules="formRules"
-          label-width="100px"
-        >
-          <el-form-item label="等级名称" prop="name">
-            <el-input v-model="formData.name" placeholder="请输入等级名称" />
-          </el-form-item>
-          <el-form-item label="折扣比例" prop="discount">
-            <el-input-number
-              v-model="formData.discount"
-              :min="1"
-              :max="100"
-              :precision="0"
-            />
-            <span class="ml-2">%</span>
-          </el-form-item>
-          <el-form-item label="最低消费金额" prop="minAmount">
-            <el-input-number
-              v-model="formData.minAmount"
-              :min="0"
-              :precision="2"
-            />
-            <span class="ml-2">元</span>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <el-button @click="showForm = false">取消</el-button>
-          <el-button type="primary" :loading="loading" @click="handleSubmit">
-            确定
-          </el-button>
-        </template>
-      </el-dialog>
     </div>
   </el-dialog>
 </template>

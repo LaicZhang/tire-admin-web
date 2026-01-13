@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, h } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import {
   getSerialNumberList,
-  getSerialNumberLogs,
-  createSerialNumber,
-  createSerialNumberBatch,
-  type SerialNumber,
-  type SerialNumberLog
+  type SerialNumber
 } from "@/api/business/serialNumber";
 import { message } from "@/utils/message";
-import { ElMessageBox } from "element-plus";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
+import SerialNumberAddForm from "./SerialNumberAddForm.vue";
+import SerialNumberLogsForm from "./SerialNumberLogsForm.vue";
 
 defineOptions({
   name: "SerialNumberList"
@@ -32,26 +31,7 @@ const pagination = ref({
   background: true
 });
 
-// 新建弹窗
-const dialogVisible = ref(false);
-const dialogType = ref<"single" | "batch">("single");
-const formLoading = ref(false);
-
-const formData = reactive({
-  serialNo: "",
-  serialNos: "",
-  tireId: "",
-  repoId: "",
-  batchNo: "",
-  productionDate: "",
-  expiryDate: ""
-});
-
-// 流转记录弹窗
-const logsDialogVisible = ref(false);
-const logsList = ref<SerialNumberLog[]>([]);
-const logsLoading = ref(false);
-const currentSerialNo = ref("");
+const addFormRef = ref();
 
 // Mock 商品和仓库数据（实际接口获取）
 const tireOptions = ref<Array<{ uid: string; name: string }>>([]);
@@ -132,135 +112,50 @@ function onReset() {
 }
 
 function handleAdd(type: "single" | "batch") {
-  dialogType.value = type;
-  Object.assign(formData, {
-    serialNo: "",
-    serialNos: "",
-    tireId: "",
-    repoId: "",
-    batchNo: "",
-    productionDate: "",
-    expiryDate: ""
-  });
-  dialogVisible.value = true;
-}
-
-async function handleSubmit() {
-  if (!formData.tireId) {
-    message("请选择商品", { type: "warning" });
-    return;
-  }
-  if (!formData.repoId) {
-    message("请选择仓库", { type: "warning" });
-    return;
-  }
-
-  formLoading.value = true;
-  try {
-    if (dialogType.value === "single") {
-      if (!formData.serialNo) {
-        message("请输入序列号", { type: "warning" });
-        formLoading.value = false;
-        return;
+  addDialog({
+    title: type === "single" ? "新增序列号" : "批量新增序列号",
+    props: {
+      formInline: {
+        type,
+        tireOptions: tireOptions.value,
+        repoOptions: repoOptions.value
       }
-      await createSerialNumber({
-        serialNo: formData.serialNo,
-        tireId: formData.tireId,
-        repoId: formData.repoId,
-        batchNo: formData.batchNo || undefined,
-        productionDate: formData.productionDate || undefined,
-        expiryDate: formData.expiryDate || undefined
-      });
-      message("创建成功", { type: "success" });
-    } else {
-      if (!formData.serialNos) {
-        message("请输入序列号（每行一个）", { type: "warning" });
-        formLoading.value = false;
-        return;
-      }
-      const serialNos = formData.serialNos
-        .split("\n")
-        .map(s => s.trim())
-        .filter(s => s);
-      if (serialNos.length === 0) {
-        message("请输入有效的序列号", { type: "warning" });
-        formLoading.value = false;
-        return;
-      }
-      const { data } = await createSerialNumberBatch({
-        serialNos,
-        tireId: formData.tireId,
-        repoId: formData.repoId
-      });
-      const successCount = data.filter(r => r.success).length;
-      const failCount = data.filter(r => !r.success).length;
-      if (failCount > 0) {
-        ElMessageBox.alert(
-          `成功 ${successCount} 条，失败 ${failCount} 条。\n失败详情：${data
-            .filter(r => !r.success)
-            .map(r => `${r.serialNo}: ${r.error}`)
-            .join("\n")}`,
-          "批量创建结果",
-          { type: "warning" }
-        );
-      } else {
-        message(`批量创建成功 ${successCount} 条`, { type: "success" });
+    },
+    width: "500px",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () => h(SerialNumberAddForm, { ref: addFormRef }),
+    beforeSure: async done => {
+      const formInstance = addFormRef.value;
+      if (!formInstance) return;
+      const success = await formInstance.handleSubmit();
+      if (success) {
+        done();
+        onSearch();
       }
     }
-    dialogVisible.value = false;
-    onSearch();
-  } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
-  } finally {
-    formLoading.value = false;
-  }
+  });
 }
 
-async function handleViewLogs(row: SerialNumber) {
-  currentSerialNo.value = row.serialNo;
-  logsDialogVisible.value = true;
-  logsLoading.value = true;
-  try {
-    const { data } = await getSerialNumberLogs(row.serialNo);
-    logsList.value = data;
-  } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
-  } finally {
-    logsLoading.value = false;
-  }
+function handleViewLogs(row: SerialNumber) {
+  addDialog({
+    title: `流转记录 - ${row.serialNo}`,
+    props: {
+      formInline: {
+        serialNo: row.serialNo
+      }
+    },
+    width: "700px",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: true,
+    hideFooter: true,
+    contentRenderer: () => h(SerialNumberLogsForm)
+  });
 }
-
-const actionMap: Record<string, string> = {
-  IN: "入库",
-  OUT: "出库",
-  TRANSFER: "调拨",
-  ADJUST: "调整"
-};
-
-const logColumns: TableColumnList = [
-  { label: "操作", prop: "action", width: 100, slot: "action" },
-  {
-    label: "来源仓库",
-    prop: "fromRepoId",
-    minWidth: 120,
-    formatter: row => row.fromRepoId || "-"
-  },
-  {
-    label: "目标仓库",
-    prop: "toRepoId",
-    minWidth: 120,
-    formatter: row => row.toRepoId || "-"
-  },
-  {
-    label: "单据类型",
-    prop: "orderType",
-    width: 100,
-    formatter: row => row.orderType || "-"
-  },
-  { label: "时间", prop: "createdAt", width: 160 }
-];
 
 onSearch();
 </script>
@@ -357,108 +252,5 @@ onSearch();
         </pure-table>
       </template>
     </PureTableBar>
-
-    <!-- 新增弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'single' ? '新增序列号' : '批量新增序列号'"
-      width="500px"
-    >
-      <el-form :model="formData" label-width="100px">
-        <el-form-item v-if="dialogType === 'single'" label="序列号" required>
-          <el-input
-            v-model="formData.serialNo"
-            placeholder="请输入序列号（如：SN20241226001）"
-          />
-        </el-form-item>
-        <el-form-item v-if="dialogType === 'batch'" label="序列号列表" required>
-          <el-input
-            v-model="formData.serialNos"
-            type="textarea"
-            :rows="6"
-            placeholder="每行输入一个序列号"
-          />
-        </el-form-item>
-        <el-form-item label="商品" required>
-          <el-select
-            v-model="formData.tireId"
-            placeholder="请选择商品"
-            class="w-full!"
-            filterable
-          >
-            <el-option
-              v-for="item in tireOptions"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-          <div class="text-xs text-gray-400 mt-1">
-            提示：商品数据需从商品管理模块获取
-          </div>
-        </el-form-item>
-        <el-form-item label="仓库" required>
-          <el-select
-            v-model="formData.repoId"
-            placeholder="请选择仓库"
-            class="w-full!"
-            filterable
-          >
-            <el-option
-              v-for="item in repoOptions"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-          <div class="text-xs text-gray-400 mt-1">
-            提示：仓库数据需从仓库管理模块获取
-          </div>
-        </el-form-item>
-        <el-form-item v-if="dialogType === 'single'" label="批次号">
-          <el-input v-model="formData.batchNo" placeholder="可选" />
-        </el-form-item>
-        <el-form-item v-if="dialogType === 'single'" label="生产日期">
-          <el-date-picker
-            v-model="formData.productionDate"
-            type="date"
-            placeholder="选择日期"
-            class="w-full!"
-          />
-        </el-form-item>
-        <el-form-item v-if="dialogType === 'single'" label="有效期">
-          <el-date-picker
-            v-model="formData.expiryDate"
-            type="date"
-            placeholder="选择日期"
-            class="w-full!"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
-          确定
-        </el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 流转记录弹窗 -->
-    <el-dialog
-      v-model="logsDialogVisible"
-      :title="`流转记录 - ${currentSerialNo}`"
-      width="700px"
-    >
-      <pure-table
-        :loading="logsLoading"
-        :data="logsList"
-        border
-        :columns="logColumns"
-      >
-        <template #action="{ row }">
-          {{ actionMap[row.action] || row.action }}
-        </template>
-      </pure-table>
-    </el-dialog>
   </div>
 </template>

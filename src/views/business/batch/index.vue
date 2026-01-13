@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h, reactive } from "vue";
-import {
-  getBatchListApi,
-  createBatchApi,
-  getBatchTransactionsApi
-} from "@/api/batch";
+import { getBatchListApi, getBatchTransactionsApi } from "@/api/batch";
 import { getRepoListApi } from "@/api/company/repo";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -13,6 +9,8 @@ import Add from "~icons/ep/plus";
 import View from "~icons/ep/view";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { ElTag, ElButton } from "element-plus";
+import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import BatchCreateForm from "./BatchCreateForm.vue";
 
 defineOptions({
   name: "BusinessBatch"
@@ -30,33 +28,20 @@ interface BatchItem {
   expiryDate: string;
 }
 
+interface RepoItem {
+  uid: string;
+  name: string;
+}
+
 const tableData = ref<BatchItem[]>([]);
-const repoList = ref<unknown[]>([]);
+const repoList = ref<RepoItem[]>([]);
 
 // 查询条件
 const queryForm = ref({
   repoId: undefined,
-  tireId: undefined, // 暂未提供轮胎选择组件，可扩展
+  tireId: undefined,
   batchNo: undefined
 });
-
-// 新增批次弹窗
-const dialogVisible = ref(false);
-const formRef = ref<any>(null);
-const batchForm = ref({
-  repoId: undefined,
-  tireId: undefined, // 需轮胎选择
-  batchNo: "",
-  quantity: 0,
-  productionDate: "",
-  expiryDate: ""
-});
-const rules = {
-  repoId: [{ required: true, message: "请选择仓库", trigger: "change" }],
-  tireId: [{ required: true, message: "请输入轮胎ID", trigger: "blur" }], // 简化为输入ID
-  batchNo: [{ required: true, message: "请输入批次号", trigger: "blur" }],
-  quantity: [{ required: true, message: "请输入数量", trigger: "blur" }]
-};
 
 // 流水抽屉
 const drawerVisible = ref(false);
@@ -188,30 +173,21 @@ const loadData = async () => {
 };
 
 const handleCreate = () => {
-  dialogVisible.value = true;
-  batchForm.value = {
-    repoId: undefined,
-    tireId: undefined,
-    batchNo: "",
-    quantity: 0,
-    productionDate: "",
-    expiryDate: ""
-  };
-};
-
-const submitCreate = async () => {
-  formRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      try {
-        await createBatchApi(batchForm.value as any);
-        message("批次创建成功", { type: "success" });
-        dialogVisible.value = false;
-        loadData();
-      } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : "创建失败";
-        message(msg, { type: "error" });
-      }
-    }
+  addDialog({
+    title: "新增批次",
+    width: "500px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(BatchCreateForm, {
+        repoList: repoList.value,
+        onSuccess: () => {
+          closeAllDialog();
+          loadData();
+        },
+        onClose: () => closeAllDialog()
+      })
   });
 };
 
@@ -313,66 +289,6 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <!-- 新增弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新增批次" width="500px">
-      <el-form
-        ref="formRef"
-        :model="batchForm"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-form-item label="仓库" prop="repoId">
-          <el-select
-            v-model="batchForm.repoId"
-            placeholder="请选择仓库"
-            class="w-full"
-          >
-            <el-option
-              v-for="item in repoList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="商品ID" prop="tireId">
-          <el-input v-model="batchForm.tireId" placeholder="请输入商品ID" />
-        </el-form-item>
-        <el-form-item label="批次号" prop="batchNo">
-          <el-input v-model="batchForm.batchNo" placeholder="请输入批次号" />
-        </el-form-item>
-        <el-form-item label="初始数量" prop="quantity">
-          <el-input-number
-            v-model="batchForm.quantity"
-            :min="1"
-            class="w-full"
-          />
-        </el-form-item>
-        <el-form-item label="生产日期" prop="productionDate">
-          <el-date-picker
-            v-model="batchForm.productionDate"
-            type="date"
-            placeholder="选择日期"
-            value-format="YYYY-MM-DD"
-            class="w-full"
-          />
-        </el-form-item>
-        <el-form-item label="过期日期" prop="expiryDate">
-          <el-date-picker
-            v-model="batchForm.expiryDate"
-            type="date"
-            placeholder="选择日期"
-            value-format="YYYY-MM-DD"
-            class="w-full"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitCreate">确认</el-button>
-      </template>
-    </el-dialog>
 
     <!-- 流水抽屉 -->
     <el-drawer

@@ -142,10 +142,13 @@ async function generateBarcode() {
 
 function downloadBarcode() {
   if (!barcodeImage.value) return;
-  const link = document.createElement("a");
-  link.href = barcodeImage.value;
-  link.download = `barcode_${barcodeForm.value.code}.png`;
-  link.click();
+  // barcodeImage 已经是 objectURL，直接作为同源 URL 下载
+  import("@/utils/download").then(({ downloadFromUrl }) => {
+    downloadFromUrl(
+      barcodeImage.value!,
+      `barcode_${barcodeForm.value.code}.png`
+    );
+  });
 }
 
 async function handleScan() {

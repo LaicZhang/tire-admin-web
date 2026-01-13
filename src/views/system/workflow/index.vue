@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   getWorkflowListApi,
-  createWorkflowApi,
-  updateWorkflowApi,
   deleteWorkflowApi,
   type WorkflowQuery,
-  type WorkflowForm,
   type WorkflowVO
 } from "@/api/system/workflow";
 import {
@@ -15,13 +12,14 @@ import {
   Search,
   Refresh,
   Delete,
-  Edit,
-  Check,
-  Close
+  Edit
 } from "@element-plus/icons-vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import StatusTag from "@/components/StatusTag/index.vue";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
+import WorkflowForm from "./WorkflowForm.vue";
 
 defineOptions({
   name: "WorkflowIndex"
@@ -29,9 +27,7 @@ defineOptions({
 
 const loading = ref(false);
 const tableData = ref<WorkflowVO[]>([]);
-const total = ref(0);
-const dialogVisible = ref(false);
-const dialogTitle = ref("新增审批流程");
+const formRef = ref();
 
 const queryForm = reactive<WorkflowQuery>({
   name: "",
@@ -89,18 +85,7 @@ const pagination = reactive({
   layout: "total, sizes, prev, pager, next, jumper"
 });
 
-const formData = reactive<WorkflowForm>({
-  id: undefined,
-  name: "",
-  description: "",
-  steps: [],
-  status: 1
-});
 
-const rules = {
-  name: [{ required: true, message: "请输入流程名称", trigger: "blur" }],
-  status: [{ required: true, message: "请选择状态", trigger: "change" }]
-};
 
 const workflowStatusMap = {
   1: { label: "启用", type: "success" },
@@ -145,22 +130,57 @@ const resetQuery = () => {
 
 // Add Workflow
 const handleAdd = () => {
-  dialogTitle.value = "新增审批流程";
-  dialogVisible.value = true;
-  Object.assign(formData, {
-    id: undefined,
-    name: "",
-    description: "",
-    steps: [],
-    status: 1
+  addDialog({
+    title: "新增审批流程",
+    props: {
+      formInline: {
+        isEdit: false
+      }
+    },
+    width: "600px",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () => h(WorkflowForm, { ref: formRef }),
+    beforeSure: async done => {
+      const formInstance = formRef.value;
+      if (!formInstance) return;
+      const success = await formInstance.handleSubmit();
+      if (success) {
+        done();
+        handleQuery();
+      }
+    }
   });
 };
 
 // Edit Workflow
 const handleEdit = (row: WorkflowVO) => {
-  dialogTitle.value = "编辑审批流程";
-  dialogVisible.value = true;
-  Object.assign(formData, row);
+  addDialog({
+    title: "编辑审批流程",
+    props: {
+      formInline: {
+        isEdit: true,
+        data: row
+      }
+    },
+    width: "600px",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () => h(WorkflowForm, { ref: formRef }),
+    beforeSure: async done => {
+      const formInstance = formRef.value;
+      if (!formInstance) return;
+      const success = await formInstance.handleSubmit();
+      if (success) {
+        done();
+        handleQuery();
+      }
+    }
+  });
 };
 
 // Delete Workflow
@@ -177,39 +197,6 @@ const handleDelete = async (row: WorkflowVO) => {
   }
 };
 
-// Submit Form
-const handleSubmit = async () => {
-  if (!formRef.value) return;
-  await formRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      try {
-        if (formData.id) {
-          await updateWorkflowApi(formData.id, formData);
-          ElMessage.success("修改成功");
-        } else {
-          await createWorkflowApi(formData);
-          ElMessage.success("新增成功");
-        }
-        dialogVisible.value = false;
-        handleQuery();
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  });
-};
-
-// Mock Step Editor (Simplified for now)
-const addStep = () => {
-  formData.steps.push({
-    name: `步骤 ${formData.steps.length + 1}`,
-    approverType: "user"
-  });
-};
-
-const removeStep = (index: number) => {
-  formData.steps.splice(index, 1);
-};
 
 onMounted(() => {
   handleQuery();
@@ -305,81 +292,6 @@ onMounted(() => {
         </template>
       </PureTableBar>
     </div>
-
-    <!-- Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogTitle"
-      width="600px"
-      append-to-body
-    >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="rules"
-        label-width="80px"
-      >
-        <el-form-item label="流程名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入流程名称" />
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            placeholder="请输入描述"
-          />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="formData.status">
-            <el-radio :value="1">启用</el-radio>
-            <el-radio :value="0">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-divider content-position="left">流程步骤配置</el-divider>
-        <div
-          v-for="(step, index) in formData.steps"
-          :key="index"
-          class="mb-2 flex items-center gap-2"
-        >
-          <el-tag type="info" class="mr-2">Step {{ index + 1 }}</el-tag>
-          <el-input
-            v-model="step.name"
-            placeholder="步骤名称"
-            style="width: 150px"
-          />
-          <el-select
-            v-model="step.approverType"
-            placeholder="审批人类型"
-            style="width: 120px"
-          >
-            <el-option label="用户" value="user" />
-            <el-option label="角色" value="role" />
-          </el-select>
-          <el-button
-            type="danger"
-            :icon="Delete"
-            circle
-            size="small"
-            @click="removeStep(index)"
-          />
-        </div>
-        <el-button
-          type="default"
-          plain
-          class="w-full mt-2 border-dashed"
-          @click="addStep"
-        >
-          + 添加步骤
-        </el-button>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" :click="handleSubmit">确定</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 

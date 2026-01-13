@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { h, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
+import { addDialog } from "@/components/ReDialog";
 import {
   getDepartmentListApi,
   deleteDepartmentApi,
@@ -19,6 +20,7 @@ import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/hooks/useCrud";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import RolesForm from "./RolesForm.vue";
 
 defineOptions({
   name: "department"
@@ -46,14 +48,6 @@ const {
   transform: ({ data }) => ({ list: data.list, total: data.count })
 });
 
-// 角色管理相关
-const rolesDialogVisible = ref(false);
-const rolesLoading = ref(false);
-const currentDepartment = ref<{ uid: string; name: string } | null>(null);
-const departmentRoles = ref<string[]>([]);
-const allRoles = ref<{ uid: string; name: string }[]>([]);
-const selectedRoles = ref<string[]>([]);
-
 const onReset = () => {
   form.value = {
     name: undefined,
@@ -70,61 +64,79 @@ async function handleDelete(row: Department) {
 
 // 打开角色管理对话框
 async function openRolesDialog(row: { uid: string; name: string }) {
-  currentDepartment.value = row;
-  rolesDialogVisible.value = true;
-  rolesLoading.value = true;
+  // 先加载数据
+  let allRolesList: { uid: string; name: string }[] = [];
+  let deptRolesList: string[] = [];
+  let isLoading = true;
 
   try {
-    // 获取所有角色
-    const rolesRes = await getRolesApi(1, { pageSize: 100 });
-    if (rolesRes.code === 200) {
-      allRoles.value = rolesRes.data?.list || [];
-    }
+    const [rolesRes, deptRolesRes] = await Promise.all([
+      getRolesApi(1, { pageSize: 100 }),
+      getDepartmentRolesApi(row.uid)
+    ]);
 
-    // 获取部门当前角色
-    const deptRolesRes = await getDepartmentRolesApi(row.uid);
-    if (deptRolesRes.code === 200) {
-      departmentRoles.value = deptRolesRes.data || [];
-      selectedRoles.value = [...departmentRoles.value];
+    if (rolesRes.code === 200) {
+      allRolesList = rolesRes.data?.list || [];
     }
+    if (deptRolesRes.code === 200) {
+      deptRolesList = deptRolesRes.data || [];
+    }
+    isLoading = false;
   } catch {
     message("获取角色信息失败", { type: "error" });
-  } finally {
-    rolesLoading.value = false;
+    return;
   }
-}
 
-// 保存角色分配
-async function saveRoles() {
-  if (!currentDepartment.value) return;
+  // 用于追踪选中的角色
+  let selectedRolesList = [...deptRolesList];
 
-  rolesLoading.value = true;
-  try {
-    // 计算需要添加和删除的角色
-    const toAdd = selectedRoles.value.filter(
-      (r: string) => !departmentRoles.value.includes(r)
-    );
-    const toRemove = departmentRoles.value.filter(
-      (r: string) => !selectedRoles.value.includes(r)
-    );
+  addDialog({
+    title: `管理部门角色 - ${row.name}`,
+    width: "500px",
+    draggable: true,
+    closeOnClickModal: false,
+    props: {
+      allRoles: allRolesList,
+      selectedRoles: selectedRolesList,
+      loading: isLoading
+    },
+    contentRenderer: ({ options }) =>
+      h(RolesForm, {
+        allRoles: (options.props as { allRoles: typeof allRolesList }).allRoles,
+        selectedRoles: (options.props as { selectedRoles: string[] })
+          .selectedRoles,
+        loading: (options.props as { loading: boolean }).loading,
+        "onUpdate:selectedRoles": (val: string[]) => {
+          selectedRolesList = val;
+        }
+      }),
+    beforeSure: async done => {
+      try {
+        // 计算需要添加和删除的角色
+        const toAdd = selectedRolesList.filter(
+          (r: string) => !deptRolesList.includes(r)
+        );
+        const toRemove = deptRolesList.filter(
+          (r: string) => !selectedRolesList.includes(r)
+        );
 
-    // 添加新角色
-    if (toAdd.length > 0) {
-      await setDepartmentRolesApi(currentDepartment.value.uid, toAdd);
+        // 添加新角色
+        if (toAdd.length > 0) {
+          await setDepartmentRolesApi(row.uid, toAdd);
+        }
+
+        // 移除角色
+        if (toRemove.length > 0) {
+          await removeDepartmentRolesApi(row.uid, toRemove);
+        }
+
+        message("角色分配保存成功", { type: "success" });
+        done();
+      } catch {
+        message("保存失败", { type: "error" });
+      }
     }
-
-    // 移除角色
-    if (toRemove.length > 0) {
-      await removeDepartmentRolesApi(currentDepartment.value.uid, toRemove);
-    }
-
-    message("角色分配保存成功", { type: "success" });
-    rolesDialogVisible.value = false;
-  } catch {
-    message("保存失败", { type: "error" });
-  } finally {
-    rolesLoading.value = false;
-  }
+  });
 }
 </script>
 
@@ -214,31 +226,5 @@ async function saveRoles() {
         </template>
       </PureTableBar>
     </el-card>
-
-    <!-- 角色管理对话框 -->
-    <el-dialog
-      v-model="rolesDialogVisible"
-      :title="`管理部门角色 - ${currentDepartment?.name}`"
-      width="500px"
-    >
-      <div v-loading="rolesLoading" class="min-h-[200px]">
-        <el-checkbox-group v-model="selectedRoles">
-          <el-checkbox
-            v-for="role in allRoles"
-            :key="role.uid"
-            :value="role.uid"
-            :label="role.name"
-            class="mb-2 w-full"
-          />
-        </el-checkbox-group>
-        <el-empty v-if="allRoles.length === 0" description="暂无可分配角色" />
-      </div>
-      <template #footer>
-        <el-button @click="rolesDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="rolesLoading" @click="saveRoles">
-          保存
-        </el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>

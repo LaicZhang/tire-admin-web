@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, computed } from "vue";
+import { ref, reactive, onMounted, watch, computed, h, defineAsyncComponent } from "vue";
 import Add from "~icons/ep/plus";
 import Delete from "~icons/ep/delete";
+import { addDialog } from "@/components/ReDialog";
 import {
   formatToken,
   getFileMd5,
@@ -88,11 +89,7 @@ const newFormInline = ref(props.formInline);
 
 // 多单位相关
 const unitList = ref<Unit[]>([]);
-const showAddConversionDialog = ref(false);
-const newConversion = ref({
-  targetUnitId: "",
-  ratio: 1
-});
+const conversionFormRef = ref();
 
 // 计算主单位
 const mainUnit = computed(() => {
@@ -166,38 +163,46 @@ const loadUnits = async () => {
   }
 };
 
-// 添加单位换算
-const handleAddConversion = async () => {
-  if (!newConversion.value.targetUnitId || !newConversion.value.ratio) {
-    message("请填写完整信息", { type: "warning" });
-    return;
-  }
-
-  if (newConversion.value.ratio <= 0) {
-    message("换算比例必须大于0", { type: "warning" });
-    return;
-  }
-
-  const targetUnit = unitList.value.find(
-    u => u.uid === newConversion.value.targetUnitId
-  );
-
-  // 本地添加到列表
-  const conversions = newFormInline.value.unitConversions || [];
-  conversions.push({
-    id: Date.now(),
-    uid: `temp-${Date.now()}`,
-    sourceUnitId: newFormInline.value.unitId || "",
-    targetUnitId: newConversion.value.targetUnitId,
-    ratio: newConversion.value.ratio,
-    sourceUnit: mainUnit.value || undefined,
-    targetUnit: targetUnit
+// 添加单位换算 - 使用 addDialog
+const openAddConversionDialog = () => {
+  addDialog({
+    title: "添加单位换算",
+    props: {
+      formInline: {
+        mainUnit: mainUnit.value,
+        availableUnits: availableUnits.value
+      }
+    },
+    width: "400px",
+    draggable: true,
+    closeOnClickModal: false,
+    contentRenderer: () => {
+      const UnitConversionForm = defineAsyncComponent(() => import("./UnitConversionForm.vue"));
+      return h(UnitConversionForm, { ref: conversionFormRef });
+    },
+    beforeSure: done => {
+      const formInstance = conversionFormRef.value;
+      if (!formInstance || !formInstance.validate()) return;
+      
+      const data = formInstance.getData();
+      const targetUnit = unitList.value.find(u => u.uid === data.targetUnitId);
+      
+      const conversions = newFormInline.value.unitConversions || [];
+      conversions.push({
+        id: Date.now(),
+        uid: `temp-${Date.now()}`,
+        sourceUnitId: newFormInline.value.unitId || "",
+        targetUnitId: data.targetUnitId,
+        ratio: data.ratio,
+        sourceUnit: mainUnit.value || undefined,
+        targetUnit: targetUnit
+      });
+      newFormInline.value.unitConversions = conversions;
+      
+      message("已添加换算关系，保存商品时生效", { type: "success" });
+      done();
+    }
   });
-  newFormInline.value.unitConversions = conversions;
-
-  showAddConversionDialog.value = false;
-  newConversion.value = { targetUnitId: "", ratio: 1 };
-  message("已添加换算关系，保存商品时生效", { type: "success" });
 };
 
 // 删除换算关系
@@ -352,7 +357,7 @@ watch(
           type="primary"
           size="small"
           text
-          @click="showAddConversionDialog = true"
+          @click="openAddConversionDialog"
         >
           <IconifyIconOffline :icon="Add" class="mr-1" />
           添加换算关系
@@ -459,46 +464,7 @@ watch(
         type="textarea"
       />
     </el-form-item>
-  </el-form>
-
-  <!-- 添加换算关系弹窗 -->
-  <el-dialog
-    v-model="showAddConversionDialog"
-    title="添加单位换算"
-    width="400px"
-  >
-    <el-form label-width="80px">
-      <el-form-item label="换算关系">
-        <div class="flex items-center">
-          <span>1 {{ mainUnit?.name || newFormInline.unit }}</span>
-          <span class="mx-2">=</span>
-          <el-input-number
-            v-model="newConversion.ratio"
-            :min="0.001"
-            :precision="3"
-            class="w-28"
-          />
-          <el-select
-            v-model="newConversion.targetUnitId"
-            placeholder="选择辅单位"
-            class="ml-2 w-28"
-          >
-            <el-option
-              v-for="unit in availableUnits"
-              :key="unit.uid"
-              :label="unit.name"
-              :value="unit.uid"
-            />
-          </el-select>
-        </div>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="showAddConversionDialog = false">取消</el-button>
-      <el-button type="primary" @click="handleAddConversion">确定</el-button>
-    </template>
-  </el-dialog>
-</template>
+  </template>
 
 <style scoped>
 .cover-uploader .el-upload {

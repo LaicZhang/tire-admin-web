@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { h, ref, watch } from "vue";
 import { message } from "@/utils";
 import { PureTable } from "@pureadmin/table";
+import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import {
   getCustomerTagListApi,
   createCustomerTagApi,
   updateCustomerTagApi,
   deleteCustomerTagApi
 } from "@/api";
+import TagEditForm from "./TagEditForm.vue";
 
 interface Tag {
   id: number;
@@ -25,23 +27,6 @@ const emit = defineEmits<{
 
 const loading = ref(false);
 const tagList = ref<Tag[]>([]);
-const showForm = ref(false);
-const editingTag = ref<Tag | null>(null);
-const formData = ref({
-  name: "",
-  color: "#409EFF"
-});
-
-const colors = [
-  "#409EFF",
-  "#67C23A",
-  "#E6A23C",
-  "#F56C6C",
-  "#909399",
-  "#00d4ff",
-  "#ff85c0",
-  "#b37feb"
-];
 
 const columns: TableColumnList = [
   {
@@ -75,37 +60,45 @@ async function loadTags() {
 }
 
 function openCreateForm() {
-  editingTag.value = null;
-  formData.value = { name: "", color: "#409EFF" };
-  showForm.value = true;
+  addDialog({
+    title: "新增标签",
+    width: "400px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(TagEditForm, {
+        formData: { name: "", color: "#409EFF" },
+        onSubmit: async (data: { name: string; color: string }) => {
+          await createCustomerTagApi(data);
+          message("标签创建成功", { type: "success" });
+          closeAllDialog();
+          await loadTags();
+        },
+        onClose: () => closeAllDialog()
+      })
+  });
 }
 
 function openEditForm(tag: Tag) {
-  editingTag.value = tag;
-  formData.value = { name: tag.name, color: tag.color || "#409EFF" };
-  showForm.value = true;
-}
-
-async function handleSubmit() {
-  if (!formData.value.name.trim()) {
-    message("请输入标签名称", { type: "warning" });
-    return;
-  }
-
-  loading.value = true;
-  try {
-    if (editingTag.value) {
-      await updateCustomerTagApi(editingTag.value.id, formData.value);
-      message("标签更新成功", { type: "success" });
-    } else {
-      await createCustomerTagApi(formData.value);
-      message("标签创建成功", { type: "success" });
-    }
-    showForm.value = false;
-    await loadTags();
-  } finally {
-    loading.value = false;
-  }
+  addDialog({
+    title: "编辑标签",
+    width: "400px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(TagEditForm, {
+        formData: { name: tag.name, color: tag.color || "#409EFF" },
+        onSubmit: async (data: { name: string; color: string }) => {
+          await updateCustomerTagApi(tag.id, data);
+          message("标签更新成功", { type: "success" });
+          closeAllDialog();
+          await loadTags();
+        },
+        onClose: () => closeAllDialog()
+      })
+  });
 }
 
 async function handleDelete(tag: Tag) {
@@ -171,39 +164,6 @@ watch(
           </el-popconfirm>
         </template>
       </PureTable>
-
-      <!-- 新增/编辑表单弹窗 -->
-      <el-dialog
-        v-model="showForm"
-        :title="editingTag ? '编辑标签' : '新增标签'"
-        width="400px"
-      >
-        <el-form :model="formData" label-width="80px">
-          <el-form-item label="标签名称" required>
-            <el-input v-model="formData.name" placeholder="请输入标签名称" />
-          </el-form-item>
-          <el-form-item label="标签颜色">
-            <div class="flex flex-wrap gap-2">
-              <div
-                v-for="color in colors"
-                :key="color"
-                class="w-8 h-8 rounded cursor-pointer border-2"
-                :style="{
-                  backgroundColor: color,
-                  borderColor: formData.color === color ? '#000' : 'transparent'
-                }"
-                @click="formData.color = color"
-              />
-            </div>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <el-button @click="showForm = false">取消</el-button>
-          <el-button type="primary" :loading="loading" @click="handleSubmit">
-            确定
-          </el-button>
-        </template>
-      </el-dialog>
     </div>
   </el-dialog>
 </template>

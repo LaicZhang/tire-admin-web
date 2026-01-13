@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
@@ -9,20 +9,18 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { columns, detailColumns } from "./columns";
+import { columns } from "./columns";
 import editForm from "./form.vue";
+import StocktakingDetailForm from "./StocktakingDetailForm.vue";
 import {
   type StocktakingTask,
   type StocktakingQuery,
-  type StocktakingDetail,
   StocktakingStatus,
   stocktakingStatusMap
 } from "./types";
 import {
   getInventoryCheckTasksApi,
-  getInventoryCheckTaskApi,
   createInventoryCheckTaskApi,
-  updateInventoryCheckDetailsApi,
   completeInventoryCheckTaskApi,
   cancelInventoryCheckTaskApi,
   deleteInventoryCheckTaskApi
@@ -37,11 +35,8 @@ const dataList = ref<StocktakingTask[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref();
+const detailFormRef = ref();
 const repoList = ref<{ uid: string; name: string }[]>([]);
-const detailDialogVisible = ref(false);
-const currentTask = ref<StocktakingTask | null>(null);
-const detailList = ref<StocktakingDetail[]>([]);
-const detailLoading = ref(false);
 
 const queryParams = reactive<StocktakingQuery>({
   status: undefined,
@@ -145,55 +140,22 @@ const openCreateDialog = () => {
   });
 };
 
-const handleViewDetails = async (row: StocktakingTask) => {
-  currentTask.value = row;
-  detailDialogVisible.value = true;
-  detailLoading.value = true;
-  try {
-    const { data, code } = await getInventoryCheckTaskApi(row.id);
-    if (code === 200) {
-      detailList.value = (data.details || []) as StocktakingDetail[];
-    }
-  } catch (error) {
-    ElMessage.error("获取盘点明细失败");
-  } finally {
-    detailLoading.value = false;
-  }
-};
-
-const handleUpdateDetail = async (detail: StocktakingDetail) => {
-  if (!currentTask.value) return;
-
-  try {
-    const { value } = await ElMessageBox.prompt(
-      `当前系统库存: ${detail.bookCount}`,
-      "录入实际库存",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue: String(detail.actualCount || detail.bookCount),
-        inputPattern: /^\d+$/,
-        inputErrorMessage: "请输入有效数量"
+const handleViewDetails = (row: StocktakingTask) => {
+  addDialog({
+    title: `盘点明细 - ${row.name || ""}`,
+    props: {
+      formInline: {
+        task: row
       }
-    );
-
-    await updateInventoryCheckDetailsApi(currentTask.value.id, {
-      details: [
-        {
-          detailId: detail.id,
-          actualCount: parseInt(value),
-          remark: detail.remark
-        }
-      ]
-    });
-
-    ElMessage.success("更新成功");
-    handleViewDetails(currentTask.value);
-  } catch (error) {
-    if (error !== "cancel") {
-      ElMessage.error("更新失败");
-    }
-  }
+    },
+    width: "80%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: true,
+    hideFooter: true,
+    contentRenderer: () => h(StocktakingDetailForm, { ref: detailFormRef })
+  });
 };
 
 const handleComplete = async (row: StocktakingTask) => {
@@ -357,70 +319,11 @@ onMounted(() => {
         </template>
       </PureTableBar>
     </el-card>
-
-    <!-- 盘点明细弹窗 -->
-    <el-dialog
-      v-model="detailDialogVisible"
-      :title="`盘点明细 - ${currentTask?.name || ''}`"
-      width="80%"
-      destroy-on-close
-    >
-      <pure-table
-        border
-        :loading="detailLoading"
-        :data="detailList"
-        :columns="
-          currentTask?.status === 'IN_PROGRESS'
-            ? detailColumns
-            : detailColumns.filter(col => col.slot !== 'operation')
-        "
-        max-height="500"
-      >
-        <template #actualCount="{ row }">
-          <span v-if="row.actualCount !== undefined">{{
-            row.actualCount
-          }}</span>
-          <span v-else class="text-gray-400">未录入</span>
-        </template>
-        <template #difference="{ row }">
-          <span
-            v-if="row.difference !== undefined"
-            :class="
-              row.difference > 0
-                ? 'text-green-600'
-                : row.difference < 0
-                  ? 'text-red-600'
-                  : ''
-            "
-          >
-            {{ row.difference > 0 ? "+" : "" }}{{ row.difference }}
-          </span>
-          <span v-else>-</span>
-        </template>
-        <template #operation="{ row }">
-          <el-button link type="primary" @click="handleUpdateDetail(row)">
-            录入
-          </el-button>
-        </template>
-      </pure-table>
-    </el-dialog>
   </div>
 </template>
 
 <style scoped lang="scss">
 .main {
   padding: 16px;
-}
-
-.text-gray-400 {
-  color: #9ca3af;
-}
-
-.text-green-600 {
-  color: #16a34a;
-}
-
-.text-red-600 {
-  color: #dc2626;
 }
 </style>

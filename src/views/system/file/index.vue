@@ -115,14 +115,9 @@ async function handleDelete(row: FileItem) {
   }
 }
 
-function handleDownload(row: FileItem) {
-  const link = document.createElement("a");
-  link.href = row.fileUrl;
-  link.download = row.fileName;
-  link.target = "_blank";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+async function handleDownload(row: FileItem) {
+  const { downloadFromUrl } = await import("@/utils/download");
+  await downloadFromUrl(row.fileUrl, row.fileName);
 }
 
 function openUploadDialog() {

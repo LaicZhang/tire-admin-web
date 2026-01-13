@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { h, ref, reactive, onMounted } from "vue";
 import {
   getDefectCategoryListApi,
-  createDefectCategoryApi,
-  updateDefectCategoryApi,
   deleteDefectCategoryApi,
   type DefectCategory
 } from "@/api/business/quality";
@@ -14,6 +12,8 @@ import Add from "~icons/ep/plus";
 import Edit from "~icons/ep/edit";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { message } from "@/utils/message";
+import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import DefectCategoryForm from "./DefectCategoryForm.vue";
 
 defineOptions({
   name: "QualityDefect"
@@ -32,21 +32,7 @@ const form = reactive({
   name: ""
 });
 
-const dialogVisible = ref(false);
-const dialogType = ref<"add" | "edit">("add");
-const dialogForm = reactive({
-  id: 0,
-  name: "",
-  description: "",
-  solution: ""
-});
-const dialogLoading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const dialogFormRef = ref();
-
-const rules = {
-  name: [{ required: true, message: "请输入分类名称", trigger: "blur" }]
-};
 
 const columns: TableColumnList = [
   {
@@ -88,16 +74,48 @@ const onReset = () => {
 };
 
 function handleAdd() {
-  dialogType.value = "add";
-  dialogVisible.value = true;
-  // Reset dialog form
-  Object.assign(dialogForm, { id: 0, name: "", description: "", solution: "" });
+  addDialog({
+    title: "新增分类",
+    width: "500px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(DefectCategoryForm, {
+        initialData: { id: 0, name: "", description: "", solution: "" },
+        mode: "add",
+        onSuccess: () => {
+          closeAllDialog();
+          onSearch();
+        },
+        onClose: () => closeAllDialog()
+      })
+  });
 }
 
 function handleEdit(row: DefectCategory) {
-  dialogType.value = "edit";
-  dialogVisible.value = true;
-  Object.assign(dialogForm, { ...row, id: row.id });
+  addDialog({
+    title: "编辑分类",
+    width: "500px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(DefectCategoryForm, {
+        initialData: {
+          id: row.id,
+          name: row.name,
+          description: row.description || "",
+          solution: row.solution || ""
+        },
+        mode: "edit",
+        onSuccess: () => {
+          closeAllDialog();
+          onSearch();
+        },
+        onClose: () => closeAllDialog()
+      })
+  });
 }
 
 async function handleDelete(row: DefectCategory) {
@@ -108,31 +126,6 @@ async function handleDelete(row: DefectCategory) {
   } catch (e) {
     console.error(e);
   }
-}
-
-async function onDialogSubmit(
-  formEl: { validate: (cb: (valid: boolean) => void) => void } | undefined
-) {
-  if (!formEl) return;
-  await formEl.validate(async (valid: boolean) => {
-    if (valid) {
-      dialogLoading.value = true;
-      try {
-        if (dialogType.value === "add") {
-          await createDefectCategoryApi(dialogForm);
-        } else {
-          await updateDefectCategoryApi(dialogForm.id, dialogForm);
-        }
-        message("操作成功", { type: "success" });
-        dialogVisible.value = false;
-        onSearch();
-      } catch (e) {
-        console.error(e);
-      } finally {
-        dialogLoading.value = false;
-      }
-    }
-  });
 }
 
 onMounted(() => {
@@ -194,40 +187,5 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'add' ? '新增分类' : '编辑分类'"
-      width="500px"
-    >
-      <el-form
-        ref="dialogFormRef"
-        :model="dialogForm"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="dialogForm.name" />
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input v-model="dialogForm.description" type="textarea" />
-        </el-form-item>
-        <el-form-item label="解决方案" prop="solution">
-          <el-input v-model="dialogForm.solution" type="textarea" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button
-            type="primary"
-            :loading="dialogLoading"
-            @click="onDialogSubmit(dialogFormRef)"
-          >
-            确定
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
