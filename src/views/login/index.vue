@@ -13,6 +13,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { ref, toRaw, onMounted, computed } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
+import { setToken } from "@/utils/auth";
 import {
   useCaptcha,
   useRememberLogin,
@@ -39,12 +40,13 @@ defineOptions({
 
 const router = useRouter();
 const ruleFormRef = ref<FormInstance>();
-const showThirdPartyLogin = ref(false);
+const showThirdPartyLogin = ref(true);
 
 // 使用 composables
 const { captchaUrl, refreshCaptcha } = useCaptcha();
 const { checked, loginDay } = useRememberLogin();
-const { loading, disabled, ruleForm } = useLoginForm();
+const { loading, disabled, ruleForm, githubLoading, handleGithubLogin } =
+  useLoginForm();
 
 // 同步 isRemember 到 ruleForm
 ruleForm.isRemember = checked.value;
@@ -99,6 +101,26 @@ function onkeydown({ code }: KeyboardEvent) {
 // 使用 VueUse 的 useEventListener 自动处理事件清理
 useEventListener(document, "keydown", onkeydown, { passive: true });
 
+const onThirdPartyLogin = (icon: string) => {
+  if (icon === "github") {
+    if (githubLoading.value) return;
+    handleGithubLogin()
+      .then(data => {
+        if (data && data.accessToken) {
+          setToken(data);
+          usePermissionStoreHook().handleWholeMenus([]);
+          useCurrentCompanyStoreHook().handleCurrentCompany();
+          addPathMatch();
+          message("登录成功", { type: "success" });
+          router.push("/");
+        }
+      })
+      .catch(err => {
+        message(err.message, { type: "error" });
+      });
+  }
+};
+
 onMounted(() => {
   // 初始化加载后端验证码
   refreshCaptcha();
@@ -106,7 +128,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="select-none">
+  <div
+    v-loading.fullscreen.lock="githubLoading"
+    class="select-none"
+    element-loading-text="正在进行 GitHub 授权..."
+    element-loading-background="rgba(0, 0, 0, 0.7)"
+    element-loading-custom-class="oauth-loading-overlay"
+  >
     <picture>
       <source :srcset="bgWebp" type="image/webp" />
       <img loading="lazy" :src="bgPng" class="wave" />
@@ -242,7 +270,7 @@ onMounted(() => {
                   size="default"
                   type="primary"
                   :loading="loading"
-                  :disabled="disabled"
+                  :disabled="disabled || githubLoading"
                   @click="onLogin(ruleFormRef)"
                 >
                   登录
@@ -270,17 +298,45 @@ onMounted(() => {
                 <p class="text-gray-500 text-xs">第三方登录</p>
               </el-divider>
               <div class="w-full flex justify-evenly">
-                <span
-                  v-for="(item, index) in thirdParty"
-                  :key="index"
-                  :title="item.title"
-                >
-                  <IconifyIconOnline
-                    :icon="`ri:${item.icon}-fill`"
-                    width="20"
-                    class="cursor-pointer text-gray-500 hover:text-blue-400"
-                  />
-                </span>
+                <template v-for="(item, index) in thirdParty" :key="index">
+                  <el-tooltip
+                    v-if="item.icon === 'github'"
+                    content="仅限管理员登录"
+                    placement="top"
+                    :disabled="githubLoading"
+                  >
+                    <span
+                      class="github-btn"
+                      :class="{ 'is-disabled': githubLoading }"
+                      :title="item.title"
+                      @click="!githubLoading && onThirdPartyLogin(item.icon)"
+                    >
+                      <IconifyIconOnline
+                        v-if="githubLoading"
+                        icon="ri:loader-4-line"
+                        width="20"
+                        class="animate-spin text-blue-400"
+                      />
+                      <IconifyIconOnline
+                        v-else
+                        :icon="`ri:${item.icon}-fill`"
+                        width="20"
+                        class="cursor-pointer text-gray-500 transition-colors"
+                      />
+                    </span>
+                  </el-tooltip>
+                  <span
+                    v-else
+                    :title="item.title"
+                    @click="onThirdPartyLogin(item.icon)"
+                  >
+                    <IconifyIconOnline
+                      :icon="`ri:${item.icon}-fill`"
+                      width="20"
+                      class="cursor-pointer text-gray-500 hover:text-blue-400"
+                    />
+                  </span>
+                </template>
               </div>
             </el-form-item>
           </Motion>

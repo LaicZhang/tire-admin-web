@@ -53,6 +53,45 @@
     monospace;
 }
 
+/* GitHub Login Button Styles */
+.github-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.github-btn:hover:not(.is-disabled) {
+  background-color: #f3f4f6;
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.github-btn.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.github-btn:hover:not(.is-disabled) .text-gray-500 {
+  color: #3b82f6; /* text-blue-500 */
+}
+
+/* OAuth Loading Overlay */
+.oauth-loading-overlay .el-loading-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 10px;
+  color: #fff;
+}
+
+.oauth-loading-overlay .el-loading-spinner .path {
+  stroke: #fff;
+}
+
 @media screen and (max-width: 1180px) {
   .login-container {
     grid-gap: 9rem;
