@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h, onMounted, ref } from "vue";
-import { type TippyOptions, type TippyContent, useTippy } from "vue-tippy";
+import type { TippyContent, TippyOptions } from "vue-tippy";
 
 defineOptions({
   name: "ReText"
@@ -41,6 +41,7 @@ const getTippyProps = () => ({
 });
 
 function handleHover(event: MouseEvent) {
+  if (!tippyFunc.value) return;
   if (isTextEllipsis(event.target as HTMLElement)) {
     tippyFunc.value.setProps(getTippyProps());
     tippyFunc.value.enable();
@@ -49,7 +50,12 @@ function handleHover(event: MouseEvent) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  const [{ useTippy }] = await Promise.all([
+    import("vue-tippy"),
+    import("tippy.js/dist/tippy.css"),
+    import("tippy.js/themes/light.css")
+  ]);
   tippyFunc.value = useTippy(textRef.value?.$el, getTippyProps());
 });
 </script>
