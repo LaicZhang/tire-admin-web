@@ -5,7 +5,8 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import * as echarts from "echarts/core";
+import type { ECharts } from "echarts";
+import { getEcharts } from "@/utils/echarts";
 
 defineOptions({
   name: "AnalysisProfit"
@@ -73,7 +74,7 @@ const netTrend = ref<NetTrendItem[]>([]);
 
 // 图表
 const chartRef = ref<HTMLElement | null>(null);
-let chartInstance: echarts.ECharts | null = null;
+let chartInstance: ECharts | null = null;
 
 const dateParams = computed(() => {
   if (!dateRange.value) return {};
@@ -121,9 +122,10 @@ const getNetProfit = async () => {
   }
 };
 
-const updateChart = () => {
+const updateChart = async () => {
   if (!chartRef.value) return;
   if (!chartInstance) {
+    const echarts = await getEcharts();
     chartInstance = echarts.init(chartRef.value);
   }
 
@@ -179,7 +181,7 @@ const loadData = async () => {
   loading.value = true;
   try {
     await Promise.all([getGrossProfit(), getNetProfit()]);
-    nextTick(() => updateChart());
+    nextTick(() => void updateChart());
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载利润数据失败";
     message(msg, { type: "error" });

@@ -10,7 +10,8 @@ import {
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import * as echarts from "echarts/core";
+import type { ECharts } from "echarts";
+import { getEcharts } from "@/utils/echarts";
 
 defineOptions({
   name: "AnalysisInventory"
@@ -128,8 +129,8 @@ const stockoutColumns: TableColumnList = [
 // 图表引用
 const turnoverChartRef = ref<HTMLElement | null>(null);
 const expiryChartRef = ref<HTMLElement | null>(null);
-let turnoverChart: echarts.ECharts | null = null;
-let expiryChart: echarts.ECharts | null = null;
+let turnoverChart: ECharts | null = null;
+let expiryChart: ECharts | null = null;
 
 // 格式化金额
 const formatAmount = (val: string | number) => {
@@ -192,7 +193,7 @@ const getTurnover = async () => {
         averageDays: data.averageDays || 0,
         details: data.details || []
       };
-      nextTick(() => updateTurnoverChart());
+      nextTick(() => void updateTurnoverChart());
     }
   } catch (error) {
     console.error("获取周转率失败:", error);
@@ -206,16 +207,17 @@ const getExpiry = async () => {
       expiryData.value = (
         Array.isArray(data) ? data : data.buckets || []
       ) as ExpiryDataItem[];
-      nextTick(() => updateExpiryChart());
+      nextTick(() => void updateExpiryChart());
     }
   } catch (error) {
     console.error("获取临期分布失败:", error);
   }
 };
 
-const updateTurnoverChart = () => {
+const updateTurnoverChart = async () => {
   if (!turnoverChartRef.value) return;
   if (!turnoverChart) {
+    const echarts = await getEcharts();
     turnoverChart = echarts.init(turnoverChartRef.value);
   }
   const details = turnoverData.value.details || [];
@@ -236,9 +238,10 @@ const updateTurnoverChart = () => {
   });
 };
 
-const updateExpiryChart = () => {
+const updateExpiryChart = async () => {
   if (!expiryChartRef.value) return;
   if (!expiryChart) {
+    const echarts = await getEcharts();
     expiryChart = echarts.init(expiryChartRef.value);
   }
   expiryChart.setOption({

@@ -4,7 +4,8 @@ import { getReceivableAgingApi, getPayableAgingApi } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
-import * as echarts from "echarts/core";
+import type { ECharts } from "echarts";
+import { getEcharts } from "@/utils/echarts";
 
 defineOptions({
   name: "AnalysisAging"
@@ -50,8 +51,8 @@ const payableData = ref<AgingData>({
 
 const chartRefReceivable = ref<HTMLElement | null>(null);
 const chartRefPayable = ref<HTMLElement | null>(null);
-let chartInstanceReceivable: echarts.ECharts | null = null;
-let chartInstancePayable: echarts.ECharts | null = null;
+let chartInstanceReceivable: ECharts | null = null;
+let chartInstancePayable: ECharts | null = null;
 
 const dateParams = computed(() => {
   // 账龄分析通常不需要时间段筛选，而是截止日期，但API提供了startDate/endDate，可能是筛选订单生成时间
@@ -149,7 +150,7 @@ const getReceivable = async () => {
         buckets: data.buckets || [],
         details: data.details || []
       };
-      nextTick(() => updateChart("receivable"));
+      nextTick(() => void updateChart("receivable"));
     }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "获取应收账龄失败";
@@ -166,7 +167,7 @@ const getPayable = async () => {
         buckets: data.buckets || [],
         details: data.details || []
       };
-      nextTick(() => updateChart("payable"));
+      nextTick(() => void updateChart("payable"));
     }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "获取应付账龄失败";
@@ -174,7 +175,7 @@ const getPayable = async () => {
   }
 };
 
-const updateChart = (type: "receivable" | "payable") => {
+const updateChart = async (type: "receivable" | "payable") => {
   const isReceivable = type === "receivable";
   const refDom = isReceivable
     ? chartRefReceivable.value
@@ -187,6 +188,7 @@ const updateChart = (type: "receivable" | "payable") => {
 
   let instance = isReceivable ? chartInstanceReceivable : chartInstancePayable;
   if (!instance) {
+    const echarts = await getEcharts();
     instance = echarts.init(refDom);
     if (isReceivable) chartInstanceReceivable = instance;
     else chartInstancePayable = instance;
@@ -245,10 +247,10 @@ const handleTabChange = () => {
   nextTick(() => {
     if (activeTab.value === "receivable") {
       chartInstanceReceivable?.resize();
-      updateChart("receivable");
+      void updateChart("receivable");
     } else {
       chartInstancePayable?.resize();
-      updateChart("payable");
+      void updateChart("payable");
     }
   });
 };

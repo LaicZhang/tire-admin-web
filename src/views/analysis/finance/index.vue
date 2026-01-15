@@ -9,7 +9,8 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import * as echarts from "echarts/core";
+import type { ECharts } from "echarts";
+import { getEcharts } from "@/utils/echarts";
 
 defineOptions({
   name: "AnalysisFinance"
@@ -78,8 +79,8 @@ const balanceTrend = ref<BalanceTrendItem[]>([]);
 // 图表
 const cashFlowChartRef = ref<HTMLElement | null>(null);
 const balanceChartRef = ref<HTMLElement | null>(null);
-let cashFlowChart: echarts.ECharts | null = null;
-let balanceChart: echarts.ECharts | null = null;
+let cashFlowChart: ECharts | null = null;
+let balanceChart: ECharts | null = null;
 
 const dateParams = computed(() => {
   if (!dateRange.value) return {};
@@ -120,7 +121,7 @@ const getCashFlow = async () => {
       cashFlowTrend.value = (data.trend ||
         data.data ||
         []) as CashFlowTrendItem[];
-      nextTick(() => updateCashFlowChart());
+      nextTick(() => void updateCashFlowChart());
     }
   } catch (error) {
     console.error("获取现金流失败:", error);
@@ -134,16 +135,17 @@ const getBalance = async () => {
       balanceTrend.value = (data.trend ||
         data.data ||
         []) as BalanceTrendItem[];
-      nextTick(() => updateBalanceChart());
+      nextTick(() => void updateBalanceChart());
     }
   } catch (error) {
     console.error("获取余额趋势失败:", error);
   }
 };
 
-const updateCashFlowChart = () => {
+const updateCashFlowChart = async () => {
   if (!cashFlowChartRef.value) return;
   if (!cashFlowChart) {
+    const echarts = await getEcharts();
     cashFlowChart = echarts.init(cashFlowChartRef.value);
   }
 
@@ -188,9 +190,10 @@ const updateCashFlowChart = () => {
   });
 };
 
-const updateBalanceChart = () => {
+const updateBalanceChart = async () => {
   if (!balanceChartRef.value) return;
   if (!balanceChart) {
+    const echarts = await getEcharts();
     balanceChart = echarts.init(balanceChartRef.value);
   }
 

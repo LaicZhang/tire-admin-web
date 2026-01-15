@@ -11,7 +11,8 @@ import { message } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import * as echarts from "echarts/core";
+import type { ECharts, EChartsOption } from "echarts";
+import { getEcharts } from "@/utils/echarts";
 import { useColumns } from "./columns";
 
 defineOptions({
@@ -22,7 +23,7 @@ const { customerColumns, productColumns, operatorColumns } = useColumns();
 
 const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
-let chartInstance: echarts.ECharts | null = null;
+let chartInstance: ECharts | null = null;
 
 // 日期范围筛选
 const dateRange = ref<[Date, Date] | null>(null);
@@ -117,7 +118,7 @@ const getTrend = async () => {
     });
     if (code === 200 && data?.data) {
       trendData.value = data.data;
-      updateChart();
+      void updateChart();
     }
   } catch (error) {
     console.error("获取销售趋势失败:", error);
@@ -154,14 +155,15 @@ const getRankings = async () => {
   }
 };
 
-const updateChart = () => {
+const updateChart = async () => {
   if (!chartRef.value || !trendData.value.length) return;
 
   if (!chartInstance) {
+    const echarts = await getEcharts();
     chartInstance = echarts.init(chartRef.value);
   }
 
-  const option: echarts.EChartsCoreOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" }
