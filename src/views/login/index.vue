@@ -8,7 +8,7 @@ import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
 import { addPathMatch } from "@/router/utils";
-import { bg, avatar, illustration } from "./utils/static";
+import { bgPng, bgWebp, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { ref, toRaw, onMounted, computed } from "vue";
 import { useEventListener } from "@vueuse/core";
@@ -19,6 +19,7 @@ import {
   useLoginForm
 } from "./composables/useLoginForm";
 
+import { IconifyIconOnline } from "@/components/ReIcon";
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
 import Lock from "~icons/ri/lock-fill";
@@ -106,7 +107,10 @@ onMounted(() => {
 
 <template>
   <div class="select-none">
-    <img loading="lazy" :src="bg" class="wave" />
+    <picture>
+      <source :srcset="bgWebp" type="image/webp" />
+      <img loading="lazy" :src="bgPng" class="wave" />
+    </picture>
     <div class="flex-c absolute right-5 top-3">
       <!-- 主题 -->
       <el-switch
