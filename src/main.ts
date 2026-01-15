@@ -1,7 +1,7 @@
 import App from "./App.vue";
 import router from "./router";
 import { setupStore } from "@/store";
-import { getPlatformConfig } from "./config";
+import { getConfig, getPlatformConfig } from "./config";
 import { MotionPlugin } from "@vueuse/motion";
 import { createApp, type Directive } from "vue";
 import { useElementPlus } from "@/plugins/elementPlus";
@@ -10,6 +10,9 @@ import "@/utils/globalPolyfills";
 
 import Table from "@pureadmin/table";
 import PureDescriptions from "@pureadmin/descriptions";
+import { useAppStoreHook } from "@/store/modules/app";
+import { useSettingStoreHook } from "@/store/modules/settings";
+import { useEpThemeStoreHook } from "@/store/modules/epTheme";
 
 // 引入重置样式
 import "./style/reset.scss";
@@ -33,34 +36,63 @@ Object.keys(directives).forEach(key => {
 });
 
 // 全局注册@iconify/vue图标库
-import {
-  IconifyIconOffline,
-  IconifyIconOnline,
-  FontIcon
-} from "./components/ReIcon";
+import { IconifyIconOffline } from "./components/ReIcon";
 app.component("IconifyIconOffline", IconifyIconOffline);
-app.component("IconifyIconOnline", IconifyIconOnline);
-app.component("FontIcon", FontIcon);
 
-// 全局注册按钮级别权限组件
-import { Auth } from "@/components/ReAuth";
-app.component("Auth", Auth);
+const bootConfig = Object.assign({}, getConfig<PlatformConfigs>());
+app.config.globalProperties.$config = bootConfig;
+injectResponsiveStorage(app, bootConfig);
 
-// 全局注册vue-tippy
-import "tippy.js/dist/tippy.css";
-import "tippy.js/themes/light.css";
-import VueTippy from "vue-tippy";
-app.use(VueTippy);
+setupStore(app);
+app.use(router);
+app.use(MotionPlugin).use(useElementPlus).use(Table).use(PureDescriptions);
 
-getPlatformConfig(app).then(async config => {
-  setupStore(app);
-  app.use(router);
-  await router.isReady();
-  injectResponsiveStorage(app, config);
-  app
-    .use(MotionPlugin)
-    .use(useElementPlus)
-    .use(Table)
-    .use(PureDescriptions)
-    .mount("#app");
+router.isReady().then(() => {
+  app.mount("#app");
+});
+
+function applyPlatformConfigAfterLoad(
+  initial: PlatformConfigs,
+  latest: PlatformConfigs
+) {
+  const settingStore = useSettingStoreHook();
+  if (settingStore.title === (initial.Title ?? "")) {
+    settingStore.changeSetting({ key: "title", value: latest.Title ?? "" });
+  }
+  if (settingStore.fixedHeader === (initial.FixedHeader ?? false)) {
+    settingStore.changeSetting({
+      key: "fixedHeader",
+      value: latest.FixedHeader ?? false
+    });
+  }
+  if (settingStore.hiddenSideBar === (initial.HiddenSideBar ?? false)) {
+    settingStore.changeSetting({
+      key: "hiddenSideBar",
+      value: latest.HiddenSideBar ?? false
+    });
+  }
+
+  const appStore = useAppStoreHook();
+  if (appStore.layout === (initial.Layout ?? "vertical")) {
+    appStore.setLayout(latest.Layout ?? "vertical");
+  }
+  if (appStore.sidebar.opened === (initial.SidebarStatus ?? true)) {
+    appStore.sidebar.opened = latest.SidebarStatus ?? true;
+  }
+
+  const epThemeStore = useEpThemeStoreHook();
+  if (epThemeStore.epThemeColor === (initial.EpThemeColor ?? "#409EFF")) {
+    epThemeStore.setEpThemeColor(latest.EpThemeColor ?? "#409EFF");
+  }
+
+  const currentRoute = router.currentRoute.value;
+  const routeTitle = currentRoute?.meta?.title as string | undefined;
+  if (routeTitle) {
+    const appTitle = latest.Title;
+    document.title = appTitle ? `${routeTitle} | ${appTitle}` : routeTitle;
+  }
+}
+
+void getPlatformConfig(app).then(latest => {
+  applyPlatformConfigAfterLoad(bootConfig, latest);
 });

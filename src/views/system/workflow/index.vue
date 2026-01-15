@@ -7,13 +7,7 @@ import {
   type WorkflowQuery,
   type WorkflowVO
 } from "@/api/system/workflow";
-import {
-  Plus,
-  Search,
-  Refresh,
-  Delete,
-  Edit
-} from "@element-plus/icons-vue";
+import { Plus, Search, Refresh, Delete, Edit } from "@element-plus/icons-vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import StatusTag from "@/components/StatusTag/index.vue";
@@ -85,14 +79,10 @@ const pagination = reactive({
   layout: "total, sizes, prev, pager, next, jumper"
 });
 
-
-
 const workflowStatusMap = {
   1: { label: "启用", type: "success" },
   0: { label: "禁用", type: "info" }
 } as const;
-
-const formRef = ref();
 
 // Fetch Data
 const handleQuery = async () => {
@@ -196,7 +186,6 @@ const handleDelete = async (row: WorkflowVO) => {
     // cancelled
   }
 };
-
 
 onMounted(() => {
   handleQuery();
