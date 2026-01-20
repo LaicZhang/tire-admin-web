@@ -4,13 +4,14 @@
  * @example
  * ```ts
  * // main.ts
- * import { auth, copy, longpress, optimize, ripple } from '@/directives';
+ * import { auth, copy, longpress, optimize, ripple, lazy } from '@/directives';
  *
  * app.directive('auth', auth);      // 权限控制 v-auth="['btn.add']" / v-auth:remove="['btn.delete']"
  * app.directive('copy', copy);      // 文本复制 v-copy="text" (双击复制)
  * app.directive('longpress', longpress); // 长按事件 v-longpress="handler"
- * app.directive('optimize', optimize);   // 性能优化
+ * app.directive('optimize', optimize);   // 性能优化（防抖/节流）
  * app.directive('ripple', ripple);  // 水波纹效果 v-ripple
+ * app.directive('lazy', lazy);      // 图片懒加载 v-lazy="imageUrl"
  * ```
  */
 
@@ -19,3 +20,4 @@ export * from "./copy";
 export * from "./longpress";
 export * from "./optimize";
 export * from "./ripple";
+export * from "./lazy";

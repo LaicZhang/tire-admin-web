@@ -112,9 +112,9 @@ describe("auth utils", () => {
         expires: 1710000000000,
         refreshToken: "refresh-token",
         username: "u",
-        avatar: undefined,
-        nickname: undefined,
-        permissions: undefined,
+        avatar: "",
+        nickname: "",
+        permissions: [],
         roles: ["admin"],
         uid: "uid-1"
       });
