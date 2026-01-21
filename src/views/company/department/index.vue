@@ -18,7 +18,7 @@ import type { Department } from "@/api/company/department";
 import { getRolesApi } from "@/api/system/role";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { useCrud } from "@/hooks/useCrud";
+import { useCrud } from "@/composables/useCrud";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import RolesForm from "./RolesForm.vue";
 

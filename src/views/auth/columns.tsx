@@ -101,8 +101,9 @@ export function useColumns() {
     // zIndex: 100
   };
 
-  function onSizeChange(_val: number) {
-    // 处理尺寸变化
+  function onSizeChange(val: number) {
+    pagination.pageSize = val;
+    onCurrentChange(1);
   }
 
   function onCurrentChange(val: number) {
@@ -112,21 +113,6 @@ export function useColumns() {
       loading.value = false;
     });
   }
-
-  // onMounted(() => {
-  //   delay(600).then(() => {
-  //     const newList = [];
-  //     Array.from({ length: 6 }).forEach(() => {
-  //       newList.push(clone(tableData, true));
-  //     });
-  //     newList.flat(Infinity).forEach((item, index) => {
-  //       dataList.value.push({ id: index, ...item });
-  //     });
-  //     pagination.total = dataList.value.length;
-  //     loading.value = false;
-  //   });
-  // });
-
   return {
     loading,
     columns,

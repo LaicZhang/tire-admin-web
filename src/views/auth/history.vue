@@ -19,23 +19,25 @@ const {
   onSizeChange,
   onCurrentChange
 } = useColumns();
-const index = ref(1);
-const type = ref(1);
+const type = ref<1 | 2>(1);
 
 async function getHistory() {
   dataList.value = [];
   loading.value = true;
-  let params: Record<string, unknown> = {};
+  const params: Record<string, unknown> = {};
+  const page = pagination.currentPage || 1;
 
-  if (type.value === 1) {
-    // Login History
-    const { data, code } = await getLogApi(index.value, params);
-    handleApiResponse({ data, code });
-  } else if (type.value === 2) {
-    // Operation History
-    const { data, code } = await getOperationLogListApi(index.value, params);
-    handleApiResponse({ data, code });
-  } else {
+  try {
+    if (type.value === 1) {
+      // Login History
+      const { data, code } = await getLogApi(page, params);
+      handleApiResponse({ data: data as ApiResponseData, code });
+    } else if (type.value === 2) {
+      // Operation History
+      const { data, code } = await getOperationLogListApi(page, params);
+      handleApiResponse({ data: data as ApiResponseData, code });
+    }
+  } finally {
     loading.value = false;
   }
 }
@@ -74,7 +76,6 @@ onMounted(async () => {
       <el-radio-group v-model="type" @change="getHistory">
         <el-radio :value="1">登录记录</el-radio>
         <el-radio :value="2">操作记录</el-radio>
-        <el-radio :value="3">其他记录</el-radio>
       </el-radio-group>
     </el-card>
 

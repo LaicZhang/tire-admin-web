@@ -10,7 +10,9 @@ defineOptions({
 
 const chatUid = ref("");
 const batchId = ref("");
-const chatHistory = ref<Array<{ role: string; content: string }>>([]);
+const chatHistory = ref<Array<{ role: string; content: string; _uid: string }>>(
+  []
+);
 const inputMessage = ref("");
 const loading = ref(false);
 const chatCount = ref(0);
@@ -42,7 +44,8 @@ const sendMessage = async () => {
 
   const userMessage = {
     role: "user",
-    content: inputMessage.value.trim()
+    content: inputMessage.value.trim(),
+    _uid: crypto.randomUUID()
   };
 
   chatHistory.value.push(userMessage);
@@ -61,9 +64,13 @@ const sendMessage = async () => {
     if (code === 200) {
       if (data.messages) {
         const resData = data as {
-          messages: Array<{ role: string; content: string }>;
+          messages: Array<{ role: string; content: string; _uid?: string }>;
         };
-        chatHistory.value = resData.messages;
+        // Ensure all messages have _uid
+        chatHistory.value = resData.messages.map(m => ({
+          ...m,
+          _uid: m._uid || crypto.randomUUID()
+        }));
       }
     } else {
       message(msg || "发送消息失败", { type: "error" });
@@ -209,8 +216,8 @@ onMounted(async () => {
             <p class="text-sm mt-2">点击左侧"新对话"按钮开始</p>
           </div>
           <div
-            v-for="(msg, index) in chatHistory"
-            :key="index"
+            v-for="msg in chatHistory"
+            :key="msg._uid"
             class="flex"
             :class="msg.role === 'user' ? 'justify-end' : 'justify-start'"
           >
