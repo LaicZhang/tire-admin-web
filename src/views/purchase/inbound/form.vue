@@ -118,7 +118,7 @@ watch(
   val => {
     formData.value = val;
   },
-  { deep: true }
+  {}
 );
 </script>
 

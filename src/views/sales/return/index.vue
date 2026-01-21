@@ -4,7 +4,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import TableOperationsWithCustomization from "@/components/TableOperations/TableOperationsWithCustomization.vue";
+import TableOperations from "@/components/TableOperations/TableOperations.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
@@ -320,7 +320,7 @@ onMounted(async () => {
             @page-current-change="handlePageChange"
           >
             <template #operation="{ row }">
-              <TableOperationsWithCustomization
+              <TableOperations
                 :row="row"
                 show-audit
                 :delete-title="`确认删除编号 ${row.number} 的退货单?`"
