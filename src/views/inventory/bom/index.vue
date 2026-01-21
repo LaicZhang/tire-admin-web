@@ -10,7 +10,7 @@ import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { useCrud } from "@/hooks/useCrud";
+import { useCrud } from "@/composables/useCrud";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";

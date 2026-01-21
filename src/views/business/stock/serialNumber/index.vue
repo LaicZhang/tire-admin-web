@@ -97,8 +97,8 @@ async function onSearch() {
     dataList.value = data.list;
     pagination.value.total = data.count;
   } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "获取序列号列表失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }

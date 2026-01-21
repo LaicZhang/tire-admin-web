@@ -23,6 +23,7 @@ export interface BomComponent {
   quantity: number;
   estimatedCost?: number;
   remark?: string;
+  _uid?: string;
 }
 
 export interface Bom {
@@ -53,10 +54,10 @@ export interface CreateBomDto {
   targetQuantity: number;
   version?: string;
   remark?: string;
-  components: Omit<
+  components: (Omit<
     BomComponent,
     "id" | "tireName" | "tireBarcode" | "estimatedCost"
-  >[];
+  > & { _uid?: string })[];
 }
 
 export type UpdateBomDto = Partial<CreateBomDto>;

@@ -33,8 +33,18 @@ const formData = reactive<CreateDisassemblyOrderDto>({
     repoId: c.repoId || "",
     quantity: c.quantity,
     unitCost: c.unitCost,
-    remark: c.remark
-  })) || [{ tireId: "", repoId: "", quantity: 1, unitCost: 0, remark: "" }]
+    remark: c.remark,
+    _uid: crypto.randomUUID()
+  })) || [
+    {
+      tireId: "",
+      repoId: "",
+      quantity: 1,
+      unitCost: 0,
+      remark: "",
+      _uid: crypto.randomUUID()
+    }
+  ]
 });
 
 const rules = reactive<FormRules>({
@@ -57,7 +67,8 @@ const addComponent = () => {
     repoId: "",
     quantity: 1,
     unitCost: 0,
-    remark: ""
+    remark: "",
+    _uid: crypto.randomUUID()
   });
 };
 
@@ -193,7 +204,7 @@ onMounted(() => {
     <div class="component-list">
       <div
         v-for="(component, index) in formData.components"
-        :key="index"
+        :key="component._uid"
         class="component-item"
       >
         <el-row :gutter="12" align="middle">

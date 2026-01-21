@@ -31,6 +31,7 @@ export const otherOutboundStatusMap: Record<
 };
 
 export interface OtherOutboundDetail {
+  _uid?: string; // 表单内部唯一标识，用于 v-for :key
   id?: number;
   tireId: string;
   tireName?: string;

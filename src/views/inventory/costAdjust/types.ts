@@ -23,6 +23,7 @@ export const costAdjustStatusMap: Record<
 };
 
 export interface CreateCostAdjustDetailDto {
+  _uid?: string; // 表单内部唯一标识，用于 v-for :key
   repoId: string;
   tireId: string;
   originalCost: number;

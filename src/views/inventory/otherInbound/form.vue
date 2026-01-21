@@ -43,12 +43,22 @@ const formData = reactive<CreateOtherInboundDto>({
   operatorId: props.formInline.operatorId || "",
   remark: props.formInline.remark || "",
   details: props.formInline.details?.map(d => ({
+    _uid: crypto.randomUUID(),
     tireId: d.tireId,
     repoId: d.repoId,
     quantity: d.quantity,
     unitCost: d.unitCost,
     remark: d.remark
-  })) || [{ tireId: "", repoId: "", quantity: 1, unitCost: 0, remark: "" }]
+  })) || [
+    {
+      _uid: crypto.randomUUID(),
+      tireId: "",
+      repoId: "",
+      quantity: 1,
+      unitCost: 0,
+      remark: ""
+    }
+  ]
 });
 
 const rules = reactive<FormRules>({
@@ -57,6 +67,7 @@ const rules = reactive<FormRules>({
 
 const addDetail = () => {
   formData.details.push({
+    _uid: crypto.randomUUID(),
     tireId: "",
     repoId: "",
     quantity: 1,
@@ -172,7 +183,7 @@ onMounted(() => {
     <div class="detail-list">
       <div
         v-for="(detail, index) in formData.details"
-        :key="index"
+        :key="detail._uid || index"
         class="detail-item"
       >
         <el-row :gutter="12" align="middle">

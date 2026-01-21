@@ -55,8 +55,8 @@ const loadLogs = async () => {
     const { data } = await getSerialNumberLogs(props.formInline.serialNo);
     logsList.value = data;
   } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "获取流转记录失败";
+    message(msg, { type: "error" });
   } finally {
     logsLoading.value = false;
   }

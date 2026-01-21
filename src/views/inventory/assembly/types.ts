@@ -30,6 +30,7 @@ export interface AssemblyComponent {
   unitCost?: number;
   totalCost?: number;
   remark?: string;
+  _uid?: string;
 }
 
 export interface AssemblyOrder {
@@ -67,10 +68,10 @@ export interface CreateAssemblyOrderDto {
   orderDate?: string;
   bomId?: string;
   remark?: string;
-  components: Omit<
+  components: (Omit<
     AssemblyComponent,
     "id" | "tireName" | "tireBarcode" | "repoName" | "totalCost"
-  >[];
+  > & { _uid?: string })[];
 }
 
 export type UpdateAssemblyOrderDto = Partial<CreateAssemblyOrderDto>;

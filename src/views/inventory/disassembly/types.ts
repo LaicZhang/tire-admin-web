@@ -30,6 +30,7 @@ export interface DisassemblyComponent {
   unitCost?: number;
   totalCost?: number;
   remark?: string;
+  _uid?: string;
 }
 
 export interface DisassemblyOrder {
@@ -68,10 +69,10 @@ export interface CreateDisassemblyOrderDto {
   orderDate?: string;
   bomId?: string;
   remark?: string;
-  components: Omit<
+  components: (Omit<
     DisassemblyComponent,
     "id" | "tireName" | "tireBarcode" | "repoName" | "totalCost"
-  >[];
+  > & { _uid?: string })[];
 }
 
 export type UpdateDisassemblyOrderDto = Partial<CreateDisassemblyOrderDto>;

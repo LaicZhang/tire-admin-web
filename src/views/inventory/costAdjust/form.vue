@@ -36,8 +36,12 @@ const formData = reactive<CreateCostAdjustOrderDto>({
   auditorId: props.formInline.auditorId || "",
   reason: props.formInline.reason || "",
   desc: props.formInline.desc || "",
-  details: props.formInline.details || [
+  details: props.formInline.details?.map(d => ({
+    ...d,
+    _uid: crypto.randomUUID()
+  })) || [
     {
+      _uid: crypto.randomUUID(),
       repoId: "",
       tireId: "",
       originalCost: 0,
@@ -61,6 +65,7 @@ const totalAdjustAmount = computed(() => {
 
 const addDetail = () => {
   formData.details.push({
+    _uid: crypto.randomUUID(),
     repoId: "",
     tireId: "",
     originalCost: 0,
@@ -188,7 +193,7 @@ onMounted(() => {
     <div class="detail-list">
       <div
         v-for="(detail, index) in formData.details"
-        :key="index"
+        :key="detail._uid || index"
         class="detail-item"
       >
         <el-row :gutter="12" align="middle">

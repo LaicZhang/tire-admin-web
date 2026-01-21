@@ -28,8 +28,9 @@ const formData = reactive<CreateBomDto>({
   components: props.formInline.components?.map(c => ({
     tireId: c.tireId,
     quantity: c.quantity,
-    remark: c.remark
-  })) || [{ tireId: "", quantity: 1, remark: "" }]
+    remark: c.remark,
+    _uid: crypto.randomUUID()
+  })) || [{ tireId: "", quantity: 1, remark: "", _uid: crypto.randomUUID() }]
 });
 
 const rules = reactive<FormRules>({
@@ -45,7 +46,12 @@ const availableComponents = computed(() =>
 );
 
 const addComponent = () => {
-  formData.components.push({ tireId: "", quantity: 1, remark: "" });
+  formData.components.push({
+    tireId: "",
+    quantity: 1,
+    remark: "",
+    _uid: crypto.randomUUID()
+  });
 };
 
 const removeComponent = (index: number) => {
@@ -155,7 +161,7 @@ onMounted(() => {
     <div class="component-list">
       <div
         v-for="(component, index) in formData.components"
-        :key="index"
+        :key="component._uid"
         class="component-item"
       >
         <el-row :gutter="12" align="middle">

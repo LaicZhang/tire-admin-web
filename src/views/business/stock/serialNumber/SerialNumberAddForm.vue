@@ -115,8 +115,8 @@ const handleSubmit = async () => {
       return true;
     }
   } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "创建失败";
+    message(msg, { type: "error" });
     return false;
   } finally {
     formLoading.value = false;
