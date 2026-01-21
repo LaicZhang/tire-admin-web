@@ -34,8 +34,8 @@ async function loadSelectData() {
     customerList.value = customerRes.data?.list || [];
     providerList.value = providerRes.data?.list || [];
   } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "加载数据失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -60,8 +60,8 @@ async function handleSubmit() {
     message("创建成功", { type: "success" });
     props.onSuccess();
   } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "创建失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }

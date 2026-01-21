@@ -55,8 +55,8 @@ async function loadAccounts() {
       (res.data as Array<{ uid: string; name: string; balance?: number }>) ||
       [];
   } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "加载账户失败";
+    message(msg, { type: "error" });
   }
 }
 
@@ -90,8 +90,8 @@ async function onSubmit(formEl: {
         formEl.resetFields();
         loadAccounts(); // 刷新账户余额
       } catch (e: unknown) {
-        const error = e as Error;
-        message(error.message, { type: "error" });
+        const msg = e instanceof Error ? e.message : "转账失败";
+        message(msg, { type: "error" });
       } finally {
         loading.value = false;
       }

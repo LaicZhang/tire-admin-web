@@ -116,7 +116,9 @@ const getLogisticListInfo = async () => {
       message(msg, { type: "error" });
     }
   } catch (error) {
-    message(error.message || "获取物流列表失败", { type: "error" });
+    const errorMsg =
+      error instanceof Error ? error.message : "获取物流列表失败";
+    message(errorMsg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -146,7 +148,8 @@ async function handleConfirmShipment(row: LogisticOrder) {
     message("确认发货成功", { type: "success" });
     await getLogisticListInfo();
   } catch (error) {
-    message(error.message || "确认发货失败", { type: "error" });
+    const errorMsg = error instanceof Error ? error.message : "确认发货失败";
+    message(errorMsg, { type: "error" });
   }
 }
 
@@ -159,7 +162,8 @@ async function handleConfirmArrival(row: LogisticOrder) {
     message("确认送达成功", { type: "success" });
     await getLogisticListInfo();
   } catch (error) {
-    message(error.message || "确认送达失败", { type: "error" });
+    const errorMsg = error instanceof Error ? error.message : "确认送达失败";
+    message(errorMsg, { type: "error" });
   }
 }
 
@@ -169,7 +173,9 @@ async function handleCancel(row: LogisticOrder) {
     message("取消物流状态成功", { type: "success" });
     await getLogisticListInfo();
   } catch (error) {
-    message(error.message || "取消物流状态失败", { type: "error" });
+    const errorMsg =
+      error instanceof Error ? error.message : "取消物流状态失败";
+    message(errorMsg, { type: "error" });
   }
 }
 

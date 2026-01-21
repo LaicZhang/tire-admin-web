@@ -103,6 +103,7 @@ export const shippingWaveStatusMap: Record<
 
 // ============ 物流跟踪 ============
 export interface TrackingNode {
+  id?: string;
   time: string;
   location: string;
   description: string;

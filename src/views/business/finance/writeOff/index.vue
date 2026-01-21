@@ -108,8 +108,8 @@ async function onSearch() {
     dataList.value = data.list;
     pagination.value.total = data.count;
   } catch (e: unknown) {
-    const error = e as Error;
-    message(error.message, { type: "error" });
+    const msg = e instanceof Error ? e.message : "获取核销单列表失败";
+    message(msg, { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -149,9 +149,9 @@ async function handleApprove(row: WriteOffOrder) {
     message("审核成功", { type: "success" });
     onSearch();
   } catch (e: unknown) {
-    if ((e as string) !== "cancel") {
-      const error = e as Error;
-      message(error.message, { type: "error" });
+    if (e !== "cancel") {
+      const msg = e instanceof Error ? e.message : "审核失败";
+      message(msg, { type: "error" });
     }
   }
 }
@@ -165,9 +165,9 @@ async function handleReject(row: WriteOffOrder) {
     message("已拒绝", { type: "success" });
     onSearch();
   } catch (e: unknown) {
-    if ((e as string) !== "cancel") {
-      const error = e as Error;
-      message(error.message, { type: "error" });
+    if (e !== "cancel") {
+      const msg = e instanceof Error ? e.message : "拒绝失败";
+      message(msg, { type: "error" });
     }
   }
 }
@@ -181,9 +181,9 @@ async function handleDelete(row: WriteOffOrder) {
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e: unknown) {
-    if ((e as string) !== "cancel") {
-      const error = e as Error;
-      message(error.message, { type: "error" });
+    if (e !== "cancel") {
+      const msg = e instanceof Error ? e.message : "删除失败";
+      message(msg, { type: "error" });
     }
   }
 }

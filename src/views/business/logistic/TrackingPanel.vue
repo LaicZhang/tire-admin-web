@@ -153,7 +153,7 @@ onMounted(() => {
       <el-timeline v-if="trackingInfo?.nodes?.length">
         <el-timeline-item
           v-for="(node, index) in trackingInfo.nodes"
-          :key="index"
+          :key="node.id || `node-${index}`"
           :timestamp="formatTime(node.time)"
           placement="top"
         >
