@@ -5,14 +5,15 @@ defineOptions({
 
 const { lastBuildTime } = __APP_INFO__;
 
+// Demo data for result page example - intentionally hardcoded for demonstration purposes
 const columns = [
   {
     label: "项目 ID：",
-    value: "12345"
+    value: "12345" // Demo: Replace with actual project ID when used in production
   },
   {
     label: "负责人：",
-    value: "明明"
+    value: "明明" // Demo: Replace with actual user name when used in production
   },
   {
     label: "生效时间：",

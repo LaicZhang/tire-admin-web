@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, h } from "vue";
+import { ref, computed, watch, h, onUnmounted } from "vue";
 import {
   Upload,
   Document,
@@ -38,6 +38,7 @@ const uploadMethod = ref<UploadMethod>(UploadMethod.TEXT);
 const documentType = ref<DocumentType>(DocumentType.SALE_ORDER);
 const enableAutoCreate = ref(false);
 const showHistory = ref(false);
+let successRedirectTimer: ReturnType<typeof setTimeout> | null = null;
 
 // 会话
 const {
@@ -148,7 +149,8 @@ async function handleSubmitOrder() {
   const success = await submitOrder(uploadMethod.value, documentType.value);
   if (success) {
     status.value = AIEntryStatus.SUCCESS;
-    setTimeout(() => {
+    // Store timer reference for cleanup
+    successRedirectTimer = setTimeout(() => {
       handleResetForm();
     }, 3000);
   } else {
@@ -158,12 +160,25 @@ async function handleSubmitOrder() {
 
 // 重置表单
 function handleResetForm() {
+  // Clear success redirect timer if exists
+  if (successRedirectTimer) {
+    clearTimeout(successRedirectTimer);
+    successRedirectTimer = null;
+  }
   status.value = AIEntryStatus.IDLE;
   resetUpload();
   resetRecognition();
   resetOrderForm(documentType.value);
   resetSession();
 }
+
+// Cleanup timer on unmount
+onUnmounted(() => {
+  if (successRedirectTimer) {
+    clearTimeout(successRedirectTimer);
+    successRedirectTimer = null;
+  }
+});
 
 // 计算属性
 const canRecognizeValue = computed(() => canRecognize(uploadMethod.value));

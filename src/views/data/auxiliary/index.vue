@@ -176,37 +176,36 @@ function openDialog(title = "新增", row?: AuxiliaryItem) {
     beforeSure: async (done, { options }) => {
       const formRef = (options as unknown).contentRef?.getRef?.();
       if (!formRef) return;
-      await formRef.validate(async (valid: boolean) => {
+      try {
+        const valid = await formRef.validate();
         if (!valid) return;
         const formData = (options.props as unknown).formInline;
-        try {
-          const promise =
-            title === "新增"
-              ? createAuxiliaryApi({
-                  type: activeTab.value,
-                  code: formData.code,
-                  name: formData.name,
-                  sort: formData.sort,
-                  remark: formData.remark
-                })
-              : updateAuxiliaryApi(row!.uid, {
-                  name: formData.name,
-                  sort: formData.sort,
-                  remark: formData.remark
-                });
-          const { code, msg } = await promise;
-          if (code === 200) {
-            message("操作成功", { type: "success" });
-            done();
-            getData();
-          } else {
-            message(msg || "操作失败", { type: "error" });
-          }
-        } catch (e: unknown) {
-          const err = e as Error;
-          message(err.message || "操作失败", { type: "error" });
+        const promise =
+          title === "新增"
+            ? createAuxiliaryApi({
+                type: activeTab.value,
+                code: formData.code,
+                name: formData.name,
+                sort: formData.sort,
+                remark: formData.remark
+              })
+            : updateAuxiliaryApi(row!.uid, {
+                name: formData.name,
+                sort: formData.sort,
+                remark: formData.remark
+              });
+        const { code, msg } = await promise;
+        if (code === 200) {
+          message("操作成功", { type: "success" });
+          done();
+          getData();
+        } else {
+          message(msg || "操作失败", { type: "error" });
         }
-      });
+      } catch (e: unknown) {
+        const err = e as Error;
+        message(err.message || "操作失败", { type: "error" });
+      }
     }
   });
 }

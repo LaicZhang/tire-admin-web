@@ -282,11 +282,11 @@ onMounted(() => {
             <el-form-item>
               <div class="w-full h-[20px] flex justify-between items-center">
                 <el-button
-                  v-for="(item, index) in operates"
-                  :key="index"
+                  v-for="(item, idx) in operates"
+                  :key="item.title"
                   class="w-full mt-4"
                   size="default"
-                  @click="useUserStoreHook().setCurrentPage(index + 1)"
+                  @click="useUserStoreHook().setCurrentPage(idx + 1)"
                 >
                   {{ item.title }}
                 </el-button>
@@ -298,7 +298,7 @@ onMounted(() => {
                 <p class="text-gray-500 text-xs">第三方登录</p>
               </el-divider>
               <div class="w-full flex justify-evenly">
-                <template v-for="(item, index) in thirdParty" :key="index">
+                <template v-for="item in thirdParty" :key="item.icon">
                   <el-tooltip
                     v-if="item.icon === 'github'"
                     content="仅限管理员登录"

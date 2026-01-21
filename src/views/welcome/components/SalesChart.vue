@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { getPurchaseSalesApi } from "@/api";
 import type { DailySummaryItem } from "@/api/dashboard";
 import { message } from "@/utils";
+import { getEcharts } from "@/utils/echarts";
 import type { ECharts, EChartsOption } from "echarts";
 
 // ECharts tooltip param interface
@@ -16,13 +17,6 @@ interface TooltipParam {
 defineOptions({
   name: "SalesChart"
 });
-
-type EChartsModule = typeof import("echarts");
-let echartsModulePromise: Promise<EChartsModule> | null = null;
-const getEcharts = () => {
-  echartsModulePromise ||= import("echarts");
-  return echartsModulePromise;
-};
 
 const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
