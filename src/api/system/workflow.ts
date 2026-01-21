@@ -6,6 +6,8 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 export interface WorkflowQuery extends Record<string, unknown> {
   name?: string;
   status?: number;
+  /** 统一分页参数名为 page（兼容旧 pageNum） */
+  page?: number;
   pageNum?: number;
   pageSize?: number;
 }
@@ -41,11 +43,16 @@ const prefix = "/system/workflow/";
 
 /** Get Workflow List */
 export async function getWorkflowListApi(params?: WorkflowQuery) {
+  const { pageNum, page, ...rest } = params ?? {};
+  const normalizedParams =
+    page == null && pageNum != null
+      ? { ...rest, page: pageNum }
+      : { ...rest, page };
   return await http.request<CommonResult<PaginatedResponseDto<WorkflowVO>>>(
     "get",
     baseUrlApi(prefix + "list"),
     {
-      params
+      params: normalizedParams
     }
   );
 }

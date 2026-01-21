@@ -10,7 +10,7 @@ export async function createPurchasePlanApi(data: object) {
   });
 }
 
-export async function getPurchasePlanListApi(params?: object) {
+export async function getPurchasePlanListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix), {
     params
   });

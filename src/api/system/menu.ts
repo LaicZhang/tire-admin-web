@@ -50,7 +50,7 @@ export interface MenuItem extends MenuDto {
   children?: MenuItem[];
 }
 
-export async function getMenuListApi(params?: object) {
+export async function getMenuListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult<MenuItem[]>>(
     "get",
     baseUrlApi(`${prefix}/list`),

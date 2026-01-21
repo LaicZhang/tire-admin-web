@@ -20,7 +20,7 @@ export interface NoticeDto {
   status?: boolean;
 }
 
-export async function getNoticeListApi(params?: object) {
+export async function getNoticeListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult<PaginatedResponseDto<NoticeItem>>>(
     "get",
     baseUrlApi(`${prefix}/list`),

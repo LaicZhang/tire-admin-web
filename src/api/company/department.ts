@@ -32,7 +32,10 @@ export interface Department extends Omit<
   }>;
 }
 
-export async function getDepartmentListApi(index: number, params?: object) {
+export async function getDepartmentListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<Department>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),

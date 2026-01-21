@@ -19,7 +19,7 @@ export interface PermissionListResult {
   count?: number;
 }
 
-export const getPermissionListApi = (params?: object) => {
+export const getPermissionListApi = (params?: Record<string, unknown>) => {
   return http.request<CommonResult<PermissionListResult>>(
     "get",
     baseUrlApi(`${prefix}/list`),

@@ -261,6 +261,30 @@ export async function getOperatorRankingApi(params?: {
 }
 
 // 采购明细
+export interface PurchaseDetailOrderInfo {
+  uid?: string;
+  number?: string;
+  providerId?: string;
+  provider?: { uid?: string; name?: string };
+  createAt?: string;
+}
+
+export interface PurchaseDetailItem {
+  id: number;
+  uid?: string;
+  companyId?: string;
+  repoId?: string;
+  tireId?: string;
+  unit?: string;
+  unitPrice?: number | string;
+  count?: number;
+  totalAmount?: number | string;
+  createAt?: string;
+  order?: PurchaseDetailOrderInfo;
+  tire?: { uid?: string; name?: string; barcode?: string };
+  repo?: { uid?: string; name?: string };
+}
+
 export async function getPurchaseDetailApi(params?: {
   index?: number;
   startDate?: string;
@@ -268,14 +292,88 @@ export async function getPurchaseDetailApi(params?: {
   providerId?: string;
   tireId?: string;
 }) {
-  return await http.request<CommonResult<{ items: unknown[] }>>(
-    "get",
-    baseUrlApi(prefix + "purchase/detail"),
-    { params }
-  );
+  return await http.request<
+    CommonResult<{ count: number; list: PurchaseDetailItem[] }>
+  >("get", baseUrlApi(prefix + "purchase/detail"), { params });
 }
 
 // 销售明细
+export interface SaleDetailCustomerInfo {
+  uid?: string;
+  name?: string;
+}
+
+export interface SaleDetailOperatorInfo {
+  uid?: string;
+  name?: string;
+  nickname?: string;
+}
+
+export interface SaleDetailOrderInfo {
+  uid?: string;
+  number?: string;
+  docNo?: string;
+  customerId?: string;
+  operatorId?: string;
+  total?: number | string;
+  paidAmount?: number | string;
+  logisticsStatus?: unknown;
+  orderStatus?: unknown;
+  createAt?: string;
+  customer?: SaleDetailCustomerInfo;
+  operator?: SaleDetailOperatorInfo;
+}
+
+export interface SaleDetailTireInfo {
+  uid?: string;
+  name?: string;
+  barcode?: string;
+  group?: string;
+  format?: string;
+  pattern?: string;
+  loadIndex?: string;
+  speedLevel?: string;
+  tireBrandId?: string;
+  purchasePrice?: number | string;
+  salePrice?: number | string;
+  unit?: string;
+}
+
+export interface SaleDetailRepoInfo {
+  uid?: string;
+  name?: string;
+}
+
+export interface SaleDetailItem {
+  id: number;
+  uid?: string;
+  companyId?: string;
+  repoId?: string;
+  isGift?: boolean;
+  orderId?: string;
+  tireId?: string;
+  unit?: string;
+  unitPrice?: number | string;
+  count?: number;
+  discountType?: unknown;
+  discountNumber?: number | string;
+  discountPercentage?: number | string;
+  discountedUnitPrice?: number | string;
+  totalAmount?: number | string;
+  desc?: string;
+  currencyId?: string;
+  taxIncluded?: boolean;
+  taxRate?: number | string;
+  taxAmount?: number | string;
+  shippedCount?: number;
+  deliveredCount?: number;
+  createAt?: string;
+  arrivalAt?: string;
+  order?: SaleDetailOrderInfo;
+  tire?: SaleDetailTireInfo;
+  repo?: SaleDetailRepoInfo;
+}
+
 export async function getSaleDetailApi(params?: {
   index?: number;
   startDate?: string;
@@ -283,11 +381,9 @@ export async function getSaleDetailApi(params?: {
   customerId?: string;
   operatorId?: string;
 }) {
-  return await http.request<CommonResult<{ items: unknown[] }>>(
-    "get",
-    baseUrlApi(prefix + "sale/detail"),
-    { params }
-  );
+  return await http.request<
+    CommonResult<{ count: number; list: SaleDetailItem[] }>
+  >("get", baseUrlApi(prefix + "sale/detail"), { params });
 }
 
 // 退货率分析

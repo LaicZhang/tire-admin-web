@@ -4,7 +4,7 @@ import type { CommonResult } from "./type";
 
 const prefix = "/user/";
 
-export const getUsersApi = (index = 1, params?: object) => {
+export const getUsersApi = (index = 1, params?: Record<string, unknown>) => {
   return http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),

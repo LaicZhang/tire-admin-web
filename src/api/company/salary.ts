@@ -19,7 +19,10 @@ export interface Salary extends SalaryDto {
   uid: string;
 }
 
-export async function getSalaryListApi(index: number, params?: object) {
+export async function getSalaryListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<Salary>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),

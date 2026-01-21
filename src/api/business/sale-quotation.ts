@@ -10,7 +10,9 @@ export async function createSaleQuotationApi(data: object) {
   });
 }
 
-export async function getSaleQuotationListApi(params?: object) {
+export async function getSaleQuotationListApi(
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix), {
     params
   });

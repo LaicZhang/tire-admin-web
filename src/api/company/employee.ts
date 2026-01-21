@@ -48,7 +48,7 @@ export interface Employee {
   user?: EmployeeUserDto;
 }
 
-export async function getAllEmployeeApi(params?: object) {
+export async function getAllEmployeeApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult<Employee[]>>(
     "get",
     baseUrlApi(prefix),
@@ -58,7 +58,10 @@ export async function getAllEmployeeApi(params?: object) {
   );
 }
 
-export async function getEmployeeListApi(index: number, params?: object) {
+export async function getEmployeeListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<Employee>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),

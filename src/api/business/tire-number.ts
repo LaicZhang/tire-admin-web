@@ -23,7 +23,10 @@ export interface TireNumberDto {
   repo?: { connect: { uid: string } };
 }
 
-export async function getTireNumberListApi(index: number, params?: object) {
+export async function getTireNumberListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),

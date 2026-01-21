@@ -24,6 +24,20 @@ export function useImportExportTask(
   storageKey: string = "data:import-export:tasks"
 ) {
   const taskList = ref<ImportExportTask[]>([]);
+  const maxTasks = 200;
+  const taskTtlMs = 30 * 24 * 60 * 60 * 1000;
+
+  const pruneTasks = (tasks: ImportExportTask[]): ImportExportTask[] => {
+    const now = Date.now();
+    const pruned = tasks.filter(task => {
+      if (!task.createdAt) return true;
+      const createdAtMs = Date.parse(task.createdAt);
+      if (Number.isNaN(createdAtMs)) return true;
+      return now - createdAtMs <= taskTtlMs;
+    });
+
+    return pruned.slice(0, maxTasks);
+  };
 
   /**
    * 读取任务列表
@@ -33,7 +47,10 @@ export function useImportExportTask(
       const raw = localStorage.getItem(storageKey);
       if (!raw) return [];
       const parsed = JSON.parse(raw) as ImportExportTask[];
-      return Array.isArray(parsed) ? parsed : [];
+      const tasks = Array.isArray(parsed) ? parsed : [];
+      const pruned = pruneTasks(tasks);
+      if (pruned.length !== tasks.length) writeTasks(pruned);
+      return pruned;
     } catch {
       return [];
     }
@@ -52,16 +69,16 @@ export function useImportExportTask(
   const pushTask = (task: ImportExportTask) => {
     const tasks = readTasks();
     tasks.unshift(task);
-    // 限制最多保存 200 条任务
-    writeTasks(tasks.slice(0, 200));
-    taskList.value = tasks;
+    const pruned = pruneTasks(tasks);
+    writeTasks(pruned);
+    taskList.value = pruned;
   };
 
   /**
    * 删除任务
    */
   const deleteTask = (uid: string) => {
-    const tasks = readTasks().filter(t => t.uid !== uid);
+    const tasks = pruneTasks(readTasks().filter(t => t.uid !== uid));
     writeTasks(tasks);
     taskList.value = tasks;
   };

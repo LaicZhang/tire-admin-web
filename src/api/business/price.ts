@@ -15,7 +15,10 @@ export interface PriceList extends PriceListDto {
   uid: string;
 }
 
-export async function getPriceListListApi(index: number, params?: object) {
+export async function getPriceListListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<PriceList>>>(
     "get",
     baseUrlApi(prefix + "list/page/" + index),

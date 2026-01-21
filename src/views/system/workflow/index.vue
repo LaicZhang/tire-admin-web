@@ -26,7 +26,7 @@ const formRef = ref();
 const queryForm = reactive<WorkflowQuery>({
   name: "",
   status: undefined,
-  pageNum: 1,
+  page: 1,
   pageSize: 10
 });
 
@@ -91,7 +91,7 @@ const handleQuery = async () => {
     const { data } = await getWorkflowListApi(queryForm);
     tableData.value = data.list;
     pagination.total = data.total ?? data.count ?? 0;
-    pagination.currentPage = queryForm.pageNum ?? 1;
+    pagination.currentPage = queryForm.page ?? 1;
     pagination.pageSize = queryForm.pageSize ?? 10;
   } catch (e) {
     console.error(e);
@@ -106,7 +106,7 @@ const onPageSizeChange = (val: number) => {
 };
 
 const onCurrentPageChange = (val: number) => {
-  queryForm.pageNum = val;
+  queryForm.page = val;
   handleQuery();
 };
 
@@ -114,7 +114,7 @@ const onCurrentPageChange = (val: number) => {
 const resetQuery = () => {
   queryForm.name = "";
   queryForm.status = undefined;
-  queryForm.pageNum = 1;
+  queryForm.page = 1;
   handleQuery();
 };
 

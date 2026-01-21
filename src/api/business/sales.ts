@@ -21,7 +21,10 @@ export interface SalesQuotation extends SalesQuotationDto {
 }
 
 /** 销售报价单 API */
-export async function getSalesQuotationListApi(index: number, params?: object) {
+export async function getSalesQuotationListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<SalesQuotation>>>(
     "get",
     baseUrlApi(prefix + "quotation/" + index),

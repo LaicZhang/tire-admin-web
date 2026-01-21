@@ -21,7 +21,10 @@ export interface Repo extends RepoDto {
   uid: string;
 }
 
-export async function getRepoListApi(index: number, params?: object) {
+export async function getRepoListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<Repo>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),

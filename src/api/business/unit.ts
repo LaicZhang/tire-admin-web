@@ -22,7 +22,10 @@ export interface UnitConversion {
   targetUnit?: Unit;
 }
 
-export async function getUnitListApi(index: number, params?: object) {
+export async function getUnitListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),

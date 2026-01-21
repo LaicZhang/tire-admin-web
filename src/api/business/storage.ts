@@ -12,7 +12,7 @@ export async function createStorageZoneApi(data: object) {
   });
 }
 
-export async function getStorageZoneListApi(params?: object) {
+export async function getStorageZoneListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult>("get", baseUrlApi(zonePrefix), {
     params
   });
@@ -46,7 +46,9 @@ export async function createStorageLocationApi(data: object) {
   });
 }
 
-export async function getStorageLocationListApi(params?: object) {
+export async function getStorageLocationListApi(
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>("get", baseUrlApi(locationPrefix), {
     params
   });

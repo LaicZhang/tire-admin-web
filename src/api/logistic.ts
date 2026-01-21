@@ -71,7 +71,10 @@ export async function createShippingPlanApi(data: {
 }
 
 /** 获取发运计划列表 */
-export async function getShippingPlanListApi(index: number, params?: object) {
+export async function getShippingPlanListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + `shipping-plan/page/${index}`),
@@ -96,7 +99,10 @@ export async function createLoadingTaskApi(data: {
 }
 
 /** 获取装车任务列表 */
-export async function getLoadingTaskListApi(index: number, params?: object) {
+export async function getLoadingTaskListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + `loading-task/page/${index}`),
@@ -116,7 +122,10 @@ export async function createShippingWaveApi(data: object) {
 }
 
 /** 获取发货波次列表 */
-export async function getShippingWaveListApi(index: number, params?: object) {
+export async function getShippingWaveListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + `shipping-wave/page/${index}`),

@@ -4,7 +4,10 @@ import type { CommonResult } from "./type";
 
 const prefix = "/asset/";
 
-export async function getAssetListApi(index: number, params?: object) {
+export async function getAssetListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),

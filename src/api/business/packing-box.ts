@@ -10,7 +10,7 @@ export async function createPackingBoxApi(data: object) {
   });
 }
 
-export async function getPackingBoxListApi(params?: object) {
+export async function getPackingBoxListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix), {
     params
   });

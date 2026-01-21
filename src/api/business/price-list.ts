@@ -10,7 +10,7 @@ export async function createPriceListApi(data: object) {
   });
 }
 
-export async function getPriceListApi(params?: object) {
+export async function getPriceListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix), {
     params
   });

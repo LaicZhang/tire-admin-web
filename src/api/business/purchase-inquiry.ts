@@ -12,7 +12,9 @@ export async function createPurchaseInquiryApi(data: object) {
   });
 }
 
-export async function getPurchaseInquiryListApi(params?: object) {
+export async function getPurchaseInquiryListApi(
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>("get", baseUrlApi(inquiryPrefix), {
     params
   });
@@ -32,7 +34,9 @@ export async function createPurchaseQuotationApi(data: object) {
   });
 }
 
-export async function getPurchaseQuotationListApi(params?: object) {
+export async function getPurchaseQuotationListApi(
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>("get", baseUrlApi(quotationPrefix), {
     params
   });

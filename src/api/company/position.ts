@@ -15,7 +15,10 @@ export interface Position extends PositionDto {
   uid: string;
 }
 
-export async function getPositionListApi(index: number, params?: object) {
+export async function getPositionListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<Position>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),

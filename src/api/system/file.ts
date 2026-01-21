@@ -13,7 +13,7 @@ export interface FileItem {
   createTime: string;
 }
 
-export async function getFileListApi(params?: object) {
+export async function getFileListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult<PaginatedResponseDto<FileItem>>>(
     "get",
     baseUrlApi(`${prefix}/list`),

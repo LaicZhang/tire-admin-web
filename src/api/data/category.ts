@@ -54,7 +54,7 @@ export async function getProductCategoryTreeApi() {
 
 export async function getProductCategoryListApi(
   index: number,
-  params?: object
+  params?: Record<string, unknown>
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<TreeCategoryItem>>
@@ -100,7 +100,7 @@ export async function getCustomerCategoryTreeApi() {
 
 export async function getCustomerCategoryListApi(
   index: number,
-  params?: object
+  params?: Record<string, unknown>
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<TreeCategoryItem>>
@@ -146,7 +146,7 @@ export async function getSupplierCategoryTreeApi() {
 
 export async function getSupplierCategoryListApi(
   index: number,
-  params?: object
+  params?: Record<string, unknown>
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<TreeCategoryItem>>
@@ -183,7 +183,10 @@ export async function deleteSupplierCategoryApi(uid: string) {
 
 const incomeCategoryPrefix = "/income-category/";
 
-export async function getIncomeCategoryListApi(index: number, params?: object) {
+export async function getIncomeCategoryListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<
     CommonResult<PaginatedResponseDto<FlatCategoryItem>>
   >("get", baseUrlApi(incomeCategoryPrefix + "page/" + index), { params });
@@ -236,7 +239,7 @@ const expenseCategoryPrefix = "/expense-category/";
 
 export async function getExpenseCategoryListApi(
   index: number,
-  params?: object
+  params?: Record<string, unknown>
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<FlatCategoryItem>>
@@ -306,7 +309,10 @@ export interface CreateSettlementDto {
   remark?: string;
 }
 
-export async function getSettlementListApi(index: number, params?: object) {
+export async function getSettlementListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<SettlementItem>>>(
     "get",
     baseUrlApi(settlementPrefix + "page/" + index),
@@ -369,7 +375,10 @@ export interface CreateSingleUnitDto {
   remark?: string;
 }
 
-export async function getSingleUnitListApi(index: number, params?: object) {
+export async function getSingleUnitListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<SingleUnitItem>>>(
     "get",
     baseUrlApi(singleUnitPrefix + "page/" + index),
@@ -439,7 +448,10 @@ export interface CreateMultiUnitDto {
   remark?: string;
 }
 
-export async function getMultiUnitListApi(index: number, params?: object) {
+export async function getMultiUnitListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<MultiUnitItem>>>(
     "get",
     baseUrlApi(multiUnitPrefix + "page/" + index),
@@ -507,7 +519,10 @@ export interface CreateAuxiliaryAttrDto {
   remark?: string;
 }
 
-export async function getAuxiliaryAttrListApi(index: number, params?: object) {
+export async function getAuxiliaryAttrListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<
     CommonResult<PaginatedResponseDto<AuxiliaryAttrItem>>
   >("get", baseUrlApi(auxiliaryAttrPrefix + "page/" + index), { params });
@@ -601,7 +616,7 @@ export interface CreateAuxiliaryDto {
 export async function getAuxiliaryListApi(
   index: number,
   type: string,
-  params?: object
+  params?: Record<string, unknown>
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<AuxiliaryItem>>>(
     "get",

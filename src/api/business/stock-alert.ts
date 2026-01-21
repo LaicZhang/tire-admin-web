@@ -37,7 +37,7 @@ export async function createStockAlertApi(data: StockAlertDto) {
   );
 }
 
-export async function getStockAlertListApi(params?: object) {
+export async function getStockAlertListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult<StockAlert[]>>(
     "get",
     baseUrlApi(alertPrefix),
@@ -65,7 +65,7 @@ export async function createExpiryAlertApi(data: ExpiryAlertDto) {
   );
 }
 
-export async function getExpiryAlertListApi(params?: object) {
+export async function getExpiryAlertListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult<PaginatedResponseDto<ExpiryAlert>>>(
     "get",
     baseUrlApi(expiryPrefix),

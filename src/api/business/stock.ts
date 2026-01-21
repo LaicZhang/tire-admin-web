@@ -28,7 +28,10 @@ export interface Bin extends BinDto {
 }
 
 /** 库区 API */
-export async function getRepoZoneListApi(index: number, params?: object) {
+export async function getRepoZoneListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<Zone>>>(
     "get",
     baseUrlApi(prefix + "zone/" + index),
@@ -54,7 +57,10 @@ export async function deleteRepoZoneApi(id: string) {
 }
 
 /** 货位 API */
-export async function getRepoBinListApi(index: number, params?: object) {
+export async function getRepoBinListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<Bin>>>(
     "get",
     baseUrlApi(prefix + "bin/" + index),

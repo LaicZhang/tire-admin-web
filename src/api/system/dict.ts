@@ -20,7 +20,10 @@ export interface DictDto {
   en?: string | null;
 }
 
-export async function getDictListApi(index: number, params?: object) {
+export async function getDictListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<DictItem>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),

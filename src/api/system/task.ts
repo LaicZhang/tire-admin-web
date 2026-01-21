@@ -24,7 +24,7 @@ export interface TaskDto {
   service: string;
 }
 
-export async function getTaskListApi(params?: object) {
+export async function getTaskListApi(params?: Record<string, unknown>) {
   return await http.request<CommonResult<PaginatedResponseDto<TaskItem>>>(
     "get",
     baseUrlApi(`${prefix}/list`),

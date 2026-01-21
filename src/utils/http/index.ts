@@ -21,6 +21,7 @@ import { useHttpOnlyCookie } from "@/utils/auth-config";
 import { useUserStoreHook } from "@/store/modules/user";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { resolveBaseURLFromViteEnv } from "./baseurl";
+import { createPendingQueue } from "./pending-queue";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 // 优先使用环境变量，其次：开发环境走相对路径配合 Vite 代理，生产环境兜底到公网 API
@@ -111,12 +112,12 @@ class PureHttp {
     this.httpInterceptorsResponse();
   }
 
-  /** token 过期后，暂存待执行的请求（保存 resolve/reject，避免 refresh 失败时请求挂起） */
-  private static requests: Array<{
-    config: PureHttpRequestConfig;
-    resolve: (config: PureHttpRequestConfig) => void;
-    reject: (error: unknown) => void;
-  }> = [];
+  private static pendingQueue = createPendingQueue({
+    maxSize: 100,
+    timeoutMs: 15000,
+    overflowMessage: "请求过多，请稍后重试",
+    timeoutMessage: "请求等待超时，请重试"
+  });
 
   /** 防止重复刷新token */
   private static isRefreshing = false;
@@ -124,54 +125,18 @@ class PureHttp {
   /** HttpOnly Cookie 模式：防止重复 refresh */
   private static isCookieRefreshing = false;
 
-  /** HttpOnly Cookie 模式：暂存待重试的请求 */
-  private static cookieRequests: Array<{
-    config: PureHttpRequestConfig;
-    resolve: (config: PureHttpRequestConfig) => void;
-    reject: (error: unknown) => void;
-  }> = [];
+  private static cookiePendingQueue = createPendingQueue({
+    maxSize: 100,
+    timeoutMs: 15000,
+    overflowMessage: "请求过多，请稍后重试",
+    timeoutMessage: "请求等待超时，请重试"
+  });
 
   /** 初始化配置对象 */
   private static initConfig: PureHttpRequestConfig = {};
 
   /** 保存当前Axios实例对象 */
   private static axiosInstance: AxiosInstance = Axios.create(defaultConfig);
-
-  private static enqueueRequest(config: PureHttpRequestConfig) {
-    return new Promise<PureHttpRequestConfig>((resolve, reject) => {
-      PureHttp.requests.push({ config, resolve, reject });
-    });
-  }
-
-  private static resolveRequests(token: string) {
-    PureHttp.requests.forEach(({ config, resolve }) => {
-      config.headers ??= {};
-      config.headers["Authorization"] = formatToken(token);
-      resolve(config);
-    });
-    PureHttp.requests = [];
-  }
-
-  private static rejectRequests(error: unknown) {
-    PureHttp.requests.forEach(({ reject }) => reject(error));
-    PureHttp.requests = [];
-  }
-
-  private static enqueueCookieRequest(config: PureHttpRequestConfig) {
-    return new Promise<PureHttpRequestConfig>((resolve, reject) => {
-      PureHttp.cookieRequests.push({ config, resolve, reject });
-    });
-  }
-
-  private static resolveCookieRequests() {
-    PureHttp.cookieRequests.forEach(({ config, resolve }) => resolve(config));
-    PureHttp.cookieRequests = [];
-  }
-
-  private static rejectCookieRequests(error: unknown) {
-    PureHttp.cookieRequests.forEach(({ reject }) => reject(error));
-    PureHttp.cookieRequests = [];
-  }
 
   /** 请求拦截 */
   private httpInterceptorsRequest(): void {
@@ -240,10 +205,14 @@ class PureHttp {
             .handRefreshToken({ refreshToken: data.refreshToken })
             .then(res => {
               const token = res.data.accessToken;
-              PureHttp.resolveRequests(token);
+              PureHttp.pendingQueue.resolveAll(pendingConfig => {
+                pendingConfig.headers ??= {};
+                pendingConfig.headers["Authorization"] = formatToken(token);
+                return pendingConfig;
+              });
             })
             .catch(error => {
-              PureHttp.rejectRequests(error);
+              PureHttp.pendingQueue.rejectAll(error);
               useUserStoreHook().logOut();
             })
             .finally(() => {
@@ -251,7 +220,7 @@ class PureHttp {
             });
         }
 
-        return PureHttp.enqueueRequest(config);
+        return PureHttp.pendingQueue.enqueue(config);
       },
       error => {
         return Promise.reject(error);
@@ -312,9 +281,9 @@ class PureHttp {
           originalConfig.__cookieAuthRetry = true;
 
           if (PureHttp.isCookieRefreshing) {
-            return PureHttp.enqueueCookieRequest(originalConfig).then(config =>
-              instance.request(config)
-            );
+            return PureHttp.cookiePendingQueue
+              .enqueue(originalConfig)
+              .then(config => instance.request(config));
           }
 
           PureHttp.isCookieRefreshing = true;
@@ -324,10 +293,10 @@ class PureHttp {
               url: "/api/auth/refresh-token",
               skipAuth: true
             } as PureHttpRequestConfig);
-            PureHttp.resolveCookieRequests();
+            PureHttp.cookiePendingQueue.resolveAll(config => config);
             return instance.request(originalConfig);
           } catch (refreshError) {
-            PureHttp.rejectCookieRequests(refreshError);
+            PureHttp.cookiePendingQueue.rejectAll(refreshError);
             useUserStoreHook().logOut();
             return Promise.reject(refreshError);
           } finally {

@@ -24,7 +24,10 @@ export async function getRoleListApi() {
   >("get", baseUrlApi("/role/page/0"));
 }
 
-export async function getRolesApi(index: number, params?: object) {
+export async function getRolesApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<
     CommonResult<PaginatedResponseDto<CompanyRoleItem>>
   >("get", baseUrlApi(`/role/page/${index}`), {

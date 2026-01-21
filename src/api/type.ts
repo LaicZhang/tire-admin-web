@@ -42,10 +42,12 @@ export type RefreshTokenResult = {
 };
 
 export type PaginatedResponseDto<T = unknown> = {
-  count: number;
-  /** 兼容部分接口返回字段 */
-  total?: number;
   list: T[];
+  total: number;
+  page?: number;
+  pageSize?: number;
+  /** 兼容旧字段（部分接口返回 count/list） */
+  count: number;
 };
 
 export type CountResponseDto = {

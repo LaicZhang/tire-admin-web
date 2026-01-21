@@ -31,7 +31,10 @@ export interface PurchaseInquiry extends PurchaseInquiryDto {
 }
 
 /** 采购计划 API */
-export async function getPurchasePlanListApi(index: number, params?: object) {
+export async function getPurchasePlanListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult<PaginatedResponseDto<PurchasePlan>>>(
     "get",
     baseUrlApi(prefix + "plan/" + index),
@@ -72,7 +75,7 @@ export async function deletePurchasePlanApi(id: string) {
 /** 采购询价 API */
 export async function getPurchaseInquiryListApi(
   index: number,
-  params?: object
+  params?: Record<string, unknown>
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<PurchaseInquiry>>

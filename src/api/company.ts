@@ -11,7 +11,10 @@ export function getCompanyId() {
   return useCurrentCompanyStoreHook().companyId;
 }
 
-export async function getCompanyListApi(index: number, params?: object) {
+export async function getCompanyListApi(
+  index: number,
+  params?: Record<string, unknown>
+) {
   return await http.request<CommonResult>(
     "get",
     baseUrlApi(prefix + "page/" + index),

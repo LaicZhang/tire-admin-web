@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
-import { PureTableBar } from "@/components/RePureTableBar";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import Download from "~icons/ep/download";
-import Printer from "~icons/ep/printer";
 import { http } from "@/utils/http";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { getPaymentListApi } from "@/api/payment";
@@ -23,6 +19,10 @@ import {
   contactDebtColumns
 } from "./columns";
 import dayjs from "dayjs";
+import ReportStatisticsCards from "./components/ReportStatisticsCards.vue";
+import FundFlowTab from "./components/FundFlowTab.vue";
+import AccountBalanceTab from "./components/AccountBalanceTab.vue";
+import ContactDebtTab from "./components/ContactDebtTab.vue";
 
 defineOptions({
   name: "FundReport"
@@ -270,19 +270,6 @@ function handlePrint() {
   ElMessage.info("打印功能开发中");
 }
 
-/** 格式化金额 */
-function formatMoney(amount?: number): string {
-  if (amount === undefined || amount === null) return "-";
-  return (amount / 100).toFixed(2);
-}
-
-watch(
-  () => activeTab.value,
-  () => {
-    onSearch();
-  }
-);
-
 onMounted(() => {
   loadPayments();
   onSearch();
@@ -359,243 +346,66 @@ onMounted(() => {
       </el-form-item>
     </ReSearchForm>
 
-    <!-- 统计卡片 -->
-    <div class="statistics-cards mb-4 flex gap-4 px-4">
-      <el-card shadow="never" class="flex-1">
-        <div class="text-gray-500 text-sm">
-          {{ activeTab === "debt" ? "应收合计" : "收入合计" }}
-        </div>
-        <div class="text-xl font-bold text-green-600">
-          ¥{{
-            formatMoney(
-              activeTab === "debt"
-                ? statistics.totalReceivable
-                : statistics.totalIncome
-            )
-          }}
-        </div>
-      </el-card>
-      <el-card shadow="never" class="flex-1">
-        <div class="text-gray-500 text-sm">
-          {{ activeTab === "debt" ? "应付合计" : "支出合计" }}
-        </div>
-        <div class="text-xl font-bold text-red-500">
-          ¥{{
-            formatMoney(
-              activeTab === "debt"
-                ? statistics.totalPayable
-                : statistics.totalExpense
-            )
-          }}
-        </div>
-      </el-card>
-      <el-card shadow="never" class="flex-1">
-        <div class="text-gray-500 text-sm">
-          {{ activeTab === "debt" ? "净欠款" : "净额" }}
-        </div>
-        <div
-          class="text-xl font-bold"
-          :class="
-            (activeTab === 'debt'
-              ? statistics.totalReceivable - statistics.totalPayable
-              : statistics.netBalance) >= 0
-              ? 'text-green-600'
-              : 'text-red-500'
-          "
-        >
-          ¥{{
-            formatMoney(
-              activeTab === "debt"
-                ? statistics.totalReceivable - statistics.totalPayable
-                : statistics.netBalance
-            )
-          }}
-        </div>
-      </el-card>
-    </div>
+    <ReportStatisticsCards :active-tab="activeTab" :statistics="statistics" />
 
     <!-- 标签页 -->
     <el-tabs v-model="activeTab" class="px-4" @tab-change="handleTabChange">
       <el-tab-pane label="资金流水" name="flow">
-        <PureTableBar
-          title="资金流水明细"
+        <FundFlowTab
+          :loading="loading"
           :columns="fundFlowColumns"
+          :data="fundFlowList"
+          :pagination="flowPagination"
           @refresh="onSearch"
-        >
-          <template #buttons>
-            <el-button :icon="useRenderIcon(Download)" @click="handleExport">
-              导出
-            </el-button>
-            <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
-              打印
-            </el-button>
-          </template>
-          <template v-slot="{ size, dynamicColumns }">
-            <pure-table
-              border
-              align-whole="center"
-              showOverflowTooltip
-              table-layout="auto"
-              :loading="loading"
-              :size="size"
-              :data="fundFlowList"
-              :columns="dynamicColumns"
-              :pagination="flowPagination"
-              :paginationSmall="size === 'small'"
-              :header-cell-style="{
-                background: 'var(--el-fill-color-light)',
-                color: 'var(--el-text-color-primary)'
-              }"
-              @page-size-change="
-                val => {
-                  flowPagination.pageSize = val;
-                  fetchFundFlow();
-                }
-              "
-              @page-current-change="
-                val => {
-                  flowPagination.currentPage = val;
-                  fetchFundFlow();
-                }
-              "
-            >
-              <template #direction="{ row }">
-                <el-tag
-                  :type="row.direction === 'IN' ? 'success' : 'danger'"
-                  size="small"
-                >
-                  {{ row.direction === "IN" ? "收入" : "支出" }}
-                </el-tag>
-              </template>
-              <template #amount="{ row }">
-                <span
-                  :class="
-                    row.direction === 'IN' ? 'text-green-600' : 'text-red-500'
-                  "
-                  class="font-medium"
-                >
-                  {{ row.direction === "IN" ? "+" : "-"
-                  }}{{ formatMoney(row.amount) }}
-                </span>
-              </template>
-            </pure-table>
-          </template>
-        </PureTableBar>
+          @export="handleExport"
+          @print="handlePrint"
+          @page-size-change="
+            val => {
+              flowPagination.pageSize = val;
+              fetchFundFlow();
+            }
+          "
+          @page-current-change="
+            val => {
+              flowPagination.currentPage = val;
+              fetchFundFlow();
+            }
+          "
+        />
       </el-tab-pane>
 
       <el-tab-pane label="账户余额" name="balance">
-        <PureTableBar
-          title="账户余额统计"
+        <AccountBalanceTab
+          :loading="loading"
           :columns="accountBalanceColumns"
+          :data="accountBalanceList"
           @refresh="onSearch"
-        >
-          <template #buttons>
-            <el-button :icon="useRenderIcon(Download)" @click="handleExport">
-              导出
-            </el-button>
-          </template>
-          <template v-slot="{ size, dynamicColumns }">
-            <pure-table
-              border
-              align-whole="center"
-              showOverflowTooltip
-              table-layout="auto"
-              :loading="loading"
-              :size="size"
-              :data="accountBalanceList"
-              :columns="dynamicColumns"
-              :header-cell-style="{
-                background: 'var(--el-fill-color-light)',
-                color: 'var(--el-text-color-primary)'
-              }"
-            >
-              <template #income="{ row }">
-                <span class="text-green-600 font-medium">
-                  +{{ formatMoney(row.periodIncome) }}
-                </span>
-              </template>
-              <template #expense="{ row }">
-                <span class="text-red-500 font-medium">
-                  -{{ formatMoney(row.periodExpense) }}
-                </span>
-              </template>
-            </pure-table>
-          </template>
-        </PureTableBar>
+          @export="handleExport"
+        />
       </el-tab-pane>
 
       <el-tab-pane label="往来欠款" name="debt">
-        <PureTableBar
-          title="往来单位欠款表"
+        <ContactDebtTab
+          :loading="loading"
           :columns="contactDebtColumns"
+          :data="contactDebtList"
+          :pagination="debtPagination"
           @refresh="onSearch"
-        >
-          <template #buttons>
-            <el-button :icon="useRenderIcon(Download)" @click="handleExport">
-              导出
-            </el-button>
-            <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
-              打印
-            </el-button>
-          </template>
-          <template v-slot="{ size, dynamicColumns }">
-            <pure-table
-              border
-              align-whole="center"
-              showOverflowTooltip
-              table-layout="auto"
-              :loading="loading"
-              :size="size"
-              :data="contactDebtList"
-              :columns="dynamicColumns"
-              :pagination="debtPagination"
-              :paginationSmall="size === 'small'"
-              :header-cell-style="{
-                background: 'var(--el-fill-color-light)',
-                color: 'var(--el-text-color-primary)'
-              }"
-              @page-size-change="
-                val => {
-                  debtPagination.pageSize = val;
-                  fetchContactDebt();
-                }
-              "
-              @page-current-change="
-                val => {
-                  debtPagination.currentPage = val;
-                  fetchContactDebt();
-                }
-              "
-            >
-              <template #targetType="{ row }">
-                <el-tag
-                  :type="row.targetType === 'CUSTOMER' ? 'primary' : 'warning'"
-                  size="small"
-                >
-                  {{ row.targetType === "CUSTOMER" ? "客户" : "供应商" }}
-                </el-tag>
-              </template>
-              <template #receivable="{ row }">
-                <span class="text-green-600 font-medium">
-                  {{ formatMoney(row.receivableAmount) }}
-                </span>
-              </template>
-              <template #payable="{ row }">
-                <span class="text-red-500 font-medium">
-                  {{ formatMoney(row.payableAmount) }}
-                </span>
-              </template>
-              <template #netDebt="{ row }">
-                <span
-                  :class="row.netDebt >= 0 ? 'text-green-600' : 'text-red-500'"
-                  class="font-medium"
-                >
-                  {{ formatMoney(row.netDebt) }}
-                </span>
-              </template>
-            </pure-table>
-          </template>
-        </PureTableBar>
+          @export="handleExport"
+          @print="handlePrint"
+          @page-size-change="
+            val => {
+              debtPagination.pageSize = val;
+              fetchContactDebt();
+            }
+          "
+          @page-current-change="
+            val => {
+              debtPagination.currentPage = val;
+              fetchContactDebt();
+            }
+          "
+        />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -609,12 +419,6 @@ onMounted(() => {
 .search-form {
   :deep(.el-form-item) {
     margin-bottom: 12px;
-  }
-}
-
-.statistics-cards {
-  :deep(.el-card__body) {
-    padding: 16px;
   }
 }
 </style>
