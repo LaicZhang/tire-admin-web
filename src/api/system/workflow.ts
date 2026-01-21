@@ -27,6 +27,7 @@ export interface WorkflowStep {
   approverId?: number;
   approverType: "user" | "role";
   condition?: string;
+  _uid?: string;
 }
 
 /** Workflow View Object */

@@ -28,7 +28,7 @@ export interface UnitOption {
 export interface MultiUnitFormData {
   name: string;
   baseUnitUid: string;
-  conversions: Array<{ unitUid: string; ratio: number }>;
+  conversions: Array<{ unitUid: string; ratio: number; _uid?: string }>;
   sort: number;
   remark: string;
 }

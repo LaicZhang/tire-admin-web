@@ -30,8 +30,15 @@ const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
 // 多仓库期初库存明细
-const stockItems = ref<InitialStockItem[]>([
-  { repoId: "", repoName: "", quantity: 0, costPrice: 0, batchNo: "" }
+const stockItems = ref<(InitialStockItem & { _uid: string })[]>([
+  {
+    repoId: "",
+    repoName: "",
+    quantity: 0,
+    costPrice: 0,
+    batchNo: "",
+    _uid: crypto.randomUUID()
+  }
 ]);
 
 // 模拟数据
@@ -47,14 +54,14 @@ const repoList = ref([
   { uid: "r3", name: "分仓库B" }
 ]);
 
-// 添加仓库行
 const handleAddItem = () => {
   stockItems.value.push({
     repoId: "",
     repoName: "",
     quantity: 0,
     costPrice: 0,
-    batchNo: ""
+    batchNo: "",
+    _uid: crypto.randomUUID()
   });
 };
 
@@ -116,7 +123,7 @@ defineExpose({ getRef, getStockItems });
     <div class="border rounded p-4 mb-4">
       <div
         v-for="(item, index) in stockItems"
-        :key="index"
+        :key="item._uid"
         class="flex items-center gap-2 mb-4 last:mb-0"
       >
         <el-form-item label="仓库" class="mb-0 flex-1">

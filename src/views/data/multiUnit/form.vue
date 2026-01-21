@@ -36,7 +36,11 @@ const baseUnitName = computed(() => {
 });
 
 function addConversion() {
-  newFormInline.value.conversions.push({ unitUid: "", ratio: 1 });
+  newFormInline.value.conversions.push({
+    unitUid: "",
+    ratio: 1,
+    _uid: crypto.randomUUID()
+  });
 }
 
 function removeConversion(index: number) {
@@ -97,7 +101,7 @@ defineExpose({ getRef });
       <div class="w-full">
         <div
           v-for="(conv, index) in newFormInline.conversions"
-          :key="index"
+          :key="conv._uid || conv.unitUid || index"
           class="flex items-center gap-2 mb-2"
         >
           <span class="whitespace-nowrap">1</span>

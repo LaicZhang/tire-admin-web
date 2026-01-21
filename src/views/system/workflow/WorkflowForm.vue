@@ -57,7 +57,8 @@ watch(
 const addStep = () => {
   formData.steps.push({
     name: `步骤 ${formData.steps.length + 1}`,
-    approverType: "user"
+    approverType: "user",
+    _uid: crypto.randomUUID()
   });
 };
 
@@ -118,7 +119,7 @@ defineExpose({ getRef, getFormData, handleSubmit });
     <el-divider content-position="left">流程步骤配置</el-divider>
     <div
       v-for="(step, index) in formData.steps"
-      :key="index"
+      :key="step._uid || index"
       class="mb-2 flex items-center gap-2"
     >
       <el-tag type="info" class="mr-2">Step {{ index + 1 }}</el-tag>

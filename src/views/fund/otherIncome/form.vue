@@ -151,14 +151,13 @@ async function handleSubmit() {
         ? Math.round(formData.receivedAmount * 100)
         : undefined
     };
-    console.log("提交数据:", submitData);
 
     ElMessage.success(props.editData ? "更新成功" : "创建成功");
     dialogVisible.value = false;
     emit("success");
   } catch (e) {
-    const error = e as Error;
-    ElMessage.error(error.message || "操作失败");
+    const errorMsg = e instanceof Error ? e.message : "操作失败";
+    ElMessage.error(errorMsg);
   } finally {
     loading.value = false;
   }

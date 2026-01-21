@@ -151,8 +151,8 @@ async function handleSubmit() {
     dialogVisible.value = false;
     emit("success");
   } catch (e) {
-    const error = e as Error;
-    ElMessage.error(error.message || "操作失败");
+    const errorMsg = e instanceof Error ? e.message : "操作失败";
+    ElMessage.error(errorMsg);
   } finally {
     loading.value = false;
   }

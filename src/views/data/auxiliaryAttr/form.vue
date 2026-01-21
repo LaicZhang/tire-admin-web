@@ -58,7 +58,7 @@ defineExpose({ getRef });
         <div class="flex flex-wrap gap-2 mb-2">
           <el-tag
             v-for="(val, index) in newFormInline.values"
-            :key="index"
+            :key="val"
             closable
             @close="removeValue(index)"
           >

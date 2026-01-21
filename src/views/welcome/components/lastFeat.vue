@@ -53,7 +53,7 @@ onMounted(async () => {
         <el-timeline>
           <el-timeline-item
             v-for="(item, index) in latestNewsData"
-            :key="index"
+            :key="item.id || `feat-${index}`"
             center
             placement="top"
             :icon="
