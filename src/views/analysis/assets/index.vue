@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import { getAssetListApi } from "@/api";
 import { message } from "@/utils";
+import { MAX_FETCH_PAGE_SIZE } from "@/utils/constants";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 
@@ -30,7 +31,9 @@ const getStats = async () => {
   try {
     // Currently using list API to calculate simple stats
     // Ideally should be a dedicated stats API
-    const { data, code, msg } = await getAssetListApi(1, { pageSize: 1000 }); // Fetch a large batch to calculate
+    const { data, code, msg } = await getAssetListApi(1, {
+      pageSize: MAX_FETCH_PAGE_SIZE
+    }); // Fetch a large batch to calculate
     if (code === 200) {
       const typedData = data as { list?: AssetItem[]; count?: number };
       const list = typedData.list || [];

@@ -11,7 +11,7 @@ import {
   type BarcodeProduct
 } from "@/api/tools";
 import { message } from "@/utils/message";
-import { downloadBlob } from "@/utils/download";
+import { downloadBlob, downloadFromUrl } from "@/utils/download";
 import ImportDialog from "@/components/ImportExport/ImportDialog.vue";
 import ExportDialog from "@/components/ImportExport/ExportDialog.vue";
 
@@ -143,12 +143,7 @@ async function generateBarcode() {
 function downloadBarcode() {
   if (!barcodeImage.value) return;
   // barcodeImage 已经是 objectURL，直接作为同源 URL 下载
-  import("@/utils/download").then(({ downloadFromUrl }) => {
-    downloadFromUrl(
-      barcodeImage.value!,
-      `barcode_${barcodeForm.value.code}.png`
-    );
-  });
+  downloadFromUrl(barcodeImage.value, `barcode_${barcodeForm.value.code}.png`);
 }
 
 async function handleScan() {

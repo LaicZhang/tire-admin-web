@@ -9,7 +9,7 @@ defineProps<{
   customerList: AuthItem[];
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   "update:visible": [value: boolean];
   export: [];
 }>();
@@ -22,10 +22,10 @@ defineEmits<{
     width="600px"
     destroy-on-close
     :close-on-click-modal="false"
-    @update:model-value="$emit('update:visible', $event)"
+    @update:model-value="emit('update:visible', $event)"
   >
     <div class="flex justify-end mb-4">
-      <el-button :icon="useRenderIcon(Download)" @click="$emit('export')">
+      <el-button :icon="useRenderIcon(Download)" @click="emit('export')">
         导出
       </el-button>
     </div>
@@ -40,7 +40,7 @@ defineEmits<{
       max-height="400"
     />
     <template #footer>
-      <el-button @click="$emit('update:visible', false)">关闭</el-button>
+      <el-button @click="emit('update:visible', false)">关闭</el-button>
     </template>
   </el-dialog>
 </template>

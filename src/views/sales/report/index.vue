@@ -9,6 +9,7 @@ import {
   handleApiError,
   formatDate
 } from "@/utils";
+import { MAX_FETCH_PAGE_SIZE } from "@/utils/constants";
 import type {
   SalesStatistics,
   CustomerRanking,
@@ -85,7 +86,7 @@ async function loadReportData() {
 
     const res = await getSalesOrderListApi(1, {
       ...searchForm.value,
-      pageSize: 1000
+      pageSize: MAX_FETCH_PAGE_SIZE
     });
 
     if (res.code === 200) {
@@ -120,7 +121,7 @@ async function loadReportData() {
         cData.totalAmount += order.total || 0;
         cData.totalQuantity += order.count || 0;
 
-        const dateKey = formatDate(order.createdAt, "YYYY-MM");
+        const dateKey = formatDate(order.createdAt);
         if (!dateMap.has(dateKey)) {
           dateMap.set(dateKey, {
             date: dateKey,

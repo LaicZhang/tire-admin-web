@@ -17,6 +17,7 @@ import {
 import type { Department } from "@/api/company/department";
 import { getRolesApi } from "@/api/system/role";
 import { message } from "@/utils";
+import { BATCH_FETCH_PAGE_SIZE } from "@/utils/constants";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables/useCrud";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -71,7 +72,7 @@ async function openRolesDialog(row: { uid: string; name: string }) {
 
   try {
     const [rolesRes, deptRolesRes] = await Promise.all([
-      getRolesApi(1, { pageSize: 100 }),
+      getRolesApi(1, { pageSize: BATCH_FETCH_PAGE_SIZE }),
       getDepartmentRolesApi(row.uid)
     ]);
 

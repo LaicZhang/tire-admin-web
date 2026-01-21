@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { getOrderListApi } from "@/api";
+import { BATCH_FETCH_PAGE_SIZE } from "@/utils/constants";
 
 defineOptions({
   name: "ShippingPlanDialog"
@@ -63,7 +64,7 @@ function resetForm() {
 async function loadOrders() {
   try {
     const { data, code } = await getOrderListApi("sale-order", 1, {
-      pageSize: 100
+      pageSize: BATCH_FETCH_PAGE_SIZE
     });
     if (code === 200) {
       orderOptions.value = (data?.list || []).map((order: unknown) => ({

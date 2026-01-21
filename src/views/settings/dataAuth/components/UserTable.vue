@@ -10,7 +10,7 @@ defineProps<{
   userList: DataAuthUser[];
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   edit: [row: DataAuthUser];
   view: [row: DataAuthUser];
   refresh: [];
@@ -81,7 +81,7 @@ const columns: TableColumnList = [
 </script>
 
 <template>
-  <PureTableBar title="数据授权" @refresh="$emit('refresh')">
+  <PureTableBar title="数据授权" @refresh="emit('refresh')">
     <template v-slot="{ size }">
       <pure-table
         border
@@ -100,7 +100,7 @@ const columns: TableColumnList = [
             type="primary"
             :size="size"
             :icon="useRenderIcon(EditPen)"
-            @click="$emit('edit', row)"
+            @click="emit('edit', row)"
           >
             编辑授权
           </el-button>
@@ -110,7 +110,7 @@ const columns: TableColumnList = [
             type="primary"
             :size="size"
             :icon="useRenderIcon(View)"
-            @click="$emit('view', row)"
+            @click="emit('view', row)"
           >
             授权查看
           </el-button>
