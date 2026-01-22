@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useCrud } from "../../src/hooks/useCrud";
+import { useCrud } from "../../src/composables";
 import { flushPromises, mount } from "@vue/test-utils";
 import { nextTick, defineComponent } from "vue";
 
