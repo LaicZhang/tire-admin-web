@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, h } from "vue";
+import { ref, reactive, onMounted, h, watch } from "vue";
 import type { FlatCategoryItem } from "./types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -19,27 +19,32 @@ import {
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useCrud } from "@/composables";
 import Form from "./form.vue";
 
 defineOptions({
   name: "ExpenseCategoryManagement"
 });
 
-const dataList = ref<FlatCategoryItem[]>([]);
-const loading = ref(false);
 const searchFormRef = ref();
 const selectedRows = ref<FlatCategoryItem[]>([]);
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 const form = reactive({
   name: "",
   code: ""
 });
+
+const { loading, dataList, pagination, fetchData, onCurrentChange, onSizeChange } =
+  useCrud<FlatCategoryItem, { list: FlatCategoryItem[]; total: number }, typeof form>({
+    api: params => getExpenseCategoryListApi(pagination.value.currentPage, params),
+    immediate: false,
+    pagination: {
+      pageSize: 10,
+      background: true,
+      layout: "total, sizes, prev, pager, next, jumper"
+    },
+    params: form
+  });
 
 const columns: TableColumnList = [
   {
@@ -75,30 +80,10 @@ const columns: TableColumnList = [
   }
 ];
 
-const getData = async () => {
-  loading.value = true;
-  try {
-    const { data, code, msg } = await getExpenseCategoryListApi(
-      pagination.currentPage,
-      { ...form }
-    );
-    if (code === 200) {
-      dataList.value = data.list || [];
-      pagination.total = data.count || data.total || 0;
-    } else {
-      message(msg, { type: "error" });
-    }
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
-};
-
 const resetForm = () => {
   searchFormRef.value?.resetFields();
-  pagination.currentPage = 1;
-  getData();
+  pagination.value.currentPage = 1;
+  fetchData();
 };
 
 const handleDelete = async (row: FlatCategoryItem) => {
@@ -106,7 +91,7 @@ const handleDelete = async (row: FlatCategoryItem) => {
     const { code, msg } = await deleteExpenseCategoryApi(row.uid);
     if (code === 200) {
       message("删除成功", { type: "success" });
-      getData();
+      fetchData();
     } else {
       message(msg || "删除失败", { type: "error" });
     }
@@ -127,7 +112,7 @@ const handleBatchDelete = async () => {
     if (code === 200) {
       message("批量删除成功", { type: "success" });
       selectedRows.value = [];
-      getData();
+      fetchData();
     } else {
       message(msg || "批量删除失败", { type: "error" });
     }
@@ -140,6 +125,16 @@ const handleBatchDelete = async () => {
 const handleSelectionChange = (rows: FlatCategoryItem[]) => {
   selectedRows.value = rows;
 };
+
+// 监听搜索表单变化，自动重新获取数据
+watch(
+  () => [form.name, form.code],
+  () => {
+    pagination.value.currentPage = 1;
+    fetchData();
+  },
+  { deep: true }
+);
 
 function openDialog(title = "新增", row?: FlatCategoryItem) {
   addDialog({
@@ -183,7 +178,7 @@ function openDialog(title = "新增", row?: FlatCategoryItem) {
           if (code === 200) {
             message("操作成功", { type: "success" });
             done();
-            getData();
+            fetchData();
           } else {
             message(msg || "操作失败", { type: "error" });
           }
@@ -196,8 +191,9 @@ function openDialog(title = "新增", row?: FlatCategoryItem) {
   });
 }
 
+// 初始加载数据
 onMounted(() => {
-  getData();
+  fetchData();
 });
 </script>
 
@@ -215,7 +211,6 @@ onMounted(() => {
           placeholder="请输入编码"
           clearable
           class="w-[160px]"
-          @keyup.enter="getData"
         />
       </el-form-item>
       <el-form-item label="名称" prop="name">
@@ -224,16 +219,10 @@ onMounted(() => {
           placeholder="请输入名称"
           clearable
           class="w-[160px]"
-          @keyup.enter="getData"
         />
       </el-form-item>
       <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="getData"
-        >
+        <el-button type="primary" :icon="useRenderIcon(Search)" @click="fetchData">
           搜索
         </el-button>
         <el-button :icon="useRenderIcon(Refresh)" @click="resetForm">
@@ -242,7 +231,7 @@ onMounted(() => {
       </el-form-item>
     </el-form>
 
-    <PureTableBar title="支出类别" @refresh="getData">
+    <PureTableBar title="支出类别" @refresh="fetchData">
       <template #buttons>
         <el-button
           type="primary"
@@ -284,8 +273,8 @@ onMounted(() => {
             color: 'var(--el-text-color-primary)'
           }"
           @selection-change="handleSelectionChange"
-          @page-size-change="getData"
-          @page-current-change="getData"
+          @page-size-change="onSizeChange(pagination.pageSize)"
+          @page-current-change="onCurrentChange"
         >
           <template #operation="{ row }">
             <el-button
@@ -306,13 +295,11 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 .search-form {
-  :deep(.el-form-item) {
-    margin-bottom: 12px;
-  }
+  @extend .search-form;
 }
 </style>

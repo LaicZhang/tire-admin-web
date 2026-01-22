@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
@@ -15,31 +15,43 @@ import CustomerForm from "./form.vue";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
 import type { FormItemProps } from "./types";
+import { useCrud } from "@/composables";
 import {
   getCustomerListApi,
   addCustomerApi,
   updateCustomerApi,
   deleteCustomerApi,
-  getCustomerApi
+  getCustomerApi,
+  type Customer
 } from "@/api/business/customer";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "DataCustomer"
 });
 
-const loading = ref(false);
-const dataList = ref<FormItemProps[]>([]);
 const formRef = ref();
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 const state = ref({
   name: "",
   keyword: ""
+});
+
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  FormItemProps,
+  CommonResult<PaginatedResponseDto<Customer>>,
+  { page: number }
+>({
+  api: (params: { page: number }) =>
+    getCustomerListApi(params.page, {
+      name: state.value.name || undefined,
+      keyword: state.value.keyword || undefined
+    }),
+  transform: (res: CommonResult<PaginatedResponseDto<Customer>>) => ({
+    list: (res.data?.list ?? []) as FormItemProps[],
+    total: res.data?.count ?? 0
+  }),
+  immediate: true
 });
 
 const formColumns: PlusColumn[] = [
@@ -55,23 +67,9 @@ const formColumns: PlusColumn[] = [
   }
 ];
 
-const handleSearch = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getCustomerListApi(
-      pagination.value.currentPage,
-      {
-        name: state.value.name || undefined,
-        keyword: state.value.keyword || undefined
-      }
-    );
-    if (code === 200) {
-      dataList.value = data.list as FormItemProps[];
-      pagination.value.total = data.count;
-    }
-  } finally {
-    loading.value = false;
-  }
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const handleReset = () => {
@@ -79,40 +77,30 @@ const handleReset = () => {
   handleSearch();
 };
 
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  handleSearch();
-};
-
 const getDetails = async (row: FormItemProps) => {
-  loading.value = true;
-  try {
-    const { data, code } = await getCustomerApi(row.uid);
-    if (code !== 200) return;
-    const customer = data as FormItemProps;
-    addDialog({
-      title: "客户详情",
-      props: {
-        formInline: { ...customer },
+  if (!row.uid) return;
+  const { data, code } = await getCustomerApi(row.uid);
+  if (code !== 200) return;
+  const customer = data as FormItemProps;
+  addDialog({
+    title: "客户详情",
+    props: {
+      formInline: { ...customer },
+      disabled: true
+    },
+    width: "40%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: true,
+    hideFooter: true,
+    contentRenderer: ({ options }) =>
+      h(CustomerForm, {
+        ref: formRef,
+        formInline: (options.props as { formInline: FormItemProps }).formInline,
         disabled: true
-      },
-      width: "40%",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
-      closeOnClickModal: true,
-      hideFooter: true,
-      contentRenderer: ({ options }) =>
-        h(CustomerForm, {
-          ref: formRef,
-          formInline: (options.props as { formInline: FormItemProps })
-            .formInline,
-          disabled: true
-        })
-    });
-  } finally {
-    loading.value = false;
-  }
+      })
+  });
 };
 
 const openDialog = (title = "新增", row?: FormItemProps) => {
@@ -149,8 +137,11 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         if (valid) {
           const promise =
             title === "新增"
-              ? addCustomerApi(curData)
-              : updateCustomerApi(row?.uid ?? "", curData);
+              ? addCustomerApi(curData as unknown as Record<string, unknown>)
+              : updateCustomerApi(
+                  row?.uid ?? "",
+                  curData as unknown as Record<string, unknown>
+                );
           promise.then(() => {
             message("操作成功", { type: "success" });
             done();
@@ -173,7 +164,7 @@ const deleteOne = async (row: FormItemProps) => {
         type: "warning"
       }
     );
-    await deleteCustomerApi(row.uid);
+    await deleteCustomerApi(row.uid!);
     message("删除成功", { type: "success" });
     handleSearch();
   } catch (error) {
@@ -182,14 +173,10 @@ const deleteOne = async (row: FormItemProps) => {
     }
   }
 };
-
-onMounted(() => {
-  handleSearch();
-});
 </script>
 
 <template>
-  <div class="main">
+  <div class="page-container">
     <PlusSearch
       v-model="state"
       class="bg-white mb-4 p-4 rounded-md"
@@ -223,7 +210,7 @@ onMounted(() => {
             :data="dataList"
             :columns="columns"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #level="{ row }">
               <el-tag v-if="row.level" type="info">{{ row.level.name }}</el-tag>
@@ -269,8 +256,8 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 :deep(.el-card) {

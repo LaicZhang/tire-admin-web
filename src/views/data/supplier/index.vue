@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
@@ -15,31 +15,43 @@ import SupplierForm from "./form.vue";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
 import type { FormItemProps } from "./types";
+import { useCrud } from "@/composables";
 import {
   getProviderListApi,
   addProviderApi,
   updateProviderApi,
   deleteProviderApi,
-  getProviderApi
+  getProviderApi,
+  type Provider
 } from "@/api/business/provider";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "DataSupplier"
 });
 
-const loading = ref(false);
-const dataList = ref<FormItemProps[]>([]);
 const formRef = ref();
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 const state = ref({
   name: "",
   keyword: ""
+});
+
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  FormItemProps,
+  CommonResult<PaginatedResponseDto<Provider>>,
+  { page: number }
+>({
+  api: (params: { page: number }) =>
+    getProviderListApi(params.page, {
+      name: state.value.name || undefined,
+      keyword: state.value.keyword || undefined
+    }),
+  transform: (res: CommonResult<PaginatedResponseDto<Provider>>) => ({
+    list: (res.data?.list ?? []) as FormItemProps[],
+    total: res.data?.count ?? 0
+  }),
+  immediate: true
 });
 
 const formColumns: PlusColumn[] = [
@@ -55,23 +67,9 @@ const formColumns: PlusColumn[] = [
   }
 ];
 
-const handleSearch = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getProviderListApi(
-      pagination.value.currentPage,
-      {
-        name: state.value.name || undefined,
-        keyword: state.value.keyword || undefined
-      }
-    );
-    if (code === 200) {
-      dataList.value = data.list as FormItemProps[];
-      pagination.value.total = data.count;
-    }
-  } finally {
-    loading.value = false;
-  }
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const handleReset = () => {
@@ -79,40 +77,30 @@ const handleReset = () => {
   handleSearch();
 };
 
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  handleSearch();
-};
-
-const getDetails = async (row: { uid: string }) => {
-  loading.value = true;
-  try {
-    const { data, code } = await getProviderApi(row.uid);
-    if (code !== 200) return;
-    const supplier = data as FormItemProps;
-    addDialog({
-      title: "供应商详情",
-      props: {
-        formInline: { ...supplier },
+const getDetails = async (row: FormItemProps) => {
+  if (!row.uid) return;
+  const { data, code } = await getProviderApi(row.uid);
+  if (code !== 200) return;
+  const supplier = data as FormItemProps;
+  addDialog({
+    title: "供应商详情",
+    props: {
+      formInline: { ...supplier },
+      disabled: true
+    },
+    width: "40%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: true,
+    hideFooter: true,
+    contentRenderer: ({ options }) =>
+      h(SupplierForm, {
+        ref: formRef,
+        formInline: (options.props as { formInline: FormItemProps }).formInline,
         disabled: true
-      },
-      width: "40%",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
-      closeOnClickModal: true,
-      hideFooter: true,
-      contentRenderer: ({ options }) =>
-        h(SupplierForm, {
-          ref: formRef,
-          formInline: (options.props as { formInline: FormItemProps })
-            .formInline,
-          disabled: true
-        })
-    });
-  } finally {
-    loading.value = false;
-  }
+      })
+  });
 };
 
 const openDialog = (title = "新增", row?: FormItemProps) => {
@@ -149,8 +137,11 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         if (valid) {
           const promise =
             title === "新增"
-              ? addProviderApi(curData)
-              : updateProviderApi(row?.uid ?? "", curData);
+              ? addProviderApi(curData as unknown as Record<string, unknown>)
+              : updateProviderApi(
+                  row?.uid ?? "",
+                  curData as unknown as Record<string, unknown>
+                );
           promise.then(() => {
             message("操作成功", { type: "success" });
             done();
@@ -162,7 +153,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const deleteOne = async (row: { uid: string; name: string }) => {
+const deleteOne = async (row: FormItemProps) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除供应商 "${row.name}" 吗？此操作不可恢复。`,
@@ -173,7 +164,7 @@ const deleteOne = async (row: { uid: string; name: string }) => {
         type: "warning"
       }
     );
-    await deleteProviderApi(row.uid);
+    await deleteProviderApi(row.uid!);
     message("删除成功", { type: "success" });
     handleSearch();
   } catch (error) {
@@ -182,10 +173,6 @@ const deleteOne = async (row: { uid: string; name: string }) => {
     }
   }
 };
-
-onMounted(() => {
-  handleSearch();
-});
 </script>
 
 <template>
@@ -223,7 +210,7 @@ onMounted(() => {
             :data="dataList"
             :columns="columns"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button
@@ -265,8 +252,8 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 :deep(.el-card) {

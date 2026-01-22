@@ -287,13 +287,11 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 .search-form {
-  :deep(.el-form-item) {
-    margin-bottom: 12px;
-  }
+  @extend .search-form;
 }
 </style>

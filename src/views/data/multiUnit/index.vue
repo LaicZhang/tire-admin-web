@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, h } from "vue";
+import { ref, onMounted, h } from "vue";
 import type { MultiUnitItem, UnitOption } from "./types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import {
   getMultiUnitListApi,
@@ -15,28 +14,38 @@ import {
   deleteMultiUnitApi,
   getAllSingleUnitsApi
 } from "@/api/data/category";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useCrud } from "@/composables";
 import Form from "./form.vue";
 
 defineOptions({
   name: "MultiUnitManagement"
 });
 
-const dataList = ref<MultiUnitItem[]>([]);
 const unitOptions = ref<UnitOption[]>([]);
-const loading = ref(false);
 const searchFormRef = ref();
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+const form = ref({
+  name: ""
 });
 
-const form = reactive({
-  name: ""
+const { loading, dataList, pagination, fetchData } = useCrud<
+  MultiUnitItem,
+  CommonResult<PaginatedResponseDto<MultiUnitItem>>,
+  { page: number }
+>({
+  api: (params: { page: number }) =>
+    getMultiUnitListApi(params.page, {
+      name: form.value.name || undefined
+    }),
+  transform: res => ({
+    list: res.data?.list ?? [],
+    total: res.data?.count ?? 0
+  }),
+  immediate: false // 等待 unitOptions 加载完成后再加载数据
 });
 
 const columns: TableColumnList = [
@@ -92,30 +101,14 @@ const loadUnitOptions = async () => {
   }
 };
 
-const getData = async () => {
-  loading.value = true;
-  try {
-    const { data, code, msg } = await getMultiUnitListApi(
-      pagination.currentPage,
-      { ...form }
-    );
-    if (code === 200) {
-      dataList.value = data.list || [];
-      pagination.total = data.count || data.total || 0;
-    } else {
-      message(msg, { type: "error" });
-    }
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const resetForm = () => {
   searchFormRef.value?.resetFields();
-  pagination.currentPage = 1;
-  getData();
+  handleSearch();
 };
 
 const handleDelete = async (row: MultiUnitItem) => {
@@ -123,7 +116,7 @@ const handleDelete = async (row: MultiUnitItem) => {
     const { code, msg } = await deleteMultiUnitApi(row.uid);
     if (code === 200) {
       message("删除成功", { type: "success" });
-      getData();
+      fetchData();
     } else {
       message(msg || "删除失败", { type: "error" });
     }
@@ -188,7 +181,7 @@ function openDialog(title = "新增", row?: MultiUnitItem) {
           if (code === 200) {
             message("操作成功", { type: "success" });
             done();
-            getData();
+            fetchData();
           } else {
             message(msg || "操作失败", { type: "error" });
           }
@@ -203,17 +196,18 @@ function openDialog(title = "新增", row?: MultiUnitItem) {
 
 onMounted(async () => {
   await loadUnitOptions();
-  getData();
+  fetchData();
 });
 </script>
 
 <template>
   <div class="main">
-    <el-form
+    <ReSearchForm
       ref="searchFormRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      :form="form"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="resetForm"
     >
       <el-form-item label="单位组名称" prop="name">
         <el-input
@@ -221,25 +215,12 @@ onMounted(async () => {
           placeholder="请输入单位组名称"
           clearable
           class="w-[200px]!"
-          @keyup.enter="getData"
+          @keyup.enter="handleSearch"
         />
       </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          :loading="loading"
-          @click="getData"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
+    </ReSearchForm>
 
-    <PureTableBar title="多计量单位" @refresh="getData">
+    <PureTableBar title="多计量单位" @refresh="fetchData">
       <template #buttons>
         <el-button
           type="primary"
@@ -266,8 +247,8 @@ onMounted(async () => {
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
           }"
-          @page-size-change="getData"
-          @page-current-change="getData"
+          @page-size-change="fetchData"
+          @page-current-change="fetchData"
         >
           <template #operation="{ row }">
             <el-button
@@ -288,13 +269,11 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 .search-form {
-  :deep(.el-form-item) {
-    margin-bottom: 12px;
-  }
+  @extend .search-form;
 }
 </style>

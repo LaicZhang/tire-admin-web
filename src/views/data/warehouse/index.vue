@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
@@ -22,20 +22,13 @@ import {
   updateStorageZoneApi,
   deleteStorageZoneApi
 } from "@/api/business/storage";
+import { useCrud } from "@/composables";
 
 defineOptions({
   name: "DataWarehouse"
 });
 
-const loading = ref(false);
-const dataList = ref<FormItemProps[]>([]);
 const formRef = ref();
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 const state = ref({
   name: "",
@@ -55,30 +48,22 @@ const formColumns: PlusColumn[] = [
   }
 ];
 
-const handleSearch = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getStorageZoneListApi({
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  FormItemProps,
+  Awaited<ReturnType<typeof getStorageZoneListApi>>
+>({
+  api: () =>
+    getStorageZoneListApi({
       name: state.value.name || undefined,
       code: state.value.code || undefined
-    });
-    if (code === 200) {
-      dataList.value = (data as FormItemProps[]) || [];
-      pagination.value.total = dataList.value.length;
-    }
-  } finally {
-    loading.value = false;
-  }
-};
+    }),
+  deleteApi: deleteStorageZoneApi,
+  immediate: true
+});
 
 const handleReset = () => {
   state.value = { name: "", code: "" };
-  handleSearch();
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  handleSearch();
+  fetchData();
 };
 
 const getDetails = async (row: FormItemProps) => {
@@ -159,7 +144,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
           promise.then(() => {
             message("操作成功", { type: "success" });
             done();
-            handleSearch();
+            fetchData();
           });
         }
       });
@@ -184,21 +169,17 @@ const deleteOne = async (row: { uid?: string; name: string }) => {
     );
     await deleteStorageZoneApi(row.uid);
     message("删除成功", { type: "success" });
-    handleSearch();
+    fetchData();
   } catch (error) {
     if (error !== "cancel") {
       message("删除失败", { type: "error" });
     }
   }
 };
-
-onMounted(() => {
-  handleSearch();
-});
 </script>
 
 <template>
-  <div class="main">
+  <div class="page-container">
     <PlusSearch
       v-model="state"
       class="bg-white mb-4 p-4 rounded-md"
@@ -206,12 +187,12 @@ onMounted(() => {
       :show-number="3"
       label-width="80"
       label-position="right"
-      @search="handleSearch"
+      @search="fetchData"
       @reset="handleReset"
     />
 
     <div class="bg-white p-4 rounded-md">
-      <PureTableBar :title="$route.meta.title" @refresh="handleSearch">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -232,7 +213,7 @@ onMounted(() => {
             :data="dataList"
             :columns="columns"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button
@@ -274,8 +255,8 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 :deep(.el-card) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
@@ -22,20 +22,13 @@ import {
   deletePaymentApi,
   getPaymentApi
 } from "@/api/payment";
+import { useCrud } from "@/composables";
 
 defineOptions({
   name: "DataAccount"
 });
 
-const loading = ref(false);
-const dataList = ref<FormItemProps[]>([]);
 const formRef = ref();
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 const state = ref({
   name: ""
@@ -49,34 +42,28 @@ const formColumns: PlusColumn[] = [
   }
 ];
 
-const handleSearch = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getPaymentListApi();
-    if (code === 200) {
-      let list = (data as FormItemProps[]) || [];
-      // 过滤搜索
-      if (state.value.name) {
-        list = list.filter((item: FormItemProps) =>
-          item.name?.toLowerCase().includes(state.value.name.toLowerCase())
-        );
-      }
-      dataList.value = list;
-      pagination.value.total = list.length;
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  FormItemProps,
+  Awaited<ReturnType<typeof getPaymentListApi>>
+>({
+  api: () => getPaymentListApi(),
+  deleteApi: deletePaymentApi,
+  transform: res => {
+    let list = (res.data as FormItemProps[]) || [];
+    // 前端过滤搜索
+    if (state.value.name) {
+      list = list.filter((item: FormItemProps) =>
+        item.name?.toLowerCase().includes(state.value.name.toLowerCase())
+      );
     }
-  } finally {
-    loading.value = false;
-  }
-};
+    return { list, total: list.length };
+  },
+  immediate: true
+});
 
 const handleReset = () => {
   state.value = { name: "" };
-  handleSearch();
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  handleSearch();
+  fetchData();
 };
 
 const getDetails = async (row: { uid: string }) => {
@@ -152,7 +139,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             createPaymentApi(createData).then(() => {
               message("操作成功", { type: "success" });
               done();
-              handleSearch();
+              fetchData();
             });
           } else {
             const updateData = {
@@ -167,7 +154,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             updatePaymentApi(row?.uid ?? "", updateData).then(() => {
               message("操作成功", { type: "success" });
               done();
-              handleSearch();
+              fetchData();
             });
           }
         }
@@ -189,7 +176,7 @@ const deleteOne = async (row: { uid: string; name: string }) => {
     );
     await deletePaymentApi(row.uid);
     message("删除成功", { type: "success" });
-    handleSearch();
+    fetchData();
   } catch (error) {
     if (error !== "cancel") {
       message("删除失败", { type: "error" });
@@ -201,10 +188,6 @@ const formatBalance = (balance: number | string) => {
   const num = typeof balance === "string" ? parseFloat(balance) : balance;
   return num.toFixed(2);
 };
-
-onMounted(() => {
-  handleSearch();
-});
 </script>
 
 <template>
@@ -216,12 +199,12 @@ onMounted(() => {
       :show-number="3"
       label-width="80"
       label-position="right"
-      @search="handleSearch"
+      @search="fetchData"
       @reset="handleReset"
     />
 
     <div class="bg-white p-4 rounded-md">
-      <PureTableBar :title="$route.meta.title" @refresh="handleSearch">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -242,7 +225,7 @@ onMounted(() => {
             :data="dataList"
             :columns="columns"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #balance="{ row }">
               <span class="font-bold text-primary">
@@ -289,8 +272,8 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 :deep(.el-card) {

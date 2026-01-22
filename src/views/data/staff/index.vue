@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
@@ -23,20 +23,13 @@ import {
   deleteEmployeeApi,
   getEmployeeApi
 } from "@/api/company/employee";
+import { useCrud } from "@/composables";
 
 defineOptions({
   name: "DataStaff"
 });
 
-const loading = ref(false);
-const dataList = ref<FormItemProps[]>([]);
 const formRef = ref();
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 const state = ref({
   name: "",
@@ -61,36 +54,29 @@ const formColumns: PlusColumn[] = [
   }
 ];
 
-const handleSearch = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getEmployeeListApi(
-      pagination.value.currentPage,
-      {
-        name: state.value.name || undefined,
-        keyword: state.value.keyword || undefined
-      }
-    );
-    if (code === 200) {
-      dataList.value = data.list.map((item: unknown) => ({
-        ...item,
-        phone: item.user?.phone || ""
-      })) as FormItemProps[];
-      pagination.value.total = data.count;
-    }
-  } finally {
-    loading.value = false;
-  }
-};
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  FormItemProps,
+  Awaited<ReturnType<typeof getEmployeeListApi>>
+>({
+  api: params =>
+    getEmployeeListApi(params.page, {
+      name: state.value.name || undefined,
+      keyword: state.value.keyword || undefined
+    }),
+  deleteApi: deleteEmployeeApi,
+  transform: res => {
+    const list = (res.data?.list || []).map((item: unknown) => ({
+      ...item,
+      phone: (item as { user?: { phone?: string } }).user?.phone || ""
+    })) as FormItemProps[];
+    return { list, total: res.data?.count || 0 };
+  },
+  immediate: true
+});
 
 const handleReset = () => {
   state.value = { name: "", keyword: "" };
-  handleSearch();
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  handleSearch();
+  fetchData();
 };
 
 const getDetails = async (row: { uid: string }) => {
@@ -178,7 +164,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             addEmployeeApi(createData).then(() => {
               message("操作成功", { type: "success" });
               done();
-              handleSearch();
+              fetchData();
             });
           } else {
             const updateData = {
@@ -196,7 +182,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             updateEmployeeApi(row?.uid ?? "", updateData).then(() => {
               message("操作成功", { type: "success" });
               done();
-              handleSearch();
+              fetchData();
             });
           }
         }
@@ -218,17 +204,13 @@ const deleteOne = async (row: { uid: string; name: string }) => {
     );
     await deleteEmployeeApi(row.uid);
     message("删除成功", { type: "success" });
-    handleSearch();
+    fetchData();
   } catch (error) {
     if (error !== "cancel") {
       message("删除失败", { type: "error" });
     }
   }
 };
-
-onMounted(() => {
-  handleSearch();
-});
 </script>
 
 <template>
@@ -240,12 +222,12 @@ onMounted(() => {
       :show-number="3"
       label-width="80"
       label-position="right"
-      @search="handleSearch"
+      @search="fetchData"
       @reset="handleReset"
     />
 
     <div class="bg-white p-4 rounded-md">
-      <PureTableBar :title="$route.meta.title" @refresh="handleSearch">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -266,7 +248,7 @@ onMounted(() => {
             :data="dataList"
             :columns="columns"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #phone="{ row }">
               {{ row.user?.phone || row.phone || "-" }}
@@ -318,8 +300,8 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 :deep(.el-card) {
