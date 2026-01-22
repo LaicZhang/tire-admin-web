@@ -68,8 +68,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           if (title === "新增") {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { id, ...curSalaryData } = curData;
+            const { id: _id, ...curSalaryData } = curData;
             await addSalaryApi({
               ...curSalaryData,
               company: {

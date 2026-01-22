@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
@@ -7,72 +7,58 @@ import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { openDialog } from "./table";
-import { getSalaryListApi, deleteSalaryApi } from "@/api";
-import type { Salary } from "@/api/company/salary";
+import {
+  getSalaryListApi,
+  deleteSalaryApi,
+  type Salary
+} from "@/api/company/salary";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "Salary"
 });
-const dataList = ref<Salary[]>([]);
-const loading = ref(false);
+
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   name: undefined,
   desc: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  Salary,
+  CommonResult<PaginatedResponseDto<Salary>>,
+  { page: number }
+>({
+  api: (params: { page: number }) =>
+    getSalaryListApi(params.page, {
+      name: form.value.name || undefined,
+      desc: form.value.desc || undefined
+    }),
+  transform: (res: CommonResult<PaginatedResponseDto<Salary>>) => ({
+    list: res.data?.list ?? [],
+    total: res.data?.count ?? 0
+  }),
+  immediate: true
 });
-const getSalaryListInfo = async () => {
-  const { data, code, msg } = await getSalaryListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
-};
-const onSearch = async () => {
-  loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined) {
-    await getSalaryListInfo();
-    loading.value = false;
-    return;
-  }
 
-  const { data } = await getSalaryListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
-  });
-
-  dataList.value = data.list;
-  pagination.value.total = data.count;
-  loading.value = false;
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const resetForm = () => {
   searchFormRef.value?.resetFields();
-  onSearch();
+  handleSearch();
 };
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getSalaryListInfo();
-}
 
 async function handleDelete(row: Salary) {
   await deleteSalaryApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  fetchData();
 }
-
-onMounted(async () => {
-  await getSalaryListInfo();
-});
 </script>
 
 <template>
@@ -81,7 +67,7 @@ onMounted(async () => {
       ref="searchFormRef"
       :form="form"
       :loading="loading"
-      @search="onSearch"
+      @search="handleSearch"
       @reset="resetForm"
     >
       <el-form-item label="名称：" prop="name">
@@ -103,7 +89,7 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getSalaryListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -123,7 +109,7 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button

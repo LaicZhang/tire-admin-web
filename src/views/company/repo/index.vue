@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -12,67 +12,55 @@ import {
   deleteRepoApi,
   startRepoApi,
   stopRepoApi,
-  setDefaultRepoApi
-} from "@/api";
-import type { Repo } from "@/api/company/repo";
+  setDefaultRepoApi,
+  type Repo
+} from "@/api/company/repo";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "repo"
 });
-const dataList = ref<Repo[]>([]);
-const loading = ref(false);
-const formRef = ref();
+
+const formRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   name: undefined,
   desc: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  Repo,
+  CommonResult<PaginatedResponseDto<Repo>>,
+  { page: number }
+>({
+  api: (params: { page: number }) =>
+    getRepoListApi(params.page, {
+      name: form.value.name || undefined,
+      desc: form.value.desc || undefined
+    }),
+  transform: (res: CommonResult<PaginatedResponseDto<Repo>>) => ({
+    list: res.data?.list ?? [],
+    total: res.data?.count ?? 0
+  }),
+  immediate: true
 });
-const getRepoListInfo = async () => {
-  const { data, code, msg } = await getRepoListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
-};
-const onSearch = async () => {
-  loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined)
-    await getRepoListInfo();
 
-  const { data } = await getRepoListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
-  });
-
-  dataList.value = data.list;
-  pagination.value.total = data.count;
-  loading.value = false;
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
-const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  loading.value = true;
-  if (!formEl) return;
-  formEl.resetFields();
-  loading.value = false;
+const resetForm = () => {
+  formRef.value?.resetFields();
+  handleSearch();
 };
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getRepoListInfo();
-}
 
 async function handleDelete(row: Repo) {
   await deleteRepoApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  fetchData();
 }
 
 async function handleToggleRepo(row: Repo) {
@@ -83,18 +71,14 @@ async function handleToggleRepo(row: Repo) {
     await startRepoApi(row.uid);
     message(`已启用仓库「${row.name}」`, { type: "success" });
   }
-  onSearch();
+  fetchData();
 }
 
 async function handleSetDefault(row: Repo) {
   await setDefaultRepoApi(row.uid);
   message(`已将「${row.name}」设为默认仓库`, { type: "success" });
-  onSearch();
+  fetchData();
 }
-
-onMounted(async () => {
-  await getRepoListInfo();
-});
 </script>
 
 <template>
@@ -105,8 +89,8 @@ onMounted(async () => {
       :form="form"
       :loading="loading"
       :body-style="{ paddingBottom: '0', overflow: 'auto' }"
-      @search="onSearch"
-      @reset="resetForm(formRef)"
+      @search="handleSearch"
+      @reset="resetForm"
     >
       <el-form-item label="仓库名称：" prop="name">
         <el-input
@@ -127,7 +111,7 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getRepoListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -147,7 +131,7 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button

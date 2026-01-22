@@ -7,17 +7,21 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
-import { getEmployeeListApi, deleteEmployeeApi, getSysDictApi } from "@/api";
+import {
+  getEmployeeListApi,
+  deleteEmployeeApi,
+  type Employee
+} from "@/api/company/employee";
 import { localForage, message, SYS } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
-import type { Employee } from "@/api/company/employee";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "Employee"
 });
-const dataList = ref<Employee[]>([]);
-const loading = ref(false);
-const formRef = ref();
+
+const formRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   name: undefined,
   nickname: undefined,
@@ -26,60 +30,39 @@ const form = ref({
   phone: undefined,
   email: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  Employee,
+  CommonResult<PaginatedResponseDto<Employee>>,
+  { page: number }
+>({
+  api: (params: { page: number }) =>
+    getEmployeeListApi(params.page, {
+      name: form.value.name || undefined,
+      status: form.value.status || undefined,
+      desc: form.value.desc || undefined
+    }),
+  transform: (res: CommonResult<PaginatedResponseDto<Employee>>) => ({
+    list: res.data?.list ?? [],
+    total: res.data?.count ?? 0
+  }),
+  immediate: true
 });
-const getEmployeeListInfo = async () => {
-  const { data, code, msg } = await getEmployeeListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else message(msg, { type: "error" });
-};
-const onSearch = async () => {
-  loading.value = true;
-  // if (
-  //   form.value.name === undefined &&
-  //   form.value.desc === undefined &&
-  //   form.value.status === undefined
-  // )
-  //   await getEmployeeListInfo();
-  if (Object.values(form.value).every(v => v === undefined)) {
-    await getEmployeeListInfo();
-  }
 
-  const { data } = await getEmployeeListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    status: form.value.status,
-    desc: form.value.desc
-  });
-
-  dataList.value = data.list;
-  pagination.value.total = data.count;
-  loading.value = false;
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
-const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  loading.value = true;
-  if (!formEl) return;
-  formEl.resetFields();
-  loading.value = false;
+const resetForm = () => {
+  formRef.value?.resetFields();
+  handleSearch();
 };
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getEmployeeListInfo();
-}
 
 async function handleDelete(row: Employee) {
   await deleteEmployeeApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  await onSearch();
+  fetchData();
 }
 
 const getSysDict = async () => {
@@ -94,7 +77,6 @@ const employeeStatus = ref<Array<{ id: number; key: string; cn: string }>>([]);
 
 onMounted(async () => {
   await getSysDict();
-  await getEmployeeListInfo();
 });
 </script>
 
@@ -106,8 +88,8 @@ onMounted(async () => {
       :form="form"
       :loading="loading"
       :body-style="{ paddingBottom: '0', overflow: 'auto' }"
-      @search="onSearch"
-      @reset="resetForm(formRef)"
+      @search="handleSearch"
+      @reset="resetForm"
     >
       <el-form-item label="名字：" prop="name">
         <el-input
@@ -144,7 +126,7 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getEmployeeListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -164,7 +146,7 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #employeeStatus="{ row }">
               <div>

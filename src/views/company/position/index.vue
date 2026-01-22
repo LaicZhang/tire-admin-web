@@ -7,64 +7,57 @@ import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { openDialog, openMenuDialog } from "./table";
-import { getPositionListApi, deletePositionApi } from "@/api";
-import type { Position } from "@/api/company/position";
+import {
+  getPositionListApi,
+  deletePositionApi,
+  type Position
+} from "@/api/company/position";
 import { ALL_LIST, localForage, message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "position"
 });
-const dataList = ref<Position[]>([]);
-const loading = ref(false);
+
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   name: undefined,
   desc: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  Position,
+  CommonResult<PaginatedResponseDto<Position>>,
+  { page: number }
+>({
+  api: (params: { page: number }) =>
+    getPositionListApi(params.page, {
+      name: form.value.name || undefined,
+      desc: form.value.desc || undefined
+    }),
+  transform: (res: CommonResult<PaginatedResponseDto<Position>>) => ({
+    list: res.data?.list ?? [],
+    total: res.data?.count ?? 0
+  }),
+  immediate: true
 });
-const getPositionListInfo = async () => {
-  const { data, code, msg } = await getPositionListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
-};
-const onSearch = async () => {
-  loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined)
-    await getPositionListInfo();
 
-  const { data } = await getPositionListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
-  });
-
-  dataList.value = data.list;
-  pagination.value.total = data.count;
-  loading.value = false;
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const resetForm = () => {
   searchFormRef.value?.resetFields();
-  onSearch();
+  handleSearch();
 };
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getPositionListInfo();
-}
 
 async function handleDelete(row: Position) {
   await deletePositionApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  await onSearch();
+  fetchData();
 }
 
 async function getAllPosition() {
@@ -75,7 +68,7 @@ async function getAllPosition() {
 }
 
 onMounted(async () => {
-  await Promise.all([getPositionListInfo(), getAllPosition()]);
+  await getAllPosition();
 });
 </script>
 
@@ -85,7 +78,7 @@ onMounted(async () => {
       ref="searchFormRef"
       :form="form"
       :loading="loading"
-      @search="onSearch"
+      @search="handleSearch"
       @reset="resetForm"
     >
       <el-form-item label="名称：" prop="name">
@@ -107,7 +100,7 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getPositionListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -127,7 +120,7 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button
