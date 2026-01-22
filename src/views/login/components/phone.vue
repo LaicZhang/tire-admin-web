@@ -23,37 +23,39 @@ const { isDisabled, text } = useCaptchaCode();
 const router = useRouter();
 
 const onLogin = async (formEl: FormInstance | undefined) => {
-  loading.value = true;
   if (!formEl) return;
-  await formEl.validate(valid => {
-    if (valid) {
-      useUserStoreHook()
-        .loginByUsername({
-          username: ruleForm.phone,
-          isRemember: true,
-          code: ruleForm.captchaCode
-        })
-        .then(res => {
-          const { code, msg } = res;
-          if (code === 200) {
-            useCurrentCompanyStoreHook().handleCurrentCompany();
-            initRouter().then(() => {
-              const topMenu = getTopMenu(true);
-              router.push(topMenu.path || "/");
-              message("登录成功", { type: "success" });
-            });
-          } else {
-            message(msg, { type: "error" });
-          }
-        })
-        .finally(() => {
-          isDisabled.value = false;
-          loading.value = false;
-        });
-    } else {
+  loading.value = true;
+
+  try {
+    const valid = await formEl.validate();
+    if (!valid) {
       loading.value = false;
+      return;
     }
-  });
+
+    const res = await useUserStoreHook().loginByUsername({
+      username: ruleForm.phone,
+      isRemember: true,
+      code: ruleForm.captchaCode
+    });
+    const { code, msg } = res;
+    if (code === 200) {
+      useCurrentCompanyStoreHook().handleCurrentCompany();
+      await initRouter();
+      const topMenu = getTopMenu(true);
+      router.push(topMenu.path || "/");
+      message("登录成功", { type: "success" });
+    } else {
+      message(msg, { type: "error" });
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      message(err.message, { type: "error" });
+    }
+  } finally {
+    isDisabled.value = false;
+    loading.value = false;
+  }
 };
 
 const sendSmsCode = () => {

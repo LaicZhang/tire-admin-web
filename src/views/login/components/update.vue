@@ -39,21 +39,24 @@ const repeatPasswordRule = [
 ];
 
 const onUpdate = async (formEl: FormInstance | undefined) => {
-  loading.value = true;
   if (!formEl) return;
-  await formEl.validate(valid => {
-    if (valid) {
-      // 模拟请求，需根据实际开发进行修改
-      setTimeout(() => {
-        message("login.passwordUpdateReg", {
-          type: "success"
-        });
-        loading.value = false;
-      }, 2000);
-    } else {
+  loading.value = true;
+
+  try {
+    const valid = await formEl.validate();
+    if (!valid) {
       loading.value = false;
+      return;
     }
-  });
+
+    // 模拟请求，需根据实际开发进行修改
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    message("login.passwordUpdateReg", { type: "success" });
+  } catch {
+    // 验证失败，不做处理
+  } finally {
+    loading.value = false;
+  }
 };
 
 function onBack() {

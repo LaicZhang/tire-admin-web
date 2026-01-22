@@ -62,34 +62,36 @@ const currentPage = computed(() => {
   return useUserStoreHook().currentPage;
 });
 const onLogin = async (formEl: FormInstance | undefined) => {
-  loading.value = true;
   if (!formEl) return;
-  await formEl.validate(valid => {
-    if (valid) {
-      useUserStoreHook()
-        .loginByUsername(ruleForm)
-        .then(res => {
-          const { code, msg, data } = res;
-          if (code === 200) {
-            // 全部采取静态路由模式
-            usePermissionStoreHook().handleWholeMenus([]);
-            useCurrentCompanyStoreHook().handleCurrentCompany();
-            addPathMatch();
-            message("登录成功", { type: "success" });
-            router.push("/");
-          } else {
-            message(msg, { type: "error" });
-          }
-        })
-        .catch(err => {
-          message(err.message, { type: "error" });
-        })
-        .finally(() => {
-          disabled.value = false;
-        });
+  loading.value = true;
+
+  try {
+    const valid = await formEl.validate();
+    if (!valid) {
+      loading.value = false;
+      return;
     }
+
+    const res = await useUserStoreHook().loginByUsername(ruleForm);
+    const { code, msg } = res;
+    if (code === 200) {
+      // 全部采取静态路由模式
+      usePermissionStoreHook().handleWholeMenus([]);
+      useCurrentCompanyStoreHook().handleCurrentCompany();
+      addPathMatch();
+      message("登录成功", { type: "success" });
+      router.push("/");
+    } else {
+      message(msg, { type: "error" });
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      message(err.message, { type: "error" });
+    }
+  } finally {
+    disabled.value = false;
     loading.value = false;
-  });
+  }
 };
 
 function onkeydown({ code }: KeyboardEvent) {
