@@ -6,6 +6,11 @@ interface _PrintFunction {
   toPrint: Function;
 }
 
+/** Vue component-like object with $el property */
+interface VueComponentLike {
+  $el: Element;
+}
+
 interface PrintInstance {
   conf: {
     styleStr: string;
@@ -28,12 +33,9 @@ interface PrintInstance {
 
 const Print = function (
   this: PrintInstance,
-  // Vue component instance or DOM element - requires any for $el access
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dom: string | Element | any,
+  dom: string | Element | VueComponentLike,
   options?: Partial<PrintInstance["conf"]>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): any {
+): PrintInstance {
   options = options || {};
   // @ts-expect-error Check if called with new operator
   if (!(this instanceof Print)) return new Print(dom, options);
@@ -55,8 +57,10 @@ const Print = function (
   }
   if (typeof dom === "string") {
     this.dom = document.querySelector(dom);
+  } else if (this.isDOM(dom)) {
+    this.dom = dom as Element;
   } else {
-    this.dom = this.isDOM(dom) ? dom : dom.$el;
+    this.dom = (dom as VueComponentLike).$el;
   }
   if (this.conf.setDomHeightArr && this.conf.setDomHeightArr.length) {
     this.setDomHeight(this.conf.setDomHeightArr);
@@ -179,22 +183,21 @@ Print.prototype = {
       "position:absolute;width:0;height:0;top:-10px;left:-10px;"
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const _this = this;
-    iframe.onload = function (): void {
+    const conf = this.conf;
+    iframe.onload = (): void => {
       const w = iframe.contentWindow;
       const doc = iframe.contentDocument ?? w?.document;
       if (!doc || !w) return;
       // Before popping, callback
-      if (_this.conf.printBeforeFn) {
-        _this.conf.printBeforeFn({ doc });
+      if (conf.printBeforeFn) {
+        conf.printBeforeFn({ doc });
       }
-      _this.toPrint(w);
-      setTimeout(function () {
+      this.toPrint(w);
+      setTimeout((): void => {
         document.body.removeChild(iframe);
         // After popup, callback
-        if (_this.conf.printDoneCallBack) {
-          _this.conf.printDoneCallBack();
+        if (conf.printDoneCallBack) {
+          conf.printDoneCallBack();
         }
       }, 100);
     };

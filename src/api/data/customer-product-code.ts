@@ -75,7 +75,11 @@ export async function getCustomerProductCodeListApi(
   const start = Math.max(0, (index - 1) * pageSize);
   const page = list.slice(start, start + pageSize);
 
-  return { code: 200, msg: "success", data: { count, list: page } };
+  return {
+    code: 200,
+    msg: "success",
+    data: { total: count, count, list: page }
+  };
 }
 
 export async function upsertCustomerProductCodeApi(

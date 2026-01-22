@@ -248,3 +248,15 @@ div:focus {
     content: " ";
   }
 }
+
+// 页面容器统一样式 - 列表页面通用容器
+.page-container {
+  margin: var(--page-margin, 20px);
+}
+
+// 搜索表单通用样式
+.search-form {
+  :deep(.el-form-item) {
+    margin-bottom: var(--form-item-margin, 12px);
+  }
+}
