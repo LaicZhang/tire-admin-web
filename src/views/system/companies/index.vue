@@ -127,7 +127,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="main">
+  <div class="page-container">
     <ReSearchForm
       ref="searchFormRef"
       :form="form"
@@ -198,13 +198,11 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 .search-form {
-  :deep(.el-form-item) {
-    margin-bottom: 12px;
-  }
+  @extend .search-form;
 }
 </style>
