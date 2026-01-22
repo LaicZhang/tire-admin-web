@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import SaveIcon from "~icons/ep/check";
 import ResetIcon from "~icons/ep/refresh-left";
@@ -12,16 +12,16 @@ import type { ColumnSetting, ModuleOption } from "./types";
 import {
   clearColumnSettingsApi,
   getColumnSettingsApi,
-  saveColumnSettingsApi
+  saveColumnSettingsApi,
+  type ColumnSettings
 } from "@/api/data/column-settings";
+import { useCrud } from "@/composables";
 
 defineOptions({
   name: "ColumnSettings"
 });
 
-const loading = ref(false);
 const currentModule = ref("tire");
-const columnList = ref<ColumnSetting[]>([]);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 // 模块选项
@@ -215,18 +215,25 @@ const defaultColumns: Record<string, ColumnSetting[]> = {
   ]
 };
 
-// 加载列配置
-const loadColumnSettings = async () => {
-  loading.value = true;
-  try {
-    const stored = await getColumnSettingsApi(currentModule.value);
-    columnList.value =
-      (stored as ColumnSetting[]) ??
-      (defaultColumns[currentModule.value] || []);
-  } finally {
-    loading.value = false;
-  }
-};
+const {
+  loading,
+  dataList: columnList,
+  fetchData: loadColumnSettings
+} = useCrud<
+  ColumnSetting,
+  ColumnSettings | null,
+  { module: string; page: number; pageSize: number }
+>({
+  api: ({ module }) => getColumnSettingsApi(module),
+  params: () => ({ module: currentModule.value }),
+  transform: (stored: ColumnSettings | null) => {
+    const list = Array.isArray(stored)
+      ? (stored as ColumnSetting[])
+      : defaultColumns[currentModule.value] || [];
+    return { list, total: list.length };
+  },
+  immediate: true
+});
 
 // 保存配置
 const handleSave = () => {
@@ -272,10 +279,6 @@ const updateSortOrder = () => {
 const handleModuleChange = () => {
   loadColumnSettings();
 };
-
-onMounted(() => {
-  loadColumnSettings();
-});
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h, onMounted, computed } from "vue";
+import { ref, h, computed } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { message } from "@/utils";
@@ -23,44 +23,95 @@ import {
   type SerialNumber
 } from "@/api/business/serialNumber";
 import type { FormInstance, TabPaneName } from "element-plus";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "BatchSerial"
 });
 
 const activeTab = ref("batch");
-const loading = ref(false);
 const batchSearchFormRef = ref<InstanceType<typeof ReSearchForm>>();
 const serialSearchFormRef = ref<InstanceType<typeof ReSearchForm>>();
 
 // 批次相关
-const batchList = ref<Batch[]>([]);
 const batchForm = ref({
   tireId: undefined,
   repoId: undefined,
   batchNo: undefined
 });
-const batchPagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 // 序列号相关
-const serialList = ref<SerialNumber[]>([]);
 const serialForm = ref({
   tireId: undefined,
   repoId: undefined,
   status: undefined,
   keyword: undefined
 });
-const serialPagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+const {
+  loading: batchLoading,
+  dataList: batchList,
+  pagination: batchPagination,
+  fetchData: getBatchList,
+  onCurrentChange: onBatchPageChange
+} = useCrud<Batch, CommonResult<Batch[]>, { page: number; pageSize: number }>({
+  api: () =>
+    getBatchListApi({
+      tireId: batchForm.value.tireId,
+      repoId: batchForm.value.repoId,
+      batchNo: batchForm.value.batchNo
+    }),
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: (res: CommonResult<Batch[]>) => {
+    if (res.code !== 0) {
+      return { list: batchList.value, total: batchPagination.value.total };
+    }
+    const list = res.data ?? [];
+    return { list, total: list.length };
+  },
+  immediate: true
 });
+
+const {
+  loading: serialLoading,
+  dataList: serialList,
+  pagination: serialPagination,
+  fetchData: getSerialList,
+  onCurrentChange: onSerialPageChange
+} = useCrud<
+  SerialNumber,
+  CommonResult<{ count: number; list: SerialNumber[] }>,
+  { page: number; pageSize: number }
+>({
+  api: () =>
+    getSerialNumberList({
+      tireId: serialForm.value.tireId,
+      repoId: serialForm.value.repoId,
+      status: serialForm.value.status,
+      keyword: serialForm.value.keyword
+    }),
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: (res: CommonResult<{ count: number; list: SerialNumber[] }>) => {
+    if (res.code !== 0) {
+      return { list: serialList.value, total: serialPagination.value.total };
+    }
+    return { list: res.data?.list ?? [], total: res.data?.count ?? 0 };
+  },
+  immediate: true
+});
+
+const loading = computed(() => batchLoading.value || serialLoading.value);
 
 const batchColumns = [
   { label: "ID", prop: "id", width: 80 },
@@ -130,48 +181,13 @@ const expiryColumns: TableColumnList = [
   { label: "剩余天数", slot: "remainingDays" }
 ];
 
-const getBatchList = async () => {
-  loading.value = true;
-  try {
-    const { data, code } = await getBatchListApi({
-      tireId: batchForm.value.tireId,
-      repoId: batchForm.value.repoId,
-      batchNo: batchForm.value.batchNo
-    });
-    if (code === 0) {
-      batchList.value = data || [];
-      batchPagination.value.total = batchList.value.length;
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
-const getSerialList = async () => {
-  loading.value = true;
-  try {
-    const { data, code } = await getSerialNumberList({
-      tireId: serialForm.value.tireId,
-      repoId: serialForm.value.repoId,
-      status: serialForm.value.status,
-      keyword: serialForm.value.keyword
-    });
-    if (code === 0) {
-      serialList.value = data?.list || [];
-      serialPagination.value.total = data?.count || 0;
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
 const onBatchSearch = () => {
-  batchPagination.value.currentPage = 1;
+  batchPagination.value = { ...batchPagination.value, currentPage: 1 };
   getBatchList();
 };
 
 const onSerialSearch = () => {
-  serialPagination.value.currentPage = 1;
+  serialPagination.value = { ...serialPagination.value, currentPage: 1 };
   getSerialList();
 };
 
@@ -185,15 +201,9 @@ const onSerialReset = () => {
   onSerialSearch();
 };
 
-const handleBatchPageChange = (val: number) => {
-  batchPagination.value.currentPage = val;
-  getBatchList();
-};
+const handleBatchPageChange = (val: number) => onBatchPageChange(val);
 
-const handleSerialPageChange = (val: number) => {
-  serialPagination.value.currentPage = val;
-  getSerialList();
-};
+const handleSerialPageChange = (val: number) => onSerialPageChange(val);
 
 const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
@@ -356,11 +366,6 @@ const handleTabChange = (tab: TabPaneName) => {
     getSerialList();
   }
 };
-
-onMounted(() => {
-  getBatchList();
-  getSerialList();
-});
 </script>
 
 <template>

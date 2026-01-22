@@ -30,6 +30,14 @@ vi.mock("@/components/ReDialog", () => ({
 }));
 
 vi.mock("@pureadmin/utils", () => ({
+  withInstall: (comp: unknown) => comp,
+  cloneDeep: (value: unknown) => JSON.parse(JSON.stringify(value)) as unknown,
+  isBoolean: (value: unknown) => typeof value === "boolean",
+  isFunction: (value: unknown) => typeof value === "function",
+  getKeyList: (arr: unknown, key: string) =>
+    Array.isArray(arr)
+      ? arr.map(item => (item as Record<string, unknown>)[key])
+      : [],
   deviceDetection: () => false,
   storageLocal: () => ({
     getItem: () => null,

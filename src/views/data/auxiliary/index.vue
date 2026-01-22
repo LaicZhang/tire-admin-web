@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, h, watch } from "vue";
+import { ref, reactive, h, watch } from "vue";
 import type { AuxiliaryItem, AuxiliaryType, TabConfig } from "./types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -18,6 +18,8 @@ import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "AuxiliaryManagement"
@@ -32,20 +34,44 @@ const tabs: TabConfig[] = [
 ];
 
 const activeTab = ref<AuxiliaryType>("income");
-const dataList = ref<AuxiliaryItem[]>([]);
-const loading = ref(false);
 const searchFormRef = ref();
 const selectedRows = ref<AuxiliaryItem[]>([]);
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 const form = reactive({
   name: "",
   code: ""
+});
+
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData: getData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  AuxiliaryItem,
+  CommonResult<PaginatedResponseDto<AuxiliaryItem>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) => getAuxiliaryListApi(page, activeTab.value, { ...form }),
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: (res: CommonResult<PaginatedResponseDto<AuxiliaryItem>>) => {
+    if (res.code !== 200) {
+      message(res.msg, { type: "error" });
+      return { list: dataList.value, total: pagination.value.total };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? res.data?.total ?? 0
+    };
+  },
+  immediate: true
 });
 
 const columns: TableColumnList = [
@@ -87,30 +113,9 @@ const getTabLabel = (type: AuxiliaryType): string => {
   return tab?.label || "";
 };
 
-const getData = async () => {
-  loading.value = true;
-  try {
-    const { data, code, msg } = await getAuxiliaryListApi(
-      pagination.currentPage,
-      activeTab.value,
-      { ...form }
-    );
-    if (code === 200) {
-      dataList.value = data.list || [];
-      pagination.total = data.count || data.total || 0;
-    } else {
-      message(msg, { type: "error" });
-    }
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
-};
-
 const resetForm = () => {
   searchFormRef.value?.resetFields();
-  pagination.currentPage = 1;
+  pagination.value = { ...pagination.value, currentPage: 1 };
   getData();
 };
 
@@ -211,13 +216,9 @@ function openDialog(title = "新增", row?: AuxiliaryItem) {
 }
 
 watch(activeTab, () => {
-  pagination.currentPage = 1;
+  pagination.value = { ...pagination.value, currentPage: 1 };
   form.name = "";
   form.code = "";
-  getData();
-});
-
-onMounted(() => {
   getData();
 });
 </script>
@@ -302,9 +303,9 @@ onMounted(() => {
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
           }"
+          @page-size-change="onSizeChange"
+          @page-current-change="onCurrentChange"
           @selection-change="handleSelectionChange"
-          @page-size-change="getData"
-          @page-current-change="getData"
         >
           <template #operation="{ row }">
             <el-button
@@ -323,13 +324,3 @@ onMounted(() => {
     </PureTableBar>
   </div>
 </template>
-
-<style scoped lang="scss">
-.page-container {
-  @extend .page-container;
-}
-
-.search-form {
-  @extend .search-form;
-}
-</style>

@@ -10,15 +10,16 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import type { PriceRule } from "./types";
 import {
   getPriceRuleConfigApi,
-  savePriceRuleConfigApi
+  savePriceRuleConfigApi,
+  type PriceRuleConfig
 } from "@/api/data/price-rule";
+import { useCrud } from "@/composables";
 
 defineOptions({
   name: "PriceRule"
 });
 
 const activeTab = ref<"sale" | "purchase">("sale");
-const loading = ref(false);
 
 // 销售价格取数规则
 const defaultSaleRules: PriceRule[] = [
@@ -73,7 +74,25 @@ const defaultSaleRules: PriceRule[] = [
     type: "sale"
   }
 ];
-const saleRules = ref<PriceRule[]>(defaultSaleRules.map(r => ({ ...r })));
+const {
+  loading: saleLoading,
+  dataList: saleRules,
+  fetchData: fetchSaleRules
+} = useCrud<
+  PriceRule,
+  PriceRuleConfig | null,
+  { page: number; pageSize: number }
+>({
+  api: () => getPriceRuleConfigApi(),
+  transform: (res: PriceRuleConfig | null) => {
+    const list = (res?.saleRules ?? []) as PriceRule[];
+    return {
+      list: list.length ? list : defaultSaleRules.map(r => ({ ...r })),
+      total: list.length
+    };
+  },
+  immediate: false
+});
 
 // 采购价格取数规则
 const defaultPurchaseRules: PriceRule[] = [
@@ -108,9 +127,27 @@ const defaultPurchaseRules: PriceRule[] = [
     type: "purchase"
   }
 ];
-const purchaseRules = ref<PriceRule[]>(
-  defaultPurchaseRules.map(r => ({ ...r }))
-);
+const {
+  loading: purchaseLoading,
+  dataList: purchaseRules,
+  fetchData: fetchPurchaseRules
+} = useCrud<
+  PriceRule,
+  PriceRuleConfig | null,
+  { page: number; pageSize: number }
+>({
+  api: () => getPriceRuleConfigApi(),
+  transform: (res: PriceRuleConfig | null) => {
+    const list = (res?.purchaseRules ?? []) as PriceRule[];
+    return {
+      list: list.length ? list : defaultPurchaseRules.map(r => ({ ...r })),
+      total: list.length
+    };
+  },
+  immediate: false
+});
+
+const loading = computed(() => saleLoading.value || purchaseLoading.value);
 
 const currentRules = computed(() => {
   return activeTab.value === "sale" ? saleRules.value : purchaseRules.value;
@@ -170,24 +207,18 @@ const handleSave = () => {
 };
 
 const refreshData = async () => {
-  loading.value = true;
   try {
-    const cfg = await getPriceRuleConfigApi();
-    if (cfg?.saleRules) saleRules.value = cfg.saleRules as PriceRule[];
-    if (cfg?.purchaseRules)
-      purchaseRules.value = cfg.purchaseRules as PriceRule[];
+    await Promise.all([fetchSaleRules(), fetchPurchaseRules()]);
     message("刷新成功", { type: "success" });
-  } finally {
-    loading.value = false;
+  } catch {
+    // ignore (useCrud already handles error)
   }
 };
 
 onMounted(() => {
-  refreshData().then(() => {
-    if (!saleRules.value?.length) saleRules.value = defaultSaleRules;
-    if (!purchaseRules.value?.length)
-      purchaseRules.value = defaultPurchaseRules;
-  });
+  saleRules.value = defaultSaleRules.map(r => ({ ...r }));
+  purchaseRules.value = defaultPurchaseRules.map(r => ({ ...r }));
+  refreshData();
 });
 </script>
 

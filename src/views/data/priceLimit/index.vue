@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h, onMounted } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
 import SettingIcon from "~icons/ep/setting";
@@ -12,15 +12,17 @@ import type { PriceLimit, PriceLimitForm, PriceLimitConfig } from "./types";
 import { getTireListApi } from "@/api/business/tire";
 import {
   getPriceLimitMapApi,
-  upsertPriceLimitApi
+  upsertPriceLimitApi,
+  type PriceLimitRecord
 } from "@/api/data/price-limit";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import type { Tire } from "@/api/business/tire";
 
 defineOptions({
   name: "PriceLimit"
 });
 
-const dataList = ref<PriceLimit[]>([]);
-const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const selectedRows = ref<PriceLimit[]>([]);
 const form = ref({
@@ -28,17 +30,84 @@ const form = ref({
   enablePurchaseLimit: undefined,
   enableSaleLimit: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
 
 // 系统参数
 const config = ref<PriceLimitConfig>({
   purchaseOverPriceAction: "warn",
   saleBelowPriceAction: "warn"
+});
+
+type TireLike = Tire & {
+  barcode?: string;
+  barCode?: string;
+  number?: string;
+};
+
+type PriceLimitListRes = {
+  tireRes: CommonResult<PaginatedResponseDto<Tire>>;
+  limitMap: Record<string, PriceLimitRecord>;
+};
+
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData: getList,
+  onCurrentChange
+} = useCrud<PriceLimit, PriceLimitListRes, { page: number; pageSize: number }>({
+  api: async ({ page }) => {
+    const [tireRes, limitMap] = await Promise.all([
+      getTireListApi(page, { keyword: form.value.keyword || undefined }),
+      getPriceLimitMapApi()
+    ]);
+    return { tireRes, limitMap };
+  },
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: (res: PriceLimitListRes) => {
+    if (res.tireRes.code !== 200) {
+      message(res.tireRes.msg || "获取列表失败", { type: "error" });
+      return { list: dataList.value, total: pagination.value.total };
+    }
+
+    const list = (res.tireRes.data?.list ?? []).map(tire => {
+      const t = tire as TireLike;
+      const limit = res.limitMap[t.uid];
+      return {
+        id: t.id,
+        uid: t.uid,
+        tireId: t.uid,
+        tireName: t.name,
+        tireCode: t.barcode ?? t.barCode ?? t.number,
+        group: t.group,
+        maxPurchasePrice: limit?.maxPurchasePrice,
+        minSalePrice: limit?.minSalePrice,
+        enablePurchaseLimit: limit?.enablePurchaseLimit ?? false,
+        enableSaleLimit: limit?.enableSaleLimit ?? false,
+        updatedAt: limit?.updatedAt
+      } as PriceLimit;
+    });
+
+    // 前端过滤开关（保持原逻辑：total 不随过滤变化）
+    let filtered = list;
+    if (form.value.enablePurchaseLimit !== undefined) {
+      const expect = Boolean(form.value.enablePurchaseLimit);
+      filtered = filtered.filter(
+        r => Boolean(r.enablePurchaseLimit) === expect
+      );
+    }
+    if (form.value.enableSaleLimit !== undefined) {
+      const expect = Boolean(form.value.enableSaleLimit);
+      filtered = filtered.filter(r => Boolean(r.enableSaleLimit) === expect);
+    }
+
+    return { list: filtered, total: res.tireRes.data?.count ?? 0 };
+  },
+  immediate: true
 });
 
 const columns = [
@@ -80,69 +149,14 @@ const columns = [
   }
 ];
 
-const getList = async () => {
-  loading.value = true;
-  try {
-    const [{ code, data, msg }, limitMap] = await Promise.all([
-      getTireListApi(pagination.value.currentPage, {
-        keyword: form.value.keyword || undefined
-      }),
-      getPriceLimitMapApi()
-    ]);
-    if (code !== 200) {
-      message(msg || "获取列表失败", { type: "error" });
-      return;
-    }
-    dataList.value = (data.list || []).map((t: unknown) => {
-      const limit = limitMap[t.uid];
-      return {
-        id: t.id,
-        uid: t.uid,
-        tireId: t.uid,
-        tireName: t.name,
-        tireCode: t.barcode ?? t.number,
-        group: t.group,
-        maxPurchasePrice: limit?.maxPurchasePrice,
-        minSalePrice: limit?.minSalePrice,
-        enablePurchaseLimit: limit?.enablePurchaseLimit ?? false,
-        enableSaleLimit: limit?.enableSaleLimit ?? false,
-        updatedAt: limit?.updatedAt
-      } as PriceLimit;
-    });
-
-    // 前端过滤开关
-    if (form.value.enablePurchaseLimit !== undefined) {
-      const expect = Boolean(form.value.enablePurchaseLimit);
-      dataList.value = dataList.value.filter(
-        r => Boolean(r.enablePurchaseLimit) === expect
-      );
-    }
-    if (form.value.enableSaleLimit !== undefined) {
-      const expect = Boolean(form.value.enableSaleLimit);
-      dataList.value = dataList.value.filter(
-        r => Boolean(r.enableSaleLimit) === expect
-      );
-    }
-
-    pagination.value.total = data.count || 0;
-  } finally {
-    loading.value = false;
-  }
-};
-
 const onSearch = () => {
-  pagination.value.currentPage = 1;
+  pagination.value = { ...pagination.value, currentPage: 1 };
   getList();
 };
 
 const onReset = () => {
   searchFormRef.value?.resetFields();
   onSearch();
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  getList();
 };
 
 const handleSelectionChange = (rows: PriceLimit[]) => {
@@ -319,10 +333,6 @@ const handleBatchEdit = () => {
     }
   });
 };
-
-onMounted(() => {
-  getList();
-});
 </script>
 
 <template>
@@ -395,7 +405,7 @@ onMounted(() => {
             :loading="loading"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
             @selection-change="handleSelectionChange"
           >
             <template #maxPurchasePrice="{ row }">

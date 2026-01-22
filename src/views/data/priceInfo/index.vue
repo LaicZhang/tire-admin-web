@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h, onMounted } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
 import ClearIcon from "~icons/ep/delete";
@@ -14,24 +14,78 @@ import editForm from "./form.vue";
 import type { PriceInfo, PriceInfoForm } from "./types";
 import type { FormInstance } from "element-plus";
 import { getTireListApi, updateTireApi } from "@/api/business/tire";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import type { Tire } from "@/api/business/tire";
 
 defineOptions({
   name: "PriceInfo"
 });
 
-const dataList = ref<PriceInfo[]>([]);
-const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const selectedRows = ref<PriceInfo[]>([]);
 const form = ref({
   keyword: undefined,
   group: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+type TireLike = Tire & {
+  barcode?: string;
+  salePrice?: number;
+  purchasePrice?: number;
+  updateAt?: string;
+  updatedAt?: string;
+};
+
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  PriceInfo,
+  CommonResult<PaginatedResponseDto<Tire>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getTireListApi(page, {
+      keyword: form.value.keyword || undefined,
+      group: form.value.group || undefined
+    }),
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: (res: CommonResult<PaginatedResponseDto<Tire>>) => {
+    if (res.code !== 200) {
+      message(res.msg || "获取列表失败", { type: "error" });
+      return {
+        list: dataList.value,
+        total: pagination.value.total
+      };
+    }
+    const extras = readExtra();
+    const list = (res.data?.list ?? []).map(tire => {
+      const t = tire as TireLike;
+      const extra = extras[t.uid] || {};
+      return {
+        id: t.id,
+        uid: t.uid,
+        tireId: t.uid,
+        tireName: t.name,
+        tireCode: t.barcode ?? t.barCode ?? t.number,
+        group: t.group,
+        retailPrice: t.salePrice ?? t.price,
+        maxPurchasePrice: t.purchasePrice ?? t.cost,
+        wholesalePrice: extra.wholesalePrice,
+        vipPrice: extra.vipPrice,
+        memberPrice: extra.memberPrice,
+        minSalePrice: extra.minSalePrice,
+        lastPurchasePrice: undefined,
+        lastSalePrice: undefined,
+        updatedAt: t.updateAt ?? t.updatedAt
+      } as PriceInfo;
+    });
+    return { list, total: res.data?.count ?? 0 };
+  },
+  immediate: true
 });
 
 const columns = [
@@ -78,60 +132,14 @@ const writeExtra = (map: Record<string, PriceInfoExtra>) => {
   localStorage.setItem(EXTRA_STORAGE_KEY, JSON.stringify(map));
 };
 
-const getList = async () => {
-  loading.value = true;
-  try {
-    const { code, data, msg } = await getTireListApi(
-      pagination.value.currentPage,
-      {
-        keyword: form.value.keyword || undefined,
-        group: form.value.group || undefined
-      }
-    );
-    if (code !== 200) {
-      message(msg || "获取列表失败", { type: "error" });
-      return;
-    }
-    const extras = readExtra();
-    dataList.value = (data.list || []).map((t: unknown) => {
-      const extra = extras[t.uid] || {};
-      return {
-        id: t.id,
-        uid: t.uid,
-        tireId: t.uid,
-        tireName: t.name,
-        tireCode: t.barcode ?? t.number,
-        group: t.group,
-        retailPrice: t.salePrice ?? t.price,
-        maxPurchasePrice: t.purchasePrice ?? t.cost,
-        wholesalePrice: extra.wholesalePrice,
-        vipPrice: extra.vipPrice,
-        memberPrice: extra.memberPrice,
-        minSalePrice: extra.minSalePrice,
-        lastPurchasePrice: undefined,
-        lastSalePrice: undefined,
-        updatedAt: t.updateAt ?? t.updatedAt
-      } as PriceInfo;
-    });
-    pagination.value.total = data.count || 0;
-  } finally {
-    loading.value = false;
-  }
-};
-
 const onSearch = () => {
-  pagination.value.currentPage = 1;
-  getList();
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const onReset = () => {
   searchFormRef.value?.resetFields();
   onSearch();
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  getList();
 };
 
 const handleSelectionChange = (rows: PriceInfo[]) => {
@@ -190,7 +198,7 @@ const openDialog = (row: PriceInfo) => {
 
           message("保存成功", { type: "success" });
           done();
-          getList();
+          fetchData();
         }
       });
     }
@@ -237,7 +245,7 @@ const handleClear = (row: PriceInfo) => {
     purchasePrice: undefined
   } as unknown).catch(() => {});
   message(`已清空${row.tireName}的价格设置`, { type: "success" });
-  getList();
+  fetchData();
 };
 
 // 批量清空
@@ -249,12 +257,8 @@ const handleBatchClear = () => {
   message(`已清空${selectedRows.value.length}个商品的价格设置`, {
     type: "success"
   });
-  getList();
+  fetchData();
 };
-
-onMounted(() => {
-  getList();
-});
 </script>
 
 <template>
@@ -285,7 +289,7 @@ onMounted(() => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar title="商品价格资料" @refresh="getList">
+      <PureTableBar title="商品价格资料" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -316,7 +320,7 @@ onMounted(() => {
             :loading="loading"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
             @selection-change="handleSelectionChange"
           >
             <template #operation="{ row }">
