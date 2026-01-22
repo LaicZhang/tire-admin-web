@@ -72,8 +72,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       }
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, uid, operatorId, ...customerData } = curData;
+          const { id: _id, uid: _uid, operatorId: _operatorId, ...customerData } = curData;
           if (title === "新增") {
             await addProviderApi({
               provider: {
@@ -82,8 +81,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                 ...(customerData.initialPayable
                   ? { initialPayable: customerData.initialPayable }
                   : {}),
-                ...(operatorId
-                  ? { operator: { connect: { uid: operatorId } } }
+                ...(_operatorId
+                  ? { operator: { connect: { uid: _operatorId } } }
                   : {}),
                 company: {
                   connect: { uid: getCompanyId() }
@@ -92,11 +91,11 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             });
             chores();
           } else {
-            await updateProviderApi(uid, {
+            await updateProviderApi(_uid, {
               provider: {
                 ...customerData,
-                ...(operatorId
-                  ? { operator: { connect: { uid: operatorId } } }
+                ...(_operatorId
+                  ? { operator: { connect: { uid: _operatorId } } }
                   : {}),
                 company: {
                   connect: { uid: getCompanyId() }

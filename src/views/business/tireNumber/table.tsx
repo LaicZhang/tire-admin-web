@@ -63,8 +63,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       }
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, tireId, ...curTireNumberData } = curData;
+          const { id: _id, tireId, ...curTireNumberData } = curData;
           const payload = {
             ...curTireNumberData,
             company: {
