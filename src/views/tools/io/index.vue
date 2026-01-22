@@ -20,45 +20,16 @@ defineOptions({
 });
 
 const activeName = ref("template");
-const templateType = ref("user");
-const taskId = ref("");
 const importDialogVisible = ref(false);
 const exportDialogVisible = ref(false);
 
-// 条码相关
-const barcodeForm = ref({
-  code: "",
-  type: "code128" as "code128" | "qrcode",
-  width: 200,
-  height: 100
-});
-const barcodeImage = ref<string | null>(null);
-const scanCode = ref("");
-const scanResult = ref<BarcodeProduct | null>(null);
-const barcodeLoading = ref(false);
-
-// 打印相关
-const printType = ref("sale-order");
-const printTemplate = ref("");
-const printLoading = ref(false);
-
+// 模板管理
+const templateType = ref("user");
 const typeOptions = [
   { label: "员工导入", value: "user" },
   { label: "商品导入", value: "tire" },
   { label: "客户导入", value: "customer" },
   { label: "供应商导入", value: "provider" }
-];
-
-const barcodeTypeOptions = [
-  { label: "一维码 (Code128)", value: "code128" },
-  { label: "二维码 (QRCode)", value: "qrcode" }
-];
-
-const printTypeOptions = [
-  { label: "销售订单", value: "sale-order" },
-  { label: "采购订单", value: "purchase-order" },
-  { label: "物流单", value: "logistic" },
-  { label: "库存盘点", value: "stock-taking" }
 ];
 
 async function downloadTemplate() {
@@ -67,10 +38,13 @@ async function downloadTemplate() {
     downloadBlob(blob, `template_${templateType.value}.xlsx`, {
       showMessage: true
     });
-  } catch (error) {
+  } catch {
     message("下载失败", { type: "error" });
   }
 }
+
+// 任务查询
+const taskId = ref("");
 
 async function checkTask() {
   if (!taskId.value) {
@@ -94,30 +68,28 @@ async function checkTask() {
     } else {
       message(msg || "查询失败", { type: "error" });
     }
-  } catch (error) {
+  } catch {
     message("查询失败", { type: "error" });
   }
 }
 
-function openImport() {
-  importDialogVisible.value = true;
-}
+// 条码服务
+const barcodeForm = ref({
+  code: "",
+  type: "code128" as "code128" | "qrcode",
+  width: 200,
+  height: 100
+});
+const barcodeImage = ref<string | null>(null);
+const scanCode = ref("");
+const scanResult = ref<BarcodeProduct | null>(null);
+const barcodeLoading = ref(false);
 
-function openExport() {
-  exportDialogVisible.value = true;
-}
+const barcodeTypeOptions = [
+  { label: "一维码 (Code128)", value: "code128" },
+  { label: "二维码 (QRCode)", value: "qrcode" }
+];
 
-function handleImportSuccess() {
-  message("导入成功", { type: "success" });
-  importDialogVisible.value = false;
-}
-
-function handleExportSuccess() {
-  message("导出成功", { type: "success" });
-  exportDialogVisible.value = false;
-}
-
-// 条码功能
 async function generateBarcode() {
   if (!barcodeForm.value.code) {
     message("请输入条码内容", { type: "warning" });
@@ -133,7 +105,7 @@ async function generateBarcode() {
     });
     barcodeImage.value = window.URL.createObjectURL(blob);
     message("条码生成成功", { type: "success" });
-  } catch (error) {
+  } catch {
     message("条码生成失败", { type: "error" });
   } finally {
     barcodeLoading.value = false;
@@ -142,7 +114,6 @@ async function generateBarcode() {
 
 function downloadBarcode() {
   if (!barcodeImage.value) return;
-  // barcodeImage 已经是 objectURL，直接作为同源 URL 下载
   downloadFromUrl(barcodeImage.value, `barcode_${barcodeForm.value.code}.png`);
 }
 
@@ -161,7 +132,7 @@ async function handleScan() {
       message(msg || "查询失败", { type: "error" });
       scanResult.value = null;
     }
-  } catch (error) {
+  } catch {
     message("查询失败", { type: "error" });
     scanResult.value = null;
   } finally {
@@ -169,7 +140,18 @@ async function handleScan() {
   }
 }
 
-// 打印功能
+// 打印服务
+const printType = ref("sale-order");
+const printTemplate = ref("");
+const printLoading = ref(false);
+
+const printTypeOptions = [
+  { label: "销售订单", value: "sale-order" },
+  { label: "采购订单", value: "purchase-order" },
+  { label: "物流单", value: "logistic" },
+  { label: "库存盘点", value: "stock-taking" }
+];
+
 async function loadPrintTemplate() {
   printLoading.value = true;
   try {
@@ -179,7 +161,7 @@ async function loadPrintTemplate() {
     } else {
       message(msg || "加载失败", { type: "error" });
     }
-  } catch (error) {
+  } catch {
     message("加载模板失败", { type: "error" });
   } finally {
     printLoading.value = false;
@@ -202,11 +184,30 @@ async function savePrintTemplate() {
     } else {
       message(msg || "保存失败", { type: "error" });
     }
-  } catch (error) {
+  } catch {
     message("保存失败", { type: "error" });
   } finally {
     printLoading.value = false;
   }
+}
+
+// 导入导出对话框
+function openImport() {
+  importDialogVisible.value = true;
+}
+
+function openExport() {
+  exportDialogVisible.value = true;
+}
+
+function handleImportSuccess() {
+  message("导入成功", { type: "success" });
+  importDialogVisible.value = false;
+}
+
+function handleExportSuccess() {
+  message("导出成功", { type: "success" });
+  exportDialogVisible.value = false;
 }
 </script>
 
