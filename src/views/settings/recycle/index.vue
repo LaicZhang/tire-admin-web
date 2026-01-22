@@ -341,7 +341,7 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 </style>

@@ -94,7 +94,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="main">
+  <div class="page-container">
     <div class="bg-white p-6 rounded-md">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-lg font-medium">公司信息</h3>
@@ -239,8 +239,8 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.main {
-  margin: 20px;
+.page-container {
+  @extend .page-container;
 }
 
 .logo-uploader {
