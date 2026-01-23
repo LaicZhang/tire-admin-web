@@ -84,11 +84,11 @@ const getList = async () => {
     ]);
 
     const customerMap = new Map<string, string>();
-    for (const c of (customersRes as unknown)?.data || []) {
+    for (const c of customersRes?.data || []) {
       if (c?.uid && c?.name) customerMap.set(c.uid, c.name);
     }
     const tireMap = new Map<string, string>();
-    for (const t of (tiresRes as unknown)?.data || []) {
+    for (const t of tiresRes?.data || []) {
       if (t?.uid && t?.name) tireMap.set(t.uid, t.name);
     }
 
