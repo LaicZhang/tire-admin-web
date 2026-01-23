@@ -7,10 +7,7 @@ import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import { openDialog } from "./table";
-import {
-  getFeedbackListApi,
-  deleteFeedbackApi
-} from "@/api";
+import { getFeedbackListApi, deleteFeedbackApi } from "@/api";
 import type { Feedback } from "@/api/business/feedback";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";

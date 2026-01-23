@@ -17,8 +17,8 @@ import {
   getCustomerProductCodeListApi,
   upsertCustomerProductCodeApi
 } from "@/api/data/customer-product-code";
-import { getCustomerApi } from "@/api/business/customer";
-import { getTireApi } from "@/api/business/tire";
+import { getCustomerBatchApi } from "@/api/business/customer";
+import { getTireBatchApi } from "@/api/business/tire";
 
 defineOptions({
   name: "CustomerProductCode"
@@ -77,35 +77,18 @@ const getList = async () => {
     const customerIds = Array.from(new Set(list.map(i => i.customerId)));
     const tireIds = Array.from(new Set(list.map(i => i.tireId)));
 
-    const [customers, tires] = await Promise.all([
-      Promise.all(
-        customerIds.map(async uid => {
-          try {
-            const res = await getCustomerApi(uid);
-            return res.code === 200 ? (res.data as unknown) : null;
-          } catch {
-            return null;
-          }
-        })
-      ),
-      Promise.all(
-        tireIds.map(async uid => {
-          try {
-            const res = await getTireApi(uid);
-            return res.code === 200 ? (res.data as unknown) : null;
-          } catch {
-            return null;
-          }
-        })
-      )
+    // 批量获取 (2次请求代替 N*2 次)
+    const [customersRes, tiresRes] = await Promise.all([
+      getCustomerBatchApi(customerIds).catch(() => null),
+      getTireBatchApi(tireIds).catch(() => null)
     ]);
 
     const customerMap = new Map<string, string>();
-    for (const c of customers) {
+    for (const c of (customersRes as unknown)?.data || []) {
       if (c?.uid && c?.name) customerMap.set(c.uid, c.name);
     }
     const tireMap = new Map<string, string>();
-    for (const t of tires) {
+    for (const t of (tiresRes as unknown)?.data || []) {
       if (t?.uid && t?.name) tireMap.set(t.uid, t.name);
     }
 

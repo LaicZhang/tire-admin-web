@@ -42,7 +42,13 @@ const {
       page,
       pageSize,
       ...form.value
-    }) as unknown as Promise<CommonResult<{ list: AdvancePaymentDto[]; total?: number; count?: number }>>,
+    }) as unknown as Promise<
+      CommonResult<{
+        list: AdvancePaymentDto[];
+        total?: number;
+        count?: number;
+      }>
+    >,
   pagination: {
     total: 0,
     pageSize: 10,

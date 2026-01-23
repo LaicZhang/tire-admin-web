@@ -39,7 +39,9 @@ const {
       type: form.type,
       startDate: form.startDate,
       endDate: form.endDate
-    }) as Promise<CommonResult<{ list: OtherTransaction[]; total?: number; count?: number }>>,
+    }) as Promise<
+      CommonResult<{ list: OtherTransaction[]; total?: number; count?: number }>
+    >,
   pagination: {
     total: 0,
     pageSize: 10,

@@ -35,17 +35,28 @@ const form = reactive({
   code: ""
 });
 
-const { loading, dataList, pagination, fetchData, onCurrentChange, onSizeChange } =
-  useCrud<FlatCategoryItem, { list: FlatCategoryItem[]; total: number }, typeof form>({
-    api: params => getExpenseCategoryListApi(pagination.value.currentPage, params),
-    immediate: false,
-    pagination: {
-      pageSize: 10,
-      background: true,
-      layout: "total, sizes, prev, pager, next, jumper"
-    },
-    params: form
-  });
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  FlatCategoryItem,
+  { list: FlatCategoryItem[]; total: number },
+  typeof form
+>({
+  api: params =>
+    getExpenseCategoryListApi(pagination.value.currentPage, params),
+  immediate: false,
+  pagination: {
+    pageSize: 10,
+    background: true,
+    layout: "total, sizes, prev, pager, next, jumper"
+  },
+  params: form
+});
 
 const resetForm = () => {
   searchFormRef.value?.resetFields();
@@ -189,7 +200,11 @@ onMounted(() => {
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" :icon="useRenderIcon(Search)" @click="fetchData">
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(Search)"
+          @click="fetchData"
+        >
           搜索
         </el-button>
         <el-button :icon="useRenderIcon(Refresh)" @click="resetForm">

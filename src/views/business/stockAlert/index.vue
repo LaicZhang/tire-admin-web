@@ -129,7 +129,9 @@ function openDialog(title = "新增") {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props as { formInline: StockAlertFormInline };
+      const { formInline } = options.props as {
+        formInline: StockAlertFormInline;
+      };
       return h("div", [
         h("el-form", { model: formInline, labelWidth: "80px" }, [
           h("el-form-item", { label: "规则名称", required: true }, [
@@ -182,7 +184,8 @@ function openDialog(title = "新增") {
       ]);
     },
     beforeSure: (done, { options }) => {
-      const data = (options.props as { formInline: StockAlertFormInline }).formInline;
+      const data = (options.props as { formInline: StockAlertFormInline })
+        .formInline;
       if (!data.name) {
         message("请输入名称", { type: "warning" });
         return;

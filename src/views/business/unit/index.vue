@@ -32,7 +32,9 @@ const {
   { page: number; pageSize: number }
 >({
   api: ({ page }) =>
-    getUnitListApi(page) as Promise<CommonResult<{ list: Unit[]; count: number }>>,
+    getUnitListApi(page) as Promise<
+      CommonResult<{ list: Unit[]; count: number }>
+    >,
   pagination: {
     total: 0,
     pageSize: 10,

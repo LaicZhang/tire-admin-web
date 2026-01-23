@@ -72,7 +72,12 @@ export function openDialog(title = "新增", row?: FormItemProps) {
       }
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
-          const { id: _id, uid: _uid, operatorId: _operatorId, ...customerData } = curData;
+          const {
+            id: _id,
+            uid: _uid,
+            operatorId: _operatorId,
+            ...customerData
+          } = curData;
           if (title === "新增") {
             await addProviderApi({
               provider: {
