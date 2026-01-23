@@ -1,4 +1,5 @@
 import { h } from "vue";
+import type { TableColumnRenderer } from "@pureadmin/table";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { DOCUMENT_STATUS_MAP } from "@/components/StatusTag/types";
 
@@ -13,7 +14,7 @@ export interface AuditOrder {
   uid: string;
 }
 
-export const columns = [
+export const columns: TableColumnList = [
   {
     label: "订单号",
     prop: "orderNo",
@@ -22,19 +23,19 @@ export const columns = [
   {
     label: "客户/供应商",
     minWidth: 120,
-    cellRenderer: ({ row }: { row: AuditOrder }) =>
-      row.customerName || row.providerName || "-"
+    cellRenderer: ({ row }: TableColumnRenderer) =>
+      row?.customerName || row?.providerName || "-"
   },
   {
     label: "金额",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: AuditOrder }) =>
-      `¥${(((row as AuditOrder).totalAmount || 0) / 100).toFixed(2)}`
+    cellRenderer: ({ row }: TableColumnRenderer) =>
+      `¥${(((row as AuditOrder)?.totalAmount || 0) / 100).toFixed(2)}`
   },
   {
     label: "创建时间",
     minWidth: 160,
-    cellRenderer: ({ row }: { row: AuditOrder }) => formatDate(row.createdAt)
+    cellRenderer: ({ row }: TableColumnRenderer) => formatDate(row?.createdAt)
   },
   {
     label: "创建人",
@@ -44,9 +45,9 @@ export const columns = [
   {
     label: "状态",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: AuditOrder }) =>
+    cellRenderer: ({ row }: TableColumnRenderer) =>
       h(StatusTag, {
-        status: row.auditStatus,
+        status: (row as AuditOrder)?.auditStatus,
         statusMap: DOCUMENT_STATUS_MAP
       })
   },
