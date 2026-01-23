@@ -7,6 +7,7 @@ import {
 } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { providerColumns, productColumns } from "./columns";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
 
@@ -78,50 +79,6 @@ const formatAmount = (val: string | number) => {
   const num = Number(val) / 100;
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 };
-
-const providerColumns: TableColumnList = [
-  {
-    label: "排名",
-    prop: "rank",
-    width: 80
-  },
-  {
-    label: "供应商名称",
-    prop: "name"
-  },
-  {
-    label: "订单数",
-    prop: "count",
-    width: 100
-  },
-  {
-    label: "采购金额",
-    width: 150,
-    cellRenderer: ({ row }) => h("span", {}, `¥${formatAmount(row.amount)}`)
-  }
-];
-
-const productColumns: TableColumnList = [
-  {
-    label: "排名",
-    prop: "rank",
-    width: 80
-  },
-  {
-    label: "商品名称",
-    prop: "name"
-  },
-  {
-    label: "交易量",
-    prop: "quantity",
-    width: 100
-  },
-  {
-    label: "交易金额",
-    width: 150,
-    cellRenderer: ({ row }) => h("span", {}, `¥${formatAmount(row.amount)}`)
-  }
-];
 
 const getSummary = async () => {
   try {

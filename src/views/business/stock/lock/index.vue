@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive } from "vue";
+import { columns } from "./columns";
 import {
   getRepoBinListApi,
   lockRepoBinApi,
-  unlockRepoBinApi
+  unlockRepoBinApi,
+  type Bin
 } from "@/api/business/stock";
-import type { Bin } from "@/api/business/stock";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -13,64 +14,57 @@ import Lock from "~icons/ep/lock";
 import Unlock from "~icons/ep/unlock";
 import { message } from "@/utils/message";
 import { ElMessageBox } from "element-plus";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "StockLock"
 });
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const loading = ref(true);
-const dataList = ref<Bin[]>([]);
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
-
 const form = reactive({
   keyword: ""
 });
 
-const columns: TableColumnList = [
-  {
-    label: "货位名称",
-    prop: "name"
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  Bin,
+  CommonResult<{ list: Bin[]; count: number; total?: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getRepoBinListApi(page, { keyword: form.keyword }) as Promise<
+      CommonResult<{ list: Bin[]; count: number; total?: number }>
+    >,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
   },
-  {
-    label: "所属仓库",
-    prop: "repoName"
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? res.data?.count ?? 0
+    };
   },
-  {
-    label: "状态",
-    prop: "isLocked",
-    formatter: ({ isLocked }) => (isLocked ? "已锁定" : "正常")
-  },
-  {
-    label: "锁定原因",
-    prop: "lockReason"
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation"
-  }
-];
+  immediate: true
+});
 
-async function onSearch() {
-  loading.value = true;
-  try {
-    const { data } = await getRepoBinListApi(pagination.currentPage, {
-      keyword: form.keyword
-    });
-    dataList.value = data.list;
-    pagination.total = data.total ?? data.count;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
-}
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
+};
 
 const onReset = () => {
   searchFormRef.value?.resetFields();
@@ -86,9 +80,10 @@ const handleLock = async (row: { id: string | number }) => {
       try {
         await lockRepoBinApi({ id: String(row.id), reason: value });
         message("锁定成功", { type: "success" });
-        onSearch();
-      } catch (e) {
-        message(e.message || "锁定失败", { type: "error" });
+        fetchData();
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "锁定失败";
+        message(msg, { type: "error" });
       }
     })
     .catch(() => {});
@@ -98,15 +93,12 @@ const handleUnlock = async (row: { id: string | number }) => {
   try {
     await unlockRepoBinApi(String(row.id));
     message("解锁成功", { type: "success" });
-    onSearch();
-  } catch (e) {
-    message(e.message || "解锁失败", { type: "error" });
+    fetchData();
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "解锁失败";
+    message(msg, { type: "error" });
   }
 };
-
-onMounted(() => {
-  onSearch();
-});
 </script>
 
 <template>

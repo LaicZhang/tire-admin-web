@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -14,75 +14,67 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { ImportDialog, ExportDialog } from "@/components/ImportExport";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "tire"
 });
-const dataList = ref<Provider[]>([]);
-const loading = ref(false);
+
 const formRef = ref();
 const form = ref({
-  name: undefined,
-  desc: undefined
-});
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+  name: undefined as string | undefined,
+  desc: undefined as string | undefined
 });
 
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
-const getProviderListInfo = async () => {
-  const { data, code, msg } = await getProviderListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) dataList.value = data.list;
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
-};
-const onSearch = async () => {
-  loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined)
-    await getProviderListInfo();
 
-  const { data } = await getProviderListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
-  });
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  Provider,
+  CommonResult<{ list: Provider[]; count: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getProviderListApi(page, {
+      name: form.value.name,
+      desc: form.value.desc
+    }) as Promise<CommonResult<{ list: Provider[]; count: number }>>,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? 0
+    };
+  },
+  immediate: true
+});
 
-  dataList.value = data.list;
-  pagination.value.total = data.count;
-  loading.value = false;
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
-  loading.value = false;
+  onSearch();
 };
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getProviderListInfo();
-}
 
 async function handleDelete(row: Provider) {
   await deleteProviderApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  fetchData();
 }
-
-// async function handleToggleProvider(row) {
-//   await toggleProviderApi(row.uid);
-//   onSearch();
-// }
-
-onMounted(async () => {
-  await getProviderListInfo();
-});
 </script>
 
 <template>
@@ -115,7 +107,7 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getProviderListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -147,9 +139,10 @@ onMounted(async () => {
             :columns
             border
             :data="dataList"
+            :loading="loading"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button
@@ -186,7 +179,7 @@ onMounted(async () => {
       v-model:visible="showImportDialog"
       type="provider"
       title="批量导入供应商"
-      @success="getProviderListInfo"
+      @success="fetchData"
     />
     <ExportDialog
       v-model:visible="showExportDialog"

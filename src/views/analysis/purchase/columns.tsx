@@ -1,16 +1,4 @@
-interface ProviderRow {
-  rank: number;
-  name: string;
-  count: number;
-  amount: string | number;
-}
-
-interface ProductRow {
-  rank: number;
-  name: string;
-  quantity: number;
-  amount: string | number;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const providerColumns: TableColumnList = [
   {
@@ -30,12 +18,12 @@ export const providerColumns: TableColumnList = [
   {
     label: "采购金额",
     width: 150,
-    cellRenderer: ({ row }: { row: ProviderRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const formatAmount = (val: string | number) => {
         const num = Number(val) / 100;
         return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
       };
-      return <span>¥{formatAmount(row.amount)}</span>;
+      return <span>¥{formatAmount(data.row?.amount)}</span>;
     }
   }
 ];
@@ -58,12 +46,12 @@ export const productColumns: TableColumnList = [
   {
     label: "交易金额",
     width: 150,
-    cellRenderer: ({ row }: { row: ProductRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const formatAmount = (val: string | number) => {
         const num = Number(val) / 100;
         return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
       };
-      return <span>¥{formatAmount(row.amount)}</span>;
+      return <span>¥{formatAmount(data.row?.amount)}</span>;
     }
   }
 ];

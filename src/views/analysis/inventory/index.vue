@@ -9,6 +9,7 @@ import {
 } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { slowMovingColumns, stockoutColumns } from "./columns";
 import Refresh from "~icons/ep/refresh";
 import type { ECharts } from "echarts";
 import { getEcharts } from "@/utils/echarts";
@@ -77,54 +78,6 @@ const turnoverData = ref<TurnoverData>({
 });
 // 临期分布
 const expiryData = ref<ExpiryDataItem[]>([]);
-
-// 表格列定义
-const slowMovingColumns: TableColumnList = [
-  {
-    label: "商品名称",
-    prop: "tireName"
-  },
-  {
-    label: "所在仓库",
-    prop: "repoName"
-  },
-  {
-    label: "库存数量",
-    prop: "quantity",
-    width: 100
-  },
-  {
-    label: "最后异动时间",
-    prop: "lastMoveDate"
-  }
-];
-
-const stockoutColumns: TableColumnList = [
-  {
-    label: "商品名称",
-    prop: "tireName"
-  },
-  {
-    label: "当前库存",
-    prop: "currentQuantity",
-    width: 100,
-    cellRenderer: ({ row }) =>
-      h(
-        "span",
-        { class: "text-red-500 font-bold" },
-        (row as StockoutItem).currentQuantity
-      )
-  },
-  {
-    label: "安全库存",
-    prop: "safetyStock",
-    width: 100
-  },
-  {
-    label: "建议采购",
-    prop: "suggestPurchase"
-  }
-];
 
 // 图表引用
 const turnoverChartRef = ref<HTMLElement | null>(null);

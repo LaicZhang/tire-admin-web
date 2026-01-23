@@ -1,12 +1,5 @@
 import { h } from "vue";
-
-interface DictRow {
-  name: string;
-  key: string;
-  cn: string;
-  en: string;
-  isPublic: boolean;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -33,8 +26,8 @@ export const columns: TableColumnList = [
     label: "公开",
     prop: "isPublic",
     minWidth: 80,
-    cellRenderer: ({ row }: { row: DictRow }) =>
-      h("span", row.isPublic ? "是" : "否")
+    cellRenderer: (data: TableColumnRenderer) =>
+      h("span", data.row?.isPublic ? "是" : "否")
   },
   {
     label: "操作",

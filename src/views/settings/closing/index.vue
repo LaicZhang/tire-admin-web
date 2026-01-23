@@ -1,5 +1,6 @@
 <script setup lang="tsx">
 import { h, onMounted, ref } from "vue";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Check from "~icons/ep/check";
 import Close from "~icons/ep/close";
@@ -15,42 +16,6 @@ defineOptions({
 
 const tableLoading = ref(false);
 const closingRecords = ref<ClosingRecord[]>([]);
-
-const columns: TableColumnList = [
-  {
-    label: "结账日",
-    prop: "closingDate",
-    minWidth: 120
-  },
-  {
-    label: "操作日期",
-    prop: "operationDate",
-    minWidth: 160
-  },
-  {
-    label: "操作员",
-    prop: "operatorName",
-    minWidth: 100
-  },
-  {
-    label: "状态",
-    prop: "status",
-    minWidth: 100,
-    cellRenderer: ({ row }) => (
-      <el-tag
-        type={row.status === "closed" ? "success" : "info"}
-        effect="plain"
-      >
-        {row.status === "closed" ? "已结账" : "已反结账"}
-      </el-tag>
-    )
-  },
-  {
-    label: "备注",
-    prop: "remark",
-    minWidth: 200
-  }
-];
 
 function parseListData<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];

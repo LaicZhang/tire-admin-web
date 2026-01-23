@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ArrowUp from "~icons/ep/arrow-up";
 import ArrowDown from "~icons/ep/arrow-down";
@@ -33,26 +34,6 @@ const costMethodOptions = [
 const costCalcTypeOptions = [
   { label: "总仓核算", value: "total_warehouse" },
   { label: "分仓核算", value: "sub_warehouse" }
-];
-
-const columns: TableColumnList = [
-  {
-    label: "顺序",
-    type: "index",
-    width: 80,
-    align: "center"
-  },
-  {
-    label: "取值方式",
-    prop: "name",
-    minWidth: 200
-  },
-  {
-    label: "操作",
-    width: 150,
-    align: "center",
-    slot: "operation"
-  }
 ];
 
 const loadSettings = async () => {

@@ -1,5 +1,6 @@
 <script setup lang="tsx">
 import { onMounted, ref } from "vue";
+import { columns } from "./columns";
 import { useRouter } from "vue-router";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
@@ -40,44 +41,6 @@ const documentTypes: DocumentType[] = [
   { value: "other_out", label: "其他出库单" },
   { value: "receive", label: "收款单" },
   { value: "pay", label: "付款单" }
-];
-
-const columns: TableColumnList = [
-  {
-    label: "模板名称",
-    prop: "name",
-    minWidth: 150
-  },
-  {
-    label: "单据类型",
-    prop: "documentTypeName",
-    minWidth: 120
-  },
-  {
-    label: "是否默认",
-    prop: "isDefault",
-    minWidth: 100,
-    cellRenderer: ({ row }) => (
-      <StatusTag
-        status={row.isDefault}
-        statusMap={{
-          true: { label: "默认", type: "success" },
-          false: { label: "非默认", type: "info" }
-        }}
-      />
-    )
-  },
-  {
-    label: "更新时间",
-    prop: "updateTime",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    width: 280,
-    fixed: "right",
-    slot: "operation"
-  }
 ];
 
 const loadData = async () => {

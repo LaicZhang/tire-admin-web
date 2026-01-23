@@ -1,9 +1,4 @@
-interface PlanRow {
-  planNo: string;
-  items: Array<{ tireName?: string; quantity?: number }>;
-  status: string;
-  desc: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -13,9 +8,9 @@ export const columns: TableColumnList = [
   {
     label: "商品",
     prop: "items",
-    cellRenderer: ({ row }: { row: PlanRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       return (
-        row.items
+        data.row?.items
           ?.map(
             (i: { tireName?: string; quantity?: number }) =>
               `${i.tireName} x ${i.quantity}`
@@ -27,13 +22,13 @@ export const columns: TableColumnList = [
   {
     label: "状态",
     prop: "status",
-    cellRenderer: ({ row }: { row: PlanRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const map: Record<string, string> = {
         DRAFT: "草稿",
         SUBMITTED: "已提交",
         APPROVED: "已审核"
       };
-      return map[row.status] || row.status;
+      return map[data.row?.status] || data.row?.status || "-";
     }
   },
   {

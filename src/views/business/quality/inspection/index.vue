@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive } from "vue";
+import { columns } from "./columns";
 import {
   getInspectionRecordListApi,
   type InspectionRecord
@@ -8,73 +9,65 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Add from "~icons/ep/plus";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
+import { message } from "@/utils/message";
 
 defineOptions({
   name: "QualityInspection"
 });
 
-const loading = ref(true);
-const dataList = ref<InspectionRecord[]>([]);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
-
 const form = reactive({
   purchaseOrderNo: "",
   startDate: "",
   endDate: ""
 });
 
-const columns: TableColumnList = [
-  {
-    label: "单号",
-    prop: "id"
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  InspectionRecord,
+  CommonResult<{ list: InspectionRecord[]; total?: number; count?: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getInspectionRecordListApi(page, { ...form }) as Promise<
+      CommonResult<{ list: InspectionRecord[]; total?: number; count?: number }>
+    >,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
   },
-  {
-    label: "关联采购单",
-    prop: "purchaseOrderId" // Should convert to NO ideally
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? res.data?.count ?? 0
+    };
   },
-  {
-    label: "质检员",
-    prop: "inspectorId"
-  },
-  {
-    label: "质检时间",
-    prop: "createdAt"
-  },
-  {
-    label: "备注",
-    prop: "remark"
-  }
-];
+  immediate: true
+});
 
-async function onSearch() {
-  loading.value = true;
-  try {
-    const { data } = await getInspectionRecordListApi(pagination.currentPage, {
-      ...form
-    });
-    dataList.value = data.list;
-    pagination.total = data.total ?? data.count ?? 0;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
-}
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
+};
 
 const onReset = () => {
   searchFormRef.value?.resetFields();
   onSearch();
 };
-
-onMounted(() => {
-  onSearch();
-});
 </script>
 
 <template>

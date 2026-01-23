@@ -1,4 +1,5 @@
 import { h } from "vue";
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -30,11 +31,11 @@ export const columns: TableColumnList = [
     label: "状态",
     prop: "success",
     minWidth: 80,
-    cellRenderer: ({ row }: { row: { success: boolean } }) =>
+    cellRenderer: (data: TableColumnRenderer) =>
       h(
         "el-tag",
-        { type: row.success ? "success" : "danger" },
-        { default: () => (row.success ? "成功" : "失败") }
+        { type: data.row?.success ? "success" : "danger" },
+        { default: () => (data.row?.success ? "成功" : "失败") }
       )
   },
   {

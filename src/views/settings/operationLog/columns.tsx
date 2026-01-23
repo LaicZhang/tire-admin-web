@@ -1,12 +1,4 @@
-interface OperationRow {
-  username: string;
-  createTime: string;
-  moduleName: string;
-  operationType: string;
-  operationTypeName: string;
-  detail: string;
-  ip: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -28,7 +20,7 @@ export const columns: TableColumnList = [
     label: "操作类型",
     prop: "operationTypeName",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: OperationRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const typeMap: Record<string, { type: string; label: string }> = {
         create: { type: "success", label: "新增" },
         update: { type: "primary", label: "修改" },
@@ -41,9 +33,9 @@ export const columns: TableColumnList = [
         login: { type: "success", label: "登录" },
         logout: { type: "info", label: "登出" }
       };
-      const item = typeMap[row.operationType] || {
+      const item = typeMap[data.row?.operationType] || {
         type: "info",
-        label: row.operationType
+        label: data.row?.operationType
       };
       return (
         <el-tag type={item.type} effect="plain">

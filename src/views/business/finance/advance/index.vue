@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
@@ -9,6 +10,9 @@ import {
   type AdvancePaymentDto
 } from "@/api/business/advance-payment";
 import { message } from "@/utils/message";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "AdvancePaymentList"
@@ -19,91 +23,54 @@ const form = ref({
   targetName: ""
 });
 
-const dataList = ref<AdvancePaymentDto[]>([]);
-const loading = ref(true);
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  AdvancePaymentDto,
+  CommonResult<{ list: AdvancePaymentDto[]; total?: number; count?: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page, pageSize }) =>
+    getAdvancePaymentList({
+      page,
+      pageSize,
+      ...form.value
+    }) as unknown as Promise<CommonResult<{ list: AdvancePaymentDto[]; total?: number; count?: number }>>,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? res.data?.count ?? 0
+    };
+  },
+  immediate: true
 });
 
-const columns: TableColumnList = [
-  {
-    label: "单号",
-    prop: "billNo",
-    minWidth: 160
-  },
-  {
-    label: "类型",
-    prop: "type",
-    minWidth: 100,
-    formatter: ({ type }) => (type === "RECEIPT" ? "预收款" : "预付款")
-  },
-  {
-    label: "往来单位",
-    prop: "targetName",
-    minWidth: 160
-  },
-  {
-    label: "金额",
-    prop: "amount",
-    minWidth: 120
-  },
-  {
-    label: "剩余金额",
-    prop: "remainingAmount",
-    minWidth: 120
-  },
-  {
-    label: "付款方式",
-    prop: "paymentMethod",
-    minWidth: 120
-  },
-  {
-    label: "备注",
-    prop: "remark",
-    minWidth: 150
-  },
-  {
-    label: "创建时间",
-    prop: "createTime",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    width: 140,
-    slot: "operation"
-  }
-];
-
-async function onSearch() {
-  loading.value = true;
-  try {
-    const { data } = await getAdvancePaymentList({
-      page: pagination.value.currentPage,
-      pageSize: pagination.value.pageSize,
-      ...form.value
-    });
-    dataList.value = data.list;
-    pagination.value.total = data.total ?? data.count;
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "查询失败";
-    message(msg, { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-}
-
-const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
+};
 
 function onReset() {
   searchFormRef.value?.resetFields();
   onSearch();
 }
-
-onSearch();
 
 function handleAdd() {
   message("功能开发中", { type: "info" });

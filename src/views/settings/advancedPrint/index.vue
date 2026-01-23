@@ -1,6 +1,7 @@
 <script setup lang="tsx">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
 import Delete from "~icons/ep/delete";
@@ -34,73 +35,7 @@ const templateList = ref<AdvancedPrintTemplate[]>([]);
 const activeDocType = ref("sales_out");
 const selectedRows = ref<AdvancedPrintTemplate[]>([]);
 
-const documentTypes = [
-  { value: "purchase_order", label: "采购订单" },
-  { value: "purchase_in", label: "采购入库单" },
-  { value: "purchase_return", label: "采购退货单" },
-  { value: "sales_order", label: "销售订单" },
-  { value: "sales_out", label: "销售出库单" },
-  { value: "sales_return", label: "销售退货单" },
-  { value: "transfer", label: "调拨单" },
-  { value: "inventory_check", label: "盘点单" },
-  { value: "other_in", label: "其他入库单" },
-  { value: "other_out", label: "其他出库单" },
-  { value: "receive", label: "收款单" },
-  { value: "pay", label: "付款单" }
-];
-
-const columns: TableColumnList = [
-  {
-    type: "selection",
-    width: 55,
-    align: "center"
-  },
-  {
-    label: "模板名称",
-    prop: "name",
-    minWidth: 180
-  },
-  {
-    label: "纸张大小",
-    prop: "paperSize",
-    minWidth: 100
-  },
-  {
-    label: "纸张方向",
-    prop: "paperOrientation",
-    minWidth: 100,
-    cellRenderer: ({ row }) => (
-      <span>{row.paperOrientation === "portrait" ? "纵向" : "横向"}</span>
-    )
-  },
-  {
-    label: "是否默认",
-    prop: "isDefault",
-    minWidth: 100,
-    cellRenderer: ({ row }) => (
-      <StatusTag
-        status={row.isDefault}
-        statusMap={{
-          true: { label: "默认", type: "success" },
-          false: { label: "非默认", type: "info" }
-        }}
-      />
-    )
-  },
-  {
-    label: "更新时间",
-    prop: "updateTime",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    width: 280,
-    fixed: "right",
-    slot: "operation"
-  }
-];
-
-const loadData = async () => {
+const documentTypes = async () => {
   loading.value = true;
   try {
     const { code, data } = await getPrintTemplatesApi(activeDocType.value);

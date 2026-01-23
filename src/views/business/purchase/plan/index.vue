@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h } from "vue";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
@@ -33,49 +34,6 @@ const pagination = ref({
 const form = ref({
   status: undefined
 });
-
-const columns: TableColumnList = [
-  {
-    label: "计划单号",
-    prop: "planNo"
-  },
-  {
-    label: "商品",
-    prop: "items",
-    cellRenderer: ({ row }) => {
-      return (
-        row.items
-          ?.map(
-            (i: { tireName?: string; quantity?: number }) =>
-              `${i.tireName} x ${i.quantity}`
-          )
-          .join(", ") || "-"
-      );
-    }
-  },
-  {
-    label: "状态",
-    prop: "status",
-    cellRenderer: ({ row }) => {
-      const map: Record<string, string> = {
-        DRAFT: "草稿",
-        SUBMITTED: "已提交",
-        APPROVED: "已审核"
-      };
-      return map[row.status] || row.status;
-    }
-  },
-  {
-    label: "备注",
-    prop: "desc"
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 200
-  }
-];
 
 const getData = async () => {
   loading.value = true;

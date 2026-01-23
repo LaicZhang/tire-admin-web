@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed, nextTick, h } from "vue";
 import { getReceivableAgingApi, getPayableAgingApi } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { receivableColumns, payableColumns } from "./columns";
 import Refresh from "~icons/ep/refresh";
 import type { ECharts } from "echarts";
 import { getEcharts } from "@/utils/echarts";
@@ -64,82 +65,6 @@ const formatAmount = (val: string | number) => {
   const num = Number(val) / 100;
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 };
-
-const receivableColumns: TableColumnList = [
-  {
-    label: "客户名称",
-    prop: "name"
-  },
-  {
-    label: "关联订单号",
-    prop: "orderNumber",
-    width: 180
-  },
-  {
-    label: "订单日期",
-    prop: "orderDate",
-    width: 120
-  },
-  {
-    label: "欠款金额",
-    prop: "dueAmount",
-    cellRenderer: ({ row }) =>
-      h(
-        "span",
-        { class: "font-bold text-red-500" },
-        `¥${formatAmount(row.dueAmount)}`
-      )
-  },
-  {
-    label: "账龄(天)",
-    prop: "agingDays",
-    width: 100,
-    sortable: true
-  },
-  {
-    label: "账龄区间",
-    prop: "agingBucket",
-    width: 120
-  }
-];
-
-const payableColumns: TableColumnList = [
-  {
-    label: "供应商名称",
-    prop: "name"
-  },
-  {
-    label: "关联订单号",
-    prop: "orderNumber",
-    width: 180
-  },
-  {
-    label: "订单日期",
-    prop: "orderDate",
-    width: 120
-  },
-  {
-    label: "欠款金额",
-    prop: "dueAmount",
-    cellRenderer: ({ row }) =>
-      h(
-        "span",
-        { class: "font-bold text-green-500" },
-        `¥${formatAmount(row.dueAmount)}`
-      )
-  },
-  {
-    label: "账龄(天)",
-    prop: "agingDays",
-    width: 100,
-    sortable: true
-  },
-  {
-    label: "账龄区间",
-    prop: "agingBucket",
-    width: 120
-  }
-];
 
 const getReceivable = async () => {
   try {

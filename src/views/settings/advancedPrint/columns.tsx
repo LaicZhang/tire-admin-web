@@ -1,4 +1,5 @@
 import StatusTag from "@/components/StatusTag/index.vue";
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -20,17 +21,17 @@ export const columns: TableColumnList = [
     label: "纸张方向",
     prop: "paperOrientation",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: { paperOrientation: string } }) => (
-      <span>{row.paperOrientation === "portrait" ? "纵向" : "横向"}</span>
+    cellRenderer: (data: TableColumnRenderer) => (
+      <span>{data.row?.paperOrientation === "portrait" ? "纵向" : "横向"}</span>
     )
   },
   {
     label: "是否默认",
     prop: "isDefault",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: { isDefault: boolean } }) => (
+    cellRenderer: (data: TableColumnRenderer) => (
       <StatusTag
-        status={row.isDefault}
+        status={data.row?.isDefault}
         statusMap={{
           true: { label: "默认", type: "success" },
           false: { label: "非默认", type: "info" }

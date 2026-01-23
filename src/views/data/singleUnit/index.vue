@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, h } from "vue";
 import type { SingleUnitItem } from "./types";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
@@ -45,41 +46,6 @@ const { loading, dataList, pagination, fetchData } = useCrud<
   }),
   immediate: true
 });
-
-const columns: TableColumnList = [
-  {
-    label: "单位名称",
-    prop: "name",
-    minWidth: 120
-  },
-  {
-    label: "符号",
-    prop: "symbol",
-    minWidth: 100
-  },
-  {
-    label: "默认",
-    prop: "isDefault",
-    minWidth: 80,
-    cellRenderer: ({ row }) => h("span", row.isDefault ? "是" : "否")
-  },
-  {
-    label: "排序",
-    prop: "sort",
-    minWidth: 80
-  },
-  {
-    label: "备注",
-    prop: "remark",
-    minWidth: 150
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 150
-  }
-];
 
 const handleSearch = () => {
   pagination.value = { ...pagination.value, currentPage: 1 };

@@ -4,11 +4,12 @@ import { getBatchListApi, getBatchTransactionsApi } from "@/api/batch";
 import { getRepoListApi } from "@/api/company/repo";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { columns, transactionColumns } from "./columns";
 import Search from "~icons/ep/search";
 import Add from "~icons/ep/plus";
 import View from "~icons/ep/view";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { ElTag, ElButton } from "element-plus";
+import { ElButton } from "element-plus";
 import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import BatchCreateForm from "./BatchCreateForm.vue";
 
@@ -56,79 +57,6 @@ interface TransactionItem {
 
 const transactions = ref<TransactionItem[]>([]);
 const currentBatchNo = ref("");
-
-const columns: TableColumnList = [
-  {
-    label: "批次号",
-    prop: "batchNo",
-    minWidth: 120
-  },
-  {
-    label: "商品名称",
-    prop: "tireName",
-    minWidth: 150
-  },
-  {
-    label: "所在仓库",
-    prop: "repoName",
-    minWidth: 120
-  },
-  {
-    label: "当前数量",
-    prop: "quantity",
-    width: 100
-  },
-  {
-    label: "生产日期",
-    prop: "productionDate",
-    width: 120
-  },
-  {
-    label: "过期日期",
-    prop: "expiryDate",
-    width: 120
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    width: 120,
-    slot: "operation"
-  }
-];
-
-const transactionColumns: TableColumnList = [
-  {
-    label: "时间",
-    prop: "createdAt",
-    width: 160
-  },
-  {
-    label: "类型",
-    prop: "type",
-    width: 80,
-    cellRenderer: ({ row }) => {
-      const item = row as TransactionItem;
-      return h(
-        ElTag,
-        { type: item.type === "IN" ? "success" : "danger" },
-        () => (item.type === "IN" ? "入库" : "出库")
-      );
-    }
-  },
-  {
-    label: "数量",
-    prop: "quantity",
-    width: 100
-  },
-  {
-    label: "来源类型",
-    prop: "sourceType"
-  },
-  {
-    label: "单号",
-    prop: "sourceId"
-  }
-];
 
 const pagination = reactive({
   total: 0,

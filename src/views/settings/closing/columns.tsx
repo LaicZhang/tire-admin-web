@@ -1,10 +1,4 @@
-interface ClosingRow {
-  closingDate: string;
-  operationDate: string;
-  operatorName: string;
-  status: string;
-  remark: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -26,12 +20,12 @@ export const columns: TableColumnList = [
     label: "状态",
     prop: "status",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: ClosingRow }) => (
+    cellRenderer: (data: TableColumnRenderer) => (
       <el-tag
-        type={row.status === "closed" ? "success" : "info"}
+        type={data.row?.status === "closed" ? "success" : "info"}
         effect="plain"
       >
-        {row.status === "closed" ? "已结账" : "已反结账"}
+        {data.row?.status === "closed" ? "已结账" : "已反结账"}
       </el-tag>
     )
   },

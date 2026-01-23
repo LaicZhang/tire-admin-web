@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -7,93 +7,84 @@ import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import { openDialog } from "./table";
-
-const handleOpenDialog = (title: string, row?: unknown) => {
-  openDialog(title, row);
-};
 import {
   getFeedbackListApi,
-  deleteFeedbackApi,
-  addFeedbackApi,
-  updateFeedbackApi
+  deleteFeedbackApi
 } from "@/api";
 import type { Feedback } from "@/api/business/feedback";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "feedback"
 });
-const dataList = ref<Feedback[]>([]);
-const loading = ref(false);
+
 const formRef = ref();
 const form = ref({
-  content: undefined,
-  rating: undefined,
-  status: undefined,
-  type: undefined
-});
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+  content: undefined as string | undefined,
+  rating: undefined as number | undefined,
+  status: undefined as number | undefined,
+  type: undefined as number | undefined
 });
 
-const getFeedbackListInfo = async () => {
-  loading.value = true;
-  const { data, code, msg } = await getFeedbackListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else message(msg, { type: "error" });
-  loading.value = false;
-};
-
-const onSearch = async () => {
-  loading.value = true;
-  const { data, code, msg } = await getFeedbackListApi(
-    pagination.value.currentPage,
-    {
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  Feedback,
+  CommonResult<PaginatedResponseDto<Feedback>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getFeedbackListApi(page, {
       content: form.value.content,
       rating: form.value.rating,
       status: form.value.status,
       type: form.value.type
+    }),
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
     }
-  );
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? res.data?.total ?? 0
+    };
+  },
+  immediate: true
+});
 
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else message(msg, { type: "error" });
-  loading.value = false;
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
-  loading.value = false;
+  onSearch();
 };
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getFeedbackListInfo();
-}
 
 async function handleDelete(row: Feedback) {
   await deleteFeedbackApi(row.uid);
   message(`您删除了反馈：${row.content?.substring(0, 20)}...`, {
     type: "success"
   });
-  onSearch();
+  fetchData();
 }
-
-onMounted(async () => {
-  await getFeedbackListInfo();
-});
 </script>
 
 <template>
@@ -151,7 +142,7 @@ onMounted(async () => {
       </el-form-item>
     </ReSearchForm>
     <el-card class="m-1">
-      <PureTableBar title="反馈管理" :columns="columns" @refresh="onSearch">
+      <PureTableBar title="反馈管理" :columns="columns" @refresh="fetchData">
         <template #buttons>
           <el-button
             :icon="useRenderIcon(AddFill)"
@@ -176,8 +167,8 @@ onMounted(async () => {
               background: 'var(--el-table-row-hover-bg-color)',
               color: 'var(--el-text-color-primary)'
             }"
-            @page-size-change="handleCurrentChange(1)"
-            @page-current-change="handleCurrentChange"
+            @page-size-change="onSizeChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button

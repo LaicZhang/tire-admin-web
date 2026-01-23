@@ -1,15 +1,5 @@
 import StatusTag from "@/components/StatusTag/index.vue";
-
-interface CodeRuleRow {
-  name: string;
-  targetName: string;
-  prefix: string;
-  dateFormat: string;
-  serialStart: number;
-  serialDigits: number;
-  resetTypeName: string;
-  isActive: boolean;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const documentColumns: TableColumnList = [
   {
@@ -30,9 +20,9 @@ export const documentColumns: TableColumnList = [
   {
     label: "编码格式",
     minWidth: 180,
-    cellRenderer: ({ row }: { row: CodeRuleRow }) => (
+    cellRenderer: (data: TableColumnRenderer) => (
       <span class="font-mono text-sm">
-        {`${row.prefix}${row.dateFormat ? `[${row.dateFormat}]` : ""}[${String(row.serialStart).padStart(row.serialDigits, "0")}]`}
+        {`${data.row?.prefix}${data.row?.dateFormat ? `[${data.row?.dateFormat}]` : ""}[${String(data.row?.serialStart ?? 1).padStart(data.row?.serialDigits ?? 4, "0")}]`}
       </span>
     )
   },
@@ -45,9 +35,9 @@ export const documentColumns: TableColumnList = [
     label: "状态",
     prop: "isActive",
     minWidth: 80,
-    cellRenderer: ({ row }: { row: CodeRuleRow }) => (
+    cellRenderer: (data: TableColumnRenderer) => (
       <StatusTag
-        status={row.isActive}
+        status={data.row?.isActive}
         statusMap={{
           true: { label: "使用中", type: "success" },
           false: { label: "未启用", type: "info" }

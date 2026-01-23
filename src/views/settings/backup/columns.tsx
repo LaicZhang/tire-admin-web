@@ -1,4 +1,5 @@
 import StatusTag from "@/components/StatusTag/index.vue";
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const backupTaskStatusMap: Record<
   string,
@@ -25,16 +26,12 @@ export const columns: TableColumnList = [
     label: "备份类型",
     prop: "backupTypeName",
     minWidth: 100,
-    cellRenderer: ({
-      row
-    }: {
-      row: { backupType: string; backupTypeName: string };
-    }) => (
+    cellRenderer: (data: TableColumnRenderer) => (
       <el-tag
-        type={row.backupType === "auto" ? "info" : "primary"}
+        type={data.row?.backupType === "auto" ? "info" : "primary"}
         effect="plain"
       >
-        {row.backupTypeName}
+        {data.row?.backupTypeName}
       </el-tag>
     )
   },
@@ -42,9 +39,9 @@ export const columns: TableColumnList = [
     label: "状态",
     prop: "statusName",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: { status: string } }) => (
+    cellRenderer: (data: TableColumnRenderer) => (
       <StatusTag
-        status={row.status}
+        status={data.row?.status}
         statusMap={backupTaskStatusMap}
         size="default"
         effect="plain"

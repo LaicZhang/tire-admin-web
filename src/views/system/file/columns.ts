@@ -1,4 +1,5 @@
 import { h } from "vue";
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -20,13 +21,13 @@ export const columns: TableColumnList = [
     label: "预览",
     prop: "fileUrl",
     minWidth: 80,
-    cellRenderer: ({ row }: { row: { fileType: string; fileUrl: string } }) => {
-      if (row.fileType && row.fileType.startsWith("image/")) {
+    cellRenderer: (data: TableColumnRenderer) => {
+      if (data.row?.fileType && data.row?.fileType.startsWith("image/")) {
         return h("el-image", {
           style: "width: 50px; height: 50px",
-          src: row.fileUrl,
+          src: data.row?.fileUrl,
           fit: "cover",
-          "preview-src-list": [row.fileUrl],
+          "preview-src-list": [data.row?.fileUrl],
           "preview-teleported": true
         });
       }

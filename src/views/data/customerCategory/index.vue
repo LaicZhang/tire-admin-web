@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import type { TreeCategoryItem } from "./types";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
@@ -33,32 +34,6 @@ const expandRowKeys = ref<string[]>([]);
 const form = reactive({
   name: ""
 });
-
-const columns: TableColumnList = [
-  {
-    label: "类别名称",
-    prop: "name",
-    minWidth: 200,
-    align: "left"
-  },
-  {
-    label: "层级",
-    prop: "level",
-    minWidth: 80,
-    cellRenderer: ({ row }) => h("span", `第${row.level || 1}级`)
-  },
-  {
-    label: "排序",
-    prop: "sort",
-    minWidth: 80
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 200
-  }
-];
 
 const filterTreeData = (
   data: TreeCategoryItem[],

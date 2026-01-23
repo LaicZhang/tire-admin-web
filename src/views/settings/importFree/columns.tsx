@@ -1,12 +1,4 @@
-interface ImportFreeRow {
-  accountName: string;
-  companyName: string;
-  ownerName: string;
-  ownerPhone: string;
-  userCount: number;
-  role: string;
-  createTime: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -44,20 +36,20 @@ export const columns: TableColumnList = [
     label: "权限角色",
     prop: "role",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: ImportFreeRow }) => (
+    cellRenderer: (data: TableColumnRenderer) => (
       <el-tag
         type={
-          row.role === "admin"
+          data.row?.role === "admin"
             ? "danger"
-            : row.role === "manager"
+            : data.row?.role === "manager"
               ? "warning"
               : "info"
         }
         effect="plain"
       >
-        {row.role === "admin"
+        {data.row?.role === "admin"
           ? "超级管理员"
-          : row.role === "manager"
+          : data.row?.role === "manager"
             ? "管理员"
             : "普通用户"}
       </el-tag>

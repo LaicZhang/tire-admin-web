@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from "vue";
+import { columns } from "./columns";
 import {
   getBackupListApi,
   createBackupApi,
@@ -29,48 +30,6 @@ const pagination = reactive({
   currentPage: 1,
   background: true
 });
-
-const columns: TableColumnList = [
-  {
-    label: "文件名",
-    minWidth: 200,
-    slot: "fileName"
-  },
-  {
-    label: "类型",
-    width: 100,
-    align: "center",
-    slot: "type"
-  },
-  {
-    label: "状态",
-    width: 100,
-    align: "center",
-    slot: "status"
-  },
-  {
-    label: "文件大小",
-    width: 120,
-    align: "right",
-    slot: "fileSize"
-  },
-  {
-    label: "创建时间",
-    width: 180,
-    slot: "createTime"
-  },
-  {
-    label: "完成时间",
-    width: 180,
-    slot: "finishAt"
-  },
-  {
-    label: "操作",
-    width: 150,
-    fixed: "right",
-    slot: "operation"
-  }
-];
 
 const backupStatusMap = {
   success: { label: "成功", type: "success" },

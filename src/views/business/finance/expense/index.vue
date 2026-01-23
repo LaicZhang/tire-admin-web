@@ -1,82 +1,73 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive } from "vue";
+import { columns } from "./columns";
 import { getOtherTransactionListApi } from "@/api/finance";
 import type { OtherTransaction } from "@/api/finance";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Add from "~icons/ep/plus";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
+import { message } from "@/utils/message";
 
 defineOptions({
   name: "FinanceExpense"
 });
 
-const loading = ref(true);
-const dataList = ref<OtherTransaction[]>([]);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
-
 const form = reactive({
   type: "",
   startDate: "",
   endDate: ""
 });
 
-const columns: TableColumnList = [
-  {
-    label: "类型",
-    prop: "type",
-    formatter: ({ type }) => (type === "income" ? "收入" : "支出")
-  },
-  {
-    label: "金额",
-    prop: "amount"
-  },
-  {
-    label: "账户",
-    prop: "paymentUid"
-  },
-  {
-    label: "日期",
-    prop: "date"
-  },
-  {
-    label: "描述",
-    prop: "desc"
-  }
-  // Operations would go here
-];
-
-async function onSearch() {
-  loading.value = true;
-  try {
-    const { data } = await getOtherTransactionListApi(pagination.currentPage, {
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  OtherTransaction,
+  CommonResult<{ list: OtherTransaction[]; total?: number; count?: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getOtherTransactionListApi(page, {
       type: form.type,
       startDate: form.startDate,
       endDate: form.endDate
-    });
-    dataList.value = data.list;
-    pagination.total = data.total ?? data.count;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
-}
+    }) as Promise<CommonResult<{ list: OtherTransaction[]; total?: number; count?: number }>>,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? res.data?.count ?? 0
+    };
+  },
+  immediate: true
+});
+
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
+};
 
 const onReset = () => {
   searchFormRef.value?.resetFields();
   onSearch();
 };
-
-onMounted(() => {
-  onSearch();
-});
 </script>
 
 <template>

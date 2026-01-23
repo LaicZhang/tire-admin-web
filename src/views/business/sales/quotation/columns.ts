@@ -1,4 +1,5 @@
 import { fenToYuan } from "@/utils/formatMoney";
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -12,19 +13,19 @@ export const columns: TableColumnList = [
   {
     label: "总金额",
     prop: "totalAmount",
-    formatter: ({ totalAmount }: { totalAmount: number }) =>
-      `¥${fenToYuan(totalAmount)}`
+    formatter: (data: TableColumnRenderer) =>
+      `¥${fenToYuan(data.row?.totalAmount ?? 0)}`
   },
   {
     label: "状态",
     prop: "status",
-    cellRenderer: ({ row }: { row: { status: string } }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const map: Record<string, string> = {
         DRAFT: "草稿",
         SENT: "已发送",
         CONFIRMED: "已确认"
       };
-      return map[row.status] || row.status;
+      return map[data.row?.status] || data.row?.status || "-";
     }
   },
   {

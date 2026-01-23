@@ -1,12 +1,5 @@
 import StatusTag from "@/components/StatusTag/index.vue";
-
-interface UserRow {
-  username: string;
-  phone: string;
-  roleName: string;
-  status: number;
-  lastLoginTime: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const userColumns: TableColumnList = [
   {
@@ -28,14 +21,14 @@ export const userColumns: TableColumnList = [
     label: "状态",
     prop: "status",
     minWidth: 80,
-    cellRenderer: ({ row }: { row: UserRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const enableStatusMap = {
         1: { label: "启用", type: "success" },
         0: { label: "禁用", type: "danger" }
       } as const;
       return (
         <StatusTag
-          status={row.status}
+          status={data.row?.status}
           statusMap={enableStatusMap}
           size="default"
           effect="plain"

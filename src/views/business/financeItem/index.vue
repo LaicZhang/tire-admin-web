@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
 import DeleteButton from "@/components/DeleteButton/index.vue";
@@ -14,21 +13,48 @@ import type { IncomeExpenseItem } from "@/api/finance";
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "FinanceItem"
 });
 
-const dataList = ref<IncomeExpenseItem[]>([]);
-const loading = ref(false);
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
-
 const form = ref<{ type?: IncomeExpenseItem["type"] }>({});
+
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData: getData,
+  onCurrentChange
+} = useCrud<
+  IncomeExpenseItem,
+  CommonResult<{ list: IncomeExpenseItem[]; count: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getIncomeExpenseItemListApi(page, form.value) as Promise<
+      CommonResult<{ list: IncomeExpenseItem[]; count: number }>
+    >,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? 0
+    };
+  },
+  immediate: true
+});
 
 const columns = [
   {
@@ -57,23 +83,8 @@ const columns = [
   }
 ];
 
-const getData = async () => {
-  loading.value = true;
-  const { data, code, msg } = await getIncomeExpenseItemListApi(
-    pagination.value.currentPage,
-    form.value
-  );
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else {
-    message(msg, { type: "error" });
-  }
-  loading.value = false;
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
   getData();
 };
 
@@ -157,10 +168,6 @@ function openDialog() {
     }
   });
 }
-
-onMounted(() => {
-  getData();
-});
 </script>
 
 <template>
@@ -186,7 +193,7 @@ onMounted(() => {
             type="primary"
             :icon="useRenderIcon('ri:search-line')"
             :loading="loading"
-            @click="getData"
+            @click="handleSearch"
           >
             搜索
           </el-button>
@@ -213,8 +220,9 @@ onMounted(() => {
             :columns="columns"
             border
             :data="dataList"
+            :loading="loading"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <DeleteButton @confirm="handleDelete(row)" />

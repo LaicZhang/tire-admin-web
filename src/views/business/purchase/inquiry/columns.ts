@@ -1,10 +1,4 @@
-interface InquiryRow {
-  inquiryNo: string;
-  planNo: string;
-  providerName: string;
-  status: string;
-  desc: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -22,13 +16,13 @@ export const columns: TableColumnList = [
   {
     label: "状态",
     prop: "status",
-    cellRenderer: ({ row }: { row: InquiryRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const map: Record<string, string> = {
         PENDING: "待回复",
         REPLIED: "已回复",
         CLOSED: "已关闭"
       };
-      return map[row.status] || row.status;
+      return map[data.row?.status] || data.row?.status || "-";
     }
   },
   {

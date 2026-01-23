@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
-import Delete from "~icons/ep/delete";
 import Refresh from "~icons/ep/refresh";
 import { PureTableBar } from "@/components/RePureTableBar";
 import {
@@ -13,18 +12,57 @@ import {
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "StockAlert"
 });
 
-const dataList = ref<any[]>([]);
-const loading = ref(false);
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+interface StockAlertItem {
+  id: number;
+  uid: string;
+  name: string;
+  tireSpec: string;
+  safeStock: number;
+  maxStock: number;
+  minStock: number;
+  desc: string;
+}
+
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData: getData,
+  onCurrentChange
+} = useCrud<
+  StockAlertItem,
+  CommonResult<StockAlertItem[]>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page, pageSize }) =>
+    getStockAlertListApi({ page, pageSize }) as Promise<
+      CommonResult<StockAlertItem[]>
+    >,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    const list = res.data ?? [];
+    return {
+      list,
+      total: list.length
+    };
+  },
+  immediate: true
 });
 
 const columns = [
@@ -54,26 +92,6 @@ const columns = [
   }
 ];
 
-const getData = async () => {
-  loading.value = true;
-  const { data, code, msg } = await getStockAlertListApi({
-    page: pagination.value.currentPage,
-    pageSize: pagination.value.pageSize
-  });
-  if (code === 200) {
-    dataList.value = data || [];
-    pagination.value.total = dataList.value.length;
-  } else {
-    message(msg, { type: "error" });
-  }
-  loading.value = false;
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  getData();
-};
-
 const handleScan = async () => {
   const { code, msg } = await scanStockAlertApi();
   if (code === 200) {
@@ -82,6 +100,15 @@ const handleScan = async () => {
     message(msg, { type: "error" });
   }
 };
+
+interface StockAlertFormInline {
+  name: string;
+  tireSpec: string;
+  safeStock: number;
+  maxStock: number;
+  minStock: number;
+  desc: string;
+}
 
 function openDialog(title = "新增") {
   addDialog({
@@ -94,7 +121,7 @@ function openDialog(title = "新增") {
         maxStock: 0,
         minStock: 0,
         desc: ""
-      }
+      } as StockAlertFormInline
     },
     width: "40%",
     draggable: true,
@@ -102,7 +129,7 @@ function openDialog(title = "新增") {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props;
+      const { formInline } = options.props as { formInline: StockAlertFormInline };
       return h("div", [
         h("el-form", { model: formInline, labelWidth: "80px" }, [
           h("el-form-item", { label: "规则名称", required: true }, [
@@ -155,7 +182,7 @@ function openDialog(title = "新增") {
       ]);
     },
     beforeSure: (done, { options }) => {
-      const data = options.props.formInline;
+      const data = (options.props as { formInline: StockAlertFormInline }).formInline;
       if (!data.name) {
         message("请输入名称", { type: "warning" });
         return;
@@ -168,10 +195,6 @@ function openDialog(title = "新增") {
     }
   });
 }
-
-onMounted(() => {
-  getData();
-});
 </script>
 
 <template>
@@ -202,8 +225,9 @@ onMounted(() => {
             :columns="columns"
             border
             :data="dataList"
+            :loading="loading"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           />
         </template>
       </PureTableBar>

@@ -1,10 +1,5 @@
 import { h } from "vue";
-
-interface CategoryRow {
-  name: string;
-  level: number;
-  sort: number;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -17,8 +12,8 @@ export const columns: TableColumnList = [
     label: "层级",
     prop: "level",
     minWidth: 80,
-    cellRenderer: ({ row }: { row: CategoryRow }) =>
-      h("span", `第${row.level || 1}级`)
+    cellRenderer: (data: TableColumnRenderer) =>
+      h("span", `第${data.row?.level || 1}级`)
   },
   {
     label: "排序",

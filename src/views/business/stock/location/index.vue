@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -13,18 +13,45 @@ import {
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "StockLocation"
 });
 
-const dataList = ref<Zone[]>([]);
-const loading = ref(false);
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData: getData,
+  onCurrentChange
+} = useCrud<
+  Zone,
+  CommonResult<{ list: Zone[]; count: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getRepoZoneListApi(page) as Promise<
+      CommonResult<{ list: Zone[]; count: number }>
+    >,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? 0
+    };
+  },
+  immediate: true
 });
 
 const columns = [
@@ -46,25 +73,6 @@ const columns = [
     slot: "operation"
   }
 ];
-
-const getData = async () => {
-  loading.value = true;
-  const { data, code, msg } = await getRepoZoneListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else {
-    message(msg, { type: "error" });
-  }
-  loading.value = false;
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  getData();
-};
 
 const handleDelete = async (row: Zone) => {
   await deleteRepoZoneApi(String(row.id));
@@ -119,10 +127,6 @@ function openDialog(title = "新增", row?: unknown) {
     }
   });
 }
-
-onMounted(() => {
-  getData();
-});
 </script>
 
 <template>
@@ -146,8 +150,9 @@ onMounted(() => {
             :columns="columns"
             border
             :data="dataList"
+            :loading="loading"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <DeleteButton @confirm="handleDelete(row)" />

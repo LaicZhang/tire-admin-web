@@ -1,12 +1,5 @@
 import { ElTag } from "element-plus";
-
-interface TransactionRow {
-  createdAt: string;
-  type: string;
-  quantity: number;
-  sourceType: string;
-  sourceId: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -57,9 +50,9 @@ export const transactionColumns: TableColumnList = [
     label: "类型",
     prop: "type",
     width: 80,
-    cellRenderer: ({ row }: { row: TransactionRow }) => (
-      <ElTag type={row.type === "IN" ? "success" : "danger"}>
-        {row.type === "IN" ? "入库" : "出库"}
+    cellRenderer: (data: TableColumnRenderer) => (
+      <ElTag type={data.row?.type === "IN" ? "success" : "danger"}>
+        {data.row?.type === "IN" ? "入库" : "出库"}
       </ElTag>
     )
   },

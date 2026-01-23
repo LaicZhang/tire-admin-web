@@ -1,10 +1,4 @@
-interface RecycleRow {
-  name: string;
-  typeName: string;
-  deleteTime: string;
-  deleteByName: string;
-  daysLeft: number;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -36,14 +30,18 @@ export const columns: TableColumnList = [
     label: "剩余天数",
     prop: "daysLeft",
     minWidth: 100,
-    cellRenderer: ({ row }: { row: RecycleRow }) => (
+    cellRenderer: (data: TableColumnRenderer) => (
       <el-tag
         type={
-          row.daysLeft <= 7 ? "danger" : row.daysLeft <= 30 ? "warning" : "info"
+          (data.row?.daysLeft ?? 0) <= 7
+            ? "danger"
+            : (data.row?.daysLeft ?? 0) <= 30
+              ? "warning"
+              : "info"
         }
         effect="plain"
       >
-        {row.daysLeft} 天
+        {data.row?.daysLeft} 天
       </el-tag>
     )
   },

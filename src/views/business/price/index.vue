@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -15,23 +14,57 @@ import {
 import { message } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import Form from "./form.vue"; // We will create this next
+import Form from "./form.vue";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "PriceList"
 });
 
-const dataList = ref<unknown[]>([]);
-const loading = ref(false);
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
+interface PriceItem {
+  uid: string;
+  name: string;
+  type: string;
+  desc: string;
+}
 
 const form = ref({
-  name: undefined
+  name: undefined as string | undefined
+});
+
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData: getData,
+  onCurrentChange
+} = useCrud<
+  PriceItem,
+  CommonResult<{ list: PriceItem[]; count: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getPriceListListApi(page, form.value) as Promise<
+      CommonResult<{ list: PriceItem[]; count: number }>
+    >,
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? 0
+    };
+  },
+  immediate: true
 });
 
 const columns = [
@@ -58,33 +91,18 @@ const columns = [
   }
 ];
 
-const getData = async () => {
-  loading.value = true;
-  const { data, code, msg } = await getPriceListListApi(
-    pagination.value.currentPage,
-    form.value
-  );
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else {
-    message(msg, { type: "error" });
-  }
-  loading.value = false;
-};
-
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
   getData();
 };
 
-const handleDelete = async (row: unknown) => {
+const handleDelete = async (row: PriceItem) => {
   await deletePriceListApi(row.uid);
   message("删除成功", { type: "success" });
   getData();
 };
 
-function openDialog(title = "新增", row?: unknown) {
+function openDialog(title = "新增", row?: PriceItem) {
   addDialog({
     title: `${title}价目表`,
     props: {
@@ -116,7 +134,6 @@ function openDialog(title = "新增", row?: unknown) {
         desc: string;
         type: string;
       };
-      // Verification logic here if needed
       const promise =
         title === "新增"
           ? createPriceListApi(
@@ -135,10 +152,6 @@ function openDialog(title = "新增", row?: unknown) {
     }
   });
 }
-
-onMounted(() => {
-  getData();
-});
 </script>
 
 <template>
@@ -156,7 +169,7 @@ onMounted(() => {
             type="primary"
             :icon="useRenderIcon('ri:search-line')"
             :loading="loading"
-            @click="getData"
+            @click="handleSearch"
           >
             搜索
           </el-button>
@@ -183,8 +196,9 @@ onMounted(() => {
             :columns="columns"
             border
             :data="dataList"
+            :loading="loading"
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button

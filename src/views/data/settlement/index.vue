@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h, watch } from "vue";
 import type { SettlementItem } from "./types";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
@@ -42,41 +43,6 @@ const { loading, dataList, pagination, fetchData, onCurrentChange, onSizeChange 
     },
     params: form
   });
-
-const columns: TableColumnList = [
-  {
-    label: "编码",
-    prop: "code",
-    minWidth: 120
-  },
-  {
-    label: "名称",
-    prop: "name",
-    minWidth: 150
-  },
-  {
-    label: "默认",
-    prop: "isDefault",
-    minWidth: 80,
-    cellRenderer: ({ row }) => h("span", row.isDefault ? "是" : "否")
-  },
-  {
-    label: "排序",
-    prop: "sort",
-    minWidth: 80
-  },
-  {
-    label: "备注",
-    prop: "remark",
-    minWidth: 150
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 150
-  }
-];
 
 const resetForm = () => {
   searchFormRef.value?.resetFields();

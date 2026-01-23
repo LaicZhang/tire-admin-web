@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, h } from "vue";
+import { ref, h } from "vue";
+import { columns, statusMap } from "./columns";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -12,6 +13,9 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import SerialNumberAddForm from "./SerialNumberAddForm.vue";
 import SerialNumberLogsForm from "./SerialNumberLogsForm.vue";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "SerialNumberList"
@@ -22,89 +26,54 @@ const form = ref({
   status: ""
 });
 
-const dataList = ref<SerialNumber[]>([]);
-const loading = ref(true);
-const pagination = ref({
-  total: 0,
-  pageSize: 20,
-  currentPage: 1,
-  background: true
-});
-
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const addFormRef = ref();
 
 // Mock 商品和仓库数据（实际接口获取）
 const tireOptions = ref<Array<{ uid: string; name: string }>>([]);
 const repoOptions = ref<Array<{ uid: string; name: string }>>([]);
 
-const columns: TableColumnList = [
-  {
-    label: "序列号",
-    prop: "serialNo",
-    minWidth: 180
-  },
-  {
-    label: "商品",
-    prop: "tire",
-    minWidth: 150,
-    formatter: ({ tire }) => tire?.name || "-"
-  },
-  {
-    label: "仓库",
-    prop: "repo",
-    minWidth: 120,
-    formatter: ({ repo }) => repo?.name || "-"
-  },
-  {
-    label: "状态",
-    prop: "status",
-    minWidth: 100,
-    slot: "status"
-  },
-  {
-    label: "批次号",
-    prop: "batchNo",
-    minWidth: 120
-  },
-  {
-    label: "创建时间",
-    prop: "createdAt",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    width: 150,
-    slot: "operation"
-  }
-];
-
-const statusMap: Record<string, { label: string; type: string }> = {
-  IN_STOCK: { label: "在库", type: "success" },
-  SOLD: { label: "已售", type: "info" },
-  RETURNED: { label: "已退", type: "warning" },
-  SCRAPPED: { label: "已报废", type: "danger" }
-};
-
-async function onSearch() {
-  loading.value = true;
-  try {
-    const { data } = await getSerialNumberList({
-      index: pagination.value.currentPage,
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  SerialNumber,
+  CommonResult<{ list: SerialNumber[]; count: number }>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getSerialNumberList({
+      index: page,
       keyword: form.value.keyword || undefined,
       status: form.value.status || undefined
-    });
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "获取序列号列表失败";
-    message(msg, { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-}
+    }) as Promise<CommonResult<{ list: SerialNumber[]; count: number }>>,
+  pagination: {
+    total: 0,
+    pageSize: 20,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? 0
+    };
+  },
+  immediate: true
+});
 
-const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
+};
 
 function onReset() {
   searchFormRef.value?.resetFields();
@@ -133,7 +102,7 @@ function handleAdd(type: "single" | "batch") {
       const success = await formInstance.handleSubmit();
       if (success) {
         done();
-        onSearch();
+        fetchData();
       }
     }
   });
@@ -156,8 +125,6 @@ function handleViewLogs(row: SerialNumber) {
     contentRenderer: () => h(SerialNumberLogsForm)
   });
 }
-
-onSearch();
 </script>
 
 <template>

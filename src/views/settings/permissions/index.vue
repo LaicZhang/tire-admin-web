@@ -6,7 +6,7 @@ import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
 import Setting from "~icons/ep/setting";
 import { PureTableBar } from "@/components/RePureTableBar";
-import StatusTag from "@/components/StatusTag/index.vue";
+import { userColumns } from "./columns";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
@@ -79,48 +79,6 @@ const permissionModules = ref<PermissionModule[]>([
     ]
   }
 ]);
-
-const userColumns: TableColumnList = [
-  {
-    label: "用户名",
-    prop: "username",
-    minWidth: 120
-  },
-  {
-    label: "手机号",
-    prop: "phone",
-    minWidth: 120
-  },
-  {
-    label: "角色",
-    prop: "roleName",
-    minWidth: 100
-  },
-  {
-    label: "状态",
-    prop: "status",
-    minWidth: 80,
-    cellRenderer: ({ row }) => (
-      <StatusTag
-        status={row.status}
-        statusMap={enableStatusMap}
-        size="default"
-        effect="plain"
-      />
-    )
-  },
-  {
-    label: "最后登录",
-    prop: "lastLoginTime",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    width: 200,
-    fixed: "right",
-    slot: "operation"
-  }
-];
 
 const toList = <T,>(payload: unknown): T[] => {
   if (Array.isArray(payload)) return payload as T[];

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, h } from "vue";
 import type { MultiUnitItem, UnitOption } from "./types";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
@@ -47,48 +48,6 @@ const { loading, dataList, pagination, fetchData } = useCrud<
   }),
   immediate: false // 等待 unitOptions 加载完成后再加载数据
 });
-
-const columns: TableColumnList = [
-  {
-    label: "单位组名称",
-    prop: "name",
-    minWidth: 150
-  },
-  {
-    label: "基本单位",
-    prop: "baseUnitName",
-    minWidth: 100
-  },
-  {
-    label: "换算关系",
-    prop: "conversions",
-    minWidth: 250,
-    cellRenderer: ({ row }) => {
-      if (!row.conversions?.length) return h("span", "-");
-      const texts = row.conversions.map(
-        (c: { unitName: string; ratio: number }) =>
-          `1${c.unitName}=${c.ratio}${row.baseUnitName}`
-      );
-      return h("span", texts.join("; "));
-    }
-  },
-  {
-    label: "排序",
-    prop: "sort",
-    minWidth: 80
-  },
-  {
-    label: "备注",
-    prop: "remark",
-    minWidth: 150
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 150
-  }
-];
 
 const loadUnitOptions = async () => {
   try {

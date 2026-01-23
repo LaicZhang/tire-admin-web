@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, h, watch } from "vue";
 import type { AuxiliaryItem, AuxiliaryType, TabConfig } from "./types";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
@@ -73,40 +74,6 @@ const {
   },
   immediate: true
 });
-
-const columns: TableColumnList = [
-  {
-    type: "selection",
-    width: 55,
-    align: "center"
-  },
-  {
-    label: "编码",
-    prop: "code",
-    minWidth: 120
-  },
-  {
-    label: "名称",
-    prop: "name",
-    minWidth: 150
-  },
-  {
-    label: "排序",
-    prop: "sort",
-    minWidth: 80
-  },
-  {
-    label: "备注",
-    prop: "remark",
-    minWidth: 150
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 150
-  }
-];
 
 const getTabLabel = (type: AuxiliaryType): string => {
   const tab = tabs.find(t => t.name === type);

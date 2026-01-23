@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useRouter } from "vue-router";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -21,22 +21,15 @@ import {
   DIRECTION_OPTIONS
 } from "./types";
 import { columns, getDocumentTypeInfo } from "./columns";
+import { useCrud } from "@/composables";
 
 defineOptions({
   name: "FundDocuments"
 });
 
 const router = useRouter();
-const loading = ref(true);
-const dataList = ref<FundDocument[]>([]);
 const selectedRows = ref<FundDocument[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
-const pagination = reactive({
-  total: 0,
-  pageSize: 20,
-  currentPage: 1,
-  background: true
-});
 
 const queryForm = reactive<FundDocumentQueryParams>({
   documentType: undefined,
@@ -65,43 +58,59 @@ const statistics = reactive({
   netAmount: 0
 });
 
-async function onSearch() {
-  loading.value = true;
-  try {
-    const params: Record<string, unknown> = {
-      ...queryForm,
-      index: pagination.currentPage
-    };
-    Object.keys(params).forEach(key => {
-      if (params[key] === "" || params[key] === undefined) {
-        delete params[key];
-      }
-    });
+const buildParams = () => {
+  const params: Record<string, unknown> = { ...queryForm };
+  Object.keys(params).forEach(key => {
+    if (params[key] === "" || params[key] === undefined) {
+      delete params[key];
+    }
+  });
+  return params;
+};
 
-    // 获取所有类型的资金单据
-    const { data } = await http.get<
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData: onSearch,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  FundDocument,
+  CommonResult<PaginatedResponseDto<FundDocument>>,
+  { page: number; pageSize: number }
+>({
+  api: async ({ page }) => {
+    const params = buildParams();
+    const res = await http.get<
       never,
       CommonResult<PaginatedResponseDto<FundDocument>>
-    >(`/fund/documents/${pagination.currentPage}`, { params });
+    >(`/fund/documents/${page}`, { params });
+    return res;
+  },
+  pagination: {
+    total: 0,
+    pageSize: 20,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? res.data?.count ?? 0
+    };
+  },
+  immediate: true
+});
 
-    dataList.value = data.list || [];
-    pagination.total = data.total ?? data.count ?? 0;
-
-    // 计算统计数据
-    calculateStatistics();
-  } catch (e) {
-    console.error("查询失败", e);
-    dataList.value = [];
-    pagination.total = 0;
-  } finally {
-    loading.value = false;
-  }
-}
-
-function calculateStatistics() {
+// 当数据列表变化时，重新计算统计
+watch(dataList, newList => {
   let income = 0;
   let expense = 0;
-  dataList.value.forEach(doc => {
+  newList.forEach(doc => {
     if (doc.direction === "IN") {
       income += doc.amount || 0;
     } else if (doc.direction === "OUT") {
@@ -111,7 +120,7 @@ function calculateStatistics() {
   statistics.totalIncome = income;
   statistics.totalExpense = expense;
   statistics.netAmount = income - expense;
-}
+});
 
 function resetForm(formEl?: { resetFields: () => void }) {
   if (!formEl) return;
@@ -125,6 +134,12 @@ function resetForm(formEl?: { resetFields: () => void }) {
     endDate: "",
     billNo: ""
   });
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  onSearch();
+}
+
+function handleSearch() {
+  pagination.value = { ...pagination.value, currentPage: 1 };
   onSearch();
 }
 
@@ -202,10 +217,6 @@ function handleImport() {
 function handleSelectionChange(rows: FundDocument[]) {
   selectedRows.value = rows;
 }
-
-onMounted(() => {
-  onSearch();
-});
 </script>
 
 <template>
@@ -359,18 +370,8 @@ onMounted(() => {
             color: 'var(--el-text-color-primary)'
           }"
           @selection-change="handleSelectionChange"
-          @page-size-change="
-            val => {
-              pagination.pageSize = val;
-              onSearch();
-            }
-          "
-          @page-current-change="
-            val => {
-              pagination.currentPage = val;
-              onSearch();
-            }
-          "
+          @page-size-change="onSizeChange"
+          @page-current-change="onCurrentChange"
         >
           <template #documentType="{ row }">
             <el-tag

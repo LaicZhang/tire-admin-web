@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, h } from "vue";
+import { ref, reactive, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { columns } from "./columns";
 import {
   getWorkflowListApi,
   deleteWorkflowApi,
@@ -9,74 +10,56 @@ import {
 } from "@/api/system/workflow";
 import { Plus, Search, Refresh, Delete, Edit } from "@element-plus/icons-vue";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import WorkflowForm from "./WorkflowForm.vue";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "WorkflowIndex"
 });
 
-const loading = ref(false);
-const tableData = ref<WorkflowVO[]>([]);
 const formRef = ref();
 
-const queryForm = reactive<WorkflowQuery>({
+const queryForm = reactive<Pick<WorkflowQuery, "name" | "status">>({
   name: "",
-  status: undefined,
-  page: 1,
-  pageSize: 10
+  status: undefined
 });
 
-const columns: TableColumnList = [
-  {
-    label: "序号",
-    type: "index",
-    width: 60,
-    align: "center"
+const {
+  loading,
+  dataList: tableData,
+  pagination,
+  fetchData: handleQuery,
+  onCurrentChange: onCurrentPageChange,
+  onSizeChange: onPageSizeChange
+} = useCrud<
+  WorkflowVO,
+  CommonResult<PaginatedResponseDto<WorkflowVO>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page, pageSize }) =>
+    getWorkflowListApi({ ...queryForm, page, pageSize }),
+  pagination: {
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    pageSizes: [10, 20, 50, 100],
+    background: true,
+    layout: "total, sizes, prev, pager, next, jumper"
   },
-  {
-    label: "流程名称",
-    prop: "name",
-    minWidth: 150
+  transform: res => {
+    if (res.code !== 200) {
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? res.data?.count ?? 0
+    };
   },
-  {
-    label: "描述",
-    prop: "description",
-    minWidth: 200,
-    showOverflowTooltip: true
-  },
-  {
-    label: "状态",
-    prop: "status",
-    width: 100,
-    align: "center",
-    slot: "status"
-  },
-  {
-    label: "创建时间",
-    prop: "createTime",
-    width: 180,
-    align: "center"
-  },
-  {
-    label: "操作",
-    width: 180,
-    fixed: "right",
-    align: "center",
-    slot: "operation"
-  }
-];
-
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  pageSizes: [10, 20, 50, 100],
-  background: true,
-  layout: "total, sizes, prev, pager, next, jumper"
+  immediate: true
 });
 
 const workflowStatusMap = {
@@ -84,37 +67,17 @@ const workflowStatusMap = {
   0: { label: "禁用", type: "info" }
 } as const;
 
-// Fetch Data
-const handleQuery = async () => {
-  loading.value = true;
-  try {
-    const { data } = await getWorkflowListApi(queryForm);
-    tableData.value = data.list;
-    pagination.total = data.total ?? data.count ?? 0;
-    pagination.currentPage = queryForm.page ?? 1;
-    pagination.pageSize = queryForm.pageSize ?? 10;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
-};
-
-const onPageSizeChange = (val: number) => {
-  queryForm.pageSize = val;
-  handleQuery();
-};
-
-const onCurrentPageChange = (val: number) => {
-  queryForm.page = val;
-  handleQuery();
-};
-
 // Reset Query
 const resetQuery = () => {
   queryForm.name = "";
   queryForm.status = undefined;
-  queryForm.page = 1;
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  handleQuery();
+};
+
+// Search
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
   handleQuery();
 };
 
@@ -182,14 +145,10 @@ const handleDelete = async (row: WorkflowVO) => {
     await deleteWorkflowApi(row.id);
     ElMessage.success("删除成功");
     handleQuery();
-  } catch (e) {
+  } catch {
     // cancelled
   }
 };
-
-onMounted(() => {
-  handleQuery();
-});
 </script>
 
 <template>
@@ -201,7 +160,7 @@ onMounted(() => {
             v-model="queryForm.name"
             placeholder="请输入流程名称"
             clearable
-            @keyup.enter="handleQuery"
+            @keyup.enter="onSearch"
           />
         </el-form-item>
         <el-form-item label="状态" prop="status">
@@ -216,7 +175,7 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleQuery"
+          <el-button type="primary" :icon="Search" @click="onSearch"
             >搜索</el-button
           >
           <el-button :icon="Refresh" @click="resetQuery">重置</el-button>

@@ -1,12 +1,5 @@
 import { h } from "vue";
-
-interface SingleUnitRow {
-  name: string;
-  symbol: string;
-  isDefault: boolean;
-  sort: number;
-  remark: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -23,8 +16,8 @@ export const columns: TableColumnList = [
     label: "默认",
     prop: "isDefault",
     minWidth: 80,
-    cellRenderer: ({ row }: { row: SingleUnitRow }) =>
-      h("span", row.isDefault ? "是" : "否")
+    cellRenderer: (data: TableColumnRenderer) =>
+      h("span", data.row?.isDefault ? "是" : "否")
   },
   {
     label: "排序",

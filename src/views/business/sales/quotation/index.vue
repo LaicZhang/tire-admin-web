@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h } from "vue";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
@@ -29,43 +30,6 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
-
-const columns: TableColumnList = [
-  {
-    label: "报价单号",
-    prop: "quotationNo"
-  },
-  {
-    label: "客户",
-    prop: "customerName"
-  },
-  {
-    label: "总金额",
-    prop: "totalAmount",
-    formatter: row => `¥${fenToYuan(row.totalAmount)}`
-  },
-  {
-    label: "状态",
-    prop: "status",
-    cellRenderer: ({ row }) => {
-      const map: Record<string, string> = {
-        DRAFT: "草稿",
-        SENT: "已发送",
-        CONFIRMED: "已确认"
-      };
-      return map[row.status] || row.status;
-    }
-  },
-  {
-    label: "备注",
-    prop: "desc"
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation"
-  }
-];
 
 const getData = async () => {
   loading.value = true;

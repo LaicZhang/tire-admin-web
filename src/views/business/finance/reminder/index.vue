@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { columns } from "./columns";
 import { getCollectionReminderListApi } from "@/api/finance";
 import type { CollectionReminder } from "@/api/finance";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -24,30 +25,6 @@ const pagination = reactive({
 const form = reactive({
   status: ""
 });
-
-const columns: TableColumnList = [
-  {
-    label: "客户",
-    prop: "customerUid" // Should ideally be name
-  },
-  {
-    label: "金额",
-    prop: "amount"
-  },
-  {
-    label: "到期日",
-    prop: "dueDate"
-  },
-  {
-    label: "内容",
-    prop: "content"
-  },
-  {
-    label: "状态",
-    prop: "status",
-    formatter: ({ status }) => (status === "pending" ? "待处理" : "已处理")
-  }
-];
 
 async function onSearch() {
   loading.value = true;

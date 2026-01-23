@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h, reactive } from "vue";
+import { columns, AuditOrder } from "./columns";
 import { getPendingAuditOrdersApi } from "@/api/business/order";
 import { message } from "@/utils/message";
 import { useRouter } from "vue-router";
@@ -25,16 +26,6 @@ const pagination = reactive({
   currentPage: 1,
   background: true
 });
-interface AuditOrder {
-  orderNo: string;
-  customerName?: string;
-  providerName?: string;
-  totalAmount: number;
-  createdAt: string;
-  creatorName: string;
-  auditStatus: string;
-  uid: string;
-}
 
 const tableData = ref<AuditOrder[]>([]);
 
@@ -43,53 +34,6 @@ const tabOptions = [
   { label: "采购订单", value: "purchase-order" },
   { label: "理赔单", value: "claim-order" },
   { label: "退货单", value: "return-order" }
-];
-
-const columns: TableColumnList = [
-  {
-    label: "订单号",
-    prop: "orderNo",
-    minWidth: 150
-  },
-  {
-    label: "客户/供应商",
-    minWidth: 120,
-    cellRenderer: ({ row }) =>
-      (row as AuditOrder).customerName ||
-      (row as AuditOrder).providerName ||
-      "-"
-  },
-  {
-    label: "金额",
-    minWidth: 100,
-    cellRenderer: ({ row }) =>
-      `¥${(((row as AuditOrder).totalAmount || 0) / 100).toFixed(2)}`
-  },
-  {
-    label: "创建时间",
-    minWidth: 160,
-    cellRenderer: ({ row }) => formatDate((row as AuditOrder).createdAt)
-  },
-  {
-    label: "创建人",
-    prop: "creatorName",
-    minWidth: 100
-  },
-  {
-    label: "状态",
-    minWidth: 100,
-    cellRenderer: ({ row }) =>
-      h(StatusTag, {
-        status: (row as AuditOrder).auditStatus,
-        statusMap: DOCUMENT_STATUS_MAP
-      })
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    width: 120,
-    slot: "operation"
-  }
 ];
 
 async function loadData() {
@@ -144,8 +88,6 @@ function handlePageCurrentChange(page: number) {
 function viewDetail(row: AuditOrder) {
   router.push(`/business/order/detail/${row.uid}`);
 }
-
-// Status mapping is now handled by DOCUMENT_STATUS_MAP from StatusTag
 
 function formatDate(date: string) {
   if (!date) return "-";

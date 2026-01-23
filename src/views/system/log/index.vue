@@ -4,6 +4,7 @@ import {
   getOperationLogListApi,
   type OperationLogItem
 } from "@/api/system/log";
+import { columns } from "./columns";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -31,56 +32,6 @@ const form = reactive({
   status: undefined as boolean | undefined,
   dateRange: [] as string[]
 });
-
-const columns: TableColumnList = [
-  {
-    label: "模块",
-    prop: "module",
-    minWidth: 100
-  },
-  {
-    label: "方法",
-    prop: "method",
-    minWidth: 120
-  },
-  {
-    label: "操作人",
-    prop: "operator",
-    minWidth: 100
-  },
-  {
-    label: "IP",
-    prop: "ip",
-    minWidth: 120
-  },
-  {
-    label: "耗时(ms)",
-    prop: "duration",
-    minWidth: 80
-  },
-  {
-    label: "状态",
-    prop: "success",
-    minWidth: 80,
-    cellRenderer: ({ row }) =>
-      h(
-        "el-tag",
-        { type: row.success ? "success" : "danger" },
-        { default: () => (row.success ? "成功" : "失败") }
-      )
-  },
-  {
-    label: "时间",
-    prop: "createdAt",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 100
-  }
-];
 
 async function onSearch() {
   loading.value = true;

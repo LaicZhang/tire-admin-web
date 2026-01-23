@@ -8,6 +8,7 @@ import Check from "~icons/ep/check";
 import Close from "~icons/ep/close";
 import "plus-pro-components/es/components/search/style/css";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { documentColumns } from "./columns";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
@@ -65,91 +66,6 @@ const targetNameMap: Record<string, string> = {
 };
 
 const normalizeCodeRule = (raw: Record<string, unknown>) => {
-  const targetType = (raw.targetType as CodeRule["targetType"]) || "document";
-  const targetCode = String(raw.targetCode ?? "");
-  const resetType = (raw.resetType as CodeRule["resetType"]) || "daily";
-
-  const uid = String(raw.uid ?? raw.id ?? "");
-  const name = String(raw.name ?? "");
-
-  return {
-    uid,
-    name,
-    targetType,
-    targetTypeName: String(raw.targetTypeName ?? targetTypeNameMap[targetType]),
-    targetCode,
-    targetName: String(
-      raw.targetName ?? targetNameMap[targetCode] ?? targetCode
-    ),
-    prefix: String(raw.prefix ?? ""),
-    dateFormat: String(raw.dateFormat ?? ""),
-    serialDigits: Number(raw.serialDigits ?? 4),
-    serialStart: Number(raw.serialStart ?? 1),
-    resetType,
-    resetTypeName: String(raw.resetTypeName ?? resetTypeNameMap[resetType]),
-    autoFillGap: Boolean(raw.autoFillGap ?? false),
-    allowManualEdit: Boolean(raw.allowManualEdit ?? false),
-    resetOnDateChange: Boolean(raw.resetOnDateChange ?? false),
-    isActive: Boolean(raw.isActive ?? false),
-    isDefault: Boolean(raw.isDefault ?? false),
-    createTime: String(raw.createTime ?? ""),
-    updateTime: String(raw.updateTime ?? "")
-  } satisfies CodeRule;
-};
-
-const documentColumns: TableColumnList = [
-  {
-    type: "selection",
-    width: 55,
-    align: "center"
-  },
-  {
-    label: "规则名称",
-    prop: "name",
-    minWidth: 150
-  },
-  {
-    label: "适用单据",
-    prop: "targetName",
-    minWidth: 120
-  },
-  {
-    label: "编码格式",
-    minWidth: 180,
-    cellRenderer: ({ row }) => (
-      <span class="font-mono text-sm">
-        {`${row.prefix}${row.dateFormat ? `[${row.dateFormat}]` : ""}[${String(row.serialStart).padStart(row.serialDigits, "0")}]`}
-      </span>
-    )
-  },
-  {
-    label: "流水号清零",
-    prop: "resetTypeName",
-    minWidth: 120
-  },
-  {
-    label: "状态",
-    prop: "isActive",
-    minWidth: 80,
-    cellRenderer: ({ row }) => (
-      <StatusTag
-        status={row.isActive}
-        statusMap={{
-          true: { label: "使用中", type: "success" },
-          false: { label: "未启用", type: "info" }
-        }}
-      />
-    )
-  },
-  {
-    label: "操作",
-    width: 250,
-    fixed: "right",
-    slot: "operation"
-  }
-];
-
-const loadData = async () => {
   loading.value = true;
   try {
     const { code, data } = await getCodeRulesApi();

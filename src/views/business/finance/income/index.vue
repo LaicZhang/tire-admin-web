@@ -3,6 +3,7 @@ import { h, ref, reactive, onMounted } from "vue";
 import { http } from "@/utils/http";
 import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
+import { columns } from "./columns";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { PureTable } from "@pureadmin/table";
 import type { PaginationProps } from "@pureadmin/table";
@@ -43,44 +44,6 @@ const pagination = reactive<PaginationProps>({
   currentPage: 1,
   background: true
 });
-
-const columns: TableColumnList = [
-  {
-    label: "收入类型",
-    prop: "type",
-    width: 120,
-    slot: "type"
-  },
-  {
-    label: "金额",
-    prop: "amount",
-    width: 150,
-    slot: "amount"
-  },
-  {
-    label: "收款账户",
-    prop: "payment.name",
-    width: 150,
-    slot: "payment"
-  },
-  {
-    label: "分类",
-    prop: "category",
-    width: 120
-  },
-  {
-    label: "备注",
-    prop: "remark",
-    minWidth: 200,
-    showOverflowTooltip: true
-  },
-  {
-    label: "创建时间",
-    prop: "createdAt",
-    width: 180,
-    slot: "createdAt"
-  }
-];
 
 // 获取列表数据（仅收入）
 const fetchData = async () => {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h, watch } from "vue";
 import type { FlatCategoryItem } from "./types";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
@@ -45,40 +46,6 @@ const { loading, dataList, pagination, fetchData, onCurrentChange, onSizeChange 
     },
     params: form
   });
-
-const columns: TableColumnList = [
-  {
-    type: "selection",
-    width: 55,
-    align: "center"
-  },
-  {
-    label: "编码",
-    prop: "code",
-    minWidth: 120
-  },
-  {
-    label: "名称",
-    prop: "name",
-    minWidth: 150
-  },
-  {
-    label: "排序",
-    prop: "sort",
-    minWidth: 80
-  },
-  {
-    label: "备注",
-    prop: "remark",
-    minWidth: 150
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 150
-  }
-];
 
 const resetForm = () => {
   searchFormRef.value?.resetFields();

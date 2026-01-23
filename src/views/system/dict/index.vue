@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import type { DictItem } from "@/api/system/dict";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
@@ -38,41 +39,6 @@ const form = reactive({
   en: undefined,
   isPublic: undefined
 });
-
-const columns: TableColumnList = [
-  {
-    label: "字典类型",
-    prop: "name",
-    minWidth: 120
-  },
-  {
-    label: "键值",
-    prop: "key",
-    minWidth: 80
-  },
-  {
-    label: "中文标签",
-    prop: "cn",
-    minWidth: 120
-  },
-  {
-    label: "英文标签",
-    prop: "en",
-    minWidth: 120
-  },
-  {
-    label: "公开",
-    prop: "isPublic",
-    minWidth: 80,
-    cellRenderer: ({ row }) => h("span", row.isPublic ? "是" : "否")
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 150
-  }
-];
 
 const getData = async () => {
   loading.value = true;

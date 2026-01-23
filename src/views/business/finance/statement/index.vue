@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { getStatementList, type Statement } from "@/api/business/statement";
@@ -24,53 +25,6 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
-
-const columns: TableColumnList = [
-  {
-    label: "对账单号",
-    prop: "statementNo",
-    minWidth: 160
-  },
-  {
-    label: "类型",
-    prop: "type",
-    minWidth: 100,
-    formatter: ({ type }) => (type === "CUSTOMER" ? "客户对账" : "供应商对账")
-  },
-  {
-    label: "往来单位",
-    prop: "targetName",
-    minWidth: 160
-  },
-  {
-    label: "对账周期",
-    prop: "period",
-    minWidth: 200,
-    formatter: row => `${row.startTime} ~ ${row.endTime}`
-  },
-  {
-    label: "应收/应付金额",
-    prop: "amount",
-    minWidth: 120
-  },
-  {
-    label: "状态",
-    prop: "status",
-    minWidth: 100,
-    slot: "status"
-  },
-  {
-    label: "创建时间",
-    prop: "createTime",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    width: 140,
-    slot: "operation"
-  }
-];
 
 async function onSearch() {
   loading.value = true;

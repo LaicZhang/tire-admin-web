@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { h, ref, reactive, onMounted } from "vue";
+import { h, ref, reactive } from "vue";
+import { columns } from "./columns";
 import {
   getDefectCategoryListApi,
   deleteDefectCategoryApi,
@@ -14,18 +15,11 @@ import DeleteButton from "@/components/DeleteButton/index.vue";
 import { message } from "@/utils/message";
 import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import DefectCategoryForm from "./DefectCategoryForm.vue";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "QualityDefect"
-});
-
-const loading = ref(true);
-const dataList = ref<DefectCategory[]>([]);
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
 });
 
 const form = reactive({
@@ -34,39 +28,30 @@ const form = reactive({
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
-const columns: TableColumnList = [
-  {
-    label: "名称",
-    prop: "name"
+const { loading, dataList, fetchData } = useCrud<
+  DefectCategory,
+  CommonResult<DefectCategory[]>,
+  { page: number; pageSize: number }
+>({
+  api: () =>
+    getDefectCategoryListApi({ name: form.name }) as Promise<
+      CommonResult<DefectCategory[]>
+    >,
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    // API returns array directly, not { list, total }
+    const list = Array.isArray(res.data) ? res.data : [];
+    return { list, total: list.length };
   },
-  {
-    label: "描述",
-    prop: "description"
-  },
-  {
-    label: "解决方案",
-    prop: "solution"
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation"
-  }
-];
+  immediate: true
+});
 
-async function onSearch() {
-  loading.value = true;
-  try {
-    const { data } = await getDefectCategoryListApi({
-      name: form.name
-    });
-    dataList.value = data;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
-}
+const onSearch = () => {
+  fetchData();
+};
 
 const onReset = () => {
   searchFormRef.value?.resetFields();
@@ -86,7 +71,7 @@ function handleAdd() {
         mode: "add",
         onSuccess: () => {
           closeAllDialog();
-          onSearch();
+          fetchData();
         },
         onClose: () => closeAllDialog()
       })
@@ -111,7 +96,7 @@ function handleEdit(row: DefectCategory) {
         mode: "edit",
         onSuccess: () => {
           closeAllDialog();
-          onSearch();
+          fetchData();
         },
         onClose: () => closeAllDialog()
       })
@@ -122,15 +107,12 @@ async function handleDelete(row: DefectCategory) {
   try {
     await deleteDefectCategoryApi(row.id);
     message("删除成功", { type: "success" });
-    onSearch();
-  } catch (e) {
-    console.error(e);
+    fetchData();
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "删除失败";
+    message(msg, { type: "error" });
   }
 }
-
-onMounted(() => {
-  onSearch();
-});
 </script>
 
 <template>

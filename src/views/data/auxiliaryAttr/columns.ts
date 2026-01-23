@@ -1,16 +1,5 @@
 import { h } from "vue";
-
-interface AttrValue {
-  uid: string;
-  name: string;
-}
-
-interface AttrRow {
-  name: string;
-  values: AttrValue[];
-  sort: number;
-  remark: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -22,12 +11,12 @@ export const columns: TableColumnList = [
     label: "属性值",
     prop: "values",
     minWidth: 300,
-    cellRenderer: ({ row }: { row: AttrRow }) => {
-      if (!row.values?.length) return h("span", "-");
+    cellRenderer: (data: TableColumnRenderer) => {
+      if (!data.row?.values?.length) return h("span", "-");
       return h(
         "div",
         { class: "flex flex-wrap gap-1" },
-        row.values.map((v: { uid: string; name: string }) =>
+        data.row.values.map((v: { uid: string; name: string }) =>
           h("el-tag", { key: v.uid, size: "small" }, v.name)
         )
       );

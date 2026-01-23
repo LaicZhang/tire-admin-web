@@ -1,17 +1,5 @@
 import { h } from "vue";
-
-interface Conversion {
-  unitName: string;
-  ratio: number;
-}
-
-interface MultiUnitRow {
-  name: string;
-  baseUnitName: string;
-  conversions: Conversion[];
-  sort: number;
-  remark: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const columns: TableColumnList = [
   {
@@ -28,11 +16,11 @@ export const columns: TableColumnList = [
     label: "换算关系",
     prop: "conversions",
     minWidth: 250,
-    cellRenderer: ({ row }: { row: MultiUnitRow }) => {
-      if (!row.conversions?.length) return h("span", "-");
-      const texts = row.conversions.map(
+    cellRenderer: (data: TableColumnRenderer) => {
+      if (!data.row?.conversions?.length) return h("span", "-");
+      const texts = data.row.conversions.map(
         (c: { unitName: string; ratio: number }) =>
-          `1${c.unitName}=${c.ratio}${row.baseUnitName}`
+          `1${c.unitName}=${c.ratio}${data.row?.baseUnitName}`
       );
       return h("span", texts.join("; "));
     }

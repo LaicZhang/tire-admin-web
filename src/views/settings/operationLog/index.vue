@@ -1,25 +1,71 @@
 <script setup lang="tsx">
-import { onMounted, ref, reactive } from "vue";
+import { ref, computed } from "vue";
+import { columns } from "./columns";
 import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { PureTableBar } from "@/components/RePureTableBar";
-import type { PaginationProps } from "@pureadmin/table";
 import { getOperationLogsApi } from "@/api/setting";
 import { message } from "@/utils";
 import type { OperationLog } from "./types";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "OperationLog"
 });
 
-const loading = ref(false);
-const dataList = ref<OperationLog[]>([]);
-
 const state = ref({
   username: "",
   operationType: "",
   moduleName: "",
-  dateRange: []
+  dateRange: [] as string[]
+});
+
+const buildParams = () => {
+  const params: Record<string, unknown> = {
+    username: state.value.username || undefined,
+    operationType: state.value.operationType || undefined,
+    moduleName: state.value.moduleName || undefined
+  };
+  if (state.value.dateRange?.length === 2) {
+    params.startTime = state.value.dateRange[0];
+    params.endTime = state.value.dateRange[1];
+  }
+  return params;
+};
+
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  OperationLog,
+  CommonResult<PaginatedResponseDto<OperationLog>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page, pageSize }) =>
+    getOperationLogsApi({ page, pageSize, ...buildParams() }),
+  pagination: {
+    pageSize: 20,
+    currentPage: 1,
+    pageSizes: [10, 20, 50, 100],
+    background: true,
+    layout: "total, sizes, prev, pager, next, jumper"
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message("加载操作日志失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? res.data?.total ?? 0
+    };
+  },
+  immediate: true
 });
 
 const formColumns: PlusColumn[] = [
@@ -72,126 +118,9 @@ const formColumns: PlusColumn[] = [
   }
 ];
 
-const columns: TableColumnList = [
-  {
-    label: "操作人",
-    prop: "username",
-    minWidth: 100
-  },
-  {
-    label: "操作时间",
-    prop: "createTime",
-    minWidth: 160
-  },
-  {
-    label: "访问页面",
-    prop: "moduleName",
-    minWidth: 120
-  },
-  {
-    label: "操作类型",
-    prop: "operationTypeName",
-    minWidth: 100,
-    cellRenderer: ({ row }) => {
-      const typeMap: Record<string, { type: string; label: string }> = {
-        create: { type: "success", label: "新增" },
-        update: { type: "primary", label: "修改" },
-        delete: { type: "danger", label: "删除" },
-        query: { type: "info", label: "查询" },
-        import: { type: "warning", label: "导入" },
-        export: { type: "warning", label: "导出" },
-        audit: { type: "success", label: "审核" },
-        unaudit: { type: "warning", label: "反审核" },
-        login: { type: "success", label: "登录" },
-        logout: { type: "info", label: "登出" }
-      };
-      const item = typeMap[row.operationType] || {
-        type: "info",
-        label: row.operationType
-      };
-      return (
-        <el-tag type={item.type} effect="plain">
-          {item.label}
-        </el-tag>
-      );
-    }
-  },
-  {
-    label: "操作详情",
-    prop: "detail",
-    minWidth: 250
-  },
-  {
-    label: "IP地址",
-    prop: "ip",
-    minWidth: 130
-  }
-];
-
-const pagination = reactive<PaginationProps>({
-  pageSize: 20,
-  currentPage: 1,
-  pageSizes: [10, 20, 50, 100],
-  total: 0,
-  align: "right",
-  background: true,
-  layout: "total, sizes, prev, pager, next, jumper"
-});
-
-const loadData = async () => {
-  loading.value = true;
-  try {
-    const params: Record<string, unknown> = {
-      page: pagination.currentPage,
-      pageSize: pagination.pageSize,
-      username: state.value.username,
-      operationType: state.value.operationType,
-      moduleName: state.value.moduleName
-    };
-
-    if (
-      Array.isArray(state.value.dateRange) &&
-      state.value.dateRange.length === 2
-    ) {
-      params.startTime = state.value.dateRange[0];
-      params.endTime = state.value.dateRange[1];
-    }
-
-    Object.keys(params).forEach(key => {
-      if (
-        params[key] === "" ||
-        params[key] === undefined ||
-        params[key] === null
-      ) {
-        delete params[key];
-      }
-    });
-
-    const { code, data } = await getOperationLogsApi(params);
-    if (code === 200 && data) {
-      const result = data as {
-        list?: OperationLog[];
-        total?: number;
-        count?: number;
-      };
-      dataList.value = result.list ?? [];
-      pagination.total = result.total ?? result.count ?? 0;
-    } else {
-      dataList.value = [];
-      pagination.total = 0;
-    }
-  } catch {
-    message("加载操作日志失败", { type: "error" });
-    dataList.value = [];
-    pagination.total = 0;
-  } finally {
-    loading.value = false;
-  }
-};
-
 const handleSearch = () => {
-  pagination.currentPage = 1;
-  loadData();
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const handleReset = () => {
@@ -203,20 +132,6 @@ const handleReset = () => {
   };
   handleSearch();
 };
-
-const onSizeChange = (val: number) => {
-  pagination.pageSize = val;
-  loadData();
-};
-
-const onCurrentChange = (val: number) => {
-  pagination.currentPage = val;
-  loadData();
-};
-
-onMounted(() => {
-  loadData();
-});
 </script>
 
 <template>
@@ -233,7 +148,7 @@ onMounted(() => {
     />
 
     <div class="bg-white p-4 rounded-md">
-      <PureTableBar title="操作日志" @refresh="loadData">
+      <PureTableBar title="操作日志" @refresh="fetchData">
         <template #default>
           <pure-table
             border

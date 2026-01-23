@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
+import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -36,42 +37,6 @@ const form = reactive({
   title: "",
   type: undefined as number | undefined
 });
-
-const columns: TableColumnList = [
-  {
-    label: "公告标题",
-    prop: "title",
-    minWidth: 200
-  },
-  {
-    label: "公告类型",
-    prop: "type",
-    minWidth: 100,
-    cellRenderer: ({ row }) => (row.type === 1 ? "通知" : "公告")
-  },
-  {
-    label: "状态",
-    prop: "status",
-    minWidth: 80,
-    cellRenderer: ({ row }) =>
-      h(
-        "el-tag",
-        { type: row.status ? "success" : "info" },
-        { default: () => (row.status ? "正常" : "关闭") }
-      )
-  },
-  {
-    label: "创建时间",
-    prop: "createTime",
-    minWidth: 160
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 200
-  }
-];
 
 async function onSearch() {
   loading.value = true;

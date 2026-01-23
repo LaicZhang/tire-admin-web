@@ -1,20 +1,4 @@
-interface ReceivableRow {
-  name: string;
-  orderNumber: string;
-  orderDate: string;
-  dueAmount: string | number;
-  agingDays: number;
-  agingBucket: string;
-}
-
-interface PayableRow {
-  name: string;
-  orderNumber: string;
-  orderDate: string;
-  dueAmount: string | number;
-  agingDays: number;
-  agingBucket: string;
-}
+import type { TableColumnRenderer } from "@pureadmin/table";
 
 export const receivableColumns: TableColumnList = [
   {
@@ -34,14 +18,14 @@ export const receivableColumns: TableColumnList = [
   {
     label: "欠款金额",
     prop: "dueAmount",
-    cellRenderer: ({ row }: { row: ReceivableRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const formatAmount = (val: string | number) => {
         const num = Number(val) / 100;
         return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
       };
       return (
         <span class="font-bold text-red-500">
-          ¥{formatAmount(row.dueAmount)}
+          ¥{formatAmount(data.row?.dueAmount)}
         </span>
       );
     }
@@ -77,14 +61,14 @@ export const payableColumns: TableColumnList = [
   {
     label: "欠款金额",
     prop: "dueAmount",
-    cellRenderer: ({ row }: { row: PayableRow }) => {
+    cellRenderer: (data: TableColumnRenderer) => {
       const formatAmount = (val: string | number) => {
         const num = Number(val) / 100;
         return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
       };
       return (
         <span class="font-bold text-green-500">
-          ¥{formatAmount(row.dueAmount)}
+          ¥{formatAmount(data.row?.dueAmount)}
         </span>
       );
     }
