@@ -49,7 +49,7 @@ const drawerVisible = ref(false);
 
 interface TransactionItem {
   createdAt: string;
-  type: "IN" | "OUT";
+  type: "INBOUND" | "OUTBOUND";
   quantity: number;
   sourceType: string;
   sourceId: string;

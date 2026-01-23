@@ -20,8 +20,8 @@ import {
   getInitialStockListApi,
   upsertInitialStockApi
 } from "@/api/data/initial-stock";
-import { getRepoListApi, getRepoApi } from "@/api/company/repo";
-import { getTireApi } from "@/api/business/tire";
+import { getRepoListApi, getRepoBatchApi } from "@/api/company/repo";
+import { getTireBatchApi } from "@/api/business/tire";
 
 defineOptions({
   name: "InitialStock"
@@ -75,41 +75,28 @@ const getList = async () => {
     ]);
     repoList.value = ((repoRes as unknown)?.data?.list || []).map(
       (r: unknown) => ({
-        uid: r.uid,
-        name: r.name
+        uid: (r as { uid: string }).uid,
+        name: (r as { name: string }).name
       })
     );
 
     const tireIds = Array.from(new Set(rawList.map(i => i.tireId)));
     const repoIds = Array.from(new Set(rawList.map(i => i.repoId)));
 
-    const [tires, repos] = await Promise.all([
-      Promise.all(
-        tireIds.map(async uid => {
-          try {
-            const res = await getTireApi(uid);
-            return res.code === 200 ? (res.data as unknown) : null;
-          } catch {
-            return null;
-          }
-        })
-      ),
-      Promise.all(
-        repoIds.map(async uid => {
-          try {
-            const res = await getRepoApi(uid);
-            return (res as unknown).code === 200 ? (res as unknown).data : null;
-          } catch {
-            return null;
-          }
-        })
-      )
+    // 批量获取 (2次请求代替 N*2 次)
+    const [tiresRes, reposRes] = await Promise.all([
+      getTireBatchApi(tireIds).catch(() => null),
+      getRepoBatchApi(repoIds).catch(() => null)
     ]);
 
     const tireMap = new Map<string, any>();
-    for (const t of tires) if (t?.uid) tireMap.set(t.uid, t);
+    for (const t of (tiresRes as unknown)?.data || []) {
+      if (t?.uid) tireMap.set(t.uid, t);
+    }
     const repoMap = new Map<string, any>();
-    for (const r of repos) if (r?.uid) repoMap.set(r.uid, r);
+    for (const r of (reposRes as unknown)?.data || []) {
+      if (r?.uid) repoMap.set(r.uid, r);
+    }
 
     let rows: InitialStock[] = rawList.map((item, idx) => {
       const tire = tireMap.get(item.tireId);

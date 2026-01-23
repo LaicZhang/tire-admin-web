@@ -17,9 +17,12 @@ import type { CustomerBalance, CustomerBalanceForm } from "./types";
 import type { FormInstance } from "element-plus";
 import {
   createInitialBalanceApi,
-  getInitialBalanceListApi
+  getInitialBalanceBatchApi
 } from "@/api/data/initial-balance";
-import { getCustomerApi, getCustomerListApi } from "@/api/business/customer";
+import {
+  getCustomerListApi,
+  getCustomerBatchApi
+} from "@/api/business/customer";
 
 defineOptions({
   name: "CustomerBalance"
@@ -110,54 +113,75 @@ const getList = async () => {
     }
 
     const customers = data.list || [];
-    const rows = await Promise.all(
-      customers.map(async c => {
-        const customerId = (c as unknown).uid as string;
-        const [details, receivable, advance] = await Promise.all([
-          getCustomerApi(customerId).catch(() => null),
-          getInitialBalanceListApi(1, {
-            customerId,
-            type: CUSTOMER_RECEIVABLE_TYPE
-          }).catch(() => null),
-          getInitialBalanceListApi(1, {
-            customerId,
-            type: CUSTOMER_ADVANCE_TYPE
-          }).catch(() => null)
-        ]);
+    if (!customers.length) {
+      dataList.value = [];
+      pagination.value.total = 0;
+      return;
+    }
 
-        const customer = (details as unknown)?.data ?? c;
-        const receivableRow = (receivable as unknown)?.data?.list?.[0];
-        const advanceRow = (advance as unknown)?.data?.list?.[0];
+    // 批量获取客户详情和期初余额 (2次请求代替 N*3 次)
+    const customerIds = customers.map(c => (c as unknown).uid as string);
+    const [customersRes, balancesRes] = await Promise.all([
+      getCustomerBatchApi(customerIds).catch(() => null),
+      getInitialBalanceBatchApi({
+        customerIds,
+        types: [CUSTOMER_RECEIVABLE_TYPE, CUSTOMER_ADVANCE_TYPE]
+      }).catch(() => null)
+    ]);
 
-        const receivableBalance = toYuan(receivableRow?.amount);
-        const advanceBalance = toYuan(advanceRow?.amount);
-        const balanceDate =
-          (receivableRow?.date || advanceRow?.date || "")
-            ?.toString?.()
-            ?.slice?.(0, 10) || undefined;
+    // 构建映射
+    const customerMap = new Map<string, unknown>();
+    for (const c of (customersRes as unknown)?.data || []) {
+      if (c?.uid) customerMap.set(c.uid, c);
+    }
+    const balanceMap = new Map<
+      string,
+      { receivable?: unknown; advance?: unknown }
+    >();
+    for (const b of (balancesRes as unknown)?.data || []) {
+      if (!b?.customerId) continue;
+      const existing = balanceMap.get(b.customerId) || {};
+      if (b.type === CUSTOMER_RECEIVABLE_TYPE) existing.receivable = b;
+      else if (b.type === CUSTOMER_ADVANCE_TYPE) existing.advance = b;
+      balanceMap.set(b.customerId, existing);
+    }
 
-        const hasAny = receivableBalance !== 0 || advanceBalance !== 0;
-        if (form.value.hasBalance === true && !hasAny) return null;
-        if (form.value.hasBalance === false && hasAny) return null;
+    // 组装数据
+    const rows = customers.map(c => {
+      const customerId = (c as unknown).uid as string;
+      const customer = customerMap.get(customerId) ?? c;
+      const balances = balanceMap.get(customerId) || {};
+      const receivableRow = balances.receivable as unknown;
+      const advanceRow = balances.advance as unknown;
 
-        return {
-          id: (customer as unknown).id ?? (c as unknown).id ?? 0,
-          uid: customerId,
-          customerId,
-          customerName: (customer as unknown).name,
-          customerCode: (customer as unknown).code ?? "-",
-          phone:
-            (customer as unknown)?.info?.phone ??
-            (customer as unknown).phone ??
-            "-",
-          receivableBalance,
-          advanceBalance,
-          balanceDate,
-          remark: receivableRow?.remark || advanceRow?.remark || "",
-          createdAt: (receivableRow?.createdAt || advanceRow?.createdAt) ?? ""
-        } as CustomerBalance;
-      })
-    );
+      const receivableBalance = toYuan(receivableRow?.amount);
+      const advanceBalance = toYuan(advanceRow?.amount);
+      const balanceDate =
+        (receivableRow?.date || advanceRow?.date || "")
+          ?.toString?.()
+          ?.slice?.(0, 10) || undefined;
+
+      const hasAny = receivableBalance !== 0 || advanceBalance !== 0;
+      if (form.value.hasBalance === true && !hasAny) return null;
+      if (form.value.hasBalance === false && hasAny) return null;
+
+      return {
+        id: (customer as unknown).id ?? (c as unknown).id ?? 0,
+        uid: customerId,
+        customerId,
+        customerName: (customer as unknown).name,
+        customerCode: (customer as unknown).code ?? "-",
+        phone:
+          (customer as unknown)?.info?.phone ??
+          (customer as unknown).phone ??
+          "-",
+        receivableBalance,
+        advanceBalance,
+        balanceDate,
+        remark: receivableRow?.remark || advanceRow?.remark || "",
+        createdAt: (receivableRow?.createdAt || advanceRow?.createdAt) ?? ""
+      } as CustomerBalance;
+    });
 
     dataList.value = rows.filter(Boolean) as CustomerBalance[];
     pagination.value.total = data.count || 0;

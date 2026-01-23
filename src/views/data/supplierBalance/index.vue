@@ -17,9 +17,12 @@ import type { SupplierBalance, SupplierBalanceForm } from "./types";
 import type { FormInstance } from "element-plus";
 import {
   createInitialBalanceApi,
-  getInitialBalanceListApi
+  getInitialBalanceBatchApi
 } from "@/api/data/initial-balance";
-import { getProviderApi, getProviderListApi } from "@/api/business/provider";
+import {
+  getProviderListApi,
+  getProviderBatchApi
+} from "@/api/business/provider";
 
 defineOptions({
   name: "SupplierBalance"
@@ -110,51 +113,72 @@ const getList = async () => {
     }
 
     const providers = data.list || [];
-    const rows = await Promise.all(
-      providers.map(async p => {
-        const providerId = (p as unknown).uid as string;
-        const [details, payable, prepaid] = await Promise.all([
-          getProviderApi(providerId).catch(() => null),
-          getInitialBalanceListApi(1, {
-            providerId,
-            type: PROVIDER_PAYABLE_TYPE
-          }).catch(() => null),
-          getInitialBalanceListApi(1, {
-            providerId,
-            type: PROVIDER_PREPAID_TYPE
-          }).catch(() => null)
-        ]);
+    if (!providers.length) {
+      dataList.value = [];
+      pagination.value.total = 0;
+      return;
+    }
 
-        const provider = (details as unknown)?.data ?? p;
-        const payableRow = (payable as unknown)?.data?.list?.[0];
-        const prepaidRow = (prepaid as unknown)?.data?.list?.[0];
+    // 批量获取供应商详情和期初余额 (2次请求代替 N*3 次)
+    const providerIds = providers.map(p => (p as unknown).uid as string);
+    const [providersRes, balancesRes] = await Promise.all([
+      getProviderBatchApi(providerIds).catch(() => null),
+      getInitialBalanceBatchApi({
+        providerIds,
+        types: [PROVIDER_PAYABLE_TYPE, PROVIDER_PREPAID_TYPE]
+      }).catch(() => null)
+    ]);
 
-        const payableBalance = toYuan(payableRow?.amount);
-        const prepaidBalance = toYuan(prepaidRow?.amount);
-        const balanceDate =
-          (payableRow?.date || prepaidRow?.date || "")
-            ?.toString?.()
-            ?.slice?.(0, 10) || undefined;
+    // 构建映射
+    const providerMap = new Map<string, unknown>();
+    for (const p of (providersRes as unknown)?.data || []) {
+      if (p?.uid) providerMap.set(p.uid, p);
+    }
+    const balanceMap = new Map<
+      string,
+      { payable?: unknown; prepaid?: unknown }
+    >();
+    for (const b of (balancesRes as unknown)?.data || []) {
+      if (!b?.providerId) continue;
+      const existing = balanceMap.get(b.providerId) || {};
+      if (b.type === PROVIDER_PAYABLE_TYPE) existing.payable = b;
+      else if (b.type === PROVIDER_PREPAID_TYPE) existing.prepaid = b;
+      balanceMap.set(b.providerId, existing);
+    }
 
-        const hasAny = payableBalance !== 0 || prepaidBalance !== 0;
-        if (form.value.hasBalance === true && !hasAny) return null;
-        if (form.value.hasBalance === false && hasAny) return null;
+    // 组装数据
+    const rows = providers.map(p => {
+      const providerId = (p as unknown).uid as string;
+      const provider = providerMap.get(providerId) ?? p;
+      const balances = balanceMap.get(providerId) || {};
+      const payableRow = balances.payable as unknown;
+      const prepaidRow = balances.prepaid as unknown;
 
-        return {
-          id: (provider as unknown).id ?? (p as unknown).id ?? 0,
-          uid: providerId,
-          supplierId: providerId,
-          supplierName: (provider as unknown).name,
-          supplierCode: (provider as unknown).code ?? "-",
-          phone: (provider as unknown).phone ?? "-",
-          payableBalance,
-          prepaidBalance,
-          balanceDate,
-          remark: payableRow?.remark || prepaidRow?.remark || "",
-          createdAt: (payableRow?.createdAt || prepaidRow?.createdAt) ?? ""
-        } as SupplierBalance;
-      })
-    );
+      const payableBalance = toYuan(payableRow?.amount);
+      const prepaidBalance = toYuan(prepaidRow?.amount);
+      const balanceDate =
+        (payableRow?.date || prepaidRow?.date || "")
+          ?.toString?.()
+          ?.slice?.(0, 10) || undefined;
+
+      const hasAny = payableBalance !== 0 || prepaidBalance !== 0;
+      if (form.value.hasBalance === true && !hasAny) return null;
+      if (form.value.hasBalance === false && hasAny) return null;
+
+      return {
+        id: (provider as unknown).id ?? (p as unknown).id ?? 0,
+        uid: providerId,
+        supplierId: providerId,
+        supplierName: (provider as unknown).name,
+        supplierCode: (provider as unknown).code ?? "-",
+        phone: (provider as unknown).phone ?? "-",
+        payableBalance,
+        prepaidBalance,
+        balanceDate,
+        remark: payableRow?.remark || prepaidRow?.remark || "",
+        createdAt: (payableRow?.createdAt || prepaidRow?.createdAt) ?? ""
+      } as SupplierBalance;
+    });
 
     dataList.value = rows.filter(Boolean) as SupplierBalance[];
     pagination.value.total = data.count || 0;

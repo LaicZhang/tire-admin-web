@@ -51,8 +51,8 @@ export const transactionColumns: TableColumnList = [
     prop: "type",
     width: 80,
     cellRenderer: (data: TableColumnRenderer) => (
-      <ElTag type={data.row?.type === "IN" ? "success" : "danger"}>
-        {data.row?.type === "IN" ? "入库" : "出库"}
+      <ElTag type={data.row?.type === "INBOUND" ? "success" : "danger"}>
+        {data.row?.type === "INBOUND" ? "入库" : "出库"}
       </ElTag>
     )
   },
