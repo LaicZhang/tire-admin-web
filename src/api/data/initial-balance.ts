@@ -60,3 +60,16 @@ export async function getInitialBalanceListApi(
     CommonResult<PaginatedResponseDto<InitialBalanceRecord>>
   >("get", baseUrlApi(prefix + `initial-balance/${index}`), { params });
 }
+
+/** 批量获取期初余额 */
+export async function getInitialBalanceBatchApi(params: {
+  providerIds?: string[];
+  customerIds?: string[];
+  types?: string[];
+}) {
+  return await http.request<CommonResult<InitialBalanceRecord[]>>(
+    "post",
+    baseUrlApi(prefix + "initial-balance/batch"),
+    { data: params }
+  );
+}

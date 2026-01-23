@@ -381,3 +381,12 @@ export async function getDebtWarningListApi(params?: { type?: string }) {
 export async function getCustomerCountApi() {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + "count"));
 }
+
+/** 批量获取客户 */
+export async function getCustomerBatchApi(uids: string[]) {
+  return await http.request<CommonResult<Customer[]>>(
+    "post",
+    baseUrlApi(prefix + "batch"),
+    { data: { uids } }
+  );
+}

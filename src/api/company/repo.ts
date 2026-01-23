@@ -89,3 +89,12 @@ export async function stopRepoApi(uid: string) {
 export async function setDefaultRepoApi(uid: string) {
   return await updateRepoApi(uid, { isPrimary: true });
 }
+
+/** 批量获取仓库 */
+export async function getRepoBatchApi(uids: string[]) {
+  return await http.request<CommonResult<Repo[]>>(
+    "post",
+    baseUrlApi(prefix + "batch"),
+    { data: { uids } }
+  );
+}

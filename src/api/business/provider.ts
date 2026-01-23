@@ -92,3 +92,12 @@ export async function migrateProviderApi(uid: string, data: { uid: string }) {
     { data }
   );
 }
+
+/** 批量获取供应商 */
+export async function getProviderBatchApi(uids: string[]) {
+  return await http.request<CommonResult<Provider[]>>(
+    "post",
+    baseUrlApi(prefix + "batch"),
+    { data: { uids } }
+  );
+}

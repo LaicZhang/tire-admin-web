@@ -111,3 +111,12 @@ export async function deleteTireCoverApi(tireId: string, coverId: number) {
     baseUrlApi(prefix + `cover/${tireId}/${coverId}`)
   );
 }
+
+/** 批量获取商品 */
+export async function getTireBatchApi(uids: string[]) {
+  return await http.request<CommonResult<Tire[]>>(
+    "post",
+    baseUrlApi(prefix + "batch"),
+    { data: { uids } }
+  );
+}
