@@ -1,4 +1,4 @@
-export const columns = [
+export const columns: TableColumnList = [
   {
     label: "单号",
     prop: "id"

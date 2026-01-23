@@ -1,4 +1,4 @@
-export const columns = [
+export const columns: TableColumnList = [
   {
     label: "文件名",
     minWidth: 200,

@@ -1,4 +1,4 @@
-export const columns = [
+export const columns: TableColumnList = [
   { label: "分组", prop: "group", width: 180 },
   { label: "配置项键名", prop: "key", width: 180 },
   { label: "描述", prop: "desc" },
