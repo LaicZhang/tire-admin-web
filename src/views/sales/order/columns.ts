@@ -1,21 +1,5 @@
-import type { SalesOrder } from "./types";
-
-type TableColumn = {
-  label: string;
-  prop?: string;
-  slot?: string;
-  fixed?: string | boolean;
-  width?: number;
-  minWidth?: number;
-  formatter?: (
-    row: SalesOrder,
-    column: TableColumn,
-    cellValue: unknown
-  ) => string;
-};
-
 /** Sales Order Table Columns */
-export const salesOrderColumns: TableColumn[] = [
+export const salesOrderColumns: TableColumnList = [
   {
     label: "单据编号",
     prop: "number",
