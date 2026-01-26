@@ -6,8 +6,12 @@ import ArrowUp from "~icons/ep/arrow-up";
 import ArrowDown from "~icons/ep/arrow-down";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
-import { getSettingGroupApi, batchUpdateSettingsApi } from "@/api/setting";
-import type { CostParams, AbnormalCostItem } from "./types";
+import {
+  getSettingGroupApi,
+  batchUpdateSettingsApi,
+  type SettingItem
+} from "@/api/setting";
+import type { CostParams } from "./types";
 
 defineOptions({
   name: "CostParams"
@@ -41,17 +45,14 @@ const loadSettings = async () => {
   try {
     const { code, data } = await getSettingGroupApi();
     if (code === 200 && data) {
-      const settings = data as Record<string, unknown>[];
-      const costSettings = settings.filter(
-        (s: Record<string, unknown>) => s.group === "cost"
-      );
-      costSettings.forEach((s: Record<string, unknown>) => {
-        const key = s.key as string;
+      const costSettings = data.filter((s: SettingItem) => s.group === "cost");
+      costSettings.forEach((s: SettingItem) => {
+        const key = s.key;
         if (key === "costMethod" || key === "costCalcType") {
           (formData.value as Record<string, unknown>)[key] = s.value;
         } else if (key === "abnormalCostOrder") {
           try {
-            formData.value.abnormalCostOrder = JSON.parse(s.value as string);
+            formData.value.abnormalCostOrder = JSON.parse(s.value);
           } catch {
             // keep default
           }

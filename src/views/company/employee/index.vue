@@ -12,7 +12,7 @@ import {
   deleteEmployeeApi,
   type Employee
 } from "@/api/company/employee";
-import { localForage, message, SYS } from "@/utils";
+import { localForage, message, SYS, handleApiError } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
@@ -60,9 +60,13 @@ const resetForm = () => {
 };
 
 async function handleDelete(row: Employee) {
-  await deleteEmployeeApi(row.uid);
-  message(`您删除了${row.name}这条数据`, { type: "success" });
-  fetchData();
+  try {
+    await deleteEmployeeApi(row.uid);
+    message(`您删除了${row.name}这条数据`, { type: "success" });
+    fetchData();
+  } catch (e) {
+    handleApiError(e, "删除员工失败");
+  }
 }
 
 const getSysDict = async () => {

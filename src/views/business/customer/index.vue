@@ -148,7 +148,7 @@ onMounted(async () => {
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog()"
+            @click="openDialog('新增', undefined, getCustomerListInfo)"
           >
             新增客户
           </el-button>
@@ -198,7 +198,7 @@ onMounted(async () => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('查看', row)"
+                @click="openDialog('查看', row, getCustomerListInfo)"
               >
                 查看
               </el-button>
@@ -218,7 +218,7 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
+                @click="openDialog('修改', row, getCustomerListInfo)"
               >
                 修改
               </el-button>

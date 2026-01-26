@@ -1,43 +1,36 @@
 <script setup lang="ts">
-import { onMounted, ref, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
-import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
-// https://plus-pro-components.com/components/search.html
 import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
-import { useColumns } from "./columns";
+import { columns } from "./columns";
 import {
   getOneUserApi,
   getUsersApi,
   addUserApi,
   updateUserApi,
-  deleteUserApi
+  deleteUserApi,
+  type UserDto,
+  type CreateUserDto,
+  type UpdateUserDto
 } from "@/api/user";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import UserForm from "./form.vue";
-import { message } from "@/utils";
-import { ElMessageBox } from "element-plus";
+import { message, handleApiError } from "@/utils";
 import { FormItemProps } from "./utils/types";
-
-const {
-  loading,
-  columns,
-  dataList,
-  pagination,
-  loadingConfig,
-  adaptiveConfig,
-  onSizeChange,
-  onCurrentChange
-} = useColumns();
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 
 defineOptions({
   name: "user"
 });
+
 const state = ref({
   status: "",
   username: ""
@@ -74,24 +67,45 @@ const formColumns: PlusColumn[] = [
   }
 ];
 
+// 使用 useCrud composable 管理 CRUD 操作
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  UserDto,
+  CommonResult<{ list: UserDto[]; count: number }>,
+  { page: number }
+>({
+  api: (params: { page: number }) =>
+    getUsersApi(params.page, {
+      username: state.value.username || undefined,
+      status: state.value.status ? Number(state.value.status) : undefined
+    }),
+  transform: (res: CommonResult<{ list: UserDto[]; count: number }>) => ({
+    list: res.data?.list ?? [],
+    total: res.data?.count ?? 0
+  }),
+  immediate: true
+});
+
 const handleChange = () => {
   handleSearch();
 };
-const handleSearch = async () => {
-  loading.value = true;
-  const { code, data } = await getUsersApi(pagination.currentPage, state.value);
-  const result = data as { list: FormItemProps[]; count: number };
 
-  if (code === 200) {
-    dataList.value = result.list;
-    pagination.total = result.count;
-  }
-  loading.value = false;
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
+
 const handleReset = () => {
   state.value = { status: "", username: "" };
   handleSearch();
 };
+
 const getDetails = async (row: { uid: string }) => {
   loading.value = true;
   try {
@@ -123,9 +137,9 @@ const getDetails = async (row: { uid: string }) => {
           disabled: true
         })
     });
-  } catch {
+  } catch (error) {
     loading.value = false;
-    message("获取用户详情失败", { type: "error" });
+    handleApiError(error, "获取用户详情失败");
   }
 };
 
@@ -160,44 +174,39 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         if (valid) {
           const promise =
             title === "新增"
-              ? addUserApi(curData)
-              : updateUserApi(row?.uid ?? "", curData);
+              ? addUserApi({
+                  username: curData.username,
+                  password: curData.password || "",
+                  phone: curData.phone,
+                  email: curData.email
+                } as CreateUserDto)
+              : updateUserApi(row?.uid ?? "", {
+                  username: curData.username,
+                  phone: curData.phone,
+                  email: curData.email,
+                  status: curData.status ? Number(curData.status) : undefined
+                } as UpdateUserDto);
 
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            handleSearch();
-          });
+          promise
+            .then(() => {
+              message("操作成功", { type: "success" });
+              done();
+              fetchData();
+            })
+            .catch(error => {
+              handleApiError(error, "操作失败");
+            });
         }
       });
     }
   });
 };
 
-const deleteOne = async (row: { uid: string; username: string }) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除用户 "${row.username}" 吗？此操作不可恢复。`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-    await deleteUserApi(row.uid);
-    message("删除成功", { type: "success" });
-    handleSearch();
-  } catch (error) {
-    if (error !== "cancel") {
-      message("删除失败", { type: "error" });
-    }
-  }
-};
-
-onMounted(async () => {
-  await handleSearch();
-});
+async function handleDelete(row: { uid: string; username: string }) {
+  await deleteUserApi(row.uid);
+  message(`您删除了${row.username}这条数据`, { type: "success" });
+  fetchData();
+}
 </script>
 
 <template>
@@ -215,7 +224,7 @@ onMounted(async () => {
     />
 
     <div class="bg-white p-4 rounded-md">
-      <PureTableBar :title="$route.meta.title" @refresh="handleSearch">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -230,15 +239,14 @@ onMounted(async () => {
             ref="tableRef"
             border
             adaptive
-            :adaptiveConfig="adaptiveConfig"
             row-key="id"
             alignWhole="center"
             showOverflowTooltip
             :loading="loading"
-            :loading-config="loadingConfig"
+            :size="size"
             :data="dataList"
             :columns="columns"
-            :pagination="pagination"
+            :pagination="{ ...pagination, size }"
             @page-size-change="onSizeChange"
             @page-current-change="onCurrentChange"
           >
@@ -263,16 +271,11 @@ onMounted(async () => {
               >
                 更新
               </el-button>
-              <el-button
-                class="reset-margin"
-                link
-                type="danger"
-                :size="size"
-                :icon="useRenderIcon(Delete)"
-                @click.prevent="deleteOne(row)"
-              >
-                删除
-              </el-button>
+              <DeleteButton
+                :title="`确定要删除用户 '${row.username}' 吗？此操作不可恢复。`"
+                :show-icon="false"
+                @confirm="handleDelete(row)"
+              />
             </template>
           </pure-table>
         </template>

@@ -65,7 +65,33 @@ const targetNameMap: Record<string, string> = {
   warehouse: "仓库"
 };
 
-const normalizeCodeRule = (raw: Record<string, unknown>) => {
+/** 规范化 API 返回的编码规则数据 */
+const normalizeCodeRule = (raw: Partial<CodeRule>): CodeRule => {
+  return {
+    uid: raw.uid ?? "",
+    name: raw.name ?? "",
+    targetType: raw.targetType ?? "document",
+    targetTypeName: targetTypeNameMap[raw.targetType ?? "document"] ?? "",
+    targetCode: raw.targetCode ?? "",
+    targetName: targetNameMap[raw.targetCode ?? ""] ?? raw.targetCode ?? "",
+    prefix: raw.prefix ?? "",
+    dateFormat: raw.dateFormat ?? "YYYYMMDD",
+    serialDigits: raw.serialDigits ?? 4,
+    serialStart: raw.serialStart ?? 1,
+    resetType: raw.resetType ?? "daily",
+    resetTypeName: resetTypeNameMap[raw.resetType ?? "daily"] ?? "",
+    autoFillGap: raw.autoFillGap ?? false,
+    allowManualEdit: raw.allowManualEdit ?? false,
+    resetOnDateChange: raw.resetOnDateChange ?? false,
+    isActive: raw.isActive ?? false,
+    isDefault: raw.isDefault ?? false,
+    createTime: raw.createTime ?? "",
+    updateTime: raw.updateTime ?? ""
+  };
+};
+
+/** 加载编码规则列表 */
+const loadData = async () => {
   loading.value = true;
   try {
     const { code, data } = await getCodeRulesApi();
@@ -78,7 +104,7 @@ const normalizeCodeRule = (raw: Record<string, unknown>) => {
       ? data
       : (data as { list?: unknown })?.list;
     const rules = Array.isArray(list)
-      ? list.map(item => normalizeCodeRule(item as Record<string, unknown>))
+      ? list.map(item => normalizeCodeRule(item as Partial<CodeRule>))
       : [];
 
     documentRules.value = rules.filter(r => r.targetType === "document");

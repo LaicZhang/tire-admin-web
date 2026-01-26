@@ -28,6 +28,7 @@ import {
   rejectOtherInboundOrderApi,
   updateOtherInboundOrderApi
 } from "@/api/inventory";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "InventoryOtherInbound"
@@ -81,7 +82,7 @@ const fetchData = async () => {
       pagination.value.total = data.count;
     }
   } catch (error) {
-    console.error("获取其他入库单列表失败", error);
+    handleApiError(error, "获取其他入库单列表失败");
   } finally {
     loading.value = false;
   }

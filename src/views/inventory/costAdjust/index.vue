@@ -19,6 +19,7 @@ import {
   rejectCostAdjustOrder,
   deleteCostAdjustOrder
 } from "@/api/business/costAdjust";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "InventoryCostAdjust"
@@ -59,7 +60,7 @@ const fetchData = async () => {
     dataList.value = data.list;
     pagination.value.total = data.count;
   } catch (error) {
-    console.error("获取成本调整单列表失败", error);
+    handleApiError(error, "获取成本调整单列表失败");
   } finally {
     loading.value = false;
   }

@@ -31,8 +31,10 @@ const orderTypeMap: Record<string, string> = {
 
 const statusMap: Record<string, string> = {
   "0": "待发货",
-  "1": "运送中",
-  "2": "已送达"
+  "1": "部分发货",
+  "2": "已发货",
+  "3": "已送达",
+  "4": "已取消"
 };
 
 const logisticUid = computed(() => props.logistic?.uid || "");
@@ -90,11 +92,14 @@ function formatDate(date: string) {
           <el-descriptions-item label="物流状态">
             <el-tag
               :type="
-                logistic.logisticsStatus === 2
+                logistic.logisticsStatus === 3
                   ? 'success'
-                  : logistic.logisticsStatus === 1
-                    ? 'warning'
-                    : 'info'
+                  : logistic.logisticsStatus === 4
+                    ? 'danger'
+                    : logistic.logisticsStatus === 2 ||
+                        logistic.logisticsStatus === 1
+                      ? 'warning'
+                      : 'info'
               "
               size="small"
             >
@@ -132,7 +137,7 @@ function formatDate(date: string) {
 
       <!-- 签收回执 -->
       <DeliveryReceiptCard
-        v-if="logistic.logisticsStatus === 2 || logistic.isArrival"
+        v-if="logistic.logisticsStatus === 3 || logistic.isArrival"
         :logistic-uid="logisticUid"
         @refresh="handleRefresh"
       />

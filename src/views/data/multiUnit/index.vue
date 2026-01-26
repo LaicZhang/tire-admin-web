@@ -16,7 +16,7 @@ import {
   getAllSingleUnitsApi
 } from "@/api/data/category";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
@@ -56,7 +56,7 @@ const loadUnitOptions = async () => {
       unitOptions.value = data || [];
     }
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "加载单位列表失败");
   }
 };
 

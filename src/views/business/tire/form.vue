@@ -168,6 +168,7 @@ const loadUnits = async () => {
     }
   } catch (error) {
     console.error("加载单位列表失败", error);
+    message("加载单位列表失败，请刷新页面重试", { type: "error" });
   }
 };
 

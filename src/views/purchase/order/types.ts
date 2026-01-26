@@ -79,7 +79,9 @@ export const ORDER_STATUS_MAP: Record<number, string> = {
 };
 
 export const LOGISTICS_STATUS_MAP: Record<number, string> = {
-  0: "未发货",
-  1: "已发货",
-  2: "已到货"
+  0: "待发货",
+  1: "部分发货",
+  2: "已发货",
+  3: "已到货",
+  4: "已取消"
 };

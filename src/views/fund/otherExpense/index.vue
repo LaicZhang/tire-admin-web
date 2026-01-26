@@ -10,6 +10,7 @@ import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import Link from "~icons/ep/link";
 import { http } from "@/utils/http";
+import { handleApiError } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
   type OtherExpense,
@@ -68,7 +69,7 @@ async function onSearch() {
     dataList.value = data.list || [];
     pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
-    console.error("查询失败", e);
+    handleApiError(e, "查询失败");
     dataList.value = [];
     pagination.total = 0;
   } finally {

@@ -15,7 +15,11 @@ interface FeedbackRow {
 
 type FeedbackFormInline = Partial<FeedbackRow>;
 
-export function openDialog(title = "新增", row?: FeedbackRow) {
+export function openDialog(
+  title = "新增",
+  row?: FeedbackRow,
+  onSuccess?: () => void
+) {
   const formRef = ref<{ getRef: () => FormInstance } | null>(null);
   addDialog({
     title: `${title}反馈`,
@@ -72,9 +76,8 @@ export function openDialog(title = "新增", row?: FeedbackRow) {
             message(`您${title}了反馈`, { type: "success" });
           }
           done();
-          setTimeout(() => {
-            window.location.reload();
-          }, 500);
+          // 调用成功回调刷新数据
+          onSuccess?.();
         }
       });
     }

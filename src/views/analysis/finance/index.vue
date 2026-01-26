@@ -5,7 +5,7 @@ import {
   getCashFlowApi,
   getBalanceTrendApi
 } from "@/api/analysis";
-import { message } from "@/utils/message";
+import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
@@ -107,7 +107,7 @@ const getSummary = async () => {
       };
     }
   } catch (error) {
-    console.error("获取收支汇总失败:", error);
+    handleApiError(error, "获取收支汇总失败");
   }
 };
 
@@ -124,7 +124,7 @@ const getCashFlow = async () => {
       nextTick(() => void updateCashFlowChart());
     }
   } catch (error) {
-    console.error("获取现金流失败:", error);
+    handleApiError(error, "获取现金流失败");
   }
 };
 
@@ -138,7 +138,7 @@ const getBalance = async () => {
       nextTick(() => void updateBalanceChart());
     }
   } catch (error) {
-    console.error("获取余额趋势失败:", error);
+    handleApiError(error, "获取余额趋势失败");
   }
 };
 

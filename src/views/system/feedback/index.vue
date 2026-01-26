@@ -144,7 +144,7 @@ async function handleDelete(row: Feedback) {
           <el-button
             :icon="useRenderIcon(AddFill)"
             type="primary"
-            @click="() => openDialog('新增')"
+            @click="() => openDialog('新增', undefined, fetchData)"
           >
             新增反馈
           </el-button>
@@ -172,7 +172,7 @@ async function handleDelete(row: Feedback) {
                 :icon="useRenderIcon(EditPen)"
                 link
                 type="primary"
-                @click="() => openDialog('修改', row)"
+                @click="() => openDialog('修改', row, fetchData)"
               >
                 修改
               </el-button>

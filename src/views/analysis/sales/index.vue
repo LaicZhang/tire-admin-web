@@ -7,7 +7,7 @@ import {
   getProductRankingApi,
   getOperatorRankingApi
 } from "@/api";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
@@ -106,7 +106,7 @@ const getSummary = async () => {
       };
     }
   } catch (error) {
-    console.error("获取销售汇总失败:", error);
+    handleApiError(error, "获取销售汇总失败");
   }
 };
 
@@ -121,7 +121,7 @@ const getTrend = async () => {
       void updateChart();
     }
   } catch (error) {
-    console.error("获取销售趋势失败:", error);
+    handleApiError(error, "获取销售趋势失败");
   }
 };
 
@@ -151,7 +151,7 @@ const getRankings = async () => {
       operatorRanking.value = operatorRes.data?.items || [];
     }
   } catch (error) {
-    console.error("获取排行榜失败:", error);
+    handleApiError(error, "获取排行榜失败");
   }
 };
 

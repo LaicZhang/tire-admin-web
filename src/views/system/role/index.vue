@@ -18,7 +18,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import RoleForm from "./form.vue";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { FormItemProps } from "./utils/types";
 
 const {
@@ -79,7 +79,7 @@ const handleSearch = async () => {
       pagination.total = data.count;
     }
   } catch (error) {
-    console.error(error);
+    handleApiError(error, "获取角色列表失败");
   } finally {
     loading.value = false;
   }

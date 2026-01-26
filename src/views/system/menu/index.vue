@@ -7,7 +7,7 @@ import { FormItemProps } from "./utils/types";
 import MenuForm from "./form.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import {
   getMenuListApi,
   createMenuApi,
@@ -54,7 +54,7 @@ async function onSearch() {
     dataList.value = data as MenuItem[];
     pagination.total = dataList.value.length;
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "获取菜单列表失败");
   } finally {
     loading.value = false;
   }

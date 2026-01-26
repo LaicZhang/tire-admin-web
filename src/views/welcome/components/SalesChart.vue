@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { getPurchaseSalesApi } from "@/api";
 import type { DailySummaryItem } from "@/api/dashboard";
-import { message } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import { getEcharts } from "@/utils/echarts";
 import type { ECharts, EChartsOption } from "echarts";
 
@@ -53,7 +53,7 @@ const loadData = async () => {
       message(msg, { type: "warning" });
     }
   } catch (error) {
-    console.error("获取采购销售数据失败:", error);
+    handleApiError(error, "获取采购销售数据失败");
   } finally {
     loading.value = false;
   }

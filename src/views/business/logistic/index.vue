@@ -5,7 +5,7 @@ import {
   updateLogisticApi,
   cancelLogisticApi
 } from "@/api";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import ShippingPlanTab from "./ShippingPlanTab.vue";
@@ -62,8 +62,10 @@ const columns = ref<TableColumnList>([
     formatter: (row, column, cellValue) => {
       const statusMap: Record<string, string> = {
         0: "待发货",
-        1: "运送中",
-        2: "已送达"
+        1: "部分发货",
+        2: "已发货",
+        3: "已送达",
+        4: "已取消"
       };
       return statusMap[String(cellValue)] || "未知";
     }
@@ -116,9 +118,7 @@ const getLogisticListInfo = async () => {
       message(msg, { type: "error" });
     }
   } catch (error) {
-    const errorMsg =
-      error instanceof Error ? error.message : "获取物流列表失败";
-    message(errorMsg, { type: "error" });
+    handleApiError(error, "获取物流列表失败");
   } finally {
     loading.value = false;
   }
@@ -148,8 +148,7 @@ async function handleConfirmShipment(row: LogisticOrder) {
     message("确认发货成功", { type: "success" });
     await getLogisticListInfo();
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "确认发货失败";
-    message(errorMsg, { type: "error" });
+    handleApiError(error, "确认发货失败");
   }
 }
 
@@ -162,8 +161,7 @@ async function handleConfirmArrival(row: LogisticOrder) {
     message("确认送达成功", { type: "success" });
     await getLogisticListInfo();
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "确认送达失败";
-    message(errorMsg, { type: "error" });
+    handleApiError(error, "确认送达失败");
   }
 }
 
@@ -173,9 +171,7 @@ async function handleCancel(row: LogisticOrder) {
     message("取消物流状态成功", { type: "success" });
     await getLogisticListInfo();
   } catch (error) {
-    const errorMsg =
-      error instanceof Error ? error.message : "取消物流状态失败";
-    message(errorMsg, { type: "error" });
+    handleApiError(error, "取消物流状态失败");
   }
 }
 
@@ -264,7 +260,7 @@ onMounted(async () => {
                   </el-button>
 
                   <el-button
-                    v-if="!row.isArrival && row.logisticsStatus === 1"
+                    v-if="!row.isArrival && row.logisticsStatus === 2"
                     class="reset-margin"
                     link
                     type="success"

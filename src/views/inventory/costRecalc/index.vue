@@ -24,6 +24,7 @@ import {
   getCostRecalcTaskListApi,
   restoreCostRecalcTaskApi
 } from "@/api/inventory";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "InventoryCostRecalc"
@@ -66,7 +67,7 @@ const fetchData = async () => {
       pagination.value.total = data.count;
     }
   } catch (error) {
-    console.error("获取成本重算任务列表失败", error);
+    handleApiError(error, "获取成本重算任务列表失败");
   } finally {
     loading.value = false;
   }

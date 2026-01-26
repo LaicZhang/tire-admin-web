@@ -51,7 +51,11 @@ interface CustomerRow {
   from?: string;
 }
 
-export function openDialog(title = "新增", row?: CustomerRow) {
+export function openDialog(
+  title = "新增",
+  row?: CustomerRow,
+  onSuccess?: () => void
+) {
   addDialog({
     title: `${title}客户`,
     props: {
@@ -93,8 +97,8 @@ export function openDialog(title = "新增", row?: CustomerRow) {
           type: "success"
         });
         done(); // 关闭弹框
-        // 刷新列表（需要父组件配合，或者在这里通过其他方式触发刷新，目前保持原有逻辑）
-        location.reload(); // Temporary fallback to ensure list refresh if not handled by parent
+        // 调用成功回调刷新列表
+        onSuccess?.();
       }
       FormRef.validate(async (valid: boolean) => {
         if (valid) {

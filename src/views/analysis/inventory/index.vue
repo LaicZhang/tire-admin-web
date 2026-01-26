@@ -7,7 +7,7 @@ import {
   getInventoryTurnoverApi,
   getExpiryDistributionApi
 } from "@/api/analysis";
-import { message } from "@/utils/message";
+import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { slowMovingColumns, stockoutColumns } from "./columns";
 import Refresh from "~icons/ep/refresh";
@@ -107,7 +107,7 @@ const getSummary = async () => {
       };
     }
   } catch (error) {
-    console.error("获取库存汇总失败:", error);
+    handleApiError(error, "获取库存汇总失败");
   }
 };
 
@@ -120,7 +120,7 @@ const getSlowMoving = async () => {
       ) as SlowMovingItem[];
     }
   } catch (error) {
-    console.error("获取滞销数据失败:", error);
+    handleApiError(error, "获取滞销数据失败");
   }
 };
 
@@ -133,7 +133,7 @@ const getStockout = async () => {
       ) as StockoutItem[];
     }
   } catch (error) {
-    console.error("获取缺货数据失败:", error);
+    handleApiError(error, "获取缺货数据失败");
   }
 };
 
@@ -149,7 +149,7 @@ const getTurnover = async () => {
       nextTick(() => void updateTurnoverChart());
     }
   } catch (error) {
-    console.error("获取周转率失败:", error);
+    handleApiError(error, "获取周转率失败");
   }
 };
 
@@ -163,7 +163,7 @@ const getExpiry = async () => {
       nextTick(() => void updateExpiryChart());
     }
   } catch (error) {
-    console.error("获取临期分布失败:", error);
+    handleApiError(error, "获取临期分布失败");
   }
 };
 

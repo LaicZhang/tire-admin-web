@@ -14,7 +14,7 @@ import {
   updateDictApi,
   deleteDictApi
 } from "@/api/system/dict";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 
@@ -54,7 +54,7 @@ const getData = async () => {
       message(msg, { type: "error" });
     }
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "查询失败");
   } finally {
     loading.value = false;
   }

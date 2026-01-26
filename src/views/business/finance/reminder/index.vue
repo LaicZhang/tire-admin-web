@@ -7,6 +7,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Add from "~icons/ep/plus";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "FinanceReminder"
@@ -36,7 +37,7 @@ async function onSearch() {
     dataList.value = data.list;
     pagination.total = data.total ?? data.count;
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "获取催收提醒列表失败");
   } finally {
     loading.value = false;
   }

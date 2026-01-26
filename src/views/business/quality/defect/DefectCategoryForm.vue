@@ -5,7 +5,7 @@ import {
   updateDefectCategoryApi,
   type DefectCategory
 } from "@/api/business/quality";
-import { message } from "@/utils/message";
+import { message, handleApiError } from "@/utils";
 
 const props = defineProps<{
   initialData: {
@@ -40,7 +40,7 @@ async function handleSubmit() {
         message("操作成功", { type: "success" });
         props.onSuccess();
       } catch (e) {
-        console.error(e);
+        handleApiError(e, "操作失败");
       } finally {
         loading.value = false;
       }

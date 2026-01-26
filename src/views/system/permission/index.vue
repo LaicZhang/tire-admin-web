@@ -7,7 +7,7 @@ import { FormItemProps } from "./utils/types";
 import PermissionForm from "./form.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { message } from "@/utils/message";
+import { message, handleApiError } from "@/utils";
 import {
   getPermissionListApi,
   createPermissionApi,
@@ -70,7 +70,7 @@ async function onSearch() {
     dataList.value = data.list || [];
     pagination.total = data.total || 0;
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "获取权限列表失败");
   } finally {
     loading.value = false;
   }

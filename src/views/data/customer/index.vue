@@ -137,11 +137,8 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         if (valid) {
           const promise =
             title === "新增"
-              ? addCustomerApi(curData as unknown as Record<string, unknown>)
-              : updateCustomerApi(
-                  row?.uid ?? "",
-                  curData as unknown as Record<string, unknown>
-                );
+              ? addCustomerApi(curData)
+              : updateCustomerApi(row?.uid ?? "", curData);
           promise.then(() => {
             message("操作成功", { type: "success" });
             done();

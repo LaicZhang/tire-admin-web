@@ -394,7 +394,8 @@ onMounted(async () => {
                     {
                       label: '确认到货',
                       type: 'success',
-                      visible: row.isApproved && row.logisticsStatus < 2,
+                      visible:
+                        row.isApproved && row.details?.some(d => !d.isArrival),
                       onClick: () => handleConfirmArrival(row)
                     }
                   ] as CustomAction[]

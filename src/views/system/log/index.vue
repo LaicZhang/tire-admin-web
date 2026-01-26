@@ -10,6 +10,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { handleApiError } from "@/utils";
 import View from "~icons/ep/view";
 
 defineOptions({
@@ -50,7 +51,7 @@ async function onSearch() {
     dataList.value = data.list || [];
     pagination.total = data.total || 0;
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "查询失败");
   } finally {
     loading.value = false;
   }

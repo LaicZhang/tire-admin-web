@@ -25,7 +25,11 @@ export function handleSelectionChange(_val: unknown): void {
   // 选择变化处理
 }
 
-export function openDialog(title = "更新", row?: Partial<CompanyInfo>): void {
+export function openDialog(
+  title = "更新",
+  row?: Partial<CompanyInfo>,
+  onSuccess?: () => void
+): void {
   addDialog({
     title: `公司信息${title}`,
     props: {
@@ -59,8 +63,8 @@ export function openDialog(title = "更新", row?: Partial<CompanyInfo>): void {
           type: "success"
         });
         done(); // 关闭弹框
-        // 刷新页面
-        window.location.reload();
+        // 调用成功回调刷新数据
+        onSuccess?.();
       }
       FormRef?.validate(async (valid: boolean) => {
         if (valid) {

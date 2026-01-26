@@ -4,7 +4,8 @@ import { message } from "@/utils";
 import {
   getCompanyInfoApi,
   updateCompanyInfoApi,
-  uploadCompanyLogoApi
+  uploadCompanyLogoApi,
+  type CompanyInfoDto
 } from "@/api/setting";
 import type { CompanyInfo } from "./types";
 
@@ -40,12 +41,14 @@ const loadSettings = async () => {
   try {
     const { code, data } = await getCompanyInfoApi();
     if (code === 200 && data) {
-      const info = data as Record<string, unknown>;
-      Object.keys(formData.value).forEach(key => {
-        if (key in info) {
-          (formData.value as Record<string, unknown>)[key] = info[key] ?? "";
-        }
-      });
+      // Map API response to form data
+      formData.value.companyName = data.name ?? "";
+      formData.value.phone = data.phone ?? "";
+      formData.value.email = data.email ?? "";
+      formData.value.address = data.address ?? "";
+      formData.value.logo = data.logo ?? "";
+      formData.value.remark = data.desc ?? "";
+      formData.value.contactPerson = data.principalName ?? "";
     }
   } catch {
     message("加载公司信息失败", { type: "error" });

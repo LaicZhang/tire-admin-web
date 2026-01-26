@@ -8,7 +8,7 @@ import { FormItemProps } from "./utils/types";
 import CompanyForm from "./form.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import {
   getCompanyListApi,
   addCompanyApi,
@@ -52,7 +52,7 @@ async function onSearch() {
     dataList.value = (data as { list: FormItemProps[]; total: number }).list;
     pagination.total = (data as { list: FormItemProps[]; total: number }).total;
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "查询失败");
   } finally {
     loading.value = false;
   }

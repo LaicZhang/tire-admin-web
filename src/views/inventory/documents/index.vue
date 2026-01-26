@@ -87,6 +87,7 @@ const fetchData = async () => {
     }
   } catch (error) {
     console.error("获取库存单据列表失败", error);
+    ElMessage.error("获取库存单据列表失败，请重试");
   } finally {
     loading.value = false;
   }
@@ -178,6 +179,34 @@ const handleDelete = async (row: InventoryDocument) => {
   }
 };
 
+const deleteByType = async (row: InventoryDocument): Promise<void> => {
+  switch (row.type) {
+    case DocumentType.TRANSFER:
+      await deleteOrderApi("transfer-order", row.uid);
+      break;
+    case DocumentType.STOCKTAKING:
+      await deleteInventoryCheckTaskApi(row.id);
+      break;
+    case DocumentType.OTHER_INBOUND:
+      await deleteOtherInboundOrderApi(row.uid);
+      break;
+    case DocumentType.OTHER_OUTBOUND:
+      await deleteOtherOutboundOrderApi(row.uid);
+      break;
+    case DocumentType.ASSEMBLY:
+      await deleteAssemblyOrderApi(row.uid);
+      break;
+    case DocumentType.DISASSEMBLY:
+      await deleteDisassemblyOrderApi(row.uid);
+      break;
+    case DocumentType.COST_ADJUST:
+      await deleteCostAdjustOrder(row.id);
+      break;
+    default:
+      throw new Error(`未知单据类型: ${String(row.type)}`);
+  }
+};
+
 const handleBatchDelete = async () => {
   if (selectedRows.value.length === 0) {
     ElMessage.warning("请先选择要删除的单据");
@@ -194,8 +223,25 @@ const handleBatchDelete = async () => {
       "批量删除",
       { type: "warning" }
     );
-    // 批量删除逻辑
-    ElMessage.success("删除成功");
+
+    let successCount = 0;
+    let failCount = 0;
+    const deletePromises = selectedRows.value.map(async row => {
+      try {
+        await deleteByType(row);
+        successCount++;
+      } catch {
+        failCount++;
+      }
+    });
+    await Promise.all(deletePromises);
+
+    if (failCount === 0) {
+      ElMessage.success(`成功删除${successCount}条单据`);
+    } else {
+      ElMessage.warning(`成功${successCount}条,失败${failCount}条`);
+    }
+    selectedRows.value = [];
     fetchData();
   } catch (error) {
     if (error !== "cancel") {

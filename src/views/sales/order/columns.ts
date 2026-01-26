@@ -58,8 +58,10 @@ export const salesOrderColumns: TableColumnList = [
     formatter: (_row, _column, cellValue) => {
       const statusMap: Record<number, string> = {
         0: "待发货",
-        1: "已发货",
-        2: "已送达"
+        1: "部分发货",
+        2: "已发货",
+        3: "已送达",
+        4: "已取消"
       };
       return statusMap[cellValue as number] || "未知";
     }

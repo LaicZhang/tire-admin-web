@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { message } from "@/utils";
-import { getSettingGroupApi, batchUpdateSettingsApi } from "@/api/setting";
+import {
+  getSettingGroupApi,
+  batchUpdateSettingsApi,
+  type SettingItem
+} from "@/api/setting";
 import type { SysParams } from "./types";
 
 defineOptions({
@@ -35,15 +39,12 @@ const loadSettings = async () => {
   try {
     const { code, data } = await getSettingGroupApi();
     if (code === 200 && data) {
-      const settings = data as Record<string, unknown>[];
-      const sysSettings = settings.filter(
-        (s: Record<string, unknown>) => s.group === "sys"
-      );
-      sysSettings.forEach((s: Record<string, unknown>) => {
+      const sysSettings = data.filter((s: SettingItem) => s.group === "sys");
+      sysSettings.forEach((s: SettingItem) => {
         const key = s.key as keyof SysParams;
         if (key in formData.value) {
-          const val = s.value as string;
-          (formData.value as Record<string, unknown>)[key] = [
+          const val = s.value;
+          (formData.value as Record<keyof SysParams, unknown>)[key] = [
             "quantityDecimals",
             "priceDecimals",
             "amountDecimals"

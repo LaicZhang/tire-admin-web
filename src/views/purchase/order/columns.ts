@@ -57,9 +57,11 @@ export const purchaseOrderColumns: TableColumnList = [
     width: 100,
     formatter: (_row, _column, cellValue) => {
       const statusMap: Record<number, string> = {
-        0: "未发货",
-        1: "已发货",
-        2: "已到货"
+        0: "待发货",
+        1: "部分发货",
+        2: "已发货",
+        3: "已到货",
+        4: "已取消"
       };
       return statusMap[cellValue as number] || "未知";
     }

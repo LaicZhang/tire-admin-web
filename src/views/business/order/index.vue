@@ -229,7 +229,7 @@ onMounted(async () => {
                 v-if="
                   orderType === ORDER_TYPE.sale &&
                   row.isApproved === true &&
-                  row.logisticsStatus === 0
+                  (row.logisticsStatus === 0 || row.logisticsStatus === 1)
                 "
                 class="reset-margin"
                 link
@@ -244,7 +244,7 @@ onMounted(async () => {
                 v-if="
                   orderType === ORDER_TYPE.sale &&
                   row.isApproved === true &&
-                  row.logisticsStatus === 1
+                  (row.logisticsStatus === 1 || row.logisticsStatus === 2)
                 "
                 class="reset-margin"
                 link

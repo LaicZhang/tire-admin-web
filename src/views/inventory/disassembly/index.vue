@@ -27,6 +27,7 @@ import {
   saveDisassemblyOrderAsBomApi,
   updateDisassemblyOrderApi
 } from "@/api/inventory";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "InventoryDisassembly"
@@ -70,7 +71,7 @@ const fetchData = async () => {
       pagination.value.total = data.count;
     }
   } catch (error) {
-    console.error("获取拆卸单列表失败", error);
+    handleApiError(error, "获取拆卸单列表失败");
   } finally {
     loading.value = false;
   }

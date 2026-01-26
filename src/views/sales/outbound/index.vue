@@ -337,7 +337,8 @@ onMounted(async () => {
                     {
                       label: '确认发货',
                       type: 'success',
-                      visible: row.isApproved && row.logisticsStatus === 0,
+                      visible:
+                        row.isApproved && row.details?.some(d => !d.isShipped),
                       onClick: () => handleConfirmShipment(row)
                     },
                     {

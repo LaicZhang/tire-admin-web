@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { getPurchaseSalesApi } from "@/api";
 import type { RankingItem } from "@/api/dashboard";
-import { message } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import { useColumns } from "./columns";
 
 defineOptions({
@@ -46,7 +46,7 @@ const loadData = async () => {
       message(msg, { type: "warning" });
     }
   } catch (error) {
-    console.error("获取排行榜数据失败:", error);
+    handleApiError(error, "获取排行榜数据失败");
   } finally {
     loading.value = false;
   }

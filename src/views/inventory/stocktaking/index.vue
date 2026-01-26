@@ -26,6 +26,7 @@ import {
   deleteInventoryCheckTaskApi
 } from "@/api/business/inventory-check";
 import { getRepoListApi } from "@/api/company/repo";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "InventoryStocktaking"
@@ -72,7 +73,7 @@ const fetchData = async () => {
       pagination.value.total = data.count;
     }
   } catch (error) {
-    console.error("获取盘点单列表失败", error);
+    handleApiError(error, "获取盘点单列表失败");
   } finally {
     loading.value = false;
   }
@@ -85,7 +86,7 @@ const loadRepos = async () => {
       repoList.value = data.list;
     }
   } catch (error) {
-    console.error("获取仓库列表失败", error);
+    handleApiError(error, "获取仓库列表失败");
   }
 };
 

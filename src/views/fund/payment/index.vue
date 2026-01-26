@@ -9,6 +9,7 @@ import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import { http } from "@/utils/http";
+import { handleApiError } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
   type PaymentOrder,
@@ -66,7 +67,7 @@ async function onSearch() {
     dataList.value = data.list || [];
     pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
-    console.error("查询失败", e);
+    handleApiError(e, "查询失败");
     dataList.value = [];
     pagination.total = 0;
   } finally {
@@ -107,7 +108,7 @@ async function handleDelete(row: PaymentOrder) {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(e, "删除失败");
     }
   }
 }
@@ -130,7 +131,7 @@ async function handleBatchDelete() {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("批量删除失败");
+      handleApiError(e, "批量删除失败");
     }
   }
 }
@@ -145,7 +146,7 @@ async function handleApprove(row: PaymentOrder) {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("审核失败");
+      handleApiError(e, "审核失败");
     }
   }
 }

@@ -16,7 +16,7 @@ import {
 } from "@/api";
 import type { Department } from "@/api/company/department";
 import { getRolesApi } from "@/api/system/role";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { BATCH_FETCH_PAGE_SIZE } from "@/utils/constants";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables/useCrud";
@@ -58,9 +58,13 @@ const onReset = () => {
 };
 
 async function handleDelete(row: Department) {
-  await deleteDepartmentApi(row.uid);
-  message(`您删除了${row.name}这条数据`, { type: "success" });
-  fetchData();
+  try {
+    await deleteDepartmentApi(row.uid);
+    message(`您删除了${row.name}这条数据`, { type: "success" });
+    fetchData();
+  } catch (e) {
+    handleApiError(e, "删除部门失败");
+  }
 }
 
 // 打开角色管理对话框

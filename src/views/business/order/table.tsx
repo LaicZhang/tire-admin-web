@@ -10,7 +10,8 @@ import {
   paySaleOrderApi,
   processClaimOrderPaymentApi,
   refundReturnOrderApi,
-  confirmPurchaseOrderArrivalApi
+  confirmPurchaseOrderArrivalApi,
+  type OrderDetailDto
 } from "@/api";
 import editForm from "./form.vue";
 import {
@@ -174,12 +175,15 @@ export async function openDialog(title = "新增", type: string, row?: OrderRow)
                 }
               };
               delete orderData.providerId;
-              // Type widening needed: _OrderDetail has optional fields populated at runtime
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const detailsRes: any[] = [];
-              details.map((item: _OrderDetail) => {
+              const detailsRes: OrderDetailDto[] = [];
+              details.forEach((item: _OrderDetail) => {
                 const { index: _idx, ...rest } = item;
-                detailsRes.push({ companyId, ...rest });
+                detailsRes.push({
+                  companyId,
+                  tireId: rest.tireId ?? "",
+                  count: rest.count ?? 0,
+                  ...rest
+                });
               });
               await addOrderApi(type, {
                 order: {

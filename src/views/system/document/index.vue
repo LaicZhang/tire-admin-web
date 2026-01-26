@@ -4,7 +4,7 @@ import { getSettingGroupApi, updateSettingApi } from "@/api/setting";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Save from "~icons/ep/check";
-import { message } from "@/utils/message";
+import { message, handleApiError } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
@@ -31,7 +31,7 @@ async function loadSettings() {
       // settings.value = [];
     }
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "获取单据设置失败");
   } finally {
     loading.value = false;
   }

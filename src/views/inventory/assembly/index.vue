@@ -25,6 +25,7 @@ import {
   deleteAssemblyOrderApi
 } from "@/api/business/assembly";
 import { http } from "@/utils/http";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "InventoryAssembly"
@@ -68,7 +69,7 @@ const fetchData = async () => {
       pagination.value.total = data.count;
     }
   } catch (error) {
-    console.error("获取组装单列表失败", error);
+    handleApiError(error, "获取组装单列表失败");
   } finally {
     loading.value = false;
   }

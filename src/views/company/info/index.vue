@@ -45,7 +45,7 @@ const getCompanyInfo = async () => {
 };
 
 const handleEdit = () => {
-  openDialog("更新", companyInfo.value);
+  openDialog("更新", companyInfo.value, getCompanyInfo);
 };
 
 onMounted(async () => {

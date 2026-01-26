@@ -8,6 +8,7 @@ import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import { http } from "@/utils/http";
+import { handleApiError } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { getPaymentListApi } from "@/api/payment";
 import {
@@ -52,7 +53,7 @@ async function loadPayments() {
     paymentList.value =
       (res.data as Array<{ uid: string; name: string }>) || [];
   } catch (e) {
-    console.error("加载账户列表失败", e);
+    handleApiError(e, "加载账户列表失败");
   }
 }
 
@@ -79,7 +80,7 @@ async function onSearch() {
     dataList.value = data.list || [];
     pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
-    console.error("查询失败", e);
+    handleApiError(e, "查询失败");
     dataList.value = [];
     pagination.total = 0;
   } finally {

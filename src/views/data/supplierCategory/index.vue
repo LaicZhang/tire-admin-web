@@ -16,7 +16,7 @@ import {
   updateSupplierCategoryApi,
   deleteSupplierCategoryApi
 } from "@/api/data/category";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
@@ -77,7 +77,7 @@ const getData = async () => {
       message(msg, { type: "error" });
     }
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "获取供应商类别失败");
   } finally {
     loading.value = false;
   }

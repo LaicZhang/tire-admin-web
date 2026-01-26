@@ -5,7 +5,7 @@ import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { message } from "@/utils/message";
+import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import {
@@ -48,7 +48,7 @@ async function onSearch() {
     dataList.value = data.list || [];
     pagination.total = data.total || 0;
   } catch (e) {
-    console.error(e);
+    handleApiError(e, "获取文件列表失败");
   } finally {
     loading.value = false;
   }

@@ -3,6 +3,7 @@ import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { http } from "@/utils/http";
+import { handleApiError } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { getPaymentListApi } from "@/api/payment";
 import {
@@ -126,7 +127,7 @@ async function loadPayments() {
     paymentList.value =
       (res.data as Array<{ uid: string; name: string }>) || [];
   } catch (e) {
-    console.error("加载账户列表失败", e);
+    handleApiError(e, "加载账户列表失败");
   }
 }
 
@@ -165,7 +166,7 @@ async function fetchFundFlow() {
     statistics.totalExpense = expense;
     statistics.netBalance = income - expense;
   } catch (e) {
-    console.error("查询资金流水失败", e);
+    handleApiError(e, "查询资金流水失败");
     fundFlowList.value = [];
   } finally {
     loading.value = false;
@@ -187,7 +188,7 @@ async function fetchAccountBalance() {
 
     accountBalanceList.value = data || [];
   } catch (e) {
-    console.error("查询账户余额失败", e);
+    handleApiError(e, "查询账户余额失败");
     accountBalanceList.value = [];
   } finally {
     loading.value = false;
@@ -226,7 +227,7 @@ async function fetchContactDebt() {
     statistics.totalReceivable = receivable;
     statistics.totalPayable = payable;
   } catch (e) {
-    console.error("查询往来欠款失败", e);
+    handleApiError(e, "查询往来欠款失败");
     contactDebtList.value = [];
   } finally {
     loading.value = false;

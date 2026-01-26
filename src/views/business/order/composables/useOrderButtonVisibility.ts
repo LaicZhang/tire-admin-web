@@ -40,7 +40,7 @@ export function useOrderButtonVisibility(orderType: Ref<string>) {
     return (
       orderType.value === ORDER_TYPE.sale &&
       row.isApproved === true &&
-      row.logisticsStatus === 0
+      (row.logisticsStatus === 0 || row.logisticsStatus === 1)
     );
   };
 
@@ -51,7 +51,7 @@ export function useOrderButtonVisibility(orderType: Ref<string>) {
     return (
       orderType.value === ORDER_TYPE.sale &&
       row.isApproved === true &&
-      row.logisticsStatus === 1
+      (row.logisticsStatus === 1 || row.logisticsStatus === 2)
     );
   };
 

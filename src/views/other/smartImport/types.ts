@@ -41,10 +41,16 @@ export interface FieldMapping {
   isManual: boolean; // 是否手动指定
 }
 
+/** 导入行数据，键为目标字段名，值为转换后的字段值 */
+export type ImportRowData = Record<
+  string,
+  string | number | boolean | Date | null
+>;
+
 /** 导入数据行 */
 export interface ImportDataRow {
   rowIndex: number;
-  data: Record<string, unknown>;
+  data: ImportRowData;
   errors: RowError[];
   status: "valid" | "warning" | "error";
 }

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { getDashboardSummaryApi } from "@/api";
-import { message } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Warning from "~icons/ep/warning";
 import Clock from "~icons/ep/clock";
@@ -39,7 +39,7 @@ const loadData = async () => {
       message(msg, { type: "warning" });
     }
   } catch (error) {
-    console.error("获取仪表盘汇总失败:", error);
+    handleApiError(error, "获取仪表盘汇总失败");
   } finally {
     loading.value = false;
   }

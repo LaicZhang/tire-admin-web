@@ -12,7 +12,12 @@ import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
 import UserForm from "./form.vue";
-import type { PermissionUser, Role, PermissionModule } from "./types";
+import type {
+  PermissionUser,
+  Role,
+  PermissionModule,
+  UserFormProps
+} from "./types";
 import {
   createRoleApi,
   deletePermissionUserApi,
@@ -138,16 +143,13 @@ const openUserDialog = (title = "新增", row?: PermissionUser) => {
     contentRenderer: ({ options }) =>
       h(UserForm, {
         ref: formRef,
-        formInline: (options.props as { formInline: Record<string, unknown> })
-          .formInline
+        formInline: (options.props as UserFormProps).formInline
       }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
-          const curData = (
-            options.props as { formInline: Record<string, unknown> }
-          ).formInline;
+          const curData = (options.props as UserFormProps).formInline;
           savePermissionUserApi(curData)
             .then(res => {
               if (res.code === 200) {

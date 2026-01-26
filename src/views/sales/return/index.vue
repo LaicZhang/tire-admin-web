@@ -223,6 +223,41 @@ async function handleConfirmArrival(row: SalesReturnOrder) {
   }
 }
 
+/** 获取自定义操作按钮配置 */
+function getCustomActions(
+  row: SalesReturnOrder
+): CustomAction<SalesReturnOrder>[] {
+  return [
+    {
+      label: "确认收货",
+      type: "success",
+      visible: row.isApproved && row.logisticsStatus === 0,
+      onClick: () => handleConfirmArrival(row)
+    },
+    {
+      label: "退款",
+      type: "warning",
+      visible: row.isApproved,
+      onClick: () => openDialog("退款", row)
+    }
+  ];
+}
+
+/** 查看操作 */
+function handleView(row: SalesReturnOrder) {
+  openDialog("查看", row);
+}
+
+/** 编辑操作 */
+function handleEdit(row: SalesReturnOrder) {
+  openDialog("修改", row);
+}
+
+/** 审核操作 */
+function handleAudit(row: SalesReturnOrder) {
+  openDialog("审核", row);
+}
+
 onMounted(async () => {
   await loadSelectData();
   getList();
@@ -321,31 +356,14 @@ onMounted(async () => {
           >
             <template #operation="{ row }">
               <TableOperations
-                :row="row"
+                :row="row as SalesReturnOrder"
                 show-audit
                 :delete-title="`确认删除编号 ${row.number} 的退货单?`"
-                :custom-actions="
-                  [
-                    {
-                      label: '确认收货',
-                      type: 'success',
-                      visible: row.isApproved && row.logisticsStatus === 0,
-                      onClick: () => handleConfirmArrival(row)
-                    },
-                    {
-                      label: '退款',
-                      type: 'warning',
-                      visible: row.isApproved,
-                      onClick: () => openDialog('退款', row)
-                    }
-                  ] as CustomAction[]
-                "
-                @view="openDialog('查看', $event as SalesReturnOrder)"
-                @edit="openDialog('修改', $event as SalesReturnOrder)"
-                @audit="openDialog('审核', $event as SalesReturnOrder)"
-                @delete="
-                  (row: unknown) => handleDelete(row as SalesReturnOrder)
-                "
+                :custom-actions="getCustomActions(row as SalesReturnOrder)"
+                @view="handleView"
+                @edit="handleEdit"
+                @audit="handleAudit"
+                @delete="handleDelete"
               />
             </template>
           </pure-table>

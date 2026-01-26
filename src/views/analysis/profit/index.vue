@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { getGrossProfitApi, getNetProfitApi } from "@/api/analysis";
-import { message } from "@/utils/message";
+import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
@@ -102,7 +102,7 @@ const getGrossProfit = async () => {
       grossTrend.value = data.trend || [];
     }
   } catch (error) {
-    console.error("获取毛利失败:", error);
+    handleApiError(error, "获取毛利失败");
   }
 };
 
@@ -118,7 +118,7 @@ const getNetProfit = async () => {
       netTrend.value = data.trend || [];
     }
   } catch (error) {
-    console.error("获取净利润失败:", error);
+    handleApiError(error, "获取净利润失败");
   }
 };
 
