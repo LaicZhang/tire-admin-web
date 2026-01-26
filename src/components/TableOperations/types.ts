@@ -1,18 +1,18 @@
 /** 自定义操作按钮配置 */
-export interface CustomAction {
+export interface CustomAction<T = Record<string, unknown>> {
   /** 按钮文本 */
   label: string;
   /** 按钮类型 */
   type?: "primary" | "success" | "warning" | "danger" | "info";
   /** 是否显示（可以是布尔值或返回布尔值的函数） */
-  visible?: boolean | ((row: Record<string, unknown>) => boolean);
+  visible?: boolean | ((row: T) => boolean);
   /** 点击事件处理 */
-  onClick: (row: Record<string, unknown>) => void;
+  onClick: (row: T) => void;
 }
 
-export interface TableOperationsProps {
+export interface TableOperationsProps<T = Record<string, unknown>> {
   /** 数据行对象 */
-  row: Record<string, unknown>;
+  row: T;
   /** 是否显示查看按钮 */
   showView?: boolean;
   /** 是否显示修改按钮 */
@@ -30,15 +30,16 @@ export interface TableOperationsProps {
   /** 审核字段名（用于控制审核按钮的显示） */
   approvedField?: string;
   /** 自定义操作按钮列表（在审核按钮之后、删除按钮之前渲染） */
-  customActions?: CustomAction[];
+  customActions?: CustomAction<T>[];
 }
 
-export interface TableOperationsEmits {
-  (e: "view", row: Record<string, unknown>): void;
-  (e: "edit", row: Record<string, unknown>): void;
-  (e: "audit", row: Record<string, unknown>): void;
-  (e: "delete", row: Record<string, unknown>): void;
+export interface TableOperationsEmits<T = Record<string, unknown>> {
+  (e: "view", row: T): void;
+  (e: "edit", row: T): void;
+  (e: "audit", row: T): void;
+  (e: "delete", row: T): void;
 }
 
 /** @deprecated Use TableOperationsProps with customActions instead */
-export type TableOperationsWithCustomizationProps = TableOperationsProps;
+export type TableOperationsWithCustomizationProps<T = Record<string, unknown>> =
+  TableOperationsProps<T>;

@@ -14,6 +14,19 @@ export interface OrderDetailBase {
   [key: string]: unknown;
 }
 
+/** 折扣相关字段 */
+interface OrderDetailDiscount {
+  discountRate?: number;
+  discountAmount?: number;
+}
+
+/** 物流相关字段 */
+interface OrderDetailShipping {
+  isArrival?: boolean;
+  isShipped?: boolean;
+  isDelivered?: boolean;
+}
+
 export interface OrderDetailTableProps<T extends OrderDetailBase> {
   details: T[];
   columns: TableColumnList;
@@ -50,25 +63,29 @@ const detailsModel = computed({
 });
 
 function onAddDetail() {
-  const newDetail = {
+  const baseDetail: OrderDetailBase = {
     tireId: "",
     count: 1,
     unitPrice: 0,
     total: 0,
     repoId: ""
-  } as T;
+  };
 
-  if (props.showDiscount) {
-    (newDetail as Record<string, unknown>).discountRate = 0;
-    (newDetail as Record<string, unknown>).discountAmount = 0;
-  }
-  if (props.showIsArrival) {
-    (newDetail as Record<string, unknown>).isArrival = false;
-  }
-  if (props.showIsShipped) {
-    (newDetail as Record<string, unknown>).isShipped = false;
-    (newDetail as Record<string, unknown>).isDelivered = false;
-  }
+  const discountFields: OrderDetailDiscount = props.showDiscount
+    ? { discountRate: 0, discountAmount: 0 }
+    : {};
+
+  const shippingFields: OrderDetailShipping = props.showIsArrival
+    ? { isArrival: false }
+    : props.showIsShipped
+      ? { isShipped: false, isDelivered: false }
+      : {};
+
+  const newDetail = {
+    ...baseDetail,
+    ...discountFields,
+    ...shippingFields
+  } as T;
 
   detailsModel.value.push(newDetail);
   emit("add");

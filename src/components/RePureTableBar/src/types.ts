@@ -1,13 +1,10 @@
 import type { PropType } from "vue";
 
 /** 表格 ref 类型定义 */
-export interface TableRefType {
+export interface TableRefType<T = Record<string, unknown>> {
   size?: string;
-  data?: Array<Record<string, unknown>>;
-  toggleRowExpansion: (
-    row: Record<string, unknown>,
-    expanded?: boolean
-  ) => void;
+  data?: Array<T>;
+  toggleRowExpansion: (row: T, expanded?: boolean) => void;
 }
 
 /** PureTableBar 组件 Props */
