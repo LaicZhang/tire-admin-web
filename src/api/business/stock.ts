@@ -27,11 +27,23 @@ export interface Bin extends BinDto {
   isLocked?: boolean;
 }
 
+/** 库区查询参数 */
+export interface ZoneQuery {
+  repoId?: string;
+  name?: string;
+  keyword?: string;
+}
+
+/** 货位查询参数 */
+export interface BinQuery {
+  zoneId?: string;
+  name?: string;
+  keyword?: string;
+  isLocked?: boolean;
+}
+
 /** 库区 API */
-export async function getRepoZoneListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+export async function getRepoZoneListApi(index: number, params?: ZoneQuery) {
   return await http.request<CommonResult<PaginatedResponseDto<Zone>>>(
     "get",
     baseUrlApi(prefix + "zone/" + index),
@@ -57,10 +69,7 @@ export async function deleteRepoZoneApi(id: string) {
 }
 
 /** 货位 API */
-export async function getRepoBinListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+export async function getRepoBinListApi(index: number, params?: BinQuery) {
   return await http.request<CommonResult<PaginatedResponseDto<Bin>>>(
     "get",
     baseUrlApi(prefix + "bin/" + index),

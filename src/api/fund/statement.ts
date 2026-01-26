@@ -44,9 +44,34 @@ export interface ContactDebt {
   advancePaid?: number;
 }
 
+/** 资金流水查询参数 */
+export interface FundFlowQueryDto {
+  startDate?: string;
+  endDate?: string;
+  paymentId?: string;
+  direction?: "IN" | "OUT";
+  billType?: string;
+  keyword?: string;
+}
+
+/** 账户余额查询参数 */
+export interface AccountBalanceQueryDto {
+  startDate?: string;
+  endDate?: string;
+  paymentId?: string;
+}
+
+/** 往来账款查询参数 */
+export interface ContactDebtQueryDto {
+  startDate?: string;
+  endDate?: string;
+  targetType?: "CUSTOMER" | "PROVIDER";
+  keyword?: string;
+}
+
 export async function getFundFlowListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: FundFlowQueryDto
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<FundFlow>>>(
     "get",
@@ -55,7 +80,7 @@ export async function getFundFlowListApi(
   );
 }
 
-export async function getAccountBalanceApi(params?: Record<string, unknown>) {
+export async function getAccountBalanceApi(params?: AccountBalanceQueryDto) {
   return await http.request<CommonResult<AccountBalance[]>>(
     "get",
     baseUrlApi("/statement/account-balance"),
@@ -65,7 +90,7 @@ export async function getAccountBalanceApi(params?: Record<string, unknown>) {
 
 export async function getContactDebtListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: ContactDebtQueryDto
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<ContactDebt>>>(
     "get",

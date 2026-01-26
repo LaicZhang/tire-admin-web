@@ -9,25 +9,56 @@ export interface TireQueryDto {
   group?: string;
 }
 
+/** 商品DTO - 创建/更新时使用 */
 export interface TireDto {
   name: string;
   number?: string;
   barCode?: string;
   group?: string;
   brand?: string;
+  pattern?: string;
+  loadIndex?: string;
+  speedLevel?: string;
+  format?: string;
+  weight?: number;
   price?: number;
   cost?: number;
+  purchasePriceWithTax?: number;
+  purchasePrice?: number;
+  salePriceWithTax?: number;
+  salePrice?: number;
+  unit?: string;
+  unitId?: string;
+  enableMultiUnit?: boolean;
+  commissionType?: number;
+  commission?: string;
   desc?: string;
 }
 
+/** 商品封面 */
+export interface TireCover {
+  id: number;
+  hash: string;
+  ext: string;
+}
+
+/** 单位换算关系 */
+export interface TireUnitConversion {
+  id: number;
+  uid: string;
+  sourceUnitId: string;
+  targetUnitId: string;
+  ratio: number;
+}
+
+/** 商品实体 - API返回时使用 */
 export interface Tire extends TireDto {
   uid: string;
   id: number;
-  covers?: Array<{
-    id: number;
-    hash: string;
-    ext: string;
-  }>;
+  covers?: TireCover[];
+  unitConversions?: TireUnitConversion[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export async function getTireListApi(index: number, params?: TireQueryDto) {

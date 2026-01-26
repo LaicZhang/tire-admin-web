@@ -89,6 +89,31 @@ export function createCrudApi<
 /**
  * 创建只读 API（不包含创建、更新、删除操作）
  * @param options 配置选项
+ * @returns 只读操作方法对象
+ *
+ * @example
+ * ```ts
+ * interface OperationLog {
+ *   uid: string;
+ *   action: string;
+ *   createdAt: Date;
+ * }
+ *
+ * interface OperationLogQuery {
+ *   action?: string;
+ *   startDate?: string;
+ *   endDate?: string;
+ * }
+ *
+ * const operationLogApi = createReadOnlyApi<OperationLog, OperationLogQuery>({
+ *   resource: 'operation-log',
+ *   prefix: '/setting/'
+ * });
+ *
+ * // 使用
+ * operationLogApi.list(1, { action: 'CREATE' });
+ * operationLogApi.get('uid-123');
+ * ```
  */
 export function createReadOnlyApi<TResponse, TQuery = Record<string, unknown>>(
   options: CrudApiOptions
@@ -99,6 +124,8 @@ export function createReadOnlyApi<TResponse, TQuery = Record<string, unknown>>(
   return {
     /**
      * 获取分页列表
+     * @param page 页码
+     * @param params 查询参数
      */
     list: (page: number, params?: TQuery) =>
       http.get<TQuery, CommonResult<PaginatedResponseDto<TResponse>>>(base, {
@@ -107,6 +134,7 @@ export function createReadOnlyApi<TResponse, TQuery = Record<string, unknown>>(
 
     /**
      * 获取单个资源
+     * @param uid 资源ID
      */
     get: (uid: string) =>
       http.get<void, CommonResult<TResponse>>(`${base}/${uid}`)

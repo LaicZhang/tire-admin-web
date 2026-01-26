@@ -55,6 +55,16 @@ export async function cancelLogisticApi(uid: string, type: string) {
   });
 }
 
+/** 物流订单查询参数 */
+export interface LogisticQueryDto {
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+  vehicleNo?: string;
+  driverName?: string;
+}
+
 // ============ 发运计划 ============
 
 /** 创建发运计划 */
@@ -73,7 +83,7 @@ export async function createShippingPlanApi(data: {
 /** 获取发运计划列表 */
 export async function getShippingPlanListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: LogisticQueryDto
 ) {
   return await http.request<CommonResult>(
     "get",
@@ -101,7 +111,7 @@ export async function createLoadingTaskApi(data: {
 /** 获取装车任务列表 */
 export async function getLoadingTaskListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: LogisticQueryDto
 ) {
   return await http.request<CommonResult>(
     "get",
@@ -110,10 +120,15 @@ export async function getLoadingTaskListApi(
   );
 }
 
-// ============ 发货波次 ============
+/** 创建发货波次 DTO */
+export interface CreateShippingWaveDto {
+  name?: string;
+  vehicleNo?: string;
+  orders: string[];
+}
 
 /** 创建发货波次 */
-export async function createShippingWaveApi(data: object) {
+export async function createShippingWaveApi(data: CreateShippingWaveDto) {
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(prefix + "shipping-wave"),
@@ -124,7 +139,7 @@ export async function createShippingWaveApi(data: object) {
 /** 获取发货波次列表 */
 export async function getShippingWaveListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: LogisticQueryDto
 ) {
   return await http.request<CommonResult>(
     "get",

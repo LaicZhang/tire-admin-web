@@ -15,13 +15,25 @@ const otherInboundPrefix = "/other-inbound-order/";
 const otherOutboundPrefix = "/other-outbound-order/";
 const inventoryDocumentPrefix = "/inventory-document/";
 
+/** 库存订单通用查询参数 */
+export interface InventoryOrderQueryDto {
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+  isApproved?: boolean;
+  repoId?: string;
+  tireId?: string;
+  operatorId?: string;
+  auditorId?: string;
+}
+
 // =========================
 // Disassembly Order
 // =========================
 
 export async function getDisassemblyOrderListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: InventoryOrderQueryDto
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<DisassemblyOrder>>
@@ -86,7 +98,7 @@ export async function createDisassemblyOrderFromBomApi(bomUid: string) {
 
 export async function getBomListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: InventoryOrderQueryDto
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<AssemblyOrder>>>(
     "get",
@@ -147,7 +159,7 @@ export async function createAssemblyOrderFromBomApi(bomUid: string) {
 
 export async function getCostRecalcTaskListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: InventoryOrderQueryDto
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<CostRecalcTask>>>(
     "get",
@@ -191,7 +203,7 @@ export async function deleteCostRecalcTaskApi(uid: string) {
 
 export async function getOtherInboundOrderListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: InventoryOrderQueryDto
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<OtherInboundOrder>>
@@ -242,7 +254,7 @@ export async function rejectOtherInboundOrderApi(uid: string, reason: string) {
 
 export async function getOtherOutboundOrderListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: InventoryOrderQueryDto
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<OtherOutboundOrder>>
@@ -293,7 +305,7 @@ export async function rejectOtherOutboundOrderApi(uid: string, reason: string) {
 
 export async function getInventoryDocumentListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: InventoryOrderQueryDto
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<InventoryDocument>>

@@ -37,7 +37,13 @@ export async function createStockAlertApi(data: StockAlertDto) {
   );
 }
 
-export async function getStockAlertListApi(params?: Record<string, unknown>) {
+/** 库存预警查询参数 */
+export interface StockAlertQuery {
+  tireId?: string;
+  keyword?: string;
+}
+
+export async function getStockAlertListApi(params?: StockAlertQuery) {
   return await http.request<CommonResult<StockAlert[]>>(
     "get",
     baseUrlApi(alertPrefix),
@@ -65,7 +71,13 @@ export async function createExpiryAlertApi(data: ExpiryAlertDto) {
   );
 }
 
-export async function getExpiryAlertListApi(params?: Record<string, unknown>) {
+/** 效期预警查询参数 */
+export interface ExpiryAlertQuery {
+  repoId?: string;
+  status?: string;
+}
+
+export async function getExpiryAlertListApi(params?: ExpiryAlertQuery) {
   return await http.request<CommonResult<PaginatedResponseDto<ExpiryAlert>>>(
     "get",
     baseUrlApi(expiryPrefix),

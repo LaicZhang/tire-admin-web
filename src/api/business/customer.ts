@@ -14,9 +14,36 @@ export interface CustomerQueryDto {
   regionId?: number;
 }
 
-/** 客户创建/更新 DTO */
+/** Prisma 关联连接类型 */
+interface PrismaConnect<T> {
+  connect?: T;
+  set?: T[];
+  disconnect?: T | T[];
+}
+
+/** 客户创建/更新输入数据 */
+export interface CustomerInputData {
+  name?: string;
+  phone?: string;
+  address?: string;
+  desc?: string;
+  from?: string;
+  isIndividual?: boolean;
+  creditLimit?: number;
+  initialBalance?: number;
+  /** Prisma 关联 - 公司 */
+  company?: PrismaConnect<{ uid: string }>;
+  /** Prisma 关联 - 等级 */
+  level?: PrismaConnect<{ id: number }>;
+  /** Prisma 关联 - 标签 */
+  tags?: PrismaConnect<{ id: number }> | { set: Array<{ id: number }> };
+}
+
+/** 客户创建/更新 DTO - 支持嵌套 customer 形式 */
 export interface CustomerDto {
-  name: string;
+  customer?: CustomerInputData;
+  // 兼容直接传递字段的形式
+  name?: string;
   phone?: string;
   address?: string;
   desc?: string;
@@ -25,11 +52,18 @@ export interface CustomerDto {
 }
 
 /** 客户实体 */
-export interface Customer extends CustomerDto {
+export interface Customer {
   id: number;
   uid: string;
+  name: string;
+  phone?: string;
+  address?: string;
+  desc?: string;
   tags?: Array<{ id: number; name: string }>;
-  level?: { name: string };
+  level?: { id?: number; name: string };
+  from?: string;
+  isIndividual?: boolean;
+  creditLimit?: number;
 }
 
 export async function getCustomerListApi(
@@ -43,7 +77,7 @@ export async function getCustomerListApi(
   );
 }
 
-export async function addCustomerApi(data: Record<string, unknown>) {
+export async function addCustomerApi(data: CustomerDto | CustomerInputData) {
   return await http.request<CommonResult<Customer>>(
     "post",
     baseUrlApi(prefix),
@@ -62,7 +96,7 @@ export async function getCustomerApi(uid: string) {
 
 export async function updateCustomerApi(
   uid: string,
-  data: Record<string, unknown>
+  data: Partial<CustomerDto> | CustomerInputData
 ) {
   return await http.request<CommonResult<Customer>>(
     "patch",

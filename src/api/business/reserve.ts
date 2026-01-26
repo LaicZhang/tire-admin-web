@@ -19,10 +19,15 @@ export interface Reserve extends ReserveDto {
   tire?: { name: string };
 }
 
-export async function getReserveListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+/** 库存查询参数 */
+export interface ReserveQuery {
+  repoId?: string;
+  tireId?: string;
+  batchNo?: string;
+  keyword?: string;
+}
+
+export async function getReserveListApi(index: number, params?: ReserveQuery) {
   return await http.request<CommonResult<PaginatedResponseDto<Reserve>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),

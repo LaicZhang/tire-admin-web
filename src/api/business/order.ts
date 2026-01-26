@@ -23,14 +23,91 @@ export interface OrderDetailDto {
   expiryDate?: string;
 }
 
+/** 订单基础信息 DTO */
+export interface BaseOrderDto {
+  /** UID */
+  uid?: string;
+  /** 供应商/客户ID */
+  providerId?: string;
+  customerId?: string;
+  /** 操作人ID */
+  operatorId?: string;
+  /** 审核人ID */
+  auditorId?: string;
+  /** 仓库管理员ID */
+  warehouseEmployeeId?: string;
+  /** 仓库ID */
+  repoId?: string;
+  fromRepositoryId?: string;
+  toRepositoryId?: string;
+  /** 描述 */
+  desc?: string;
+  /** 付款账户ID */
+  paymentId?: string;
+  /** 税率相关 */
+  taxRate?: number;
+  taxIncluded?: boolean;
+  /** 日期 */
+  expiryAt?: string;
+  /** 订单名称/备注 */
+  name?: string;
+  /** 状态 */
+  status?: boolean | string;
+  /** 总价 */
+  total?: number | string;
+  /** 数量 */
+  count?: number;
+  /** 费用 */
+  fee?: number;
+  /** 是否收款 */
+  isReceive?: boolean;
+  /** 其他可能的业务字段，为兼容性保留 */
+  [key: string]: unknown;
+}
+
+/** Prisma 关联连接类型 */
+interface PrismaConnect<T> {
+  connect?: T;
+}
+
 /** 创建订单请求 DTO */
 export interface CreateOrderDto {
-  order: Record<string, unknown>;
+  order: BaseOrderDto & {
+    /** Prisma 关联 - 供应商 */
+    provider?: PrismaConnect<{ uid: string | undefined }>;
+    /** Prisma 关联 - 客户 */
+    customer?: PrismaConnect<{ uid: string | undefined }>;
+    /** Prisma 关联 - 公司 */
+    company?: PrismaConnect<{ uid: string }>;
+    /** Prisma 关联 - 审核人 */
+    auditor?: PrismaConnect<{ uid: string }>;
+  };
   details: OrderDetailDto[];
 }
 
 /** 更新订单请求 DTO */
-export type UpdateOrderDto = Record<string, unknown>;
+export interface UpdateOrderDto extends Partial<BaseOrderDto> {
+  /** 订单状态 */
+  orderStatus?: number;
+  /** 物流状态 */
+  logisticsStatus?: number;
+  /** 是否锁定 */
+  isLocked?: boolean;
+  /** 是否已审批 */
+  isApproved?: boolean;
+  /** 驳回原因 */
+  rejectReason?: string;
+  /** 审批时间 */
+  auditAt?: string | Date | null;
+  /** Prisma 关联 - 公司 */
+  company?: PrismaConnect<{ uid: string }>;
+  /** Prisma 关联 - 供应商 */
+  provider?: PrismaConnect<{ uid: string }>;
+  /** Prisma 关联 - 客户 */
+  customer?: PrismaConnect<{ uid: string }>;
+  /** 其他可能的业务字段 */
+  [key: string]: unknown;
+}
 
 /** 订单查询参数 DTO */
 /** 支付订单请求 DTO */

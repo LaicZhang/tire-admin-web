@@ -19,9 +19,17 @@ export interface AssemblyOrder extends AssemblyOrderDto {
   uid: string;
 }
 
+/** 组装订单查询参数 */
+export interface AssemblyOrderQuery {
+  status?: string;
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export async function getAssemblyOrderListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: AssemblyOrderQuery
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<AssemblyOrder>>>(
     "get",

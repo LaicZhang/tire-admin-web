@@ -9,7 +9,8 @@ import {
   getOrderListApi,
   payPurchaseOrderApi,
   refundReturnOrderApi,
-  updateOrderApi
+  updateOrderApi,
+  type OrderQueryDto
 } from "./business/order";
 
 export const PURCHASE_ORDER_TYPE = "purchase-order" as const;
@@ -20,10 +21,7 @@ export const PURCHASE_INBOUND_ORDER_TYPE = "purchase-inbound" as const;
  */
 export const PURCHASE_RETURN_ORDER_TYPE = "return-order" as const;
 
-export function getPurchaseOrderListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+export function getPurchaseOrderListApi(index: number, params?: OrderQueryDto) {
   return getOrderListApi(PURCHASE_ORDER_TYPE, index, params);
 }
 
@@ -50,7 +48,7 @@ export function deletePurchaseOrderApi(uid: string) {
 
 export function getPurchaseInboundListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: OrderQueryDto
 ) {
   return getOrderListApi(PURCHASE_INBOUND_ORDER_TYPE, index, params);
 }
@@ -78,7 +76,7 @@ export function deletePurchaseInboundApi(uid: string) {
 
 export function getPurchaseReturnOrderListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: OrderQueryDto
 ) {
   return getOrderListApi(PURCHASE_RETURN_ORDER_TYPE, index, params);
 }

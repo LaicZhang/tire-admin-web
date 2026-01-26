@@ -30,10 +30,19 @@ export interface PurchaseInquiry extends PurchaseInquiryDto {
   uid: string;
 }
 
+/** 采购计划查询参数 */
+export interface PurchasePlanQuery {
+  providerId?: string;
+  status?: string;
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 /** 采购计划 API */
 export async function getPurchasePlanListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: PurchasePlanQuery
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<PurchasePlan>>>(
     "get",
@@ -72,10 +81,20 @@ export async function deletePurchasePlanApi(id: string) {
   );
 }
 
+/** 采购询价查询参数 */
+export interface PurchaseInquiryQuery {
+  providerId?: string;
+  status?: string;
+  inquiryNo?: string;
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 /** 采购询价 API */
 export async function getPurchaseInquiryListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: PurchaseInquiryQuery
 ) {
   return await http.request<
     CommonResult<PaginatedResponseDto<PurchaseInquiry>>

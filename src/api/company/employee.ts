@@ -48,7 +48,15 @@ export interface Employee {
   user?: EmployeeUserDto;
 }
 
-export async function getAllEmployeeApi(params?: Record<string, unknown>) {
+/** 员工查询参数 */
+export interface EmployeeQueryDto {
+  keyword?: string;
+  name?: string;
+  status?: number;
+  jobId?: number;
+}
+
+export async function getAllEmployeeApi(params?: EmployeeQueryDto) {
   return await http.request<CommonResult<Employee[]>>(
     "get",
     baseUrlApi(prefix),
@@ -60,7 +68,7 @@ export async function getAllEmployeeApi(params?: Record<string, unknown>) {
 
 export async function getEmployeeListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: EmployeeQueryDto
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<Employee>>>(
     "get",
@@ -100,6 +108,20 @@ export async function deleteEmployeeApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + uid)
+  );
+}
+
+export async function restoreEmployeeApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(prefix + uid + "/restore")
+  );
+}
+
+export async function layoffEmployeeApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(prefix + uid + "/layoff")
   );
 }
 

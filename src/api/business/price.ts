@@ -15,9 +15,15 @@ export interface PriceList extends PriceListDto {
   uid: string;
 }
 
+/** 价格表查询参数 */
+export interface PriceListQuery {
+  name?: string;
+  keyword?: string;
+}
+
 export async function getPriceListListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: PriceListQuery
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<PriceList>>>(
     "get",

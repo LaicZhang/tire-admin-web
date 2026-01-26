@@ -7,17 +7,15 @@ import {
   getOrderListApi,
   paySaleOrderApi,
   refundReturnOrderApi,
-  updateOrderApi
+  updateOrderApi,
+  type OrderQueryDto
 } from "./business/order";
 
 export const SALES_ORDER_TYPE = "sale-order" as const;
 export const SALES_RETURN_ORDER_TYPE = "return-order" as const;
 export const SALES_OUTBOUND_ORDER_TYPE = "sale-outbound" as const;
 
-export function getSalesOrderListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+export function getSalesOrderListApi(index: number, params?: OrderQueryDto) {
   return getOrderListApi(SALES_ORDER_TYPE, index, params);
 }
 
@@ -38,7 +36,7 @@ export function deleteSalesOrderApi(uid: string) {
 
 export function getSalesReturnOrderListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: OrderQueryDto
 ) {
   return getOrderListApi(SALES_RETURN_ORDER_TYPE, index, params);
 }
@@ -60,10 +58,7 @@ export function deleteSalesReturnOrderApi(uid: string) {
   return deleteOrderApi(SALES_RETURN_ORDER_TYPE, uid);
 }
 
-export function getSalesOutboundListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+export function getSalesOutboundListApi(index: number, params?: OrderQueryDto) {
   return getOrderListApi(SALES_OUTBOUND_ORDER_TYPE, index, params);
 }
 

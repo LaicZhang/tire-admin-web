@@ -4,15 +4,27 @@ import type { CommonResult } from "../type";
 
 const prefix = "/setting/";
 
+/** 系统设置项 */
+export interface SettingItem {
+  id?: number;
+  uid?: string;
+  key: string;
+  value: string;
+  group: string;
+}
+
 export async function getSettingListApi(index: number) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<SettingItem[]>>(
     "get",
     baseUrlApi(prefix + "page/" + index)
   );
 }
 
 export async function getSettingGroupApi() {
-  return await http.request<CommonResult>("get", baseUrlApi(prefix + "list"));
+  return await http.request<CommonResult<SettingItem[]>>(
+    "get",
+    baseUrlApi(prefix + "list")
+  );
 }
 
 export async function addSettingApi(data: {
