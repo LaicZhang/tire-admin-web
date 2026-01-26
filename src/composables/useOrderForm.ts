@@ -17,6 +17,28 @@ export interface OrderDetailBase {
   [key: string]: unknown;
 }
 
+/** 折扣相关字段 */
+export interface OrderDetailDiscount {
+  discountRate?: number;
+  discountAmount?: number;
+}
+
+/** 物流相关字段 */
+export interface OrderDetailShipping {
+  isArrival?: boolean;
+  isShipped?: boolean;
+  isDelivered?: boolean;
+}
+
+/** 订单表单数据结构 */
+export interface OrderFormData<T extends OrderDetailBase> {
+  count?: number;
+  total?: number;
+  showTotal?: number;
+  details: T[];
+  [key: string]: unknown;
+}
+
 export interface OrderFormOptions<T extends OrderDetailBase> {
   /** 表单数据 */
   formData: T;
@@ -99,52 +121,52 @@ export function useOrderForm<T extends OrderDetailBase>(
     }
   }
 
-  function onAddDetail(defaultFields?: Record<string, unknown>) {
-    const newDetail: T = {
+  function onAddDetail(defaultFields?: Partial<T>) {
+    const baseDetail: OrderDetailBase = {
       tireId: "",
       count: 1,
       unitPrice: 0,
       total: 0,
-      repoId: "",
+      repoId: ""
+    };
+
+    const discountFields: OrderDetailDiscount = showDiscount
+      ? { discountRate: 0, discountAmount: 0 }
+      : {};
+
+    const shippingFields: OrderDetailShipping = showArrivalOrShipped
+      ? mainDataType === "provider"
+        ? { isArrival: false }
+        : { isShipped: false, isDelivered: false }
+      : {};
+
+    const newDetail = {
+      ...baseDetail,
+      ...discountFields,
+      ...shippingFields,
       ...defaultFields
     } as T;
 
-    if (showDiscount) {
-      (newDetail as Record<string, unknown>).discountRate = 0;
-      (newDetail as Record<string, unknown>).discountAmount = 0;
-    }
-    if (showArrivalOrShipped) {
-      if (mainDataType === "provider") {
-        (newDetail as Record<string, unknown>).isArrival = false;
-      } else {
-        (newDetail as Record<string, unknown>).isShipped = false;
-        (newDetail as Record<string, unknown>).isDelivered = false;
-      }
-    }
-
-    (formData as unknown as { details: T[] }).details.push(newDetail);
+    (formData as unknown as OrderFormData<T>).details.push(newDetail);
     return newDetail;
   }
 
   function onDeleteDetail(index: number) {
-    const details = (formData as unknown as { details: T[] }).details;
+    const details = (formData as unknown as OrderFormData<T>).details;
     const _detail = details[index];
     recalcOrderTotal();
     details.splice(index, 1);
   }
 
-  function calcDetailTotal(row: T) {
+  function calcDetailTotal(row: T & OrderDetailDiscount) {
     const count = row.count || 0;
     const unitPrice = row.unitPrice || 0;
 
     if (showDiscount) {
-      const discountRate =
-        ((row as Record<string, unknown>).discountRate as number) || 0;
+      const discountRate = row.discountRate || 0;
       const baseTotal = count * unitPrice;
-      (row as Record<string, unknown>).discountAmount =
-        baseTotal * (discountRate / 100);
-      row.total =
-        baseTotal - ((row as Record<string, unknown>).discountAmount as number);
+      row.discountAmount = baseTotal * (discountRate / 100);
+      row.total = baseTotal - (row.discountAmount || 0);
     } else {
       row.total = count * unitPrice;
     }
@@ -153,18 +175,19 @@ export function useOrderForm<T extends OrderDetailBase>(
   }
 
   function recalcOrderTotal() {
-    const details = (formData as unknown as { details: T[] }).details;
+    const orderData = formData as unknown as OrderFormData<T>;
+    const details = orderData.details;
     let totalCount = 0;
     let totalAmount = 0;
 
-    details.forEach(_d => {
+    details.forEach(d => {
       totalCount += d.count || 0;
       totalAmount += d.total || 0;
     });
 
-    formData.count = totalCount;
-    formData.total = totalAmount;
-    (formData as unknown as { showTotal: number }).showTotal = totalAmount;
+    orderData.count = totalCount;
+    orderData.total = totalAmount;
+    orderData.showTotal = totalAmount;
   }
 
   function getRef() {

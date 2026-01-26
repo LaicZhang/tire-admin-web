@@ -160,6 +160,17 @@ export const appendFieldByUniqueId = <T extends TreeNode>(
 };
 
 /**
+ * 基础树数据项接口，用于 handleTree 函数
+ * 该接口约束输入数据必须具有可标识的 id 和 parentId 字段
+ */
+export interface TreeDataItem {
+  id?: string | number;
+  parentId?: string | number | null;
+  children?: TreeDataItem[];
+  [key: string]: unknown;
+}
+
+/**
  * @description 构造树型结构数据
  * @param data 数据源
  * @param id id字段 默认id
@@ -167,7 +178,7 @@ export const appendFieldByUniqueId = <T extends TreeNode>(
  * @param children 子节点字段，默认children
  * @returns 追加字段后的树
  */
-export const handleTree = <T extends Record<string, unknown>>(
+export const handleTree = <T extends TreeDataItem>(
   data: T[],
   id?: string,
   parentId?: string,

@@ -57,18 +57,27 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
  * 物流状态枚举
  */
 export enum LogisticsStatus {
-  NOT_SHIPPED = 0,
-  SHIPPED = 1,
-  DELIVERED = 2
+  /** 待发货 */
+  Pending = 0,
+  /** 部分发货 */
+  PartialShipped = 1,
+  /** 已全部发货/运输中 */
+  Shipped = 2,
+  /** 已送达/已到货 */
+  Delivered = 3,
+  /** 已取消 */
+  Cancelled = 4
 }
 
 /**
  * 物流状态显示名称
  */
 export const LOGISTICS_STATUS_LABELS: Record<LogisticsStatus, string> = {
-  [LogisticsStatus.NOT_SHIPPED]: "未发货",
-  [LogisticsStatus.SHIPPED]: "已发货",
-  [LogisticsStatus.DELIVERED]: "已送达"
+  [LogisticsStatus.Pending]: "待发货",
+  [LogisticsStatus.PartialShipped]: "部分发货",
+  [LogisticsStatus.Shipped]: "已发货",
+  [LogisticsStatus.Delivered]: "已送达",
+  [LogisticsStatus.Cancelled]: "已取消"
 };
 
 /**
