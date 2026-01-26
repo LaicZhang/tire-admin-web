@@ -1,30 +1,30 @@
 # AGENTS.md
 
-本文件是面向在本仓库中协作的智能编码代理（Agents）的工作手册与约束。其作用域为整个仓库，针对代码风格、目录约定、运行与构建、常见开发任务模板、安全与提交规范等给出明确指导。请严格遵守本文件与直接来自用户/对话中的指令；如有冲突，以用户/对话中的直接指令为准。
+This document is a workbook and constraints for intelligent coding agents (Agents) collaborating in the repository. It covers the entire repository and provides clear guidance on code style, directory conventions, running and building, templates for common development tasks, security and commit specifications. Please strictly follow this document and the direct instructions from the user/dialog; in case of conflict, the direct instructions from the user/dialog will prevail.
 
 ---
 
-## 0. 代码设计
+## 0. Code Design
 
-- 不要过度设计，遵循KISS原则和轻量化原则
-- 优先使用技术栈中的组件，如果不能完成则按照你的建议选择自行实现或使用第三方库
-- 优先复用已有代码，避免重复开发
-- 不要在一个文件里添加太多内容，保持文件简洁
+- Do not over-design, follow the KISS principle and lightweight principle
+- Prioritize using components in the technology stack, if they cannot complete the task, choose to implement it yourself or use third-party libraries according to your suggestions
+- Prioritize reusing existing code to avoid duplicate development
+- Do not add too much content in one file, keep the file concise
 - Pre-implementation confidence assessment (≥90% required). Use before starting any implementation to verify readiness with duplicate check, architecture compliance, official docs verification, OSS references, and root cause identification
 
 ---
 
-## 1. 项目概览
+## 1. Project Overview
 
-- 应用类型：轮胎贸易行业的库存与订单管理后台（SPA）
-- 技术栈：
-  - 前端：Vue 3、TypeScript、Vite、Pinia、Vue Router、Element Plus、Tailwind CSS、ECharts、Axios
-  - 工具链：ESLint 9（Antfu 配置为主）、Stylelint、Prettier、Husky + lint-staged、Commitlint、SVGO、Rollup 可视化、Vite 插件体系
-- 运行环境：Node 20.19+ / 22.13+ / 24+，pnpm ≥ 10（通过 only-allow 强制）
-- 包管理：`pnpm`（必须）
-- 生产部署：静态站点（可通过 Docker + Nginx、Vercel、对象存储/云托管等方式），HTML5 History 通过 `vercel.json` 重写到 `index.html`
+- Application type: Inventory and order management backend for the tire trade industry (SPA)
+- Technology stack:
+  - Frontend: Vue 3, TypeScript, Vite, Pinia, Vue Router, Element Plus, Tailwind CSS, ECharts, Axios
+  - Toolchain: ESLint 9 (Antfu configuration为主), Stylelint, Prettier, Husky + lint-staged, Commitlint, SVGO, Rollup visualization, Vite plugin system
+- Runtime environment: Node 20.19+ / 22.13+ / 24+, pnpm ≥ 10 (enforced by only-allow)
+- Package management: `pnpm` (required)
+- Production deployment: Static site (can be deployed via Docker + Nginx, Vercel, object storage/cloud hosting, etc.), HTML5 History rewritten to `index.html` via `vercel.json`
 
-参考文件：
+Reference files:
 
 - package.json:1
 - vite.config.ts:1
@@ -32,19 +32,19 @@
 
 ---
 
-## 2. 快速开始
+## 2. Quick Start
 
-- 前置要求：
-  - 安装 Node 与 pnpm；推荐使用 Corepack 管理 pnpm 版本：
+- Prerequisites:
+  - Install Node and pnpm; it is recommended to use Corepack to manage pnpm version:
     - `corepack enable && corepack prepare pnpm@10 --activate`
-  - 确保 Node 与 pnpm 版本满足 package.json:engines 要求
+  - Ensure that the Node and pnpm versions meet the requirements of package.json:engines
 
-- 安装依赖：
+- Install dependencies:
   - `pnpm i`
 
-- 本地开发：
+- Local development:
   - `pnpm dev`
-  - 默认端口通过 `.env.*` 的 `VITE_PORT` 控制（默认 8848），开放 `0.0.0.0` 监听
+  - The default port is controlled by `VITE_PORT` in `.env.*` (default 8848), and `0.0.0.0` is opened for listening
   - 开发代理：`/api` → `VITE_PROXY_TARGET`（未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
 
 - 类型检查与规范：

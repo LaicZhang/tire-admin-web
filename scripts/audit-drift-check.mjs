@@ -2,9 +2,17 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const projectRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  ".."
+);
 const eslintConfigPath = path.join(projectRoot, "eslint.config.js");
-const summaryPath = path.join(projectRoot, "docs", "audit-list", "00-summary.md");
+const summaryPath = path.join(
+  projectRoot,
+  "docs",
+  "audit-list",
+  "00-summary.md"
+);
 
 function normalizeRuleValue(value) {
   if (Array.isArray(value)) return normalizeRuleValue(value[0]);
@@ -17,7 +25,12 @@ function normalizeRuleValue(value) {
 function findLastRuleValue(configs, ruleName) {
   let found;
   for (const cfg of configs) {
-    if (cfg && typeof cfg === "object" && cfg.rules && cfg.rules[ruleName] !== undefined) {
+    if (
+      cfg &&
+      typeof cfg === "object" &&
+      cfg.rules &&
+      cfg.rules[ruleName] !== undefined
+    ) {
       found = cfg.rules[ruleName];
     }
   }
