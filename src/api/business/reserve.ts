@@ -25,6 +25,8 @@ export interface ReserveQuery {
   tireId?: string;
   batchNo?: string;
   keyword?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export async function getReserveListApi(index: number, params?: ReserveQuery) {

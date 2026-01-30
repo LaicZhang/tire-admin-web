@@ -33,23 +33,19 @@ export function useColumns() {
       label: "状态",
       prop: "status",
       minWidth: 100,
-      cellRenderer: (data: TableColumnRenderer) => (
-        <el-tag
-          size={data.props?.size}
-          type={
-            data.row?.status === true ||
-            (data.row as CompanyRoleItem)?.status === 1
-              ? "success"
-              : "danger"
-          }
-          effect="plain"
-        >
-          {data.row?.status === true ||
-          (data.row as CompanyRoleItem)?.status === 1
-            ? "启用"
-            : "禁用"}
-        </el-tag>
-      )
+      cellRenderer: (data: TableColumnRenderer) => {
+        const row = data.row as CompanyRoleItem | undefined;
+        const isActive = Boolean(row?.status);
+        return (
+          <el-tag
+            size={data.props?.size}
+            type={isActive ? "success" : "danger"}
+            effect="plain"
+          >
+            {isActive ? "启用" : "禁用"}
+          </el-tag>
+        );
+      }
     },
     {
       label: "删除时间",

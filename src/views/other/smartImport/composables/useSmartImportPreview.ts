@@ -141,7 +141,7 @@ export function useSmartImportPreview() {
         message(res.msg || "生成预览失败", { type: "error" });
         return;
       }
-      previewData.value = res.data?.rows || [];
+      previewData.value = (res.data?.rows as ImportDataRow[]) || [];
       if (previewData.value.length === 0) {
         message("未生成预览数据（可能没有有效数据行）", { type: "warning" });
         return;

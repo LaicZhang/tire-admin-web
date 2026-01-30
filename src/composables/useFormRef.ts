@@ -1,5 +1,5 @@
 import { type Ref, unref } from "vue";
-import type { FormInstance, FormRules } from "element-plus";
+import type { FormInstance } from "element-plus";
 
 /**
  * Element Plus 表单引用封装
@@ -44,13 +44,13 @@ export function useFormRef<T extends FormInstance = FormInstance>(
   /**
    * 验证单个字段
    */
-  async function validateField(
-    prop: string | string[],
-    rules?: FormRules | FormRules[]
-  ): Promise<boolean> {
+  async function validateField(prop: string | string[]): Promise<boolean> {
     const instance = getInstance();
     if (!instance) return false;
-    return instance.validateField(prop, rules).then((valid: boolean) => valid);
+    return instance
+      .validateField(prop)
+      .then(() => true)
+      .catch(() => false);
   }
 
   /**
@@ -80,9 +80,11 @@ export function useFormRef<T extends FormInstance = FormInstance>(
   /**
    * 获取表单数据
    */
-  function getFormData<T = Record<string, unknown>>(): T {
+  function getFormData<T = Record<string, unknown>>():
+    | T
+    | Record<string, never> {
     const instance = getInstance();
-    return (instance?.model as T) || {};
+    return (instance?.model as T) ?? {};
   }
 
   /**
