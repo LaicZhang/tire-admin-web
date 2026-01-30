@@ -70,7 +70,7 @@
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.19",
     "echarts": "^6.0.0",
-    "element-plus": "^2.13.1",
+    "element-plus": "^2.13.2",
     "idb-keyval": "^6.2.2",
     "js-cookie": "^3.0.5",
     "localforage": "^1.10.0",
