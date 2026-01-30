@@ -1,10 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { ImportExportTask, ExportParams } from "@/types/importExport";
 
-interface Task {
-  uid: string;
-  type: string;
-  status?: string;
-  [key: string]: unknown;
+// Helper to create mock tasks with minimal required fields
+function createMockTask(
+  overrides: Partial<ImportExportTask> & {
+    uid: string;
+    type: "import" | "export";
+  }
+): ImportExportTask {
+  return {
+    id: 1,
+    module: "test",
+    fileName: "test.xlsx",
+    status: "pending",
+    createdAt: new Date().toISOString(),
+    ...overrides
+  };
 }
 
 // Mock Vue lifecycle hooks
@@ -87,7 +98,9 @@ describe("useImportExport", () => {
 
     it("should write and read tasks", () => {
       const { writeTasks, readTasks } = useImportExportTask();
-      const tasks: Task[] = [{ uid: "1", type: "import", status: "completed" }];
+      const tasks: ImportExportTask[] = [
+        createMockTask({ uid: "1", type: "import", status: "success" })
+      ];
 
       writeTasks(tasks);
       expect(readTasks()).toEqual(tasks);
@@ -96,8 +109,8 @@ describe("useImportExport", () => {
     it("should push task to the beginning", () => {
       const { pushTask, readTasks } = useImportExportTask();
 
-      pushTask({ uid: "1", type: "import" } as Task);
-      pushTask({ uid: "2", type: "export" } as Task);
+      pushTask(createMockTask({ uid: "1", type: "import" }));
+      pushTask(createMockTask({ uid: "2", type: "export" }));
 
       const tasks = readTasks();
       expect(tasks[0].uid).toBe("2");
@@ -108,7 +121,7 @@ describe("useImportExport", () => {
       const { pushTask, readTasks } = useImportExportTask();
 
       for (let i = 0; i < 210; i++) {
-        pushTask({ uid: String(i), type: "import" } as Task);
+        pushTask(createMockTask({ uid: String(i), type: "import" }));
       }
 
       const tasks = readTasks();
@@ -118,8 +131,8 @@ describe("useImportExport", () => {
     it("should delete task by uid", () => {
       const { pushTask, deleteTask, readTasks } = useImportExportTask();
 
-      pushTask({ uid: "1", type: "import" } as Task);
-      pushTask({ uid: "2", type: "export" } as Task);
+      pushTask(createMockTask({ uid: "1", type: "import" }));
+      pushTask(createMockTask({ uid: "2", type: "export" }));
 
       deleteTask("1");
 
@@ -131,7 +144,7 @@ describe("useImportExport", () => {
     it("should load tasks into taskList ref", () => {
       const { pushTask, loadTasks, taskList } = useImportExportTask();
 
-      pushTask({ uid: "1", type: "import" } as Task);
+      pushTask(createMockTask({ uid: "1", type: "import" }));
       loadTasks();
 
       expect(taskList.value.length).toBe(1);
@@ -149,7 +162,7 @@ describe("useImportExport", () => {
       const customKey = "custom:tasks";
       const { writeTasks } = useImportExportTask(customKey);
 
-      writeTasks([{ uid: "1" }] as Task[]);
+      writeTasks([createMockTask({ uid: "1", type: "import" })]);
 
       expect(localStorage.getItem(customKey)).toBeTruthy();
     });
@@ -313,7 +326,9 @@ describe("useImportExport", () => {
         const mockBlob = new Blob(["data"]);
         const mockApi = vi.fn().mockResolvedValue(mockBlob);
 
-        await handleSyncExport(mockApi, { filter: "test" });
+        await handleSyncExport(mockApi, {
+          filters: { test: true }
+        } as ExportParams);
 
         expect(mockApi).toHaveBeenCalledWith("product", { filter: "test" });
         expect(downloadBlob).toHaveBeenCalledWith(

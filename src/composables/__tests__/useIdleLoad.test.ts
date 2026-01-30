@@ -28,9 +28,10 @@ function mockNoIdleCallback() {
     hasCancel: "cancelIdleCallback" in window
   };
 
-  delete (window as Window & typeof globalThis).requestIdleCallback;
-
-  delete (window as Window & typeof globalThis).cancelIdleCallback;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete (window as any).requestIdleCallback;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete (window as any).cancelIdleCallback;
 
   return () => {
     if (original.hasRequest) {
@@ -240,9 +241,15 @@ describe("useIdleLoadBatch", () => {
     it("should execute tasks sequentially", async () => {
       const executionOrder: number[] = [];
       const tasks = [
-        vi.fn(() => executionOrder.push(1)),
-        vi.fn(() => executionOrder.push(2)),
-        vi.fn(() => executionOrder.push(3))
+        vi.fn(() => {
+          executionOrder.push(1);
+        }),
+        vi.fn(() => {
+          executionOrder.push(2);
+        }),
+        vi.fn(() => {
+          executionOrder.push(3);
+        })
       ];
 
       useIdleLoadBatch(tasks);

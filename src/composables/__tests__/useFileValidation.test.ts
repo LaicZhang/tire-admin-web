@@ -10,10 +10,21 @@ import {
   FileTypePresets,
   type FileTypeConfig
 } from "../useFileValidation";
+import type { UploadFile, UploadRawFile } from "element-plus";
 
-interface UploadFile {
-  raw: File;
-  [key: string]: unknown;
+// Helper to create a mock UploadRawFile from a File
+function createMockRawFile(file: File): UploadRawFile {
+  return Object.assign(file, { uid: Date.now() }) as UploadRawFile;
+}
+
+// Helper to create a mock UploadFile
+function createMockUploadFile(file: File): UploadFile {
+  return {
+    name: file.name,
+    status: "ready",
+    uid: Date.now(),
+    raw: createMockRawFile(file)
+  };
 }
 
 // Mock message function
@@ -212,7 +223,7 @@ describe("useFileValidation", () => {
       const file = new File(["content"], "test.xlsx", {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       });
-      expect(validator(file)).toBe(true);
+      expect(validator(createMockRawFile(file))).toBe(true);
     });
 
     it("should return false for invalid files", () => {
@@ -220,7 +231,7 @@ describe("useFileValidation", () => {
       const file = new File(["content"], "test.txt", {
         type: "text/plain"
       });
-      expect(validator(file)).toBe(false);
+      expect(validator(createMockRawFile(file))).toBe(false);
     });
   });
 
@@ -233,11 +244,11 @@ describe("useFileValidation", () => {
     it("should call onValid callback for valid files", () => {
       const onValid = vi.fn();
       const handler = createUploadChangeHandler(FileTypePresets.excel, onValid);
-      const uploadFile: UploadFile = {
-        raw: new File(["content"], "test.xlsx", {
+      const uploadFile = createMockUploadFile(
+        new File(["content"], "test.xlsx", {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         })
-      };
+      );
       handler(uploadFile);
       expect(onValid).toHaveBeenCalledWith(uploadFile);
     });
@@ -245,9 +256,9 @@ describe("useFileValidation", () => {
     it("should not call onValid callback for invalid files", () => {
       const onValid = vi.fn();
       const handler = createUploadChangeHandler(FileTypePresets.excel, onValid);
-      const uploadFile: UploadFile = {
-        raw: new File(["content"], "test.txt", { type: "text/plain" })
-      };
+      const uploadFile = createMockUploadFile(
+        new File(["content"], "test.txt", { type: "text/plain" })
+      );
       handler(uploadFile);
       expect(onValid).not.toHaveBeenCalled();
     });
@@ -255,7 +266,7 @@ describe("useFileValidation", () => {
     it("should handle uploadFile without raw", () => {
       const onValid = vi.fn();
       const handler = createUploadChangeHandler(FileTypePresets.excel, onValid);
-      handler({} as UploadFile);
+      handler({ name: "test", status: "ready", uid: Date.now() } as UploadFile);
       expect(onValid).not.toHaveBeenCalled();
     });
   });

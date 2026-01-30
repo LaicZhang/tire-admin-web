@@ -47,7 +47,7 @@ describe("useLoginForm", () => {
     const { handleGithubLogin, githubLoading } = useLoginForm();
 
     // Capture message handler
-    let messageHandler: (event: MessageEvent) => void;
+    let messageHandler: ((event: MessageEvent) => void) | undefined;
     vi.mocked(window.addEventListener).mockImplementation((event, handler) => {
       if (event === "message")
         messageHandler = handler as (event: MessageEvent) => void;
@@ -58,9 +58,9 @@ describe("useLoginForm", () => {
     expect(messageHandler).toBeDefined();
 
     // Simulate success message
-    messageHandler({
-      data: { accessToken: "token" } as { accessToken: string }
-    });
+    messageHandler!({
+      data: { accessToken: "token" }
+    } as MessageEvent);
 
     const result = await promise;
     expect(result).toEqual({ accessToken: "token" });
@@ -70,7 +70,7 @@ describe("useLoginForm", () => {
   it("handleGithubLogin rejects on error message", async () => {
     const { handleGithubLogin, githubLoading } = useLoginForm();
 
-    let messageHandler: (event: MessageEvent) => void;
+    let messageHandler: ((event: MessageEvent) => void) | undefined;
     vi.mocked(window.addEventListener).mockImplementation((event, handler) => {
       if (event === "message")
         messageHandler = handler as (event: MessageEvent) => void;
@@ -78,7 +78,7 @@ describe("useLoginForm", () => {
 
     const promise = handleGithubLogin();
 
-    messageHandler({ data: { error: "Access denied" } as { error: string } });
+    messageHandler!({ data: { error: "Access denied" } } as MessageEvent);
 
     await expect(promise).rejects.toThrow("Access denied");
     expect(githubLoading.value).toBe(false);
