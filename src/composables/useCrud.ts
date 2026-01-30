@@ -1,4 +1,7 @@
 import { ref, shallowRef, onUnmounted, toValue, type Ref, watch } from "vue";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("useCrud");
 
 export interface Pagination {
   currentPage: number;
@@ -148,7 +151,7 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
       const isAbortError =
         error instanceof Error && error.name === "AbortError";
       if (!isAbortError) {
-        console.error("fetchData error:", error);
+        logger.error("fetchData error:", error);
         dataList.value = [];
       }
     } finally {
@@ -163,7 +166,7 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
       await deleteApi(id);
       await fetchData();
     } catch (error) {
-      console.error("handleDelete error:", error);
+      logger.error("handleDelete error:", error);
     }
   };
 

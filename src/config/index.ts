@@ -1,5 +1,8 @@
 import type { App } from "vue";
 import axios from "axios";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("Config");
 
 const PLATFORM_CONFIG_CACHE_KEY = "__platform_config__";
 const DEFAULT_PLATFORM_CONFIG: PlatformConfigs = {
@@ -102,8 +105,8 @@ export const getPlatformConfig = async (app: App): Promise<PlatformConfigs> => {
     }
     return $config;
   } catch (error) {
-    console.warn(
-      "[Config] platform-config.json load failed, falling back to defaults/cache:",
+    logger.warn(
+      "platform-config.json load failed, falling back to defaults/cache:",
       error
     );
     return getConfig();

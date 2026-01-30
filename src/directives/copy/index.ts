@@ -1,7 +1,10 @@
 import { message } from "@/utils/message";
+import { createLogger } from "@/utils/logger";
 import { useEventListener } from "@vueuse/core";
 import { copyTextToClipboard } from "@pureadmin/utils";
 import type { Directive, DirectiveBinding } from "vue";
+
+const logger = createLogger("Directive:copy");
 
 interface CopyEl extends HTMLElement {
   copyValue: string;
@@ -21,8 +24,8 @@ export const copy: Directive = {
           ? message("复制成功", { type: "success" })
           : message("复制失败", { type: "error" });
       });
-    } else if (import.meta.env.DEV) {
-      console.warn('[Directive: copy]: need value! Like v-copy="modelValue"');
+    } else {
+      logger.warn('need value! Like v-copy="modelValue"');
     }
   },
   updated(el: CopyEl, binding: DirectiveBinding) {

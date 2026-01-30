@@ -1,5 +1,8 @@
 import { hasAuth } from "@/router/utils";
+import { createLogger } from "@/utils/logger";
 import type { Directive, DirectiveBinding } from "vue";
+
+const logger = createLogger("Directive:auth");
 
 /**
  * 权限控制指令
@@ -36,9 +39,7 @@ function checkAuth(el: HTMLElement, binding: DirectiveBinding) {
     } else {
       el.style.display = "";
     }
-  } else if (import.meta.env.DEV) {
-    console.warn(
-      "[Directive: auth]: need auths! Like v-auth=\"['btn.add','btn.edit']\""
-    );
+  } else {
+    logger.warn("need auths! Like v-auth=\"['btn.add','btn.edit']\"");
   }
 }

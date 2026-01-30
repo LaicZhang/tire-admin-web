@@ -1,4 +1,7 @@
+import { createLogger } from "@/utils/logger";
 import type { Directive, DirectiveBinding } from "vue";
+
+const logger = createLogger("Directive:lazy");
 
 export interface LazyImageOptions {
   /** 加载中的占位图 */
@@ -44,12 +47,12 @@ export const lazy: Directive<HTMLImageElement> = {
       src = value.src;
       options = value;
     } else {
-      console.warn("[Directive: lazy]: value must be a string or object");
+      logger.warn("value must be a string or object");
       return;
     }
 
     if (!src) {
-      console.warn("[Directive: lazy]: src is required");
+      logger.warn("src is required");
       return;
     }
 
