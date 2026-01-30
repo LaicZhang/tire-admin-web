@@ -111,7 +111,7 @@ async function handleDelete(row: WriteOffOrder) {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(e, "删除失败");
     }
   }
 }
@@ -134,7 +134,7 @@ async function handleBatchDelete() {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("批量删除失败");
+      handleApiError(e, "批量删除失败");
     }
   }
 }
@@ -149,7 +149,7 @@ async function handleApprove(row: WriteOffOrder) {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("审核失败");
+      handleApiError(e, "审核失败");
     }
   }
 }
@@ -164,7 +164,7 @@ async function handleReject(row: WriteOffOrder) {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(e, "操作失败");
     }
   }
 }

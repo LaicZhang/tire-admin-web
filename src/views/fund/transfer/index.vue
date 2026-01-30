@@ -124,7 +124,7 @@ async function handleDelete(row: Transfer) {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(e, "删除失败");
     }
   }
 }
@@ -147,7 +147,7 @@ async function handleBatchDelete() {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("批量删除失败");
+      handleApiError(e, "批量删除失败");
     }
   }
 }
@@ -162,7 +162,7 @@ async function handleApprove(row: Transfer) {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("审核失败");
+      handleApiError(e, "审核失败");
     }
   }
 }
