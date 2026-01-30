@@ -8,6 +8,7 @@ import {
   updateInventoryCheckDetailsApi
 } from "@/api/business/inventory-check";
 import { ElMessageBox } from "element-plus";
+import { handleApiError } from "@/utils";
 
 interface Props {
   formInline: {
@@ -40,7 +41,7 @@ const loadDetails = async () => {
       detailList.value = (data.details || []) as StocktakingDetail[];
     }
   } catch (error) {
-    ElMessage.error("获取盘点明细失败");
+    handleApiError(error, "获取盘点明细失败");
   } finally {
     detailLoading.value = false;
   }
@@ -76,7 +77,7 @@ const handleUpdateDetail = async (detail: StocktakingDetail) => {
     loadDetails();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("更新失败");
+      handleApiError(error, "更新失败");
     }
   }
 };

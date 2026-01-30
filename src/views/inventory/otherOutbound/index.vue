@@ -145,7 +145,7 @@ const openDialog = (
             done();
             fetchData();
           } catch (error) {
-            ElMessage.error("操作失败");
+            handleApiError(error, "操作失败");
           }
         }
       });
@@ -171,7 +171,7 @@ const handleDelete = async (row: OtherOutboundOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(error, "删除失败");
     }
   }
 };
@@ -188,7 +188,7 @@ const handleApprove = async (row: OtherOutboundOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("审核失败");
+      handleApiError(error, "审核失败");
     }
   }
 };
@@ -206,7 +206,7 @@ const handleReject = async (row: OtherOutboundOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error, "操作失败");
     }
   }
 };

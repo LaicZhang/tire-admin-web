@@ -25,6 +25,7 @@ import {
   getBomListApi,
   updateBomApi
 } from "@/api/inventory";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "InventoryBom"
@@ -117,7 +118,7 @@ const openDialog = (title: string, row?: Bom, isView: boolean = false) => {
             done();
             fetchData();
           } catch (error) {
-            ElMessage.error("操作失败");
+            handleApiError(error, "操作失败");
           }
         }
       });
@@ -143,7 +144,7 @@ const handleDelete = async (row: Bom) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(error, "删除失败");
     }
   }
 };
@@ -158,7 +159,7 @@ const handleApprove = async (row: Bom) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("审核失败");
+      handleApiError(error, "审核失败");
     }
   }
 };
@@ -173,7 +174,7 @@ const handleDisable = async (row: Bom) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error, "操作失败");
     }
   }
 };
@@ -187,7 +188,7 @@ const handleCreateAssembly = async (row: Bom) => {
     ElMessage.success("组装单创建成功");
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error, "操作失败");
     }
   }
 };
@@ -201,7 +202,7 @@ const handleCreateDisassembly = async (row: Bom) => {
     ElMessage.success("拆卸单创建成功");
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error, "操作失败");
     }
   }
 };

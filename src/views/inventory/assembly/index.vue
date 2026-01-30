@@ -131,7 +131,7 @@ const openDialog = (
             done();
             fetchData();
           } catch (error) {
-            ElMessage.error("操作失败");
+            handleApiError(error, "操作失败");
           }
         }
       });
@@ -157,7 +157,7 @@ const handleDelete = async (row: AssemblyOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(error, "删除失败");
     }
   }
 };
@@ -174,7 +174,7 @@ const handleApprove = async (row: AssemblyOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("审核失败");
+      handleApiError(error, "审核失败");
     }
   }
 };
@@ -194,7 +194,7 @@ const handleReject = async (row: AssemblyOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error, "操作失败");
     }
   }
 };
@@ -208,7 +208,7 @@ const handleSaveAsBom = async (row: AssemblyOrder) => {
     ElMessage.success("已保存为BOM模板");
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error, "操作失败");
     }
   }
 };

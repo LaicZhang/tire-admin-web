@@ -28,6 +28,8 @@ import {
   deleteOtherInboundOrderApi,
   deleteOtherOutboundOrderApi
 } from "@/api/inventory";
+import { logger } from "@/utils/logger";
+import { handleApiError } from "@/utils";
 
 defineOptions({
   name: "InventoryDocuments"
@@ -86,8 +88,8 @@ const fetchData = async () => {
       pagination.value.total = data.count;
     }
   } catch (error) {
-    console.error("获取库存单据列表失败", error);
-    ElMessage.error("获取库存单据列表失败，请重试");
+    logger.error("获取库存单据列表失败", error);
+    handleApiError(error, "获取库存单据列表失败");
   } finally {
     loading.value = false;
   }
@@ -174,7 +176,7 @@ const handleDelete = async (row: InventoryDocument) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(error, "删除失败");
     }
   }
 };
@@ -245,7 +247,7 @@ const handleBatchDelete = async () => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(error, "删除失败");
     }
   }
 };

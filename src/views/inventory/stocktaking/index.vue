@@ -133,7 +133,7 @@ const openCreateDialog = () => {
             done();
             fetchData();
           } catch (error) {
-            ElMessage.error("创建失败");
+            handleApiError(error, "创建失败");
           }
         }
       });
@@ -176,7 +176,7 @@ const handleComplete = async (row: StocktakingTask) => {
     }
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error, "操作失败");
     }
   }
 };
@@ -191,7 +191,7 @@ const handleCancel = async (row: StocktakingTask) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error, "操作失败");
     }
   }
 };
@@ -206,7 +206,7 @@ const handleDelete = async (row: StocktakingTask) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(error, "删除失败");
     }
   }
 };
