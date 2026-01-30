@@ -9,7 +9,7 @@ import {
   type WriteOffBusinessType
 } from "./types";
 import dayjs from "dayjs";
-import { yuanToFen, fenToYuan } from "@/utils/money";
+import { handleApiError } from "@/utils";
 import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
@@ -181,8 +181,7 @@ async function handleSubmit() {
     dialogVisible.value = false;
     emit("success");
   } catch (e) {
-    const errorMsg = e instanceof Error ? e.message : "操作失败";
-    ElMessage.error(errorMsg);
+    handleApiError(e, "操作失败");
   } finally {
     loading.value = false;
   }

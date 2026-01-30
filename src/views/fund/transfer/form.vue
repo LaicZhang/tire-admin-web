@@ -4,7 +4,7 @@ import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
 import { type Transfer, type CreateTransferDto } from "./types";
 import dayjs from "dayjs";
-import { yuanToFen, fenToYuan } from "@/utils/money";
+import { yuanToFen, fenToYuanNumber as fenToYuan } from "@/utils/formatMoney";
 import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{

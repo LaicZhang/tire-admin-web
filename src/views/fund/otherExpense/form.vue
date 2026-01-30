@@ -9,7 +9,7 @@ import {
   type ExpenseType
 } from "./types";
 import dayjs from "dayjs";
-import { yuanToFen, fenToYuan } from "@/utils/money";
+import { yuanToFen, fenToYuanNumber as fenToYuan } from "@/utils/formatMoney";
 import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{

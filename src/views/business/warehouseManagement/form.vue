@@ -4,18 +4,7 @@ import type { FormRules } from "element-plus";
 import { getAllEmployeeApi, type Employee } from "@/api/company/employee";
 import { message } from "@/utils";
 
-interface FormItemProps {
-  uid?: string;
-  name: string;
-  address?: string;
-  managerId?: string;
-  desc?: string;
-  status: boolean;
-}
-
-interface FormProps {
-  formInline?: FormItemProps;
-}
+import type { FormProps } from "./types";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({

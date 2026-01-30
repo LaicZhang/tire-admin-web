@@ -4,6 +4,7 @@ import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
 import { getCustomerListApi } from "@/api/business/customer";
 import { getPaymentListApi } from "@/api/payment";
+import { handleApiError } from "@/utils";
 import {
   INCOME_TYPE_OPTIONS,
   type OtherIncome,
@@ -156,8 +157,7 @@ async function handleSubmit() {
     dialogVisible.value = false;
     emit("success");
   } catch (e) {
-    const errorMsg = e instanceof Error ? e.message : "操作失败";
-    ElMessage.error(errorMsg);
+    handleApiError(e, "操作失败");
   } finally {
     loading.value = false;
   }
