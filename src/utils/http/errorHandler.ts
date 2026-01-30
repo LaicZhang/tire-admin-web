@@ -3,6 +3,7 @@
  * 提供统一的错误分类、日志上报和用户提示
  */
 import type { AxiosError } from "axios";
+import { httpLogger } from "@/utils/logger";
 
 /**
  * 错误类型枚举
@@ -174,14 +175,16 @@ export const defaultErrorReporter: ErrorReporter = {
   report(errorInfo: HttpErrorInfo) {
     // 仅在开发环境输出详细日志
     if (import.meta.env.DEV) {
-      console.group(`[HTTP Error] ${errorInfo.type}`);
-      console.error("Message:", errorInfo.message);
-      console.error("URL:", errorInfo.method, errorInfo.url);
-      if (errorInfo.statusCode) {
-        console.error("Status:", errorInfo.statusCode);
-      }
-      console.error("Timestamp:", new Date(errorInfo.timestamp).toISOString());
-      console.groupEnd();
+      const details = [
+        `Type: ${errorInfo.type}`,
+        `Message: ${errorInfo.message}`,
+        `URL: ${errorInfo.method} ${errorInfo.url}`,
+        errorInfo.statusCode ? `Status: ${errorInfo.statusCode}` : null,
+        `Timestamp: ${new Date(errorInfo.timestamp).toISOString()}`
+      ]
+        .filter(Boolean)
+        .join(", ");
+      httpLogger.error(details);
     }
   }
 };

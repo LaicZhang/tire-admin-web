@@ -4,6 +4,7 @@
  */
 import type { AxiosError, AxiosInstance } from "axios";
 import type { PureHttpRequestConfig } from "../types.d";
+import { httpLogger } from "@/utils/logger";
 
 /** 幂等方法列表 */
 const IDEMPOTENT_METHODS = ["get", "head", "options"];
@@ -71,8 +72,8 @@ export const createRetryInterceptor = (
         const delay = getRetryDelay(config.__retryCount);
 
         if (import.meta.env.DEV) {
-          console.warn(
-            `[HTTP] 请求失败，${delay}ms 后进行第 ${config.__retryCount} 次重试:`,
+          httpLogger.warn(
+            `请求失败，${delay}ms 后进行第 ${config.__retryCount} 次重试:`,
             config.url
           );
         }
