@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import Login from "./index.vue";
-import { useRouter } from "vue-router";
+import { useRouter, type Router } from "vue-router";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 import { useUserStoreHook } from "@/store/modules/user";
@@ -140,7 +140,7 @@ describe("Login.vue", () => {
   beforeEach(() => {
     vi.mocked(useRouter).mockReturnValue({
       push: pushMock
-    } as any);
+    } as unknown as Router);
 
     mocks.handleGithubLogin.mockReset();
     mocks.useLoginForm.githubLoading.value = false;

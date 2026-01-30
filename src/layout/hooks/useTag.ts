@@ -163,10 +163,19 @@ export function useTags() {
     visible.value = false;
   };
 
-  const getRefEl = (key: string) => {
-    // Vue refs array access
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (instance?.refs?.[key] as any)?.[0] as HTMLElement | undefined;
+  const getRefEl = (key: string): HTMLElement | undefined => {
+    const refs = instance?.refs;
+    if (!refs || typeof refs !== "object") return undefined;
+
+    const raw = (refs as Record<string, unknown>)[key];
+    const first = Array.isArray(raw) ? raw[0] : raw;
+
+    if (first instanceof HTMLElement) return first;
+    if (first && typeof first === "object" && "$el" in first) {
+      const el = (first as { $el?: unknown }).$el;
+      return el instanceof HTMLElement ? el : undefined;
+    }
+    return undefined;
   };
 
   /** 鼠标移入添加激活样式 */

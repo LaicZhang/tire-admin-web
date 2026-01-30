@@ -65,25 +65,22 @@ const setConfig = (cfg?: unknown) => {
 function getConfig<T = PlatformConfigs>(): T;
 function getConfig<T = unknown>(key: string): T;
 
-// Dynamic property access requires any for nested path traversal
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getConfig<T = any>(key?: string): T {
+function getConfig<T = PlatformConfigs>(key?: string): T {
   if (typeof key === "string") {
     const arr = key.split(".");
     if (arr.length) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let data: any = config;
+      let data: unknown = config;
       arr.forEach(v => {
-        if (data && typeof data[v] !== "undefined") {
-          data = data[v];
+        if (data && typeof data === "object" && v in data) {
+          data = (data as Record<string, unknown>)[v];
         } else {
           data = null;
         }
       });
-      return data;
+      return data as T;
     }
   }
-  return config as T;
+  return config as unknown as T;
 }
 
 /** 获取项目动态全局配置 */

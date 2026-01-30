@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { createBatchApi } from "@/api/batch";
 import { message } from "@/utils/message";
+import type { FormInstance } from "element-plus";
 
 interface RepoItem {
   uid: string;
@@ -14,7 +15,7 @@ const props = defineProps<{
   onClose: () => void;
 }>();
 
-const formRef = ref<any>(null);
+const formRef = ref<FormInstance | null>(null);
 const loading = ref(false);
 const batchForm = ref({
   repoId: undefined as string | undefined,
@@ -33,21 +34,26 @@ const rules = {
 };
 
 const handleSubmit = async () => {
-  formRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      loading.value = true;
-      try {
-        await createBatchApi(batchForm.value as any);
-        message("批次创建成功", { type: "success" });
-        props.onSuccess();
-      } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : "创建失败";
-        message(msg, { type: "error" });
-      } finally {
-        loading.value = false;
-      }
-    }
-  });
+  const el = formRef.value;
+  if (!el) return;
+
+  const valid = await el.validate().catch(() => false);
+  if (!valid) return;
+
+  const { repoId, tireId, ...rest } = batchForm.value;
+  if (!repoId || !tireId) return;
+
+  loading.value = true;
+  try {
+    await createBatchApi({ repoId, tireId, ...rest });
+    message("批次创建成功", { type: "success" });
+    props.onSuccess();
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "创建失败";
+    message(msg, { type: "error" });
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 

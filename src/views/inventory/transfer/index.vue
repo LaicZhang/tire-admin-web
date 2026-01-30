@@ -39,7 +39,20 @@ const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{
   getRef: () => FormInstance;
-  getFormData: () => any;
+  getFormData: () => {
+    fromRepositoryId: string;
+    toRepositoryId: string;
+    auditorId: string;
+    desc: string;
+    details: Array<{
+      uid?: string;
+      tireId: string;
+      tireName?: string;
+      count: number;
+      isShipped?: boolean;
+      isArrival?: boolean;
+    }>;
+  };
 }>();
 
 const repoList = ref<Array<{ uid: string; name: string }>>([]);
@@ -187,10 +200,8 @@ function openDialog(title: string, row?: TransferOrder, isView = false) {
           }
 
           const data = editFormRef.value?.getFormData();
-          const details = (data.details || []) as Array<{
-            tireId: string;
-            count: number;
-          }>;
+          if (!data) return;
+          const details = data.details || [];
 
           if (isCreate) {
             if (details.length === 0) {

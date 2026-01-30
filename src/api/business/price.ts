@@ -66,13 +66,20 @@ export async function getProductPriceApi(params: {
   tireId?: string;
   customerId?: string;
 }) {
-  return await http.request<CommonResult<{ price: number }>>(
+  return await http.request<CommonResult<ProductPriceQueryResult>>(
     "get",
     baseUrlApi(prefix + "query"),
     {
       params
     }
   );
+}
+
+export interface ProductPriceQueryResult extends Record<string, unknown> {
+  price: number;
+  tireName?: string;
+  source?: string;
+  strategy?: string;
 }
 
 export async function assignPriceListApi(data: {

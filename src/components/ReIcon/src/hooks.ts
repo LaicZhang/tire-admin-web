@@ -1,6 +1,30 @@
 import type { iconType } from "./types";
 import { h, defineComponent, type Component } from "vue";
 import { FontIcon, IconifyIconOnline, IconifyIconOffline } from "../index";
+import type { IconifyIcon } from "@iconify/types";
+
+export type IconInput = string | Component | IconifyIcon | null | undefined;
+
+function isIconifyIcon(value: unknown): value is IconifyIcon {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    typeof (value as { body?: unknown }).body === "string"
+  );
+}
+
+function isComponentLike(value: unknown): value is Component {
+  if (!value) return false;
+  if (typeof value === "function") return true;
+  if (typeof value === "object") {
+    return (
+      "render" in (value as object) ||
+      "setup" in (value as object) ||
+      "$el" in (value as object)
+    );
+  }
+  return false;
+}
 
 /**
  * 支持 `iconfont`、自定义 `svg` 以及 `iconify` 中所有的图标
@@ -9,12 +33,10 @@ import { FontIcon, IconifyIconOnline, IconifyIconOffline } from "../index";
  * @param attrs 可选 iconType 属性
  * @returns Component
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useRenderIcon(icon: any, attrs?: iconType): Component {
+export function useRenderIcon(icon: IconInput, attrs?: iconType): Component {
   // iconfont
   const ifReg = /^IF-/;
-  // typeof icon === "function" 属于SVG
-  if (ifReg.test(icon as string)) {
+  if (typeof icon === "string" && ifReg.test(icon)) {
     // iconfont
     const name = icon.split(ifReg)[1];
     const iconName = name.slice(
@@ -32,15 +54,9 @@ export function useRenderIcon(icon: any, attrs?: iconType): Component {
         });
       }
     });
-  } else if (typeof icon === "function" || typeof icon?.render === "function") {
-    // svg
-    return defineComponent({
-      name: "SvgIcon",
-      render() {
-        return h(icon, { ...attrs });
-      }
-    });
-  } else if (typeof icon === "object") {
+  }
+
+  if (isIconifyIcon(icon)) {
     return defineComponent({
       name: "OfflineIcon",
       render() {
@@ -50,20 +66,29 @@ export function useRenderIcon(icon: any, attrs?: iconType): Component {
         });
       }
     });
-  } else {
-    // 通过是否存在 : 符号来判断是在线还是本地图标，存在即是在线图标，反之
+  }
+
+  if (isComponentLike(icon)) {
     return defineComponent({
-      name: "Icon",
+      name: "SvgIcon",
       render() {
-        if (!icon) return;
-        const IconifyIcon = icon.includes(":")
-          ? IconifyIconOnline
-          : IconifyIconOffline;
-        return h(IconifyIcon, {
-          icon,
-          ...attrs
-        });
+        return h(icon, { ...attrs });
       }
     });
   }
+
+  // 通过是否存在 : 符号来判断是在线还是本地图标，存在即是在线图标，反之
+  return defineComponent({
+    name: "Icon",
+    render() {
+      if (typeof icon !== "string" || !icon) return;
+      const IconifyIcon = icon.includes(":")
+        ? IconifyIconOnline
+        : IconifyIconOffline;
+      return h(IconifyIcon, {
+        icon,
+        ...attrs
+      });
+    }
+  });
 }

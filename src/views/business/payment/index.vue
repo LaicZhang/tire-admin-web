@@ -10,6 +10,7 @@ import {
   checkPaymentBalanceApi,
   deletePaymentApi
 } from "@/api";
+import type { PaymentAccount } from "@/api/type";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -25,7 +26,7 @@ defineOptions({
   name: "Payment"
 });
 
-const dataList = ref<unknown[]>([]);
+const dataList = ref<PaymentAccount[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
@@ -42,11 +43,11 @@ const pagination = ref({
 
 // Operation Dialog State
 const showOperationDialog = ref(false);
-const currentPayment = ref<any>(null);
+const currentPayment = ref<PaymentAccount | null>(null);
 const operationType = ref<"top-up" | "pay" | "freeze" | "unfreeze">("top-up");
 
 function handleOperation(
-  row: unknown,
+  row: PaymentAccount,
   type: "top-up" | "pay" | "freeze" | "unfreeze"
 ) {
   currentPayment.value = row;
@@ -95,14 +96,14 @@ const getPaymentListInfo = async () => {
     const { data, code, msg } = await getPaymentListApi(companyUid);
     if (code === 200) {
       const typedData = data as
-        | { list?: unknown[]; count?: number }
-        | unknown[];
+        | PaymentAccount[]
+        | { list?: PaymentAccount[]; count?: number };
       dataList.value = Array.isArray(typedData)
         ? typedData
-        : typedData.list || [];
+        : (typedData.list ?? []);
       pagination.value.total = Array.isArray(typedData)
         ? typedData.length
-        : typedData.count || dataList.value.length;
+        : (typedData.count ?? dataList.value.length);
     } else {
       message(msg, { type: "error" });
     }

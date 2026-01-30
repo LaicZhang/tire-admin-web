@@ -3,39 +3,19 @@ import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId } from "@/api/company";
-import { addRepoApi, updateRepoApi } from "@/api/company/repo";
+import { addRepoApi, updateRepoApi, type Repo } from "@/api/company/repo";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
 
-interface FormItemProps {
-  uid?: string;
-  name: string;
-  address?: string;
-  managerId?: string;
-  desc?: string;
-  status: boolean;
-}
-interface FormProps {
-  formInline: FormItemProps;
-}
-
-export type { FormItemProps, FormProps };
+import type { FormItemProps } from "./types";
 
 const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 
-interface WarehouseRow {
-  uid?: string;
-  name?: string;
-  address?: string;
-  manager?: { uid: string };
-  desc?: string;
-  status?: boolean;
-}
+type RepoRow = Repo & { manager?: { uid?: string } | null };
 
 export function openDialog(
   title = "新增",
-
-  row?: WarehouseRow,
+  row?: RepoRow,
   refreshCallback?: () => void
 ) {
   addDialog({
@@ -69,34 +49,15 @@ export function openDialog(
         .formInline;
       const refreshCb = (options.props as { refreshCallback?: () => void })
         .refreshCallback;
-      function chores() {
+
+      async function chores() {
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"
         });
-        done(); // 关闭弹框
-        // We typically need to refresh the list here, but openDialog doesn't easily callback.
-        // The parent component listens for dialog close or similar?
-        // Actually the parent passes `getRepoListInfo` to `PureTableBar` @refresh.
-        // But for add/edit, we rely on the fact that `onSearch` or `getRepoListInfo` is called.
-        // In the original code `chores` called `done()`.
-        // Wait, the original code didn't trigger refresh in `openDialog`?
-        // Ah, `handleDelete` called `onSearch`.
-        // `openDialog` usually doesn't refresh automatically unless we pass a callback.
-        // But looking at `index.vue`, `openDialog` is just imported.
-        // Let's check `index.vue`. It passes nothing.
-        // Maybe I should add a callback or event?
-        // For now, I'll stick to the original pattern. Original `openDialog` didn't seem to refresh parent?
-        // Ah, `addDialog` might return a promise or have a `close` callback?
-        // `ReDialog` likely handles this?
-        // Let's look at `index.vue` again. It doesn't seem to have a mechanism to refresh after dialog close.
-        // Wait, `addDialog` is from a component library.
-        // If I want to refresh, I might need to dispatch an event or use a global bus, or pass a callback.
-        // The previous code didn't refresh? That's a bug in previous code or I missed something.
-        // `mitt` is used in package.json.
-        // Let's assume for now I just save. The user might need to manually refresh.
-        // OR `addDialog` options might accept a `closeCallBack`.
-        // I will follow the existing pattern for now but ensure API calls are correct.
+        done();
+        if (refreshCb) refreshCb();
       }
+
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           if (title === "新增") {
@@ -111,12 +72,7 @@ export function openDialog(
                 connect: { uid: getCompanyId() }
               }
             });
-            chores();
-            // Trigger refresh if possible.
-            // Since we can't easily reach parent, we might rely on window reload or just let user refresh.
-            // A better way is to pass a "refresh" callback to openDialog.
-            // I'll add `refreshCallback` to openDialog signature.
-            if (refreshCb) refreshCb();
+            await chores();
           } else {
             const { uid, name, address, managerId, desc, status } = curData;
             if (!uid) {
@@ -130,8 +86,7 @@ export function openDialog(
               desc,
               status
             });
-            chores();
-            if (refreshCb) refreshCb();
+            await chores();
           }
         }
       });

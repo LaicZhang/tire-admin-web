@@ -106,8 +106,7 @@ import RiCloseLine from "~icons/ri/close-line?raw";
 import RiCheckLine from "~icons/ri/check-line?raw";
 
 // Icon tuple: [icon-name, raw SVG module]
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const icons: Array<[string, any]> = [
+const icons: Array<[string, unknown]> = [
   // ========== Element Plus Icons ==========
   ["ep/home-filled", EpHomeFilled],
   ["ep/user", EpUser],
@@ -212,5 +211,5 @@ const icons: Array<[string, any]> = [
 
 // 本地菜单图标，后端在路由的 icon 中返回对应的图标字符串并且前端在此处使用 addIcon 添加即可渲染菜单图标
 icons.forEach(([name, icon]) => {
-  addIcon(name, getSvgInfo(icon));
+  addIcon(name, getSvgInfo(icon as string));
 });

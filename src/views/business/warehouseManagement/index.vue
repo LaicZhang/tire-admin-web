@@ -11,49 +11,51 @@ import {
   getRepoListApi,
   deleteRepoApi,
   toggleRepoApi,
-  type Repo
+  type Repo,
+  type RepoQueryDto
 } from "@/api/company/repo";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "warehouseManagement"
 });
-const dataList = ref<Repo[]>([]);
-const loading = ref(false);
-const formRef = ref();
-const form = ref({
+
+type RepoRow = Repo & {
+  manager?: { uid: string; name?: string } | null;
+};
+
+type RepoListParams = RepoQueryDto & { page: number; pageSize: number };
+
+const formRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const form = ref<Pick<RepoQueryDto, "name" | "desc">>({
   name: undefined,
   desc: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+
+const { loading, dataList, pagination, fetchData, handleDelete } = useCrud<
+  RepoRow,
+  CommonResult<PaginatedResponseDto<RepoRow>>,
+  RepoListParams
+>({
+  api: async ({ page, pageSize, ...rest }) => {
+    return await getRepoListApi(page, { ...rest, pageSize });
+  },
+  deleteApi: id => deleteRepoApi(String(id)),
+  params: form,
+  transform: res => {
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? 0
+    };
+  }
 });
 
-const getRepoListInfo = async () => {
-  loading.value = true;
-  const { data, code, msg } = await getRepoListApi(
-    pagination.value.currentPage,
-    {
-      name: form.value.name,
-      desc: form.value.desc
-    }
-  );
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else {
-    message(msg, { type: "error" });
-  }
-  loading.value = false;
-};
-
-const onSearch = async () => {
+const onSearch = () => {
   pagination.value.currentPage = 1;
-  await getRepoListInfo();
+  fetchData();
 };
 
 const resetForm = (formEl: { resetFields: () => void } | undefined) => {
@@ -62,30 +64,30 @@ const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   onSearch();
 };
 
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getRepoListInfo();
-}
-
-async function handleDelete(row: Repo) {
-  await deleteRepoApi(row.uid);
-  message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+// Wrapper for delete to show message
+async function onDelete(row: Repo) {
+  try {
+    await handleDelete(row.uid);
+    message(`您删除了${row.name}这条数据`, { type: "success" });
+  } catch (e) {
+    // Error handled by useCrud or here
+  }
 }
 
 async function handleToggleStatus(row: Repo) {
   const { code, msg } = await toggleRepoApi(row.uid);
   if (code === 200) {
     message("状态已更新", { type: "success" });
-    getRepoListInfo();
+    fetchData();
   } else {
     message(msg, { type: "error" });
   }
 }
 
-onMounted(async () => {
-  await getRepoListInfo();
-});
+function handleCurrentChange(val: number) {
+  pagination.value.currentPage = val;
+  fetchData();
+}
 </script>
 
 <template>
@@ -118,12 +120,12 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getRepoListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog('新增', undefined, onSearch)"
+            @click="openDialog('新增', undefined, fetchData)"
           >
             新增仓库
           </el-button>
@@ -154,7 +156,7 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row, onSearch)"
+                @click="openDialog('修改', row, fetchData)"
               >
                 修改
               </el-button>
@@ -162,7 +164,7 @@ onMounted(async () => {
               <DeleteButton
                 :show-icon="false"
                 :title="`是否确认删除${row.name}这条数据`"
-                @confirm="handleDelete(row)"
+                @confirm="onDelete(row)"
               />
             </template>
           </pure-table>

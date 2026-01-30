@@ -139,8 +139,8 @@ const openDialog = (title = "新增", row?: CompanyRoleItem) => {
           };
           const promise =
             title === "新增"
-              ? createRoleApi(payload as any)
-              : updateRoleApi(row?.uid ?? "", payload as any);
+              ? createRoleApi(payload)
+              : updateRoleApi(row?.uid ?? "", payload);
 
           promise.then(() => {
             message("操作成功", { type: "success" });

@@ -90,7 +90,7 @@ function storageConfigureChange<T extends keyof ResponsiveStorage["configure"]>(
 ): void {
   const storageConfigure = $storage.configure;
 
-  (storageConfigure as any)[key] = val;
+  storageConfigure[key] = val;
   $storage.configure = storageConfigure;
 }
 

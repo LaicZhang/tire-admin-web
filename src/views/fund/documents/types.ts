@@ -7,6 +7,8 @@ export type DocumentType =
   | "OTHER_EXPENSE" // 其他支出单
   | "TRANSFER"; // 转账单
 
+export type ElTagType = "" | "success" | "warning" | "info" | "danger";
+
 /** 单据状态 */
 export type DocumentStatus = "DRAFT" | "APPROVED" | "COMPLETED" | "VOID";
 
@@ -55,7 +57,7 @@ export interface FundDocumentQueryParams {
 export const DOCUMENT_TYPE_OPTIONS: {
   label: string;
   value: DocumentType;
-  color: string;
+  color: ElTagType;
 }[] = [
   { label: "收款单", value: "RECEIPT", color: "success" },
   { label: "付款单", value: "PAYMENT", color: "danger" },
@@ -90,7 +92,7 @@ export const DIRECTION_OPTIONS: {
 /** 获取单据类型信息 */
 export function getDocumentTypeInfo(type?: DocumentType): {
   label: string;
-  color: string;
+  color: ElTagType;
 } {
   const option = DOCUMENT_TYPE_OPTIONS.find(o => o.value === type);
   return option || { label: "未知", color: "info" };

@@ -20,8 +20,8 @@ import {
   getInitialStockListApi,
   upsertInitialStockApi
 } from "@/api/data/initial-stock";
-import { getRepoListApi, getRepoBatchApi } from "@/api/company/repo";
-import { getTireBatchApi } from "@/api/business/tire";
+import { getRepoListApi, getRepoBatchApi, type Repo } from "@/api/company/repo";
+import { getTireBatchApi, type Tire } from "@/api/business/tire";
 
 defineOptions({
   name: "InitialStock"
@@ -73,12 +73,8 @@ const getList = async () => {
       getInitialStockListApi(),
       getRepoListApi(1).catch(() => null)
     ]);
-    repoList.value = ((repoRes as unknown)?.data?.list || []).map(
-      (r: unknown) => ({
-        uid: (r as { uid: string }).uid,
-        name: (r as { name: string }).name
-      })
-    );
+    repoList.value =
+      repoRes?.data?.list?.map(r => ({ uid: r.uid, name: r.name })) ?? [];
 
     const tireIds = Array.from(new Set(rawList.map(i => i.tireId)));
     const repoIds = Array.from(new Set(rawList.map(i => i.repoId)));
@@ -89,13 +85,14 @@ const getList = async () => {
       getRepoBatchApi(repoIds).catch(() => null)
     ]);
 
-    const tireMap = new Map<string, any>();
-    for (const t of (tiresRes as unknown)?.data || []) {
-      if (t?.uid) tireMap.set(t.uid, t);
+    const tireMap = new Map<string, Tire>();
+    for (const t of tiresRes?.data ?? []) {
+      tireMap.set(t.uid, t);
     }
-    const repoMap = new Map<string, any>();
-    for (const r of (reposRes as unknown)?.data || []) {
-      if (r?.uid) repoMap.set(r.uid, r);
+
+    const repoMap = new Map<string, Repo>();
+    for (const r of reposRes?.data ?? []) {
+      repoMap.set(r.uid, r);
     }
 
     let rows: InitialStock[] = rawList.map((item, idx) => {
@@ -108,7 +105,7 @@ const getList = async () => {
         uid: item.uid,
         tireId: item.tireId,
         tireName: tire?.name,
-        tireCode: tire?.barcode ?? tire?.number,
+        tireCode: tire?.barcode ?? tire?.barCode ?? tire?.number,
         repoId: item.repoId,
         repoName: repo?.name,
         quantity,

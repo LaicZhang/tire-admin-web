@@ -11,6 +11,7 @@ import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import Upload from "~icons/ep/upload";
 import { http } from "@/utils/http";
+import { handleApiError } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import MoneyDisplay from "@/components/MoneyDisplay/index.vue";
 import {
@@ -170,7 +171,7 @@ async function handleDelete(row: FundDocument) {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(e, "删除失败");
     }
   }
 }
@@ -193,7 +194,7 @@ async function handleBatchDelete() {
     onSearch();
   } catch (e) {
     if ((e as string) !== "cancel") {
-      ElMessage.error("批量删除失败");
+      handleApiError(e, "批量删除失败");
     }
   }
 }
@@ -375,7 +376,7 @@ function handleSelectionChange(rows: FundDocument[]) {
         >
           <template #documentType="{ row }">
             <el-tag
-              :type="getDocumentTypeInfo(row.documentType).color as any"
+              :type="getDocumentTypeInfo(row.documentType).color"
               size="small"
             >
               {{ getDocumentTypeInfo(row.documentType).label }}

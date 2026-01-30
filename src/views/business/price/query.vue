@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { getProductPriceApi } from "@/api/business/price";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import {
+  getProductPriceApi,
+  type ProductPriceQueryResult
+} from "@/api/business/price";
 import { message } from "@/utils";
-// Assuming we have tire selector or just input
-import { getTireListApi } from "@/api"; // For tire select if needed
 
 defineOptions({
   name: "PriceQuery"
@@ -15,7 +15,7 @@ const form = ref({
   customerId: undefined,
   date: new Date()
 });
-const result = ref<any>(null);
+const result = ref<ProductPriceQueryResult | null>(null);
 const loading = ref(false);
 
 // Simplified for now: just text inputs or simple selects could be implemented.

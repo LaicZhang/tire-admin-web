@@ -22,8 +22,8 @@ export function getParentPaths(
       const item = routes[i];
       // 返回父级path
       // Dynamic key access on route record
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((item as any)[key] === value) return parents;
+      if ((item as unknown as Record<string, unknown>)[key] === value)
+        return parents;
       // children不存在或为空则不递归
       if (!item.children || !item.children.length) continue;
       // 往下查找时将当前path入栈
