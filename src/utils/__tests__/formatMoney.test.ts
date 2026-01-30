@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   formatMoney,
   fenToYuan,
+  fenToYuanOrDash,
   yuanToFen,
   formatMoneyFromFen
 } from "../formatMoney";
@@ -86,6 +87,22 @@ describe("fenToYuan", () => {
 
   it("should handle negative values", () => {
     expect(fenToYuan(-12345)).toBe("-123.45");
+  });
+});
+
+describe("fenToYuanOrDash", () => {
+  it("should return '-' for nullish", () => {
+    expect(fenToYuanOrDash(null)).toBe("-");
+    expect(fenToYuanOrDash(undefined)).toBe("-");
+  });
+
+  it("should format fen to yuan", () => {
+    expect(fenToYuanOrDash(12345)).toBe("123.45");
+  });
+
+  it("should respect decimals", () => {
+    expect(fenToYuanOrDash(12345, 0)).toBe("123");
+    expect(fenToYuanOrDash(12345, 1)).toBe("123.5");
   });
 });
 

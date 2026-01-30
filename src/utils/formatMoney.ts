@@ -36,6 +36,20 @@ export function fenToYuan(
 }
 
 /**
+ * 分转元（用于展示），空值返回 "-"
+ * @param fen 金额（分）
+ * @param decimals 小数位数，默认 2
+ * @returns 格式化后的字符串 "x.xx" 或 "-"
+ */
+export function fenToYuanOrDash(
+  fen: number | bigint | null | undefined,
+  decimals = 2
+): string {
+  if (fen === null || fen === undefined) return "-";
+  return fenToYuan(fen, decimals);
+}
+
+/**
  * 元转分（用于提交到后端）
  * @param yuan 金额（元）
  * @returns 金额（分）

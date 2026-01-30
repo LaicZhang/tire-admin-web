@@ -1,130 +1,145 @@
-/**
- * 可访问性工具 composable
- * 提供 aria-label 和 role 属性的辅助函数
- */
+import { ref, onMounted, onUnmounted } from "vue";
 
-/**
- * 为按钮生成aria-label
- * @param action 操作名称，如 "添加"、"编辑"、"删除"
- * @param target 目标对象，如 "用户"、"订单"
- */
-export function useA11yButton() {
-  function ariaLabel(action: string, target: string): string {
-    return `${action}${target}`;
-  }
+export type A11yIssueCategory = "alt" | "label" | "aria" | "contrast";
+export type A11yIssueType = "error" | "warning";
 
-  return {
-    ariaLabel
-  };
+export interface A11yIssue {
+  type: A11yIssueType;
+  category: A11yIssueCategory;
+  message: string;
+  element?: Element;
 }
 
-/**
- * 为表单输入框生成aria-label
- * @param label 标签名称
- */
-export function useA11yInput() {
-  function ariaLabel(label: string): string {
-    return `请输入${label}`;
-  }
-
-  return {
-    ariaLabel
-  };
+export interface UseA11yOptions {
+  autoCheck?: boolean;
+  minContrastRatio?: number;
 }
 
-/**
- * 为选择器生成aria-label
- * @param label 标签名称
- */
-export function useA11ySelect() {
-  function ariaLabel(label: string): string {
-    return `请选择${label}`;
-  }
+function hasAccessibleName(el: Element): boolean {
+  const ariaLabel = el.getAttribute("aria-label");
+  if (ariaLabel && ariaLabel.trim()) return true;
 
-  return {
-    ariaLabel
-  };
-}
-
-/**
- * 图标按钮的aria-label
- * @param action 操作名称
- */
-export function useA11yIconButton() {
-  function ariaLabel(action: string): string {
-    return `${action}`;
-  }
-
-  return {
-    ariaLabel
-  };
-}
-
-/**
- * 表格操作的aria-label
- * @param action 操作名称
- * @param rowInfo 行标识信息
- */
-export function useA11yTableAction() {
-  function ariaLabel(action: string, rowInfo?: string): string {
-    if (rowInfo) {
-      return `${action}${rowInfo}`;
+  const ariaLabelledBy = el.getAttribute("aria-labelledby");
+  if (ariaLabelledBy) {
+    const ids = ariaLabelledBy
+      .split(/\s+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    for (const id of ids) {
+      const refEl = document.getElementById(id);
+      if (refEl && (refEl.textContent ?? "").trim()) return true;
     }
-    return action;
   }
 
-  return {
-    ariaLabel
-  };
+  if ((el.textContent ?? "").trim()) return true;
+  return false;
 }
 
-/**
- * 对话框的aria属性
- */
-export function useA11yDialog() {
-  function role(): string {
-    return "dialog";
+function inputHasLabel(input: HTMLInputElement): boolean {
+  if (input.type === "hidden") return true;
+  if ((input.getAttribute("aria-label") ?? "").trim()) return true;
+  if ((input.getAttribute("placeholder") ?? "").trim()) return true;
+
+  const ariaLabelledBy = input.getAttribute("aria-labelledby");
+  if (ariaLabelledBy) {
+    const ids = ariaLabelledBy
+      .split(/\s+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    for (const id of ids) {
+      const refEl = document.getElementById(id);
+      if (refEl && (refEl.textContent ?? "").trim()) return true;
+    }
   }
 
-  function ariaModal(): string {
-    return "true";
+  const id = input.getAttribute("id");
+  if (id) {
+    const escapedId =
+      typeof CSS !== "undefined" && typeof CSS.escape === "function"
+        ? CSS.escape(id)
+        : id.replaceAll('"', '\\"');
+    const label = document.querySelector(`label[for="${escapedId}"]`);
+    if (label && (label.textContent ?? "").trim()) return true;
   }
 
-  return {
-    role,
-    ariaModal
-  };
+  return false;
 }
 
-/**
- * 搜索框的aria-label
- */
-export function useA11ySearch() {
-  function placeholder(): string {
-    return "搜索关键字";
-  }
+export function useA11y(options: UseA11yOptions = {}) {
+  const issues = ref<A11yIssue[]>([]);
+  const checking = ref(false);
 
-  function ariaLabel(): string {
-    return "搜索";
-  }
-
-  return {
-    placeholder,
-    ariaLabel
+  const clear = () => {
+    issues.value = [];
   };
-}
 
-/**
- * 导出所有可访问性工具
- */
-export function useA11y() {
+  const check = () => {
+    checking.value = true;
+    try {
+      const nextIssues: A11yIssue[] = [];
+
+      // Images alt
+      document.querySelectorAll("img").forEach(img => {
+        const alt = img.getAttribute("alt");
+        const hasLabel =
+          (alt ?? "").trim() ||
+          (img.getAttribute("aria-label") ?? "").trim() ||
+          (img.getAttribute("aria-labelledby") ?? "").trim();
+        if (!hasLabel) {
+          nextIssues.push({
+            type: "error",
+            category: "alt",
+            message: "图片缺少可访问名称（建议设置 alt 或 aria-label）",
+            element: img
+          });
+        }
+      });
+
+      // Buttons accessible name
+      document.querySelectorAll("button").forEach(btn => {
+        if (!hasAccessibleName(btn)) {
+          nextIssues.push({
+            type: "error",
+            category: "aria",
+            message: "按钮缺少可访问名称（文本/aria-label/aria-labelledby）",
+            element: btn
+          });
+        }
+      });
+
+      // Inputs label
+      document.querySelectorAll("input").forEach(el => {
+        const input = el as HTMLInputElement;
+        if (!inputHasLabel(input)) {
+          nextIssues.push({
+            type: "error",
+            category: "label",
+            message: "表单输入框缺少可访问名称（label/placeholder/aria-label）",
+            element: input
+          });
+        }
+      });
+
+      // Contrast ratio (placeholder, enabled for later extension)
+      void options.minContrastRatio;
+
+      issues.value = nextIssues;
+    } finally {
+      checking.value = false;
+    }
+  };
+
+  if (options.autoCheck) {
+    onMounted(() => {
+      if (import.meta.env.DEV) check();
+    });
+    onUnmounted(() => clear());
+  }
+
   return {
-    ...useA11yButton(),
-    ...useA11yInput(),
-    ...useA11ySelect(),
-    ...useA11yIconButton(),
-    ...useA11yTableAction(),
-    ...useA11yDialog(),
-    ...useA11ySearch()
+    issues,
+    checking,
+    check,
+    clear
   };
 }

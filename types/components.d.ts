@@ -15,6 +15,8 @@ declare module 'vue' {
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
+    ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
+    ElBreadcrumbItem: typeof import('element-plus/es')['ElBreadcrumbItem']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
     ElCard: typeof import('element-plus/es')['ElCard']
@@ -56,10 +58,12 @@ declare module 'vue' {
     ElStatistic: typeof import('element-plus/es')['ElStatistic']
     ElStep: typeof import('element-plus/es')['ElStep']
     ElSteps: typeof import('element-plus/es')['ElSteps']
+    ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
+    ElText: typeof import('element-plus/es')['ElText']
     ElTimeline: typeof import('element-plus/es')['ElTimeline']
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     ElTimeSelect: typeof import('element-plus/es')['ElTimeSelect']
@@ -80,6 +84,8 @@ declare global {
   const ElAlert: (typeof import("element-plus/es"))["ElAlert"];
   const ElAvatar: (typeof import("element-plus/es"))["ElAvatar"];
   const ElBacktop: (typeof import("element-plus/es"))["ElBacktop"];
+  const ElBreadcrumb: (typeof import("element-plus/es"))["ElBreadcrumb"];
+  const ElBreadcrumbItem: (typeof import("element-plus/es"))["ElBreadcrumbItem"];
   const ElButton: (typeof import("element-plus/es"))["ElButton"];
   const ElButtonGroup: (typeof import("element-plus/es"))["ElButtonGroup"];
   const ElCard: (typeof import("element-plus/es"))["ElCard"];
@@ -121,10 +127,12 @@ declare global {
   const ElStatistic: (typeof import("element-plus/es"))["ElStatistic"];
   const ElStep: (typeof import("element-plus/es"))["ElStep"];
   const ElSteps: (typeof import("element-plus/es"))["ElSteps"];
+  const ElSubMenu: (typeof import("element-plus/es"))["ElSubMenu"];
   const ElSwitch: (typeof import("element-plus/es"))["ElSwitch"];
   const ElTabPane: (typeof import("element-plus/es"))["ElTabPane"];
   const ElTabs: (typeof import("element-plus/es"))["ElTabs"];
   const ElTag: (typeof import("element-plus/es"))["ElTag"];
+  const ElText: (typeof import("element-plus/es"))["ElText"];
   const ElTimeline: (typeof import("element-plus/es"))["ElTimeline"];
   const ElTimelineItem: (typeof import("element-plus/es"))["ElTimelineItem"];
   const ElTimeSelect: (typeof import("element-plus/es"))["ElTimeSelect"];
