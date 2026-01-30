@@ -6,6 +6,7 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 export interface WorkflowQuery extends Record<string, unknown> {
   name?: string;
   status?: number;
+  scope?: "nonDeleted" | "deleted" | "all";
   /** 统一分页参数名为 page（兼容旧 pageNum） */
   page?: number;
   pageNum?: number;
@@ -38,6 +39,7 @@ export interface WorkflowVO {
   steps: WorkflowStep[];
   status: number;
   createTime: string;
+  deleteTime?: string;
 }
 
 const prefix = "/system/workflow/";
@@ -93,5 +95,13 @@ export async function deleteWorkflowApi(id: number) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + id)
+  );
+}
+
+/** Restore Workflow */
+export async function restoreWorkflowApi(id: number) {
+  return await http.request<CommonResult<WorkflowVO>>(
+    "post",
+    baseUrlApi(prefix + id + "/restore")
   );
 }

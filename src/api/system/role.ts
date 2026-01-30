@@ -1,6 +1,7 @@
 import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 
 export type CompanyRoleItem = {
   uid: string;
@@ -10,12 +11,21 @@ export type CompanyRoleItem = {
   level?: number | null;
   type?: number | null;
   status?: boolean | null;
+  deleteAt?: string | null;
 };
 
+function getCompanyId() {
+  return useCurrentCompanyStoreHook().companyId;
+}
+
 export interface RoleDto {
+  cn: string;
   name: string;
-  cn?: string;
-  desc?: string;
+  desc?: string | null;
+  status?: boolean | null;
+  level?: number | null;
+  type?: number | null;
+  company?: { connect: { uid: string } };
 }
 
 export async function getRoleListApi() {
@@ -72,7 +82,10 @@ export async function createRoleApi(data: RoleDto) {
     "post",
     baseUrlApi("/role"),
     {
-      data
+      data: {
+        ...data,
+        company: data.company ?? { connect: { uid: getCompanyId() } }
+      }
     }
   );
 }
@@ -91,5 +104,12 @@ export async function deleteRoleApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(`/role/${uid}`)
+  );
+}
+
+export async function restoreRoleApi(uid: string) {
+  return await http.request<CommonResult<CompanyRoleItem>>(
+    "post",
+    baseUrlApi(`/role/${uid}/restore`)
   );
 }

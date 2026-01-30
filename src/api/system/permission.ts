@@ -2,67 +2,68 @@ import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
 
-const prefix = "/permission";
+const prefix = "/permission/";
 
-export interface PermissionItem {
-  id?: string;
-  name: string; // Permission Name
-  code: string; // Permission Code (e.g. system:user:add)
-  description?: string;
-  type?: number; // 1: Menu, 2: Button, 3: Interface ?
-  createTime?: string;
+export interface PermissionDto {
+  uid?: string;
+  type?: string | null;
+  module?: string | null;
+  path: string;
+  desc?: string | null;
+  belong?: number | null;
+  deleteAt?: string | null;
 }
 
 export interface PermissionListResult {
-  list: PermissionItem[];
-  total: number;
-  count?: number;
+  list: PermissionDto[];
+  count: number;
 }
 
-export const getPermissionListApi = (params?: Record<string, unknown>) => {
+export const getPermissionsApi = (
+  index: number,
+  params?: Record<string, unknown>
+) => {
   return http.request<CommonResult<PermissionListResult>>(
     "get",
-    baseUrlApi(`${prefix}/list`),
-    {
-      params
-    }
+    baseUrlApi(`${prefix}page/${index}`),
+    { params }
   );
 };
 
-export const createPermissionApi = (data: Partial<PermissionItem>) => {
-  return http.request<CommonResult<PermissionItem>>(
-    "post",
-    baseUrlApi(prefix),
-    {
-      data
-    }
-  );
+export const createPermissionApi = (data: Partial<PermissionDto>) => {
+  return http.request<CommonResult<PermissionDto>>("post", baseUrlApi(prefix), {
+    data
+  });
 };
 
 export const updatePermissionApi = (
-  id: string,
-  data: Partial<PermissionItem>
+  uid: string,
+  data: Partial<PermissionDto>
 ) => {
-  return http.request<CommonResult<PermissionItem>>(
+  return http.request<CommonResult<PermissionDto>>(
     "patch",
-    baseUrlApi(`${prefix}/${id}`),
-    {
-      data
-    }
+    baseUrlApi(`${prefix}${uid}`),
+    { data }
   );
 };
 
-export const deletePermissionApi = (id: string) => {
+export const deletePermissionApi = (uid: string) => {
   return http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(`${prefix}/${id}`)
+    baseUrlApi(`${prefix}${uid}`)
   );
 };
 
-/** 获取权限详情 */
-export const getPermissionApi = (id: string) => {
-  return http.request<CommonResult<PermissionItem>>(
+export const restorePermissionApi = (uid: string) => {
+  return http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(`${prefix}${uid}/restore`)
+  );
+};
+
+export const getPermissionApi = (uid: string) => {
+  return http.request<CommonResult<PermissionDto>>(
     "get",
-    baseUrlApi(`${prefix}/${id}`)
+    baseUrlApi(`${prefix}${uid}`)
   );
 };

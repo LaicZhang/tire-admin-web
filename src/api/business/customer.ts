@@ -12,6 +12,7 @@ export interface CustomerQueryDto {
   tagId?: number;
   levelId?: number;
   regionId?: number;
+  scope?: "nonDeleted" | "deleted" | "all";
 }
 
 /** Prisma 关联连接类型 */
@@ -59,6 +60,7 @@ export interface Customer {
   phone?: string;
   address?: string;
   desc?: string;
+  deleteAt?: string | null;
   tags?: Array<{ id: number; name: string }>;
   level?: { id?: number; name: string };
   from?: string;
@@ -111,6 +113,13 @@ export async function deleteCustomerApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + uid)
+  );
+}
+
+export async function restoreCustomerApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(prefix + uid + "/restore")
   );
 }
 

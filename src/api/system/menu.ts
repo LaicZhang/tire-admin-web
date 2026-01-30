@@ -47,6 +47,7 @@ export interface MenuDto {
 export interface MenuItem extends MenuDto {
   uid: string;
   id: number;
+  deleteAt?: string | null;
   children?: MenuItem[];
 }
 
@@ -84,5 +85,12 @@ export async function deleteMenuApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(`${prefix}/${uid}`)
+  );
+}
+
+export async function restoreMenuApi(uid: string) {
+  return await http.request<CommonResult<MenuItem>>(
+    "post",
+    baseUrlApi(`${prefix}/${uid}/restore`)
   );
 }

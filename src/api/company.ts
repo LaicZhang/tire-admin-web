@@ -5,8 +5,6 @@ import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 
 const prefix = "/company/";
 
-const cid = getCompanyId();
-
 export function getCompanyId() {
   return useCurrentCompanyStoreHook().companyId;
 }
@@ -28,12 +26,12 @@ export async function addCompanyApi(data: object) {
   });
 }
 
-export async function getCompanyApi(uid: string | number = cid) {
+export async function getCompanyApi(uid: string = getCompanyId()) {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + uid));
 }
 
 export async function updateCompanyApi(
-  uid: string | number = cid,
+  uid: string = getCompanyId(),
   data: object
 ) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
@@ -41,6 +39,13 @@ export async function updateCompanyApi(
   });
 }
 
-export async function deleteCompanyApi(uid: number) {
+export async function restoreCompanyApi(uid: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix + uid + "/restore")
+  );
+}
+
+export async function deleteCompanyApi(uid: string) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }

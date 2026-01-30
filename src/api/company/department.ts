@@ -25,6 +25,9 @@ export interface Department extends Omit<
 > {
   id: number;
   uid: string;
+  createAt?: string;
+  updateAt?: string;
+  deleteAt?: string;
   employees?: Array<{
     id: number;
     uid: string;
@@ -77,6 +80,13 @@ export async function deleteDepartmentApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + uid)
+  );
+}
+
+export async function restoreDepartmentApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(prefix + `${uid}/restore`)
   );
 }
 

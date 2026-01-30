@@ -7,10 +7,12 @@ const prefix = "/dict/";
 export interface DictItem {
   id: number;
   name: string; // 字典类型名称
-  key: number; // 字典项键值
+  key?: number; // 字典项键值（后端由 group 映射得到）
+  group?: string | null; // 后端原始字段（兼容）
   cn: string | null; // 中文标签
   en: string | null; // 英文标签
   isPublic?: boolean;
+  deleteAt?: string | null;
 }
 
 export interface DictDto {
@@ -19,6 +21,8 @@ export interface DictDto {
   cn?: string | null;
   en?: string | null;
 }
+
+export type DictScope = "nonDeleted" | "deleted" | "all";
 
 export async function getDictListApi(
   index: number,
@@ -51,5 +55,12 @@ export async function deleteDictApi(id: number) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + id)
+  );
+}
+
+export async function restoreDictApi(id: number) {
+  return await http.request<CommonResult<DictItem>>(
+    "post",
+    baseUrlApi(prefix + id + "/restore")
   );
 }

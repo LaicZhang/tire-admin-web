@@ -13,6 +13,7 @@ export interface ProviderQueryDto {
   keyword?: string;
   name?: string;
   desc?: string;
+  scope?: "nonDeleted" | "deleted" | "all";
 }
 
 /** Prisma 关联连接类型 */
@@ -60,6 +61,7 @@ export interface Provider {
   bankInfo?: string;
   desc?: string;
   status?: boolean;
+  deleteAt?: string | null;
   isIndividual?: boolean;
   isPublic?: boolean;
   contactName?: string;
@@ -111,6 +113,13 @@ export async function deleteProviderApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + uid)
+  );
+}
+
+export async function restoreProviderApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(prefix + uid + "/restore")
   );
 }
 

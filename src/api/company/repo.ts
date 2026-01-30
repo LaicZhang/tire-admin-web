@@ -19,12 +19,19 @@ export interface RepoDto {
 export interface Repo extends RepoDto {
   id: number;
   uid: string;
+  deleteAt?: string | null;
 }
 
-export async function getRepoListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+export interface RepoQueryDto {
+  name?: string;
+  desc?: string;
+  keyword?: string;
+  scope?: "nonDeleted" | "deleted" | "all";
+  limit?: number;
+  pageSize?: number;
+}
+
+export async function getRepoListApi(index: number, params?: RepoQueryDto) {
   return await http.request<CommonResult<PaginatedResponseDto<Repo>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),
@@ -66,6 +73,13 @@ export async function deleteRepoApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + uid)
+  );
+}
+
+export async function restoreRepoApi(uid: string) {
+  return await http.request<CommonResult<Repo>>(
+    "post",
+    baseUrlApi(prefix + uid + "/restore")
   );
 }
 

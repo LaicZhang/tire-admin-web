@@ -47,3 +47,10 @@ export async function updateAssetApi(uid: string, data: object) {
 export async function deleteAssetApi(uid: string) {
   return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
 }
+
+export async function restoreAssetApi(uid: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix + uid + "/restore")
+  );
+}

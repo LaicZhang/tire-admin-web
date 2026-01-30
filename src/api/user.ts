@@ -4,13 +4,16 @@ import type { CommonResult } from "./type";
 
 const prefix = "/user/";
 
+export type UserScope = "nonDeleted" | "deleted" | "all";
+
 /** 用户查询参数 */
 export interface UserQueryDto {
   keyword?: string;
   username?: string;
   phone?: string;
   email?: string;
-  status?: number;
+  status?: boolean | 0 | 1 | "0" | "1";
+  scope?: UserScope;
 }
 
 /** 用户创建 DTO */
@@ -48,7 +51,8 @@ export interface UserDto {
   username: string;
   phone: string;
   email?: string;
-  status: string;
+  status: string | boolean;
+  deleteAt?: string | null;
 }
 
 export const getOneUserApi = (uid: string) => {
@@ -67,4 +71,11 @@ export const updateUserApi = (uid: string, data: UpdateUserDto) => {
 
 export const deleteUserApi = (uid: string) => {
   return http.request<CommonResult>("delete", baseUrlApi(prefix) + `/${uid}`);
+};
+
+export const restoreUserApi = (uid: string) => {
+  return http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix) + `/${uid}/restore`
+  );
 };

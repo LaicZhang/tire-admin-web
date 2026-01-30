@@ -44,16 +44,21 @@ export interface Employee {
   nickname?: string;
   desc?: string;
   status?: number;
+  updateAt?: string;
+  layoffAt?: string | null;
+  deleteAt?: string | null;
   jobs?: unknown[];
   user?: EmployeeUserDto;
 }
 
 /** 员工查询参数 */
 export interface EmployeeQueryDto {
+  scope?: "active" | "nonDeleted" | "deleted" | "all";
   keyword?: string;
   name?: string;
   status?: number;
   jobId?: number;
+  desc?: string;
 }
 
 export async function getAllEmployeeApi(params?: EmployeeQueryDto) {
@@ -122,6 +127,27 @@ export async function layoffEmployeeApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "post",
     baseUrlApi(prefix + uid + "/layoff")
+  );
+}
+
+export async function reinstateEmployeeApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(prefix + uid + "/reinstate")
+  );
+}
+
+export async function suspendEmployeeApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(prefix + uid + "/suspend")
+  );
+}
+
+export async function unsuspendEmployeeApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(prefix + uid + "/unsuspend")
   );
 }
 
