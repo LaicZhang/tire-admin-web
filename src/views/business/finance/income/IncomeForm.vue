@@ -2,7 +2,10 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { http } from "@/utils/http";
+import { createLogger } from "@/utils/logger";
 import type { CommonResult } from "@/api/type";
+
+const logger = createLogger("IncomeForm");
 
 const props = defineProps<{
   onSuccess: () => void;
@@ -39,7 +42,7 @@ const fetchPaymentList = async () => {
     >("/payment/1");
     paymentList.value = data.list;
   } catch (error) {
-    console.error("获取结算账户失败", error);
+    logger.error("获取结算账户失败", error);
   }
 };
 

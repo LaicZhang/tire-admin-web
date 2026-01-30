@@ -1,6 +1,8 @@
 /** 树递归最大深度限制，防止栈溢出 */
 const MAX_TREE_DEPTH = 100;
 
+import { logger } from "@/utils/logger";
+
 /**
  * 树节点基础接口
  */
@@ -22,7 +24,7 @@ export const extractPathList = <T extends TreeNode>(
   tree: T[]
 ): (string | number)[] => {
   if (!Array.isArray(tree)) {
-    console.warn("tree must be an array");
+    logger.warn("tree must be an array");
     return [];
   }
   if (!tree || tree.length === 0) return [];
@@ -50,7 +52,7 @@ export const deleteChildren = <T extends TreeNode>(
   pathList: (string | number)[] = []
 ): T[] => {
   if (!Array.isArray(tree)) {
-    console.warn("menuTree must be an array");
+    logger.warn("menuTree must be an array");
     return [];
   }
   if (!tree || tree.length === 0) return [];
@@ -82,12 +84,12 @@ export const buildHierarchyTree = <T extends TreeNode>(
   depth: number = 0
 ): T[] => {
   if (!Array.isArray(tree)) {
-    console.warn("tree must be an array");
+    logger.warn("tree must be an array");
     return [];
   }
   if (!tree || tree.length === 0) return [];
   if (depth > MAX_TREE_DEPTH) {
-    console.warn(
+    logger.warn(
       `Max tree depth (${MAX_TREE_DEPTH}) exceeded, stopping recursion`
     );
     return tree;
@@ -115,7 +117,7 @@ export const getNodeByUniqueId = <T extends TreeNode>(
   uniqueId: number | string
 ): T | null => {
   if (!Array.isArray(tree)) {
-    console.warn("menuTree must be an array");
+    logger.warn("menuTree must be an array");
     return null;
   }
   if (!tree || tree.length === 0) return null;
@@ -141,7 +143,7 @@ export const appendFieldByUniqueId = <T extends TreeNode>(
   fields: Partial<T>
 ): T[] => {
   if (!Array.isArray(tree)) {
-    console.warn("menuTree must be an array");
+    logger.warn("menuTree must be an array");
     return [];
   }
   if (!tree || tree.length === 0) return [];
@@ -185,7 +187,7 @@ export const handleTree = <T extends TreeDataItem>(
   children?: string
 ): T[] => {
   if (!Array.isArray(data)) {
-    console.warn("data must be an array");
+    logger.warn("data must be an array");
     return [];
   }
   const config = {
