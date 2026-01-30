@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 import { ALL_LIST, localForage, message } from "@/utils";
-import { getEmployeeListApi } from "@/api";
+import { getAllEmployeeApi } from "@/api";
 import { FormProps } from "./table";
 import type { Employee } from "@/api/company/employee";
 
@@ -18,10 +18,10 @@ const props = withDefaults(defineProps<FormProps>(), {
 
 const allEmployeeList = ref<Employee[]>([]);
 const getAllEmployeeList = async () => {
-  const { data, code, msg } = await getEmployeeListApi(0);
+  const { data, code, msg } = await getAllEmployeeApi();
   if (code === 200) {
-    allEmployeeList.value = data.list;
-    await localForage().setItem(ALL_LIST.employee, data.list);
+    allEmployeeList.value = data || [];
+    await localForage().setItem(ALL_LIST.employee, allEmployeeList.value);
   } else message(msg, { type: "error" });
 };
 

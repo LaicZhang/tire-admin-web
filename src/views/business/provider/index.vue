@@ -7,7 +7,11 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
-import { getProviderListApi, deleteProviderApi } from "@/api";
+import {
+  getProviderListApi,
+  deleteProviderApi,
+  restoreProviderApi
+} from "@/api";
 import type { Provider } from "@/api/business/provider";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -24,7 +28,8 @@ defineOptions({
 const formRef = ref();
 const form = ref({
   name: undefined as string | undefined,
-  desc: undefined as string | undefined
+  desc: undefined as string | undefined,
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all"
 });
 
 const showImportDialog = ref(false);
@@ -38,7 +43,8 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   api: ({ page }) =>
     getProviderListApi(page, {
       name: form.value.name,
-      desc: form.value.desc
+      desc: form.value.desc,
+      scope: form.value.scope
     }) as Promise<CommonResult<{ list: Provider[]; count: number }>>,
   pagination: {
     total: 0,
@@ -75,6 +81,12 @@ async function handleDelete(row: Provider) {
   message(`您删除了${row.name}这条数据`, { type: "success" });
   fetchData();
 }
+
+async function handleRestore(row: Provider) {
+  await restoreProviderApi(row.uid);
+  message(`已恢复${row.name}`, { type: "success" });
+  fetchData();
+}
 </script>
 
 <template>
@@ -103,6 +115,13 @@ async function handleDelete(row: Provider) {
           clearable
           class="w-[180px]!"
         />
+      </el-form-item>
+      <el-form-item label="范围：" prop="scope">
+        <el-select v-model="form.scope" class="w-[180px]!" clearable>
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
       </el-form-item>
     </ReSearchForm>
 
@@ -165,10 +184,20 @@ async function handleDelete(row: Provider) {
               </el-button>
 
               <DeleteButton
+                v-if="!row.deleteAt"
                 :show-icon="false"
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"
               />
+              <el-button
+                v-else
+                class="reset-margin"
+                link
+                type="primary"
+                @click="handleRestore(row)"
+              >
+                恢复
+              </el-button>
             </template>
           </pure-table>
         </template>

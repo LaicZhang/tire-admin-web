@@ -12,7 +12,8 @@ import {
   getMenuListApi,
   createMenuApi,
   updateMenuApi,
-  deleteMenuApi
+  deleteMenuApi,
+  restoreMenuApi
 } from "@/api/system/menu";
 
 // Icons
@@ -41,6 +42,7 @@ const {
 } = useColumns();
 
 const form = reactive({
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
   title: "",
   status: ""
 });
@@ -48,7 +50,10 @@ const form = reactive({
 async function onSearch() {
   loading.value = true;
   try {
-    const { data } = await getMenuListApi(); // API currently doesn't support filtering in mock maybe, but we can pass params
+    const { data } = await getMenuListApi({
+      scope: form.scope,
+      title: form.title || undefined
+    });
     // Assuming data is list, we might need to process it to tree if backend doesn't return tree
     // But usually backend returns tree for menu
     dataList.value = data as MenuItem[];
@@ -129,6 +134,12 @@ const handleDelete = async (row: MenuItem) => {
   onSearch();
 };
 
+const handleRestore = async (row: MenuItem) => {
+  await restoreMenuApi(String(row.uid ?? row.id));
+  message("恢复成功", { type: "success" });
+  onSearch();
+};
+
 onMounted(() => {
   onSearch();
 });
@@ -149,6 +160,13 @@ onMounted(() => {
           clearable
           class="w-48!"
         />
+      </el-form-item>
+      <el-form-item label="范围" prop="scope">
+        <el-select v-model="form.scope" class="w-40!" placeholder="请选择范围">
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button
@@ -194,11 +212,22 @@ onMounted(() => {
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
           }"
-          @page-size-change="onSizeChange"
-          @page-current-change="onCurrentChange"
+          @page-size-change="
+            val => {
+              onSizeChange(val);
+              onSearch();
+            }
+          "
+          @page-current-change="
+            val => {
+              onCurrentChange(val);
+              onSearch();
+            }
+          "
         >
           <template #operation="{ row }">
             <el-button
+              v-if="!row.deleteAt"
               class="reset-margin"
               link
               type="primary"
@@ -208,7 +237,21 @@ onMounted(() => {
             >
               修改
             </el-button>
+            <el-popconfirm
+              v-if="row.deleteAt"
+              title="是否确认恢复该菜单？"
+              confirm-button-text="确定"
+              cancel-button-text="取消"
+              @confirm="handleRestore(row)"
+            >
+              <template #reference>
+                <el-button class="reset-margin" link type="primary">
+                  恢复
+                </el-button>
+              </template>
+            </el-popconfirm>
             <DeleteButton
+              v-if="!row.deleteAt"
               :size="size"
               :show-icon="false"
               @confirm="handleDelete(row)"

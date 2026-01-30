@@ -4,7 +4,8 @@ export interface FormItemProps {
   phone: string;
   email?: string;
   password?: string;
-  status: string; // '0' | '1' | '2'
+  status: string | boolean | number; // enable/disable
+  deleteAt?: string | null;
 }
 
 export interface FormProps {

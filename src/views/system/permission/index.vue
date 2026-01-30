@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, h, reactive } from "vue";
+import { ref, onMounted, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useColumns } from "./columns";
@@ -9,11 +9,12 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { message, handleApiError } from "@/utils";
 import {
-  getPermissionListApi,
+  getPermissionsApi,
   createPermissionApi,
   updatePermissionApi,
   deletePermissionApi,
-  type PermissionItem
+  restorePermissionApi,
+  type PermissionDto
 } from "@/api/system/permission";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import "plus-pro-components/es/components/search/style/css";
@@ -21,8 +22,6 @@ import "plus-pro-components/es/components/search/style/css";
 // Icons
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
-import Search from "~icons/ep/search";
-import Refresh from "~icons/ep/refresh";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 
 defineOptions({
@@ -30,45 +29,72 @@ defineOptions({
 });
 
 const formRef = ref();
-const {
-  loading,
-  columns,
-  dataList,
-  pagination,
-  loadingConfig,
-  adaptiveConfig,
-  onSizeChange,
-  onCurrentChange
-} = useColumns();
+const { loading, columns, dataList, pagination, onSizeChange } = useColumns();
 
 const state = ref({
-  name: "",
-  code: ""
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
+  keyword: "",
+  module: "",
+  path: "",
+  type: "",
+  belong: ""
 });
 
 const searchColumns: PlusColumn[] = [
   {
-    label: "权限名称",
-    prop: "name",
+    label: "范围",
+    prop: "scope",
+    valueType: "select",
+    options: [
+      { label: "未删除", value: "nonDeleted" },
+      { label: "已删除", value: "deleted" },
+      { label: "全部", value: "all" }
+    ]
+  },
+  {
+    label: "关键词",
+    prop: "keyword",
     valueType: "copy"
   },
   {
-    label: "权限标识",
-    prop: "code",
+    label: "模块",
+    prop: "module",
     valueType: "copy"
+  },
+  {
+    label: "Path",
+    prop: "path",
+    valueType: "copy"
+  },
+  {
+    label: "方法",
+    prop: "type",
+    valueType: "copy"
+  },
+  {
+    label: "归属",
+    prop: "belong",
+    valueType: "select",
+    options: [
+      { label: "个人(1)", value: "1" },
+      { label: "部门(2)", value: "2" }
+    ]
   }
 ];
 
 async function onSearch() {
   loading.value = true;
   try {
-    const { data } = await getPermissionListApi({
-      page: pagination.currentPage,
-      pageSize: pagination.pageSize,
-      ...state.value
+    const { data } = await getPermissionsApi(pagination.currentPage, {
+      scope: state.value.scope,
+      keyword: state.value.keyword || undefined,
+      module: state.value.module || undefined,
+      path: state.value.path || undefined,
+      type: state.value.type || undefined,
+      belong: state.value.belong === "" ? undefined : Number(state.value.belong)
     });
-    dataList.value = data.list || [];
-    pagination.total = data.total || 0;
+    dataList.value = data?.list ?? [];
+    pagination.total = data?.count ?? 0;
   } catch (e) {
     handleApiError(e, "获取权限列表失败");
   } finally {
@@ -77,18 +103,27 @@ async function onSearch() {
 }
 
 const handleReset = () => {
-  state.value = { name: "", code: "" };
+  state.value = {
+    scope: "nonDeleted",
+    keyword: "",
+    module: "",
+    path: "",
+    type: "",
+    belong: ""
+  };
   onSearch();
 };
 
-const openDialog = (title = "新增", row?: FormItemProps & { id?: string }) => {
+const openDialog = (title = "新增", row?: PermissionDto) => {
   addDialog({
     title: `${title}权限`,
     props: {
       formInline: {
-        name: row?.name ?? "",
-        code: row?.code ?? "",
-        description: row?.description ?? ""
+        type: row?.type ?? "get",
+        module: row?.module ?? "",
+        path: row?.path ?? "",
+        desc: row?.desc ?? "",
+        belong: row?.belong ?? 1
       }
     },
     width: "40%",
@@ -108,17 +143,22 @@ const openDialog = (title = "新增", row?: FormItemProps & { id?: string }) => 
       FormRef.validate((valid: boolean) => {
         if (!valid) return;
 
+        const payload = {
+          type: curData.type || undefined,
+          module: curData.module || undefined,
+          path: curData.path,
+          desc: curData.desc || undefined,
+          belong: curData.belong
+        };
+
         const promise =
           title === "新增"
-            ? createPermissionApi(curData)
-            : row?.id
-              ? updatePermissionApi(row.id, curData)
+            ? createPermissionApi(payload)
+            : row?.uid
+              ? updatePermissionApi(row.uid, payload)
               : null;
 
-        if (!promise) {
-          message("缺少权限ID", { type: "error" });
-          return;
-        }
+        if (!promise) return message("缺少权限UID", { type: "error" });
 
         promise.then(() => {
           message("操作成功", { type: "success" });
@@ -130,12 +170,30 @@ const openDialog = (title = "新增", row?: FormItemProps & { id?: string }) => 
   });
 };
 
-const handleDelete = async (row: PermissionItem) => {
-  if (!row.id) return;
-  await deletePermissionApi(row.id);
-  message("删除成功", { type: "success" });
+const handleDelete = async (row: PermissionDto) => {
+  if (!row.uid) return;
+  await deletePermissionApi(row.uid);
+  message("删除成功（可恢复）", { type: "success" });
   onSearch();
 };
+
+const handleRestore = async (row: PermissionDto) => {
+  if (!row.uid) return;
+  await restorePermissionApi(row.uid);
+  message("恢复成功", { type: "success" });
+  onSearch();
+};
+
+function handleSizeChange(val: number) {
+  onSizeChange(val);
+  pagination.currentPage = 1;
+  onSearch();
+}
+
+function handleCurrentChange(val: number) {
+  pagination.currentPage = val;
+  onSearch();
+}
 
 onMounted(() => {
   onSearch();
@@ -168,7 +226,7 @@ onMounted(() => {
         </template>
         <template v-slot="{ size, dynamicColumns }">
           <pure-table
-            row-key="id"
+            row-key="uid"
             align-whole="center"
             showOverflowTooltip
             table-layout="auto"
@@ -182,25 +240,38 @@ onMounted(() => {
               background: 'var(--el-fill-color-light)',
               color: 'var(--el-text-color-primary)'
             }"
-            @page-size-change="onSizeChange"
-            @page-current-change="onCurrentChange"
+            @page-size-change="handleSizeChange"
+            @page-current-change="handleCurrentChange"
           >
             <template #operation="{ row }">
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :size="size"
-                :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
-              <DeleteButton
-                :size="size"
-                :show-icon="false"
-                @confirm="handleDelete(row)"
-              />
+              <template v-if="row.deleteAt">
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  @click="handleRestore(row)"
+                >
+                  恢复
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  :icon="useRenderIcon(EditPen)"
+                  @click="openDialog('修改', row)"
+                >
+                  修改
+                </el-button>
+                <DeleteButton
+                  :size="size"
+                  :show-icon="false"
+                  @confirm="handleDelete(row)"
+                />
+              </template>
             </template>
           </pure-table>
         </template>

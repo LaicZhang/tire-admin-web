@@ -6,6 +6,7 @@ import type {
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { formatDate } from "@/utils";
 
 export interface MenuItem {
   uid?: string;
@@ -13,6 +14,7 @@ export interface MenuItem {
   path?: string;
   component?: string;
   name?: string;
+  deleteAt?: string | null;
   meta?: {
     title?: string;
     icon?: string;
@@ -65,6 +67,12 @@ export function useColumns() {
           {row.meta.showLink ? "显示" : "隐藏"}
         </el-tag>
       )
+    },
+    {
+      label: "删除时间",
+      prop: "deleteAt",
+      width: 180,
+      formatter: (_row, _col, cellValue) => formatDate(cellValue)
     },
     {
       label: "操作",

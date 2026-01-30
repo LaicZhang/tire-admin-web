@@ -36,7 +36,11 @@ vi.mock("@pureadmin/utils", () => ({
   }),
   withInstall: <T>(c: T): T => c,
   cloneDeep: (o: unknown) => JSON.parse(JSON.stringify(o)),
-  isBoolean: (v: unknown) => typeof v === "boolean"
+  isBoolean: (v: unknown) => typeof v === "boolean",
+  getKeyList: (arr: unknown, key: string) =>
+    Array.isArray(arr)
+      ? arr.map(item => (item as Record<string, unknown>)[key])
+      : []
 }));
 
 const PureTableBar = {

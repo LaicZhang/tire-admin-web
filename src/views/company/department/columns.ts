@@ -28,6 +28,13 @@ export const columns: TableColumnList = [
     }
   },
   {
+    label: "删除时间",
+    prop: "deleteAt",
+    formatter: (row, column, cellValue) => {
+      return formatDate(cellValue);
+    }
+  },
+  {
     label: "操作",
     fixed: "right",
     prop: "operation",

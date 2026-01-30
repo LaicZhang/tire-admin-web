@@ -1,11 +1,6 @@
 import { getStatusInfo } from "./types";
 import type { Transfer } from "./types";
-
-/** 格式化金额（分转元） */
-function formatMoney(amount?: number): string {
-  if (amount === undefined || amount === null) return "-";
-  return `${(amount / 100).toFixed(2)}`;
-}
+import { fenToYuanOrDash } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -38,14 +33,14 @@ export const columns: TableColumnList = [
     prop: "amount",
     minWidth: 120,
     align: "right",
-    formatter: (row: Transfer) => formatMoney(row.amount)
+    formatter: (row: Transfer) => fenToYuanOrDash(row.amount)
   },
   {
     label: "手续费",
     prop: "fee",
     minWidth: 100,
     align: "right",
-    formatter: (row: Transfer) => (row.fee ? formatMoney(row.fee) : "-")
+    formatter: (row: Transfer) => (row.fee ? fenToYuanOrDash(row.fee) : "-")
   },
   {
     label: "手续费承担方",

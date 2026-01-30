@@ -1,11 +1,6 @@
 import { getIncomeTypeText, getStatusInfo } from "./types";
 import type { OtherIncome } from "./types";
-
-/** 格式化金额（分转元） */
-function formatMoney(amount?: number): string {
-  if (amount === undefined || amount === null) return "-";
-  return `${(amount / 100).toFixed(2)}`;
-}
+import { fenToYuanOrDash } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -44,14 +39,14 @@ export const columns: TableColumnList = [
     prop: "receivedAmount",
     minWidth: 110,
     align: "right",
-    formatter: (row: OtherIncome) => formatMoney(row.receivedAmount)
+    formatter: (row: OtherIncome) => fenToYuanOrDash(row.receivedAmount)
   },
   {
     label: "未收款",
     prop: "unpaidAmount",
     minWidth: 110,
     align: "right",
-    formatter: (row: OtherIncome) => formatMoney(row.unpaidAmount)
+    formatter: (row: OtherIncome) => fenToYuanOrDash(row.unpaidAmount)
   },
   {
     label: "收款账户",

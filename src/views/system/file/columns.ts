@@ -40,6 +40,11 @@ export const columns: TableColumnList = [
     minWidth: 160
   },
   {
+    label: "删除时间",
+    prop: "deleteTime",
+    minWidth: 160
+  },
+  {
     label: "操作",
     fixed: "right",
     slot: "operation",

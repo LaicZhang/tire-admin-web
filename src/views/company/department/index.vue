@@ -10,6 +10,7 @@ import { addDialog } from "@/components/ReDialog";
 import {
   getDepartmentListApi,
   deleteDepartmentApi,
+  restoreDepartmentApi,
   getDepartmentRolesApi,
   setDepartmentRolesApi,
   removeDepartmentRolesApi
@@ -29,7 +30,8 @@ defineOptions({
 
 const form = ref({
   name: undefined,
-  desc: undefined
+  desc: undefined,
+  scope: "nonDeleted"
 });
 
 const {
@@ -52,7 +54,8 @@ const {
 const onReset = () => {
   form.value = {
     name: undefined,
-    desc: undefined
+    desc: undefined,
+    scope: "nonDeleted"
   };
   fetchData();
 };
@@ -64,6 +67,16 @@ async function handleDelete(row: Department) {
     fetchData();
   } catch (e) {
     handleApiError(e, "删除部门失败");
+  }
+}
+
+async function handleRestore(row: Department) {
+  try {
+    await restoreDepartmentApi(row.uid);
+    message(`已恢复${row.name}`, { type: "success" });
+    fetchData();
+  } catch (e) {
+    handleApiError(e, "恢复部门失败");
   }
 }
 
@@ -169,6 +182,13 @@ async function openRolesDialog(row: { uid: string; name: string }) {
           class="w-[180px]!"
         />
       </el-form-item>
+      <el-form-item label="范围：" prop="scope">
+        <el-select v-model="form.scope" class="w-[160px]!">
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
+      </el-form-item>
     </ReSearchForm>
 
     <el-card class="m-1">
@@ -196,36 +216,43 @@ async function openRolesDialog(row: { uid: string; name: string }) {
             @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                @click="openDialog('查看', row)"
-              >
-                查看
-              </el-button>
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
-              <el-button
-                class="reset-margin"
-                link
-                type="warning"
-                @click="openRolesDialog(row)"
-              >
-                角色
-              </el-button>
-              <DeleteButton
-                :title="`是否确认删除${row.name}这条数据`"
-                :show-icon="false"
-                @confirm="handleDelete(row)"
-              />
+              <template v-if="row.deleteAt">
+                <el-button link type="primary" @click="handleRestore(row)">
+                  恢复
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  @click="openDialog('查看', row)"
+                >
+                  查看
+                </el-button>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :icon="useRenderIcon(EditPen)"
+                  @click="openDialog('修改', row)"
+                >
+                  修改
+                </el-button>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="warning"
+                  @click="openRolesDialog(row)"
+                >
+                  角色
+                </el-button>
+                <DeleteButton
+                  :title="`是否确认删除${row.name}这条数据`"
+                  :show-icon="false"
+                  @confirm="handleDelete(row)"
+                />
+              </template>
             </template>
           </pure-table>
         </template>

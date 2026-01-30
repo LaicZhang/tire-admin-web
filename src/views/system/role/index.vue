@@ -12,7 +12,9 @@ import {
   getRolesApi,
   createRoleApi,
   updateRoleApi,
-  deleteRoleApi
+  deleteRoleApi,
+  restoreRoleApi,
+  type CompanyRoleItem
 } from "@/api/system/role";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
@@ -38,11 +40,22 @@ defineOptions({
 
 const formRef = ref();
 const state = ref({
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
   name: "",
   status: ""
 });
 
 const formColumns: PlusColumn[] = [
+  {
+    label: "范围",
+    prop: "scope",
+    valueType: "select",
+    options: [
+      { label: "未删除", value: "nonDeleted" },
+      { label: "已删除", value: "deleted" },
+      { label: "全部", value: "all" }
+    ]
+  },
   {
     label: "角色名称",
     prop: "name",
@@ -70,10 +83,10 @@ const formColumns: PlusColumn[] = [
 const handleSearch = async () => {
   loading.value = true;
   try {
-    const { code, data } = await getRolesApi(
-      pagination.currentPage,
-      state.value
-    );
+    const { code, data } = await getRolesApi(pagination.currentPage, {
+      ...state.value,
+      scope: state.value.scope
+    });
     if (code === 200) {
       dataList.value = data.list;
       pagination.total = data.count;
@@ -90,16 +103,16 @@ const handleReset = () => {
   handleSearch();
 };
 
-const openDialog = (title = "新增", row?: FormItemProps) => {
+const openDialog = (title = "新增", row?: CompanyRoleItem) => {
   addDialog({
     title: `${title}角色`,
     props: {
       formInline: {
-        id: row?.id,
-        name: row?.name ?? "",
-        code: row?.code ?? "",
-        description: row?.description ?? "",
-        status: row?.status ?? 1
+        id: row?.uid,
+        name: row?.cn ?? "",
+        code: row?.name ?? "",
+        description: row?.desc ?? "",
+        status: row?.status ? 1 : 0
       }
     },
     width: "40%",
@@ -118,10 +131,16 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
+          const payload = {
+            cn: curData.name,
+            name: curData.code,
+            desc: curData.description,
+            status: curData.status === 1
+          };
           const promise =
             title === "新增"
-              ? createRoleApi(curData)
-              : updateRoleApi(row?.id ?? "", curData);
+              ? createRoleApi(payload as any)
+              : updateRoleApi(row?.uid ?? "", payload as any);
 
           promise.then(() => {
             message("操作成功", { type: "success" });
@@ -134,9 +153,15 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const deleteOne = async (row: FormItemProps) => {
-  await deleteRoleApi(row.id ?? "");
+const deleteOne = async (row: CompanyRoleItem) => {
+  await deleteRoleApi(row.uid ?? "");
   message("删除成功", { type: "success" });
+  handleSearch();
+};
+
+const restoreOne = async (row: CompanyRoleItem) => {
+  await restoreRoleApi(row.uid ?? "");
+  message("恢复成功", { type: "success" });
   handleSearch();
 };
 
@@ -151,7 +176,7 @@ onMounted(() => {
       v-model="state"
       class="bg-white mb-4 p-4 rounded-md"
       :columns="formColumns"
-      :show-number="2"
+      :show-number="3"
       label-width="80"
       label-position="right"
       @search="handleSearch"
@@ -183,11 +208,17 @@ onMounted(() => {
             :data="dataList"
             :columns="columns"
             :pagination="pagination"
-            @page-size-change="onSizeChange"
-            @page-current-change="onCurrentChange"
+            @page-size-change="
+              val => {
+                onSizeChange(val);
+                handleSearch();
+              }
+            "
+            @page-current-change="val => onCurrentChange(val, handleSearch)"
           >
             <template #operation="{ row }">
               <el-button
+                v-if="!row.deleteAt"
                 class="reset-margin"
                 link
                 type="primary"
@@ -197,7 +228,21 @@ onMounted(() => {
               >
                 修改
               </el-button>
+              <el-popconfirm
+                v-if="row.deleteAt"
+                title="是否确认恢复该角色？"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                @confirm="restoreOne(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="primary">
+                    恢复
+                  </el-button>
+                </template>
+              </el-popconfirm>
               <DeleteButton
+                v-if="!row.deleteAt"
                 :size="size"
                 :show-icon="false"
                 @confirm="deleteOne(row)"

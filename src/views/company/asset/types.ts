@@ -11,6 +11,7 @@ export interface AssetItem {
   isAuto: boolean;
   desc?: string;
   createdAt?: string;
+  deleteAt?: string;
 }
 
 export interface AssetFormItem {

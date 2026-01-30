@@ -7,10 +7,11 @@ import ReCol from "@/components/ReCol";
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     name: "",
-    contact: "",
-    phone: "",
-    address: "",
-    status: 1
+    province: "",
+    city: "",
+    principalName: "",
+    principalPhone: "",
+    desc: ""
   })
 });
 
@@ -42,38 +43,48 @@ defineExpose({ getRef });
         </el-form-item>
       </re-col>
       <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="联系人" prop="contact">
+        <el-form-item label="省" prop="province">
           <el-input
-            v-model="newFormInline.contact"
+            v-model="newFormInline.province"
             clearable
-            placeholder="请输入联系人"
+            placeholder="请输入省"
           />
         </el-form-item>
       </re-col>
       <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="联系电话" prop="phone">
+        <el-form-item label="市" prop="city">
           <el-input
-            v-model="newFormInline.phone"
+            v-model="newFormInline.city"
             clearable
-            placeholder="请输入联系电话"
+            placeholder="请输入市"
           />
         </el-form-item>
       </re-col>
       <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="newFormInline.status">
-            <el-radio :value="1">启用</el-radio>
-            <el-radio :value="0">禁用</el-radio>
-          </el-radio-group>
+        <el-form-item label="负责人" prop="principalName">
+          <el-input
+            v-model="newFormInline.principalName"
+            clearable
+            placeholder="请输入负责人"
+          />
+        </el-form-item>
+      </re-col>
+      <re-col :value="12" :xs="24" :sm="24">
+        <el-form-item label="负责人电话" prop="principalPhone">
+          <el-input
+            v-model="newFormInline.principalPhone"
+            clearable
+            placeholder="请输入负责人电话"
+          />
         </el-form-item>
       </re-col>
       <re-col :value="24" :xs="24" :sm="24">
-        <el-form-item label="详细地址" prop="address">
+        <el-form-item label="描述" prop="desc">
           <el-input
-            v-model="newFormInline.address"
+            v-model="newFormInline.desc"
             clearable
             type="textarea"
-            placeholder="请输入详细地址"
+            placeholder="请输入描述"
           />
         </el-form-item>
       </re-col>

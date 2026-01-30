@@ -19,6 +19,20 @@ export const columns: TableColumnList = [
     slot: "employeeStatus"
   },
   {
+    label: "离职时间",
+    prop: "layoffAt",
+    formatter: (_row, _column, cellValue) => {
+      return formatDate(cellValue);
+    }
+  },
+  {
+    label: "删除时间",
+    prop: "deleteAt",
+    formatter: (_row, _column, cellValue) => {
+      return formatDate(cellValue);
+    }
+  },
+  {
     label: "备注",
     prop: "desc"
   },

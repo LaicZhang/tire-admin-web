@@ -12,7 +12,8 @@ import {
   getDictListApi,
   createDictApi,
   updateDictApi,
-  deleteDictApi
+  deleteDictApi,
+  restoreDictApi
 } from "@/api/system/dict";
 import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
@@ -33,6 +34,7 @@ const pagination = reactive({
 });
 
 const form = reactive({
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
   name: undefined,
   key: undefined,
   cn: undefined,
@@ -77,13 +79,29 @@ const handleDelete = async (row: DictItem) => {
   }
 };
 
+const handleRestore = async (row: DictItem) => {
+  try {
+    await restoreDictApi(row.id);
+    message("恢复成功", { type: "success" });
+    getData();
+  } catch (e) {
+    handleApiError(e, "恢复失败");
+  }
+};
+
 function openDialog(title = "新增", row?: DictItem) {
+  const resolvedKey =
+    typeof row?.key === "number"
+      ? row.key
+      : typeof row?.group === "string"
+        ? Number(row.group)
+        : 0;
   addDialog({
     title: `${title}字典`,
     props: {
       formInline: {
         name: row?.name ?? "",
-        key: row?.key ?? 0,
+        key: Number.isFinite(resolvedKey) ? resolvedKey : 0,
         cn: row?.cn ?? "",
         en: row?.en ?? ""
       }
@@ -172,6 +190,17 @@ onMounted(() => {
       @search="getData"
       @reset="resetForm(searchFormRef)"
     >
+      <el-form-item label="范围" prop="scope">
+        <el-select
+          v-model="form.scope"
+          placeholder="请选择范围"
+          class="w-[200px]!"
+        >
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="字典类型" prop="name">
         <el-input
           v-model="form.name"
@@ -214,6 +243,7 @@ onMounted(() => {
         >
           <template #operation="{ row }">
             <el-button
+              v-if="!row.deleteAt"
               class="reset-margin"
               link
               type="primary"
@@ -222,7 +252,26 @@ onMounted(() => {
             >
               修改
             </el-button>
-            <DeleteButton :show-icon="false" @confirm="handleDelete(row)" />
+
+            <el-popconfirm
+              v-if="row.deleteAt"
+              title="是否确认恢复该字典？"
+              confirm-button-text="确定"
+              cancel-button-text="取消"
+              @confirm="handleRestore(row)"
+            >
+              <template #reference>
+                <el-button class="reset-margin" link type="primary">
+                  恢复
+                </el-button>
+              </template>
+            </el-popconfirm>
+
+            <DeleteButton
+              v-if="!row.deleteAt"
+              :show-icon="false"
+              @confirm="handleDelete(row)"
+            />
           </template>
         </pure-table>
       </template>

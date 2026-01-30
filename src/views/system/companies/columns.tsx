@@ -17,20 +17,25 @@ export function useColumns() {
       minWidth: 150
     },
     {
-      label: "联系人",
-      prop: "contact",
+      label: "省/市",
+      prop: "province",
+      minWidth: 140,
+      formatter: ({ province, city }) => {
+        const p = province ?? "";
+        const c = city ?? "";
+        const joined = [p, c].filter(Boolean).join(" ");
+        return joined || "-";
+      }
+    },
+    {
+      label: "负责人",
+      prop: "principalName",
       minWidth: 100
     },
     {
-      label: "联系电话",
-      prop: "phone",
+      label: "负责人电话",
+      prop: "principalPhone",
       minWidth: 120
-    },
-    {
-      label: "地址",
-      prop: "address",
-      minWidth: 150,
-      showOverflowTooltip: true
     },
     {
       label: "状态",
@@ -39,20 +44,29 @@ export function useColumns() {
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={row.status === 1 ? "success" : "danger"}
+          type={
+            row.deleteAt ? "info" : row.status === false ? "danger" : "success"
+          }
           effect="plain"
         >
-          {row.status === 1 ? "启用" : "禁用"}
+          {row.deleteAt ? "已删除" : row.status === false ? "禁用" : "启用"}
         </el-tag>
       )
     },
     {
       label: "创建时间",
-      prop: "createdAt",
+      prop: "createAt",
       minWidth: 160,
-      formatter: ({ createdAt }) => {
-        // Format date if needed, or rely on backend string
-        return createdAt ? createdAt.replace("T", " ").substring(0, 19) : "-";
+      formatter: ({ createAt }) => {
+        return createAt ? createAt.replace("T", " ").substring(0, 19) : "-";
+      }
+    },
+    {
+      label: "删除时间",
+      prop: "deleteAt",
+      minWidth: 160,
+      formatter: ({ deleteAt }) => {
+        return deleteAt ? deleteAt.replace("T", " ").substring(0, 19) : "-";
       }
     },
     {

@@ -13,6 +13,7 @@ import {
   addUserApi,
   updateUserApi,
   deleteUserApi,
+  restoreUserApi,
   type UserDto,
   type CreateUserDto,
   type UpdateUserDto
@@ -32,12 +33,23 @@ defineOptions({
 });
 
 const state = ref({
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
   status: "",
   username: ""
 });
 const formRef = ref();
 
 const formColumns: PlusColumn[] = [
+  {
+    label: "范围",
+    prop: "scope",
+    valueType: "select",
+    options: [
+      { label: "未删除", value: "nonDeleted" },
+      { label: "已删除", value: "deleted" },
+      { label: "全部", value: "all" }
+    ]
+  },
   {
     label: "用户名",
     prop: "username",
@@ -82,8 +94,9 @@ const {
 >({
   api: (params: { page: number }) =>
     getUsersApi(params.page, {
+      scope: state.value.scope,
       username: state.value.username || undefined,
-      status: state.value.status ? Number(state.value.status) : undefined
+      status: state.value.status === "" ? undefined : state.value.status === "1"
     }),
   transform: (res: CommonResult<{ list: UserDto[]; count: number }>) => ({
     list: res.data?.list ?? [],
@@ -207,6 +220,12 @@ async function handleDelete(row: { uid: string; username: string }) {
   message(`您删除了${row.username}这条数据`, { type: "success" });
   fetchData();
 }
+
+async function handleRestore(row: { uid: string; username: string }) {
+  await restoreUserApi(row.uid);
+  message(`已恢复${row.username}`, { type: "success" });
+  fetchData();
+}
 </script>
 
 <template>
@@ -215,7 +234,7 @@ async function handleDelete(row: { uid: string; username: string }) {
       v-model="state"
       class="bg-white mb-4 p-4 rounded-md"
       :columns="formColumns"
-      :show-number="3"
+      :show-number="4"
       label-width="80"
       label-position="right"
       @change="handleChange"
@@ -239,7 +258,7 @@ async function handleDelete(row: { uid: string; username: string }) {
             ref="tableRef"
             border
             adaptive
-            row-key="id"
+            row-key="uid"
             alignWhole="center"
             showOverflowTooltip
             :loading="loading"
@@ -262,6 +281,7 @@ async function handleDelete(row: { uid: string; username: string }) {
                 查看
               </el-button>
               <el-button
+                v-if="!row.deleteAt"
                 class="reset-margin"
                 link
                 type="primary"
@@ -271,8 +291,22 @@ async function handleDelete(row: { uid: string; username: string }) {
               >
                 更新
               </el-button>
+              <el-popconfirm
+                v-if="row.deleteAt"
+                :title="`确定要恢复用户 '${row.username}' 吗？`"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                @confirm="handleRestore(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="primary">
+                    恢复
+                  </el-button>
+                </template>
+              </el-popconfirm>
               <DeleteButton
-                :title="`确定要删除用户 '${row.username}' 吗？此操作不可恢复。`"
+                v-if="!row.deleteAt"
+                :title="`确定要删除用户 '${row.username}' 吗？`"
                 :show-icon="false"
                 @confirm="handleDelete(row)"
               />

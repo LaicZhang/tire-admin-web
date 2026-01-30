@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { createChatApi, chatApi, getChatApi, getChatCountApi } from "@/api";
-import { message } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import { Loading } from "@element-plus/icons-vue";
 
 defineOptions({
@@ -27,10 +27,10 @@ const initNewChat = async () => {
       chatHistory.value = data.messages || [];
       message("新对话已创建", { type: "success" });
     } else {
-      message(msg || "创建对话失败", { type: "error" });
+      handleApiError(msg, "创建对话失败");
     }
   } catch (error) {
-    message("创建对话失败", { type: "error" });
+    handleApiError(error, "创建对话失败");
   } finally {
     loading.value = false;
   }
@@ -73,12 +73,12 @@ const sendMessage = async () => {
         }));
       }
     } else {
-      message(msg || "发送消息失败", { type: "error" });
+      handleApiError(msg, "发送消息失败");
       chatHistory.value.pop();
       inputMessage.value = currentMessage;
     }
   } catch (error) {
-    message("发送消息失败", { type: "error" });
+    handleApiError(error, "发送消息失败");
     chatHistory.value.pop();
     inputMessage.value = currentMessage;
   } finally {

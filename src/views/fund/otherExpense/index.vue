@@ -4,13 +4,14 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import PageContainer from "@/components/PageContainer/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
-import Link from "~icons/ep/link";
 import { http } from "@/utils/http";
 import { handleApiError } from "@/utils";
+import { fenToYuanOrDash as formatMoney } from "@/utils/formatMoney";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
   type OtherExpense,
@@ -169,75 +170,71 @@ function handleFormSuccess() {
   onSearch();
 }
 
-/** 格式化金额 */
-function formatMoney(amount?: number): string {
-  if (amount === undefined || amount === null) return "-";
-  return (amount / 100).toFixed(2);
-}
-
 onMounted(() => {
   onSearch();
 });
 </script>
 
 <template>
-  <div class="main">
-    <ReSearchForm
-      ref="formRef"
-      :form="queryForm"
-      :loading="loading"
-      @search="onSearch"
-      @reset="resetForm(formRef)"
-    >
-      <el-form-item label="单据编号" prop="billNo">
-        <el-input
-          v-model="queryForm.billNo"
-          placeholder="请输入单据编号"
-          clearable
-          class="w-[160px]"
-        />
-      </el-form-item>
-      <el-form-item label="支出类型" prop="expenseType">
-        <el-select
-          v-model="queryForm.expenseType"
-          placeholder="请选择类型"
-          clearable
-          class="!w-[130px]"
-        >
-          <el-option
-            v-for="item in EXPENSE_TYPE_OPTIONS"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+  <PageContainer>
+    <template #search>
+      <ReSearchForm
+        ref="formRef"
+        :form="queryForm"
+        :loading="loading"
+        @search="onSearch"
+        @reset="resetForm(formRef)"
+      >
+        <el-form-item label="单据编号" prop="billNo">
+          <el-input
+            v-model="queryForm.billNo"
+            placeholder="请输入单据编号"
+            clearable
+            class="w-[160px]"
           />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="供应商" prop="providerName">
-        <el-input
-          v-model="queryForm.providerName"
-          placeholder="请输入供应商名称"
-          clearable
-          class="!w-[140px]"
-        />
-      </el-form-item>
-      <el-form-item label="日期范围" prop="dateRange">
-        <el-date-picker
-          v-model="queryForm.startDate"
-          type="date"
-          placeholder="开始日期"
-          value-format="YYYY-MM-DD"
-          class="!w-[140px]"
-        />
-        <span class="mx-2">-</span>
-        <el-date-picker
-          v-model="queryForm.endDate"
-          type="date"
-          placeholder="结束日期"
-          value-format="YYYY-MM-DD"
-          class="!w-[140px]"
-        />
-      </el-form-item>
-    </ReSearchForm>
+        </el-form-item>
+        <el-form-item label="支出类型" prop="expenseType">
+          <el-select
+            v-model="queryForm.expenseType"
+            placeholder="请选择类型"
+            clearable
+            class="!w-[130px]"
+          >
+            <el-option
+              v-for="item in EXPENSE_TYPE_OPTIONS"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="供应商" prop="providerName">
+          <el-input
+            v-model="queryForm.providerName"
+            placeholder="请输入供应商名称"
+            clearable
+            class="!w-[140px]"
+          />
+        </el-form-item>
+        <el-form-item label="日期范围" prop="dateRange">
+          <el-date-picker
+            v-model="queryForm.startDate"
+            type="date"
+            placeholder="开始日期"
+            value-format="YYYY-MM-DD"
+            class="!w-[140px]"
+          />
+          <span class="mx-2">-</span>
+          <el-date-picker
+            v-model="queryForm.endDate"
+            type="date"
+            placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            class="!w-[140px]"
+          />
+        </el-form-item>
+      </ReSearchForm>
+    </template>
 
     <PureTableBar title="其他支出单列表" :columns="columns" @refresh="onSearch">
       <template #buttons>
@@ -347,17 +344,5 @@ onMounted(() => {
       :edit-data="editData"
       @success="handleFormSuccess"
     />
-  </div>
+  </PageContainer>
 </template>
-
-<style scoped lang="scss">
-.main {
-  padding: 16px;
-}
-
-.search-form {
-  :deep(.el-form-item) {
-    margin-bottom: 12px;
-  }
-}
-</style>

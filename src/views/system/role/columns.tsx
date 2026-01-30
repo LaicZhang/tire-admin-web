@@ -6,6 +6,7 @@ import type {
 } from "@pureadmin/table";
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
+import { formatDate } from "@/utils";
 
 import type { CompanyRoleItem } from "@/api/system/role";
 
@@ -15,17 +16,17 @@ export function useColumns() {
   const columns: TableColumnList = [
     {
       label: "角色名称",
-      prop: "name",
+      prop: "cn",
       minWidth: 120
     },
     {
       label: "角色标识",
-      prop: "code",
+      prop: "name",
       minWidth: 120
     },
     {
       label: "描述",
-      prop: "description",
+      prop: "desc",
       minWidth: 180
     },
     {
@@ -35,12 +36,26 @@ export function useColumns() {
       cellRenderer: (data: TableColumnRenderer) => (
         <el-tag
           size={data.props?.size}
-          type={data.row?.status === 1 ? "success" : "danger"}
+          type={
+            data.row?.status === true ||
+            (data.row as CompanyRoleItem)?.status === 1
+              ? "success"
+              : "danger"
+          }
           effect="plain"
         >
-          {data.row?.status === 1 ? "启用" : "禁用"}
+          {data.row?.status === true ||
+          (data.row as CompanyRoleItem)?.status === 1
+            ? "启用"
+            : "禁用"}
         </el-tag>
       )
+    },
+    {
+      label: "删除时间",
+      prop: "deleteAt",
+      minWidth: 160,
+      formatter: (_row, _column, cellValue) => formatDate(cellValue)
     },
     {
       label: "操作",

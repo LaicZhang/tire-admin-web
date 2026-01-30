@@ -13,8 +13,11 @@ import {
   getCompanyListApi,
   addCompanyApi,
   updateCompanyApi,
-  deleteCompanyApi
+  deleteCompanyApi,
+  restoreCompanyApi
 } from "@/api/company";
+import { useUserStoreHook } from "@/store/modules/user";
+import { v7 as uuid } from "uuid";
 
 // Icons
 import AddFill from "~icons/ri/add-circle-line";
@@ -27,18 +30,10 @@ defineOptions({
 
 const searchFormRef = ref();
 const formRef = ref();
-const {
-  loading,
-  columns,
-  dataList,
-  pagination,
-  loadingConfig,
-  adaptiveConfig,
-  onSizeChange,
-  onCurrentChange
-} = useColumns();
+const { loading, columns, dataList, pagination, onSizeChange } = useColumns();
 
 const form = reactive({
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
   name: ""
 });
 
@@ -47,10 +42,10 @@ async function onSearch() {
   try {
     const { data } = await getCompanyListApi(pagination.currentPage, {
       ...form,
-      pageSize: pagination.pageSize
+      name: form.name || undefined
     });
-    dataList.value = (data as { list: FormItemProps[]; total: number }).list;
-    pagination.total = (data as { list: FormItemProps[]; total: number }).total;
+    dataList.value = (data as { list: FormItemProps[]; count: number }).list;
+    pagination.total = (data as { list: FormItemProps[]; count: number }).count;
   } catch (e) {
     handleApiError(e, "查询失败");
   } finally {
@@ -65,16 +60,19 @@ const resetForm = (formEl: { resetFields: () => void } | undefined) => {
 };
 
 const openDialog = (title = "新增", row?: FormItemProps) => {
+  const userStore = useUserStoreHook();
+  const companyUid = row?.uid ?? uuid();
   addDialog({
     title: `${title}公司`,
     props: {
       formInline: {
-        id: row?.id,
+        uid: companyUid,
         name: row?.name ?? "",
-        contact: row?.contact ?? "",
-        phone: row?.phone ?? "",
-        address: row?.address ?? "",
-        status: row?.status ?? 1
+        province: row?.province ?? "",
+        city: row?.city ?? "",
+        principalName: row?.principalName ?? "",
+        principalPhone: row?.principalPhone ?? "",
+        desc: row?.desc ?? ""
       }
     },
     width: "45%",
@@ -93,15 +91,29 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
-          const companyId = row?.id;
-          if (title !== "新增" && companyId == null) {
-            message("缺少公司ID", { type: "error" });
-            return;
-          }
           const promise =
             title === "新增"
-              ? addCompanyApi(curData)
-              : updateCompanyApi(companyId, curData);
+              ? addCompanyApi({
+                  company: {
+                    uid: curData.uid,
+                    name: curData.name,
+                    province: curData.province || null,
+                    city: curData.city || null,
+                    desc: curData.desc || null,
+                    principalName: curData.principalName || null,
+                    principalPhone: curData.principalPhone || null,
+                    boss: { connect: { uid: userStore.uid } }
+                  },
+                  info: { company: { connect: { uid: curData.uid! } } }
+                })
+              : updateCompanyApi(row?.uid ?? "", {
+                  name: curData.name,
+                  province: curData.province || null,
+                  city: curData.city || null,
+                  desc: curData.desc || null,
+                  principalName: curData.principalName || null,
+                  principalPhone: curData.principalPhone || null
+                });
 
           promise.then(() => {
             message("操作成功", { type: "success" });
@@ -115,11 +127,29 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 };
 
 const handleDelete = async (row: FormItemProps) => {
-  if (row.id == null) return;
-  await deleteCompanyApi(row.id);
-  message("删除成功", { type: "success" });
+  if (!row.uid) return;
+  await deleteCompanyApi(row.uid);
+  message("删除成功（可恢复）", { type: "success" });
   onSearch();
 };
+
+const handleRestore = async (row: FormItemProps) => {
+  if (!row.uid) return;
+  await restoreCompanyApi(row.uid);
+  message("恢复成功", { type: "success" });
+  onSearch();
+};
+
+function handleSizeChange(val: number) {
+  onSizeChange(val);
+  pagination.currentPage = 1;
+  onSearch();
+}
+
+function handleCurrentChange(val: number) {
+  pagination.currentPage = val;
+  onSearch();
+}
 
 onMounted(() => {
   onSearch();
@@ -135,6 +165,13 @@ onMounted(() => {
       @search="onSearch"
       @reset="resetForm(searchFormRef)"
     >
+      <el-form-item label="范围" prop="scope">
+        <el-select v-model="form.scope" class="w-[120px]!">
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="公司名称" prop="name">
         <el-input
           v-model="form.name"
@@ -157,7 +194,7 @@ onMounted(() => {
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
-          row-key="id"
+          row-key="uid"
           align-whole="center"
           showOverflowTooltip
           table-layout="auto"
@@ -171,25 +208,38 @@ onMounted(() => {
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
           }"
-          @page-size-change="onSizeChange"
-          @page-current-change="onCurrentChange"
+          @page-size-change="handleSizeChange"
+          @page-current-change="handleCurrentChange"
         >
           <template #operation="{ row }">
-            <el-button
-              class="reset-margin"
-              link
-              type="primary"
-              :size="size"
-              :icon="useRenderIcon(EditPen)"
-              @click="openDialog('修改', row)"
-            >
-              修改
-            </el-button>
-            <DeleteButton
-              :size="size"
-              :show-icon="false"
-              @confirm="handleDelete(row)"
-            />
+            <template v-if="row.deleteAt">
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                @click="handleRestore(row)"
+              >
+                恢复
+              </el-button>
+            </template>
+            <template v-else>
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(EditPen)"
+                @click="openDialog('修改', row)"
+              >
+                修改
+              </el-button>
+              <DeleteButton
+                :size="size"
+                :show-icon="false"
+                @confirm="handleDelete(row)"
+              />
+            </template>
           </template>
         </pure-table>
       </template>

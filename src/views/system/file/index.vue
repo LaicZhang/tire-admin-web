@@ -11,6 +11,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import {
   getFileListApi,
   deleteFileApi,
+  restoreFileApi,
   uploadFileApi,
   type FileItem
 } from "@/api/system/file";
@@ -34,7 +35,8 @@ const pagination = reactive({
 
 const form = reactive({
   fileName: "",
-  fileType: ""
+  fileType: "",
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all"
 });
 
 async function onSearch() {
@@ -67,6 +69,16 @@ async function handleDelete(row: FileItem) {
     onSearch();
   } catch (e) {
     message(e instanceof Error ? e.message : "删除失败", { type: "error" });
+  }
+}
+
+async function handleRestore(row: FileItem) {
+  try {
+    await restoreFileApi(row.id);
+    message("恢复成功", { type: "success" });
+    onSearch();
+  } catch (e) {
+    message(e instanceof Error ? e.message : "恢复失败", { type: "error" });
   }
 }
 
@@ -179,6 +191,13 @@ onMounted(() => {
           <el-option label="音频" value="audio/" />
         </el-select>
       </el-form-item>
+      <el-form-item label="范围" prop="scope">
+        <el-select v-model="form.scope" clearable class="!w-[150px]">
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
+      </el-form-item>
     </ReSearchForm>
 
     <PureTableBar title="文件管理" @refresh="onSearch">
@@ -220,7 +239,20 @@ onMounted(() => {
             >
               下载
             </el-button>
-            <DeleteButton :show-icon="false" @confirm="handleDelete(row)" />
+            <DeleteButton
+              v-if="!row.deleteTime"
+              :show-icon="false"
+              @confirm="handleDelete(row)"
+            />
+            <el-button
+              v-else
+              class="reset-margin"
+              link
+              type="primary"
+              @click="handleRestore(row)"
+            >
+              恢复
+            </el-button>
           </template>
         </pure-table>
       </template>

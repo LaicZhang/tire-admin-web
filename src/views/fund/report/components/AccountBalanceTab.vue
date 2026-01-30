@@ -3,6 +3,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Download from "~icons/ep/download";
 import type { AccountBalance } from "../types";
+import { fenToYuanOrDash as formatMoney } from "@/utils/formatMoney";
 
 interface Props {
   loading: boolean;
@@ -16,11 +17,6 @@ const emit = defineEmits<{
   (e: "refresh"): void;
   (e: "export"): void;
 }>();
-
-const formatMoney = (amount?: number): string => {
-  if (amount === undefined || amount === null) return "-";
-  return (amount / 100).toFixed(2);
-};
 </script>
 
 <template>

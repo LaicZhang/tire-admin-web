@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { fenToYuanOrDash as formatMoney } from "@/utils/formatMoney";
 
 interface Statistics {
   totalIncome: number;
@@ -15,11 +16,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
-const formatMoney = (amount?: number): string => {
-  if (amount === undefined || amount === null) return "-";
-  return (amount / 100).toFixed(2);
-};
 
 const netValue = computed(() => {
   return props.activeTab === "debt"

@@ -7,7 +7,11 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
-import { getCustomerListApi, deleteCustomerApi } from "@/api";
+import {
+  getCustomerListApi,
+  deleteCustomerApi,
+  restoreCustomerApi
+} from "@/api";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import TagDialog from "./tagDialog.vue";
@@ -30,6 +34,7 @@ interface Customer {
   uid: string;
   name: string;
   desc?: string;
+  deleteAt?: string | null;
   levelId?: number;
   tagIds?: number[];
   creditLimit?: number;
@@ -40,7 +45,8 @@ const loading = ref(false);
 const formRef = ref();
 const form = ref({
   name: undefined,
-  desc: undefined
+  desc: undefined,
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all"
 });
 const pagination = ref({
   total: 0,
@@ -57,6 +63,12 @@ const showExportDialog = ref(false);
 const showFollowUpDialog = ref(false);
 const currentCustomerUid = ref("");
 
+const buildQuery = () => ({
+  name: form.value.name,
+  desc: form.value.desc,
+  scope: form.value.scope
+});
+
 // Handlers
 function handleFollowUp(row: Customer) {
   currentCustomerUid.value = row.uid;
@@ -64,7 +76,8 @@ function handleFollowUp(row: Customer) {
 }
 const getCustomerListInfo = async () => {
   const { data, code, msg } = await getCustomerListApi(
-    pagination.value.currentPage
+    pagination.value.currentPage,
+    buildQuery()
   );
   if (code === 200) dataList.value = (data.list || []) as Customer[];
   else message(msg, { type: "error" });
@@ -72,16 +85,8 @@ const getCustomerListInfo = async () => {
 };
 const onSearch = async () => {
   loading.value = true;
-  if (form.value.name === undefined && form.value.desc === undefined)
-    await getCustomerListInfo();
-
-  const { data } = await getCustomerListApi(pagination.value.currentPage, {
-    name: form.value.name,
-    desc: form.value.desc
-  });
-
-  dataList.value = (data.list || []) as Customer[];
-  pagination.value.total = data.count;
+  pagination.value.currentPage = 1;
+  await getCustomerListInfo();
   loading.value = false;
 };
 
@@ -100,6 +105,12 @@ async function handleCurrentChange(val: number) {
 async function handleDelete(row: Customer) {
   await deleteCustomerApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
+  onSearch();
+}
+
+async function handleRestore(row: Customer) {
+  await restoreCustomerApi(row.uid);
+  message(`已恢复${row.name}`, { type: "success" });
   onSearch();
 }
 
@@ -139,6 +150,13 @@ onMounted(async () => {
           clearable
           class="w-[180px]!"
         />
+      </el-form-item>
+      <el-form-item label="范围：" prop="scope">
+        <el-select v-model="form.scope" class="w-[180px]!" clearable>
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
       </el-form-item>
     </ReSearchForm>
 
@@ -224,10 +242,20 @@ onMounted(async () => {
               </el-button>
 
               <DeleteButton
+                v-if="!row.deleteAt"
                 :show-icon="false"
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"
               />
+              <el-button
+                v-else
+                class="reset-margin"
+                link
+                type="primary"
+                @click="handleRestore(row)"
+              >
+                恢复
+              </el-button>
             </template>
           </pure-table>
         </template>

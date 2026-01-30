@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import type { FormRules } from "element-plus";
-import { getEmployeeListApi, type Employee } from "@/api/company/employee";
+import { getAllEmployeeApi, type Employee } from "@/api/company/employee";
 import { message } from "@/utils";
 
 interface FormItemProps {
@@ -37,9 +37,9 @@ const newFormInline = ref(props.formInline);
 const employeeList = ref<Employee[]>([]);
 
 const getEmployees = async () => {
-  const { data, code, msg } = await getEmployeeListApi(0); // 0 for all if API supports it, or handle pagination
+  const { data, code, msg } = await getAllEmployeeApi();
   if (code === 200) {
-    employeeList.value = data.list || [];
+    employeeList.value = data || [];
   } else {
     // message(msg, { type: "error" });
     // Suppress initial loading error or handle it

@@ -5,25 +5,52 @@ import type {
 } from "@pureadmin/table";
 import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
-import type { PermissionItem } from "@/api/system/permission";
+import type { PermissionDto } from "@/api/system/permission";
 
 export function useColumns() {
-  const dataList = ref<PermissionItem[]>([]);
+  const dataList = ref<PermissionDto[]>([]);
   const loading = ref(true);
 
   const columns: TableColumnList = [
     {
-      label: "权限名称",
-      prop: "name"
+      label: "方法",
+      prop: "type",
+      width: 90,
+      cellRenderer: ({ row }) => (
+        <el-tag size="small" effect="plain">
+          {(row.type || "-").toString()}
+        </el-tag>
+      )
     },
     {
-      label: "权限标识",
-      prop: "code",
-      cellRenderer: ({ row }) => <el-tag size="small">{row.code}</el-tag>
+      label: "模块",
+      prop: "module",
+      minWidth: 120
     },
     {
       label: "描述",
-      prop: "description"
+      prop: "desc",
+      minWidth: 160,
+      showOverflowTooltip: true
+    },
+    {
+      label: "Path",
+      prop: "path",
+      minWidth: 200,
+      showOverflowTooltip: true
+    },
+    {
+      label: "归属",
+      prop: "belong",
+      width: 80
+    },
+    {
+      label: "删除时间",
+      prop: "deleteAt",
+      minWidth: 160,
+      formatter: ({ deleteAt }) => {
+        return deleteAt ? deleteAt.replace("T", " ").substring(0, 19) : "-";
+      }
     },
     {
       label: "操作",

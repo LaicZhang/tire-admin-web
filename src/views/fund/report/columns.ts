@@ -1,10 +1,5 @@
 import type { FundFlow, AccountBalance, ContactDebt } from "./types";
-
-/** 格式化金额（分转元） */
-function formatMoney(amount?: number): string {
-  if (amount === undefined || amount === null) return "-";
-  return `${(amount / 100).toFixed(2)}`;
-}
+import { fenToYuanOrDash } from "@/utils/formatMoney";
 
 /** 资金流水列 */
 export const fundFlowColumns: TableColumnList = [
@@ -42,14 +37,14 @@ export const fundFlowColumns: TableColumnList = [
     prop: "beforeBalance",
     minWidth: 120,
     align: "right",
-    formatter: (row: FundFlow) => formatMoney(row.beforeBalance)
+    formatter: (row: FundFlow) => fenToYuanOrDash(row.beforeBalance)
   },
   {
     label: "交易后余额",
     prop: "afterBalance",
     minWidth: 120,
     align: "right",
-    formatter: (row: FundFlow) => formatMoney(row.afterBalance)
+    formatter: (row: FundFlow) => fenToYuanOrDash(row.afterBalance)
   },
   {
     label: "往来单位",
@@ -97,7 +92,7 @@ export const accountBalanceColumns: TableColumnList = [
     prop: "openingBalance",
     minWidth: 120,
     align: "right",
-    formatter: (row: AccountBalance) => formatMoney(row.openingBalance)
+    formatter: (row: AccountBalance) => fenToYuanOrDash(row.openingBalance)
   },
   {
     label: "本期收入",
@@ -118,7 +113,7 @@ export const accountBalanceColumns: TableColumnList = [
     prop: "closingBalance",
     minWidth: 120,
     align: "right",
-    formatter: (row: AccountBalance) => formatMoney(row.closingBalance)
+    formatter: (row: AccountBalance) => fenToYuanOrDash(row.closingBalance)
   }
 ];
 
@@ -162,13 +157,13 @@ export const contactDebtColumns: TableColumnList = [
     prop: "advanceReceived",
     minWidth: 120,
     align: "right",
-    formatter: (row: ContactDebt) => formatMoney(row.advanceReceived)
+    formatter: (row: ContactDebt) => fenToYuanOrDash(row.advanceReceived)
   },
   {
     label: "预付金额",
     prop: "advancePaid",
     minWidth: 120,
     align: "right",
-    formatter: (row: ContactDebt) => formatMoney(row.advancePaid)
+    formatter: (row: ContactDebt) => fenToYuanOrDash(row.advancePaid)
   }
 ];

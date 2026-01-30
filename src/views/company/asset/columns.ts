@@ -1,3 +1,5 @@
+import { formatDateTime } from "@/utils";
+
 export const columns: TableColumnList = [
   {
     label: "资产名称",
@@ -55,6 +57,12 @@ export const columns: TableColumnList = [
   {
     label: "备注",
     prop: "desc"
+  },
+  {
+    label: "删除时间",
+    prop: "deleteAt",
+    formatter: row => formatDateTime(row.deleteAt),
+    minWidth: 160
   },
   {
     label: "操作",

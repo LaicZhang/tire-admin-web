@@ -28,12 +28,27 @@ export const columns: TableColumnList = [
     cellRenderer: ({ row, props }) => (
       <el-tag
         size={props?.size}
-        type={(row as FormItemProps).status === "1" ? "success" : "danger"}
+        type={
+          (row as FormItemProps).status === true ||
+          (row as FormItemProps).status === 1 ||
+          (row as FormItemProps).status === "1"
+            ? "success"
+            : "danger"
+        }
         effect="plain"
       >
-        {(row as FormItemProps).status === "1" ? "启用" : "禁用"}
+        {(row as FormItemProps).status === true ||
+        (row as FormItemProps).status === 1 ||
+        (row as FormItemProps).status === "1"
+          ? "启用"
+          : "禁用"}
       </el-tag>
     )
+  },
+  {
+    label: "删除时间",
+    prop: "deleteAt",
+    minWidth: 160
   },
   {
     label: "操作",

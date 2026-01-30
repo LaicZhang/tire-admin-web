@@ -35,6 +35,14 @@ export const columns: TableColumnList = [
     minWidth: 120
   },
   {
+    label: "删除时间",
+    prop: "deleteAt",
+    minWidth: 160,
+    formatter: ({ deleteAt }) => {
+      return deleteAt ? deleteAt.replace("T", " ").substring(0, 19) : "-";
+    }
+  },
+  {
     label: "操作",
     fixed: "right",
     prop: "operation",

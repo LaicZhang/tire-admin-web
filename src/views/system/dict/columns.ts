@@ -1,5 +1,6 @@
 import { h } from "vue";
 import type { TableColumnRenderer } from "@pureadmin/table";
+import { formatDate } from "@/utils";
 
 export const columns: TableColumnList = [
   {
@@ -28,6 +29,12 @@ export const columns: TableColumnList = [
     minWidth: 80,
     cellRenderer: (data: TableColumnRenderer) =>
       h("span", data.row?.isPublic ? "是" : "否")
+  },
+  {
+    label: "删除时间",
+    prop: "deleteAt",
+    minWidth: 160,
+    formatter: (_row, _column, cellValue) => formatDate(cellValue)
   },
   {
     label: "操作",

@@ -1,11 +1,6 @@
 import { getBusinessTypeText, getStatusInfo } from "./types";
 import type { WriteOffOrder } from "./types";
-
-/** 格式化金额（分转元） */
-function formatMoney(amount?: number): string {
-  if (amount === undefined || amount === null) return "-";
-  return `${(amount / 100).toFixed(2)}`;
-}
+import { fenToYuanOrDash } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -52,21 +47,21 @@ export const columns: TableColumnList = [
     prop: "receivableAmount",
     minWidth: 110,
     align: "right",
-    formatter: (row: WriteOffOrder) => formatMoney(row.receivableAmount)
+    formatter: (row: WriteOffOrder) => fenToYuanOrDash(row.receivableAmount)
   },
   {
     label: "应付金额",
     prop: "payableAmount",
     minWidth: 110,
     align: "right",
-    formatter: (row: WriteOffOrder) => formatMoney(row.payableAmount)
+    formatter: (row: WriteOffOrder) => fenToYuanOrDash(row.payableAmount)
   },
   {
     label: "核销金额",
     prop: "writeOffAmount",
     minWidth: 110,
     align: "right",
-    formatter: (row: WriteOffOrder) => formatMoney(row.writeOffAmount)
+    formatter: (row: WriteOffOrder) => fenToYuanOrDash(row.writeOffAmount)
   },
   {
     label: "核销日期",

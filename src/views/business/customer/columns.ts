@@ -1,3 +1,5 @@
+import { formatDate } from "@/utils";
+
 export const columns: TableColumnList = [
   {
     label: "ID",
@@ -33,6 +35,13 @@ export const columns: TableColumnList = [
   {
     label: "备注",
     prop: "desc"
+  },
+  {
+    label: "删除时间",
+    prop: "deleteAt",
+    formatter: (row, column, cellValue) => {
+      return formatDate(cellValue);
+    }
   },
   {
     label: "操作",

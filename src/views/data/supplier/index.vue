@@ -3,7 +3,6 @@ import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
-import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
 import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
@@ -13,7 +12,6 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import SupplierForm from "./form.vue";
 import { message } from "@/utils";
-import { ElMessageBox } from "element-plus";
 import type { FormItemProps } from "./types";
 import { useCrud } from "@/composables";
 import {
@@ -21,10 +19,12 @@ import {
   addProviderApi,
   updateProviderApi,
   deleteProviderApi,
+  restoreProviderApi,
   getProviderApi,
   type Provider
 } from "@/api/business/provider";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import DeleteButton from "@/components/DeleteButton/index.vue";
 
 defineOptions({
   name: "DataSupplier"
@@ -33,6 +33,7 @@ defineOptions({
 const formRef = ref();
 
 const state = ref({
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
   name: "",
   keyword: ""
 });
@@ -44,6 +45,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
 >({
   api: (params: { page: number }) =>
     getProviderListApi(params.page, {
+      scope: state.value.scope,
       name: state.value.name || undefined,
       keyword: state.value.keyword || undefined
     }),
@@ -55,6 +57,16 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
 });
 
 const formColumns: PlusColumn[] = [
+  {
+    label: "范围",
+    prop: "scope",
+    valueType: "select",
+    options: [
+      { label: "未删除", value: "nonDeleted" },
+      { label: "已删除", value: "deleted" },
+      { label: "全部", value: "all" }
+    ]
+  },
   {
     label: "供应商名称",
     prop: "name",
@@ -73,7 +85,7 @@ const handleSearch = () => {
 };
 
 const handleReset = () => {
-  state.value = { name: "", keyword: "" };
+  state.value = { scope: "nonDeleted", name: "", keyword: "" };
   handleSearch();
 };
 
@@ -150,25 +162,18 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
   });
 };
 
-const deleteOne = async (row: FormItemProps) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除供应商 "${row.name}" 吗？此操作不可恢复。`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-    await deleteProviderApi(row.uid!);
-    message("删除成功", { type: "success" });
-    handleSearch();
-  } catch (error) {
-    if (error !== "cancel") {
-      message("删除失败", { type: "error" });
-    }
-  }
+const handleDelete = async (row: FormItemProps) => {
+  if (!row.uid) return;
+  await deleteProviderApi(row.uid);
+  message("删除成功（可恢复）", { type: "success" });
+  handleSearch();
+};
+
+const handleRestore = async (row: FormItemProps) => {
+  if (!row.uid) return;
+  await restoreProviderApi(row.uid);
+  message("恢复成功", { type: "success" });
+  handleSearch();
 };
 </script>
 
@@ -200,7 +205,7 @@ const deleteOne = async (row: FormItemProps) => {
           <pure-table
             border
             adaptive
-            row-key="id"
+            row-key="uid"
             alignWhole="center"
             showOverflowTooltip
             :loading="loading"
@@ -210,36 +215,45 @@ const deleteOne = async (row: FormItemProps) => {
             @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :size="size"
-                :icon="useRenderIcon(Eye)"
-                @click.prevent="getDetails(row)"
-              >
-                查看
-              </el-button>
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :size="size"
-                :icon="useRenderIcon(EditPen)"
-                @click.prevent="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
-              <el-button
-                class="reset-margin"
-                link
-                type="danger"
-                :size="size"
-                :icon="useRenderIcon(Delete)"
-                @click.prevent="deleteOne(row)"
-              >
-                删除
-              </el-button>
+              <template v-if="row.deleteAt">
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  @click.prevent="handleRestore(row)"
+                >
+                  恢复
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  :icon="useRenderIcon(Eye)"
+                  @click.prevent="getDetails(row)"
+                >
+                  查看
+                </el-button>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  :icon="useRenderIcon(EditPen)"
+                  @click.prevent="openDialog('修改', row)"
+                >
+                  修改
+                </el-button>
+                <DeleteButton
+                  :size="size"
+                  :show-icon="false"
+                  :title="`是否确认删除供应商 ${row.name}？（可恢复）`"
+                  @confirm="handleDelete(row)"
+                />
+              </template>
             </template>
           </pure-table>
         </template>

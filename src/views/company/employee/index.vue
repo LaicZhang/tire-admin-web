@@ -3,13 +3,17 @@ import { onMounted, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
 import {
   getEmployeeListApi,
   deleteEmployeeApi,
+  layoffEmployeeApi,
+  reinstateEmployeeApi,
+  suspendEmployeeApi,
+  unsuspendEmployeeApi,
+  restoreEmployeeApi,
   type Employee
 } from "@/api/company/employee";
 import { localForage, message, SYS, handleApiError } from "@/utils";
@@ -23,6 +27,7 @@ defineOptions({
 
 const formRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
+  scope: "nonDeleted" as "active" | "nonDeleted" | "deleted" | "all",
   name: undefined,
   nickname: undefined,
   status: undefined,
@@ -38,8 +43,9 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
 >({
   api: (params: { page: number }) =>
     getEmployeeListApi(params.page, {
+      scope: form.value.scope,
       name: form.value.name || undefined,
-      status: form.value.status || undefined,
+      status: form.value.status ?? undefined,
       desc: form.value.desc || undefined
     }),
   transform: (res: CommonResult<PaginatedResponseDto<Employee>>) => ({
@@ -69,6 +75,56 @@ async function handleDelete(row: Employee) {
   }
 }
 
+async function handleLayoff(row: Employee) {
+  try {
+    await layoffEmployeeApi(row.uid);
+    message(`已将${row.name}标记为离职`, { type: "success" });
+    fetchData();
+  } catch (e) {
+    handleApiError(e, "员工离职操作失败");
+  }
+}
+
+async function handleReinstate(row: Employee) {
+  try {
+    await reinstateEmployeeApi(row.uid);
+    message(`已将${row.name}复职`, { type: "success" });
+    fetchData();
+  } catch (e) {
+    handleApiError(e, "员工复职操作失败");
+  }
+}
+
+async function handleSuspend(row: Employee) {
+  try {
+    await suspendEmployeeApi(row.uid);
+    message(`已停用${row.name}`, { type: "success" });
+    fetchData();
+  } catch (e) {
+    handleApiError(e, "停用员工失败");
+  }
+}
+
+async function handleUnsuspend(row: Employee) {
+  try {
+    await unsuspendEmployeeApi(row.uid);
+    message(`已启用${row.name}`, { type: "success" });
+    fetchData();
+  } catch (e) {
+    handleApiError(e, "启用员工失败");
+  }
+}
+
+async function handleRestore(row: Employee) {
+  try {
+    await restoreEmployeeApi(row.uid);
+    message(`已恢复${row.name}`, { type: "success" });
+    fetchData();
+  } catch (e) {
+    handleApiError(e, "恢复员工失败");
+  }
+}
+
 const getSysDict = async () => {
   const dict = (await localForage().getItem(SYS.dict)) as Record<
     string,
@@ -77,7 +133,9 @@ const getSysDict = async () => {
   employeeStatus.value = dict.employeeStatus;
 };
 
-const employeeStatus = ref<Array<{ id: number; key: string; cn: string }>>([]);
+const employeeStatus = ref<
+  Array<{ id: number; key: string | number; cn: string }>
+>([]);
 
 onMounted(async () => {
   await getSysDict();
@@ -95,6 +153,19 @@ onMounted(async () => {
       @search="handleSearch"
       @reset="resetForm"
     >
+      <el-form-item label="范围：" prop="scope">
+        <el-select
+          v-model="form.scope"
+          placeholder="请选择范围"
+          class="w-[180px]!"
+        >
+          <el-option label="在职(未离职/未删除)" value="active" />
+          <el-option label="含离职(未删除)" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
+      </el-form-item>
+
       <el-form-item label="名字：" prop="name">
         <el-input
           v-model="form.name"
@@ -155,8 +226,11 @@ onMounted(async () => {
             <template #employeeStatus="{ row }">
               <div>
                 {{
-                  employeeStatus.find(item => item.key === row.status)?.cn ||
-                  "-"
+                  row.layoffAt
+                    ? "离职"
+                    : employeeStatus.find(
+                        item => Number(item.key) === Number(row.status)
+                      )?.cn || "-"
                 }}
               </div>
             </template>
@@ -170,6 +244,7 @@ onMounted(async () => {
                 查看
               </el-button>
               <el-button
+                v-if="!row.deleteAt"
                 class="reset-margin"
                 link
                 type="primary"
@@ -177,7 +252,83 @@ onMounted(async () => {
               >
                 修改
               </el-button>
+
+              <el-popconfirm
+                v-if="!row.deleteAt && !row.layoffAt"
+                :title="`是否确认将${row.name}标记为离职？`"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                @confirm="handleLayoff(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="warning">
+                    离职
+                  </el-button>
+                </template>
+              </el-popconfirm>
+
+              <el-popconfirm
+                v-if="!row.deleteAt && row.layoffAt"
+                :title="`是否确认将${row.name}复职？`"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                @confirm="handleReinstate(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="primary">
+                    复职
+                  </el-button>
+                </template>
+              </el-popconfirm>
+
+              <el-popconfirm
+                v-if="
+                  !row.deleteAt && !row.layoffAt && Number(row.status) !== 2
+                "
+                :title="`是否确认停用${row.name}？`"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                @confirm="handleSuspend(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="warning">
+                    停用
+                  </el-button>
+                </template>
+              </el-popconfirm>
+
+              <el-popconfirm
+                v-if="
+                  !row.deleteAt && !row.layoffAt && Number(row.status) === 2
+                "
+                :title="`是否确认启用${row.name}？`"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                @confirm="handleUnsuspend(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="success">
+                    启用
+                  </el-button>
+                </template>
+              </el-popconfirm>
+
+              <el-popconfirm
+                v-if="row.deleteAt"
+                :title="`是否确认恢复${row.name}？`"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                @confirm="handleRestore(row)"
+              >
+                <template #reference>
+                  <el-button class="reset-margin" link type="primary">
+                    恢复
+                  </el-button>
+                </template>
+              </el-popconfirm>
+
               <DeleteButton
+                v-if="!row.deleteAt"
                 :title="`是否确认删除${row.name}这条数据`"
                 :show-icon="false"
                 @confirm="handleDelete(row)"

@@ -30,6 +30,12 @@ export const columns: TableColumnList = [
     align: "center"
   },
   {
+    label: "删除时间",
+    prop: "deleteTime",
+    width: 180,
+    align: "center"
+  },
+  {
     label: "操作",
     width: 180,
     fixed: "right",

@@ -1,11 +1,6 @@
 import { getPaymentMethodText, getStatusInfo } from "./types";
 import type { PaymentOrder } from "./types";
-
-/** 格式化金额（分转元） */
-function formatMoney(amount?: number): string {
-  if (amount === undefined || amount === null) return "-";
-  return `${(amount / 100).toFixed(2)}`;
-}
+import { fenToYuanOrDash } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -31,21 +26,21 @@ export const columns: TableColumnList = [
     prop: "amount",
     minWidth: 120,
     align: "right",
-    formatter: (row: PaymentOrder) => formatMoney(row.amount)
+    formatter: (row: PaymentOrder) => fenToYuanOrDash(row.amount)
   },
   {
     label: "本次核销",
     prop: "writeOffAmount",
     minWidth: 120,
     align: "right",
-    formatter: (row: PaymentOrder) => formatMoney(row.writeOffAmount)
+    formatter: (row: PaymentOrder) => fenToYuanOrDash(row.writeOffAmount)
   },
   {
     label: "本次预付",
     prop: "advanceAmount",
     minWidth: 120,
     align: "right",
-    formatter: (row: PaymentOrder) => formatMoney(row.advanceAmount)
+    formatter: (row: PaymentOrder) => fenToYuanOrDash(row.advanceAmount)
   },
   {
     label: "结算账户",
@@ -108,7 +103,7 @@ export const detailColumns: TableColumnList = [
     minWidth: 120,
     align: "right",
     formatter: (row: { payableAmount?: number }) =>
-      formatMoney(row.payableAmount)
+      fenToYuanOrDash(row.payableAmount)
   },
   {
     label: "本次核销金额",
@@ -116,7 +111,7 @@ export const detailColumns: TableColumnList = [
     minWidth: 120,
     align: "right",
     formatter: (row: { writeOffAmount?: number }) =>
-      formatMoney(row.writeOffAmount)
+      fenToYuanOrDash(row.writeOffAmount)
   },
   {
     label: "备注",

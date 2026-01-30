@@ -10,7 +10,8 @@ import {
   getAssetListApi,
   addAssetApi,
   updateAssetApi,
-  deleteAssetApi
+  deleteAssetApi,
+  restoreAssetApi
 } from "@/api";
 import { getCompanyId } from "@/api/company";
 import { message } from "@/utils";
@@ -31,7 +32,8 @@ const loading = ref(false);
 const formRef = ref();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
-  name: undefined
+  name: undefined,
+  scope: "nonDeleted"
 });
 const pagination = ref({
   total: 0,
@@ -46,7 +48,8 @@ const getAssetListInfo = async () => {
     const { data, code, msg } = await getAssetListApi(
       pagination.value.currentPage,
       {
-        name: form.value.name
+        name: form.value.name,
+        scope: form.value.scope
       }
     );
     if (code === 200) {
@@ -85,6 +88,17 @@ async function handleDelete(row: AssetItem) {
     onSearch();
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "删除失败";
+    message(msg, { type: "error" });
+  }
+}
+
+async function handleRestore(row: AssetItem) {
+  try {
+    await restoreAssetApi(row.uid);
+    message("恢复成功", { type: "success" });
+    onSearch();
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "恢复失败";
     message(msg, { type: "error" });
   }
 }
@@ -190,6 +204,13 @@ onMounted(() => {
           class="w-[180px]!"
         />
       </el-form-item>
+      <el-form-item label="范围：" prop="scope">
+        <el-select v-model="form.scope" class="w-[160px]!">
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
+      </el-form-item>
     </ReSearchForm>
 
     <el-card class="m-1">
@@ -216,20 +237,27 @@ onMounted(() => {
             @page-current-change="handleCurrentChange"
           >
             <template #operation="{ row }">
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
-              <DeleteButton
-                :title="`是否确认删除${row.name}?`"
-                :show-icon="false"
-                @confirm="handleDelete(row)"
-              />
+              <template v-if="row.deleteAt">
+                <el-button link type="primary" @click="handleRestore(row)">
+                  恢复
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :icon="useRenderIcon(EditPen)"
+                  @click="openDialog('修改', row)"
+                >
+                  修改
+                </el-button>
+                <DeleteButton
+                  :title="`是否确认删除${row.name}?`"
+                  :show-icon="false"
+                  @confirm="handleDelete(row)"
+                />
+              </template>
             </template>
           </pure-table>
         </template>

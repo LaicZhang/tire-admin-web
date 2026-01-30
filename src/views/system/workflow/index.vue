@@ -5,6 +5,7 @@ import { columns } from "./columns";
 import {
   getWorkflowListApi,
   deleteWorkflowApi,
+  restoreWorkflowApi,
   type WorkflowQuery,
   type WorkflowVO
 } from "@/api/system/workflow";
@@ -23,9 +24,10 @@ defineOptions({
 
 const formRef = ref();
 
-const queryForm = reactive<Pick<WorkflowQuery, "name" | "status">>({
+const queryForm = reactive<Pick<WorkflowQuery, "name" | "status" | "scope">>({
   name: "",
-  status: undefined
+  status: undefined,
+  scope: "nonDeleted"
 });
 
 const {
@@ -71,6 +73,7 @@ const workflowStatusMap = {
 const resetQuery = () => {
   queryForm.name = "";
   queryForm.status = undefined;
+  queryForm.scope = "nonDeleted";
   pagination.value = { ...pagination.value, currentPage: 1 };
   handleQuery();
 };
@@ -149,6 +152,16 @@ const handleDelete = async (row: WorkflowVO) => {
     // cancelled
   }
 };
+
+const handleRestore = async (row: WorkflowVO) => {
+  try {
+    await restoreWorkflowApi(row.id);
+    ElMessage.success("恢复成功");
+    handleQuery();
+  } catch {
+    // ignore
+  }
+};
 </script>
 
 <template>
@@ -172,6 +185,18 @@ const handleDelete = async (row: WorkflowVO) => {
           >
             <el-option label="启用" :value="1" />
             <el-option label="禁用" :value="0" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="范围" prop="scope">
+          <el-select
+            v-model="queryForm.scope"
+            placeholder="请选择范围"
+            clearable
+            style="width: 200px"
+          >
+            <el-option label="未删除" value="nonDeleted" />
+            <el-option label="已删除" value="deleted" />
+            <el-option label="全部" value="all" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -222,6 +247,7 @@ const handleDelete = async (row: WorkflowVO) => {
             </template>
             <template #operation="{ row }">
               <el-button
+                v-if="!row.deleteTime"
                 link
                 type="primary"
                 :icon="Edit"
@@ -229,11 +255,15 @@ const handleDelete = async (row: WorkflowVO) => {
                 >编辑</el-button
               >
               <el-button
+                v-if="!row.deleteTime"
                 link
                 type="danger"
                 :icon="Delete"
                 @click="handleDelete(row)"
                 >删除</el-button
+              >
+              <el-button v-else link type="primary" @click="handleRestore(row)"
+                >恢复</el-button
               >
             </template>
           </pure-table>

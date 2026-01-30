@@ -1,15 +1,25 @@
 export interface FormItemProps {
-  id?: number;
+  uid?: string;
   /** 公司名称 */
   name: string;
-  /** 联系人 */
-  contact: string;
-  /** 电话 */
-  phone: string;
-  /** 地址 */
-  address: string;
-  /** 状态 1-启用 0-禁用 */
-  status: number;
+  /** 省 */
+  province?: string | null;
+  /** 市 */
+  city?: string | null;
+  /** 描述 */
+  desc?: string | null;
+  /** 负责人 */
+  principalName?: string | null;
+  /** 负责人电话 */
+  principalPhone?: string | null;
+
+  /** 启用状态（软删时会被置为 false） */
+  status?: boolean | null;
+
+  /** 创建时间 */
+  createAt?: string | null;
+  /** 删除时间（软删） */
+  deleteAt?: string | null;
 }
 
 export interface FormProps {

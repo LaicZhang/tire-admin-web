@@ -10,6 +10,7 @@ import { openDialog } from "./table";
 import {
   getRepoListApi,
   deleteRepoApi,
+  restoreRepoApi,
   startRepoApi,
   stopRepoApi,
   setDefaultRepoApi,
@@ -27,7 +28,8 @@ defineOptions({
 const formRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   name: undefined,
-  desc: undefined
+  desc: undefined,
+  scope: "nonDeleted" as "nonDeleted" | "deleted" | "all"
 });
 
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
@@ -38,7 +40,8 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   api: (params: { page: number }) =>
     getRepoListApi(params.page, {
       name: form.value.name || undefined,
-      desc: form.value.desc || undefined
+      desc: form.value.desc || undefined,
+      scope: form.value.scope
     }),
   transform: (res: CommonResult<PaginatedResponseDto<Repo>>) => ({
     list: res.data?.list ?? [],
@@ -60,6 +63,12 @@ const resetForm = () => {
 async function handleDelete(row: Repo) {
   await deleteRepoApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
+  fetchData();
+}
+
+async function handleRestore(row: Repo) {
+  await restoreRepoApi(row.uid);
+  message(`已恢复仓库「${row.name}」`, { type: "success" });
   fetchData();
 }
 
@@ -108,6 +117,13 @@ async function handleSetDefault(row: Repo) {
           class="w-[180px]!"
         />
       </el-form-item>
+      <el-form-item label="范围：" prop="scope">
+        <el-select v-model="form.scope" class="w-[180px]!" clearable>
+          <el-option label="未删除" value="nonDeleted" />
+          <el-option label="已删除" value="deleted" />
+          <el-option label="全部" value="all" />
+        </el-select>
+      </el-form-item>
     </ReSearchForm>
 
     <el-card class="m-1">
@@ -135,6 +151,7 @@ async function handleSetDefault(row: Repo) {
           >
             <template #operation="{ row }">
               <el-button
+                v-if="!row.deleteAt"
                 class="reset-margin"
                 link
                 type="primary"
@@ -143,6 +160,7 @@ async function handleSetDefault(row: Repo) {
                 查看
               </el-button>
               <el-button
+                v-if="!row.deleteAt"
                 class="reset-margin"
                 link
                 type="primary"
@@ -152,6 +170,7 @@ async function handleSetDefault(row: Repo) {
               </el-button>
 
               <el-popconfirm
+                v-if="!row.deleteAt"
                 :title="`是否确认${row.status === true ? '停用' : '启用'}${row.name}`"
                 @confirm="handleToggleRepo(row)"
               >
@@ -163,7 +182,7 @@ async function handleSetDefault(row: Repo) {
               </el-popconfirm>
 
               <el-popconfirm
-                v-if="!row.isPrimary"
+                v-if="!row.deleteAt && !row.isPrimary"
                 :title="`是否将${row.name}设为默认仓库`"
                 @confirm="handleSetDefault(row)"
               >
@@ -173,15 +192,30 @@ async function handleSetDefault(row: Repo) {
                   </el-button>
                 </template>
               </el-popconfirm>
-              <el-tag v-else type="success" size="small" class="ml-2">
+              <el-tag
+                v-else-if="!row.deleteAt && row.isPrimary"
+                type="success"
+                size="small"
+                class="ml-2"
+              >
                 默认
               </el-tag>
 
               <DeleteButton
+                v-if="!row.deleteAt"
                 :title="`是否确认删除${row.name}这条数据`"
                 :show-icon="false"
                 @confirm="handleDelete(row)"
               />
+              <el-button
+                v-else
+                class="reset-margin"
+                link
+                type="primary"
+                @click="handleRestore(row)"
+              >
+                恢复
+              </el-button>
             </template>
           </pure-table>
         </template>

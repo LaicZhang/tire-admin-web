@@ -1,6 +1,6 @@
 import { ref, type Ref } from "vue";
 import {
-  getEmployeeListApi,
+  getAllEmployeeApi,
   getRepoListApi,
   getTireListApi,
   getProviderListApi,
@@ -29,12 +29,12 @@ export function useOrderData(orderType: Ref<string>) {
   const LIST_CACHE_MINUTES = 30;
 
   const getAllEmployeeList = async () => {
-    const res = await getEmployeeListApi(0);
+    const res = await getAllEmployeeApi();
     if (res.code !== 200) return message(res.msg, { type: "error" });
-    employeeList.value = res.data.list;
+    employeeList.value = res.data || [];
     await localForage().setItem(
       ALL_LIST.employee,
-      res.data.list,
+      employeeList.value,
       LIST_CACHE_MINUTES
     );
   };

@@ -4,6 +4,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Download from "~icons/ep/download";
 import Printer from "~icons/ep/printer";
 import type { FundFlow } from "../types";
+import { fenToYuanOrDash as formatMoney } from "@/utils/formatMoney";
 
 interface PaginationState {
   total: number;
@@ -28,11 +29,6 @@ const emit = defineEmits<{
   (e: "page-size-change", value: number): void;
   (e: "page-current-change", value: number): void;
 }>();
-
-const formatMoney = (amount?: number): string => {
-  if (amount === undefined || amount === null) return "-";
-  return (amount / 100).toFixed(2);
-};
 </script>
 
 <template>
