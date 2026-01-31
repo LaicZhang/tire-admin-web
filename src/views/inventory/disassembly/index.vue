@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
@@ -14,6 +15,7 @@ import { columns } from "./columns";
 import editForm from "./form.vue";
 import {
   type DisassemblyOrder,
+  type CreateDisassemblyOrderDto,
   type DisassemblyOrderQuery,
   DisassemblyOrderStatus,
   disassemblyOrderStatusMap
@@ -36,7 +38,10 @@ defineOptions({
 const dataList = ref<DisassemblyOrder[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const editFormRef = ref();
+const editFormRef = ref<{
+  getRef: () => FormInstance | undefined;
+  getFormData: () => CreateDisassemblyOrderDto;
+} | null>(null);
 
 const queryParams = reactive<DisassemblyOrderQuery>({
   status: undefined,
@@ -110,19 +115,27 @@ const openDialog = (
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: editFormRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, {
+        ref: editFormRef,
+        formInline: (options.props as { formInline: Partial<DisassemblyOrder> })
+          .formInline,
+        isView: (options.props as { isView?: boolean }).isView
+      }),
     beforeSure: async done => {
       if (isView) {
         done();
         return;
       }
-      const formInstance = editFormRef.value?.getRef();
+      const formRef = editFormRef.value;
+      if (!formRef) return;
+      const formInstance = formRef.getRef();
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {
         if (valid) {
           try {
-            const formData = editFormRef.value?.getFormData();
+            const formData = formRef.getFormData();
             if (row?.uid) {
               await updateDisassemblyOrderApi(row.uid, formData);
               ElMessage.success("更新成功");

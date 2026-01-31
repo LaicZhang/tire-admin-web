@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
@@ -14,6 +15,7 @@ import editForm from "./form.vue";
 import StocktakingDetailForm from "./StocktakingDetailForm.vue";
 import {
   type StocktakingTask,
+  type CreateStocktakingDto,
   type StocktakingQuery,
   StocktakingStatus,
   stocktakingStatusMap
@@ -35,8 +37,13 @@ defineOptions({
 const dataList = ref<StocktakingTask[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const editFormRef = ref();
-const detailFormRef = ref();
+const editFormRef = ref<{
+  getRef: () => FormInstance | undefined;
+  getFormData: () => CreateStocktakingDto;
+} | null>(null);
+const detailFormRef = ref<{
+  loadDetails: () => void;
+} | null>(null);
 const repoList = ref<{ uid: string; name: string }[]>([]);
 
 const queryParams = reactive<StocktakingQuery>({
@@ -98,7 +105,7 @@ const handleSearch = () => {
 const onReset = () => {
   searchFormRef.value?.resetFields();
   queryParams.status = undefined;
-  queryParams.repoId = "";
+  queryParams.repoId = undefined;
   handleSearch();
 };
 
@@ -119,15 +126,24 @@ const openCreateDialog = () => {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: editFormRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, {
+        ref: editFormRef,
+        formInline: (options.props as { formInline: Partial<StocktakingTask> })
+          .formInline,
+        isView: (options.props as { isView?: boolean }).isView,
+        isEdit: (options.props as { isEdit?: boolean }).isEdit
+      }),
     beforeSure: async done => {
-      const formInstance = editFormRef.value?.getRef();
+      const formRef = editFormRef.value;
+      if (!formRef) return;
+      const formInstance = formRef.getRef();
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {
         if (valid) {
           try {
-            const formData = editFormRef.value?.getFormData();
+            const formData = formRef.getFormData();
             await createInventoryCheckTaskApi(formData);
             ElMessage.success("创建成功");
             done();
@@ -155,7 +171,13 @@ const handleViewDetails = (row: StocktakingTask) => {
     fullscreenIcon: true,
     closeOnClickModal: true,
     hideFooter: true,
-    contentRenderer: () => h(StocktakingDetailForm, { ref: detailFormRef })
+    contentRenderer: ({ options }) =>
+      h(StocktakingDetailForm, {
+        ref: detailFormRef,
+        formInline: (
+          options.props as { formInline: { task: StocktakingTask | null } }
+        ).formInline
+      })
   });
 };
 

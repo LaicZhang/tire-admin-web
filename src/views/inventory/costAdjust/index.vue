@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
@@ -11,7 +12,11 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";
-import type { CostAdjustOrder, CostAdjustQuery } from "./types";
+import type {
+  CostAdjustOrder,
+  CostAdjustQuery,
+  CreateCostAdjustOrderDto
+} from "./types";
 import {
   getCostAdjustOrderList,
   createCostAdjustOrder,
@@ -28,7 +33,10 @@ defineOptions({
 const dataList = ref<CostAdjustOrder[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const editFormRef = ref();
+const editFormRef = ref<{
+  getRef: () => FormInstance | undefined;
+  getFormData: () => CreateCostAdjustOrderDto;
+} | null>(null);
 
 const queryParams = reactive<CostAdjustQuery>({
   isApproved: "all"
@@ -98,19 +106,27 @@ const openDialog = (
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: editFormRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, {
+        ref: editFormRef,
+        formInline: (options.props as { formInline: CreateCostAdjustOrderDto })
+          .formInline,
+        isView: (options.props as { isView?: boolean }).isView
+      }),
     beforeSure: async done => {
       if (isView) {
         done();
         return;
       }
-      const formInstance = editFormRef.value?.getRef();
+      const formRef = editFormRef.value;
+      if (!formRef) return;
+      const formInstance = formRef.getRef();
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {
         if (valid) {
           try {
-            const formData = editFormRef.value?.getFormData();
+            const formData = formRef.getFormData();
             await createCostAdjustOrder(formData);
             ElMessage.success("创建成功");
             done();

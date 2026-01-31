@@ -12,9 +12,11 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";
+import type { FormInstance } from "element-plus";
 import {
   type AssemblyOrder,
   type AssemblyOrderQuery,
+  type CreateAssemblyOrderDto,
   AssemblyOrderStatus,
   assemblyOrderStatusMap
 } from "./types";
@@ -34,7 +36,10 @@ defineOptions({
 const dataList = ref<AssemblyOrder[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const editFormRef = ref();
+const editFormRef = ref<{
+  getRef: () => FormInstance | undefined;
+  getFormData: () => CreateAssemblyOrderDto;
+} | null>(null);
 
 const queryParams = reactive<AssemblyOrderQuery>({
   status: undefined,
@@ -108,19 +113,27 @@ const openDialog = (
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: editFormRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, {
+        ref: editFormRef,
+        formInline: (options.props as { formInline: Partial<AssemblyOrder> })
+          .formInline,
+        isView: (options.props as { isView?: boolean }).isView
+      }),
     beforeSure: async done => {
       if (isView) {
         done();
         return;
       }
-      const formInstance = editFormRef.value?.getRef();
+      const formRef = editFormRef.value;
+      if (!formRef) return;
+      const formInstance = formRef.getRef();
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {
         if (valid) {
           try {
-            const formData = editFormRef.value?.getFormData();
+            const formData = formRef.getFormData();
             if (row?.uid) {
               await updateAssemblyOrderApi(row.uid, formData);
               ElMessage.success("更新成功");

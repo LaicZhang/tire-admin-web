@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
@@ -13,6 +14,7 @@ import { columns } from "./columns";
 import editForm from "./form.vue";
 import {
   type CostRecalcTask,
+  type CreateRecalcTaskDto,
   type RecalcTaskQuery,
   RecalcStatus,
   recalcStatusMap
@@ -33,7 +35,10 @@ defineOptions({
 const dataList = ref<CostRecalcTask[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const editFormRef = ref();
+const editFormRef = ref<{
+  getRef: () => FormInstance | undefined;
+  getFormData: () => CreateRecalcTaskDto;
+} | null>(null);
 
 const queryParams = reactive<RecalcTaskQuery>({
   status: undefined
@@ -100,9 +105,17 @@ const openCreateDialog = () => {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: editFormRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, {
+        ref: editFormRef,
+        formInline: (
+          options.props as { formInline: Partial<CreateRecalcTaskDto> }
+        ).formInline
+      }),
     beforeSure: async done => {
-      const formInstance = editFormRef.value?.getRef();
+      const formRef = editFormRef.value;
+      if (!formRef) return;
+      const formInstance = formRef.getRef();
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {
@@ -113,7 +126,7 @@ const openCreateDialog = () => {
               "确认重算",
               { type: "warning" }
             );
-            const formData = editFormRef.value?.getFormData();
+            const formData = formRef.getFormData();
             await createCostRecalcTaskApi(formData);
             ElMessage.success("任务创建成功,正在后台执行");
             done();

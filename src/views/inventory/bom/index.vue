@@ -14,7 +14,13 @@ import { useCrud } from "@/composables/useCrud";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";
-import { type Bom, type BomQuery, bomStatusMap } from "./types";
+import {
+  type Bom,
+  type BomQuery,
+  type CreateBomDto,
+  bomStatusMap
+} from "./types";
+import type { FormInstance } from "element-plus";
 import {
   approveBomApi,
   createAssemblyOrderFromBomApi,
@@ -31,7 +37,10 @@ defineOptions({
   name: "InventoryBom"
 });
 
-const editFormRef = ref();
+const editFormRef = ref<{
+  getRef: () => FormInstance | undefined;
+  getFormData: () => CreateBomDto;
+} | null>(null);
 const queryParams = reactive<BomQuery>({
   status: undefined,
   keyword: ""
@@ -49,9 +58,13 @@ const {
   fetchData,
   onCurrentChange,
   onSizeChange
-} = useCrud({
+} = useCrud<
+  Bom,
+  Awaited<ReturnType<typeof getBomListApi>>,
+  BomQuery & { page?: number; pageSize?: number }
+>({
   api: async params => {
-    const { page, ...rest } = params;
+    const { page = 1, ...rest } = params;
     // Keep consistent with original logic: explicitly set undefined for empty status
     const query = {
       ...rest,
@@ -95,19 +108,26 @@ const openDialog = (title: string, row?: Bom, isView: boolean = false) => {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: editFormRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, {
+        ref: editFormRef,
+        formInline: (options.props as { formInline: Partial<Bom> }).formInline,
+        isView: (options.props as { isView?: boolean }).isView
+      }),
     beforeSure: async done => {
       if (isView) {
         done();
         return;
       }
-      const formInstance = editFormRef.value?.getRef();
+      const formRef = editFormRef.value;
+      if (!formRef) return;
+      const formInstance = formRef.getRef();
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {
         if (valid) {
           try {
-            const formData = editFormRef.value?.getFormData();
+            const formData = formRef.getFormData();
             if (row?.uid) {
               await updateBomApi(row.uid, formData);
               ElMessage.success("更新成功");
