@@ -49,13 +49,15 @@ const handleCurrentChange = (val: number) => {
   getData();
 };
 
-const handleDelete = async (row: unknown) => {
-  await deletePurchaseInquiryApi(row.id);
+const handleDelete = async (row: PurchaseInquiry) => {
+  await deletePurchaseInquiryApi(String(row.id));
   message("删除成功", { type: "success" });
   getData();
 };
 
-function openDialog(title = "新增", row?: unknown) {
+type DialogProps = { providerName: string; desc: string };
+
+function openDialog(title = "新增", row?: PurchaseInquiry) {
   addDialog({
     title: `${title}询价单`,
     props: {
@@ -68,21 +70,21 @@ function openDialog(title = "新增", row?: unknown) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
+      const dialogProps = options.props as DialogProps;
       return h("div", [
         h("el-form", {}, [
           h("el-form-item", { label: "供应商" }, [
             h("el-input", {
-              modelValue: options.props!.providerName,
+              modelValue: dialogProps.providerName,
               "onUpdate:modelValue": (val: string) =>
-                (options.props!.providerName = val),
+                (dialogProps.providerName = val),
               placeholder: "请输入供应商名称"
             })
           ]),
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
-              modelValue: options.props!.desc,
-              "onUpdate:modelValue": (val: string) =>
-                (options.props!.desc = val),
+              modelValue: dialogProps.desc,
+              "onUpdate:modelValue": (val: string) => (dialogProps.desc = val),
               placeholder: "暂支持备注录入",
               type: "textarea"
             })
@@ -91,15 +93,16 @@ function openDialog(title = "新增", row?: unknown) {
       ]);
     },
     beforeSure: (done, { options }) => {
+      const dialogProps = options.props as DialogProps;
       const data = {
-        providerName: options.props!.providerName as string,
-        desc: options.props!.desc as string,
+        providerName: dialogProps.providerName,
+        desc: dialogProps.desc,
         status: "PENDING"
       };
       const promise =
         title === "新增"
           ? createPurchaseInquiryApi(data)
-          : updatePurchaseInquiryApi(row.id, data);
+          : updatePurchaseInquiryApi(String(row?.id ?? ""), data);
 
       promise.then(() => {
         message("操作成功", { type: "success" });

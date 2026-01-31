@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import {
-  PurchaseFormProps,
   PurchaseFormItemProps,
-  SaleFormProps,
   SaleFormItemProps,
-  ClaimFormProps,
   ClaimFormItemProps,
-  ReturnFormProps,
   ReturnFormItemProps
 } from "./props";
 import {
@@ -24,43 +20,6 @@ import AddFill from "~icons/ri/add-circle-line";
 import SearchLine from "~icons/ri/search-line";
 import { getColumns, getFormRules } from "./handleData";
 import { getFormTileInLocal } from "./table";
-
-const props = withDefaults(
-  defineProps<
-    PurchaseFormProps | SaleFormProps | ClaimFormProps | ReturnFormProps
-  >(),
-  {
-    formInline: () =>
-      ({
-        number: undefined,
-        uid: undefined,
-        id: undefined,
-        desc: undefined,
-        operatorId: undefined,
-        auditorId: undefined,
-        warehouseEmployeeId: undefined,
-        count: 0,
-        total: 0,
-        showTotal: 0,
-        orderStatus: 0,
-        logisticsStatus: 0,
-        paidAmount: 0,
-        isApproved: false,
-        isLocked: false,
-        rejectReason: undefined,
-        paymentId: undefined,
-        auditAt: null,
-        arrivalAt: null,
-        payAt: null,
-        updateAt: null,
-        providerId: undefined,
-        customerId: undefined,
-        fee: 0,
-        isReceive: false,
-        details: [] as OrderDetail[]
-      }) as unknown as OrderFormData
-  }
-);
 const orderType = ref<ORDER_TYPE>(ORDER_TYPE.default);
 
 const formRules = ref(getFormRules(orderType.value));
@@ -78,8 +37,8 @@ type OrderFormData =
 // Common list item type
 interface ListItem {
   id?: string | number;
-  uid?: string;
-  name?: string;
+  uid: string;
+  name: string;
   balance?: number;
 }
 
@@ -93,6 +52,42 @@ interface OrderDetail {
   batchNo?: string;
   expiryDate?: string;
 }
+
+type OrderFormProps = {
+  formInline?: OrderFormData;
+};
+
+const props = withDefaults(defineProps<OrderFormProps>(), {
+  formInline: () =>
+    ({
+      number: undefined,
+      uid: undefined,
+      id: undefined,
+      desc: undefined,
+      operatorId: undefined,
+      auditorId: undefined,
+      warehouseEmployeeId: undefined,
+      count: 0,
+      total: 0,
+      showTotal: 0,
+      orderStatus: 0,
+      logisticsStatus: 0,
+      paidAmount: 0,
+      isApproved: false,
+      isLocked: false,
+      rejectReason: undefined,
+      paymentId: undefined,
+      auditAt: null,
+      arrivalAt: null,
+      payAt: null,
+      updateAt: null,
+      providerId: undefined,
+      customerId: undefined,
+      fee: 0,
+      isReceive: false,
+      details: [] as OrderDetail[]
+    }) as unknown as OrderFormData
+});
 
 const newFormInline = ref<OrderFormData>(props.formInline as OrderFormData);
 const formTitle = ref("新增");
@@ -180,19 +175,19 @@ const allPaymentList = ref<ListItem[]>([]);
 async function getALlList() {
   try {
     const [managerData, repoData, tireData, customerData, providerData] =
-      (await Promise.all([
-        localForage().getItem(ALL_LIST.manager),
-        localForage().getItem(ALL_LIST.repo),
-        localForage().getItem(ALL_LIST.tire),
-        localForage().getItem(ALL_LIST.customer),
-        localForage().getItem(ALL_LIST.provider)
-      ])) as unknown[];
+      await Promise.all([
+        localForage().getItem<ListItem[]>(ALL_LIST.manager),
+        localForage().getItem<ListItem[]>(ALL_LIST.repo),
+        localForage().getItem<ListItem[]>(ALL_LIST.tire),
+        localForage().getItem<ListItem[]>(ALL_LIST.customer),
+        localForage().getItem<ListItem[]>(ALL_LIST.provider)
+      ]);
 
-    managerList.value = managerData;
-    allRepoList.value = repoData;
-    allTireList.value = tireData;
-    allCustomerList.value = customerData;
-    allProviderList.value = providerData;
+    managerList.value = managerData ?? [];
+    allRepoList.value = repoData ?? [];
+    allTireList.value = tireData ?? [];
+    allCustomerList.value = customerData ?? [];
+    allProviderList.value = providerData ?? [];
 
     const cid = await getCompanyId();
     const { data: paymentData } = await getPaymentListApi(cid);
@@ -221,11 +216,15 @@ async function handleScan() {
     barcodeLoading.value = true;
     const { data } = await scanBarcodeApi(code);
     if (data) {
+      if (!data.uid) {
+        message("条码商品缺少 uid，无法添加到明细", { type: "warning" });
+        return;
+      }
       const formDetails = (
         newFormInline.value as unknown as { details: OrderDetail[] }
       ).details;
       const existing = formDetails.find(
-        (d: { tireId: string }) => d.tireId === data.uid
+        d => !!d.tireId && d.tireId === data.uid
       );
       if (existing) {
         existing.count = (existing.count || 0) + 1;
@@ -242,7 +241,7 @@ async function handleScan() {
           // Still add it? Maybe better to warn.
           // If it's a valid product but not in "ALL_LIST.tire" cache, we might have issue.
           // But let's assume ALL_LIST is up to date or we trust the API result.
-          onAdd(data);
+          onAdd({ uid: data.uid, name: data.name, id: data.code });
           message(`已添加商品 [${data.name}]`, { type: "success" });
         } else {
           onAdd(inList);

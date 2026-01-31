@@ -56,7 +56,7 @@ const handleCurrentChange = (val: number) => {
 };
 
 const handleDelete = async (row: PurchasePlan) => {
-  await deletePurchasePlanApi(row.id);
+  await deletePurchasePlanApi(String(row.id));
   message("删除成功", { type: "success" });
   getData();
 };
@@ -104,7 +104,7 @@ function openDialog(title = "新增", row?: PurchasePlan) {
       const promise =
         title === "新增"
           ? createPurchasePlanApi(data)
-          : updatePurchasePlanApi(row!.id, data);
+          : updatePurchasePlanApi(String(row!.id), data);
 
       promise.then(() => {
         message("操作成功", { type: "success" });

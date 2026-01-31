@@ -16,18 +16,12 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import type { PriceList } from "@/api/business/price";
 
 defineOptions({
   name: "PriceList"
 });
-
-interface PriceItem {
-  uid: string;
-  name: string;
-  type: string;
-  desc: string;
-}
 
 const form = ref({
   name: undefined as string | undefined
@@ -40,14 +34,11 @@ const {
   fetchData: getData,
   onCurrentChange
 } = useCrud<
-  PriceItem,
-  CommonResult<{ list: PriceItem[]; count: number }>,
+  PriceList,
+  CommonResult<PaginatedResponseDto<PriceList>>,
   { page: number; pageSize: number }
 >({
-  api: ({ page }) =>
-    getPriceListListApi(page, form.value) as Promise<
-      CommonResult<{ list: PriceItem[]; count: number }>
-    >,
+  api: ({ page }) => getPriceListListApi(page, form.value),
   pagination: {
     total: 0,
     pageSize: 10,
@@ -61,7 +52,7 @@ const {
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? 0
+      total: res.data?.count ?? res.data?.total ?? 0
     };
   },
   immediate: true
@@ -75,7 +66,7 @@ const columns = [
   {
     label: "类型",
     prop: "type",
-    cellRenderer: ({ row }: { row: Record<string, unknown> }) => {
+    cellRenderer: ({ row }: { row: PriceList }) => {
       const map: Record<string, string> = { SYSTEM: "系统", CUSTOM: "自定义" };
       return map[String(row.type)] || row.type;
     }
@@ -96,13 +87,15 @@ const handleSearch = () => {
   getData();
 };
 
-const handleDelete = async (row: PriceItem) => {
+const handleDelete = async (row: PriceList) => {
   await deletePriceListApi(row.uid);
   message("删除成功", { type: "success" });
   getData();
 };
 
-function openDialog(title = "新增", row?: PriceItem) {
+type FormInline = { id?: string; name: string; desc: string; type: string };
+
+function openDialog(title = "新增", row?: PriceList) {
   addDialog({
     title: `${title}价目表`,
     props: {
@@ -120,20 +113,10 @@ function openDialog(title = "新增", row?: PriceItem) {
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
       h(Form, {
-        formInline: options.props!.formInline as {
-          id?: string;
-          name: string;
-          desc: string;
-          type: string;
-        }
+        formInline: (options.props as { formInline: FormInline }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const curData = options.props!.formInline as {
-        id?: string;
-        name: string;
-        desc: string;
-        type: string;
-      };
+      const curData = (options.props as { formInline: FormInline }).formInline;
       const promise =
         title === "新增"
           ? createPriceListApi(

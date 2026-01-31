@@ -186,13 +186,14 @@ async function handleCreate() {
 
 // function handleRecharge(row) { ... } // Replaced by handleOperation
 
-async function handleCheckBalance(row: unknown) {
+async function handleCheckBalance(row: PaymentAccount) {
   try {
     const { data, code, msg } = await checkPaymentBalanceApi(row.uid, 0);
     if (code === 200) {
-      message(`当前余额: ${data.balance || 0}`, { type: "success" });
+      const typedData = data as { balance?: number | string };
+      message(`当前余额: ${typedData.balance ?? 0}`, { type: "success" });
     } else {
-      message(msg, { type: "error" });
+      message(msg || "查询余额失败", { type: "error" });
     }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "查询余额失败";
@@ -200,7 +201,7 @@ async function handleCheckBalance(row: unknown) {
   }
 }
 
-async function handleDelete(row: unknown) {
+async function handleDelete(row: PaymentAccount) {
   try {
     await deletePaymentApi(row.uid);
     message("删除成功", { type: "success" });
@@ -301,9 +302,9 @@ onMounted(async () => {
       v-if="showOperationDialog"
       v-model:visible="showOperationDialog"
       :type="operationType"
-      :payment-uid="currentPayment?.uid"
-      :payment-name="currentPayment?.name"
-      :current-balance="currentPayment?.balance || 0"
+      :payment-uid="currentPayment?.uid ?? ''"
+      :payment-name="currentPayment?.name ?? ''"
+      :current-balance="Number(currentPayment?.balance ?? 0)"
       @success="onSearch"
     />
   </div>

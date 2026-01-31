@@ -50,13 +50,15 @@ const handleCurrentChange = (val: number) => {
   getData();
 };
 
-const handleDelete = async (row: unknown) => {
-  await deleteSalesQuotationApi(row.id);
+const handleDelete = async (row: SalesQuotation) => {
+  await deleteSalesQuotationApi(String(row.id));
   message("删除成功", { type: "success" });
   getData();
 };
 
-function openDialog(title = "新增", row?: unknown) {
+type DialogProps = { customerName: string; desc: string };
+
+function openDialog(title = "新增", row?: SalesQuotation) {
   addDialog({
     title: `${title}报价单`,
     props: {
@@ -69,21 +71,21 @@ function openDialog(title = "新增", row?: unknown) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
+      const dialogProps = options.props as DialogProps;
       return h("div", [
         h("el-form", {}, [
           h("el-form-item", { label: "客户" }, [
             h("el-input", {
-              modelValue: options.props.customerName,
+              modelValue: dialogProps.customerName,
               "onUpdate:modelValue": (val: string) =>
-                (options.props.customerName = val),
+                (dialogProps.customerName = val),
               placeholder: "请输入客户名称"
             })
           ]),
           h("el-form-item", { label: "备注" }, [
             h("el-input", {
-              modelValue: options.props.desc,
-              "onUpdate:modelValue": (val: string) =>
-                (options.props.desc = val),
+              modelValue: dialogProps.desc,
+              "onUpdate:modelValue": (val: string) => (dialogProps.desc = val),
               placeholder: "暂支持备注录入",
               type: "textarea"
             })
@@ -92,15 +94,16 @@ function openDialog(title = "新增", row?: unknown) {
       ]);
     },
     beforeSure: (done, { options }) => {
+      const dialogProps = options.props as DialogProps;
       const data = {
-        customerName: options.props.customerName,
-        desc: options.props.desc,
+        customerName: dialogProps.customerName,
+        desc: dialogProps.desc,
         status: "DRAFT"
       };
       const promise =
         title === "新增"
           ? createSalesQuotationApi(data)
-          : updateSalesQuotationApi(row.id, data);
+          : updateSalesQuotationApi(String(row?.id ?? ""), data);
 
       promise.then(() => {
         message("操作成功", { type: "success" });
