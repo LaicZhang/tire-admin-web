@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, h } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
@@ -9,9 +9,9 @@ import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
-import { h } from "vue";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "StockTaking"
@@ -19,7 +19,7 @@ defineOptions({
 
 const dataList = ref<Reserve[]>([]);
 const loading = ref(false);
-const formRef = ref();
+const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   keyword: ""
@@ -70,6 +70,15 @@ async function handleCurrentChange(val: number) {
 }
 
 function openDialog(row: Reserve) {
+  type StockFormInline = {
+    uid: number;
+    tireName?: string;
+    repoName?: string;
+    batchNo?: string;
+    systemCount: number;
+    actualCount: number;
+  };
+
   addDialog({
     title: "盘点录入",
     props: {
@@ -87,10 +96,18 @@ function openDialog(row: Reserve) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: formRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, {
+        ref: formRef,
+        formInline: (options.props as { formInline: StockFormInline })
+          .formInline
+      }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
-      const curData = options.props.formInline;
+      const FormRef = formRef.value?.getRef();
+      if (!FormRef) return;
+      const curData = (
+        options.props as { formInline: { uid: number; actualCount: number } }
+      ).formInline;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           try {

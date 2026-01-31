@@ -27,7 +27,10 @@ const form = ref({
 });
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const addFormRef = ref();
+type SerialNumberAddFormExpose = {
+  handleSubmit: () => Promise<boolean>;
+};
+const addFormRef = ref<SerialNumberAddFormExpose | null>(null);
 
 // Mock 商品和仓库数据（实际接口获取）
 const tireOptions = ref<Array<{ uid: string; name: string }>>([]);
@@ -95,7 +98,19 @@ function handleAdd(type: "single" | "batch") {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(SerialNumberAddForm, { ref: addFormRef }),
+    contentRenderer: ({ options }) =>
+      h(SerialNumberAddForm, {
+        ref: addFormRef,
+        formInline: (
+          options.props as {
+            formInline: {
+              type: "single" | "batch";
+              tireOptions: Array<{ uid: string; name: string }>;
+              repoOptions: Array<{ uid: string; name: string }>;
+            };
+          }
+        ).formInline
+      }),
     beforeSure: async done => {
       const formInstance = addFormRef.value;
       if (!formInstance) return;

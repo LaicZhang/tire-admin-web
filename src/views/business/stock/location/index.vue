@@ -80,6 +80,8 @@ const handleDelete = async (row: Zone) => {
   getData();
 };
 
+type DialogProps = { name: string; repoId: string };
+
 function openDialog(title = "新增", row?: unknown) {
   addDialog({
     title: `${title}库区`,
@@ -93,21 +95,21 @@ function openDialog(title = "新增", row?: unknown) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
+      const dialogProps = options.props as DialogProps;
       return h("div", [
         h("el-form", {}, [
           h("el-form-item", { label: "仓库ID" }, [
             h("el-input", {
-              modelValue: options.props.repoId,
+              modelValue: dialogProps.repoId,
               "onUpdate:modelValue": (val: string) =>
-                (options.props.repoId = val),
+                (dialogProps.repoId = val),
               placeholder: "请输入仓库ID (后期改为下拉)"
             })
           ]),
           h("el-form-item", { label: "库区名称" }, [
             h("el-input", {
-              modelValue: options.props.name,
-              "onUpdate:modelValue": (val: string) =>
-                (options.props.name = val),
+              modelValue: dialogProps.name,
+              "onUpdate:modelValue": (val: string) => (dialogProps.name = val),
               placeholder: "例如：A区"
             })
           ])
@@ -115,9 +117,10 @@ function openDialog(title = "新增", row?: unknown) {
       ]);
     },
     beforeSure: (done, { options }) => {
+      const dialogProps = options.props as DialogProps;
       const data = {
-        name: options.props.name,
-        repoId: options.props.repoId
+        name: dialogProps.name,
+        repoId: dialogProps.repoId
       };
       createRepoZoneApi(data).then(() => {
         message("操作成功", { type: "success" });

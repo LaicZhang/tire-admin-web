@@ -5,12 +5,15 @@ import {
   batchStockTakingApi,
   type Reserve
 } from "@/api/business/reserve";
-import { calculateStockTakingSummary, type StockTakingItem } from "../utils";
+import { calculateStockTakingSummary } from "../utils";
 
-interface QuickStockTakingItem extends StockTakingItem {
+interface QuickStockTakingItem {
   repoId?: string;
   tireId: string;
   count: number;
+  actualCount: number;
+  tire?: Reserve["tire"];
+  tireName?: string;
   description?: string;
 }
 
@@ -57,8 +60,9 @@ export function useQuickStockTaking(currentRepo: Ref<string | undefined>) {
         tableData.value = (list as Reserve[]).map((item: Reserve) => ({
           ...item,
           actualCount: item.count,
+          tireName: item.tire?.name,
           description: ""
-        })) as QuickStockTakingItem[];
+        }));
         quickPagination.total = pagination.value.total;
         quickPagination.currentPage = pagination.value.currentPage;
         quickPagination.pageSize = pagination.value.pageSize;
@@ -81,16 +85,12 @@ export function useQuickStockTaking(currentRepo: Ref<string | undefined>) {
       return;
     }
 
-    const items = itemsWithDifference
-      .filter(
-        item => item.repoId !== undefined && item.actualCount !== undefined
-      )
-      .map(item => ({
-        repoId: item.repoId || currentRepo.value || "",
-        tireId: item.tireId,
-        actualCount: item.actualCount!,
-        desc: item.description
-      }));
+    const items = itemsWithDifference.map(item => ({
+      repoId: item.repoId || currentRepo.value || "",
+      tireId: item.tireId,
+      actualCount: item.actualCount,
+      desc: item.description
+    }));
 
     try {
       await batchStockTakingApi({ items });

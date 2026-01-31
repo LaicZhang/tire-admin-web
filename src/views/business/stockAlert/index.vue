@@ -14,21 +14,11 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import type { StockAlert, StockAlertDto } from "@/api/business/stock-alert";
 
 defineOptions({
   name: "StockAlert"
 });
-
-interface StockAlertItem {
-  id: number;
-  uid: string;
-  name: string;
-  tireSpec: string;
-  safeStock: number;
-  maxStock: number;
-  minStock: number;
-  desc: string;
-}
 
 const {
   loading,
@@ -36,15 +26,8 @@ const {
   pagination,
   fetchData: getData,
   onCurrentChange
-} = useCrud<
-  StockAlertItem,
-  CommonResult<StockAlertItem[]>,
-  { page: number; pageSize: number }
->({
-  api: ({ page, pageSize }) =>
-    getStockAlertListApi({ page, pageSize }) as Promise<
-      CommonResult<StockAlertItem[]>
-    >,
+} = useCrud<StockAlert, CommonResult<StockAlert[]>, { page: number }>({
+  api: () => getStockAlertListApi(),
   pagination: {
     total: 0,
     pageSize: 10,
@@ -67,28 +50,12 @@ const {
 
 const columns = [
   {
-    label: "预警规则",
-    prop: "name"
-  },
-  {
-    label: "轮胎规格",
-    prop: "tireSpec"
-  },
-  {
-    label: "安全库存",
-    prop: "safeStock"
-  },
-  {
-    label: "最高库存",
-    prop: "maxStock"
+    label: "轮胎ID",
+    prop: "tireId"
   },
   {
     label: "最低库存",
-    prop: "minStock"
-  },
-  {
-    label: "备注",
-    prop: "desc"
+    prop: "minQuantity"
   }
 ];
 
@@ -101,27 +68,14 @@ const handleScan = async () => {
   }
 };
 
-interface StockAlertFormInline {
-  name: string;
-  tireSpec: string;
-  safeStock: number;
-  maxStock: number;
-  minStock: number;
-  desc: string;
-}
-
 function openDialog(title = "新增") {
   addDialog({
     title: `${title}库存预警配置`,
     props: {
       formInline: {
-        name: "",
-        tireSpec: "",
-        safeStock: 0,
-        maxStock: 0,
-        minStock: 0,
-        desc: ""
-      } as StockAlertFormInline
+        tireId: "",
+        minQuantity: 0
+      } as StockAlertDto
     },
     width: "40%",
     draggable: true,
@@ -130,64 +84,32 @@ function openDialog(title = "新增") {
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
       const { formInline } = options.props as {
-        formInline: StockAlertFormInline;
+        formInline: StockAlertDto;
       };
       return h("div", [
         h("el-form", { model: formInline, labelWidth: "80px" }, [
-          h("el-form-item", { label: "规则名称", required: true }, [
+          h("el-form-item", { label: "轮胎ID", required: true }, [
             h("el-input", {
-              modelValue: formInline.name,
-              "onUpdate:modelValue": (val: string) => (formInline.name = val),
-              placeholder: "请输入规则名称"
-            })
-          ]),
-          h("el-form-item", { label: "轮胎规格" }, [
-            h("el-input", {
-              modelValue: formInline.tireSpec,
-              "onUpdate:modelValue": (val: string) =>
-                (formInline.tireSpec = val),
-              placeholder: "暂支持手动输入，后续关联商品选择"
-            })
-          ]),
-          h("el-form-item", { label: "安全库存" }, [
-            h("el-input-number", {
-              modelValue: formInline.safeStock,
-              "onUpdate:modelValue": (val: number | undefined) =>
-                (formInline.safeStock = val ?? 0),
-              min: 0
+              modelValue: formInline.tireId,
+              "onUpdate:modelValue": (val: string) => (formInline.tireId = val),
+              placeholder: "请输入轮胎ID"
             })
           ]),
           h("el-form-item", { label: "最低库存" }, [
             h("el-input-number", {
-              modelValue: formInline.minStock,
+              modelValue: formInline.minQuantity,
               "onUpdate:modelValue": (val: number | undefined) =>
-                (formInline.minStock = val ?? 0),
+                (formInline.minQuantity = val ?? 0),
               min: 0
-            })
-          ]),
-          h("el-form-item", { label: "最高库存" }, [
-            h("el-input-number", {
-              modelValue: formInline.maxStock,
-              "onUpdate:modelValue": (val: number | undefined) =>
-                (formInline.maxStock = val ?? 0),
-              min: 0
-            })
-          ]),
-          h("el-form-item", { label: "备注" }, [
-            h("el-input", {
-              modelValue: formInline.desc,
-              "onUpdate:modelValue": (val: string) => (formInline.desc = val),
-              type: "textarea"
             })
           ])
         ])
       ]);
     },
     beforeSure: (done, { options }) => {
-      const data = (options.props as { formInline: StockAlertFormInline })
-        .formInline;
-      if (!data.name) {
-        message("请输入名称", { type: "warning" });
+      const data = (options.props as { formInline: StockAlertDto }).formInline;
+      if (!data.tireId) {
+        message("请输入轮胎ID", { type: "warning" });
         return;
       }
       createStockAlertApi(data).then(() => {
