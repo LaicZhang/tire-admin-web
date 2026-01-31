@@ -8,6 +8,7 @@ import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import { MoneyDisplay } from "@/components";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
@@ -17,11 +18,13 @@ import type { SupplierBalance, SupplierBalanceForm } from "./types";
 import type { FormInstance } from "element-plus";
 import {
   createInitialBalanceApi,
-  getInitialBalanceBatchApi
+  getInitialBalanceBatchApi,
+  type InitialBalanceRecord
 } from "@/api/data/initial-balance";
 import {
   getProviderListApi,
-  getProviderBatchApi
+  getProviderBatchApi,
+  type Provider
 } from "@/api/business/provider";
 
 defineOptions({
@@ -120,7 +123,7 @@ const getList = async () => {
     }
 
     // 批量获取供应商详情和期初余额 (2次请求代替 N*3 次)
-    const providerIds = providers.map(p => (p as unknown).uid as string);
+    const providerIds = providers.map(p => p.uid);
     const [providersRes, balancesRes] = await Promise.all([
       getProviderBatchApi(providerIds).catch(() => null),
       getInitialBalanceBatchApi({
@@ -130,16 +133,16 @@ const getList = async () => {
     ]);
 
     // 构建映射
-    const providerMap = new Map<string, unknown>();
-    for (const p of (providersRes as unknown)?.data || []) {
+    const providerMap = new Map<string, Provider>();
+    for (const p of providersRes?.data || []) {
       if (p?.uid) providerMap.set(p.uid, p);
     }
     const balanceMap = new Map<
       string,
-      { payable?: unknown; prepaid?: unknown }
+      { payable?: InitialBalanceRecord; prepaid?: InitialBalanceRecord }
     >();
-    for (const b of (balancesRes as unknown)?.data || []) {
-      if (!b?.providerId) continue;
+    for (const b of balancesRes?.data || []) {
+      if (!b.providerId) continue;
       const existing = balanceMap.get(b.providerId) || {};
       if (b.type === PROVIDER_PAYABLE_TYPE) existing.payable = b;
       else if (b.type === PROVIDER_PREPAID_TYPE) existing.prepaid = b;
@@ -148,30 +151,29 @@ const getList = async () => {
 
     // 组装数据
     const rows = providers.map(p => {
-      const providerId = (p as unknown).uid as string;
+      const providerId = p.uid;
       const provider = providerMap.get(providerId) ?? p;
       const balances = balanceMap.get(providerId) || {};
-      const payableRow = balances.payable as unknown;
-      const prepaidRow = balances.prepaid as unknown;
+      const payableRow = balances.payable;
+      const prepaidRow = balances.prepaid;
 
       const payableBalance = toYuan(payableRow?.amount);
       const prepaidBalance = toYuan(prepaidRow?.amount);
       const balanceDate =
-        (payableRow?.date || prepaidRow?.date || "")
-          ?.toString?.()
-          ?.slice?.(0, 10) || undefined;
+        (payableRow?.date || prepaidRow?.date || "").toString().slice(0, 10) ||
+        undefined;
 
       const hasAny = payableBalance !== 0 || prepaidBalance !== 0;
       if (form.value.hasBalance === true && !hasAny) return null;
       if (form.value.hasBalance === false && hasAny) return null;
 
       return {
-        id: (provider as unknown).id ?? (p as unknown).id ?? 0,
+        id: provider.id ?? 0,
         uid: providerId,
         supplierId: providerId,
-        supplierName: (provider as unknown).name,
-        supplierCode: (provider as unknown).code ?? "-",
-        phone: (provider as unknown).phone ?? "-",
+        supplierName: provider.name,
+        supplierCode: provider.code ?? "-",
+        phone: provider.phone ?? "-",
         payableBalance,
         prepaidBalance,
         balanceDate,
@@ -260,9 +262,9 @@ const openDialog = (title = "新增", row?: SupplierBalance) => {
             })
           ];
           const results = await Promise.all(tasks);
-          const failed = results.find(r => (r as unknown).code !== 200);
+          const failed = results.find(r => r.code !== 200);
           if (failed) {
-            message((failed as unknown).msg || `${title}失败`, {
+            message(failed.msg || `${title}失败`, {
               type: "error"
             });
             return;
@@ -294,7 +296,7 @@ const handleDelete = async (row: SupplierBalance) => {
       providerId: row.supplierId
     })
   ]);
-  if ((r1 as unknown).code === 200 && (r2 as unknown).code === 200) {
+  if (r1.code === 200 && r2.code === 200) {
     message(`清空${row.supplierName}的期初余额成功`, { type: "success" });
     getList();
   } else {
@@ -450,9 +452,11 @@ onMounted(() => {
                     : 'text-gray-400'
                 "
               >
-                {{
-                  row.payableBalance > 0 ? row.payableBalance.toFixed(2) : "-"
-                }}
+                <MoneyDisplay
+                  :value="row.payableBalance > 0 ? row.payableBalance : null"
+                  :show-symbol="false"
+                  empty-text="-"
+                />
               </span>
             </template>
             <template #prepaidBalance="{ row }">
@@ -463,9 +467,11 @@ onMounted(() => {
                     : 'text-gray-400'
                 "
               >
-                {{
-                  row.prepaidBalance > 0 ? row.prepaidBalance.toFixed(2) : "-"
-                }}
+                <MoneyDisplay
+                  :value="row.prepaidBalance > 0 ? row.prepaidBalance : null"
+                  :show-symbol="false"
+                  empty-text="-"
+                />
               </span>
             </template>
             <template #operation="{ row }">

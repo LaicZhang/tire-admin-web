@@ -8,6 +8,7 @@ import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import { MoneyDisplay } from "@/components";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
@@ -17,11 +18,13 @@ import type { CustomerBalance, CustomerBalanceForm } from "./types";
 import type { FormInstance } from "element-plus";
 import {
   createInitialBalanceApi,
-  getInitialBalanceBatchApi
+  getInitialBalanceBatchApi,
+  type InitialBalanceRecord
 } from "@/api/data/initial-balance";
 import {
   getCustomerListApi,
-  getCustomerBatchApi
+  getCustomerBatchApi,
+  type Customer
 } from "@/api/business/customer";
 
 defineOptions({
@@ -120,7 +123,7 @@ const getList = async () => {
     }
 
     // 批量获取客户详情和期初余额 (2次请求代替 N*3 次)
-    const customerIds = customers.map(c => (c as unknown).uid as string);
+    const customerIds = customers.map(c => c.uid);
     const [customersRes, balancesRes] = await Promise.all([
       getCustomerBatchApi(customerIds).catch(() => null),
       getInitialBalanceBatchApi({
@@ -130,16 +133,16 @@ const getList = async () => {
     ]);
 
     // 构建映射
-    const customerMap = new Map<string, unknown>();
-    for (const c of (customersRes as unknown)?.data || []) {
+    const customerMap = new Map<string, Customer>();
+    for (const c of customersRes?.data || []) {
       if (c?.uid) customerMap.set(c.uid, c);
     }
     const balanceMap = new Map<
       string,
-      { receivable?: unknown; advance?: unknown }
+      { receivable?: InitialBalanceRecord; advance?: InitialBalanceRecord }
     >();
-    for (const b of (balancesRes as unknown)?.data || []) {
-      if (!b?.customerId) continue;
+    for (const b of balancesRes?.data || []) {
+      if (!b.customerId) continue;
       const existing = balanceMap.get(b.customerId) || {};
       if (b.type === CUSTOMER_RECEIVABLE_TYPE) existing.receivable = b;
       else if (b.type === CUSTOMER_ADVANCE_TYPE) existing.advance = b;
@@ -148,33 +151,30 @@ const getList = async () => {
 
     // 组装数据
     const rows = customers.map(c => {
-      const customerId = (c as unknown).uid as string;
+      const customerId = c.uid;
       const customer = customerMap.get(customerId) ?? c;
       const balances = balanceMap.get(customerId) || {};
-      const receivableRow = balances.receivable as unknown;
-      const advanceRow = balances.advance as unknown;
+      const receivableRow = balances.receivable;
+      const advanceRow = balances.advance;
 
       const receivableBalance = toYuan(receivableRow?.amount);
       const advanceBalance = toYuan(advanceRow?.amount);
       const balanceDate =
         (receivableRow?.date || advanceRow?.date || "")
-          ?.toString?.()
-          ?.slice?.(0, 10) || undefined;
+          .toString()
+          .slice(0, 10) || undefined;
 
       const hasAny = receivableBalance !== 0 || advanceBalance !== 0;
       if (form.value.hasBalance === true && !hasAny) return null;
       if (form.value.hasBalance === false && hasAny) return null;
 
       return {
-        id: (customer as unknown).id ?? (c as unknown).id ?? 0,
+        id: customer.id ?? 0,
         uid: customerId,
         customerId,
-        customerName: (customer as unknown).name,
-        customerCode: (customer as unknown).code ?? "-",
-        phone:
-          (customer as unknown)?.info?.phone ??
-          (customer as unknown).phone ??
-          "-",
+        customerName: customer.name,
+        customerCode: customer.code ?? "-",
+        phone: customer.info?.phone ?? customer.phone ?? "-",
         receivableBalance,
         advanceBalance,
         balanceDate,
@@ -263,9 +263,9 @@ const openDialog = (title = "新增", row?: CustomerBalance) => {
             })
           ];
           const results = await Promise.all(tasks);
-          const failed = results.find(r => (r as unknown).code !== 200);
+          const failed = results.find(r => r.code !== 200);
           if (failed) {
-            message((failed as unknown).msg || `${title}失败`, {
+            message(failed.msg || `${title}失败`, {
               type: "error"
             });
             return;
@@ -297,7 +297,7 @@ const handleDelete = async (row: CustomerBalance) => {
       customerId: row.customerId
     })
   ]);
-  if ((r1 as unknown).code === 200 && (r2 as unknown).code === 200) {
+  if (r1.code === 200 && r2.code === 200) {
     message(`清空${row.customerName}的期初余额成功`, { type: "success" });
     getList();
   } else {
@@ -453,11 +453,13 @@ onMounted(() => {
                     : 'text-gray-400'
                 "
               >
-                {{
-                  row.receivableBalance > 0
-                    ? row.receivableBalance.toFixed(2)
-                    : "-"
-                }}
+                <MoneyDisplay
+                  :value="
+                    row.receivableBalance > 0 ? row.receivableBalance : null
+                  "
+                  :show-symbol="false"
+                  empty-text="-"
+                />
               </span>
             </template>
             <template #advanceBalance="{ row }">
@@ -468,9 +470,11 @@ onMounted(() => {
                     : 'text-gray-400'
                 "
               >
-                {{
-                  row.advanceBalance > 0 ? row.advanceBalance.toFixed(2) : "-"
-                }}
+                <MoneyDisplay
+                  :value="row.advanceBalance > 0 ? row.advanceBalance : null"
+                  :show-symbol="false"
+                  empty-text="-"
+                />
               </span>
             </template>
             <template #operation="{ row }">
