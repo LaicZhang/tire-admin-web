@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { ref, reactive, h, watch } from "vue";
-import type { AuxiliaryItem, AuxiliaryType, TabConfig } from "./types";
+import type {
+  AuxiliaryFormData,
+  AuxiliaryItem,
+  AuxiliaryType,
+  TabConfig
+} from "./types";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
+import Delete from "~icons/ep/delete";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import {
@@ -21,6 +27,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "AuxiliaryManagement"
@@ -37,6 +44,7 @@ const tabs: TabConfig[] = [
 const activeTab = ref<AuxiliaryType>("income");
 const searchFormRef = ref();
 const selectedRows = ref<AuxiliaryItem[]>([]);
+const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 const form = reactive({
   name: "",
@@ -53,9 +61,10 @@ const {
 } = useCrud<
   AuxiliaryItem,
   CommonResult<PaginatedResponseDto<AuxiliaryItem>>,
-  { page: number; pageSize: number }
+  { page?: number; pageSize?: number }
 >({
-  api: ({ page }) => getAuxiliaryListApi(page, activeTab.value, { ...form }),
+  api: ({ page = 1 }) =>
+    getAuxiliaryListApi(page, activeTab.value, { ...form }),
   pagination: {
     total: 0,
     pageSize: 10,
@@ -65,7 +74,7 @@ const {
   transform: (res: CommonResult<PaginatedResponseDto<AuxiliaryItem>>) => {
     if (res.code !== 200) {
       message(res.msg, { type: "error" });
-      return { list: dataList.value, total: pagination.value.total };
+      return { list: [], total: 0 };
     }
     return {
       list: res.data?.list ?? [],
@@ -144,14 +153,21 @@ function openDialog(title = "新增", row?: AuxiliaryItem) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(Form, { ref: "formRef" }),
+    contentRenderer: ({ options }) =>
+      h(Form, {
+        ref: dialogFormRef,
+        formInline: (options.props as { formInline: AuxiliaryFormData })
+          .formInline,
+        isEdit: (options.props as { isEdit?: boolean }).isEdit
+      }),
     beforeSure: async (done, { options }) => {
-      const formRef = (options as unknown).contentRef?.getRef?.();
-      if (!formRef) return;
+      const elForm = dialogFormRef.value?.getRef();
+      if (!elForm) return;
       try {
-        const valid = await formRef.validate();
+        const valid = await elForm.validate();
         if (!valid) return;
-        const formData = (options.props as unknown).formInline;
+        const formData = (options.props as { formInline: AuxiliaryFormData })
+          .formInline;
         const promise =
           title === "新增"
             ? createAuxiliaryApi({
@@ -161,11 +177,17 @@ function openDialog(title = "新增", row?: AuxiliaryItem) {
                 sort: formData.sort,
                 remark: formData.remark
               })
-            : updateAuxiliaryApi(row!.uid, {
-                name: formData.name,
-                sort: formData.sort,
-                remark: formData.remark
-              });
+            : row?.uid
+              ? updateAuxiliaryApi(row.uid, {
+                  name: formData.name,
+                  sort: formData.sort,
+                  remark: formData.remark
+                })
+              : null;
+        if (!promise) {
+          message("缺少数据ID，无法更新", { type: "error" });
+          return;
+        }
         const { code, msg } = await promise;
         if (code === 200) {
           message("操作成功", { type: "success" });

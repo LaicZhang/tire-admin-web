@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h, watch } from "vue";
-import type { SettlementItem } from "./types";
+import type { SettlementFormData, SettlementItem } from "./types";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -20,14 +20,23 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import Form from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "SettlementManagement"
 });
 
 const searchFormRef = ref();
+const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
-const form = reactive({
+type SettlementListParams = {
+  name?: string;
+  code?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+const form = reactive<SettlementListParams>({
   name: "",
   code: ""
 });
@@ -41,17 +50,22 @@ const {
   onSizeChange
 } = useCrud<
   SettlementItem,
-  { list: SettlementItem[]; total: number },
-  typeof form
+  Awaited<ReturnType<typeof getSettlementListApi>>,
+  SettlementListParams
 >({
-  api: params => getSettlementListApi(pagination.value.currentPage, params),
-  immediate: false,
+  api: async ({ page = 1, pageSize = 10, ...params }) =>
+    getSettlementListApi(page, { ...params, pageSize }),
   pagination: {
     pageSize: 10,
     background: true,
     layout: "total, sizes, prev, pager, next, jumper"
   },
-  params: form
+  params: form,
+  transform: res => ({
+    list: res.data?.list ?? [],
+    total: res.data?.count ?? res.data?.total ?? 0
+  }),
+  immediate: false
 });
 
 const resetForm = () => {
@@ -103,42 +117,54 @@ function openDialog(title = "新增", row?: SettlementItem) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(Form, { ref: "formRef" }),
+    contentRenderer: ({ options }) =>
+      h(Form, {
+        ref: dialogFormRef,
+        formInline: (options.props as { formInline: SettlementFormData })
+          .formInline,
+        isEdit: (options.props as { isEdit?: boolean }).isEdit
+      }),
     beforeSure: async (done, { options }) => {
-      const formRef = (options as unknown).contentRef?.getRef?.();
-      if (!formRef) return;
-      await formRef.validate(async (valid: boolean) => {
-        if (!valid) return;
-        const formData = (options.props as unknown).formInline;
-        try {
-          const promise =
-            title === "新增"
-              ? createSettlementApi({
-                  code: formData.code,
-                  name: formData.name,
-                  isDefault: formData.isDefault,
-                  sort: formData.sort,
-                  remark: formData.remark
-                })
-              : updateSettlementApi(row!.uid, {
-                  name: formData.name,
-                  isDefault: formData.isDefault,
-                  sort: formData.sort,
-                  remark: formData.remark
-                });
-          const { code, msg } = await promise;
-          if (code === 200) {
-            message("操作成功", { type: "success" });
-            done();
-            fetchData();
-          } else {
-            message(msg || "操作失败", { type: "error" });
-          }
-        } catch (e: unknown) {
-          const err = e as Error;
-          message(err.message || "操作失败", { type: "error" });
+      const elForm = dialogFormRef.value?.getRef();
+      if (!elForm) return;
+      const valid = await elForm.validate();
+      if (!valid) return;
+      const formData = (options.props as { formInline: SettlementFormData })
+        .formInline;
+      const promise =
+        title === "新增"
+          ? createSettlementApi({
+              code: formData.code,
+              name: formData.name,
+              isDefault: formData.isDefault,
+              sort: formData.sort,
+              remark: formData.remark
+            })
+          : row?.uid
+            ? updateSettlementApi(row.uid, {
+                name: formData.name,
+                isDefault: formData.isDefault,
+                sort: formData.sort,
+                remark: formData.remark
+              })
+            : null;
+      if (!promise) {
+        message("缺少数据ID，无法更新", { type: "error" });
+        return;
+      }
+      try {
+        const { code, msg } = await promise;
+        if (code === 200) {
+          message("操作成功", { type: "success" });
+          done();
+          fetchData();
+        } else {
+          message(msg || "操作失败", { type: "error" });
         }
-      });
+      } catch (e: unknown) {
+        const err = e as Error;
+        message(err.message || "操作失败", { type: "error" });
+      }
     }
   });
 }

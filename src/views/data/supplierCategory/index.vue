@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import type { TreeCategoryItem } from "./types";
+import type { CategoryFormData, TreeCategoryItem } from "./types";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -20,6 +20,7 @@ import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "SupplierCategoryManagement"
@@ -29,12 +30,21 @@ const treeData = ref<TreeCategoryItem[]>([]);
 const dataList = ref<TreeCategoryItem[]>([]);
 const loading = ref(false);
 const expandRowKeys = ref<string[]>([]);
+const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 const form = ref({
   name: ""
 });
 
-const searchColumns = (
+const searchColumns: PlusColumn[] = [
+  {
+    label: "类别名称",
+    prop: "name",
+    valueType: "copy"
+  }
+];
+
+const filterTreeData = (
   data: TreeCategoryItem[],
   keyword: string
 ): TreeCategoryItem[] => {
@@ -133,39 +143,52 @@ function openDialog(
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(Form, { ref: "formRef" }),
+    contentRenderer: ({ options }) =>
+      h(Form, {
+        ref: dialogFormRef,
+        formInline: (options.props as { formInline: CategoryFormData })
+          .formInline,
+        treeData: (options.props as { treeData: TreeCategoryItem[] }).treeData,
+        isEdit: (options.props as { isEdit?: boolean }).isEdit
+      }),
     beforeSure: async (done, { options }) => {
-      const formRef = (options as unknown).contentRef?.getRef?.();
-      if (!formRef) return;
-      await formRef.validate(async (valid: boolean) => {
-        if (!valid) return;
-        const formData = (options.props as unknown).formInline;
-        try {
-          const promise =
-            title === "新增" || isAddChild
-              ? createSupplierCategoryApi({
-                  name: formData.name,
-                  parentUid: formData.parentUid || null,
-                  sort: formData.sort
-                })
-              : updateSupplierCategoryApi(row!.uid, {
-                  name: formData.name,
-                  parentUid: formData.parentUid || null,
-                  sort: formData.sort
-                });
-          const { code, msg } = await promise;
-          if (code === 200) {
-            message("操作成功", { type: "success" });
-            done();
-            getData();
-          } else {
-            message(msg || "操作失败", { type: "error" });
-          }
-        } catch (e: unknown) {
-          const err = e as Error;
-          message(err.message || "操作失败", { type: "error" });
+      const elForm = dialogFormRef.value?.getRef();
+      if (!elForm) return;
+      const valid = await elForm.validate();
+      if (!valid) return;
+      const formData = (options.props as { formInline: CategoryFormData })
+        .formInline;
+      const isCreate = title === "新增" || isAddChild;
+      const promise = isCreate
+        ? createSupplierCategoryApi({
+            name: formData.name,
+            parentUid: formData.parentUid || null,
+            sort: formData.sort
+          })
+        : row?.uid
+          ? updateSupplierCategoryApi(row.uid, {
+              name: formData.name,
+              parentUid: formData.parentUid || null,
+              sort: formData.sort
+            })
+          : null;
+      if (!promise) {
+        message("缺少数据ID，无法更新", { type: "error" });
+        return;
+      }
+      try {
+        const { code, msg } = await promise;
+        if (code === 200) {
+          message("操作成功", { type: "success" });
+          done();
+          getData();
+        } else {
+          message(msg || "操作失败", { type: "error" });
         }
-      });
+      } catch (e: unknown) {
+        const err = e as Error;
+        message(err.message || "操作失败", { type: "error" });
+      }
     }
   });
 }
@@ -209,7 +232,11 @@ onMounted(() => {
             :columns="dynamicColumns"
             :data="dataList"
             :expand-row-keys="expandRowKeys"
-            :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+            :tree-props="{
+              children: 'children',
+              hasChildren: 'hasChildren',
+              checkStrictly: true
+            }"
             :header-cell-style="{
               background: 'var(--el-fill-color-light)',
               color: 'var(--el-text-color-primary)'

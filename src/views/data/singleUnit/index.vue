@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, h } from "vue";
-import type { SingleUnitItem } from "./types";
+import type { SingleUnitFormData, SingleUnitItem } from "./types";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -20,12 +20,14 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import Form from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "SingleUnitManagement"
 });
 
 const searchFormRef = ref();
+const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 const form = ref({
   name: ""
@@ -34,10 +36,10 @@ const form = ref({
 const { loading, dataList, pagination, fetchData } = useCrud<
   SingleUnitItem,
   CommonResult<PaginatedResponseDto<SingleUnitItem>>,
-  { page: number }
+  { page?: number; pageSize?: number }
 >({
-  api: (params: { page: number }) =>
-    getSingleUnitListApi(params.page, {
+  api: ({ page = 1 }) =>
+    getSingleUnitListApi(page, {
       name: form.value.name || undefined
     }),
   transform: res => ({
@@ -90,43 +92,55 @@ function openDialog(title = "新增", row?: SingleUnitItem) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(Form, { ref: "formRef" }),
+    contentRenderer: ({ options }) =>
+      h(Form, {
+        ref: dialogFormRef,
+        formInline: (options.props as { formInline: SingleUnitFormData })
+          .formInline,
+        isEdit: (options.props as { isEdit?: boolean }).isEdit
+      }),
     beforeSure: async (done, { options }) => {
-      const formRef = (options as unknown).contentRef?.getRef?.();
-      if (!formRef) return;
-      await formRef.validate(async (valid: boolean) => {
-        if (!valid) return;
-        const formData = (options.props as unknown).formInline;
-        try {
-          const promise =
-            title === "新增"
-              ? createSingleUnitApi({
-                  name: formData.name,
-                  symbol: formData.symbol,
-                  isDefault: formData.isDefault,
-                  sort: formData.sort,
-                  remark: formData.remark
-                })
-              : updateSingleUnitApi(row!.uid, {
-                  name: formData.name,
-                  symbol: formData.symbol,
-                  isDefault: formData.isDefault,
-                  sort: formData.sort,
-                  remark: formData.remark
-                });
-          const { code, msg } = await promise;
-          if (code === 200) {
-            message("操作成功", { type: "success" });
-            done();
-            fetchData();
-          } else {
-            message(msg || "操作失败", { type: "error" });
-          }
-        } catch (e: unknown) {
-          const err = e as Error;
-          message(err.message || "操作失败", { type: "error" });
+      const elForm = dialogFormRef.value?.getRef();
+      if (!elForm) return;
+      const valid = await elForm.validate();
+      if (!valid) return;
+      const formData = (options.props as { formInline: SingleUnitFormData })
+        .formInline;
+      const promise =
+        title === "新增"
+          ? createSingleUnitApi({
+              name: formData.name,
+              symbol: formData.symbol,
+              isDefault: formData.isDefault,
+              sort: formData.sort,
+              remark: formData.remark
+            })
+          : row?.uid
+            ? updateSingleUnitApi(row.uid, {
+                name: formData.name,
+                symbol: formData.symbol,
+                isDefault: formData.isDefault,
+                sort: formData.sort,
+                remark: formData.remark
+              })
+            : null;
+      if (!promise) {
+        message("缺少数据ID，无法更新", { type: "error" });
+        return;
+      }
+      try {
+        const { code, msg } = await promise;
+        if (code === 200) {
+          message("操作成功", { type: "success" });
+          done();
+          fetchData();
+        } else {
+          message(msg || "操作失败", { type: "error" });
         }
-      });
+      } catch (e: unknown) {
+        const err = e as Error;
+        message(err.message || "操作失败", { type: "error" });
+      }
     }
   });
 }

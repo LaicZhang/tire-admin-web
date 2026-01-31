@@ -71,7 +71,7 @@ const {
   transform: (res: PriceLimitListRes) => {
     if (res.tireRes.code !== 200) {
       message(res.tireRes.msg || "获取列表失败", { type: "error" });
-      return { list: dataList.value, total: pagination.value.total };
+      return { list: [], total: 0 };
     }
 
     const list = (res.tireRes.data?.list ?? []).map(tire => {

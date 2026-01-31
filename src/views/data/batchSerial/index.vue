@@ -70,7 +70,8 @@ const {
   },
   transform: (res: CommonResult<Batch[]>) => {
     if (res.code !== 0) {
-      return { list: batchList.value, total: batchPagination.value.total };
+      message(res.msg || "获取批次列表失败", { type: "error" });
+      return { list: [], total: 0 };
     }
     const list = res.data ?? [];
     return { list, total: list.length };
@@ -104,7 +105,8 @@ const {
   },
   transform: (res: CommonResult<{ count: number; list: SerialNumber[] }>) => {
     if (res.code !== 0) {
-      return { list: serialList.value, total: serialPagination.value.total };
+      message(res.msg || "获取序列号列表失败", { type: "error" });
+      return { list: [], total: 0 };
     }
     return { list: res.data?.list ?? [], total: res.data?.count ?? 0 };
   },

@@ -57,7 +57,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
       name: state.value.name || undefined,
       code: state.value.code || undefined
     }),
-  deleteApi: deleteStorageZoneApi,
+  deleteApi: id => deleteStorageZoneApi(String(id)),
   immediate: true
 });
 
@@ -128,7 +128,8 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {

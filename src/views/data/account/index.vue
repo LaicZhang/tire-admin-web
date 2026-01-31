@@ -47,7 +47,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   Awaited<ReturnType<typeof getPaymentListApi>>
 >({
   api: () => getPaymentListApi(),
-  deleteApi: deletePaymentApi,
+  deleteApi: id => deletePaymentApi(String(id)),
   transform: res => {
     let list = (res.data as FormItemProps[]) || [];
     // 前端过滤搜索
@@ -123,7 +123,8 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {

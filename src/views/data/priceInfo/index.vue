@@ -56,10 +56,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   transform: (res: CommonResult<PaginatedResponseDto<Tire>>) => {
     if (res.code !== 200) {
       message(res.msg || "获取列表失败", { type: "error" });
-      return {
-        list: dataList.value,
-        total: pagination.value.total
-      };
+      return { list: [], total: 0 };
     }
     const extras = readExtra();
     const list = (res.data?.list ?? []).map(tire => {
@@ -194,7 +191,7 @@ const openDialog = (row: PriceInfo) => {
           await updateTireApi(row.tireId, {
             salePrice: cur.retailPrice,
             purchasePrice: cur.maxPurchasePrice
-          } as unknown);
+          });
 
           message("保存成功", { type: "success" });
           done();
@@ -230,7 +227,7 @@ const handleBatchEdit = () => {
     beforeSure: done => {
       message("批量编辑成功", { type: "success" });
       done();
-      getList();
+      fetchData();
     }
   });
 };
@@ -243,7 +240,7 @@ const handleClear = (row: PriceInfo) => {
   updateTireApi(row.tireId, {
     salePrice: undefined,
     purchasePrice: undefined
-  } as unknown).catch(() => {});
+  }).catch(() => {});
   message(`已清空${row.tireName}的价格设置`, { type: "success" });
   fetchData();
 };

@@ -143,14 +143,21 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
           const promise =
             title === "新增"
               ? addProviderApi(curData)
-              : updateProviderApi(row?.uid ?? "", curData);
+              : row?.uid
+                ? updateProviderApi(row.uid, curData)
+                : null;
+          if (!promise) {
+            message("缺少供应商ID，无法更新", { type: "error" });
+            return;
+          }
           promise.then(() => {
             message("操作成功", { type: "success" });
             done();

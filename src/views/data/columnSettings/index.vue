@@ -222,7 +222,7 @@ const {
 } = useCrud<
   ColumnSetting,
   ColumnSettings | null,
-  { module: string; page: number; pageSize: number }
+  { module: string; page?: number; pageSize?: number }
 >({
   api: ({ module }) => getColumnSettingsApi(module),
   params: () => ({ module: currentModule.value }),

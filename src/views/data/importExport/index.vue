@@ -20,7 +20,12 @@ import {
   exportDataApi,
   importDataApi
 } from "@/api/tools";
-import type { UploadRequestOptions } from "element-plus";
+import type {
+  CheckboxValueType,
+  UploadProgressEvent,
+  UploadRequestOptions
+} from "element-plus";
+import type { UploadAjaxError } from "element-plus/es/components/upload/src/ajax";
 
 defineOptions({
   name: "ImportExport"
@@ -104,7 +109,8 @@ const moduleOptions: ModuleOption[] = [
 ];
 
 // 导出字段配置
-const exportFields = ref([
+type ExportField = { name: string; label: string; selected: boolean };
+const exportFields = ref<ExportField[]>([
   { name: "id", label: "ID", selected: true },
   { name: "name", label: "名称", selected: true },
   { name: "group", label: "分组", selected: true },
@@ -178,10 +184,19 @@ const beforeUpload = (file: File) => {
 };
 
 const handleUpload = async (options: UploadRequestOptions) => {
+  const toUploadAjaxError = (err: unknown): UploadAjaxError => {
+    const base = err instanceof Error ? err : new Error(String(err));
+    const e = base as UploadAjaxError;
+    e.name = "UploadAjaxError";
+    e.status = e.status ?? 0;
+    e.method = e.method ?? options.method;
+    e.url = e.url ?? options.action;
+    return e;
+  };
   const toolType = toToolType(selectedModule.value);
   if (!toolType) {
     message("当前模块暂不支持导入", { type: "warning" });
-    options.onError?.(new Error("unsupported"));
+    options.onError?.(toUploadAjaxError("unsupported"));
     return;
   }
   const file = options.file as File;
@@ -189,11 +204,11 @@ const handleUpload = async (options: UploadRequestOptions) => {
     const formData = new FormData();
     formData.append("file", file);
     const { data, code, msg } = await importDataApi(toolType, formData, p =>
-      options.onProgress?.({ percent: p } as unknown)
+      options.onProgress?.({ percent: p } as UploadProgressEvent)
     );
     if (code !== 200) {
       message(msg || "导入失败", { type: "error" });
-      options.onError?.(new Error(msg || "导入失败"));
+      options.onError?.(toUploadAjaxError(msg || "导入失败"));
       return;
     }
 
@@ -217,12 +232,12 @@ const handleUpload = async (options: UploadRequestOptions) => {
         : `导入成功：${data?.success ?? 0}条`,
       { type: data?.failed ? "warning" : "success" }
     );
-    options.onSuccess?.(data, options as unknown);
+    options.onSuccess?.(data);
     getTaskList();
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : "导入失败";
     message(errorMessage, { type: "error" });
-    options.onError?.(e);
+    options.onError?.(toUploadAjaxError(e));
   }
 };
 
@@ -285,10 +300,15 @@ const handleDelete = async (row: ImportExportTask) => {
 };
 
 // 全选/取消全选导出字段
-const handleSelectAll = (val: boolean) => {
+const handleSelectAll = (val: CheckboxValueType) => {
+  const checked = Boolean(val);
   exportFields.value.forEach(f => {
-    f.selected = val;
+    f.selected = checked;
   });
+};
+
+const handleToggleField = (field: ExportField, val: CheckboxValueType) => {
+  field.selected = Boolean(val);
 };
 
 const allSelected = computed(() => exportFields.value.every(f => f.selected));
@@ -398,20 +418,19 @@ onMounted(() => {
                     全选
                   </el-checkbox>
                   <el-divider class="my-2" />
-                  <el-checkbox-group
-                    v-model="exportFields"
-                    class="flex flex-wrap gap-4"
-                  >
+                  <div class="flex flex-wrap gap-4">
                     <el-checkbox
                       v-for="field in exportFields"
                       :key="field.name"
-                      :label="field"
-                      :checked="field.selected"
-                      @change="(val: boolean) => (field.selected = val)"
+                      :model-value="field.selected"
+                      @change="
+                        (val: CheckboxValueType) =>
+                          handleToggleField(field, val)
+                      "
                     >
                       {{ field.label }}
                     </el-checkbox>
-                  </el-checkbox-group>
+                  </div>
                 </div>
               </el-form-item>
 

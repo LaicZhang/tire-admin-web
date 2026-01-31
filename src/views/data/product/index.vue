@@ -50,14 +50,15 @@ const formColumns: PlusColumn[] = [
 
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   FormItemProps,
-  Awaited<ReturnType<typeof getTireListApi>>
+  Awaited<ReturnType<typeof getTireListApi>>,
+  { page: number; pageSize: number }
 >({
-  api: params =>
-    getTireListApi(params.page, {
-      keyword: state.value.name,
-      group: state.value.group
+  api: ({ page }) =>
+    getTireListApi(page, {
+      keyword: state.value.name || undefined,
+      group: state.value.group || undefined
     }),
-  deleteApi: deleteTireApi,
+  deleteApi: id => deleteTireApi(String(id)),
   immediate: true
 });
 
@@ -67,6 +68,7 @@ const handleReset = () => {
 };
 
 const getDetails = async (row: FormItemProps) => {
+  if (!row.uid) return;
   loading.value = true;
   try {
     const { data, code } = await getTireApi(row.uid);
@@ -129,14 +131,21 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
           const promise =
             title === "新增"
               ? addTireApi(curData)
-              : updateTireApi(row?.uid ?? "", curData);
+              : row?.uid
+                ? updateTireApi(row.uid, curData)
+                : null;
+          if (!promise) {
+            message("缺少商品ID，无法更新", { type: "error" });
+            return;
+          }
           promise.then(() => {
             message("操作成功", { type: "success" });
             done();
@@ -149,6 +158,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 };
 
 const deleteOne = async (row: FormItemProps) => {
+  if (!row.uid) return;
   try {
     await ElMessageBox.confirm(
       `确定要删除商品 "${row.name}" 吗？此操作不可恢复。`,

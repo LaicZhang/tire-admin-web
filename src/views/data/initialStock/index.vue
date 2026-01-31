@@ -13,7 +13,7 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
-import type { InitialStock, InitialStockForm } from "./types";
+import type { InitialStock, InitialStockForm, InitialStockItem } from "./types";
 import type { FormInstance } from "element-plus";
 import {
   deleteInitialStockApi,
@@ -29,7 +29,7 @@ defineOptions({
 
 const dataList = ref<InitialStock[]>([]);
 const loading = ref(false);
-const formRef = ref();
+const formRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const selectedRows = ref<InitialStock[]>([]);
 const form = ref({
   tireId: undefined,
@@ -142,9 +142,8 @@ const onSearch = () => {
   getList();
 };
 
-const resetForm = (formEl: unknown) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const resetForm = (formEl: InstanceType<typeof ReSearchForm> | null) => {
+  formEl?.resetFields();
   onSearch();
 };
 
@@ -159,7 +158,7 @@ const handleSelectionChange = (rows: InitialStock[]) => {
 
 const dialogFormRef = ref<{
   getRef: () => FormInstance;
-  getStockItems: () => unknown[];
+  getStockItems: () => Array<InitialStockItem & { _uid: string }>;
 } | null>(null);
 
 const openDialog = (title = "新增", row?: InitialStock) => {

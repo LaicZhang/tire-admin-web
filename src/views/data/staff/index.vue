@@ -56,18 +56,26 @@ const formColumns: PlusColumn[] = [
 
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   FormItemProps,
-  Awaited<ReturnType<typeof getEmployeeListApi>>
+  Awaited<ReturnType<typeof getEmployeeListApi>>,
+  { page: number; pageSize: number }
 >({
-  api: params =>
-    getEmployeeListApi(params.page, {
+  api: ({ page }) =>
+    getEmployeeListApi(page, {
       name: state.value.name || undefined,
       keyword: state.value.keyword || undefined
     }),
-  deleteApi: deleteEmployeeApi,
+  deleteApi: id => deleteEmployeeApi(String(id)),
   transform: res => {
-    const list = (res.data?.list || []).map((item: unknown) => ({
-      ...item,
-      phone: (item as { user?: { phone?: string } }).user?.phone || ""
+    const list = (res.data?.list || []).map(item => ({
+      uid: item.uid,
+      id: item.id,
+      name: item.name,
+      nickname: item.nickname,
+      desc: item.desc,
+      status: item.status,
+      phone: item.user?.phone || "",
+      email: item.user?.email || "",
+      jobs: item.jobs
     })) as FormItemProps[];
     return { list, total: res.data?.count || 0 };
   },
@@ -84,11 +92,21 @@ const getDetails = async (row: { uid: string }) => {
   try {
     const { data, code } = await getEmployeeApi(row.uid);
     if (code !== 200) return;
-    const staff = data as FormItemProps;
+    const staff: FormItemProps = {
+      uid: data.uid,
+      id: data.id,
+      name: data.name,
+      nickname: data.nickname,
+      desc: data.desc,
+      status: data.status,
+      phone: data.user?.phone || "",
+      email: data.user?.email || "",
+      jobs: data.jobs
+    };
     addDialog({
       title: "职员详情",
       props: {
-        formInline: { ...staff, phone: (data as unknown).user?.phone || "" },
+        formInline: { ...staff },
         disabled: true
       },
       width: "40%",
@@ -138,7 +156,8 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const curData = options.props!.formInline as FormItemProps;
+      const curData = (options.props as { formInline: FormItemProps })
+        .formInline;
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
@@ -167,6 +186,10 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
               fetchData();
             });
           } else {
+            if (!row?.uid) {
+              message("缺少职员ID，无法更新", { type: "error" });
+              return;
+            }
             const updateData = {
               name: {
                 name: curData.name,
@@ -179,7 +202,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
                 email: curData.email
               }
             };
-            updateEmployeeApi(row?.uid ?? "", updateData).then(() => {
+            updateEmployeeApi(row.uid, updateData).then(() => {
               message("操作成功", { type: "success" });
               done();
               fetchData();

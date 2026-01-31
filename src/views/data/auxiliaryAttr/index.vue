@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, h } from "vue";
-import type { AuxiliaryAttrItem } from "./types";
+import type { AuxiliaryAttrFormData, AuxiliaryAttrItem } from "./types";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -24,12 +24,14 @@ import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "AuxiliaryAttrManagement"
 });
 
 const searchFormRef = ref();
+const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 const form = reactive({
   name: ""
@@ -45,9 +47,9 @@ const {
 } = useCrud<
   AuxiliaryAttrItem,
   CommonResult<PaginatedResponseDto<AuxiliaryAttrItem>>,
-  { page: number; pageSize: number }
+  { page?: number; pageSize?: number }
 >({
-  api: ({ page }) => getAuxiliaryAttrListApi(page, { ...form }),
+  api: ({ page = 1 }) => getAuxiliaryAttrListApi(page, { ...form }),
   pagination: {
     total: 0,
     pageSize: 10,
@@ -57,7 +59,7 @@ const {
   transform: (res: CommonResult<PaginatedResponseDto<AuxiliaryAttrItem>>) => {
     if (res.code !== 200) {
       message(res.msg, { type: "error" });
-      return { list: dataList.value, total: pagination.value.total };
+      return { list: [], total: 0 };
     }
     return {
       list: res.data?.list ?? [],
@@ -105,41 +107,53 @@ function openDialog(title = "新增", row?: AuxiliaryAttrItem) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(Form, { ref: "formRef" }),
+    contentRenderer: ({ options }) =>
+      h(Form, {
+        ref: dialogFormRef,
+        formInline: (options.props as { formInline: AuxiliaryAttrFormData })
+          .formInline,
+        isEdit: (options.props as { isEdit?: boolean }).isEdit
+      }),
     beforeSure: async (done, { options }) => {
-      const formRef = (options as unknown).contentRef?.getRef?.();
-      if (!formRef) return;
-      await formRef.validate(async (valid: boolean) => {
-        if (!valid) return;
-        const formData = (options.props as unknown).formInline;
-        try {
-          const promise =
-            title === "新增"
-              ? createAuxiliaryAttrApi({
+      const elForm = dialogFormRef.value?.getRef();
+      if (!elForm) return;
+      const valid = await elForm.validate();
+      if (!valid) return;
+      const formData = (options.props as { formInline: AuxiliaryAttrFormData })
+        .formInline;
+      try {
+        const promise =
+          title === "新增"
+            ? createAuxiliaryAttrApi({
+                name: formData.name,
+                values: formData.values,
+                sort: formData.sort,
+                remark: formData.remark
+              })
+            : row?.uid
+              ? updateAuxiliaryAttrApi(row.uid, {
                   name: formData.name,
                   values: formData.values,
                   sort: formData.sort,
                   remark: formData.remark
                 })
-              : updateAuxiliaryAttrApi(row!.uid, {
-                  name: formData.name,
-                  values: formData.values,
-                  sort: formData.sort,
-                  remark: formData.remark
-                });
-          const { code, msg } = await promise;
-          if (code === 200) {
-            message("操作成功", { type: "success" });
-            done();
-            getData();
-          } else {
-            message(msg || "操作失败", { type: "error" });
-          }
-        } catch (e: unknown) {
-          const err = e as Error;
-          message(err.message || "操作失败", { type: "error" });
+              : null;
+        if (!promise) {
+          message("缺少数据ID，无法更新", { type: "error" });
+          return;
         }
-      });
+        const { code, msg } = await promise;
+        if (code === 200) {
+          message("操作成功", { type: "success" });
+          done();
+          getData();
+        } else {
+          message(msg || "操作失败", { type: "error" });
+        }
+      } catch (e: unknown) {
+        const err = e as Error;
+        message(err.message || "操作失败", { type: "error" });
+      }
     }
   });
 }
@@ -156,7 +170,8 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
     draggable: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const formData = (options.props as unknown).formInline;
+      const formData = (options.props as { formInline: { name: string } })
+        .formInline;
       return h("el-form", { labelWidth: "80px" }, [
         h("el-form-item", { label: "属性值" }, [
           h("el-input", {
@@ -168,7 +183,8 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
       ]);
     },
     beforeSure: async (done, { options }) => {
-      const formData = (options.props as unknown).formInline;
+      const formData = (options.props as { formInline: { name: string } })
+        .formInline;
       if (!formData.name?.trim()) {
         message("请输入属性值", { type: "warning" });
         return;

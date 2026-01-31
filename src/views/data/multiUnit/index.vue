@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h } from "vue";
-import type { MultiUnitItem, UnitOption } from "./types";
+import type { MultiUnitFormData, MultiUnitItem, UnitOption } from "./types";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -21,6 +21,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import Form from "./form.vue";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "MultiUnitManagement"
@@ -28,6 +29,7 @@ defineOptions({
 
 const unitOptions = ref<UnitOption[]>([]);
 const searchFormRef = ref();
+const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 const form = ref({
   name: ""
@@ -36,10 +38,10 @@ const form = ref({
 const { loading, dataList, pagination, fetchData } = useCrud<
   MultiUnitItem,
   CommonResult<PaginatedResponseDto<MultiUnitItem>>,
-  { page: number }
+  { page?: number; pageSize?: number }
 >({
-  api: (params: { page: number }) =>
-    getMultiUnitListApi(params.page, {
+  api: ({ page = 1 }) =>
+    getMultiUnitListApi(page, {
       name: form.value.name || undefined
     }),
   transform: res => ({
@@ -108,47 +110,57 @@ function openDialog(title = "新增", row?: MultiUnitItem) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(Form, { ref: "formRef" }),
+    contentRenderer: ({ options }) =>
+      h(Form, {
+        ref: dialogFormRef,
+        formInline: (options.props as { formInline: MultiUnitFormData })
+          .formInline,
+        unitOptions: (options.props as { unitOptions: UnitOption[] })
+          .unitOptions,
+        isEdit: (options.props as { isEdit?: boolean }).isEdit
+      }),
     beforeSure: async (done, { options }) => {
-      const formRef = (options as unknown).contentRef?.getRef?.();
-      if (!formRef) return;
-      await formRef.validate(async (valid: boolean) => {
-        if (!valid) return;
-        const formData = (options.props as unknown).formInline;
-        try {
-          const promise =
-            title === "新增"
-              ? createMultiUnitApi({
-                  name: formData.name,
-                  baseUnitUid: formData.baseUnitUid,
-                  conversions: formData.conversions.filter(
-                    (c: { unitUid: string }) => c.unitUid
-                  ),
-                  sort: formData.sort,
-                  remark: formData.remark
-                })
-              : updateMultiUnitApi(row!.uid, {
-                  name: formData.name,
-                  baseUnitUid: formData.baseUnitUid,
-                  conversions: formData.conversions.filter(
-                    (c: { unitUid: string }) => c.unitUid
-                  ),
-                  sort: formData.sort,
-                  remark: formData.remark
-                });
-          const { code, msg } = await promise;
-          if (code === 200) {
-            message("操作成功", { type: "success" });
-            done();
-            fetchData();
-          } else {
-            message(msg || "操作失败", { type: "error" });
-          }
-        } catch (e: unknown) {
-          const err = e as Error;
-          message(err.message || "操作失败", { type: "error" });
+      const elForm = dialogFormRef.value?.getRef();
+      if (!elForm) return;
+      const valid = await elForm.validate();
+      if (!valid) return;
+      const formData = (options.props as { formInline: MultiUnitFormData })
+        .formInline;
+      const promise =
+        title === "新增"
+          ? createMultiUnitApi({
+              name: formData.name,
+              baseUnitUid: formData.baseUnitUid,
+              conversions: formData.conversions.filter(c => c.unitUid),
+              sort: formData.sort,
+              remark: formData.remark
+            })
+          : row?.uid
+            ? updateMultiUnitApi(row.uid, {
+                name: formData.name,
+                baseUnitUid: formData.baseUnitUid,
+                conversions: formData.conversions.filter(c => c.unitUid),
+                sort: formData.sort,
+                remark: formData.remark
+              })
+            : null;
+      if (!promise) {
+        message("缺少数据ID，无法更新", { type: "error" });
+        return;
+      }
+      try {
+        const { code, msg } = await promise;
+        if (code === 200) {
+          message("操作成功", { type: "success" });
+          done();
+          fetchData();
+        } else {
+          message(msg || "操作失败", { type: "error" });
         }
-      });
+      } catch (e: unknown) {
+        const err = e as Error;
+        message(err.message || "操作失败", { type: "error" });
+      }
     }
   });
 }

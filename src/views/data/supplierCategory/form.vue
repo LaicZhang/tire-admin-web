@@ -50,7 +50,8 @@ defineExpose({ getRef });
       <el-tree-select
         v-model="newFormInline.parentUid"
         :data="treeSelectData"
-        :props="{ label: 'name', value: 'uid', children: 'children' }"
+        node-key="uid"
+        :props="{ label: 'name', children: 'children' }"
         :render-after-expand="false"
         check-strictly
         clearable
