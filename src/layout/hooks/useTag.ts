@@ -8,11 +8,12 @@ import {
   getCurrentInstance,
   type ComponentInternalInstance
 } from "vue";
-import type { tagsViewsType, RouteConfigs } from "../types";
+import type { tagsViewsType } from "../types";
 import { useRoute, useRouter } from "vue-router";
 import { responsiveStorageNameSpace } from "@/config";
 import { useSettingStoreHook } from "@/store/modules/settings";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import type { multiType } from "@/store/types";
 import {
   isEqual,
   isBoolean,
@@ -42,7 +43,7 @@ export function useTags() {
   const visible = ref(false);
   const activeIndex = ref(-1);
   // 当前右键选中的路由信息
-  const currentSelect = ref({});
+  const currentSelect = ref<multiType | null>(null);
   const isScrolling = ref(false);
 
   /** 显示模式，默认灵动模式 */
@@ -58,9 +59,7 @@ export function useTags() {
     )?.hideTabs ?? false
   );
 
-  const multiTags = computed(
-    () => useMultiTagsStoreHook().multiTags as RouteConfigs[]
-  );
+  const multiTags = computed(() => useMultiTagsStoreHook().multiTags);
 
   const tagsViews = reactive<Array<tagsViewsType>>([
     {
@@ -115,7 +114,11 @@ export function useTags() {
   ]);
 
   // Tag item can have various properties (path, query, params, meta, etc.)
-  type TagItem = Partial<RouteConfigs>;
+  type TagItem = Partial<multiType> & {
+    query?: unknown;
+    params?: unknown;
+    meta?: { showLink?: boolean };
+  };
 
   function conditionHandle(item: TagItem, previous: unknown, next: unknown) {
     if (isBoolean(route?.meta?.showLink) && route?.meta?.showLink === false) {

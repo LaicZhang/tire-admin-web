@@ -3,12 +3,13 @@ import { emitter } from "@/utils/mitt";
 import NProgress from "@/utils/progress";
 import { RouteConfigs, tagsViewsType } from "../../types";
 import { useTags } from "../../hooks/useTag";
-import { routerArrays } from "@/layout/types";
 import { onClickOutside } from "@vueuse/core";
 import { handleAliveRoute, getTopMenu } from "@/router/utils";
 import { useSettingStoreHook } from "@/store/modules/settings";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import type { multiType } from "@/store/types";
 import { ref, watch, unref, toRaw, nextTick, onBeforeUnmount } from "vue";
+import type { LocationQueryRaw, RouteParamsRaw } from "vue-router";
 import {
   delay,
   isEqual,
@@ -62,11 +63,11 @@ const { VITE_HIDE_HOME } = import.meta.env;
 
 const dynamicTagView = async () => {
   await nextTick();
-  const index = multiTags.value.findIndex((item: RouteConfigs) => {
+  const index = multiTags.value.findIndex((item: multiType) => {
     if (!isAllEmpty(route.query)) {
-      return isEqual(route.query, item.query);
+      return isEqual(route.query, item.query as unknown);
     } else if (!isAllEmpty(route.params)) {
-      return isEqual(route.params, item.params);
+      return isEqual(route.params, item.params as unknown);
     } else {
       return route.path === item.path;
     }
@@ -176,7 +177,7 @@ const smoothScroll = (offset: number): void => {
 };
 
 function dynamicRouteTag(value: string): void {
-  const hasValue = multiTags.value.some((item: RouteConfigs) => {
+  const hasValue = multiTags.value.some((item: multiType) => {
     return item.path === value;
   });
 
@@ -184,11 +185,22 @@ function dynamicRouteTag(value: string): void {
     if (!hasValue) {
       arr.forEach((arrItem: RouteConfigs) => {
         if (arrItem.path === value) {
-          useMultiTagsStoreHook().handleTags("push", {
+          const tag: multiType = {
             path: value,
-            meta: arrItem.meta,
-            name: arrItem.name
-          } as RouteConfigs);
+            name: arrItem.name ?? value,
+            meta: {
+              title: arrItem.meta?.title,
+              icon:
+                typeof arrItem.meta?.icon === "string"
+                  ? arrItem.meta.icon
+                  : undefined,
+              showLink: arrItem.meta?.showLink,
+              auths: arrItem.meta?.auths
+            },
+            query: arrItem.query as multiType["query"],
+            params: arrItem.params as multiType["params"]
+          };
+          useMultiTagsStoreHook().handleTags("push", tag);
         } else {
           const children = arrItem.children;
           if (children && children.length > 0) {
@@ -213,8 +225,8 @@ function onFresh() {
   NProgress.done();
 }
 
-function deleteDynamicTag(obj: RouteConfigs, current: unknown, tag?: string) {
-  const valueIndex: number = multiTags.value.findIndex((item: RouteConfigs) => {
+function deleteDynamicTag(obj: multiType, current: unknown, tag?: string) {
+  const valueIndex: number = multiTags.value.findIndex((item: multiType) => {
     if (item.query) {
       if (item.path === obj.path) {
         return item.query === obj.query;
@@ -234,10 +246,27 @@ function deleteDynamicTag(obj: RouteConfigs, current: unknown, tag?: string) {
     other?: boolean
   ): void => {
     if (other) {
-      useMultiTagsStoreHook().handleTags("equal", [
-        VITE_HIDE_HOME === "false" ? routerArrays[0] : toRaw(getTopMenu()),
-        obj
-      ]);
+      const homeOrTop = (() => {
+        if (VITE_HIDE_HOME === "false")
+          return useMultiTagsStoreHook().multiTags[0];
+        const top = toRaw(getTopMenu());
+        if (top?.path && top?.name) {
+          return {
+            path: top.path,
+            name: top.name,
+            meta: {
+              title: top.meta?.title,
+              icon: top.meta?.icon
+            }
+          } as multiType;
+        }
+        return useMultiTagsStoreHook().multiTags[0];
+      })();
+
+      useMultiTagsStoreHook().handleTags(
+        "equal",
+        [homeOrTop, obj].filter(Boolean) as multiType[]
+      );
     } else {
       useMultiTagsStoreHook().handleTags("splice", "", {
         startIndex,
@@ -272,7 +301,7 @@ function deleteDynamicTag(obj: RouteConfigs, current: unknown, tag?: string) {
     }
   } else {
     if (!multiTags.value.length) return;
-    if (multiTags.value.some((item: RouteConfigs) => item.path === route.path))
+    if (multiTags.value.some((item: multiType) => item.path === route.path))
       return;
     if (!firstRoute) return;
     if (firstRoute.query) {
@@ -285,7 +314,7 @@ function deleteDynamicTag(obj: RouteConfigs, current: unknown, tag?: string) {
   }
 }
 
-function deleteMenu(item: RouteConfigs, tag?: string) {
+function deleteMenu(item: multiType, tag?: string) {
   deleteDynamicTag(item, item.path, tag);
   handleAliveRoute(route as ToRouteType);
 }
@@ -293,23 +322,22 @@ function deleteMenu(item: RouteConfigs, tag?: string) {
 function onClickDrop(
   key: number,
   item: tagsViewsType | null | undefined,
-  selectRoute?: RouteConfigs
+  selectRoute?: multiType
 ) {
   if (item && item.disabled) return;
 
-  let selectTagRoute;
+  let selectTagRoute: multiType;
   if (selectRoute) {
-    const { path, meta, name } = selectRoute;
+    selectTagRoute = selectRoute;
+  } else {
+    const { path, meta, name, query, params } = route;
     selectTagRoute = {
       path,
-      meta,
-      name,
-      query: selectRoute?.query,
-      params: selectRoute?.params
+      name: String(name ?? path),
+      meta: meta as multiType["meta"],
+      query: query as multiType["query"],
+      params: params as multiType["params"]
     };
-  } else {
-    const { path, meta } = route;
-    selectTagRoute = { path, meta };
   }
 
   // 当前路由信息
@@ -370,7 +398,7 @@ function handleCommand(command: { key: number; item: tagsViewsType }) {
 /** 触发右键中菜单的点击事件 */
 function selectTag(key: number, item: tagsViewsType) {
   closeMenu();
-  onClickDrop(key, item, currentSelect.value as RouteConfigs);
+  currentSelect.value && onClickDrop(key, item, currentSelect.value);
 }
 
 function showMenus(value: boolean) {
@@ -441,7 +469,7 @@ function showMenuModel(
   }
 }
 
-function openMenu(tag: RouteConfigs, e: MouseEvent) {
+function openMenu(tag: multiType, e: MouseEvent) {
   closeMenu();
   if (tag.path === topPath) {
     // 右键菜单为顶级菜单，只显示刷新
@@ -478,24 +506,24 @@ function openMenu(tag: RouteConfigs, e: MouseEvent) {
 }
 
 /** 触发tags标签切换 */
-function tagOnClick(item: RouteConfigs) {
+function tagOnClick(item: multiType) {
   const { name, path, query, params } = item;
   if (name) {
     if (query) {
       router.push({
         name,
-        query
+        query: query as unknown as LocationQueryRaw
       });
     } else if (params) {
       router.push({
         name,
-        params
+        params: params as unknown as RouteParamsRaw
       });
     } else {
       router.push({ name });
     }
   } else {
-    path && router.push({ path });
+    router.push({ path });
   }
   // showMenuModel(item?.path, item?.query);
 }
