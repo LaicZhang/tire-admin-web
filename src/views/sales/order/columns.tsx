@@ -1,3 +1,23 @@
+import { MoneyDisplay, StatusTag } from "@/components";
+
+const ORDER_STATUS_TAG_MAP = {
+  true: { label: "正常", type: "success" },
+  false: { label: "已关闭", type: "info" }
+} as const;
+
+const APPROVAL_STATUS_TAG_MAP = {
+  true: { label: "已审核", type: "success" },
+  false: { label: "待审核", type: "warning" }
+} as const;
+
+const LOGISTICS_STATUS_TAG_MAP = {
+  0: { label: "待发货", type: "info" },
+  1: { label: "部分发货", type: "warning" },
+  2: { label: "已发货", type: "primary" },
+  3: { label: "已送达", type: "success" },
+  4: { label: "已取消", type: "danger" }
+} as const;
+
 /** Sales Order Table Columns */
 export const salesOrderColumns: TableColumnList = [
   {
@@ -18,12 +38,26 @@ export const salesOrderColumns: TableColumnList = [
   {
     label: "应收金额",
     prop: "total",
-    width: 120
+    width: 120,
+    align: "right",
+    cellRenderer: ({ row }) => (
+      <MoneyDisplay
+        value={typeof row.total === "number" ? row.total : null}
+        emptyText="-"
+      />
+    )
   },
   {
     label: "已收金额",
     prop: "paidAmount",
-    width: 120
+    width: 120,
+    align: "right",
+    cellRenderer: ({ row }) => (
+      <MoneyDisplay
+        value={typeof row.paidAmount === "number" ? row.paidAmount : null}
+        emptyText="-"
+      />
+    )
   },
   {
     label: "销售员",
@@ -39,32 +73,28 @@ export const salesOrderColumns: TableColumnList = [
     label: "单据状态",
     prop: "status",
     width: 100,
-    formatter: (_row, _column, cellValue) => {
-      return cellValue === true ? "正常" : "已关闭";
-    }
+    cellRenderer: ({ row }) => (
+      <StatusTag status={row.status} statusMap={ORDER_STATUS_TAG_MAP} />
+    )
   },
   {
     label: "审核状态",
     prop: "isApproved",
     width: 100,
-    formatter: (_row, _column, cellValue) => {
-      return cellValue === true ? "已审核" : "待审核";
-    }
+    cellRenderer: ({ row }) => (
+      <StatusTag status={row.isApproved} statusMap={APPROVAL_STATUS_TAG_MAP} />
+    )
   },
   {
     label: "物流状态",
     prop: "logisticsStatus",
     width: 100,
-    formatter: (_row, _column, cellValue) => {
-      const statusMap: Record<number, string> = {
-        0: "待发货",
-        1: "部分发货",
-        2: "已发货",
-        3: "已送达",
-        4: "已取消"
-      };
-      return statusMap[cellValue as number] || "未知";
-    }
+    cellRenderer: ({ row }) => (
+      <StatusTag
+        status={row.logisticsStatus}
+        statusMap={LOGISTICS_STATUS_TAG_MAP}
+      />
+    )
   },
   {
     label: "备注",
