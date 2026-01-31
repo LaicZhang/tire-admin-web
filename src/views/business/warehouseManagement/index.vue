@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -23,34 +23,28 @@ defineOptions({
   name: "warehouseManagement"
 });
 
-type RepoRow = Repo & {
-  manager?: { uid: string; name?: string } | null;
-};
-
-type RepoListParams = RepoQueryDto & { page: number; pageSize: number };
+type RepoListParams = RepoQueryDto & { page?: number; pageSize?: number };
 
 const formRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const form = ref<Pick<RepoQueryDto, "name" | "desc">>({
+const form = ref<RepoListParams>({
   name: undefined,
   desc: undefined
 });
 
 const { loading, dataList, pagination, fetchData, handleDelete } = useCrud<
-  RepoRow,
-  CommonResult<PaginatedResponseDto<RepoRow>>,
+  Repo,
+  CommonResult<PaginatedResponseDto<Repo>>,
   RepoListParams
 >({
-  api: async ({ page, pageSize, ...rest }) => {
+  api: async ({ page = 1, pageSize = 10, ...rest }) => {
     return await getRepoListApi(page, { ...rest, pageSize });
   },
   deleteApi: id => deleteRepoApi(String(id)),
   params: form,
-  transform: res => {
-    return {
-      list: res.data?.list ?? [],
-      total: res.data?.count ?? 0
-    };
-  }
+  transform: res => ({
+    list: res.data?.list ?? [],
+    total: res.data?.count ?? 0
+  })
 });
 
 const onSearch = () => {
@@ -58,9 +52,8 @@ const onSearch = () => {
   fetchData();
 };
 
-const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  if (!formEl) return;
-  formEl.resetFields();
+const resetForm = (formEl: InstanceType<typeof ReSearchForm> | null) => {
+  formEl?.resetFields();
   onSearch();
 };
 
