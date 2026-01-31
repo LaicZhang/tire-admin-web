@@ -6,14 +6,6 @@ import { handleApiError, message } from "@/utils";
 import { getEcharts } from "@/utils/echarts";
 import type { ECharts, EChartsOption } from "echarts";
 
-// ECharts tooltip param interface
-interface TooltipParam {
-  axisValue: string;
-  marker: string;
-  seriesName: string;
-  value: number;
-}
-
 defineOptions({
   name: "SalesChart"
 });
@@ -83,13 +75,30 @@ const updateChart = async () => {
           color: "#999"
         }
       },
-      formatter: (params: TooltipParam[]) => {
-        let result = `<div style="font-weight:600;margin-bottom:8px">${params[0].axisValue}</div>`;
-        params.forEach((param: TooltipParam) => {
+      formatter: (params: unknown) => {
+        type TooltipItem = {
+          axisValue?: string;
+          marker?: string;
+          seriesName?: string;
+          value?: unknown;
+        };
+
+        const list = (
+          Array.isArray(params) ? params : [params]
+        ) as TooltipItem[];
+        const axisValue = list[0]?.axisValue ? String(list[0].axisValue) : "";
+        let result = `<div style="font-weight:600;margin-bottom:8px">${axisValue}</div>`;
+
+        list.forEach(param => {
+          const rawValue = param.value;
+          const value = Array.isArray(rawValue)
+            ? Number(rawValue[1])
+            : Number(rawValue);
+
           result += `<div style="display:flex;justify-content:space-between;gap:16px">
-            <span>${param.marker} ${param.seriesName}</span>
-            <span style="font-weight:600">¥${formatAmount(param.value)}</span>
-          </div>`;
+	            <span>${param.marker || ""} ${param.seriesName || ""}</span>
+	            <span style="font-weight:600">¥${formatAmount(value)}</span>
+	          </div>`;
         });
         return result;
       }
