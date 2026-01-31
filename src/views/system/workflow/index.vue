@@ -22,7 +22,11 @@ defineOptions({
   name: "WorkflowIndex"
 });
 
-const formRef = ref();
+type WorkflowFormExpose = {
+  handleSubmit: () => Promise<boolean>;
+};
+
+const formRef = ref<WorkflowFormExpose>();
 
 const queryForm = reactive<Pick<WorkflowQuery, "name" | "status" | "scope">>({
   name: "",
@@ -98,7 +102,15 @@ const handleAdd = () => {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(WorkflowForm, { ref: formRef }),
+    contentRenderer: ({ options }) =>
+      h(WorkflowForm, {
+        ref: formRef,
+        formInline: (
+          options.props as {
+            formInline: { isEdit: boolean; data?: WorkflowVO };
+          }
+        ).formInline
+      }),
     beforeSure: async done => {
       const formInstance = formRef.value;
       if (!formInstance) return;
@@ -126,7 +138,15 @@ const handleEdit = (row: WorkflowVO) => {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(WorkflowForm, { ref: formRef }),
+    contentRenderer: ({ options }) =>
+      h(WorkflowForm, {
+        ref: formRef,
+        formInline: (
+          options.props as {
+            formInline: { isEdit: boolean; data?: WorkflowVO };
+          }
+        ).formInline
+      }),
     beforeSure: async done => {
       const formInstance = formRef.value;
       if (!formInstance) return;

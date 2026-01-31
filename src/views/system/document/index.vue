@@ -6,19 +6,13 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Save from "~icons/ep/check";
 import { message, handleApiError } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import type { SettingItem } from "@/api/setting";
 
 defineOptions({
   name: "SystemDocument"
 });
 
 const loading = ref(false);
-interface SettingItem {
-  uid: string;
-  group?: string;
-  key?: string;
-  desc?: string;
-  value: string;
-}
 const settings = ref<SettingItem[]>([]);
 
 async function loadSettings() {
@@ -39,6 +33,10 @@ async function loadSettings() {
 
 async function handleSave(row: SettingItem) {
   try {
+    if (!row.uid) {
+      message("缺少配置项 uid，无法保存", { type: "error" });
+      return;
+    }
     await updateSettingApi(row.uid, { value: row.value });
     message("保存成功", { type: "success" });
   } catch (e) {

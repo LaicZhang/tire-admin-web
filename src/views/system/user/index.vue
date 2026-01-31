@@ -115,7 +115,7 @@ const handleSearch = () => {
 };
 
 const handleReset = () => {
-  state.value = { status: "", username: "" };
+  state.value = { scope: "nonDeleted", status: "", username: "" };
   handleSearch();
 };
 

@@ -7,22 +7,9 @@ import { ref, reactive } from "vue";
 import { delay } from "@pureadmin/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { formatDate } from "@/utils";
+import type { MenuItem as ApiMenuItem } from "@/api/system/menu";
 
-export interface MenuItem {
-  uid?: string;
-  id?: string;
-  path?: string;
-  component?: string;
-  name?: string;
-  deleteAt?: string | null;
-  meta?: {
-    title?: string;
-    icon?: string;
-    rank?: number;
-    showLink?: boolean;
-  };
-  children?: MenuItem[];
-}
+export type MenuItem = ApiMenuItem;
 
 export function useColumns() {
   const dataList = ref<MenuItem[]>([]);
@@ -35,8 +22,10 @@ export function useColumns() {
       align: "left",
       cellRenderer: ({ row }) => (
         <>
-          <span class="inline-block mr-1">{useRenderIcon(row.meta.icon)}</span>
-          <span>{row.meta.title}</span>
+          <span class="inline-block mr-1">
+            {row.icon ? useRenderIcon(row.icon) : null}
+          </span>
+          <span>{row.title || row.name}</span>
         </>
       )
     },
@@ -51,20 +40,20 @@ export function useColumns() {
     },
     {
       label: "排序",
-      prop: "meta.rank",
+      prop: "rank",
       width: 100
     },
     {
       label: "显示",
-      prop: "meta.showLink",
+      prop: "showLink",
       width: 100,
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={row.meta.showLink ? "success" : "info"}
+          type={(row.showLink ?? true) ? "success" : "info"}
           effect="plain"
         >
-          {row.meta.showLink ? "显示" : "隐藏"}
+          {(row.showLink ?? true) ? "显示" : "隐藏"}
         </el-tag>
       )
     },

@@ -99,7 +99,7 @@ const handleSearch = async () => {
 };
 
 const handleReset = () => {
-  state.value = { name: "", status: "" };
+  state.value = { scope: "nonDeleted", name: "", status: "" };
   handleSearch();
 };
 

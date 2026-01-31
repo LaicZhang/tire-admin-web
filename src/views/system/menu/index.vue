@@ -56,7 +56,7 @@ async function onSearch() {
     });
     // Assuming data is list, we might need to process it to tree if backend doesn't return tree
     // But usually backend returns tree for menu
-    dataList.value = data as MenuItem[];
+    dataList.value = (data ?? []) as MenuItem[];
     pagination.total = dataList.value.length;
   } catch (e) {
     handleApiError(e, "获取菜单列表失败");
@@ -71,7 +71,7 @@ const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   onSearch();
 };
 
-const openDialog = (title = "新增", row?: FormItemProps) => {
+const openDialog = (title = "新增", row?: MenuItem) => {
   addDialog({
     title: `${title}菜单`,
     props: {
