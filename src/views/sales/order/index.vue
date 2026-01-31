@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { h, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
-import { addDialog } from "@/components/ReDialog";
-import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
 import { getCompanyId } from "@/api";
@@ -21,6 +19,7 @@ import {
   confirmSaleOrderDeliveryApi
 } from "@/api/sales";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
+import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { salesOrderColumns } from "./columns";
 import type { SalesOrder, SalesOrderQueryParams, OptionItem } from "./types";
 import editForm from "./form.vue";
@@ -31,10 +30,11 @@ defineOptions({
 
 const dataList = ref<SalesOrder[]>([]);
 const loading = ref(false);
-const formRef = ref<{
+type SalesOrderFormRef = {
   getRef: () => FormInstance;
   getReceiveFee?: () => number;
-} | null>(null);
+};
+const formRef = ref<SalesOrderFormRef | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const searchForm = ref<SalesOrderQueryParams>({
@@ -103,112 +103,92 @@ function handlePageChange(page: number) {
   getList();
 }
 
-function openDialog(title: string, row?: SalesOrder) {
-  const formData: SalesOrder = row
-    ? { ...row }
-    : {
-        uid: uuid(),
-        customerId: "",
-        count: 0,
-        total: 0,
-        showTotal: 0,
-        paidAmount: 0,
-        status: true,
-        orderStatus: 0,
-        logisticsStatus: 0,
-        isApproved: false,
-        isLocked: false,
-        details: []
-      };
+const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
+  entityName: "销售订单",
+  formComponent: editForm,
+  formRef,
+  buildFormData: (row?: SalesOrder) =>
+    row
+      ? { ...row }
+      : {
+          uid: uuid(),
+          customerId: "",
+          count: 0,
+          total: 0,
+          showTotal: 0,
+          paidAmount: 0,
+          status: true,
+          orderStatus: 0,
+          logisticsStatus: 0,
+          isApproved: false,
+          isLocked: false,
+          details: []
+        },
+  buildFormProps: (formInline: SalesOrder, formTitle) => ({
+    formInline,
+    formTitle
+  }),
+  handlers: {
+    新增: async formData => {
+      const companyId = await getCompanyId();
+      const { details, ...orderData } = formData;
 
-  addDialog({
-    title: `${title}销售订单`,
-    props: {
-      formInline: formData,
-      formTitle: title
-    },
-    width: "90%",
-    hideFooter: title === "查看",
-    draggable: true,
-    fullscreen: deviceDetection(),
-    fullscreenIcon: true,
-    closeOnClickModal: false,
-    contentRenderer: () =>
-      h(editForm, {
-        ref: formRef,
-        formInline: formData,
-        formTitle: title
-      }),
-    beforeSure: async done => {
-      const FormRef = formRef.value?.getRef();
-      if (!FormRef) return;
-
-      FormRef.validate(async (valid: boolean) => {
-        if (!valid) return;
-
-        try {
-          const companyId = await getCompanyId();
-          const { details, ...orderData } = formData;
-
-          if (title === "新增") {
-            if (details.length === 0) {
-              message("请添加商品明细", { type: "warning" });
-              return;
-            }
-            await createSalesOrderApi({
-              order: {
-                ...orderData,
-                company: { connect: { uid: companyId } },
-                customer: { connect: { uid: orderData.customerId } },
-                ...(orderData.auditorId
-                  ? { auditor: { connect: { uid: orderData.auditorId } } }
-                  : {})
-              },
-              details: details.map(d => ({ ...d, companyId }))
-            });
-            message("新增成功", { type: "success" });
-          } else if (title === "修改") {
-            await updateSalesOrderApi(formData.uid, {
-              ...orderData,
-              company: { connect: { uid: companyId } }
-            });
-            message("修改成功", { type: "success" });
-          } else if (title === "审核") {
-            await updateSalesOrderApi(formData.uid, {
-              isApproved: formData.isApproved,
-              isLocked: formData.isApproved,
-              rejectReason: formData.rejectReason,
-              auditAt: formData.isApproved ? new Date().toISOString() : null,
-              company: { connect: { uid: companyId } }
-            });
-            message("审核完成", { type: "success" });
-          } else if (title === "收款") {
-            if (!formData.paymentId) {
-              message("请选择收款账户", { type: "warning" });
-              return;
-            }
-            const fee = Math.round(
-              Number(formRef.value?.getReceiveFee?.() ?? 0)
-            );
-            if (!Number.isFinite(fee) || fee <= 0) {
-              message("请输入本次收款金额", { type: "warning" });
-              return;
-            }
-            await paySaleOrderApi(formData.uid, {
-              fee,
-              paymentId: formData.paymentId
-            });
-            message("收款成功", { type: "success" });
-          }
-          done();
-          getList();
-        } catch (error) {
-          handleApiError(error, `${title}失败`);
-        }
+      if (details.length === 0) {
+        message("请添加商品明细", { type: "warning" });
+        return false;
+      }
+      await createSalesOrderApi({
+        order: {
+          ...orderData,
+          company: { connect: { uid: companyId } },
+          customer: { connect: { uid: orderData.customerId } },
+          ...(orderData.auditorId
+            ? { auditor: { connect: { uid: orderData.auditorId } } }
+            : {})
+        },
+        details: details.map(d => ({ ...d, companyId }))
       });
+      message("新增成功", { type: "success" });
+    },
+    修改: async formData => {
+      const companyId = await getCompanyId();
+      const { details: _details, ...orderData } = formData;
+      await updateSalesOrderApi(formData.uid, {
+        ...orderData,
+        company: { connect: { uid: companyId } }
+      });
+      message("修改成功", { type: "success" });
+    },
+    审核: async formData => {
+      const companyId = await getCompanyId();
+      await updateSalesOrderApi(formData.uid, {
+        isApproved: formData.isApproved,
+        isLocked: formData.isApproved,
+        rejectReason: formData.rejectReason,
+        auditAt: formData.isApproved ? new Date().toISOString() : null,
+        company: { connect: { uid: companyId } }
+      });
+      message("审核完成", { type: "success" });
+    },
+    收款: async formData => {
+      if (!formData.paymentId) {
+        message("请选择收款账户", { type: "warning" });
+        return false;
+      }
+      const fee = Math.round(Number(formRef.value?.getReceiveFee?.() ?? 0));
+      if (!Number.isFinite(fee) || fee <= 0) {
+        message("请输入本次收款金额", { type: "warning" });
+        return false;
+      }
+      await paySaleOrderApi(formData.uid, {
+        fee,
+        paymentId: formData.paymentId
+      });
+      message("收款成功", { type: "success" });
     }
-  });
-}
+  },
+  afterSuccess: getList
+});
 
 async function handleDelete(row: SalesOrder) {
   try {

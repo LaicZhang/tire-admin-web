@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h, onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { v7 as uuid } from "uuid";
@@ -10,8 +10,6 @@ import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { addDialog } from "@/components/ReDialog";
-import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";
 import type { TransferOrder, TransferOrderQuery } from "./types";
@@ -27,6 +25,7 @@ import {
 } from "@/api";
 import { ALL_LIST, handleApiError, localForage, message } from "@/utils";
 import { useUserStoreHook } from "@/store/modules/user";
+import { useActionFormDialog } from "@/composables/useActionFormDialog";
 
 defineOptions({
   name: "InventoryTransfer"
@@ -37,7 +36,7 @@ const ORDER_TYPE = "transfer-order";
 const dataList = ref<TransferOrder[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const editFormRef = ref<{
+type TransferOrderFormRef = {
   getRef: () => FormInstance;
   getFormData: () => {
     fromRepositoryId: string;
@@ -53,7 +52,8 @@ const editFormRef = ref<{
       isArrival?: boolean;
     }>;
   };
-}>();
+};
+const editFormRef = ref<TransferOrderFormRef | null>(null);
 
 const repoList = ref<Array<{ uid: string; name: string }>>([]);
 const managerList = ref<Array<{ uid: string; name: string }>>([]);
@@ -152,105 +152,92 @@ function handleCurrentChange(page: number) {
   fetchData();
 }
 
-function openDialog(title: string, row?: TransferOrder, isView = false) {
-  const isCreate = !row;
-  const formInline: Partial<TransferOrder> = row
-    ? { ...row }
-    : {
-        uid: uuid(),
-        fromRepositoryId: "",
-        toRepositoryId: "",
-        auditorId: "",
-        desc: "",
-        isApproved: false,
-        isLocked: false,
-        details: []
-      };
-
-  addDialog({
-    title,
-    props: {
-      formInline,
-      isView,
-      isCreate
-    },
-    width: "70%",
-    draggable: true,
-    fullscreen: deviceDetection(),
-    fullscreenIcon: true,
-    closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: editFormRef }),
-    beforeSure: async done => {
-      if (isView) {
-        done();
-        return;
+const { openDialog } = useActionFormDialog<
+  Partial<TransferOrder>,
+  TransferOrderFormRef
+>({
+  entityName: "调拨单",
+  formComponent: editForm,
+  formRef: editFormRef,
+  dialogWidth: "70%",
+  buildFormData: (row?: Partial<TransferOrder>) =>
+    row
+      ? { ...row }
+      : {
+          uid: uuid(),
+          fromRepositoryId: "",
+          toRepositoryId: "",
+          auditorId: "",
+          desc: "",
+          isApproved: false,
+          isLocked: false,
+          details: []
+        },
+  buildFormProps: (formInline, action) => ({
+    formInline,
+    isView: action === "查看",
+    isCreate: action === "新增"
+  }),
+  handlers: {
+    新增: async formInline => {
+      const companyId = await getCompanyId();
+      const operatorId = useUserStoreHook().uid;
+      if (!operatorId) {
+        message("用户信息缺失，请重新登录后再试", { type: "error" });
+        return false;
       }
-      const formInstance = editFormRef.value?.getRef();
-      if (!formInstance) return;
 
-      await formInstance.validate(async (valid: boolean) => {
-        if (!valid) return;
+      const data = editFormRef.value?.getFormData();
+      if (!data) return false;
+      const details = data.details || [];
 
-        try {
-          const companyId = await getCompanyId();
-          const operatorId = useUserStoreHook().uid;
-          if (!operatorId) {
-            message("用户信息缺失，请重新登录后再试", { type: "error" });
-            return;
-          }
+      if (details.length === 0) {
+        message("请添加商品明细", { type: "warning" });
+        return false;
+      }
 
-          const data = editFormRef.value?.getFormData();
-          if (!data) return;
-          const details = data.details || [];
-
-          if (isCreate) {
-            if (details.length === 0) {
-              message("请添加商品明细", { type: "warning" });
-              return;
-            }
-
-            await addOrderApi(ORDER_TYPE, {
-              order: {
-                uid: formInline.uid,
-                company: { connect: { uid: companyId } },
-                operator: { connect: { uid: operatorId } },
-                auditor: { connect: { uid: data.auditorId } },
-                fromRepository: { connect: { uid: data.fromRepositoryId } },
-                toRepository: { connect: { uid: data.toRepositoryId } },
-                desc: data.desc || null,
-                isApproved: false,
-                isLocked: false
-              },
-              details: details.map(d => ({
-                companyId,
-                number: uuid(),
-                tireId: d.tireId,
-                count: d.count,
-                isShipped: false,
-                isArrival: false
-              }))
-            });
-            message("创建成功", { type: "success" });
-          } else if (row?.uid) {
-            await updateOrderApi(ORDER_TYPE, row.uid, {
-              auditor: { connect: { uid: data.auditorId } },
-              fromRepository: { connect: { uid: data.fromRepositoryId } },
-              toRepository: { connect: { uid: data.toRepositoryId } },
-              desc: data.desc || null,
-              company: { connect: { uid: companyId } }
-            });
-            message("更新成功", { type: "success" });
-          }
-
-          done();
-          fetchData();
-        } catch (error) {
-          handleApiError(error, "操作失败");
-        }
+      await addOrderApi(ORDER_TYPE, {
+        order: {
+          uid: formInline.uid,
+          company: { connect: { uid: companyId } },
+          operator: { connect: { uid: operatorId } },
+          auditor: { connect: { uid: data.auditorId } },
+          fromRepository: { connect: { uid: data.fromRepositoryId } },
+          toRepository: { connect: { uid: data.toRepositoryId } },
+          desc: data.desc || null,
+          isApproved: false,
+          isLocked: false
+        },
+        details: details.map(d => ({
+          companyId,
+          number: uuid(),
+          tireId: d.tireId,
+          count: d.count,
+          isShipped: false,
+          isArrival: false
+        }))
       });
+      message("创建成功", { type: "success" });
+    },
+    修改: async formInline => {
+      if (!formInline.uid) return false;
+      const companyId = await getCompanyId();
+
+      const data = editFormRef.value?.getFormData();
+      if (!data) return false;
+
+      await updateOrderApi(ORDER_TYPE, formInline.uid, {
+        auditor: { connect: { uid: data.auditorId } },
+        fromRepository: { connect: { uid: data.fromRepositoryId } },
+        toRepository: { connect: { uid: data.toRepositoryId } },
+        desc: data.desc || null,
+        company: { connect: { uid: companyId } }
+      });
+      message("更新成功", { type: "success" });
     }
-  });
-}
+  },
+  afterSuccess: fetchData
+});
 
 async function handleDelete(row: TransferOrder) {
   try {
@@ -453,7 +440,7 @@ onMounted(async () => {
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog('新增调拨单')"
+            @click="openDialog('新增')"
           >
             新增调拨单
           </el-button>
@@ -476,7 +463,7 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(View)"
-                @click="openDialog('查看调拨单', row, true)"
+                @click="openDialog('查看', row)"
               >
                 查看
               </el-button>
@@ -485,7 +472,7 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
-                @click="openDialog('编辑调拨单', row, false)"
+                @click="openDialog('修改', row)"
               >
                 编辑
               </el-button>

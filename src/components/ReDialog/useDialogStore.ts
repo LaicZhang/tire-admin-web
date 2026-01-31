@@ -1,5 +1,6 @@
 import { ref, provide, inject, type InjectionKey, type Ref } from "vue";
 import type { DialogOptions } from "./type";
+import { logger } from "@/utils/logger";
 
 /** Dialog Store 注入键 */
 export const DIALOG_STORE_KEY: InjectionKey<Ref<Array<DialogOptions>>> =
@@ -44,7 +45,7 @@ export function useDialogStore(
   }
 
   // 最后回退：创建新的 ref（不推荐，仅用于独立使用场景）
-  console.warn(
+  logger.warn(
     "[ReDialog] 未找到 dialog store，建议在根组件调用 provideDialogStore()"
   );
   return ref<Array<DialogOptions>>([]);
