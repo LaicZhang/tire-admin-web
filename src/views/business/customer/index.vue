@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -18,6 +18,8 @@ import TagDialog from "./tagDialog.vue";
 import LevelDialog from "./levelDialog.vue";
 import FollowUpDialog from "./followUpDialog.vue";
 import { ImportDialog, ExportDialog } from "@/components/ImportExport";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 // Icons
 import TagIcon from "~icons/ri/price-tag-3-line";
@@ -40,19 +42,11 @@ interface Customer {
   creditLimit?: number;
 }
 
-const dataList = ref<Customer[]>([]);
-const loading = ref(false);
 const formRef = ref();
 const form = ref({
-  name: undefined,
-  desc: undefined,
+  name: undefined as string | undefined,
+  desc: undefined as string | undefined,
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all"
-});
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
 });
 
 // Dialog Controls
@@ -69,59 +63,56 @@ const buildQuery = () => ({
   scope: form.value.scope
 });
 
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  Customer,
+  CommonResult<PaginatedResponseDto<Customer>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getCustomerListApi(page, buildQuery()) as Promise<
+      CommonResult<PaginatedResponseDto<Customer>>
+    >,
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? 0
+    };
+  },
+  immediate: true
+});
+
 // Handlers
 function handleFollowUp(row: Customer) {
   currentCustomerUid.value = row.uid;
   showFollowUpDialog.value = true;
 }
-const getCustomerListInfo = async () => {
-  const { data, code, msg } = await getCustomerListApi(
-    pagination.value.currentPage,
-    buildQuery()
-  );
-  if (code === 200) dataList.value = (data.list || []) as Customer[];
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count;
-};
-const onSearch = async () => {
-  loading.value = true;
-  pagination.value.currentPage = 1;
-  await getCustomerListInfo();
-  loading.value = false;
+
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  loading.value = true;
   if (!formEl) return;
   formEl.resetFields();
-  loading.value = false;
+  onSearch();
 };
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getCustomerListInfo();
-}
 
 async function handleDelete(row: Customer) {
   await deleteCustomerApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  onSearch();
+  fetchData();
 }
 
 async function handleRestore(row: Customer) {
   await restoreCustomerApi(row.uid);
   message(`已恢复${row.name}`, { type: "success" });
-  onSearch();
+  fetchData();
 }
-
-// async function handleToggleCustomer(row) {
-//   await toggleCustomerApi(row.uid);
-//   onSearch();
-// }
-
-onMounted(async () => {
-  await getCustomerListInfo();
-});
 </script>
 
 <template>
@@ -161,12 +152,12 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getCustomerListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog('新增', undefined, getCustomerListInfo)"
+            @click="openDialog('新增', undefined, fetchData)"
           >
             新增客户
           </el-button>
@@ -209,14 +200,14 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('查看', row, getCustomerListInfo)"
+                @click="openDialog('查看', row, fetchData)"
               >
                 查看
               </el-button>
@@ -236,7 +227,7 @@ onMounted(async () => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row, getCustomerListInfo)"
+                @click="openDialog('修改', row, fetchData)"
               >
                 修改
               </el-button>
@@ -274,7 +265,7 @@ onMounted(async () => {
       v-model:visible="showImportDialog"
       type="customer"
       title="批量导入客户"
-      @success="getCustomerListInfo"
+      @success="fetchData"
     />
     <ExportDialog
       v-model:visible="showExportDialog"

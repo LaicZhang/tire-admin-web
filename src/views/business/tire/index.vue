@@ -16,29 +16,46 @@ import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import StockIcon from "~icons/ri/stack-line";
 import type { Tire } from "@/api/business/tire";
+import { useCrud } from "@/composables";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "Tire"
 });
-// const allTireList = ref([]);
-const dataList = ref<Tire[]>([]),
-  loading = ref(false),
-  formRef = ref(),
-  form = ref({
-    group: undefined,
-    name: undefined,
-    desc: undefined
-  }),
-  pagination = ref({
-    total: 0,
-    pageSize: 10,
-    currentPage: 1,
-    background: true
-  });
+
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const form = ref({
+  group: undefined as string | undefined,
+  name: undefined as string | undefined,
+  desc: undefined as string | undefined
+});
 
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
 
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  Tire,
+  CommonResult<PaginatedResponseDto<Tire>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getTireListApi(page, form.value) as Promise<
+      CommonResult<PaginatedResponseDto<Tire>>
+    >,
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? 0
+    };
+  },
+  immediate: false // Will be triggered manually after caching logic
+});
+
+// Cache tire data in localForage (existing logic preserved)
 const getEmployeesWithTire = async () => {
   const { data, code, msg } = await getDepartmentWithEmpApi();
   if (code === 200) {
@@ -48,6 +65,7 @@ const getEmployeesWithTire = async () => {
     });
   } else message(msg, { type: "error" });
 };
+
 const getAllTires = async () => {
   const { data, code, msg } = await getTireListApi(0);
   const tasks = [];
@@ -59,36 +77,10 @@ const getAllTires = async () => {
   } else message(msg, { type: "error" });
   await Promise.all(tasks);
 };
-const getTireListInfo = async () => {
-  const { data, code, msg } = await getTireListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else {
-    message(msg, { type: "error" });
-  }
-};
-const onSearch = async () => {
-  loading.value = true;
-  if (
-    form.value.group === undefined &&
-    form.value.desc === undefined &&
-    form.value.name === undefined
-  ) {
-    await getTireListInfo();
-    loading.value = false;
-    return;
-  }
 
-  const { data } = await getTireListApi(pagination.value.currentPage, {
-    ...form.value
-  });
-
-  dataList.value = data.list;
-  pagination.value.total = data.count;
-  loading.value = false;
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const resetForm = () => {
@@ -96,23 +88,14 @@ const resetForm = () => {
   onSearch();
 };
 
-const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getTireListInfo();
-}
-
 async function handleDelete(row: Tire) {
   await deleteTireApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
-  await onSearch();
+  fetchData();
 }
 
 onMounted(async () => {
-  await getEmployeesWithTire();
-  await getTireListInfo();
-  await getAllTires();
+  await Promise.all([getEmployeesWithTire(), fetchData(), getAllTires()]);
 });
 </script>
 
@@ -152,7 +135,7 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getTireListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button
             type="primary"
@@ -193,7 +176,7 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #covers="{ row }">
               <el-image
@@ -205,7 +188,7 @@ onMounted(async () => {
                 preview-teleported
                 style="height: 30px"
                 :preview-src-list="
-                  row.covers.map((item: unknown) => {
+                  row.covers.map((item: { hash: string; ext: string }) => {
                     return BaseImagePath + item.hash + '.' + item.ext;
                   })
                 "
@@ -245,7 +228,7 @@ onMounted(async () => {
       v-model:visible="showImportDialog"
       type="tire"
       title="批量导入商品"
-      @success="getTireListInfo"
+      @success="fetchData"
     />
     <ExportDialog
       v-model:visible="showExportDialog"

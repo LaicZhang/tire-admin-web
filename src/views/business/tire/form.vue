@@ -21,6 +21,7 @@ import {
   BaseImagePath,
   BaseStaticUploadPath
 } from "@/utils";
+import { logger } from "@/utils/logger";
 import { setUploadedImages } from "@/views/business/tire/store";
 import {
   getAllUnitsApi,
@@ -141,7 +142,7 @@ async function handleSuccess(
   await setUploadedImages(params);
 }
 
-const onBeforeUpload = async (file: unknown) => {
+const onBeforeUpload = async (file: File) => {
   const { name, size, type, lastModified } = file;
   const hash = getFileMd5(lastModified, size);
   const [filename, ext] = name.split(".");
@@ -167,7 +168,7 @@ const loadUnits = async () => {
       unitList.value = data || [];
     }
   } catch (error) {
-    console.error("加载单位列表失败", error);
+    logger.error("加载单位列表失败", error);
     message("加载单位列表失败，请刷新页面重试", { type: "error" });
   }
 };

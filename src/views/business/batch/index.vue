@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, h, reactive } from "vue";
+import { ref, onMounted, h } from "vue";
 import { getBatchListApi, getBatchTransactionsApi } from "@/api/batch";
 import { getRepoListApi } from "@/api/company/repo";
 import { message } from "@/utils/message";
@@ -9,15 +9,15 @@ import Search from "~icons/ep/search";
 import Add from "~icons/ep/plus";
 import View from "~icons/ep/view";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { ElButton } from "element-plus";
 import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import BatchCreateForm from "./BatchCreateForm.vue";
+import { useCrud } from "@/composables";
+import type { CommonResult } from "@/api/type";
 
 defineOptions({
   name: "BusinessBatch"
 });
 
-const loading = ref(false);
 interface BatchItem {
   id?: string;
   uid: string;
@@ -34,7 +34,6 @@ interface RepoItem {
   name: string;
 }
 
-const tableData = ref<BatchItem[]>([]);
 const repoList = ref<RepoItem[]>([]);
 
 // 查询条件
@@ -58,11 +57,30 @@ interface TransactionItem {
 const transactions = ref<TransactionItem[]>([]);
 const currentBatchNo = ref("");
 
-const pagination = reactive({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  BatchItem,
+  CommonResult<{ list: BatchItem[]; total?: number } | BatchItem[]>,
+  { page: number; pageSize: number }
+>({
+  api: () =>
+    getBatchListApi({ ...queryForm.value }) as Promise<
+      CommonResult<{ list: BatchItem[]; total?: number } | BatchItem[]>
+    >,
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载批次列表失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    const data = res.data;
+    const list = (
+      Array.isArray(data) ? data : (data as { list?: BatchItem[] })?.list || []
+    ) as BatchItem[];
+    const total = Array.isArray(data)
+      ? data.length
+      : (data as { total?: number })?.total || list.length;
+    return { list, total };
+  },
+  immediate: false
 });
 
 const getRepos = async () => {
@@ -72,32 +90,9 @@ const getRepos = async () => {
   }
 };
 
-const loadData = async () => {
-  loading.value = true;
-  try {
-    const { data, code } = await getBatchListApi({
-      ...queryForm.value
-      // page: pagination.value.currentPage, // 假设API支持分页参数，若不支持则需调整API
-      // limit: pagination.value.pageSize
-    });
-    // API定义里 getBatchListApi 只接受 repoId, tireId, batchNo，没有明确分页参数
-    // 我们假设后端返回所有或支持分页。如果只返回列表:
-    if (code === 200) {
-      const typedData = data as unknown as
-        | { list?: BatchItem[]; total?: number }
-        | BatchItem[];
-      const list = Array.isArray(typedData) ? typedData : typedData.list || [];
-      tableData.value = list as BatchItem[];
-      pagination.total = Array.isArray(typedData)
-        ? typedData.length
-        : typedData.total || list.length;
-    }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "加载批次列表失败";
-    message(msg, { type: "error" });
-  } finally {
-    loading.value = false;
-  }
+const handleSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
 };
 
 const handleCreate = () => {
@@ -112,7 +107,7 @@ const handleCreate = () => {
         repoList: repoList.value,
         onSuccess: () => {
           closeAllDialog();
-          loadData();
+          fetchData();
         },
         onClose: () => closeAllDialog()
       })
@@ -123,7 +118,9 @@ const handleViewTransactions = async (row: BatchItem) => {
   currentBatchNo.value = row.batchNo;
   drawerVisible.value = true;
   try {
-    const { data, code } = await getBatchTransactionsApi(row.id || row.uid); // 使用id或uid
+    const { data, code } = await getBatchTransactionsApi(
+      Number(row.id || row.uid)
+    );
     if (code === 200) {
       const typedData = data as { list?: unknown[] } | unknown[];
       transactions.value = (
@@ -138,7 +135,7 @@ const handleViewTransactions = async (row: BatchItem) => {
 
 onMounted(() => {
   getRepos();
-  loadData();
+  fetchData();
 });
 </script>
 
@@ -172,7 +169,7 @@ onMounted(() => {
           <el-button
             type="primary"
             :icon="useRenderIcon(Search)"
-            @click="loadData"
+            @click="handleSearch"
           >
             查询
           </el-button>
@@ -187,7 +184,7 @@ onMounted(() => {
       </el-form>
     </el-card>
 
-    <PureTableBar title="批次管理" @refresh="loadData">
+    <PureTableBar title="批次管理" @refresh="fetchData">
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
           border
@@ -198,7 +195,7 @@ onMounted(() => {
           :loading="loading"
           :size="size"
           :columns="dynamicColumns"
-          :data="tableData"
+          :data="dataList"
           :header-cell-style="{
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
