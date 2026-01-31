@@ -11,6 +11,7 @@ import type {
   PureHttpRequestConfig
 } from "./types.d";
 import { stringify } from "qs";
+import { httpLogger } from "@/utils/logger";
 import {
   getToken,
   formatToken,
@@ -35,7 +36,7 @@ const notifyFatalApiConfigOnce = () => {
   fatalApiConfigNotified = true;
 
   // 保留排障信息（仅开发环境输出到控制台）
-  if (import.meta.env.DEV) console.error(fatalApiConfigError);
+  if (import.meta.env.DEV) httpLogger.error(fatalApiConfigError);
   void ElMessageBox.alert(fatalApiConfigError, "配置错误", {
     type: "error",
     closeOnClickModal: false,
@@ -314,7 +315,7 @@ class PureHttp {
             config.__retryCount++;
             const delay = getRetryDelay(config.__retryCount);
             if (import.meta.env.DEV) {
-              console.warn(
+              httpLogger.warn(
                 `[HTTP] 请求失败，${delay}ms 后进行第 ${config.__retryCount} 次重试:`,
                 config.url
               );

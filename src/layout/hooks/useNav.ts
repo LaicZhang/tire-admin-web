@@ -15,6 +15,7 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import ExitFullscreen from "~icons/ri/fullscreen-exit-fill";
 import Fullscreen from "~icons/ri/fullscreen-fill";
+import { logger } from "@/utils/logger";
 
 const errorInfo = "当前路由配置不正确，请检查配置";
 
@@ -94,7 +95,7 @@ export function useNav() {
 
   function resolvePath(route: RouteRecordRaw): string | undefined {
     if (!route.children) {
-      console.error(errorInfo);
+      logger.error(errorInfo);
       return undefined;
     }
     const httpReg = /^http(s?):\/\//;

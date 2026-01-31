@@ -1,6 +1,7 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
-import type { CommonResult, PaginatedResponseDto } from "../type";
+import type { CommonResult } from "../type";
+import { createCrudApi } from "../utils/crud-factory";
 
 const prefix = "/customer/";
 
@@ -68,61 +69,38 @@ export interface Customer {
   creditLimit?: number;
 }
 
-export async function getCustomerListApi(
-  index: number,
-  params?: CustomerQueryDto
-) {
-  return await http.request<CommonResult<PaginatedResponseDto<Customer>>>(
-    "get",
-    baseUrlApi(prefix + "page/" + index),
-    { params }
-  );
-}
+// ============ 标准 CRUD API (使用工厂函数) ============
 
-export async function addCustomerApi(data: CustomerDto | CustomerInputData) {
-  return await http.request<CommonResult<Customer>>(
-    "post",
-    baseUrlApi(prefix),
-    {
-      data
-    }
-  );
-}
+const baseCustomerApi = createCrudApi<Customer, CustomerQueryDto>({
+  prefix: prefix,
+  enableBatch: true,
+  enableRestore: true
+});
 
-export async function getCustomerApi(uid: string) {
-  return await http.request<CommonResult<Customer>>(
-    "get",
-    baseUrlApi(prefix + uid)
-  );
-}
+/** 获取客户分页列表 */
+export const getCustomerListApi = baseCustomerApi.getList;
 
-export async function updateCustomerApi(
-  uid: string,
-  data: Partial<CustomerDto> | CustomerInputData
-) {
-  return await http.request<CommonResult<Customer>>(
-    "patch",
-    baseUrlApi(prefix + uid),
-    {
-      data
-    }
-  );
-}
+/** 创建客户 */
+export const addCustomerApi = baseCustomerApi.add;
 
-export async function deleteCustomerApi(uid: string) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + uid)
-  );
-}
+/** 获取客户详情 */
+export const getCustomerApi = baseCustomerApi.get;
 
-export async function restoreCustomerApi(uid: string) {
-  return await http.request<CommonResult<void>>(
-    "post",
-    baseUrlApi(prefix + uid + "/restore")
-  );
-}
+/** 更新客户 */
+export const updateCustomerApi = baseCustomerApi.update;
 
+/** 删除客户 */
+export const deleteCustomerApi = baseCustomerApi.delete;
+
+/** 恢复客户 */
+export const restoreCustomerApi = baseCustomerApi.restore!;
+
+/** 批量获取客户 */
+export const getCustomerBatchApi = baseCustomerApi.batch!;
+
+// ============ 扩展 API ============
+
+/** 迁移客户 */
 export async function migrateCustomerApi(uid: string, data: { uid: string }) {
   return await http.request<CommonResult<void>>(
     "patch",
@@ -423,13 +401,4 @@ export async function getDebtWarningListApi(params?: { type?: string }) {
 /** 获取客户数量 */
 export async function getCustomerCountApi() {
   return await http.request<CommonResult>("get", baseUrlApi(prefix + "count"));
-}
-
-/** 批量获取客户 */
-export async function getCustomerBatchApi(uids: string[]) {
-  return await http.request<CommonResult<Customer[]>>(
-    "post",
-    baseUrlApi(prefix + "batch"),
-    { data: { uids } }
-  );
 }

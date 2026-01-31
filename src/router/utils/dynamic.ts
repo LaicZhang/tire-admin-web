@@ -10,6 +10,7 @@ import {
 } from "vue-router";
 import { isString } from "@pureadmin/utils";
 import { router } from "../index";
+import { routerLogger } from "@/utils/logger";
 import { routerArrays } from "@/layout/types";
 import { toMultiTypeArray } from "@/store/utils";
 import { buildHierarchyTree } from "@/utils/tree";
@@ -274,7 +275,7 @@ export function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
           v.component = modulesRoutes[resolvedModuleKey];
         } else if (!v?.children || v.children.length === 0) {
           // 没有找到对应组件且没有子路由时，使用404页面作为兜底
-          console.warn(
+          routerLogger.warn(
             `[Route] No component found for path: ${v.path}, falling back to 404`
           );
           v.component = modulesRoutes["/src/views/error/404.vue"];

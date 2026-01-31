@@ -1,5 +1,6 @@
 import NProgress from "@/utils/progress";
 import { buildHierarchyTree } from "@/utils/tree";
+import { routerLogger } from "@/utils/logger";
 import remainingRouter from "./modules/remaining";
 
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -160,7 +161,7 @@ router.beforeEach(async (to: ToRouteType, _from, next) => {
               next({ ...to, replace: true });
             })
             .catch(error => {
-              console.error("[Router] initRouter failed:", error);
+              routerLogger.error("[Router] initRouter failed:", error);
               removeToken();
               next({ path: "/login", replace: true });
             });

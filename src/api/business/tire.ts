@@ -1,6 +1,7 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "./../utils";
-import type { CommonResult, PaginatedResponseDto } from "./../type";
+import type { CommonResult } from "./../type";
+import { createCrudApi } from "../utils/crud-factory";
 
 const prefix = "/tire/";
 
@@ -63,43 +64,30 @@ export interface Tire extends TireDto {
   updatedAt?: string;
 }
 
-export async function getTireListApi(index: number, params?: TireQueryDto) {
-  return await http.request<CommonResult<PaginatedResponseDto<Tire>>>(
-    "get",
-    baseUrlApi(prefix + "page/" + index),
-    { params }
-  );
-}
+// ============ 标准 CRUD API (使用工厂函数) ============
 
-export async function addTireApi(data: TireDto) {
-  return await http.request<CommonResult<Tire>>("post", baseUrlApi(prefix), {
-    data
-  });
-}
+const baseTireApi = createCrudApi<Tire, TireQueryDto>({
+  prefix: prefix,
+  enableBatch: true
+});
 
-export async function getTireApi(uid: string) {
-  return await http.request<CommonResult<Tire>>(
-    "get",
-    baseUrlApi(prefix + uid)
-  );
-}
+/** 获取商品分页列表 */
+export const getTireListApi = baseTireApi.getList;
 
-export async function updateTireApi(uid: string, data: Partial<TireDto>) {
-  return await http.request<CommonResult<Tire>>(
-    "patch",
-    baseUrlApi(prefix + uid),
-    {
-      data
-    }
-  );
-}
+/** 创建商品 */
+export const addTireApi = baseTireApi.add;
 
-export async function deleteTireApi(uid: string) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + uid)
-  );
-}
+/** 获取商品详情 */
+export const getTireApi = baseTireApi.get;
+
+/** 更新商品 */
+export const updateTireApi = baseTireApi.update;
+
+/** 删除商品 */
+export const deleteTireApi = baseTireApi.delete;
+
+/** 批量获取商品 */
+export const getTireBatchApi = baseTireApi.batch!;
 
 // ============ 商品查询扩展 ============
 
@@ -142,14 +130,5 @@ export async function deleteTireCoverApi(tireId: string, coverId: number) {
   return await http.request<CommonResult>(
     "delete",
     baseUrlApi(prefix + `cover/${tireId}/${coverId}`)
-  );
-}
-
-/** 批量获取商品 */
-export async function getTireBatchApi(uids: string[]) {
-  return await http.request<CommonResult<Tire[]>>(
-    "post",
-    baseUrlApi(prefix + "batch"),
-    { data: { uids } }
   );
 }

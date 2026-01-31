@@ -5,6 +5,7 @@
 import Cookies from "js-cookie";
 import { getConfig } from "@/config";
 import NProgress from "@/utils/progress";
+import { routerLogger } from "@/utils/logger";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { isUrl, openLink, storageLocal } from "@pureadmin/utils";
 import { isOneOfArray, handleAliveRoute } from "./index";
@@ -93,7 +94,7 @@ export async function handleRouterInit(
       await initRouterPromise;
       next({ ...to, replace: true });
     } catch (error) {
-      console.error("[Router] initRouter failed:", error);
+      routerLogger.error("[Router] initRouter failed:", error);
       removeToken();
       next({ path: "/login", replace: true });
     }

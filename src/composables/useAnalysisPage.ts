@@ -4,6 +4,7 @@
  */
 
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { createLogger } from "@/utils/logger";
 import type { Ref } from "vue";
 
 export interface DateRangeValue {
@@ -104,7 +105,7 @@ export function useAnalysisPage(
       chartInstance.value = echarts.init(chartRef.value);
       window.addEventListener("resize", handleResize);
     } catch {
-      console.error("Failed to initialize chart");
+      createLogger("useAnalysisPage").error("Failed to initialize chart");
     }
   }
 

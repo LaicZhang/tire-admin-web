@@ -1,10 +1,7 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
-import type {
-  CommonResult,
-  PaginatedResponseDto,
-  CountResponseDto
-} from "../type";
+import type { CommonResult, CountResponseDto } from "../type";
+import { createCrudApi } from "../utils/crud-factory";
 
 const prefix = "/provider/";
 
@@ -68,61 +65,38 @@ export interface Provider {
   province?: string;
 }
 
-export async function getProviderListApi(
-  index: number,
-  params?: ProviderQueryDto
-) {
-  return await http.request<CommonResult<PaginatedResponseDto<Provider>>>(
-    "get",
-    baseUrlApi(prefix + "page/" + index),
-    { params }
-  );
-}
+// ============ 标准 CRUD API (使用工厂函数) ============
 
-export async function addProviderApi(data: ProviderDto | ProviderInputData) {
-  return await http.request<CommonResult<Provider>>(
-    "post",
-    baseUrlApi(prefix),
-    {
-      data
-    }
-  );
-}
+const baseProviderApi = createCrudApi<Provider, ProviderQueryDto>({
+  prefix: prefix,
+  enableBatch: true,
+  enableRestore: true
+});
 
-export async function getProviderApi(uid: string) {
-  return await http.request<CommonResult<Provider>>(
-    "get",
-    baseUrlApi(prefix + uid)
-  );
-}
+/** 获取供应商分页列表 */
+export const getProviderListApi = baseProviderApi.getList;
 
-export async function updateProviderApi(
-  uid: string,
-  data: Partial<ProviderDto> | ProviderInputData
-) {
-  return await http.request<CommonResult<Provider>>(
-    "patch",
-    baseUrlApi(prefix + uid),
-    {
-      data
-    }
-  );
-}
+/** 创建供应商 */
+export const addProviderApi = baseProviderApi.add;
 
-export async function deleteProviderApi(uid: string) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + uid)
-  );
-}
+/** 获取供应商详情 */
+export const getProviderApi = baseProviderApi.get;
 
-export async function restoreProviderApi(uid: string) {
-  return await http.request<CommonResult<void>>(
-    "post",
-    baseUrlApi(prefix + uid + "/restore")
-  );
-}
+/** 更新供应商 */
+export const updateProviderApi = baseProviderApi.update;
 
+/** 删除供应商 */
+export const deleteProviderApi = baseProviderApi.delete;
+
+/** 恢复供应商 */
+export const restoreProviderApi = baseProviderApi.restore!;
+
+/** 批量获取供应商 */
+export const getProviderBatchApi = baseProviderApi.batch!;
+
+// ============ 扩展 API ============
+
+/** 获取供应商数量 */
 export async function getProviderCountApi() {
   return await http.request<CommonResult<CountResponseDto>>(
     "get",
@@ -130,19 +104,11 @@ export async function getProviderCountApi() {
   );
 }
 
+/** 迁移供应商 */
 export async function migrateProviderApi(uid: string, data: { uid: string }) {
   return await http.request<CommonResult<void>>(
     "patch",
     baseUrlApi(prefix + "migrate/" + uid),
     { data }
-  );
-}
-
-/** 批量获取供应商 */
-export async function getProviderBatchApi(uids: string[]) {
-  return await http.request<CommonResult<Provider[]>>(
-    "post",
-    baseUrlApi(prefix + "batch"),
-    { data: { uids } }
   );
 }

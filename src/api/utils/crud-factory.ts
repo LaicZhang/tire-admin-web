@@ -5,7 +5,11 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 /**
  * CRUD API 配置选项
  */
-export interface CrudFactoryOptions<_T, _QueryDto = Record<string, unknown>> {
+export interface CrudFactoryOptions<
+  _T,
+  _QueryDto = Record<string, unknown>,
+  _CreateDto = Record<string, unknown>
+> {
   /** API 前缀，如 "/tire/" */
   prefix: string;
   /** 是否支持批量获取（默认 true） */
@@ -20,24 +24,28 @@ export interface CrudFactoryOptions<_T, _QueryDto = Record<string, unknown>> {
    * 类型占位字段：用于保留泛型信息，避免在批量工厂中丢失推断
    *（不会影响运行时）
    */
-  __types?: { entity?: _T; query?: _QueryDto };
+  __types?: { entity?: _T; query?: _QueryDto; create?: _CreateDto };
 }
 
 /**
  * CRUD API 返回类型
  */
-export interface CrudApi<T, QueryDto = Record<string, unknown>> {
+export interface CrudApi<
+  T,
+  QueryDto = Record<string, unknown>,
+  CreateDto = Record<string, unknown>
+> {
   /** 分页查询列表 */
   getList: (
     index: number,
     params?: QueryDto
   ) => Promise<CommonResult<PaginatedResponseDto<T>>>;
   /** 创建 */
-  add: (data: Partial<T>) => Promise<CommonResult<T>>;
+  add: (data: CreateDto) => Promise<CommonResult<T>>;
   /** 获取详情 */
   get: (uid: string) => Promise<CommonResult<T>>;
   /** 更新 */
-  update: (uid: string, data: Partial<T>) => Promise<CommonResult<T>>;
+  update: (uid: string, data: CreateDto) => Promise<CommonResult<T>>;
   /** 删除 */
   delete: (uid: string) => Promise<CommonResult<void>>;
   /** 批量获取（可选） */
@@ -81,9 +89,13 @@ export interface CrudApi<T, QueryDto = Record<string, unknown>> {
  * @param options - 配置选项
  * @returns CRUD API 对象
  */
-export function createCrudApi<T, QueryDto = Record<string, unknown>>(
-  options: CrudFactoryOptions<T, QueryDto>
-): CrudApi<T, QueryDto> {
+export function createCrudApi<
+  T,
+  QueryDto = Record<string, unknown>,
+  CreateDto = Record<string, unknown>
+>(
+  options: CrudFactoryOptions<T, QueryDto, CreateDto>
+): CrudApi<T, QueryDto, CreateDto> {
   const {
     prefix,
     enableBatch = true,
@@ -125,7 +137,7 @@ export function createCrudApi<T, QueryDto = Record<string, unknown>>(
   /**
    * 创建
    */
-  const add = async (data: Partial<T>): Promise<CommonResult<T>> => {
+  const add = async (data: CreateDto): Promise<CommonResult<T>> => {
     const requestData = processRequest("add", data);
     const response = await http.request<CommonResult<T>>(
       "post",
@@ -154,7 +166,7 @@ export function createCrudApi<T, QueryDto = Record<string, unknown>>(
    */
   const update = async (
     uid: string,
-    data: Partial<T>
+    data: CreateDto
   ): Promise<CommonResult<T>> => {
     const requestData = processRequest("update", data);
     const response = await http.request<CommonResult<T>>(
@@ -202,7 +214,7 @@ export function createCrudApi<T, QueryDto = Record<string, unknown>>(
     return processResponse(response);
   };
 
-  const api: CrudApi<T, QueryDto> = {
+  const api: CrudApi<T, QueryDto, CreateDto> = {
     getList,
     add,
     get,
