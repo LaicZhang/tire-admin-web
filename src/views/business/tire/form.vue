@@ -51,10 +51,40 @@ interface FormItemProps {
   salePrice?: number;
   commissionType: number;
   commission?: string;
-  covers: unknown[];
+  covers: CoverItem[];
   // 多单位设置
   enableMultiUnit?: boolean;
   unitConversions?: UnitConversion[];
+}
+
+interface CoverItem {
+  id?: string | number;
+  hash: string;
+  ext: string;
+}
+
+interface UploadResult<TData = unknown> {
+  code: number;
+  msg?: string;
+  data?: TData;
+}
+
+function toUploadResult(
+  value: unknown
+): UploadResult<{ id?: string | number }> | null {
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  if (typeof v.code !== "number") return null;
+  const data = v.data;
+  const dataObj =
+    data && typeof data === "object" ? (data as Record<string, unknown>) : null;
+  return {
+    code: v.code,
+    msg: typeof v.msg === "string" ? v.msg : undefined,
+    data: dataObj
+      ? { id: dataObj.id as string | number | undefined }
+      : undefined
+  };
 }
 
 interface FormProps {
@@ -98,7 +128,15 @@ const newFormInline = ref(props.formInline);
 
 // 多单位相关
 const unitList = ref<Unit[]>([]);
-const conversionFormRef = ref();
+type UnitConversionFormExpose = {
+  validate: () => boolean;
+  getData: () => { targetUnitId: string; ratio: number };
+};
+const conversionFormRef = ref<UnitConversionFormExpose | null>(null);
+type UnitConversionFormInline = {
+  mainUnit: Pick<Unit, "uid" | "name"> | null;
+  availableUnits: Unit[];
+};
 
 // 计算主单位
 const mainUnit = computed(() => {
@@ -133,9 +171,18 @@ async function handleSuccess(
   _fileList: unknown,
   _row?: unknown
 ) {
-  const { code, msg, data } = response;
+  const res = toUploadResult(response);
+  if (!res) {
+    message("上传失败", { type: "error" });
+    return;
+  }
+  const { code, msg, data } = res;
   if (code !== 200) {
     message(msg || "上传失败", { type: "error" });
+    return;
+  }
+  if (!data?.id) {
+    message("上传失败", { type: "error" });
     return;
   }
   const params = { id: data.id };
@@ -179,18 +226,22 @@ const openAddConversionDialog = () => {
     title: "添加单位换算",
     props: {
       formInline: {
-        mainUnit: mainUnit.value,
+        mainUnit: mainUnit.value ?? null,
         availableUnits: availableUnits.value
       }
     },
     width: "400px",
     draggable: true,
     closeOnClickModal: false,
-    contentRenderer: () => {
+    contentRenderer: ({ options }) => {
       const UnitConversionForm = defineAsyncComponent(
         () => import("./UnitConversionForm.vue")
       );
-      return h(UnitConversionForm, { ref: conversionFormRef });
+      return h(UnitConversionForm, {
+        ref: conversionFormRef,
+        formInline: (options.props as { formInline: UnitConversionFormInline })
+          .formInline
+      });
     },
     beforeSure: done => {
       const formInstance = conversionFormRef.value;

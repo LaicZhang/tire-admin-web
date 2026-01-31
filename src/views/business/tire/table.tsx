@@ -11,6 +11,18 @@ import {
   getUploadedImages
 } from "@/views/business/tire/store";
 
+interface CoverItem {
+  id?: string | number;
+  hash: string;
+  ext: string;
+}
+
+function isCoverItem(value: unknown): value is CoverItem {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.hash === "string" && typeof v.ext === "string";
+}
+
 interface FormItemProps {
   id?: number;
   uid?: string;
@@ -30,7 +42,7 @@ interface FormItemProps {
   salePrice?: number;
   commissionType: number;
   commission?: string;
-  covers: Record<string, unknown>[];
+  covers: CoverItem[];
 }
 interface FormProps {
   formInline: FormItemProps;
@@ -106,8 +118,9 @@ export function openDialog(title = "新增", row?: FormItemProps) {
           const { id: _id, uid, covers: formCovers, ...tireData } = curData;
 
           const uploadedImagesList = await getUploadedImages();
+          const uploadedCovers = uploadedImagesList.filter(isCoverItem);
           const covers =
-            uploadedImagesList.length > 0 ? uploadedImagesList : formCovers;
+            uploadedCovers.length > 0 ? uploadedCovers : formCovers;
 
           const payload = {
             ...tireData,

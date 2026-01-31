@@ -8,13 +8,14 @@ import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
 import { getTireNumberListApi, deleteTireNumberApi } from "@/api";
+import type { TireNumberRow } from "@/api/business/tire-number";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 
 defineOptions({
   name: "tireNumber"
 });
-const dataList = ref([]);
+const dataList = ref<TireNumberRow[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
@@ -31,13 +32,13 @@ const getTireNumberListInfo = async () => {
   const { data, code, msg } = await getTireNumberListApi(
     pagination.value.currentPage
   );
-  if (code === 200) dataList.value = data.list;
+  if (code === 200) dataList.value = data.list || [];
   else message(msg, { type: "error" });
-  pagination.value.total = data.count;
+  pagination.value.total = data.count ?? data.total ?? 0;
 };
 const onSearch = async () => {
   loading.value = true;
-  let res;
+  let res: Awaited<ReturnType<typeof getTireNumberListApi>>;
   if (form.value.number === "" && form.value.desc === undefined)
     res = await getTireNumberListApi(1);
   else {
@@ -48,8 +49,8 @@ const onSearch = async () => {
   }
   const { code, data, msg } = res;
 
-  dataList.value = data.list;
-  pagination.value.total = data.count;
+  dataList.value = data.list || [];
+  pagination.value.total = data.count ?? data.total ?? 0;
   loading.value = false;
 };
 
@@ -73,9 +74,9 @@ async function handleCurrentChange(val: number) {
       desc: form.value.desc
     }
   );
-  if (code === 200) dataList.value = data.list;
+  if (code === 200) dataList.value = data.list || [];
   else message(msg, { type: "error" });
-  pagination.value.total = data.count;
+  pagination.value.total = data.count ?? data.total ?? 0;
   loading.value = false;
 }
 
@@ -176,7 +177,7 @@ onMounted(() => {
 
               <DeleteButton
                 :show-icon="false"
-                :title="`是否确认删除${row.name}这条数据`"
+                :title="`是否确认删除${row.number}这条数据`"
                 @confirm="handleDelete(row)"
               />
             </template>
