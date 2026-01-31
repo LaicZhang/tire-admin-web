@@ -166,12 +166,11 @@ const handleUploadRequest = async (options: UploadRequestOptions) => {
       loadData();
     } else {
       const error = new Error("上传失败");
-      options.onError?.(error);
+      options.onError?.(error as any);
       message("上传失败", { type: "error" });
     }
   } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    options.onError?.(error);
+    options.onError?.(err as any);
     message("上传失败", { type: "error" });
   } finally {
     loading.value = false;

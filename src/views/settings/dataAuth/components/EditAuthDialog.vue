@@ -22,18 +22,18 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "update:visible": [value: boolean];
-  "update:customerAuthMode": [value: "all" | "partial"];
-  "update:supplierAuthMode": [value: "all" | "partial"];
-  "update:warehouseAuthMode": [value: "all" | "partial"];
-  "update:customerList": [value: AuthItem[]];
-  "update:supplierList": [value: AuthItem[]];
-  "update:warehouseList": [value: AuthItem[]];
-  "add-customer": [];
-  "add-supplier": [];
-  "add-warehouse": [];
-  "sync-customers": [];
-  saved: [];
+  (e: "update:visible", value: boolean): void;
+  (e: "update:customerAuthMode", value: "all" | "partial"): void;
+  (e: "update:supplierAuthMode", value: "all" | "partial"): void;
+  (e: "update:warehouseAuthMode", value: "all" | "partial"): void;
+  (e: "update:customerList", value: AuthItem[]): void;
+  (e: "update:supplierList", value: AuthItem[]): void;
+  (e: "update:warehouseList", value: AuthItem[]): void;
+  (e: "add-customer"): void;
+  (e: "add-supplier"): void;
+  (e: "add-warehouse"): void;
+  (e: "sync-customers"): void;
+  (e: "saved"): void;
 }>();
 
 const activeAuthTab = ref("customer");
@@ -170,7 +170,9 @@ watch(
             <el-radio-group
               :model-value="customerAuthMode"
               :disabled="detailLoading"
-              @update:model-value="emit('update:customerAuthMode', $event)"
+              @update:model-value="
+                emit('update:customerAuthMode', $event as 'all' | 'partial')
+              "
             >
               <el-radio-button value="all">全部客户</el-radio-button>
               <el-radio-button value="partial">部分客户</el-radio-button>
@@ -226,7 +228,9 @@ watch(
             <el-radio-group
               :model-value="supplierAuthMode"
               :disabled="detailLoading"
-              @update:model-value="emit('update:supplierAuthMode', $event)"
+              @update:model-value="
+                emit('update:supplierAuthMode', $event as 'all' | 'partial')
+              "
             >
               <el-radio-button value="all">全部供应商</el-radio-button>
               <el-radio-button value="partial">部分供应商</el-radio-button>
@@ -275,7 +279,9 @@ watch(
             <el-radio-group
               :model-value="warehouseAuthMode"
               :disabled="detailLoading"
-              @update:model-value="emit('update:warehouseAuthMode', $event)"
+              @update:model-value="
+                emit('update:warehouseAuthMode', $event as 'all' | 'partial')
+              "
             >
               <el-radio-button value="all">全部仓库</el-radio-button>
               <el-radio-button value="partial">部分仓库</el-radio-button>

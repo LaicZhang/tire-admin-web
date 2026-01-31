@@ -1,10 +1,8 @@
 import StatusTag from "@/components/StatusTag/index.vue";
+import type { StatusConfig } from "@/components/StatusTag/types";
 import type { TableColumnRenderer } from "@pureadmin/table";
 
-export const backupTaskStatusMap: Record<
-  string,
-  { label: string; type: string }
-> = {
+export const backupTaskStatusMap: Record<string, StatusConfig> = {
   PENDING: { label: "等待中", type: "info" },
   RUNNING: { label: "进行中", type: "warning" },
   SUCCESS: { label: "成功", type: "success" },

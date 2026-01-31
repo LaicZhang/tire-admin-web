@@ -6,7 +6,7 @@ import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { getOperationLogsApi } from "@/api/setting";
 import { message } from "@/utils";
-import type { OperationLog } from "./types";
+import type { OperationLog } from "@/api/setting";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 

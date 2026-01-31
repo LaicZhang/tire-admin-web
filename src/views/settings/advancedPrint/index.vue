@@ -35,7 +35,9 @@ const templateList = ref<AdvancedPrintTemplate[]>([]);
 const activeDocType = ref("sales_out");
 const selectedRows = ref<AdvancedPrintTemplate[]>([]);
 
-const documentTypes = async () => {
+const documentTypes = [{ label: "销售出库", value: "sales_out" }] as const;
+
+const loadData = async () => {
   loading.value = true;
   try {
     const { code, data } = await getPrintTemplatesApi(activeDocType.value);
