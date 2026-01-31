@@ -2,11 +2,16 @@ import { ref, computed } from "vue";
 import type { TargetField, FieldMapping, SourceColumn } from "../types";
 import { mappingRules } from "../constants";
 
-export function useSmartImportMapping(targetFields: TargetField[]) {
+type TargetFieldsSource = TargetField[] | { value: TargetField[] };
+
+export function useSmartImportMapping(targetFields: TargetFieldsSource) {
+  const resolvedTargetFields = computed(() =>
+    Array.isArray(targetFields) ? targetFields : targetFields.value
+  );
   const fieldMappings = ref<FieldMapping[]>([]);
 
   const requiredFieldsMapped = computed(() => {
-    const required = targetFields.filter(f => f.required);
+    const required = resolvedTargetFields.value.filter(f => f.required);
     return required.every(rf =>
       fieldMappings.value.some(fm => fm.targetField?.key === rf.key)
     );
@@ -25,7 +30,7 @@ export function useSmartImportMapping(targetFields: TargetField[]) {
       let matchedField: TargetField | null = null;
       let confidence = 0;
 
-      for (const field of targetFields) {
+      for (const field of resolvedTargetFields.value) {
         const rules = mappingRules[field.key] || [];
         for (const rule of rules) {
           if (col.name.includes(rule)) {
@@ -61,7 +66,7 @@ export function useSmartImportMapping(targetFields: TargetField[]) {
       fieldMappings.value[index].targetField = null;
       fieldMappings.value[index].confidence = 0;
     } else {
-      const field = targetFields.find(f => f.key === targetKey);
+      const field = resolvedTargetFields.value.find(f => f.key === targetKey);
       if (field) {
         fieldMappings.value[index].targetField = field;
         fieldMappings.value[index].confidence = 100;
@@ -81,7 +86,7 @@ export function useSmartImportMapping(targetFields: TargetField[]) {
       .filter((_, i) => i !== currentIndex)
       .map(fm => fm.targetField?.key)
       .filter(Boolean);
-    return targetFields.filter(f => !usedKeys.includes(f.key));
+    return resolvedTargetFields.value.filter(f => !usedKeys.includes(f.key));
   };
 
   const reset = () => {
