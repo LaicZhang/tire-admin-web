@@ -15,7 +15,7 @@ import {
   setDepartmentRolesApi,
   removeDepartmentRolesApi
 } from "@/api";
-import type { Department } from "@/api/company/department";
+import type { Department, DepartmentQueryDto } from "@/api/company/department";
 import { getRolesApi } from "@/api/system/role";
 import { message, handleApiError } from "@/utils";
 import { BATCH_FETCH_PAGE_SIZE } from "@/utils/constants";
@@ -28,7 +28,12 @@ defineOptions({
   name: "department"
 });
 
-const form = ref({
+type DepartmentListParams = DepartmentQueryDto & {
+  page?: number;
+  pageSize?: number;
+};
+
+const form = ref<DepartmentListParams>({
   name: undefined,
   desc: undefined,
   scope: "nonDeleted"
@@ -41,8 +46,12 @@ const {
   fetchData,
   onCurrentChange,
   onSizeChange
-} = useCrud({
-  api: async ({ page, pageSize, ...params }) => {
+} = useCrud<
+  Department,
+  Awaited<ReturnType<typeof getDepartmentListApi>>,
+  DepartmentListParams
+>({
+  api: async ({ page = 1, pageSize = 10, ...params }) => {
     const res = await getDepartmentListApi(page, { ...params, pageSize });
     if (res.code !== 200) throw new Error(res.msg);
     return res;

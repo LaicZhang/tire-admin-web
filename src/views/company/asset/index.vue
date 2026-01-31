@@ -22,6 +22,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import type { AssetItem, AssetFormItem } from "./types";
+import type { AssetQueryDto } from "@/api/asset";
 
 defineOptions({
   name: "Asset"
@@ -31,7 +32,7 @@ const dataList = ref<AssetItem[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const form = ref({
+const form = ref<AssetQueryDto>({
   name: undefined,
   scope: "nonDeleted"
 });
@@ -53,8 +54,8 @@ const getAssetListInfo = async () => {
       }
     );
     if (code === 200) {
-      dataList.value = data.list as AssetItem[];
-      pagination.value.total = data.count;
+      dataList.value = (data.list ?? []) as AssetItem[];
+      pagination.value.total = data.count ?? data.total ?? 0;
     } else {
       message(msg, { type: "error" });
     }
@@ -127,10 +128,15 @@ function openDialog(title = "新增", row?: AssetItem) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: () => h(editForm, { ref: formRef }),
+    contentRenderer: ({ options }) =>
+      h(editForm, {
+        ref: formRef,
+        formInline: (options.props as { formInline: AssetFormItem }).formInline
+      }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value.getRef();
-      const curData = options.props.formInline as AssetFormItem;
+      const curData = (options.props as { formInline: AssetFormItem })
+        .formInline;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           try {
@@ -156,6 +162,10 @@ function openDialog(title = "新增", row?: AssetItem) {
                 desc: curData.desc
               });
             } else {
+              if (!curData.uid) {
+                message("缺少资产ID，无法更新", { type: "error" });
+                return;
+              }
               await updateAssetApi(curData.uid, {
                 name: curData.name,
                 type: curData.type,

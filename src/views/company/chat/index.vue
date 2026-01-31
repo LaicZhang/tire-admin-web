@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { createChatApi, chatApi, getChatApi, getChatCountApi } from "@/api";
 import { handleApiError, message } from "@/utils";
 import { Loading } from "@element-plus/icons-vue";
+import type { ChatMessage } from "@/api/chat";
 
 defineOptions({
   name: "chat"
@@ -10,9 +11,8 @@ defineOptions({
 
 const chatUid = ref("");
 const batchId = ref("");
-const chatHistory = ref<Array<{ role: string; content: string; _uid: string }>>(
-  []
-);
+type ChatHistoryMessage = ChatMessage & { _uid: string };
+const chatHistory = ref<ChatHistoryMessage[]>([]);
 const inputMessage = ref("");
 const loading = ref(false);
 const chatCount = ref(0);
@@ -24,7 +24,10 @@ const initNewChat = async () => {
     if (code === 200) {
       chatUid.value = data.uid || "";
       batchId.value = data.batchId || "";
-      chatHistory.value = data.messages || [];
+      chatHistory.value = (data.messages || []).map(m => ({
+        ...m,
+        _uid: m._uid || crypto.randomUUID()
+      }));
       message("新对话已创建", { type: "success" });
     } else {
       handleApiError(msg, "创建对话失败");
@@ -63,11 +66,8 @@ const sendMessage = async () => {
 
     if (code === 200) {
       if (data.messages) {
-        const resData = data as {
-          messages: Array<{ role: string; content: string; _uid?: string }>;
-        };
         // Ensure all messages have _uid
-        chatHistory.value = resData.messages.map(m => ({
+        chatHistory.value = data.messages.map(m => ({
           ...m,
           _uid: m._uid || crypto.randomUUID()
         }));

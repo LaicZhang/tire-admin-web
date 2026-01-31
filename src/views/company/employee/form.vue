@@ -53,7 +53,10 @@ const getEmployeeStatus = async () => {
     string,
     unknown
   >;
-  employeeStatus.value = dict.employeeStatus;
+  const status = dict.employeeStatus;
+  employeeStatus.value = Array.isArray(status)
+    ? (status as typeof employeeStatus.value)
+    : [];
 };
 
 async function getPositionList() {

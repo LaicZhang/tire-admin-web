@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElCheckboxGroup, ElCheckbox, ElEmpty } from "element-plus";
+import type { CheckboxGroupValueType } from "element-plus";
 
 const props = defineProps<{
   allRoles: { uid: string; name: string }[];
@@ -12,19 +13,20 @@ const emit = defineEmits<{
   (e: "update:selectedRoles", value: string[]): void;
 }>();
 
-const localSelected = ref([...props.selectedRoles]);
+const localSelected = ref<string[]>([...props.selectedRoles]);
+
+const onSelectedRolesChange = (val: CheckboxGroupValueType) => {
+  const next = (Array.isArray(val) ? val : []).map(v => String(v));
+  localSelected.value = next;
+  emit("update:selectedRoles", next);
+};
 </script>
 
 <template>
   <div v-loading="loading" class="min-h-[200px]">
     <el-checkbox-group
       :model-value="localSelected"
-      @update:model-value="
-        (val: string[]) => {
-          localSelected = val;
-          emit('update:selectedRoles', val);
-        }
-      "
+      @update:model-value="onSelectedRolesChange"
     >
       <el-checkbox
         v-for="role in allRoles"
