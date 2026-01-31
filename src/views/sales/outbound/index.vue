@@ -147,7 +147,14 @@ function openDialog(title: string, row?: OutboundOrder) {
 
         try {
           const companyId = await getCompanyId();
-          const { details, ...orderData } = formData;
+          const {
+            details,
+            customer,
+            operator,
+            auditor,
+            saleOrder,
+            ...orderData
+          } = formData;
 
           if (title === "新增") {
             if (details.length === 0) {
@@ -329,7 +336,7 @@ onMounted(async () => {
           >
             <template #operation="{ row }">
               <TableOperations
-                :row="row"
+                :row="row as OutboundOrder"
                 show-audit
                 :delete-title="`确认删除编号 ${row.number} 的出库单?`"
                 :custom-actions="
@@ -337,22 +344,23 @@ onMounted(async () => {
                     {
                       label: '确认发货',
                       type: 'success',
-                      visible:
-                        row.isApproved && row.details?.some(d => !d.isShipped),
-                      onClick: () => handleConfirmShipment(row)
+                      visible: (r: OutboundOrder) =>
+                        r.isApproved && r.details?.some(d => !d.isShipped),
+                      onClick: (r: OutboundOrder) => handleConfirmShipment(r)
                     },
                     {
                       label: '生成退货单',
                       type: 'warning',
-                      visible: row.isApproved,
-                      onClick: () => handleGenerateReturnOrder(row)
+                      visible: (r: OutboundOrder) => r.isApproved,
+                      onClick: (r: OutboundOrder) =>
+                        handleGenerateReturnOrder(r)
                     }
-                  ] as CustomAction[]
+                  ] as CustomAction<OutboundOrder>[]
                 "
-                @view="openDialog('查看', $event)"
-                @edit="openDialog('修改', $event)"
-                @audit="openDialog('审核', $event)"
-                @delete="handleDelete"
+                @view="openDialog('查看', $event as OutboundOrder)"
+                @edit="openDialog('修改', $event as OutboundOrder)"
+                @audit="openDialog('审核', $event as OutboundOrder)"
+                @delete="handleDelete($event as OutboundOrder)"
               />
             </template>
           </pure-table>

@@ -44,6 +44,7 @@ export interface SalesReturnOrder {
   customer?: { name: string };
   operator?: { name: string };
   auditor?: { name: string };
+  [key: string]: unknown;
 }
 
 export interface SalesReturnQueryParams {

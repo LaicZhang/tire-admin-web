@@ -47,6 +47,7 @@ export interface OutboundOrder {
   operator?: { name: string };
   auditor?: { name: string };
   saleOrder?: { number: string };
+  [key: string]: unknown;
 }
 
 export interface OutboundOrderQueryParams {

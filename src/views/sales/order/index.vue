@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -18,18 +18,18 @@ import {
   confirmSaleOrderShipmentApi,
   confirmSaleOrderDeliveryApi
 } from "@/api/sales";
-import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
+import { useOrderListPage } from "@/composables/useOrderListPage";
+import { useOrderConfirmActions } from "@/composables/useOrderConfirmActions";
 import { salesOrderColumns } from "./columns";
-import type { SalesOrder, SalesOrderQueryParams, OptionItem } from "./types";
+import type { SalesOrder, SalesOrderQueryParams } from "./types";
 import editForm from "./form.vue";
 
 defineOptions({
   name: "SalesOrder"
 });
 
-const dataList = ref<SalesOrder[]>([]);
-const loading = ref(false);
 type SalesOrderFormRef = {
   getRef: () => FormInstance;
   getReceiveFee?: () => number;
@@ -37,71 +37,41 @@ type SalesOrderFormRef = {
 const formRef = ref<SalesOrderFormRef | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
-const searchForm = ref<SalesOrderQueryParams>({
-  operatorId: undefined,
-  auditorId: undefined,
-  customerId: undefined,
-  desc: undefined
+// 使用订单列表页 composable
+const {
+  dataList,
+  loading,
+  pagination,
+  searchForm,
+  selectData,
+  getList,
+  onSearch,
+  onReset,
+  handlePageChange
+} = useOrderListPage<SalesOrder, SalesOrderQueryParams>({
+  listApi: getSalesOrderListApi,
+  selectDataKeys: ["employee", "manager", "customer"],
+  initialQuery: {
+    operatorId: undefined,
+    auditorId: undefined,
+    customerId: undefined,
+    desc: undefined
+  },
+  listErrorMessage: "获取销售订单列表失败",
+  searchFormRef
 });
 
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
-});
-
-const employeeList = ref<OptionItem[]>([]);
-const managerList = ref<OptionItem[]>([]);
-const customerList = ref<OptionItem[]>([]);
-
-async function loadSelectData() {
-  const [employees, managers, customers] = await Promise.all([
-    localForage().getItem(ALL_LIST.employee),
-    localForage().getItem(ALL_LIST.manager),
-    localForage().getItem(ALL_LIST.customer)
-  ]);
-  employeeList.value = (employees as OptionItem[]) || [];
-  managerList.value = (managers as OptionItem[]) || [];
-  customerList.value = (customers as OptionItem[]) || [];
-}
-
-async function getList() {
-  try {
-    loading.value = true;
-    const res = await getSalesOrderListApi(
-      pagination.value.currentPage,
-      searchForm.value
-    );
-    if (res.code === 200) {
-      const result = res.data as { list: SalesOrder[]; count: number };
-      dataList.value = result.list;
-      pagination.value.total = result.count;
-    } else {
-      message(res.msg, { type: "error" });
-    }
-  } catch (error) {
-    handleApiError(error, "获取销售订单列表失败");
-  } finally {
-    loading.value = false;
+// 使用订单确认操作 composable
+const { handleConfirmShipment, handleConfirmDelivery } = useOrderConfirmActions(
+  {
+    onSuccess: getList
   }
-}
+);
 
-function onSearch() {
-  pagination.value.currentPage = 1;
-  getList();
-}
-
-function onReset() {
-  searchFormRef.value?.resetFields();
-  pagination.value.currentPage = 1;
-  getList();
-}
-
-function handlePageChange(page: number) {
-  pagination.value.currentPage = page;
-  getList();
-}
+// 获取下拉数据的别名引用
+const employeeList = selectData.employee;
+const managerList = selectData.manager;
+const customerList = selectData.customer;
 
 const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
   entityName: "销售订单",
@@ -131,7 +101,7 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
   handlers: {
     新增: async formData => {
       const companyId = await getCompanyId();
-      const { details, ...orderData } = formData;
+      const { details, customer, operator, auditor, ...orderData } = formData;
 
       if (details.length === 0) {
         message("请添加商品明细", { type: "warning" });
@@ -152,7 +122,13 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
     },
     修改: async formData => {
       const companyId = await getCompanyId();
-      const { details: _details, ...orderData } = formData;
+      const {
+        details: _details,
+        customer,
+        operator,
+        auditor,
+        ...orderData
+      } = formData;
       await updateSalesOrderApi(formData.uid, {
         ...orderData,
         company: { connect: { uid: companyId } }
@@ -200,53 +176,15 @@ async function handleDelete(row: SalesOrder) {
   }
 }
 
-async function handleConfirmShipment(row: SalesOrder) {
-  const pendingDetails = row.details.filter(d => !d.isShipped);
-  if (pendingDetails.length === 0) {
-    message("所有商品已发货", { type: "info" });
-    return;
-  }
-
-  try {
-    for (const detail of pendingDetails) {
-      if (detail.uid) {
-        await confirmSaleOrderShipmentApi(row.uid, {
-          detailUid: detail.uid,
-          shipCount: detail.count
-        });
-      }
-    }
-    message("确认发货成功", { type: "success" });
-    getList();
-  } catch (error) {
-    handleApiError(error, "确认发货失败");
-  }
+// 发货确认 - 使用 composable 封装的方法
+async function onConfirmShipment(row: SalesOrder) {
+  await handleConfirmShipment(row, confirmSaleOrderShipmentApi);
 }
 
-async function handleConfirmDelivery(row: SalesOrder) {
-  const shippedDetails = row.details.filter(d => d.isShipped && !d.isDelivered);
-  if (shippedDetails.length === 0) {
-    message("所有商品已送达", { type: "info" });
-    return;
-  }
-
-  try {
-    for (const detail of shippedDetails) {
-      if (detail.uid) {
-        await confirmSaleOrderDeliveryApi(row.uid, { detailUid: detail.uid });
-      }
-    }
-    message("确认送达成功", { type: "success" });
-    getList();
-  } catch (error) {
-    handleApiError(error, "确认送达失败");
-  }
+// 送达确认 - 使用 composable 封装的方法
+async function onConfirmDelivery(row: SalesOrder) {
+  await handleConfirmDelivery(row, confirmSaleOrderDeliveryApi);
 }
-
-onMounted(async () => {
-  await loadSelectData();
-  getList();
-});
 </script>
 
 <template>
@@ -358,23 +296,26 @@ onMounted(async () => {
                       label: '确认发货',
                       type: 'success',
                       visible:
-                        row.isApproved && row.details?.some(d => !d.isShipped),
-                      onClick: () => handleConfirmShipment(row)
+                        (row as SalesOrder).isApproved &&
+                        (row as SalesOrder).details?.some(d => !d.isShipped),
+                      onClick: () => onConfirmShipment(row as SalesOrder)
                     },
                     {
                       label: '确认送达',
                       type: 'success',
                       visible:
-                        row.isApproved &&
-                        row.details?.some(d => d.isShipped && !d.isDelivered),
-                      onClick: () => handleConfirmDelivery(row)
+                        (row as SalesOrder).isApproved &&
+                        (row as SalesOrder).details?.some(
+                          d => d.isShipped && !d.isDelivered
+                        ),
+                      onClick: () => onConfirmDelivery(row as SalesOrder)
                     }
                   ] as CustomAction[]
                 "
-                @view="openDialog('查看', $event)"
-                @edit="openDialog('修改', $event)"
-                @audit="openDialog('审核', $event)"
-                @delete="handleDelete"
+                @view="openDialog('查看', $event as unknown as SalesOrder)"
+                @edit="openDialog('修改', $event as unknown as SalesOrder)"
+                @audit="openDialog('审核', $event as unknown as SalesOrder)"
+                @delete="handleDelete($event as unknown as SalesOrder)"
               />
             </template>
           </pure-table>

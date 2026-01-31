@@ -61,6 +61,7 @@ export interface SalesOrderQueryParams {
   endDate?: string;
   keyword?: string;
   desc?: string;
+  [key: string]: unknown;
 }
 
 export interface SalesOrderFormProps {

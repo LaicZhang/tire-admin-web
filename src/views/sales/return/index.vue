@@ -148,7 +148,8 @@ function openDialog(title: string, row?: SalesReturnOrder) {
 
         try {
           const companyId = await getCompanyId();
-          const { details, ...orderData } = formData;
+          const { details, customer, operator, auditor, ...orderData } =
+            formData;
 
           if (title === "新增") {
             if (details.length === 0) {
@@ -232,13 +233,13 @@ function getCustomActions(
       label: "确认收货",
       type: "success",
       visible: row.isApproved && row.logisticsStatus === 0,
-      onClick: () => handleConfirmArrival(row)
+      onClick: (r: SalesReturnOrder) => handleConfirmArrival(r)
     },
     {
       label: "退款",
       type: "warning",
       visible: row.isApproved,
-      onClick: () => openDialog("退款", row)
+      onClick: (r: SalesReturnOrder) => openDialog("退款", r)
     }
   ];
 }
@@ -360,10 +361,10 @@ onMounted(async () => {
                 show-audit
                 :delete-title="`确认删除编号 ${row.number} 的退货单?`"
                 :custom-actions="getCustomActions(row as SalesReturnOrder)"
-                @view="handleView"
-                @edit="handleEdit"
-                @audit="handleAudit"
-                @delete="handleDelete"
+                @view="handleView($event as SalesReturnOrder)"
+                @edit="handleEdit($event as SalesReturnOrder)"
+                @audit="handleAudit($event as SalesReturnOrder)"
+                @delete="handleDelete($event as SalesReturnOrder)"
               />
             </template>
           </pure-table>

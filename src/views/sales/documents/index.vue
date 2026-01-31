@@ -11,6 +11,9 @@ import {
   SALES_OUTBOUND_ORDER_TYPE,
   SALES_RETURN_ORDER_TYPE
 } from "@/api/sales";
+import type { SalesOrder } from "@/views/sales/order/types";
+import type { OutboundOrder } from "@/views/sales/outbound/types";
+import type { SalesReturnOrder } from "@/views/sales/return/types";
 import {
   message,
   ALL_LIST,
@@ -56,15 +59,6 @@ interface SelectItem {
   name: string;
 }
 
-interface OrderItem {
-  uid?: string;
-  customerId?: string;
-  customer?: { name?: string };
-  operator?: { name?: string };
-  createdAt?: string;
-  [key: string]: unknown;
-}
-
 const customerList = ref<SelectItem[]>([]);
 
 async function loadSelectData() {
@@ -95,13 +89,30 @@ async function getList() {
       searchForm.value.endDate = dateRange.value[1];
     }
 
+    const queryParams = {
+      customerId: searchForm.value.customerId,
+      isApproved: searchForm.value.isApproved,
+      status: searchForm.value.status,
+      startDate: searchForm.value.startDate,
+      endDate: searchForm.value.endDate,
+      keyword: searchForm.value.keyword
+    };
+
     const typesToQuery = searchForm.value.type
       ? [typeMap[searchForm.value.type]]
       : Object.values(typeMap);
 
+    type SalesDocSourceItem = SalesOrder | OutboundOrder | SalesReturnOrder;
     const fetchByType: Record<
       string,
-      (index: number, params?: Record<string, unknown>) => Promise<unknown>
+      (
+        index: number,
+        params?: Record<string, unknown>
+      ) => Promise<{
+        code: number;
+        msg: string;
+        data: { list: SalesDocSourceItem[]; count: number };
+      }>
     > = {
       [SALES_ORDER_TYPE]: getSalesOrderListApi,
       [SALES_OUTBOUND_ORDER_TYPE]: getSalesOutboundListApi,
@@ -112,21 +123,26 @@ async function getList() {
       try {
         const fetch = fetchByType[orderType];
         if (!fetch) continue;
-        const res = await fetch(pagination.value.currentPage, searchForm.value);
+        const res = await fetch(pagination.value.currentPage, queryParams);
         if (res.code === 200 && res.data.list) {
-          let items = res.data.list as OrderItem[];
-          if (orderType === "return-order") {
-            items = items.filter((item: OrderItem) => item.customerId);
-          }
-          const mappedItems = items.map((item: OrderItem) => ({
-            ...item,
-            type: Object.keys(typeMap).find(
-              k => typeMap[k] === orderType
-            ) as DocumentType,
+          const items = res.data.list;
+          const docType = Object.keys(typeMap).find(
+            k => typeMap[k] === orderType
+          ) as DocumentType;
+          const mappedItems: DocumentItem[] = items.map(item => ({
+            uid: item.uid,
+            number: item.number,
+            type: docType,
             typeName: typeNameMap[orderType],
-            customerName: item.customer?.name || "",
-            operatorName: item.operator?.name || "",
-            createdAt: formatDate(item.createdAt)
+            customerId: item.customerId,
+            customerName: item.customer?.name || item.customerName || "",
+            count: item.count,
+            total: item.total,
+            status: item.status,
+            isApproved: item.isApproved,
+            createdAt: formatDate(item.createdAt),
+            operatorName: item.operator?.name || item.operatorName || "",
+            desc: item.desc
           }));
           allData.push(...mappedItems);
         }
