@@ -58,12 +58,18 @@
 状态标签，支持多种状态样式。
 
 ```vue
-<StatusTag :status="row.status" />
+<StatusTag
+  :status="row.isApproved"
+  :status-map="{
+    true: { label: '已审核', type: 'success' },
+    false: { label: '待审核', type: 'warning' }
+  }"
+/>
 ```
 
 ### MoneyDisplay
 
-金额显示，自动格式化千分位。
+金额显示，统一处理货币符号与小数位。
 
 ```vue
 <MoneyDisplay :value="order.amount" :precision="2" />
