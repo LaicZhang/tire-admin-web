@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
+import { handleApiError } from "@/utils/error";
 import { http } from "@/utils/http";
 import { createLogger } from "@/utils/logger";
 import type { CommonResult } from "@/api/type";
@@ -76,7 +77,7 @@ const handleSubmit = async () => {
     ElMessage.success("创建成功");
     props.onSuccess();
   } catch (error) {
-    ElMessage.error("创建失败");
+    handleApiError(error);
   } finally {
     loading.value = false;
   }

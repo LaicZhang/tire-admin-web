@@ -2,6 +2,7 @@
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
+import { handleApiError } from "@/utils/error";
 import {
   EXPENSE_TYPE_OPTIONS,
   type OtherExpense,
@@ -151,8 +152,7 @@ async function handleSubmit() {
     dialogVisible.value = false;
     emit("success");
   } catch (e) {
-    const errorMsg = e instanceof Error ? e.message : "操作失败";
-    ElMessage.error(errorMsg);
+    handleApiError(e);
   } finally {
     loading.value = false;
   }

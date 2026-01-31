@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { handleApiError } from "@/utils/error";
 import {
   getCostAdjustOrderList,
   approveCostAdjustOrder,
@@ -8,6 +9,7 @@ import {
   deleteCostAdjustOrder,
   type CostAdjustOrder
 } from "@/api/business/costAdjust";
+import { httpLogger } from "@/utils/logger";
 import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -56,7 +58,7 @@ const fetchData = async () => {
     tableData.value = data.list;
     pagination.value.total = data.count;
   } catch (error) {
-    console.error("获取成本调整单列表失败", error);
+    httpLogger.error("获取成本调整单列表失败", error);
   } finally {
     loading.value = false;
   }
@@ -94,7 +96,7 @@ const handleApprove = async (row: CostAdjustOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("审核失败");
+      handleApiError(error);
     }
   }
 };
@@ -113,7 +115,7 @@ const handleReject = async (row: CostAdjustOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败");
+      handleApiError(error);
     }
   }
 };
@@ -129,7 +131,7 @@ const handleDelete = async (row: CostAdjustOrder) => {
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("删除失败");
+      handleApiError(error);
     }
   }
 };

@@ -2,6 +2,7 @@
 import { ref, reactive, watch } from "vue";
 import type { FormInstance } from "element-plus";
 import { ElMessage } from "element-plus";
+import { handleApiError } from "@/utils/error";
 import { Delete } from "@element-plus/icons-vue";
 import {
   createWorkflowApi,
@@ -87,7 +88,7 @@ const handleSubmit = async () => {
     }
     return true;
   } catch (e) {
-    ElMessage.error("操作失败");
+    handleApiError(e);
     return false;
   } finally {
     loading.value = false;
