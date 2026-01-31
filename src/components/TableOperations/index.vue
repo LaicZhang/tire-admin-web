@@ -32,7 +32,7 @@ const isLocked = computed(() => Boolean(props.row[props.lockedField]));
 const isApproved = computed(() => Boolean(props.row[props.approvedField]));
 
 const visibleActions = computed(() => {
-  return props.customActions.filter((action: CustomAction) => {
+  return props.customActions.filter((action: CustomAction<any>) => {
     if (action.visible === undefined) return true;
     if (typeof action.visible === "function") {
       return action.visible(props.row);
