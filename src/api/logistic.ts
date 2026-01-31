@@ -67,12 +67,15 @@ export interface LogisticQueryDto {
 
 // ============ 发运计划 ============
 
-/** 创建发运计划 */
-export async function createShippingPlanApi(data: {
+/** 创建发运计划 DTO */
+export interface CreateShippingPlanDto {
   name: string;
   plannedDate: string;
   orders: string[];
-}) {
+}
+
+/** 创建发运计划 */
+export async function createShippingPlanApi(data: CreateShippingPlanDto) {
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(prefix + "shipping-plan"),
@@ -94,13 +97,16 @@ export async function getShippingPlanListApi(
 
 // ============ 装车任务 ============
 
-/** 创建装车任务 */
-export async function createLoadingTaskApi(data: {
+/** 创建装车任务 DTO */
+export interface CreateLoadingTaskDto {
   vehicleNo: string;
   driverName?: string;
   driverPhone?: string;
   orders: string[];
-}) {
+}
+
+/** 创建装车任务 */
+export async function createLoadingTaskApi(data: CreateLoadingTaskDto) {
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(prefix + "loading-task"),
@@ -122,9 +128,10 @@ export async function getLoadingTaskListApi(
 
 /** 创建发货波次 DTO */
 export interface CreateShippingWaveDto {
-  name?: string;
-  vehicleNo?: string;
-  orders: string[];
+  name: string;
+  shippingDate: string;
+  warehouseUid: string;
+  orderUids: string[];
 }
 
 /** 创建发货波次 */

@@ -45,7 +45,7 @@ export interface CrudApi<
   /** 获取详情 */
   get: (uid: string) => Promise<CommonResult<T>>;
   /** 更新 */
-  update: (uid: string, data: CreateDto) => Promise<CommonResult<T>>;
+  update: (uid: string, data: Partial<CreateDto>) => Promise<CommonResult<T>>;
   /** 删除 */
   delete: (uid: string) => Promise<CommonResult<void>>;
   /** 批量获取（可选） */
@@ -166,7 +166,7 @@ export function createCrudApi<
    */
   const update = async (
     uid: string,
-    data: CreateDto
+    data: Partial<CreateDto>
   ): Promise<CommonResult<T>> => {
     const requestData = processRequest("update", data);
     const response = await http.request<CommonResult<T>>(

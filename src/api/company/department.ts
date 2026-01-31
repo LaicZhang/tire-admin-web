@@ -17,6 +17,15 @@ export interface DepartmentDto {
   employees?: { connect: Array<{ uid: string }> };
 }
 
+export interface DepartmentQueryDto {
+  name?: string;
+  desc?: string;
+  keyword?: string;
+  scope?: "nonDeleted" | "deleted" | "all";
+  limit?: number;
+  pageSize?: number;
+}
+
 export type DepartmentCreateDto = DepartmentDto;
 
 export interface Department extends Omit<
@@ -37,7 +46,7 @@ export interface Department extends Omit<
 
 export async function getDepartmentListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: DepartmentQueryDto
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<Department>>>(
     "get",

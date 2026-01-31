@@ -281,9 +281,12 @@ export const wxQrCallbackApi = (params: {
   state: string;
   isRemember?: boolean;
 }) => {
-  return http.request<CommonResult>("get", baseUrlApi("/auth/wx-qr/callback"), {
-    params
-  });
+  return http.request<UserResult>(
+    "get",
+    baseUrlApi("/auth/wx-qr/callback"),
+    { params },
+    { skipAuth: true }
+  );
 };
 
 /** 微信扫码绑定账号 (PC/Web) */

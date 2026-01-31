@@ -6,25 +6,27 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 export interface OperationLogQuery {
   page?: number;
   pageSize?: number;
-  keyword?: string;
-  userId?: string;
-  module?: string;
-  action?: string;
-  startDate?: string;
-  endDate?: string;
+  username?: string;
+  operationType?: string;
+  moduleName?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 /** 操作日志记录 */
 export interface OperationLog {
   uid: string;
-  id: number;
   userId: string;
   username: string;
-  module: string;
-  action: string;
-  content: string;
+  operationType: string;
+  operationTypeName: string;
+  moduleName: string;
+  targetId?: string;
+  targetName?: string;
+  detail: string;
   ip: string;
-  createdAt: string;
+  userAgent: string;
+  createTime: string;
 }
 
 export async function getOperationLogsApi(params?: OperationLogQuery) {

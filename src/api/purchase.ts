@@ -12,6 +12,9 @@ import {
   updateOrderApi,
   type OrderQueryDto
 } from "./business/order";
+import type { PurchaseOrder } from "@/views/purchase/order/types";
+import type { InboundOrder } from "@/views/purchase/inbound/types";
+import type { ReturnOrder } from "@/views/purchase/return/types";
 
 export const PURCHASE_ORDER_TYPE = "purchase-order" as const;
 export const PURCHASE_INBOUND_ORDER_TYPE = "purchase-inbound" as const;
@@ -22,11 +25,11 @@ export const PURCHASE_INBOUND_ORDER_TYPE = "purchase-inbound" as const;
 export const PURCHASE_RETURN_ORDER_TYPE = "return-order" as const;
 
 export function getPurchaseOrderListApi(index: number, params?: OrderQueryDto) {
-  return getOrderListApi(PURCHASE_ORDER_TYPE, index, params);
+  return getOrderListApi<PurchaseOrder>(PURCHASE_ORDER_TYPE, index, params);
 }
 
 export function getPurchaseOrderApi(uid: string) {
-  return getOrderApi(PURCHASE_ORDER_TYPE, uid);
+  return getOrderApi<PurchaseOrder>(PURCHASE_ORDER_TYPE, uid);
 }
 
 export function createPurchaseOrderApi(
@@ -50,11 +53,15 @@ export function getPurchaseInboundListApi(
   index: number,
   params?: OrderQueryDto
 ) {
-  return getOrderListApi(PURCHASE_INBOUND_ORDER_TYPE, index, params);
+  return getOrderListApi<InboundOrder>(
+    PURCHASE_INBOUND_ORDER_TYPE,
+    index,
+    params
+  );
 }
 
 export function getPurchaseInboundApi(uid: string) {
-  return getOrderApi(PURCHASE_INBOUND_ORDER_TYPE, uid);
+  return getOrderApi<InboundOrder>(PURCHASE_INBOUND_ORDER_TYPE, uid);
 }
 
 export function createPurchaseInboundApi(
@@ -78,11 +85,15 @@ export function getPurchaseReturnOrderListApi(
   index: number,
   params?: OrderQueryDto
 ) {
-  return getOrderListApi(PURCHASE_RETURN_ORDER_TYPE, index, params);
+  return getOrderListApi<ReturnOrder>(
+    PURCHASE_RETURN_ORDER_TYPE,
+    index,
+    params
+  );
 }
 
 export function getPurchaseReturnOrderApi(uid: string) {
-  return getOrderApi(PURCHASE_RETURN_ORDER_TYPE, uid);
+  return getOrderApi<ReturnOrder>(PURCHASE_RETURN_ORDER_TYPE, uid);
 }
 
 export function createPurchaseReturnOrderApi(

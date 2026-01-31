@@ -41,7 +41,7 @@ export interface BaseOrderDto {
   fromRepositoryId?: string;
   toRepositoryId?: string;
   /** 描述 */
-  desc?: string;
+  desc?: string | null;
   /** 付款账户ID */
   paymentId?: string;
   /** 税率相关 */
@@ -96,7 +96,7 @@ export interface UpdateOrderDto extends Partial<BaseOrderDto> {
   /** 是否已审批 */
   isApproved?: boolean;
   /** 驳回原因 */
-  rejectReason?: string;
+  rejectReason?: string | null;
   /** 审批时间 */
   auditAt?: string | Date | null;
   /** Prisma 关联 - 公司 */
@@ -135,9 +135,14 @@ export type SaleOrderConfirmShipmentDto = {
 
 /** 订单查询参数 DTO */
 export interface OrderQueryDto {
+  providerId?: string;
+  customerId?: string;
+  operatorId?: string;
   orderStatus?: number;
   logisticsStatus?: number;
   isApproved?: boolean;
+  status?: boolean | string;
+  desc?: string;
   startDate?: string;
   endDate?: string;
   keyword?: string;
@@ -150,12 +155,12 @@ export interface OrderQueryDto {
 
 // ============ 通用订单 API ============
 
-export async function getOrderListApi(
+export async function getOrderListApi<TOrder = unknown>(
   type: string,
   index: number,
   params?: OrderQueryDto
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto>>(
+  return await http.request<CommonResult<PaginatedResponseDto<TOrder>>>(
     "get",
     baseUrlApi(getOrderPrefix(type) + "page/" + index),
     { params }
@@ -172,8 +177,8 @@ export async function addOrderApi(type: string, data: CreateOrderDto) {
   );
 }
 
-export async function getOrderApi(type: string, uid: string) {
-  return await http.request<CommonResult>(
+export async function getOrderApi<TOrder = unknown>(type: string, uid: string) {
+  return await http.request<CommonResult<TOrder>>(
     "get",
     baseUrlApi(getOrderPrefix(type) + uid)
   );

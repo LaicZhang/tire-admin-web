@@ -66,7 +66,7 @@ export interface Tire extends TireDto {
 
 // ============ 标准 CRUD API (使用工厂函数) ============
 
-const baseTireApi = createCrudApi<Tire, TireQueryDto>({
+const baseTireApi = createCrudApi<Tire, TireQueryDto, TireDto>({
   prefix: prefix,
   enableBatch: true
 });

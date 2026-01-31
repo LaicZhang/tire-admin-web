@@ -1,12 +1,14 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "./../utils";
-import type { CommonResult } from "./../type";
+import type { CommonResult, PaginatedResponseDto } from "./../type";
 
 const prefix = "/tire-number/";
 
 export interface TireNumberQueryDto {
   keyword?: string;
   tireId?: string;
+  number?: string;
+  desc?: string;
 }
 
 export interface TireNumberDto {
@@ -23,11 +25,22 @@ export interface TireNumberDto {
   repo?: { connect: { uid: string } };
 }
 
+export type TireNumberRow = {
+  id: number;
+  uid: string;
+  number: string;
+  desc?: string;
+  tireId: string;
+  isLocked: boolean;
+  isInRepo: boolean;
+  tire: { group: string; name: string };
+};
+
 export async function getTireNumberListApi(
   index: number,
-  params?: Record<string, unknown>
+  params?: TireNumberQueryDto
 ) {
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<PaginatedResponseDto<TireNumberRow>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),
     { params }

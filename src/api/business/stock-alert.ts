@@ -73,6 +73,10 @@ export async function createExpiryAlertApi(data: ExpiryAlertDto) {
 
 /** 效期预警查询参数 */
 export interface ExpiryAlertQuery {
+  /** 分页索引（后端常用 index 语义） */
+  index?: number;
+  /** 分页大小（可选） */
+  pageSize?: number;
   repoId?: string;
   status?: string;
 }

@@ -4,22 +4,37 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const prefix = "/repo/";
 
+/** Prisma 关联连接类型 */
+interface PrismaConnect<T> {
+  connect?: T;
+  set?: T[];
+  disconnect?: T | T[];
+}
+
 export interface RepoDto {
   name: string;
   address?: string;
   desc?: string;
   startAt?: string | Date;
   endAt?: string | Date;
-  company?: { connect: { uid: string } };
-  manager?: { connect: { uid: string } };
+  company?: PrismaConnect<{ uid: string }>;
+  manager?: PrismaConnect<{ uid: string }>;
   isPrimary?: boolean;
   status?: boolean;
 }
 
-export interface Repo extends RepoDto {
+export interface Repo {
   id: number;
   uid: string;
+  name: string;
+  address?: string;
+  desc?: string;
+  startAt?: string | Date;
+  endAt?: string | Date;
+  isPrimary?: boolean;
+  status?: boolean;
   deleteAt?: string | null;
+  manager?: { uid: string; name?: string } | null;
 }
 
 export interface RepoQueryDto {

@@ -6,6 +6,8 @@ const prefix = "/price/";
 
 export interface PriceListDto {
   name: string;
+  /** 价格表类型（例如 SYSTEM / CUSTOM） */
+  type?: string;
   desc?: string;
   items?: Array<{ tireId: string; price: number }>;
 }

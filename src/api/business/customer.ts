@@ -57,7 +57,9 @@ export interface CustomerDto {
 export interface Customer {
   id: number;
   uid: string;
+  code?: string;
   name: string;
+  contact?: string;
   phone?: string;
   address?: string;
   desc?: string;
@@ -67,11 +69,12 @@ export interface Customer {
   from?: string;
   isIndividual?: boolean;
   creditLimit?: number;
+  info?: { phone?: string };
 }
 
 // ============ 标准 CRUD API (使用工厂函数) ============
 
-const baseCustomerApi = createCrudApi<Customer, CustomerQueryDto>({
+const baseCustomerApi = createCrudApi<Customer, CustomerQueryDto, CustomerDto>({
   prefix: prefix,
   enableBatch: true,
   enableRestore: true

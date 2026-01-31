@@ -52,6 +52,7 @@ export interface ProviderDto {
 export interface Provider {
   id: number;
   uid: string;
+  code?: string;
   name: string;
   phone?: string;
   address?: string;
@@ -67,7 +68,7 @@ export interface Provider {
 
 // ============ 标准 CRUD API (使用工厂函数) ============
 
-const baseProviderApi = createCrudApi<Provider, ProviderQueryDto>({
+const baseProviderApi = createCrudApi<Provider, ProviderQueryDto, ProviderDto>({
   prefix: prefix,
   enableBatch: true,
   enableRestore: true

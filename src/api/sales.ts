@@ -10,13 +10,16 @@ import {
   updateOrderApi,
   type OrderQueryDto
 } from "./business/order";
+import type { SalesOrder } from "@/views/sales/order/types";
+import type { OutboundOrder } from "@/views/sales/outbound/types";
+import type { SalesReturnOrder } from "@/views/sales/return/types";
 
 export const SALES_ORDER_TYPE = "sale-order" as const;
 export const SALES_RETURN_ORDER_TYPE = "return-order" as const;
 export const SALES_OUTBOUND_ORDER_TYPE = "sale-outbound" as const;
 
 export function getSalesOrderListApi(index: number, params?: OrderQueryDto) {
-  return getOrderListApi(SALES_ORDER_TYPE, index, params);
+  return getOrderListApi<SalesOrder>(SALES_ORDER_TYPE, index, params);
 }
 
 export function createSalesOrderApi(data: Parameters<typeof addOrderApi>[1]) {
@@ -38,7 +41,11 @@ export function getSalesReturnOrderListApi(
   index: number,
   params?: OrderQueryDto
 ) {
-  return getOrderListApi(SALES_RETURN_ORDER_TYPE, index, params);
+  return getOrderListApi<SalesReturnOrder>(
+    SALES_RETURN_ORDER_TYPE,
+    index,
+    params
+  );
 }
 
 export function createSalesReturnOrderApi(
@@ -59,7 +66,11 @@ export function deleteSalesReturnOrderApi(uid: string) {
 }
 
 export function getSalesOutboundListApi(index: number, params?: OrderQueryDto) {
-  return getOrderListApi(SALES_OUTBOUND_ORDER_TYPE, index, params);
+  return getOrderListApi<OutboundOrder>(
+    SALES_OUTBOUND_ORDER_TYPE,
+    index,
+    params
+  );
 }
 
 export function createSalesOutboundApi(

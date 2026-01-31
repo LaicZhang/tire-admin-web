@@ -4,7 +4,11 @@ import type { CommonResult, PaginatedResponseDto } from "./type";
 import type { OtherInboundOrder } from "@/views/inventory/otherInbound/types";
 import type { OtherOutboundOrder } from "@/views/inventory/otherOutbound/types";
 import type { InventoryDocument } from "@/views/inventory/documents/types";
-import type { AssemblyOrder } from "@/views/inventory/assembly/types";
+import type {
+  Bom,
+  CreateBomDto,
+  UpdateBomDto
+} from "@/views/inventory/bom/types";
 import type { DisassemblyOrder } from "@/views/inventory/disassembly/types";
 import type { CostRecalcTask } from "@/views/inventory/costRecalc/types";
 
@@ -17,9 +21,11 @@ const inventoryDocumentPrefix = "/inventory-document/";
 
 /** 库存订单通用查询参数 */
 export interface InventoryOrderQueryDto {
+  type?: string;
   keyword?: string;
   startDate?: string;
   endDate?: string;
+  status?: string;
   isApproved?: boolean;
   repoId?: string;
   tireId?: string;
@@ -100,14 +106,14 @@ export async function getBomListApi(
   index: number,
   params?: InventoryOrderQueryDto
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto<AssemblyOrder>>>(
+  return await http.request<CommonResult<PaginatedResponseDto<Bom>>>(
     "get",
     baseUrlApi(bomPrefix + "page/" + index),
     { params }
   );
 }
 
-export async function createBomApi(data: unknown) {
+export async function createBomApi(data: CreateBomDto) {
   return await http.request<CommonResult<unknown>>(
     "post",
     baseUrlApi(bomPrefix),
@@ -117,7 +123,7 @@ export async function createBomApi(data: unknown) {
   );
 }
 
-export async function updateBomApi(uid: string, data: unknown) {
+export async function updateBomApi(uid: string, data: UpdateBomDto) {
   return await http.request<CommonResult<unknown>>(
     "patch",
     baseUrlApi(bomPrefix + uid),
