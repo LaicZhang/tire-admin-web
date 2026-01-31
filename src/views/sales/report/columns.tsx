@@ -1,4 +1,5 @@
 import { ElProgress } from "element-plus";
+import { MoneyDisplay } from "@/components";
 
 interface CustomerRankingRow {
   customerName: string;
@@ -13,6 +14,12 @@ interface TrendDataRow {
   orderCount: number;
   quantity: number;
   amount: number | string;
+}
+
+function toNumberOrNull(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const num = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(num) ? num : null;
 }
 
 export function useColumns() {
@@ -42,7 +49,7 @@ export function useColumns() {
       width: 120,
       cellRenderer: data => {
         const row = data.row as CustomerRankingRow | undefined;
-        return <span>¥{row ? Number(row.totalAmount).toFixed(2) : "-"}</span>;
+        return <MoneyDisplay value={toNumberOrNull(row?.totalAmount)} />;
       }
     },
     {
@@ -83,7 +90,7 @@ export function useColumns() {
       width: 120,
       cellRenderer: data => {
         const row = data.row as TrendDataRow | undefined;
-        return <span>¥{row ? Number(row.amount).toFixed(2) : "-"}</span>;
+        return <MoneyDisplay value={toNumberOrNull(row?.amount)} />;
       }
     }
   ];
