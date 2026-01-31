@@ -5,7 +5,7 @@ import { ElMessage } from "element-plus";
 import { handleApiError } from "@/utils/error";
 import { type Transfer, type CreateTransferDto } from "./types";
 import dayjs from "dayjs";
-import { yuanToFen, fenToYuanNumber as fenToYuan } from "@/utils/formatMoney";
+import { fenToYuan } from "@/utils/formatMoney";
 import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
@@ -185,7 +185,7 @@ function handleClose() {
           <el-option
             v-for="item in fromAccountOptions"
             :key="item.uid"
-            :label="`${item.name}${item.balance !== undefined ? ` (余额: ¥${(item.balance / 100).toFixed(2)})` : ''}`"
+            :label="`${item.name}${item.balance !== undefined ? ` (余额: ¥${fenToYuan(item.balance)})` : ''}`"
             :value="item.uid"
           />
         </el-select>

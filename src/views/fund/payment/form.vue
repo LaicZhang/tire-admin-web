@@ -10,7 +10,7 @@ import {
   type PaymentDetailItem
 } from "./types";
 import dayjs from "dayjs";
-import { yuanToFen, fenToYuanNumber as fenToYuan } from "@/utils/formatMoney";
+import { fenToYuan, fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import { handleApiError } from "@/utils";
 import { useFundForm } from "../composables/useFundForm";
 
@@ -83,7 +83,9 @@ const advanceAmount = computed(() => {
 // 选中账户的余额
 const selectedPaymentBalance = computed(() => {
   const selected = paymentList.value.find(p => p.uid === formData.paymentId);
-  return selected?.balance !== undefined ? fenToYuan(selected.balance) : null;
+  return selected?.balance !== undefined
+    ? fenToYuanNumber(selected.balance)
+    : null;
 });
 
 function resetForm() {
@@ -250,7 +252,7 @@ const formColumns: TableColumnList = [
               <el-option
                 v-for="item in paymentList"
                 :key="item.uid"
-                :label="`${item.name}${item.balance !== undefined ? ` (${(item.balance / 100).toFixed(2)})` : ''}`"
+                :label="`${item.name}${item.balance !== undefined ? ` (${fenToYuan(item.balance)})` : ''}`"
                 :value="item.uid"
               />
             </el-select>
@@ -304,7 +306,7 @@ const formColumns: TableColumnList = [
         <el-col :span="12">
           <el-form-item label="本次预付">
             <el-input
-              :model-value="(advanceAmount / 100).toFixed(2)"
+              :model-value="fenToYuan(advanceAmount)"
               disabled
               class="w-full"
             >
@@ -379,7 +381,7 @@ const formColumns: TableColumnList = [
       </pure-table>
 
       <div class="flex justify-end text-sm text-gray-500">
-        核销合计: ¥{{ (totalWriteOffAmount / 100).toFixed(2) }}
+        核销合计: ¥{{ fenToYuan(totalWriteOffAmount) }}
       </div>
     </el-form>
 
