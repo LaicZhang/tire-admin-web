@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
+import type { TabPaneName } from "element-plus";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { http } from "@/utils/http";
 import { handleApiError } from "@/utils";
@@ -258,8 +259,8 @@ function resetForm(formEl?: { resetFields: () => void }) {
   onSearch();
 }
 
-function handleTabChange(tab: string) {
-  activeTab.value = tab;
+function handleTabChange(tab: TabPaneName) {
+  activeTab.value = String(tab) as typeof activeTab.value;
   onSearch();
 }
 

@@ -7,7 +7,7 @@ export type DocumentType =
   | "OTHER_EXPENSE" // 其他支出单
   | "TRANSFER"; // 转账单
 
-export type ElTagType = "" | "success" | "warning" | "info" | "danger";
+export type ElTagType = "primary" | "success" | "warning" | "info" | "danger";
 
 /** 单据状态 */
 export type DocumentStatus = "DRAFT" | "APPROVED" | "COMPLETED" | "VOID";
