@@ -1,6 +1,6 @@
-<script setup lang="ts" generic="T extends OrderDetailBase">
-import { ref, computed } from "vue";
-import type { TableColumnList } from "@pureadmin/vue";
+<script setup lang="ts">
+import { computed } from "vue";
+import type { TableColumnList } from "@/utils/columnFactories";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
@@ -27,8 +27,12 @@ interface OrderDetailShipping {
   isDelivered?: boolean;
 }
 
-export interface OrderDetailTableProps<T extends OrderDetailBase> {
-  details: T[];
+export type OrderDetailRow = OrderDetailBase &
+  Partial<OrderDetailDiscount> &
+  Partial<OrderDetailShipping>;
+
+export interface OrderDetailTableProps {
+  details: OrderDetailRow[];
   columns: TableColumnList;
   tireList: Array<{ uid: string; name: string }>;
   repoList: Array<{ uid: string; name: string }>;
@@ -36,13 +40,13 @@ export interface OrderDetailTableProps<T extends OrderDetailBase> {
   showDiscount?: boolean;
   showIsArrival?: boolean;
   showIsShipped?: boolean;
-  onAdd?: (detail: T) => void;
-  onDelete?: (index: number, detail: T) => void;
-  onCalcTotal?: (row: T) => void;
-  onRecalcTotal?: (details: T[]) => void;
+  onAdd?: (detail: OrderDetailRow) => void;
+  onDelete?: (index: number, detail: OrderDetailRow) => void;
+  onCalcTotal?: (row: OrderDetailRow) => void;
+  onRecalcTotal?: (details: OrderDetailRow[]) => void;
 }
 
-const props = withDefaults(defineProps<OrderDetailTableProps<T>>(), {
+const props = withDefaults(defineProps<OrderDetailTableProps>(), {
   isReadOnly: false,
   showDiscount: false,
   showIsArrival: false,
@@ -52,7 +56,7 @@ const props = withDefaults(defineProps<OrderDetailTableProps<T>>(), {
 const emit = defineEmits<{
   (e: "add"): void;
   (e: "delete", index: number): void;
-  (e: "update:details", details: T[]): void;
+  (e: "update:details", details: OrderDetailRow[]): void;
 }>();
 
 const isEditable = computed(() => !props.isReadOnly);
@@ -85,7 +89,7 @@ function onAddDetail() {
     ...baseDetail,
     ...discountFields,
     ...shippingFields
-  } as T;
+  } as OrderDetailRow;
 
   detailsModel.value.push(newDetail);
   emit("add");

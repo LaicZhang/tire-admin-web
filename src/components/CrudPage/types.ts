@@ -43,7 +43,7 @@ export interface SearchFormField {
   /** 宽度 */
   width?: string | number;
   /** 选项（select 类型） */
-  options?: Array<{ label: string; value: unknown }>;
+  options?: Array<{ label: string; value: string | number | boolean }>;
   /** 其他属性 */
   props?: Record<string, unknown>;
 }
@@ -156,9 +156,19 @@ export interface PaginationConfig {
  * 表单引用
  */
 export type FormRef = {
+  /** 重置表单字段 */
   resetFields: () => void;
+  /** 验证表单 */
   validate: (callback?: (valid: boolean) => void) => Promise<boolean>;
+  /** 清除验证状态 */
   clearValidate: (props?: string | string[]) => void;
+  /** 验证指定字段 */
+  validateField?: (
+    props?: string | string[],
+    callback?: (valid: boolean) => void
+  ) => Promise<boolean>;
+  /** 滚动到指定字段 */
+  scrollToField?: (prop: string) => void;
 };
 
 /**

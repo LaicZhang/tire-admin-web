@@ -18,7 +18,7 @@ export const routerArrays: Array<RouteConfigs> =
 
 export type routeMetaType = {
   title?: string;
-  icon?: string | IconifyIcon;
+  icon?: string | IconifyIcon | null;
   showLink?: boolean;
   savedPosition?: boolean;
   auths?: Array<string>;

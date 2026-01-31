@@ -20,13 +20,13 @@ const getBreadcrumb = (): void => {
   let currentRoute: RouteConfigs | undefined;
 
   if (Object.keys(route.query).length > 0) {
-    multiTags.forEach((item: RouteConfigs) => {
+    multiTags.forEach(item => {
       if (isEqual(route.query, item?.query)) {
         currentRoute = toRaw(item);
       }
     });
   } else if (Object.keys(route.params).length > 0) {
-    multiTags.forEach((item: RouteConfigs) => {
+    multiTags.forEach(item => {
       if (isEqual(route.params, item?.params)) {
         currentRoute = toRaw(item);
       }

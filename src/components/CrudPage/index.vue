@@ -27,6 +27,20 @@ import AddFill from "~icons/ri/add-circle-line";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 
+type InputModelValue = string | number | null | undefined;
+type SelectModelValue = string | number | boolean | null | undefined;
+type ScopeModelValue = "nonDeleted" | "deleted" | "all" | undefined;
+type DatePickerModelValue =
+  | string
+  | number
+  | Date
+  | string[]
+  | number[]
+  | Date[]
+  | null
+  | undefined;
+type NumberModelValue = number | null | undefined;
+
 // Props
 const props = withDefaults(defineProps<CrudPageConfig<T, QueryDto>>(), {
   enableRestore: false,
@@ -48,7 +62,7 @@ const props = withDefaults(defineProps<CrudPageConfig<T, QueryDto>>(), {
 // Emits
 const emit = defineEmits<{
   refresh: [];
-  rowAction: [action: string, row: RowData<T>];
+  rowAction: [action: string, row: RowData<T> | null];
 }>();
 
 // State
@@ -206,25 +220,27 @@ defineExpose({
           <!-- 输入框 -->
           <el-input
             v-if="field.type === 'input'"
-            v-model="form[field.prop]"
+            :model-value="form[field.prop] as InputModelValue"
             :placeholder="field.placeholder || `请输入${field.label}`"
             clearable
             :style="{ width: field.width || '180px' }"
             v-bind="field.props"
+            @update:model-value="val => (form[field.prop] = val)"
           />
 
           <!-- 选择框 -->
           <el-select
             v-else-if="field.type === 'select'"
-            v-model="form[field.prop]"
+            :model-value="form[field.prop] as SelectModelValue"
             :placeholder="field.placeholder || `请选择${field.label}`"
             clearable
             :style="{ width: field.width || '180px' }"
             v-bind="field.props"
+            @update:model-value="val => (form[field.prop] = val)"
           >
             <el-option
               v-for="option in field.options"
-              :key="option.value"
+              :key="String(option.value)"
               :label="option.label"
               :value="option.value"
             />
@@ -233,39 +249,47 @@ defineExpose({
           <!-- 日期选择 -->
           <el-date-picker
             v-else-if="field.type === 'date'"
-            v-model="form[field.prop]"
+            :model-value="form[field.prop] as DatePickerModelValue"
             type="date"
             :placeholder="field.placeholder || `请选择${field.label}`"
             clearable
             :style="{ width: field.width || '180px' }"
             v-bind="field.props"
+            @update:model-value="val => (form[field.prop] = val)"
           />
 
           <!-- 日期范围选择 -->
           <el-date-picker
             v-else-if="field.type === 'daterange'"
-            v-model="form[field.prop]"
+            :model-value="form[field.prop] as DatePickerModelValue"
             type="daterange"
             :placeholder="field.placeholder || `请选择${field.label}`"
             clearable
             :style="{ width: field.width || '280px' }"
             v-bind="field.props"
+            @update:model-value="val => (form[field.prop] = val)"
           />
 
           <!-- 数字输入 -->
           <el-input-number
             v-else-if="field.type === 'number'"
-            v-model="form[field.prop]"
+            :model-value="form[field.prop] as NumberModelValue"
             :placeholder="field.placeholder || `请输入${field.label}`"
             :style="{ width: field.width || '180px' }"
             v-bind="field.props"
+            @update:model-value="val => (form[field.prop] = val)"
           />
         </el-form-item>
       </template>
 
       <!-- 范围选择 -->
       <el-form-item v-if="showScope" label="范围：" prop="scope">
-        <el-select v-model="form.scope" class="w-[180px]!" clearable>
+        <el-select
+          :model-value="form.scope as ScopeModelValue"
+          class="w-[180px]!"
+          clearable
+          @update:model-value="val => (form.scope = val)"
+        >
           <el-option
             v-for="option in scopeOptions"
             :key="option.value"

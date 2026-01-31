@@ -13,11 +13,15 @@ import type { multiType } from "@/store/modules/types";
  */
 export function getParentPaths(
   value: string,
-  routes: RouteRecordRaw[],
+  routes: readonly RouteRecordRaw[],
   key = "path"
 ) {
   // 深度遍历查找
-  function dfs(routes: RouteRecordRaw[], value: string, parents: string[]) {
+  function dfs(
+    routes: readonly RouteRecordRaw[],
+    value: string,
+    parents: string[]
+  ) {
     for (let i = 0; i < routes.length; i++) {
       const item = routes[i];
       // 返回父级path
@@ -45,7 +49,7 @@ export function getParentPaths(
  */
 export function findRouteByPath(
   path: string,
-  routes: RouteRecordRaw[]
+  routes: readonly RouteRecordRaw[]
 ): RouteRecordRaw | null {
   let res: RouteRecordRaw | null | undefined = routes.find(
     item => item.path === path
