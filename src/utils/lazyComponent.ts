@@ -1,4 +1,5 @@
 import { defineAsyncComponent, type Component, h } from "vue";
+import { logger } from "@/utils/logger";
 
 export interface AsyncComponentOptions {
   /** 加载延迟时间（ms），超过此时间才显示 loading */
@@ -54,7 +55,7 @@ export function lazyComponent(
           // 等待后重试
           await new Promise(resolve => setTimeout(resolve, retryDelay));
           if (import.meta.env.DEV) {
-            console.warn(
+            logger.warn(
               `[LazyComponent] 加载失败，${retryDelay}ms 后进行第 ${attempt + 1} 次重试`
             );
           }
@@ -92,7 +93,7 @@ export function lazyComponent(
     },
     onError(error, retry, fail, attempts) {
       if (import.meta.env.DEV) {
-        console.error(`[LazyComponent] 加载失败 (尝试 ${attempts} 次):`, error);
+        logger.error(`[LazyComponent] 加载失败 (尝试 ${attempts} 次):`, error);
       }
       // 超过重试次数后失败
       if (attempts > retries) {

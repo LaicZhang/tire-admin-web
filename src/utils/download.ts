@@ -1,3 +1,5 @@
+import { logger } from "@/utils/logger";
+
 /**
  * 文件下载工具函数
  * 统一处理 Blob 下载、URL 下载等场景，避免重复代码
@@ -59,7 +61,7 @@ export function downloadBlob(
       });
     }
   } catch (error) {
-    console.error("下载文件失败:", error);
+    logger.error("下载文件失败:", error);
     import("@/utils/message").then(({ message }) => {
       message("下载失败", { type: "error" });
     });
@@ -86,7 +88,7 @@ export async function downloadFromRequest(
     const blob = await promise;
     downloadBlob(blob, filename, options);
   } catch (error) {
-    console.error("下载请求失败:", error);
+    logger.error("下载请求失败:", error);
     import("@/utils/message").then(({ message }) => {
       message("下载失败", { type: "error" });
     });
@@ -142,7 +144,7 @@ export async function downloadFromUrl(
 
     downloadBlob(blob, finalFilename, options);
   } catch (error) {
-    console.error("从 URL 下载失败:", error);
+    logger.error("从 URL 下载失败:", error);
     import("@/utils/message").then(({ message }) => {
       message("下载失败", { type: "error" });
     });

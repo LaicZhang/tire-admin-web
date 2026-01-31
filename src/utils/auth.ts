@@ -6,6 +6,7 @@ import {
   csrfCookieName,
   csrfHeaderName
 } from "./auth-config";
+import { authLogger } from "@/utils/logger";
 
 // Re-export for backward compatibility (http -> auth -> user -> api -> http circular dependency fix)
 export { useHttpOnlyCookie, csrfCookieName, csrfHeaderName };
@@ -119,7 +120,7 @@ export function getToken(): DataInfo<number> | null {
       uid: localToken?.uid ?? ""
     };
   } catch (error) {
-    console.error("Failed to parse token:", error);
+    authLogger.error("Failed to parse token:", error);
     return null;
   }
 }
