@@ -12,6 +12,9 @@ import {
   PURCHASE_ORDER_TYPE,
   PURCHASE_RETURN_ORDER_TYPE
 } from "@/api/purchase";
+import type { PurchaseOrder } from "@/views/purchase/order/types";
+import type { InboundOrder } from "@/views/purchase/inbound/types";
+import type { ReturnOrder } from "@/views/purchase/return/types";
 import {
   message,
   ALL_LIST,
@@ -52,12 +55,16 @@ const pagination = ref({
   background: true
 });
 
-const providerList = ref<unknown[]>([]);
+interface SelectItem {
+  uid: string;
+  name: string;
+}
+const providerList = ref<SelectItem[]>([]);
 
 async function loadSelectData() {
   try {
     const providers = await localForage().getItem(ALL_LIST.provider);
-    providerList.value = (providers as unknown[]) || [];
+    providerList.value = (providers as SelectItem[]) || [];
   } catch (error) {
     handleApiError(error, "加载下拉数据失败");
   }
@@ -86,13 +93,30 @@ async function getList() {
       searchForm.value.endDate = dateRange.value[1];
     }
 
+    const queryParams = {
+      providerId: searchForm.value.providerId,
+      isApproved: searchForm.value.isApproved,
+      status: searchForm.value.status,
+      startDate: searchForm.value.startDate,
+      endDate: searchForm.value.endDate,
+      keyword: searchForm.value.keyword
+    };
+
     const typesToQuery = searchForm.value.type
       ? [typeMap[searchForm.value.type]]
       : Object.values(typeMap);
 
+    type PurchaseDocSourceItem = PurchaseOrder | InboundOrder | ReturnOrder;
     const fetchByType: Record<
       string,
-      (index: number, params?: Record<string, unknown>) => Promise<unknown>
+      (
+        index: number,
+        params?: Record<string, unknown>
+      ) => Promise<{
+        code: number;
+        msg: string;
+        data: { list: PurchaseDocSourceItem[]; count: number };
+      }>
     > = {
       [PURCHASE_ORDER_TYPE]: getPurchaseOrderListApi,
       [PURCHASE_INBOUND_ORDER_TYPE]: getPurchaseInboundListApi,
@@ -103,21 +127,26 @@ async function getList() {
       try {
         const fetch = fetchByType[orderType];
         if (!fetch) continue;
-        const res = await fetch(pagination.value.currentPage, searchForm.value);
+        const res = await fetch(pagination.value.currentPage, queryParams);
         if (res.code === 200 && res.data.list) {
-          let items = res.data.list;
-          if (orderType === PURCHASE_RETURN_ORDER_TYPE) {
-            items = items.filter((item: unknown) => item.providerId);
-          }
-          const mappedItems = items.map((item: unknown) => ({
-            ...item,
-            type: Object.keys(typeMap).find(
-              k => typeMap[k] === orderType
-            ) as DocumentType,
+          const items = res.data.list;
+          const docType = Object.keys(typeMap).find(
+            k => typeMap[k] === orderType
+          ) as DocumentType;
+          const mappedItems: DocumentItem[] = items.map(item => ({
+            uid: item.uid,
+            number: item.number,
+            type: docType,
             typeName: typeNameMap[orderType],
-            providerName: item.provider?.name || "",
-            operatorName: item.operator?.name || "",
-            createdAt: formatDate(item.createdAt)
+            providerId: item.providerId,
+            providerName: item.provider?.name || item.providerName || "",
+            count: item.count,
+            total: item.total,
+            status: item.status,
+            isApproved: item.isApproved,
+            createdAt: formatDate(item.createdAt),
+            operatorName: item.operator?.name || item.operatorName || "",
+            desc: item.desc
           }));
           allData.push(...mappedItems);
         }

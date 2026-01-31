@@ -161,7 +161,7 @@ async function loadReportData() {
       pData.totalAmount += orderTotal;
       pData.totalQuantity += quantity;
 
-      const dateKey = getGroupKey(order.createdAt);
+      const dateKey = order.createdAt ? getGroupKey(order.createdAt) : "未知";
       if (!dateMap.has(dateKey)) {
         dateMap.set(dateKey, {
           date: dateKey,

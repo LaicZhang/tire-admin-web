@@ -51,9 +51,13 @@ const pagination = ref({
   background: true
 });
 
-const employeeList = ref<unknown[]>([]);
-const managerList = ref<unknown[]>([]);
-const providerList = ref<unknown[]>([]);
+interface SelectItem {
+  uid: string;
+  name: string;
+}
+const employeeList = ref<SelectItem[]>([]);
+const managerList = ref<SelectItem[]>([]);
+const providerList = ref<SelectItem[]>([]);
 
 async function loadSelectData() {
   try {
@@ -62,9 +66,9 @@ async function loadSelectData() {
       localForage().getItem(ALL_LIST.manager),
       localForage().getItem(ALL_LIST.provider)
     ]);
-    employeeList.value = (employees as unknown[]) || [];
-    managerList.value = (managers as unknown[]) || [];
-    providerList.value = (providers as unknown[]) || [];
+    employeeList.value = (employees as SelectItem[]) || [];
+    managerList.value = (managers as SelectItem[]) || [];
+    providerList.value = (providers as SelectItem[]) || [];
   } catch (error) {
     handleApiError(error, "加载下拉数据失败");
   }
@@ -150,7 +154,8 @@ function openDialog(title: string, row?: ReturnOrder) {
 
         try {
           const companyId = await getCompanyId();
-          const { details, ...orderData } = formData;
+          const { details, provider, operator, auditor, ...orderData } =
+            formData;
 
           if (title === "新增") {
             if (details.length === 0) {
@@ -228,7 +233,7 @@ async function openFromRouteQuery() {
     loading.value = true;
     const res = await getPurchaseReturnOrderApi(uid);
     if (res.code === 200) {
-      openDialog(title, res.data as ReturnOrder);
+      openDialog(title, res.data);
     } else {
       message(res.msg, { type: "error" });
     }
@@ -371,10 +376,10 @@ onMounted(async () => {
                     }
                   ] as CustomAction[]
                 "
-                @view="openDialog('查看', $event)"
-                @edit="openDialog('修改', $event)"
-                @audit="openDialog('审核', $event)"
-                @delete="handleDelete"
+                @view="openDialog('查看', $event as unknown as ReturnOrder)"
+                @edit="openDialog('修改', $event as unknown as ReturnOrder)"
+                @audit="openDialog('审核', $event as unknown as ReturnOrder)"
+                @delete="handleDelete($event as unknown as ReturnOrder)"
               />
             </template>
           </pure-table>

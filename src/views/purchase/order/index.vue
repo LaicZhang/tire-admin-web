@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -19,14 +19,12 @@ import {
   updatePurchaseOrderApi
 } from "@/api/purchase";
 import { getCompanyId } from "@/api/company";
-import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
+import { useOrderListPage } from "@/composables/useOrderListPage";
+import { useOrderConfirmActions } from "@/composables/useOrderConfirmActions";
 import { purchaseOrderColumns } from "./columns";
-import type {
-  PurchaseOrder,
-  PurchaseOrderQueryParams,
-  OptionItem
-} from "./types";
+import type { PurchaseOrder, PurchaseOrderQueryParams } from "./types";
 import editForm from "./form.vue";
 
 defineOptions({
@@ -35,8 +33,6 @@ defineOptions({
 
 const route = useRoute();
 
-const dataList = ref<PurchaseOrder[]>([]);
-const loading = ref(false);
 type PurchaseOrderFormRef = {
   getRef: () => FormInstance;
   getPayFee?: () => number;
@@ -44,75 +40,39 @@ type PurchaseOrderFormRef = {
 const formRef = ref<PurchaseOrderFormRef | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
-const searchForm = ref<PurchaseOrderQueryParams>({
-  operatorId: undefined,
-  auditorId: undefined,
-  providerId: undefined,
-  desc: undefined
+// 使用订单列表页 composable
+const {
+  dataList,
+  loading,
+  pagination,
+  searchForm,
+  selectData,
+  getList,
+  onSearch,
+  onReset,
+  handlePageChange
+} = useOrderListPage<PurchaseOrder, PurchaseOrderQueryParams>({
+  listApi: getPurchaseOrderListApi,
+  selectDataKeys: ["employee", "manager", "provider"],
+  initialQuery: {
+    operatorId: undefined,
+    auditorId: undefined,
+    providerId: undefined,
+    desc: undefined
+  },
+  listErrorMessage: "获取采购订单列表失败",
+  searchFormRef
 });
 
-const pagination = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1,
-  background: true
+// 使用订单确认操作 composable
+const { handleConfirmArrival } = useOrderConfirmActions({
+  onSuccess: getList
 });
 
-const employeeList = ref<OptionItem[]>([]);
-const managerList = ref<OptionItem[]>([]);
-const providerList = ref<OptionItem[]>([]);
-
-async function loadSelectData() {
-  try {
-    const [employees, managers, providers] = await Promise.all([
-      localForage().getItem(ALL_LIST.employee),
-      localForage().getItem(ALL_LIST.manager),
-      localForage().getItem(ALL_LIST.provider)
-    ]);
-    employeeList.value = (employees as OptionItem[]) || [];
-    managerList.value = (managers as OptionItem[]) || [];
-    providerList.value = (providers as OptionItem[]) || [];
-  } catch (error) {
-    handleApiError(error, "加载下拉数据失败");
-  }
-}
-
-async function getList() {
-  try {
-    loading.value = true;
-    const res = await getPurchaseOrderListApi(
-      pagination.value.currentPage,
-      searchForm.value
-    );
-    if (res.code === 200) {
-      const result = res.data as { list: PurchaseOrder[]; count: number };
-      dataList.value = result.list;
-      pagination.value.total = result.count;
-    } else {
-      message(res.msg, { type: "error" });
-    }
-  } catch (error) {
-    handleApiError(error, "获取采购订单列表失败");
-  } finally {
-    loading.value = false;
-  }
-}
-
-function onSearch() {
-  pagination.value.currentPage = 1;
-  getList();
-}
-
-function onReset() {
-  searchFormRef.value?.resetFields();
-  pagination.value.currentPage = 1;
-  getList();
-}
-
-function handlePageChange(page: number) {
-  pagination.value.currentPage = page;
-  getList();
-}
+// 获取下拉数据的别名引用
+const employeeList = selectData.employee;
+const managerList = selectData.manager;
+const providerList = selectData.provider;
 
 const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
   {
@@ -143,7 +103,7 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
     handlers: {
       新增: async formData => {
         const companyId = await getCompanyId();
-        const { details, ...orderData } = formData;
+        const { details, provider, operator, auditor, ...orderData } = formData;
 
         if (details.length === 0) {
           message("请添加商品明细", { type: "warning" });
@@ -164,7 +124,13 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
       },
       修改: async formData => {
         const companyId = await getCompanyId();
-        const { details: _details, ...orderData } = formData;
+        const {
+          details: _details,
+          provider,
+          operator,
+          auditor,
+          ...orderData
+        } = formData;
         await updatePurchaseOrderApi(formData.uid, {
           ...orderData,
           company: { connect: { uid: companyId } }
@@ -218,20 +184,20 @@ async function openFromRouteQuery() {
   const action = route.query.action;
   if (typeof uid !== "string" || typeof action !== "string") return;
 
-  const titleMap: Record<string, string> = {
+  const titleMap = {
     view: "查看",
     edit: "修改",
     audit: "审核",
     pay: "付款"
-  };
-  const title = titleMap[action];
-  if (!title) return;
+  } as const;
+  if (!(action in titleMap)) return;
+  const dialogAction = titleMap[action as keyof typeof titleMap];
 
   try {
     loading.value = true;
     const res = await getPurchaseOrderApi(uid);
     if (res.code === 200) {
-      openDialog(title, res.data as PurchaseOrder);
+      openDialog(dialogAction, res.data);
     } else {
       message(res.msg, { type: "error" });
     }
@@ -242,31 +208,13 @@ async function openFromRouteQuery() {
   }
 }
 
-async function handleConfirmArrival(row: PurchaseOrder) {
-  const pendingDetails = row.details.filter(d => !d.isArrival);
-  if (pendingDetails.length === 0) {
-    message("所有商品已到货", { type: "info" });
-    return;
-  }
-
-  try {
-    for (const detail of pendingDetails) {
-      if (detail.uid) {
-        await confirmPurchaseOrderArrivalApi(row.uid, {
-          detailUid: detail.uid
-        });
-      }
-    }
-    message("确认到货成功", { type: "success" });
-    getList();
-  } catch (error) {
-    handleApiError(error, "确认到货失败");
-  }
+// 确认到货 - 使用 composable 封装的方法
+async function onConfirmArrival(row: PurchaseOrder) {
+  await handleConfirmArrival(row, confirmPurchaseOrderArrivalApi);
 }
 
+// 只处理路由参数，composable 已处理 loadSelectData 和 getList
 onMounted(async () => {
-  await loadSelectData();
-  await getList();
   await openFromRouteQuery();
 });
 </script>
@@ -379,15 +327,16 @@ onMounted(async () => {
                       label: '确认到货',
                       type: 'success',
                       visible:
-                        row.isApproved && row.details?.some(d => !d.isArrival),
-                      onClick: () => handleConfirmArrival(row)
+                        (row as PurchaseOrder).isApproved &&
+                        (row as PurchaseOrder).details?.some(d => !d.isArrival),
+                      onClick: () => onConfirmArrival(row as PurchaseOrder)
                     }
                   ] as CustomAction[]
                 "
-                @view="openDialog('查看', $event)"
-                @edit="openDialog('修改', $event)"
-                @audit="openDialog('审核', $event)"
-                @delete="handleDelete"
+                @view="openDialog('查看', $event as unknown as PurchaseOrder)"
+                @edit="openDialog('修改', $event as unknown as PurchaseOrder)"
+                @audit="openDialog('审核', $event as unknown as PurchaseOrder)"
+                @delete="handleDelete($event as unknown as PurchaseOrder)"
               />
             </template>
           </pure-table>

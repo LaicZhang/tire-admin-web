@@ -59,6 +59,7 @@ export interface PurchaseOrderQueryParams {
   endDate?: string;
   keyword?: string;
   desc?: string;
+  [key: string]: unknown;
 }
 
 export interface PurchaseOrderFormProps {
