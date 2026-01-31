@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { h, ref, reactive, onMounted } from "vue";
 import { http } from "@/utils/http";
+import { httpLogger } from "@/utils/logger";
 import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
 import { columns } from "./columns";
@@ -60,7 +61,7 @@ const fetchData = async () => {
     pagination.currentPage = queryParams.index;
     pagination.pageSize = queryParams.size;
   } catch (error) {
-    console.error("获取收入单列表失败", error);
+    httpLogger.error("获取收入单列表失败", error);
   } finally {
     loading.value = false;
   }

@@ -2,6 +2,7 @@ import { ref } from "vue";
 import { getProviderListApi } from "@/api/business/provider";
 import { getCustomerListApi } from "@/api/business/customer";
 import { getPaymentListApi } from "@/api/payment";
+import { logger } from "@/utils/logger";
 
 export interface SelectOption {
   uid: string;
@@ -29,7 +30,7 @@ export function useFundForm() {
       const res = await getProviderListApi(1, { keyword: "" });
       providerList.value = res.data?.list || [];
     } catch (e) {
-      console.error("加载供应商列表失败", e);
+      logger.error("加载供应商列表失败", e);
     } finally {
       loadingProviders.value = false;
     }
@@ -42,7 +43,7 @@ export function useFundForm() {
       const res = await getCustomerListApi(1, { keyword: "" });
       customerList.value = res.data?.list || [];
     } catch (e) {
-      console.error("加载客户列表失败", e);
+      logger.error("加载客户列表失败", e);
     } finally {
       loadingCustomers.value = false;
     }
@@ -55,7 +56,7 @@ export function useFundForm() {
       const res = await getPaymentListApi();
       paymentList.value = (res.data as SelectOption[]) || [];
     } catch (e) {
-      console.error("加载账户列表失败", e);
+      logger.error("加载账户列表失败", e);
     } finally {
       loadingPayments.value = false;
     }

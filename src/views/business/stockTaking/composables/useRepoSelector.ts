@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { getRepoListApi, type Repo } from "@/api/company/repo";
+import { logger } from "@/utils/logger";
 
 export function useRepoSelector() {
   const repoList = ref<Repo[]>([]);
@@ -15,7 +16,7 @@ export function useRepoSelector() {
         }
       }
     } catch (error) {
-      console.error("获取仓库列表失败", error);
+      logger.error("获取仓库列表失败", error);
     }
   };
 

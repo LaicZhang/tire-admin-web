@@ -19,6 +19,7 @@ import {
 import { http } from "@/utils/http";
 import { getRepoListApi } from "@/api/company/repo";
 import { useRouter } from "vue-router";
+import { logger } from "@/utils/logger";
 
 defineOptions({
   name: "InventoryReport"
@@ -89,7 +90,7 @@ const loadRepos = async () => {
       repoList.value = data.list;
     }
   } catch (error) {
-    console.error("获取仓库列表失败", error);
+    logger.error("获取仓库列表失败", error);
   }
 };
 
@@ -134,7 +135,7 @@ const fetchData = async () => {
       pagination.value.total = data.count;
     }
   } catch (error) {
-    console.error("获取报表数据失败", error);
+    logger.error("获取报表数据失败", error);
   } finally {
     loading.value = false;
   }
@@ -160,8 +161,11 @@ const handleCurrentChange = (page: number) => {
   fetchData();
 };
 
-const handleReportTypeChange = (type: ReportType) => {
-  currentReportType.value = type;
+const handleReportTypeChange = (
+  type: string | number | boolean | undefined
+) => {
+  if (type === undefined) return;
+  currentReportType.value = type as ReportType;
   pagination.value.currentPage = 1;
   fetchData();
 };

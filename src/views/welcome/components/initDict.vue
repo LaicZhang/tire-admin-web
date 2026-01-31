@@ -3,6 +3,7 @@ import { onMounted } from "vue";
 import { getSysDictApi } from "@/api";
 import { message } from "@/utils/message";
 import { localForage, SYS } from "@/utils";
+import { logger } from "@/utils/logger";
 
 defineOptions({
   name: "initDict"
@@ -39,7 +40,7 @@ const refreshDict = async (silent = false) => {
       if (!silent) message(msg, { type: "error" });
     }
   } catch (error: unknown) {
-    if (!silent) console.error("初始化字典失败:", error);
+    if (!silent) logger.error("初始化字典失败:", error);
   }
 };
 

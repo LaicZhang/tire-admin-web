@@ -6,6 +6,7 @@ import { ref } from "vue";
 import { getProviderListApi } from "@/api/business/provider";
 import { getCustomerListApi } from "@/api/business/customer";
 import { getPaymentListApi } from "@/api/payment";
+import { logger } from "@/utils/logger";
 
 /** 基础选项类型 */
 export interface SelectOption {
@@ -31,7 +32,7 @@ export function useProviderList() {
       const res = await getProviderListApi(1, { keyword: "" });
       providerList.value = res.data?.list || [];
     } catch (e) {
-      console.error("加载供应商列表失败", e);
+      logger.error("加载供应商列表失败", e);
       providerList.value = [];
     } finally {
       loading.value = false;
@@ -54,7 +55,7 @@ export function useCustomerList() {
       const res = await getCustomerListApi(1, { keyword: "" });
       customerList.value = res.data?.list || [];
     } catch (e) {
-      console.error("加载客户列表失败", e);
+      logger.error("加载客户列表失败", e);
       customerList.value = [];
     } finally {
       loading.value = false;
@@ -77,7 +78,7 @@ export function usePaymentList() {
       const res = await getPaymentListApi();
       paymentList.value = (res.data as PaymentOption[]) || [];
     } catch (e) {
-      console.error("加载账户列表失败", e);
+      logger.error("加载账户列表失败", e);
       paymentList.value = [];
     } finally {
       loading.value = false;

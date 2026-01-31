@@ -5,6 +5,7 @@ import { ElMessage } from "element-plus";
 import { getCustomerListApi } from "@/api/business/customer";
 import { getPaymentListApi } from "@/api/payment";
 import { handleApiError } from "@/utils";
+import { logger } from "@/utils/logger";
 import {
   INCOME_TYPE_OPTIONS,
   type OtherIncome,
@@ -70,7 +71,7 @@ async function loadCustomers() {
     const res = await getCustomerListApi(1, { keyword: "" });
     customerList.value = res.data?.list || [];
   } catch (e) {
-    console.error("加载客户列表失败", e);
+    logger.error("加载客户列表失败", e);
   }
 }
 
@@ -81,7 +82,7 @@ async function loadPayments() {
       (res.data as Array<{ uid: string; name: string; balance?: number }>) ||
       [];
   } catch (e) {
-    console.error("加载账户列表失败", e);
+    logger.error("加载账户列表失败", e);
   }
 }
 
