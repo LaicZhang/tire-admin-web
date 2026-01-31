@@ -9,6 +9,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { type ShippingPlan, shippingPlanStatusMap } from "./types";
 import ShippingPlanDialog from "./ShippingPlanDialog.vue";
+import type { CreateShippingPlanDto } from "@/api";
 
 defineOptions({
   name: "ShippingPlanTab"
@@ -101,7 +102,7 @@ function handleAdd() {
   dialogVisible.value = true;
 }
 
-async function handleCreate(formData: unknown) {
+async function handleCreate(formData: CreateShippingPlanDto) {
   try {
     const { code, msg } = await createShippingPlanApi(formData);
     if (code === 200) {

@@ -8,6 +8,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { type LoadingTask, loadingTaskStatusMap } from "./types";
 import LoadingTaskDialog from "./LoadingTaskDialog.vue";
+import type { CreateLoadingTaskDto } from "@/api";
 
 defineOptions({
   name: "LoadingTaskTab"
@@ -100,7 +101,7 @@ function handleAdd() {
   dialogVisible.value = true;
 }
 
-async function handleCreate(formData: unknown) {
+async function handleCreate(formData: CreateLoadingTaskDto) {
   try {
     const { code, msg } = await createLoadingTaskApi(formData);
     if (code === 200) {

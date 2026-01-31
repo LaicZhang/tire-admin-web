@@ -11,6 +11,7 @@ import {
   BaseStaticUploadPath
 } from "@/utils";
 import { DeliveryExceptionType, deliveryExceptionTypeMap } from "./types";
+import type { UploadUserFile } from "element-plus";
 
 defineOptions({
   name: "DeliveryExceptionDialog"
@@ -50,7 +51,7 @@ const exceptionTypeOptions = Object.entries(deliveryExceptionTypeMap).map(
   })
 );
 
-const fileList = ref([]);
+const fileList = ref<UploadUserFile[]>([]);
 const uploadData = ref({});
 
 watch(
@@ -109,7 +110,7 @@ function handleUploadSuccess(response: {
 }) {
   const { code, msg, data } = response;
   if (code !== 200) {
-    message(msg, { type: "error" });
+    message(msg || "上传失败", { type: "error" });
     return;
   }
   if (data?.id) {
@@ -117,10 +118,8 @@ function handleUploadSuccess(response: {
   }
 }
 
-function handleRemove(file: { uid: number }) {
-  const index = fileList.value.findIndex(
-    (f: { uid: number }) => f.uid === file.uid
-  );
+function handleRemove(file: UploadUserFile) {
+  const index = fileList.value.findIndex(f => f.uid === file.uid);
   if (index > -1) {
     formData.value.images.splice(index, 1);
   }

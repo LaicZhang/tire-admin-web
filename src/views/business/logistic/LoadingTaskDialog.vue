@@ -2,6 +2,7 @@
 import { ref, watch } from "vue";
 import { getOrderListApi } from "@/api";
 import { BATCH_FETCH_PAGE_SIZE } from "@/utils/constants";
+import type { CreateLoadingTaskDto } from "@/api";
 
 defineOptions({
   name: "LoadingTaskDialog"
@@ -13,7 +14,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "update:visible", value: boolean): void;
-  (e: "submit", data: unknown): void;
+  (e: "submit", data: CreateLoadingTaskDto): void;
 }>();
 
 const dialogVisible = ref(props.visible);
@@ -59,12 +60,22 @@ function resetForm() {
 }
 
 async function loadOrders() {
+  type OrderLite = { uid: string; type?: string };
+  const isOrderLite = (order: unknown): order is OrderLite => {
+    return (
+      typeof order === "object" &&
+      order !== null &&
+      typeof (order as { uid?: unknown }).uid === "string"
+    );
+  };
+
   try {
     const { data, code } = await getOrderListApi("sale-order", 1, {
       pageSize: BATCH_FETCH_PAGE_SIZE
     });
     if (code === 200) {
-      orderOptions.value = (data?.list || []).map((order: unknown) => ({
+      const list = Array.isArray(data?.list) ? data.list : [];
+      orderOptions.value = list.filter(isOrderLite).map(order => ({
         uid: order.uid,
         label: `${order.uid.slice(-8)} - ${order.type || "订单"}`
       }));

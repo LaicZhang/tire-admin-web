@@ -10,6 +10,7 @@ import {
   StaticImageTypeEnum,
   BaseStaticUploadPath
 } from "@/utils";
+import type { UploadUserFile } from "element-plus";
 
 defineOptions({
   name: "DeliveryReceiptCard"
@@ -39,8 +40,14 @@ const formRules = {
   signedAt: [{ required: true, message: "请选择签收时间", trigger: "change" }]
 };
 
-const fileList = ref([]);
-const uploadData = ref({});
+type UploadResponse = {
+  code: number;
+  msg?: string;
+  data?: { id: string; hash: string; ext: string };
+};
+
+const fileList = ref<UploadUserFile[]>([]);
+const uploadData = ref<Record<string, unknown>>({});
 
 function getAuthorization() {
   const token = getToken();
@@ -66,10 +73,10 @@ async function handleBeforeUpload(file: File) {
   return true;
 }
 
-function handleUploadSuccess(response: unknown) {
+function handleUploadSuccess(response: UploadResponse) {
   const { code, msg, data } = response;
   if (code !== 200) {
-    message(msg, { type: "error" });
+    message(msg || "上传失败", { type: "error" });
     return;
   }
   if (data?.id) {
@@ -77,8 +84,8 @@ function handleUploadSuccess(response: unknown) {
   }
 }
 
-function handleRemove(file: unknown) {
-  const index = fileList.value.findIndex((f: unknown) => f.uid === file.uid);
+function handleRemove(file: UploadUserFile) {
+  const index = fileList.value.findIndex(f => f.uid === file.uid);
   if (index > -1) {
     formData.value.images.splice(index, 1);
   }

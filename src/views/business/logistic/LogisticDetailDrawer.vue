@@ -63,7 +63,7 @@ function handleRefresh() {
   emit("refresh");
 }
 
-function formatDate(date: string) {
+function formatDate(date?: string | null) {
   if (!date) return "-";
   return new Date(date).toLocaleString("zh-CN");
 }

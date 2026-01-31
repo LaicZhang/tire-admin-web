@@ -8,6 +8,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { type ShippingWave, shippingWaveStatusMap } from "./types";
 import ShippingWaveDialog from "./ShippingWaveDialog.vue";
+import type { CreateShippingWaveDto } from "@/api";
 
 defineOptions({
   name: "ShippingWaveTab"
@@ -105,7 +106,7 @@ function handleAdd() {
   dialogVisible.value = true;
 }
 
-async function handleCreate(formData: unknown) {
+async function handleCreate(formData: CreateShippingWaveDto) {
   try {
     const { code, msg } = await createShippingWaveApi(formData);
     if (code === 200) {
