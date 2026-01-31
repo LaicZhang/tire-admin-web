@@ -108,8 +108,9 @@ const onThirdPartyLogin = (icon: string) => {
     if (githubLoading.value) return;
     handleGithubLogin()
       .then(data => {
-        if (data && data.accessToken) {
-          setToken(data);
+        const accessToken = data?.accessToken;
+        if (accessToken) {
+          setToken({ accessToken });
           usePermissionStoreHook().handleWholeMenus([]);
           useCurrentCompanyStoreHook().handleCurrentCompany();
           addPathMatch();

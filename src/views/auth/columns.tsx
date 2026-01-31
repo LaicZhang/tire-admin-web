@@ -8,7 +8,21 @@ import { delay } from "@pureadmin/utils";
 import { formatDate } from "@/utils";
 
 export function useColumns() {
-  const dataList = ref([]);
+  type HistoryRow = {
+    id?: string | number;
+    module?: string;
+    method?: string;
+    success?: boolean;
+    operator?: string;
+    ip?: string;
+    record?: {
+      os?: string;
+      browser?: string;
+    };
+    createAt?: string;
+  };
+
+  const dataList = ref<HistoryRow[]>([]);
   const loading = ref(true);
   const columns: TableColumnList = [
     {

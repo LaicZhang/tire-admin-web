@@ -29,6 +29,9 @@ export interface DataInfo<T> {
   uid?: string;
 }
 
+export type SetTokenPayload = Pick<DataInfo<Date>, "accessToken"> &
+  Partial<Omit<DataInfo<Date>, "accessToken">>;
+
 export interface CurrentCompanyInfo {
   companyName?: string;
   companyId?: string;
@@ -132,11 +135,11 @@ export function getToken(): DataInfo<number> | null {
  * 将`username`、`roles`、`expires`这三条信息放在 key 值为`user-info`的 localStorage 里（利用`multipleTabsKey`当浏览器完全关闭后自动销毁）
  * 将 `refreshToken` 放在 sessionStorage（浏览器关闭后自动清理），作为 HttpOnly Cookie 迁移前的过渡方案
  */
-export function setToken(data: DataInfo<Date>) {
-  let expires = 0;
-  const { accessToken, refreshToken } = data;
+export function setToken(data: SetTokenPayload) {
+  const { accessToken } = data;
+  const refreshToken = data.refreshToken ?? "";
   const { isRemember, loginDay } = useUserStoreHook();
-  expires = new Date(data.expires).getTime(); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
+  const expires = data.expires ? new Date(data.expires).getTime() : 0; // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
 
   /** Cookie 安全配置 */
   const secureCookieOptions: Cookies.CookieAttributes = {

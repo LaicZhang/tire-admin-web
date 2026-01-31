@@ -43,8 +43,22 @@ async function getHistory() {
 }
 
 // API response data interface
+interface HistoryRow {
+  id?: string | number;
+  module?: string;
+  method?: string;
+  success?: boolean;
+  operator?: string;
+  ip?: string;
+  record?: {
+    os?: string;
+    browser?: string;
+  };
+  createAt?: string;
+}
+
 interface ApiResponseData {
-  list: unknown[];
+  list: HistoryRow[];
   total?: number;
   count?: number;
 }

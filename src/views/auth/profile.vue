@@ -201,7 +201,8 @@ const handleBindWx = async () => {
   try {
     const { data, code, msg } = await getWxQrLoginUrlApi();
     const qrData = data as { url?: string };
-    if (code === 200 && qrData?.url) {
+    const qrUrl = qrData.url;
+    if (code === 200 && qrUrl) {
       addDialog({
         title: "绑定微信",
         width: "400px",
@@ -210,7 +211,7 @@ const handleBindWx = async () => {
         hideFooter: true,
         contentRenderer: () =>
           h(WxBindForm, {
-            qrUrl: qrData.url,
+            qrUrl,
             onCheck: checkBindStatus,
             onClose: () => closeAllDialog()
           })
