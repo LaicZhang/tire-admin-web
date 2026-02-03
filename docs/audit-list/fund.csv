@@ -1,0 +1,18 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+views/fund/composables/,REUSE,P1,已创建fund专属composables目录设计良好,其他大型模块可参考创建模块级composables,参考
+views/fund/receipt/index.vue,MAINT,P2,332行与payment/index.vue(339行)高度相似,考虑提取共享的useFundOrder composable,中
+views/fund/payment/index.vue,MAINT,P1,使用ElMessage.success而非统一的message工具函数,替换为import { message } from '@/utils',小
+views/fund/payment/index.vue,MAINT,P2,getStatusInfo函数应使用StatusTag组件,移除手动状态映射使用StatusTag,小
+views/fund/payment/form.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/receipt/index.vue,MAINT,P2,calcReceiptStatus函数可复用,提取到fund/utils或composables,小
+views/fund/documents/index.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/documents/index.vue,REUSE,P1,使用useCrud模式良好,参考
+views/fund/transfer/index.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/transfer/form.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/writeOff/index.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/writeOff/form.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/otherIncome/index.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/otherIncome/form.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/otherExpense/index.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/otherExpense/form.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/fund/report/index.vue,PERF,P2,资金报表可能涉及大量数据聚合,考虑后端预计算或缓存,中

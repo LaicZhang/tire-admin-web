@@ -1,0 +1,6 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+views/analysis/,REUSE,P2,分析模块使用useAnalysisPage composable设计良好,推广到其他报表分析页面,参考
+views/analysis/sales/,PERF,P2,销售分析涉及大量数据聚合,确保后端有适当的索引和缓存,中
+views/analysis/inventory/,PERF,P2,库存分析涉及大量数据聚合,确保后端有适当的索引和缓存,中
+views/analysis/purchase/,PERF,P2,采购分析涉及大量数据聚合,确保后端有适当的索引和缓存,中
+views/analysis/finance/,PERF,P2,财务分析涉及大量数据聚合,确保后端有适当的索引和缓存,中

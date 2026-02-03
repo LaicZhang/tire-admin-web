@@ -1,0 +1,8 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+views/sales/order/index.vue,REUSE,P1,使用useOrderListPage和useActionFormDialog composable结构优秀,作为订单类页面的参考模板推广,参考
+views/sales/order/index.vue,REUSE,P1,使用TableOperations组件处理操作列良好实践,推广到其他列表页,已复用
+views/sales/order/columns.tsx,REUSE,P2,使用MoneyDisplay和StatusTag渲染列良好,确保所有金额/状态列使用这些组件,已复用
+views/sales/outbound/index.vue,MAINT,P3,出库单结构与order类似,确保使用一致的模式,参考
+views/sales/return/index.vue,MAINT,P3,退货单结构良好,参考
+views/sales/report/index.vue,PERF,P2,销售报表可能涉及大量数据聚合,考虑后端预计算或分页加载,中
+views/sales/documents/index.vue,MAINT,P3,单据管理页面结构标准,参考
