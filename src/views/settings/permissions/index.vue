@@ -11,6 +11,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import UserForm from "./form.vue";
 import type {
   PermissionUser,
@@ -34,6 +35,7 @@ defineOptions({
 
 const loading = ref(false);
 const activeTab = ref("users");
+const { confirm } = useConfirmDialog();
 const userList = ref<PermissionUser[]>([]);
 const roleList = ref<Role[]>([]);
 const formRef = ref();
@@ -170,16 +172,18 @@ const openUserDialog = (title = "新增", row?: PermissionUser) => {
 };
 
 const deleteUser = async (row: PermissionUser) => {
+  const ok = await confirm(
+    `确定要删除用户 "${row.username}" 吗？`,
+    "删除确认",
+    {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要删除用户 "${row.username}" 吗？`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     const res = await deletePermissionUserApi(row.uid);
     if (res.code === 200) {
       message("删除成功", { type: "success" });
@@ -188,9 +192,7 @@ const deleteUser = async (row: PermissionUser) => {
       message(res.msg || "删除失败", { type: "error" });
     }
   } catch (error) {
-    if (error !== "cancel") {
-      message("删除失败", { type: "error" });
-    }
+    message("删除失败", { type: "error" });
   }
 };
 
@@ -240,12 +242,14 @@ const openRolePermissionDialog = (role: Role) => {
 
 const addRole = async () => {
   try {
-    const { value } = await ElMessageBox.prompt("请输入角色名称", "新增角色", {
+    const promptRes = await ElMessageBox.prompt("请输入角色名称", "新增角色", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       inputPattern: /\S+/,
       inputErrorMessage: "角色名称不能为空"
     });
+    if (typeof promptRes === "string") return;
+    const { value } = promptRes;
     const res = await createRoleApi({ name: value });
     if (res.code === 200) {
       message("新增成功", { type: "success" });
@@ -265,16 +269,14 @@ const deleteRole = async (role: Role) => {
     message("系统角色不能删除", { type: "warning" });
     return;
   }
+  const ok = await confirm(`确定要删除角色 "${role.name}" 吗？`, "删除确认", {
+    confirmButtonText: "确定删除",
+    cancelButtonText: "取消",
+    type: "warning"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要删除角色 "${role.name}" 吗？`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     const res = await deleteRoleApi(role.uid);
     if (res.code === 200) {
       roleList.value = roleList.value.filter(r => r.uid !== role.uid);
@@ -283,7 +285,7 @@ const deleteRole = async (role: Role) => {
       message(res.msg || "删除失败", { type: "error" });
     }
   } catch {
-    // cancelled
+    message("删除失败", { type: "error" });
   }
 };
 

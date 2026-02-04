@@ -4,10 +4,10 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Plus from "~icons/ep/plus";
 import Delete from "~icons/ep/delete";
 import Refresh from "~icons/ep/refresh";
-import { ElMessageBox } from "element-plus";
 import { message } from "@/utils";
 import { saveUserDataAuthApi } from "@/api/setting";
 import type { DataAuthUser, AuthItem } from "../types";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 
 const props = defineProps<{
   visible: boolean;
@@ -37,6 +37,7 @@ const emit = defineEmits<{
 }>();
 
 const activeAuthTab = ref("customer");
+const { confirm } = useConfirmDialog();
 
 const authListColumns: TableColumnList = [
   {
@@ -67,44 +68,36 @@ const removeAuthItem = async (
   item: AuthItem,
   type: "customer" | "supplier" | "warehouse"
 ) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要移除 "${item.name}" 的授权吗？`,
-      "移除确认",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-    const newList = list.filter(i => i.uid !== item.uid);
-    if (type === "customer") emit("update:customerList", newList);
-    else if (type === "supplier") emit("update:supplierList", newList);
-    else emit("update:warehouseList", newList);
-    message("移除成功", { type: "success" });
-  } catch {
-    // cancelled
-  }
+  const ok = await confirm(`确定要移除 "${item.name}" 的授权吗？`, "移除确认", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  });
+  if (!ok) return;
+
+  const newList = list.filter(i => i.uid !== item.uid);
+  if (type === "customer") emit("update:customerList", newList);
+  else if (type === "supplier") emit("update:supplierList", newList);
+  else emit("update:warehouseList", newList);
+  message("移除成功", { type: "success" });
 };
 
 const clearAll = async (
   list: AuthItem[],
   type: "customer" | "supplier" | "warehouse"
 ) => {
-  try {
-    await ElMessageBox.confirm("确定要清空所有授权吗？", "清空确认", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning"
-    });
-    const newList: AuthItem[] = [];
-    if (type === "customer") emit("update:customerList", newList);
-    else if (type === "supplier") emit("update:supplierList", newList);
-    else emit("update:warehouseList", newList);
-    message("清空成功", { type: "success" });
-  } catch {
-    // cancelled
-  }
+  const ok = await confirm("确定要清空所有授权吗？", "清空确认", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  });
+  if (!ok) return;
+
+  const newList: AuthItem[] = [];
+  if (type === "customer") emit("update:customerList", newList);
+  else if (type === "supplier") emit("update:supplierList", newList);
+  else emit("update:warehouseList", newList);
+  message("清空成功", { type: "success" });
 };
 
 const saveAuth = async () => {

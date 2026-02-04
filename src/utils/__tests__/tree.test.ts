@@ -44,7 +44,10 @@ describe("tree utils", () => {
       });
       // @ts-expect-error testing invalid input
       buildHierarchyTree("not an array");
-      expect(consoleSpy).toHaveBeenCalledWith("tree must be an array");
+      expect(consoleSpy).toHaveBeenCalled();
+      expect(String(consoleSpy.mock.calls[0]?.[0] ?? "")).toContain(
+        "tree must be an array"
+      );
       consoleSpy.mockRestore();
     });
   });

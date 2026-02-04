@@ -1,0 +1,27 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+全局,MAINT,P2,pageSize硬编码为10/15/20三种值(89处),创建常量DEFAULT_PAGE_SIZE并统一使用,小
+全局,MAINT,P1,125+处空catch{}块静默吞掉错误,添加handleApiError或日志打印到空catch块,中
+全局,MAINT,P2,41处'.length === 0'检查可优化,考虑使用!array.length或isEmpty工具函数,小
+全局,A11Y,P2,仅2处使用aria-属性无障碍支持不足,关键交互元素添加aria-label和role属性,中
+全局,MAINT,P3,138+处表单规则部分内联部分独立定义,统一表单验证规则定义方式提取到rules文件,中
+全局,PERF,P2,9处使用setInterval/setTimeout未见onUnmounted清理,检查并添加onUnmounted清理定时器,小
+login/composables/useLoginForm.ts,PERF,P2,包含setInterval需确认onUnmounted清理,检查并添加定时器清理,小
+login/components/qrCode.vue,PERF,P2,包含setInterval需确认onUnmounted清理,检查并添加定时器清理,小
+login/utils/captchaCode.ts,PERF,P2,包含setInterval需确认onUnmounted清理,检查并添加定时器清理,小
+analysis/aging/index.vue,PERF,P2,addEventListener需确认onUnmounted移除监听,检查事件监听器清理,小
+analysis/finance/index.vue,PERF,P2,addEventListener需确认onUnmounted移除监听,检查事件监听器清理,小
+analysis/profit/index.vue,PERF,P2,addEventListener需确认onUnmounted移除监听,检查事件监听器清理,小
+analysis/inventory/index.vue,PERF,P2,addEventListener需确认onUnmounted移除监听,检查事件监听器清理,小
+analysis/sales/index.vue,PERF,P2,addEventListener需确认onUnmounted移除监听,检查事件监听器清理,小
+welcome/components/SalesChart.vue,PERF,P2,addEventListener需确认onUnmounted移除监听,检查事件监听器清理,小
+settings/backup/index.vue,TYPE,P2,2处'as any'类型断言,优化类型定义避免any,小
+data/importExport/index.vue,SEC,P2,直接操作localStorage,考虑使用store统一管理,小
+data/priceInfo/index.vue,SEC,P2,直接操作localStorage,考虑使用store统一管理,小
+business/stockTaking/index.vue,SEC,P2,直接操作sessionStorage,考虑使用store统一管理,小
+settings/push/index.vue,MAINT,P3,硬编码外部URL https://www.pushdeer.com,移至配置文件,小
+tools/verify/index.vue,MAINT,P3,硬编码外部URL作为默认值,移至配置文件,小
+data/expenseCategory/index.vue,PERF,P3,使用deep:true的watch可能影响性能,评估是否需要深度监听,小
+data/incomeCategory/index.vue,PERF,P3,使用deep:true的watch可能影响性能,评估是否需要深度监听,小
+data/settlement/index.vue,PERF,P3,使用deep:true的watch可能影响性能,评估是否需要深度监听,小
+company/asset/form.vue,MAINT,P3,表单规则内联定义不统一,提取到独立rules对象,小
+data/auxiliary/form.vue,MAINT,P3,表单规则内联定义不统一,提取到独立rules对象,小

@@ -13,7 +13,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import ProductForm from "./form.vue";
 import { message } from "@/utils";
-import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { FormItemProps } from "./types";
 import {
   getTireListApi,
@@ -29,6 +29,7 @@ defineOptions({
 });
 
 const formRef = ref();
+const { confirm } = useConfirmDialog();
 
 const state = ref({
   name: "",
@@ -159,23 +160,23 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 
 const deleteOne = async (row: FormItemProps) => {
   if (!row.uid) return;
+  const ok = await confirm(
+    `确定要删除商品 "${row.name}" 吗？此操作不可恢复。`,
+    "删除确认",
+    {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要删除商品 "${row.name}" 吗？此操作不可恢复。`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     await deleteTireApi(row.uid);
     message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      message("删除失败", { type: "error" });
-    }
+    message("删除失败", { type: "error" });
   }
 };
 </script>

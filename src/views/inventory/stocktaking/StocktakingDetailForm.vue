@@ -51,7 +51,7 @@ const handleUpdateDetail = async (detail: StocktakingDetail) => {
   if (!props.formInline.task) return;
 
   try {
-    const { value } = await ElMessageBox.prompt(
+    const res = await ElMessageBox.prompt(
       `当前系统库存: ${detail.bookCount}`,
       "录入实际库存",
       {
@@ -62,6 +62,8 @@ const handleUpdateDetail = async (detail: StocktakingDetail) => {
         inputErrorMessage: "请输入有效数量"
       }
     );
+    if (typeof res === "string") return;
+    const { value } = res;
 
     await updateInventoryCheckDetailsApi(props.formInline.task.id, {
       details: [

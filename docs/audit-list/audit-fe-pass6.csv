@@ -1,0 +1,22 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+全局,TYPE,P1,良好实践:79个types.ts类型定义文件,类型定义组织良好,无需操作
+全局,TYPE,P1,良好实践:113个columns文件表格列定义,列配置与视图分离良好,无需操作
+全局,TYPE,P1,良好实践:305+处export interface/type,类型导出规范,无需操作
+全局,TYPE,P2,已处理:export enum与union type混用,统一为const对象+union type推导模式,已完成
+inventory/documents/types.ts,TYPE,P3,DocumentType/Status已改为const对象+union type推导,参考
+fund/documents/types.ts,TYPE,P3,使用union type DocumentType规范,良好实践参考
+全局,PERF,P3,0处v-memo使用未利用性能优化,大列表可考虑v-memo减少渲染,小
+全局,PERF,P3,0处onActivated/onDeactivated缓存优化,如需页面缓存可结合keep-alive使用,小
+全局,REUSE,P1,良好实践:2处barrel文件重导出,business/order使用index.ts模式良好,参考
+business/order/props/index.ts,REUSE,P1,良好实践:使用export * from模式,可推广到其他复杂模块,参考
+business/order/composables/index.ts,REUSE,P1,良好实践:composables使用barrel导出,可推广到其他复杂模块,参考
+全局,MAINT,P2,已处理:enum vs union type风格不统一,统一为const对象+union type推导模式,已完成
+inventory/otherInbound/types.ts,TYPE,P3,OtherInboundType/Status已改为const对象+union type推导,参考
+inventory/otherOutbound/types.ts,TYPE,P3,OtherOutboundType/Status已改为const对象+union type推导,参考
+fund/otherIncome/types.ts,TYPE,P3,OtherIncomeStatus使用union type良好,参考
+fund/transfer/types.ts,TYPE,P3,TransferStatus使用union type良好,参考
+other/aiEntry/types.ts,TYPE,P1,类型定义完整:const对象+union type推导,AI Entry模块类型完整,参考
+other/smartImport/types.ts,TYPE,P1,类型定义完整:ImportStep const对象+union type推导,智能导入模块类型完整,参考
+login/utils/rule.ts,TYPE,P1,错误提示常量化:ERROR_TIPS const对象+union type推导,参考
+login/utils/motion.ts,PERF,P1,良好实践:export default动画配置,动画配置抽离良好,参考
+全局,MAINT,P1,良好实践:0处v-once静态内容,动态内容为主无需优化,无需操作

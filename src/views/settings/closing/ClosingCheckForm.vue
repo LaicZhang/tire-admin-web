@@ -1,11 +1,11 @@
 <script setup lang="tsx">
 import { ref, computed } from "vue";
-import { ElMessageBox } from "element-plus";
 import Check from "~icons/ep/check";
 import Close from "~icons/ep/close";
 import { handleApiError, message } from "@/utils";
 import { executeClosingApi, runClosingChecksApi } from "@/api/setting";
 import type { ClosingCheckItem } from "./types";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 
 const props = defineProps<{
   isClosing: boolean;
@@ -18,6 +18,7 @@ const closingDate = ref(props.initialDate);
 const checkItems = ref<ClosingCheckItem[]>([]);
 const checkLoading = ref(false);
 const actionLoading = ref(false);
+const { confirm } = useConfirmDialog();
 
 const checkColumns: TableColumnList = [
   { label: "检查项", prop: "name", width: 120 },
@@ -86,20 +87,21 @@ const doClosing = async () => {
     message("存在未通过的检查项，请先处理", { type: "warning" });
     return;
   }
-  try {
-    await ElMessageBox.confirm(
-      props.isClosing
-        ? `确定要结账到 ${closingDate.value} 吗？结账后该日期之前的数据将不能修改。`
-        : `确定要反结账 ${closingDate.value} 吗？`,
-      props.isClosing ? "结账确认" : "反结账确认",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-    actionLoading.value = true;
+  const ok = await confirm(
+    props.isClosing
+      ? `确定要结账到 ${closingDate.value} 吗？结账后该日期之前的数据将不能修改。`
+      : `确定要反结账 ${closingDate.value} 吗？`,
+    props.isClosing ? "结账确认" : "反结账确认",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
 
+  try {
+    actionLoading.value = true;
     const action = props.isClosing ? "close" : "unclose";
     const res = await executeClosingApi(closingDate.value, action);
     if (res.code !== 200) {
@@ -114,9 +116,7 @@ const doClosing = async () => {
     });
     props.onSuccess();
   } catch (error) {
-    if (error !== "cancel" && error !== "close") {
-      handleApiError(error, props.isClosing ? "结账失败" : "反结账失败");
-    }
+    handleApiError(error, props.isClosing ? "结账失败" : "反结账失败");
   } finally {
     actionLoading.value = false;
   }

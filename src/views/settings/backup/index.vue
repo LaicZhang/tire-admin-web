@@ -13,6 +13,7 @@ import {
   type UploadInstance,
   type UploadRequestOptions
 } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   getBackupListApi,
   createBackupApi,
@@ -28,6 +29,7 @@ defineOptions({
 });
 
 const loading = ref(false);
+const { confirm } = useConfirmDialog();
 const backupList = ref<BackupItem[]>([]);
 const uploadRef = ref<UploadInstance>();
 const backupSettings = ref<BackupSettings>({
@@ -128,7 +130,7 @@ const loadData = async () => {
 
 const startBackup = async () => {
   try {
-    const { value } = await ElMessageBox.prompt(
+    const res = await ElMessageBox.prompt(
       "请输入备份备注（可选）",
       "开始备份",
       {
@@ -137,6 +139,7 @@ const startBackup = async () => {
         inputPlaceholder: "请输入备注"
       }
     );
+    const value = typeof res === "string" ? "" : res.value;
     loading.value = true;
     const payload: Record<string, unknown> = {};
     if (value?.trim()) payload.remark = value.trim();
@@ -182,16 +185,18 @@ const restoreBackup = async (row: BackupItem) => {
     message("只能恢复成功的备份", { type: "warning" });
     return;
   }
+  const ok = await confirm(
+    `确定要恢复到备份 "${row.fileName}" 吗？恢复后当前数据将被覆盖，此操作不可撤销！`,
+    "恢复确认",
+    {
+      confirmButtonText: "确定恢复",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要恢复到备份 "${row.fileName}" 吗？恢复后当前数据将被覆盖，此操作不可撤销！`,
-      "恢复确认",
-      {
-        confirmButtonText: "确定恢复",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     loading.value = true;
     const { code } = await restoreBackupApi(row.uid);
     if (code === 200) {
@@ -201,7 +206,7 @@ const restoreBackup = async (row: BackupItem) => {
       message("恢复失败", { type: "error" });
     }
   } catch {
-    // cancelled
+    message("恢复失败", { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -235,16 +240,18 @@ const downloadBackup = async (row: BackupItem) => {
 };
 
 const deleteBackup = async (row: BackupItem) => {
+  const ok = await confirm(
+    `确定要删除备份 "${row.fileName}" 吗？删除后无法恢复！`,
+    "删除确认",
+    {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要删除备份 "${row.fileName}" 吗？删除后无法恢复！`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     loading.value = true;
     const { code } = await deleteBackupApi(row.uid);
     if (code === 200) {
@@ -254,7 +261,7 @@ const deleteBackup = async (row: BackupItem) => {
       message("删除失败", { type: "error" });
     }
   } catch {
-    // cancelled
+    message("删除失败", { type: "error" });
   } finally {
     loading.value = false;
   }

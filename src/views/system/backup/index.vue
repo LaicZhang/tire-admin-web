@@ -10,6 +10,7 @@ import {
 } from "@/api/system/backup";
 import { message, confirmBox } from "@/utils/message";
 import { downloadBlob } from "@/utils/download";
+import { formatFileSize } from "@/utils/format";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Plus from "~icons/ep/plus";
 import Download from "~icons/ep/download";
@@ -107,16 +108,6 @@ const handleDelete = async (row: BackupTask) => {
   } finally {
     loading.value = false;
   }
-};
-
-// 格式化文件大小
-const formatFileSize = (bytes: number | undefined) => {
-  if (!bytes) return "-";
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
-  if (bytes < 1024 * 1024 * 1024)
-    return (bytes / 1024 / 1024).toFixed(2) + " MB";
-  return (bytes / 1024 / 1024 / 1024).toFixed(2) + " GB";
 };
 
 const handleCurrentChange = (val: number) => {

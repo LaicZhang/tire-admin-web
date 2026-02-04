@@ -8,7 +8,7 @@ import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { message } from "@/utils";
-import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   getRecycleListApi,
   restoreRecycleItemApi,
@@ -25,6 +25,7 @@ defineOptions({
 });
 
 const selectedRows = ref<RecycleItem[]>([]);
+const { confirm } = useConfirmDialog();
 
 const state = ref({
   type: "",
@@ -102,12 +103,14 @@ const handleSelectionChange = (rows: RecycleItem[]) => {
 };
 
 const restoreItem = async (row: RecycleItem) => {
+  const ok = await confirm(`确定要还原 "${row.name}" 吗？`, "还原确认", {
+    confirmButtonText: "确定还原",
+    cancelButtonText: "取消",
+    type: "info"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(`确定要还原 "${row.name}" 吗？`, "还原确认", {
-      confirmButtonText: "确定还原",
-      cancelButtonText: "取消",
-      type: "info"
-    });
     const { code } = await restoreRecycleItemApi(row.uid);
     if (code === 200) {
       message("还原成功", { type: "success" });
@@ -116,21 +119,23 @@ const restoreItem = async (row: RecycleItem) => {
       message("还原失败", { type: "error" });
     }
   } catch {
-    // cancelled or error
+    message("还原失败", { type: "error" });
   }
 };
 
 const deleteItem = async (row: RecycleItem) => {
+  const ok = await confirm(
+    `确定要彻底删除 "${row.name}" 吗？删除后将无法恢复！`,
+    "彻底删除确认",
+    {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要彻底删除 "${row.name}" 吗？删除后将无法恢复！`,
-      "彻底删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     const { code } = await permanentDeleteApi(row.uid);
     if (code === 200) {
       message("删除成功", { type: "success" });
@@ -139,7 +144,7 @@ const deleteItem = async (row: RecycleItem) => {
       message("删除失败", { type: "error" });
     }
   } catch {
-    // cancelled or error
+    message("删除失败", { type: "error" });
   }
 };
 
@@ -148,16 +153,18 @@ const batchRestore = async () => {
     message("请先选择要还原的项目", { type: "warning" });
     return;
   }
+  const ok = await confirm(
+    `确定要批量还原选中的 ${selectedRows.value.length} 个项目吗？`,
+    "批量还原确认",
+    {
+      confirmButtonText: "确定还原",
+      cancelButtonText: "取消",
+      type: "info"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要批量还原选中的 ${selectedRows.value.length} 个项目吗？`,
-      "批量还原确认",
-      {
-        confirmButtonText: "确定还原",
-        cancelButtonText: "取消",
-        type: "info"
-      }
-    );
     const uids = selectedRows.value.map(r => r.uid);
     const { code } = await batchRestoreApi(uids);
     if (code === 200) {
@@ -167,7 +174,7 @@ const batchRestore = async () => {
       message("批量还原失败", { type: "error" });
     }
   } catch {
-    // cancelled or error
+    message("批量还原失败", { type: "error" });
   }
 };
 
@@ -176,16 +183,18 @@ const batchDelete = async () => {
     message("请先选择要删除的项目", { type: "warning" });
     return;
   }
+  const ok = await confirm(
+    `确定要彻底删除选中的 ${selectedRows.value.length} 个项目吗？删除后将无法恢复！`,
+    "批量删除确认",
+    {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要彻底删除选中的 ${selectedRows.value.length} 个项目吗？删除后将无法恢复！`,
-      "批量删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     const uids = selectedRows.value.map(r => r.uid);
     const { code } = await batchPermanentDeleteApi(uids);
     if (code === 200) {
@@ -195,7 +204,7 @@ const batchDelete = async () => {
       message("批量删除失败", { type: "error" });
     }
   } catch {
-    // cancelled or error
+    message("批量删除失败", { type: "error" });
   }
 };
 </script>

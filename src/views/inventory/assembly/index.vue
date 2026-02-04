@@ -10,6 +10,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
@@ -40,6 +41,7 @@ const editFormRef = ref<{
   getRef: () => FormInstance | undefined;
   getFormData: () => CreateAssemblyOrderDto;
 } | null>(null);
+const { confirm } = useConfirmDialog();
 
 const queryParams = reactive<AssemblyOrderQuery>({
   status: undefined,
@@ -161,45 +163,44 @@ const handleEdit = (row: AssemblyOrder) => {
 };
 
 const handleDelete = async (row: AssemblyOrder) => {
+  const ok = await confirm("确认删除该组装单?", "确认删除");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该组装单?", "确认删除", {
-      type: "warning"
-    });
     await deleteAssemblyOrderApi(row.uid);
     ElMessage.success("删除成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   }
 };
 
 const handleApprove = async (row: AssemblyOrder) => {
+  const ok = await confirm(
+    "审核后将执行组装操作:子件出库,成品入库。确认审核?",
+    "确认审核"
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      "审核后将执行组装操作:子件出库,成品入库。确认审核?",
-      "确认审核",
-      { type: "warning" }
-    );
     await http.request("post", `/api/assembly-order/${row.uid}/approve`);
     ElMessage.success("审核成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "审核失败");
-    }
+    handleApiError(error, "审核失败");
   }
 };
 
 const handleReject = async (row: AssemblyOrder) => {
   try {
-    const { value } = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
+    const res = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       inputPattern: /.+/,
       inputErrorMessage: "请输入拒绝原因"
     });
+    if (typeof res === "string") return;
+    const { value } = res;
     await http.request("post", `/api/assembly-order/${row.uid}/reject`, {
       data: { reason: value }
     });
@@ -213,16 +214,16 @@ const handleReject = async (row: AssemblyOrder) => {
 };
 
 const handleSaveAsBom = async (row: AssemblyOrder) => {
+  const ok = await confirm("确认将该组装单保存为BOM模板?", "存为模板", {
+    type: "info"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认将该组装单保存为BOM模板?", "存为模板", {
-      type: "info"
-    });
     await http.request("post", `/api/assembly-order/${row.uid}/save-as-bom`);
     ElMessage.success("已保存为BOM模板");
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 

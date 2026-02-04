@@ -14,7 +14,7 @@ defineOptions({
   name: "TableOperations"
 });
 
-const props = withDefaults(defineProps<TableOperationsProps>(), {
+const props = withDefaults(defineProps<TableOperationsProps<any>>(), {
   showView: true,
   showEdit: true,
   showAudit: false,
@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<TableOperationsProps>(), {
   customActions: () => []
 });
 
-const emit = defineEmits<TableOperationsEmits>();
+const emit = defineEmits<TableOperationsEmits<any>>();
 
 const isLocked = computed(() => Boolean(props.row[props.lockedField]));
 const isApproved = computed(() => Boolean(props.row[props.approvedField]));

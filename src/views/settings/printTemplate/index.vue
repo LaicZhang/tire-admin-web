@@ -10,6 +10,7 @@ import DocumentCopy from "~icons/ep/document-copy";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import StatusTag from "@/components/StatusTag/index.vue";
 import {
   getPrintTemplatesApi,
@@ -25,6 +26,7 @@ defineOptions({
 
 const router = useRouter();
 const loading = ref(false);
+const { confirm } = useConfirmDialog();
 const templateList = ref<PrintTemplate[]>([]);
 const activeDocType = ref("purchase_order");
 
@@ -89,21 +91,19 @@ const editTemplate = (row: PrintTemplate) => {
 
 const copyTemplate = async (row: PrintTemplate) => {
   try {
-    const { value } = await ElMessageBox.prompt(
-      "请输入新模板名称",
-      "复制模板",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue: `${row.name} - 副本`,
-        inputValidator: val => {
-          if (!val || !val.trim()) {
-            return "模板名称不能为空";
-          }
-          return true;
+    const res = await ElMessageBox.prompt("请输入新模板名称", "复制模板", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      inputValue: `${row.name} - 副本`,
+      inputValidator: val => {
+        if (!val || !val.trim()) {
+          return "模板名称不能为空";
         }
+        return true;
       }
-    );
+    });
+    if (typeof res === "string") return;
+    const { value } = res;
     const { code } = await copyTemplateApi(row.uid, value);
     if (code === 200) {
       message("复制成功", { type: "success" });
@@ -125,16 +125,18 @@ const deleteTemplate = async (row: PrintTemplate) => {
     message("默认模板不能删除", { type: "warning" });
     return;
   }
+  const ok = await confirm(
+    `确定要删除模板 "${row.name}" 吗？此操作不可恢复。`,
+    "删除确认",
+    {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要删除模板 "${row.name}" 吗？此操作不可恢复。`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     const { code } = await deleteTemplateApi(row.uid);
     if (code === 200) {
       message("删除成功", { type: "success" });
@@ -143,7 +145,7 @@ const deleteTemplate = async (row: PrintTemplate) => {
       message("删除失败", { type: "error" });
     }
   } catch {
-    // cancelled or error
+    message("删除失败", { type: "error" });
   }
 };
 

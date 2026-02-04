@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { handleApiError } from "@/utils/error";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   getCostAdjustOrderList,
   approveCostAdjustOrder,
@@ -25,6 +26,7 @@ defineOptions({
 // 列表数据
 const tableData = ref<CostAdjustOrder[]>([]);
 const loading = ref(false);
+const { confirm } = useConfirmDialog();
 const pagination = ref({
   total: 0,
   pageSize: 15,
@@ -85,31 +87,33 @@ const handlePageChange = (val: number) => {
 
 // 审核
 const handleApprove = async (row: CostAdjustOrder) => {
+  const ok = await confirm(
+    `确认审核成本调整单 #${row.number}？审核后将更新相关商品的库存成本。`,
+    "确认审核",
+    { type: "warning" }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确认审核成本调整单 #${row.number}？审核后将更新相关商品的库存成本。`,
-      "确认审核",
-      { type: "warning" }
-    );
     await approveCostAdjustOrder(row.id);
     ElMessage.success("审核成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error);
-    }
+    handleApiError(error);
   }
 };
 
 // 拒绝
 const handleReject = async (row: CostAdjustOrder) => {
   try {
-    const { value } = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
+    const res = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       inputPattern: /.+/,
       inputErrorMessage: "请输入拒绝原因"
     });
+    if (typeof res === "string") return;
+    const { value } = res;
     await rejectCostAdjustOrder(row.id, value);
     ElMessage.success("已拒绝");
     fetchData();
@@ -122,17 +126,17 @@ const handleReject = async (row: CostAdjustOrder) => {
 
 // 删除
 const handleDelete = async (row: CostAdjustOrder) => {
+  const ok = await confirm("确认删除该成本调整单？", "确认删除", {
+    type: "warning"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该成本调整单？", "确认删除", {
-      type: "warning"
-    });
     await deleteCostAdjustOrder(row.id);
     ElMessage.success("删除成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error);
-    }
+    handleApiError(error);
   }
 };
 

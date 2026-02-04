@@ -26,6 +26,7 @@ import {
 import { ALL_LIST, handleApiError, localForage, message } from "@/utils";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 
 defineOptions({
   name: "InventoryTransfer"
@@ -36,6 +37,7 @@ const ORDER_TYPE = "transfer-order";
 const dataList = ref<TransferOrder[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const { confirm } = useConfirmDialog();
 type TransferOrderFormRef = {
   getRef: () => FormInstance;
   getFormData: () => {
@@ -240,25 +242,26 @@ const { openDialog } = useActionFormDialog<
 });
 
 async function handleDelete(row: TransferOrder) {
+  const ok = await confirm("确认删除该调拨单?", "确认删除");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该调拨单?", "确认删除", {
-      type: "warning"
-    });
     await deleteOrderApi(ORDER_TYPE, row.uid);
     message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
-    if (error !== "cancel") handleApiError(error, "删除失败");
+    handleApiError(error, "删除失败");
   }
 }
 
 async function handleApprove(row: TransferOrder) {
+  const ok = await confirm(
+    "审核后将允许进行发货/到货确认，确认审核通过?",
+    "确认审核"
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      "审核后将允许进行发货/到货确认，确认审核通过?",
-      "确认审核",
-      { type: "warning" }
-    );
     const companyId = await getCompanyId();
     await updateOrderApi(ORDER_TYPE, row.uid, {
       company: { connect: { uid: companyId } },
@@ -270,18 +273,20 @@ async function handleApprove(row: TransferOrder) {
     message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
-    if (error !== "cancel") handleApiError(error, "审核失败");
+    handleApiError(error, "审核失败");
   }
 }
 
 async function handleReject(row: TransferOrder) {
   try {
-    const { value } = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
+    const res = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       inputPattern: /.+/,
       inputErrorMessage: "请输入拒绝原因"
     });
+    if (typeof res === "string") return;
+    const { value } = res;
     const companyId = await getCompanyId();
     await updateOrderApi(ORDER_TYPE, row.uid, {
       company: { connect: { uid: companyId } },
@@ -303,14 +308,10 @@ async function handleConfirmShipment(row: TransferOrder) {
     message("已全部发货", { type: "info" });
     return;
   }
+  const ok = await confirm("确认发货后将变更库存状态，是否继续?", "确认发货");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      "确认发货后将变更库存状态，是否继续?",
-      "确认发货",
-      {
-        type: "warning"
-      }
-    );
     for (const detail of pending) {
       if (detail.uid) {
         await confirmTransferOrderShipmentApi(row.uid, {
@@ -321,7 +322,7 @@ async function handleConfirmShipment(row: TransferOrder) {
     message("确认发货成功", { type: "success" });
     fetchData();
   } catch (error) {
-    if (error !== "cancel") handleApiError(error, "确认发货失败");
+    handleApiError(error, "确认发货失败");
   }
 }
 
@@ -331,10 +332,10 @@ async function handleConfirmArrival(row: TransferOrder) {
     message("已全部到货", { type: "info" });
     return;
   }
+  const ok = await confirm("确认到货后将入库，是否继续?", "确认到货");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认到货后将入库，是否继续?", "确认到货", {
-      type: "warning"
-    });
     for (const detail of pending) {
       if (detail.uid) {
         await confirmTransferOrderArrivalApi(row.uid, {
@@ -345,7 +346,7 @@ async function handleConfirmArrival(row: TransferOrder) {
     message("确认到货成功", { type: "success" });
     fetchData();
   } catch (error) {
-    if (error !== "cancel") handleApiError(error, "确认到货失败");
+    handleApiError(error, "确认到货失败");
   }
 }
 

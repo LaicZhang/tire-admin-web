@@ -4,6 +4,7 @@ import type { FormRules } from "element-plus";
 import type { InitialStockForm, InitialStockItem } from "./types";
 import AddIcon from "~icons/ep/plus";
 import DeleteIcon from "~icons/ep/delete";
+import { MoneyDisplay } from "@/components";
 
 interface FormProps {
   formInline?: InitialStockForm;
@@ -191,9 +192,11 @@ defineExpose({ getRef, getStockItems });
           }}</span>
         </span>
         <span>
-          总金额：<span class="font-bold text-primary">{{
-            totalAmount.toFixed(2)
-          }}</span>
+          总金额：<MoneyDisplay
+            class="font-bold text-primary"
+            :value="totalAmount"
+            :showSymbol="false"
+          />
         </span>
       </div>
     </el-form-item>

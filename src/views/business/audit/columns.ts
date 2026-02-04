@@ -1,5 +1,6 @@
 import { h } from "vue";
 import type { TableColumnRenderer } from "@pureadmin/table";
+import { MoneyDisplay } from "@/components";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { DOCUMENT_STATUS_MAP } from "@/components/StatusTag/types";
 
@@ -30,7 +31,10 @@ export const columns: TableColumnList = [
     label: "金额",
     minWidth: 100,
     cellRenderer: ({ row }: TableColumnRenderer) =>
-      `¥${(((row as AuditOrder)?.totalAmount || 0) / 100).toFixed(2)}`
+      h(MoneyDisplay, {
+        value: (row as AuditOrder)?.totalAmount,
+        unit: "fen"
+      })
   },
   {
     label: "创建时间",

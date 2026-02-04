@@ -76,7 +76,9 @@ const handleLock = async (row: { id: string | number }) => {
     confirmButtonText: "确定",
     cancelButtonText: "取消"
   })
-    .then(async ({ value }) => {
+    .then(async res => {
+      if (typeof res === "string") return;
+      const { value } = res;
       try {
         await lockRepoBinApi({ id: String(row.id), reason: value });
         message("锁定成功", { type: "success" });

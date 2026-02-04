@@ -1,5 +1,6 @@
 import { h } from "vue";
 import { ElTag } from "element-plus";
+import { MoneyDisplay } from "@/components";
 import type { OrderDetailRow } from "./types";
 
 export const detailColumns: TableColumnList = [
@@ -29,11 +30,12 @@ export const detailColumns: TableColumnList = [
     align: "right",
     cellRenderer: data => {
       const row = data.row as OrderDetailRow | undefined;
-      return h(
-        "span",
-        { class: "text-blue-500" },
-        ((row?.amount || 0) as number).toFixed(2)
-      );
+      return h(MoneyDisplay, {
+        value: row?.amount,
+        unit: "yuan",
+        showSymbol: false,
+        class: "text-blue-500"
+      });
     }
   },
   {

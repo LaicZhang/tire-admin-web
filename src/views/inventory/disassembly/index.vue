@@ -11,6 +11,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import editForm from "./form.vue";
 import {
@@ -42,6 +43,7 @@ const editFormRef = ref<{
   getRef: () => FormInstance | undefined;
   getFormData: () => CreateDisassemblyOrderDto;
 } | null>(null);
+const { confirm } = useConfirmDialog();
 
 const queryParams = reactive<DisassemblyOrderQuery>({
   status: undefined,
@@ -163,45 +165,44 @@ const handleEdit = (row: DisassemblyOrder) => {
 };
 
 const handleDelete = async (row: DisassemblyOrder) => {
+  const ok = await confirm("确认删除该拆卸单?", "确认删除");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该拆卸单?", "确认删除", {
-      type: "warning"
-    });
     await deleteDisassemblyOrderApi(row.uid);
     ElMessage.success("删除成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   }
 };
 
 const handleApprove = async (row: DisassemblyOrder) => {
+  const ok = await confirm(
+    "审核后将执行拆卸操作:组合件出库,部件入库。确认审核?",
+    "确认审核"
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      "审核后将执行拆卸操作:组合件出库,部件入库。确认审核?",
-      "确认审核",
-      { type: "warning" }
-    );
     await approveDisassemblyOrderApi(row.uid);
     ElMessage.success("审核成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "审核失败");
-    }
+    handleApiError(error, "审核失败");
   }
 };
 
 const handleReject = async (row: DisassemblyOrder) => {
   try {
-    const { value } = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
+    const res = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       inputPattern: /.+/,
       inputErrorMessage: "请输入拒绝原因"
     });
+    if (typeof res === "string") return;
+    const { value } = res;
     await rejectDisassemblyOrderApi(row.uid, value);
     ElMessage.success("已拒绝");
     fetchData();
@@ -213,16 +214,16 @@ const handleReject = async (row: DisassemblyOrder) => {
 };
 
 const handleSaveAsBom = async (row: DisassemblyOrder) => {
+  const ok = await confirm("确认将该拆卸单保存为BOM模板?", "存为模板", {
+    type: "info"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认将该拆卸单保存为BOM模板?", "存为模板", {
-      type: "info"
-    });
     await saveDisassemblyOrderAsBomApi(row.uid);
     ElMessage.success("已保存为BOM模板");
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 

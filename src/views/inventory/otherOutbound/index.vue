@@ -31,6 +31,7 @@ import {
   updateOtherOutboundOrderApi
 } from "@/api/inventory";
 import { handleApiError } from "@/utils";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 
 defineOptions({
   name: "InventoryOtherOutbound"
@@ -38,6 +39,7 @@ defineOptions({
 
 const dataList = ref<OtherOutboundOrder[]>([]);
 const loading = ref(false);
+const { confirm } = useConfirmDialog();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{
   getRef: () => FormInstance | undefined;
@@ -176,45 +178,47 @@ const handleEdit = (row: OtherOutboundOrder) => {
 };
 
 const handleDelete = async (row: OtherOutboundOrder) => {
+  const ok = await confirm("确认删除该出库单?", "确认删除", {
+    type: "warning"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该出库单?", "确认删除", {
-      type: "warning"
-    });
     await deleteOtherOutboundOrderApi(row.uid);
     ElMessage.success("删除成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   }
 };
 
 const handleApprove = async (row: OtherOutboundOrder) => {
+  const ok = await confirm(
+    "审核后将减少对应仓库的库存数量和成本。确认审核?",
+    "确认审核",
+    { type: "warning" }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      "审核后将减少对应仓库的库存数量和成本。确认审核?",
-      "确认审核",
-      { type: "warning" }
-    );
     await approveOtherOutboundOrderApi(row.uid);
     ElMessage.success("审核成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "审核失败");
-    }
+    handleApiError(error, "审核失败");
   }
 };
 
 const handleReject = async (row: OtherOutboundOrder) => {
   try {
-    const { value } = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
+    const res = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       inputPattern: /.+/,
       inputErrorMessage: "请输入拒绝原因"
     });
+    if (typeof res === "string") return;
+    const { value } = res;
     await rejectOtherOutboundOrderApi(row.uid, value);
     ElMessage.success("已拒绝");
     fetchData();

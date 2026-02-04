@@ -14,6 +14,7 @@ import {
 } from "@element-plus/icons-vue";
 import { message } from "@/utils/message";
 import { ElTag, ElButton } from "element-plus";
+import { MoneyDisplay } from "@/components";
 import {
   UploadMethod,
   ImageType,
@@ -583,9 +584,11 @@ const canRecognizeValue = computed(() => canRecognize(uploadMethod.value));
           <!-- 合计 -->
           <div class="flex justify-end items-center gap-4 pt-4 border-t">
             <span class="text-gray-600">合计金额：</span>
-            <span class="text-2xl font-bold text-blue-500">{{
-              totalAmount.toFixed(2)
-            }}</span>
+            <MoneyDisplay
+              class="text-2xl font-bold text-blue-500"
+              :value="totalAmount"
+              :showSymbol="false"
+            />
           </div>
 
           <!-- 备注 -->

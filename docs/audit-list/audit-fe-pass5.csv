@@ -1,0 +1,27 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+全局,REUSE,P2,80+处ElMessageBox.confirm重复调用,创建useConfirmDialog composable封装确认逻辑,中
+全局,REUSE,P3,3处使用@vueuse VueUse库使用较少,可考虑更多使用VueUse工具函数,小
+全局,REUSE,P3,0处useVModel简化v-model双向绑定,表单组件可使用useVModel简化代码,小
+全局,PERF,P3,2处defineAsyncComponent异步组件使用良好,可推广到更多大型组件,小
+全局,PERF,P3,4处nextTick用于图表渲染良好实践,用于DOM更新后操作的正确方式,参考
+全局,MAINT,P1,良好实践:0处provide/inject复杂DI,组件通信简洁不过度设计,无需操作
+全局,MAINT,P1,良好实践:21处router.push路由跳转规范,路由使用模式一致,无需操作
+全局,MAINT,P1,良好实践:15处useRouter正确使用,路由hook使用规范,无需操作
+fund/receipt/index.vue,REUSE,P3,多处ElMessageBox.confirm删除/审核/批量操作,提取为handleConfirmAction工具函数,小
+fund/payment/index.vue,REUSE,P3,多处ElMessageBox.confirm删除/审核/批量操作,提取为handleConfirmAction工具函数,小
+fund/writeOff/index.vue,REUSE,P3,多处ElMessageBox.confirm删除/审核/批量操作,提取为handleConfirmAction工具函数,小
+fund/transfer/index.vue,REUSE,P3,多处ElMessageBox.confirm删除/审核/批量操作,提取为handleConfirmAction工具函数,小
+inventory/assembly/index.vue,REUSE,P3,多处ElMessageBox.confirm操作确认,提取为handleConfirmAction工具函数,小
+inventory/disassembly/index.vue,REUSE,P3,多处ElMessageBox.confirm操作确认,提取为handleConfirmAction工具函数,小
+inventory/transfer/index.vue,REUSE,P3,多处ElMessageBox.confirm操作确认,提取为handleConfirmAction工具函数,小
+inventory/bom/index.vue,REUSE,P3,多处ElMessageBox.confirm操作确认,提取为handleConfirmAction工具函数,小
+inventory/costRecalc/index.vue,REUSE,P3,多处ElMessageBox.confirm操作确认,提取为handleConfirmAction工具函数,小
+inventory/stocktaking/index.vue,REUSE,P3,多处ElMessageBox.confirm操作确认,提取为handleConfirmAction工具函数,小
+system/workflow/index.vue,REUSE,P3,ElMessageBox.confirm删除确认,提取为handleConfirmAction工具函数,小
+analysis/aging/index.vue,PERF,P3,nextTick用于图表resize良好,参考
+analysis/inventory/index.vue,PERF,P3,nextTick用于图表resize良好,参考
+analysis/profit/index.vue,PERF,P3,nextTick用于图表resize良好,参考
+analysis/finance/index.vue,PERF,P3,nextTick用于图表resize良好,参考
+login/utils/motion.ts,PERF,P3,使用@vueuse/core动画工具良好,参考推广
+business/tire/form.vue,PERF,P2,使用defineAsyncComponent懒加载良好,可推广到其他大型表单组件,参考
+welcome/index.vue,PERF,P2,使用defineAsyncComponent懒加载良好,可推广到其他大型页面组件,参考

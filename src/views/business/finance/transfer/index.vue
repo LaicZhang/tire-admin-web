@@ -3,6 +3,7 @@ import { ref, reactive, onMounted, computed } from "vue";
 import { accountTransferApi } from "@/api/finance";
 import { getPaymentListApi } from "@/api/payment";
 import { message } from "@/utils/message";
+import { formatMoneyFromFen } from "@/utils/formatMoney";
 
 defineOptions({
   name: "FinanceTransfer"
@@ -129,7 +130,7 @@ onMounted(() => {
             <el-option
               v-for="item in fromAccountOptions"
               :key="item.uid"
-              :label="`${item.name}${item.balance !== undefined ? ` (余额: ¥${(item.balance / 100).toFixed(2)})` : ''}`"
+              :label="`${item.name}${item.balance !== undefined ? ` (余额: ¥${formatMoneyFromFen(item.balance)})` : ''}`"
               :value="item.uid"
             />
           </el-select>

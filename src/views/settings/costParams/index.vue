@@ -5,7 +5,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ArrowUp from "~icons/ep/arrow-up";
 import ArrowDown from "~icons/ep/arrow-down";
 import { message } from "@/utils";
-import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   getSettingGroupApi,
   batchUpdateSettingsApi,
@@ -19,6 +19,7 @@ defineOptions({
 
 const loading = ref(false);
 const formRef = ref();
+const { confirm } = useConfirmDialog();
 
 const formData = ref<CostParams>({
   costMethod: "moving_average",
@@ -88,36 +89,32 @@ const handleSave = async () => {
 };
 
 const handleCostMethodChange = async (value: string) => {
-  try {
-    await ElMessageBox.confirm(
-      "切换成本核算方法后，会对未结账的业务单据进行成本重算，是否确认切换？",
-      "切换确认",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-  } catch {
-    // 取消切换，恢复原值
+  const ok = await confirm(
+    "切换成本核算方法后，会对未结账的业务单据进行成本重算，是否确认切换？",
+    "切换确认",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) {
     formData.value.costMethod =
       value === "moving_average" ? "fifo" : "moving_average";
   }
 };
 
 const handleCostCalcTypeChange = async (value: string) => {
-  try {
-    await ElMessageBox.confirm(
-      "切换成本核算方式后，会对未结账的业务单据进行成本重算，是否确认切换？",
-      "切换确认",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-  } catch {
-    // 取消切换，恢复原值
+  const ok = await confirm(
+    "切换成本核算方式后，会对未结账的业务单据进行成本重算，是否确认切换？",
+    "切换确认",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) {
     formData.value.costCalcType =
       value === "total_warehouse" ? "sub_warehouse" : "total_warehouse";
   }

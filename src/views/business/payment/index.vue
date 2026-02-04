@@ -12,6 +12,7 @@ import {
 } from "@/api";
 import type { PaymentAccount } from "@/api/type";
 import { message } from "@/utils";
+import { formatMoney } from "@/utils/formatMoney";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
@@ -68,9 +69,7 @@ const columns = ref<TableColumnList>([
     label: "余额",
     prop: "balance",
     formatter: (row, column, cellValue) => {
-      return typeof cellValue === "string" || typeof cellValue === "number"
-        ? Number(cellValue).toFixed(2)
-        : "0.00";
+      return formatMoney(Number(cellValue ?? 0));
     }
   },
   {

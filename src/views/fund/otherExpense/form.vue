@@ -10,7 +10,11 @@ import {
   type ExpenseType
 } from "./types";
 import dayjs from "dayjs";
-import { yuanToFen, fenToYuanNumber as fenToYuan } from "@/utils/formatMoney";
+import {
+  yuanToFen,
+  fenToYuanNumber as fenToYuan,
+  formatMoneyFromFen
+} from "@/utils/formatMoney";
 import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
@@ -266,7 +270,7 @@ function handleClose() {
               <el-option
                 v-for="item in paymentList"
                 :key="item.uid"
-                :label="`${item.name}${item.balance !== undefined ? ` (${(item.balance / 100).toFixed(2)})` : ''}`"
+                :label="`${item.name}${item.balance !== undefined ? ` (${formatMoneyFromFen(item.balance)})` : ''}`"
                 :value="item.uid"
               />
             </el-select>

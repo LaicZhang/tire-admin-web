@@ -1,0 +1,27 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+全局,TEST,P2,views测试覆盖率偏低（已新增订单/客户/轮胎相关单测：2026-02-04）,持续增加关键业务模块的单元测试,大
+views/business/stock/costAdjust/index.test.ts,TEST,P1,已有测试文件良好实践,参考此模式为其他模块添加测试,参考
+views/business/stock/serialNumber/index.test.ts,TEST,P1,已有测试文件良好实践,参考此模式为其他模块添加测试,参考
+views/data/batchSerial/index.test.ts,TEST,P1,已有测试文件良好实践,参考此模式为其他模块添加测试,参考
+views/fund/payment/form.test.ts,TEST,P1,已有测试文件良好实践,参考此模式为其他模块添加测试,参考
+views/login/composables/useLoginForm.test.ts,TEST,P1,已有测试文件良好实践,参考此模式为其他模块添加测试,参考
+views/login/index.test.ts,TEST,P1,已有测试文件良好实践,参考此模式为其他模块添加测试,参考
+views/system/workflow/__tests__/,TEST,P1,已有测试目录良好实践,推广__tests__目录结构,参考
+company/employee/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+company/repo/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+company/position/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+company/department/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+company/salary/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+business/customer/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+business/tire/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+business/provider/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+business/tireNumber/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+business/order/table.tsx,MAINT,P2,使用相对路径导入 ../../../utils/message,改用@/utils/message别名导入（已修复：2026-02-03）,小
+全局,MAINT,P1,良好实践:171处defineOptions设置组件名,组件命名规范统一,无需操作
+全局,MAINT,P1,良好实践:0处TODO/FIXME未完成标记,代码无技术债务标记,无需操作
+全局,MAINT,P1,良好实践:0处eslint-disable禁用,代码无绕过lint检查,无需操作
+全局,MAINT,P1,良好实践:0处hardcoded z-index,z-index管理良好,无需操作
+全局,MAINT,P3,45处:deep()使用Vue3正确语法,样式穿透规范,无需操作
+welcome/components/lastFeat.vue,MAINT,P3,1处!important使用,已移除!important（2026-02-03）,小
+全局,TYPE,P1,良好实践:59处withDefaults类型化props,Props类型定义规范,无需操作
+全局,TYPE,P1,良好实践:0处defineProps()无类型,Props类型定义统一使用泛型,无需操作

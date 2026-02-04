@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -10,6 +10,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import editForm from "./form.vue";
 import {
@@ -31,6 +32,8 @@ import { handleApiError } from "@/utils";
 defineOptions({
   name: "InventoryCostRecalc"
 });
+
+const { confirm } = useConfirmDialog();
 
 const dataList = ref<CostRecalcTask[]>([]);
 const loading = ref(false);
@@ -120,21 +123,20 @@ const openCreateDialog = () => {
 
       await formInstance.validate(async (valid: boolean) => {
         if (valid) {
+          const ok = await confirm(
+            "成本重算将重新计算指定期间的成本,此操作不可撤销。系统将自动备份当前数据。确认执行?",
+            "确认重算"
+          );
+          if (!ok) return;
+
           try {
-            await ElMessageBox.confirm(
-              "成本重算将重新计算指定期间的成本,此操作不可撤销。系统将自动备份当前数据。确认执行?",
-              "确认重算",
-              { type: "warning" }
-            );
             const formData = formRef.getFormData();
             await createCostRecalcTaskApi(formData);
             ElMessage.success("任务创建成功,正在后台执行");
             done();
             fetchData();
           } catch (error) {
-            if (error !== "cancel") {
-              handleApiError(error, "操作失败");
-            }
+            handleApiError(error, "操作失败");
           }
         }
       });
@@ -147,17 +149,15 @@ const handleViewDetail = (row: CostRecalcTask) => {
 };
 
 const handleCancel = async (row: CostRecalcTask) => {
+  const ok = await confirm("确认取消该重算任务?", "确认取消");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认取消该重算任务?", "确认取消", {
-      type: "warning"
-    });
     await cancelCostRecalcTaskApi(row.uid);
     ElMessage.success("已取消");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 
@@ -166,34 +166,31 @@ const handleRestore = async (row: CostRecalcTask) => {
     ElMessage.warning("该任务没有备份数据");
     return;
   }
+  const ok = await confirm(
+    "确认恢复到重算前的数据?此操作将覆盖当前成本数据。",
+    "确认恢复"
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      "确认恢复到重算前的数据?此操作将覆盖当前成本数据。",
-      "确认恢复",
-      { type: "warning" }
-    );
     await restoreCostRecalcTaskApi(row.uid);
     ElMessage.success("恢复成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 
 const handleDelete = async (row: CostRecalcTask) => {
+  const ok = await confirm("确认删除该重算记录?", "确认删除");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该重算记录?", "确认删除", {
-      type: "warning"
-    });
     await deleteCostRecalcTaskApi(row.uid);
     ElMessage.success("删除成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   }
 };
 

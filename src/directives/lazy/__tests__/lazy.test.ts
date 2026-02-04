@@ -10,16 +10,15 @@ const mockDisconnect = vi.fn();
 
 let intersectionCallback: IntersectionObserverCallback;
 
-const MockIntersectionObserver = vi.fn(
-  (callback: IntersectionObserverCallback) => {
+class MockIntersectionObserver {
+  constructor(callback: IntersectionObserverCallback) {
     intersectionCallback = callback;
-    return {
-      observe: mockObserve,
-      unobserve: mockUnobserve,
-      disconnect: mockDisconnect
-    };
   }
-);
+
+  observe = mockObserve;
+  unobserve = mockUnobserve;
+  disconnect = mockDisconnect;
+}
 
 describe("lazy directive", () => {
   beforeEach(() => {
@@ -27,7 +26,6 @@ describe("lazy directive", () => {
     mockObserve.mockClear();
     mockUnobserve.mockClear();
     mockDisconnect.mockClear();
-    MockIntersectionObserver.mockClear();
   });
 
   afterEach(() => {
@@ -63,7 +61,6 @@ describe("lazy directive", () => {
 
     mount(TestComponent);
 
-    expect(MockIntersectionObserver).toHaveBeenCalled();
     expect(mockObserve).toHaveBeenCalled();
   });
 

@@ -9,6 +9,7 @@ import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   getFreeAccountsApi,
   importFreeAccountApi,
@@ -24,6 +25,7 @@ defineOptions({
 const loading = ref(false);
 const dataList = ref<FreeAccountItem[]>([]);
 const selectedRows = ref<FreeAccountItem[]>([]);
+const { confirm } = useConfirmDialog();
 
 const state = ref({
   accountName: "",
@@ -71,16 +73,18 @@ const handleBatchImport = async () => {
     message("请先选择要导入的账套", { type: "warning" });
     return;
   }
+  const ok = await confirm(
+    `确定要批量导入选中的 ${selectedRows.value.length} 个账套吗？`,
+    "批量导入确认",
+    {
+      confirmButtonText: "确定导入",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要批量导入选中的 ${selectedRows.value.length} 个账套吗？`,
-      "批量导入确认",
-      {
-        confirmButtonText: "确定导入",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     const uids = selectedRows.value.map(r => r.uid);
     const { code } = await batchImportFreeAccountsApi(uids);
     if (code === 200) {
@@ -90,9 +94,7 @@ const handleBatchImport = async () => {
       message("批量导入失败", { type: "error" });
     }
   } catch (error) {
-    if (error !== "cancel") {
-      message("批量导入失败", { type: "error" });
-    }
+    message("批量导入失败", { type: "error" });
   }
 };
 
@@ -101,16 +103,18 @@ const handleImport = async (row: FreeAccountItem) => {
     message("您没有该账套的管理权限，请申请授权", { type: "warning" });
     return;
   }
+  const ok = await confirm(
+    `确定要导入账套 "${row.accountName}" 吗？导入后原账套将移至回收站。`,
+    "导入确认",
+    {
+      confirmButtonText: "确定导入",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要导入账套 "${row.accountName}" 吗？导入后原账套将移至回收站。`,
-      "导入确认",
-      {
-        confirmButtonText: "确定导入",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     const { code } = await importFreeAccountApi(row.uid);
     if (code === 200) {
       message("导入成功", { type: "success" });
@@ -119,15 +123,13 @@ const handleImport = async (row: FreeAccountItem) => {
       message("导入失败", { type: "error" });
     }
   } catch (error) {
-    if (error !== "cancel") {
-      message("导入失败", { type: "error" });
-    }
+    message("导入失败", { type: "error" });
   }
 };
 
 const handleRequestAuth = async (row: FreeAccountItem) => {
   try {
-    const { value } = await ElMessageBox.prompt(
+    const res = await ElMessageBox.prompt(
       "请输入超级管理员或管理员的手机验证码",
       "申请授权",
       {
@@ -137,6 +139,8 @@ const handleRequestAuth = async (row: FreeAccountItem) => {
         inputErrorMessage: "请输入6位验证码"
       }
     );
+    if (typeof res === "string") return;
+    const { value } = res;
     const { code } = await verifyFreeAccountAuthApi(row.uid, value);
     if (code === 200) {
       message("授权成功，可以导入账套", { type: "success" });

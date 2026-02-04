@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -9,6 +9,7 @@ import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { http } from "@/utils/http";
 import { handleApiError } from "@/utils";
 import { fenToYuanOrDash as formatMoney } from "@/utils/formatMoney";
@@ -26,6 +27,7 @@ defineOptions({
   name: "FundOtherExpense"
 });
 
+const { confirm } = useConfirmDialog();
 const loading = ref(true);
 const dataList = ref<OtherExpense[]>([]);
 const selectedRows = ref<OtherExpense[]>([]);
@@ -103,19 +105,19 @@ function handleEdit(row: OtherExpense) {
 }
 
 async function handleDelete(row: OtherExpense) {
+  const ok = await confirm(
+    `确定删除单据 ${row.billNo || row.uid} 吗？`,
+    "删除确认",
+    { type: "warning" }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定删除单据 ${row.billNo || row.uid} 吗？`,
-      "删除确认",
-      { type: "warning" }
-    );
     await http.delete(`/expense-order/${row.uid}`);
     ElMessage.success("删除成功");
     onSearch();
   } catch (e) {
-    if ((e as string) !== "cancel") {
-      handleApiError(e, "删除失败");
-    }
+    handleApiError(e, "删除失败");
   }
 }
 
@@ -124,21 +126,21 @@ async function handleBatchDelete() {
     ElMessage.warning("请选择要删除的记录");
     return;
   }
+  const ok = await confirm(
+    `确定删除选中的 ${selectedRows.value.length} 条记录吗？`,
+    "批量删除确认",
+    { type: "warning" }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定删除选中的 ${selectedRows.value.length} 条记录吗？`,
-      "批量删除确认",
-      { type: "warning" }
-    );
     for (const row of selectedRows.value) {
       await http.delete(`/expense-order/${row.uid}`);
     }
     ElMessage.success("批量删除成功");
     onSearch();
   } catch (e) {
-    if ((e as string) !== "cancel") {
-      handleApiError(e, "批量删除失败");
-    }
+    handleApiError(e, "批量删除失败");
   }
 }
 

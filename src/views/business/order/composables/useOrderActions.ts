@@ -19,6 +19,7 @@ import {
   convertSaleQuotationApi
 } from "@/api";
 import { addDialog } from "@/components/ReDialog";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { ElMessageBox } from "element-plus";
 import { CUR_FORM_TITLE, localForage, message, ORDER_TYPE } from "@/utils";
 import { openDialog } from "../table";
@@ -48,6 +49,7 @@ export function useOrderActions(
   onSearch: () => Promise<void>
 ) {
   const formTitle = { value: "" };
+  const { confirm } = useConfirmDialog();
 
   const openConfirmDetailActionDialog = async (
     title: string,
@@ -135,24 +137,24 @@ export function useOrderActions(
       return;
     }
 
+    const ok = await confirm(
+      `确定要删除订单 "${row.orderNo || row.name}" 吗？此操作不可恢复。`,
+      "删除确认",
+      {
+        confirmButtonText: "确定删除",
+        cancelButtonText: "取消",
+        type: "warning"
+      }
+    );
+    if (!ok) return;
+
     try {
-      await ElMessageBox.confirm(
-        `确定要删除订单 "${row.orderNo || row.name}" 吗？此操作不可恢复。`,
-        "删除确认",
-        {
-          confirmButtonText: "确定删除",
-          cancelButtonText: "取消",
-          type: "warning"
-        }
-      );
       await deleteOrderApi(orderType.value, row.uid);
       message(`订单已删除`, { type: "success" });
       await onSearch();
     } catch (error) {
-      if (error !== "cancel") {
-        const msg = error instanceof Error ? error.message : "删除失败";
-        message(msg, { type: "error" });
-      }
+      const msg = error instanceof Error ? error.message : "删除失败";
+      message(msg, { type: "error" });
     }
   };
 
@@ -277,16 +279,13 @@ export function useOrderActions(
 
   const handleReverseOrder = async (row: OrderRow) => {
     try {
-      const { value: reason } = await ElMessageBox.prompt(
-        "请输入作废原因",
-        "订单作废",
-        {
-          confirmButtonText: "确认",
-          cancelButtonText: "取消",
-          inputPattern: /\S+/,
-          inputErrorMessage: "作废原因不能为空"
-        }
-      );
+      const res = await ElMessageBox.prompt("请输入作废原因", "订单作废", {
+        confirmButtonText: "确认",
+        cancelButtonText: "取消",
+        inputPattern: /\S+/,
+        inputErrorMessage: "作废原因不能为空"
+      });
+      const reason = typeof res === "string" ? "" : res.value;
       if (reason) {
         const api = reverseApiMap[orderType.value];
         if (api) {

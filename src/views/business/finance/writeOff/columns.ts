@@ -1,3 +1,5 @@
+import { formatMoneyFromFen } from "@/utils/formatMoney";
+
 export const columns: TableColumnList = [
   {
     label: "核销单号",
@@ -30,21 +32,21 @@ export const columns: TableColumnList = [
     prop: "receivableAmount",
     minWidth: 110,
     formatter: ({ receivableAmount }: { receivableAmount: number }) =>
-      `¥${(receivableAmount / 100).toFixed(2)}`
+      `¥${formatMoneyFromFen(receivableAmount)}`
   },
   {
     label: "应付金额",
     prop: "payableAmount",
     minWidth: 110,
     formatter: ({ payableAmount }: { payableAmount: number }) =>
-      `¥${(payableAmount / 100).toFixed(2)}`
+      `¥${formatMoneyFromFen(payableAmount)}`
   },
   {
     label: "核销金额",
     prop: "writeOffAmount",
     minWidth: 110,
     formatter: ({ writeOffAmount }: { writeOffAmount: number }) =>
-      `¥${(writeOffAmount / 100).toFixed(2)}`
+      `¥${formatMoneyFromFen(writeOffAmount)}`
   },
   {
     label: "审核状态",

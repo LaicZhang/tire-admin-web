@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -10,6 +10,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import editForm from "./form.vue";
 import StocktakingDetailForm from "./StocktakingDetailForm.vue";
@@ -37,6 +38,7 @@ defineOptions({
 const dataList = ref<StocktakingTask[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const { confirm } = useConfirmDialog();
 const editFormRef = ref<{
   getRef: () => FormInstance | undefined;
   getFormData: () => CreateStocktakingDto;
@@ -182,12 +184,13 @@ const handleViewDetails = (row: StocktakingTask) => {
 };
 
 const handleComplete = async (row: StocktakingTask) => {
+  const ok = await confirm(
+    "完成盘点后将根据盘点结果生成盘盈/盘亏单据。确认完成?",
+    "确认完成"
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      "完成盘点后将根据盘点结果生成盘盈/盘亏单据。确认完成?",
-      "确认完成",
-      { type: "warning" }
-    );
     const { data, code } = await completeInventoryCheckTaskApi(row.id);
     if (code === 200) {
       let msg = "盘点完成";
@@ -197,39 +200,33 @@ const handleComplete = async (row: StocktakingTask) => {
       fetchData();
     }
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 
 const handleCancel = async (row: StocktakingTask) => {
+  const ok = await confirm("确认取消该盘点任务?", "确认取消");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认取消该盘点任务?", "确认取消", {
-      type: "warning"
-    });
     await cancelInventoryCheckTaskApi(row.id);
     ElMessage.success("已取消");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 
 const handleDelete = async (row: StocktakingTask) => {
+  const ok = await confirm("确认删除该盘点单?", "确认删除");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该盘点单?", "确认删除", {
-      type: "warning"
-    });
     await deleteInventoryCheckTaskApi(row.id);
     ElMessage.success("删除成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   }
 };
 

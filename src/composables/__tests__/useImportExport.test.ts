@@ -330,7 +330,9 @@ describe("useImportExport", () => {
           filters: { test: true }
         } as ExportParams);
 
-        expect(mockApi).toHaveBeenCalledWith("product", { filter: "test" });
+        expect(mockApi).toHaveBeenCalledWith("product", {
+          filters: { test: true }
+        });
         expect(downloadBlob).toHaveBeenCalledWith(
           mockBlob,
           expect.stringContaining("product_export"),

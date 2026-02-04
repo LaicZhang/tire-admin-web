@@ -12,7 +12,7 @@ import { documentColumns } from "./columns";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
-import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { ENABLE_STATUS_MAP } from "@/components/StatusTag/types";
 import {
@@ -33,6 +33,7 @@ defineOptions({
 
 const loading = ref(false);
 const activeTab = ref("document");
+const { confirm } = useConfirmDialog();
 const documentRules = ref<CodeRule[]>([]);
 const basicRules = ref<CodeRule[]>([]);
 const formRef = ref();
@@ -248,25 +249,19 @@ const deleteRule = async (row: CodeRule) => {
     message("缺少规则ID", { type: "warning" });
     return;
   }
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除规则 "${row.name}" 吗？`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-    const { code, msg } = await deleteCodeRuleApi(row.uid);
-    if (code === 200) {
-      message("删除成功", { type: "success" });
-      loadData();
-    } else {
-      message(msg || "删除失败", { type: "error" });
-    }
-  } catch {
-    // cancelled
+  const ok = await confirm(`确定要删除规则 "${row.name}" 吗？`, "删除确认", {
+    confirmButtonText: "确定删除",
+    cancelButtonText: "取消",
+    type: "warning"
+  });
+  if (!ok) return;
+
+  const { code, msg } = await deleteCodeRuleApi(row.uid);
+  if (code === 200) {
+    message("删除成功", { type: "success" });
+    loadData();
+  } else {
+    message(msg || "删除失败", { type: "error" });
   }
 };
 
@@ -280,27 +275,25 @@ const batchDelete = async () => {
     message("选中的规则都不能删除", { type: "warning" });
     return;
   }
-  try {
-    await ElMessageBox.confirm(
-      `确定要批量删除选中的 ${canDelete.length} 个规则吗？`,
-      "批量删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-    const { code, msg } = await batchDeleteCodeRulesApi(
-      canDelete.map(r => r.uid)
-    );
-    if (code === 200) {
-      message("删除成功", { type: "success" });
-      loadData();
-    } else {
-      message(msg || "删除失败", { type: "error" });
+  const ok = await confirm(
+    `确定要批量删除选中的 ${canDelete.length} 个规则吗？`,
+    "批量删除确认",
+    {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
     }
-  } catch {
-    // cancelled
+  );
+  if (!ok) return;
+
+  const { code, msg } = await batchDeleteCodeRulesApi(
+    canDelete.map(r => r.uid)
+  );
+  if (code === 200) {
+    message("删除成功", { type: "success" });
+    loadData();
+  } else {
+    message(msg || "删除失败", { type: "error" });
   }
 };
 

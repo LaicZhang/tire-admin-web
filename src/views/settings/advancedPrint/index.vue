@@ -14,6 +14,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { message } from "@/utils";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import StatusTag from "@/components/StatusTag/index.vue";
 import {
   getPrintTemplatesApi,
@@ -31,6 +32,7 @@ defineOptions({
 
 const router = useRouter();
 const loading = ref(false);
+const { confirm } = useConfirmDialog();
 const templateList = ref<AdvancedPrintTemplate[]>([]);
 const activeDocType = ref("sales_out");
 const selectedRows = ref<AdvancedPrintTemplate[]>([]);
@@ -92,15 +94,13 @@ const editTemplate = (row: AdvancedPrintTemplate) => {
 
 const copyTemplate = async (row: AdvancedPrintTemplate) => {
   try {
-    const { value } = await ElMessageBox.prompt(
-      "请输入新模板名称",
-      "复制模板",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue: `${row.name} - 副本`
-      }
-    );
+    const res = await ElMessageBox.prompt("请输入新模板名称", "复制模板", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      inputValue: `${row.name} - 副本`
+    });
+    if (typeof res === "string") return;
+    const { value } = res;
     loading.value = true;
     try {
       const { code } = await copyPrintTemplateApi(row.uid, value);
@@ -125,32 +125,26 @@ const deleteTemplate = async (row: AdvancedPrintTemplate) => {
     message("默认模板不能删除", { type: "warning" });
     return;
   }
+  const ok = await confirm(`确定要删除模板 "${row.name}" 吗？`, "删除确认", {
+    confirmButtonText: "确定删除",
+    cancelButtonText: "取消",
+    type: "warning"
+  });
+  if (!ok) return;
+
+  loading.value = true;
   try {
-    await ElMessageBox.confirm(
-      `确定要删除模板 "${row.name}" 吗？`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
-    loading.value = true;
-    try {
-      const { code } = await deletePrintTemplateApi(row.uid);
-      if (code === 200) {
-        message("删除成功", { type: "success" });
-        loadData();
-      } else {
-        message("删除失败", { type: "error" });
-      }
-    } catch {
+    const { code } = await deletePrintTemplateApi(row.uid);
+    if (code === 200) {
+      message("删除成功", { type: "success" });
+      loadData();
+    } else {
       message("删除失败", { type: "error" });
-    } finally {
-      loading.value = false;
     }
   } catch {
-    // cancelled
+    message("删除失败", { type: "error" });
+  } finally {
+    loading.value = false;
   }
 };
 

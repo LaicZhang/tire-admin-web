@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, h } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
@@ -12,6 +12,7 @@ import { addDialog } from "@/components/ReDialog";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useCrud } from "@/composables/useCrud";
 import { deviceDetection } from "@pureadmin/utils";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import editForm from "./form.vue";
 import {
@@ -36,6 +37,8 @@ import { handleApiError } from "@/utils";
 defineOptions({
   name: "InventoryBom"
 });
+
+const { confirm } = useConfirmDialog();
 
 const editFormRef = ref<{
   getRef: () => FormInstance | undefined;
@@ -155,75 +158,69 @@ const handleEdit = (row: Bom) => {
 };
 
 const handleDelete = async (row: Bom) => {
+  const ok = await confirm("确认删除该BOM?", "确认删除");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该BOM?", "确认删除", {
-      type: "warning"
-    });
     await deleteBomApi(row.uid);
     ElMessage.success("删除成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   }
 };
 
 const handleApprove = async (row: Bom) => {
+  const ok = await confirm("确认审核该BOM?", "确认审核");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认审核该BOM?", "确认审核", {
-      type: "warning"
-    });
     await approveBomApi(row.uid);
     ElMessage.success("审核成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "审核失败");
-    }
+    handleApiError(error, "审核失败");
   }
 };
 
 const handleDisable = async (row: Bom) => {
+  const ok = await confirm("确认禁用该BOM?", "确认禁用");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认禁用该BOM?", "确认禁用", {
-      type: "warning"
-    });
     await disableBomApi(row.uid);
     ElMessage.success("已禁用");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 
 const handleCreateAssembly = async (row: Bom) => {
+  const ok = await confirm("确认根据该BOM创建组装单?", "创建组装单", {
+    type: "info"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认根据该BOM创建组装单?", "创建组装单", {
-      type: "info"
-    });
     await createAssemblyOrderFromBomApi(row.uid);
     ElMessage.success("组装单创建成功");
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 
 const handleCreateDisassembly = async (row: Bom) => {
+  const ok = await confirm("确认根据该BOM创建拆卸单?", "创建拆卸单", {
+    type: "info"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认根据该BOM创建拆卸单?", "创建拆卸单", {
-      type: "info"
-    });
     await createDisassemblyOrderFromBomApi(row.uid);
     ElMessage.success("拆卸单创建成功");
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "操作失败");
-    }
+    handleApiError(error, "操作失败");
   }
 };
 </script>

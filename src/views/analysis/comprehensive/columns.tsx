@@ -1,8 +1,5 @@
 import { ElTag } from "element-plus";
-
-function formatMoney(value: number) {
-  return Number((value / 100).toFixed(2));
-}
+import { MoneyDisplay } from "@/components";
 
 interface ClaimLossRow {
   reason: string;
@@ -37,7 +34,7 @@ export function useColumns() {
       label: "金额",
       cellRenderer: data => {
         const row = data.row as ClaimLossRow | undefined;
-        return <span>¥{row ? formatMoney(row.amount) : "-"}</span>;
+        return <MoneyDisplay value={row?.amount} unit="fen" />;
       }
     }
   ];

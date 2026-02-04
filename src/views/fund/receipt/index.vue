@@ -6,6 +6,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   deleteAdvancePayment,
   getAdvancePaymentList,
@@ -25,6 +26,7 @@ const loading = ref(false);
 const dataList = ref<AdvancePaymentListItem[]>([]);
 const selectedRows = ref<AdvancePaymentListItem[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
+const { confirm } = useConfirmDialog();
 
 const pagination = reactive({
   total: 0,
@@ -91,19 +93,17 @@ function handleSelectionChange(rows: AdvancePaymentListItem[]) {
 }
 
 async function handleDelete(row: AdvancePaymentListItem) {
+  const ok = await confirm(`确定删除单据 ${row.billNo} 吗？`, "删除确认");
+  if (!ok) return;
+
+  loading.value = true;
   try {
-    await ElMessageBox.confirm(`确定删除单据 ${row.billNo} 吗？`, "删除确认", {
-      type: "warning"
-    });
-    loading.value = true;
     await deleteAdvancePayment(String(row.id));
     message("删除成功", { type: "success" });
     selectedRows.value = [];
     onSearch();
   } catch (error) {
-    if ((error as string) !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   } finally {
     loading.value = false;
   }
@@ -114,13 +114,14 @@ async function handleBatchDelete() {
     message("请选择要删除的记录", { type: "warning" });
     return;
   }
+  const ok = await confirm(
+    `确定删除选中的 ${selectedRows.value.length} 条记录吗？`,
+    "批量删除确认"
+  );
+  if (!ok) return;
+
+  loading.value = true;
   try {
-    await ElMessageBox.confirm(
-      `确定删除选中的 ${selectedRows.value.length} 条记录吗？`,
-      "批量删除确认",
-      { type: "warning" }
-    );
-    loading.value = true;
     await Promise.all(
       selectedRows.value.map(row => deleteAdvancePayment(String(row.id)))
     );
@@ -128,9 +129,7 @@ async function handleBatchDelete() {
     selectedRows.value = [];
     onSearch();
   } catch (error) {
-    if ((error as string) !== "cancel") {
-      handleApiError(error, "批量删除失败");
-    }
+    handleApiError(error, "批量删除失败");
   } finally {
     loading.value = false;
   }
@@ -143,7 +142,7 @@ async function handleWriteOff(row: AdvancePaymentListItem) {
   }
 
   try {
-    const { value: orderUid } = await ElMessageBox.prompt(
+    const orderRes = await ElMessageBox.prompt(
       "请输入销售订单 UID",
       "核销预收款",
       {
@@ -153,7 +152,10 @@ async function handleWriteOff(row: AdvancePaymentListItem) {
         inputErrorMessage: "请输入销售订单 UID"
       }
     );
-    const { value: amountYuan } = await ElMessageBox.prompt(
+    if (typeof orderRes === "string") return;
+    const orderUid = orderRes.value;
+
+    const amountRes = await ElMessageBox.prompt(
       "请输入核销金额(元)",
       "核销预收款",
       {
@@ -163,6 +165,8 @@ async function handleWriteOff(row: AdvancePaymentListItem) {
         inputErrorMessage: "请输入正确金额"
       }
     );
+    if (typeof amountRes === "string") return;
+    const amountYuan = amountRes.value;
 
     const amountFen = Math.round(Number(amountYuan) * 100);
     const remaining = BigInt(row.remainingAmount || "0");

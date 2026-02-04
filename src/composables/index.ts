@@ -23,3 +23,6 @@ export * from "./useA11y";
 
 // 表单验证
 export * from "./useFormValidation";
+
+// 确认弹窗
+export * from "./useConfirmDialog";

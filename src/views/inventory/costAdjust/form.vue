@@ -9,6 +9,7 @@ import type {
 import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
 import { getEmployeeListApi } from "@/api/company/employee";
+import { MoneyDisplay } from "@/components";
 
 interface Props {
   formInline: {
@@ -185,7 +186,7 @@ onMounted(() => {
         <span
           :class="totalAdjustAmount >= 0 ? 'text-green-600' : 'text-red-600'"
         >
-          {{ totalAdjustAmount.toFixed(2) }}
+          <MoneyDisplay :value="totalAdjustAmount" :showSymbol="false" />
         </span>
       </span>
     </el-divider>

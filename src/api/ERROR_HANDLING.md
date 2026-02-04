@@ -108,22 +108,19 @@ const fetchData = async () => {
 ### 2. 删除等危险操作需要确认
 
 ```typescript
-import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables";
 
 const handleDelete = async (row: { uid: string; name: string }) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除 "${row.name}" 吗？此操作不可恢复。`,
-      "删除确认",
-      { type: "warning" }
-    );
-    await deleteApi(row.uid);
-    message("删除成功", { type: "success" });
-  } catch (error) {
-    if (error !== "cancel") {
-      // 非用户取消的错误
-    }
-  }
+  const { confirm } = useConfirmDialog();
+  const ok = await confirm(
+    `确定要删除 "${row.name}" 吗？此操作不可恢复。`,
+    "删除确认",
+    { type: "warning" }
+  );
+  if (!ok) return;
+
+  await deleteApi(row.uid);
+  message("删除成功", { type: "success" });
 };
 ```
 

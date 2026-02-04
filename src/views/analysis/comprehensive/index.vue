@@ -8,6 +8,7 @@ import {
   getStockoutApi
 } from "@/api/analysis";
 import { message } from "@/utils/message";
+import { fenToYuan } from "@/utils/formatMoney";
 import { useColumns } from "./columns";
 
 defineOptions({
@@ -196,7 +197,7 @@ function handleTabChange(tab: string | number) {
 }
 
 function formatMoney(value: number) {
-  return Number((value / 100).toFixed(2));
+  return Number(fenToYuan(value));
 }
 
 onMounted(() => {

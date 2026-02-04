@@ -1,11 +1,13 @@
 import { ref, watch } from "vue";
 import { message } from "@/utils";
 import { getUserDataAuthApi, syncCustomerAuthApi } from "@/api/setting";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { normalizeAuthItems } from "../utils";
 import type { AuthItem, DataAuthUser } from "../types";
 
 export function useUserDataAuthDetail() {
   const detailLoading = ref(false);
+  const { confirm } = useConfirmDialog();
   const customerList = ref<AuthItem[]>([]);
   const supplierList = ref<AuthItem[]>([]);
   const warehouseList = ref<AuthItem[]>([]);
@@ -72,17 +74,18 @@ export function useUserDataAuthDetail() {
   };
 
   const syncCustomers = async (userId: string) => {
+    const ok = await confirm(
+      "将同步该用户自己创建的客户到授权列表，是否继续？",
+      "同步客户",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "info"
+      }
+    );
+    if (!ok) return;
+
     try {
-      const { ElMessageBox } = await import("element-plus");
-      await ElMessageBox.confirm(
-        "将同步该用户自己创建的客户到授权列表，是否继续？",
-        "同步客户",
-        {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "info"
-        }
-      );
       detailLoading.value = true;
       const { code, msg } = await syncCustomerAuthApi(userId);
       if (code === 200) {
@@ -92,7 +95,7 @@ export function useUserDataAuthDetail() {
         message(msg || "同步失败", { type: "error" });
       }
     } catch {
-      // cancelled
+      message("同步失败", { type: "error" });
     } finally {
       detailLoading.value = false;
     }

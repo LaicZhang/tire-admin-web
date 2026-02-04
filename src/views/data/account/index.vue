@@ -12,8 +12,9 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import AccountForm from "./form.vue";
+import { MoneyDisplay } from "@/components";
 import { message } from "@/utils";
-import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { FormItemProps } from "./types";
 import {
   getPaymentListApi,
@@ -29,6 +30,7 @@ defineOptions({
 });
 
 const formRef = ref();
+const { confirm } = useConfirmDialog();
 
 const state = ref({
   name: ""
@@ -165,29 +167,24 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 };
 
 const deleteOne = async (row: { uid: string; name: string }) => {
+  const ok = await confirm(
+    `确定要删除账户 "${row.name}" 吗？此操作不可恢复。`,
+    "删除确认",
+    {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定要删除账户 "${row.name}" 吗？此操作不可恢复。`,
-      "删除确认",
-      {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning"
-      }
-    );
     await deletePaymentApi(row.uid);
     message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      message("删除失败", { type: "error" });
-    }
+    message("删除失败", { type: "error" });
   }
-};
-
-const formatBalance = (balance: number | string) => {
-  const num = typeof balance === "string" ? parseFloat(balance) : balance;
-  return num.toFixed(2);
 };
 </script>
 
@@ -230,7 +227,11 @@ const formatBalance = (balance: number | string) => {
           >
             <template #balance="{ row }">
               <span class="font-bold text-primary">
-                {{ formatBalance(row.balance || 0) }}
+                <MoneyDisplay
+                  :value="row.balance || 0"
+                  unit="yuan"
+                  :showSymbol="false"
+                />
               </span>
             </template>
             <template #operation="{ row }">

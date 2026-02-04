@@ -4,6 +4,7 @@ import { getAssetListApi } from "@/api";
 import { message } from "@/utils";
 import { MAX_FETCH_PAGE_SIZE } from "@/utils/constants";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { MoneyDisplay } from "@/components";
 import Refresh from "~icons/ep/refresh";
 
 defineOptions({
@@ -88,7 +89,7 @@ onMounted(() => {
         </div>
         <div>
           <div class="text-gray-500">资产总价值</div>
-          <div class="text-2xl font-bold">¥{{ totalValue.toFixed(2) }}</div>
+          <MoneyDisplay class="text-2xl font-bold" :value="totalValue" />
         </div>
       </div>
     </el-card>

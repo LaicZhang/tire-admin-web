@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, h } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import { columns } from "./columns";
 import {
   getWorkflowListApi,
@@ -16,6 +16,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import WorkflowForm from "./WorkflowForm.vue";
 import { useCrud } from "@/composables";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
@@ -27,6 +28,7 @@ type WorkflowFormExpose = {
 };
 
 const formRef = ref<WorkflowFormExpose>();
+const { confirm } = useConfirmDialog();
 
 const queryForm = reactive<Pick<WorkflowQuery, "name" | "status" | "scope">>({
   name: "",
@@ -161,15 +163,15 @@ const handleEdit = (row: WorkflowVO) => {
 
 // Delete Workflow
 const handleDelete = async (row: WorkflowVO) => {
+  const ok = await confirm(`确认删除流程 "${row.name}" 吗?`, "提示");
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(`确认删除流程 "${row.name}" 吗?`, "提示", {
-      type: "warning"
-    });
     await deleteWorkflowApi(row.id);
     ElMessage.success("删除成功");
     handleQuery();
   } catch {
-    // cancelled
+    // ignore
   }
 };
 

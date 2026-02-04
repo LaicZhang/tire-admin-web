@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -10,6 +10,7 @@ import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import Upload from "~icons/ep/upload";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { http } from "@/utils/http";
 import { handleApiError } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
@@ -29,6 +30,7 @@ defineOptions({
 });
 
 const router = useRouter();
+const { confirm } = useConfirmDialog();
 const selectedRows = ref<FundDocument[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
 
@@ -161,18 +163,18 @@ function handleView(row: FundDocument) {
 }
 
 async function handleDelete(row: FundDocument) {
+  const ok = await confirm(`确定删除单据 ${row.billNo} 吗？`, "删除确认", {
+    type: "warning"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(`确定删除单据 ${row.billNo} 吗？`, "删除确认", {
-      type: "warning"
-    });
     // 根据类型调用不同的删除接口
     await http.delete(`/fund/documents/${row.documentType}/${row.uid}`);
     ElMessage.success("删除成功");
     onSearch();
   } catch (e) {
-    if ((e as string) !== "cancel") {
-      handleApiError(e, "删除失败");
-    }
+    handleApiError(e, "删除失败");
   }
 }
 
@@ -181,21 +183,21 @@ async function handleBatchDelete() {
     ElMessage.warning("请选择要删除的记录");
     return;
   }
+  const ok = await confirm(
+    `确定删除选中的 ${selectedRows.value.length} 条记录吗？`,
+    "批量删除确认",
+    { type: "warning" }
+  );
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm(
-      `确定删除选中的 ${selectedRows.value.length} 条记录吗？`,
-      "批量删除确认",
-      { type: "warning" }
-    );
     for (const row of selectedRows.value) {
       await http.delete(`/fund/documents/${row.documentType}/${row.uid}`);
     }
     ElMessage.success("批量删除成功");
     onSearch();
   } catch (e) {
-    if ((e as string) !== "cancel") {
-      handleApiError(e, "批量删除失败");
-    }
+    handleApiError(e, "批量删除失败");
   }
 }
 

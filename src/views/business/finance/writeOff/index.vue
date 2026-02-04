@@ -14,7 +14,7 @@ import {
   type WriteOffOrder
 } from "@/api/business/writeOff";
 import { message } from "@/utils/message";
-import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import WriteOffForm from "./WriteOffForm.vue";
 
@@ -29,6 +29,7 @@ const form = ref({
 
 const dataList = ref<WriteOffOrder[]>([]);
 const loading = ref(true);
+const { confirm } = useConfirmDialog();
 const pagination = ref({
   total: 0,
   pageSize: 20,
@@ -80,50 +81,50 @@ function handleAdd() {
 }
 
 async function handleApprove(row: WriteOffOrder) {
+  const ok = await confirm("确定审核通过该核销单吗？", "提示", {
+    type: "warning"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确定审核通过该核销单吗？", "提示", {
-      type: "warning"
-    });
     await approveWriteOff(row.uid);
     message("审核成功", { type: "success" });
     onSearch();
   } catch (e: unknown) {
-    if (e !== "cancel") {
-      const msg = e instanceof Error ? e.message : "审核失败";
-      message(msg, { type: "error" });
-    }
+    const msg = e instanceof Error ? e.message : "审核失败";
+    message(msg, { type: "error" });
   }
 }
 
 async function handleReject(row: WriteOffOrder) {
+  const ok = await confirm("确定拒绝该核销单吗？", "提示", {
+    type: "warning"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确定拒绝该核销单吗？", "提示", {
-      type: "warning"
-    });
     await rejectWriteOff(row.uid);
     message("已拒绝", { type: "success" });
     onSearch();
   } catch (e: unknown) {
-    if (e !== "cancel") {
-      const msg = e instanceof Error ? e.message : "拒绝失败";
-      message(msg, { type: "error" });
-    }
+    const msg = e instanceof Error ? e.message : "拒绝失败";
+    message(msg, { type: "error" });
   }
 }
 
 async function handleDelete(row: WriteOffOrder) {
+  const ok = await confirm("确定删除该核销单吗？", "提示", {
+    type: "warning"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确定删除该核销单吗？", "提示", {
-      type: "warning"
-    });
     await deleteWriteOff(row.uid);
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e: unknown) {
-    if (e !== "cancel") {
-      const msg = e instanceof Error ? e.message : "删除失败";
-      message(msg, { type: "error" });
-    }
+    const msg = e instanceof Error ? e.message : "删除失败";
+    message(msg, { type: "error" });
   }
 }
 

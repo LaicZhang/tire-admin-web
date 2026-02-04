@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import View from "~icons/ep/view";
@@ -9,6 +9,7 @@ import Download from "~icons/ep/download";
 import Printer from "~icons/ep/printer";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import {
   type InventoryDocument,
@@ -38,6 +39,7 @@ defineOptions({
 const router = useRouter();
 const dataList = ref<InventoryDocument[]>([]);
 const loading = ref(false);
+const { confirm } = useConfirmDialog();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const selectedRows = ref<InventoryDocument[]>([]);
 
@@ -143,10 +145,12 @@ const handleDelete = async (row: InventoryDocument) => {
     ElMessage.warning("已审核的单据需要先反审核后才能删除");
     return;
   }
+  const ok = await confirm("确认删除该单据?", "确认删除", {
+    type: "warning"
+  });
+  if (!ok) return;
+
   try {
-    await ElMessageBox.confirm("确认删除该单据?", "确认删除", {
-      type: "warning"
-    });
     switch (row.type) {
       case DocumentType.TRANSFER:
         await deleteOrderApi("transfer-order", row.uid);
@@ -175,9 +179,7 @@ const handleDelete = async (row: InventoryDocument) => {
     ElMessage.success("删除成功");
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   }
 };
 
@@ -219,13 +221,14 @@ const handleBatchDelete = async () => {
     ElMessage.warning(`选中的${approvedCount}条已审核单据无法删除,请先反审核`);
     return;
   }
-  try {
-    await ElMessageBox.confirm(
-      `确认删除选中的${selectedRows.value.length}条单据?`,
-      "批量删除",
-      { type: "warning" }
-    );
+  const ok = await confirm(
+    `确认删除选中的${selectedRows.value.length}条单据?`,
+    "批量删除",
+    { type: "warning" }
+  );
+  if (!ok) return;
 
+  try {
     let successCount = 0;
     let failCount = 0;
     const deletePromises = selectedRows.value.map(async row => {
@@ -246,9 +249,7 @@ const handleBatchDelete = async () => {
     selectedRows.value = [];
     fetchData();
   } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "删除失败");
-    }
+    handleApiError(error, "删除失败");
   }
 };
 

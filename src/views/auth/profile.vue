@@ -122,7 +122,7 @@ import { message } from "@/utils/message";
 import type { ComponentSize } from "element-plus";
 import { userInfoTemplate, type UserInfoType } from "./info";
 import { User, Connection } from "@element-plus/icons-vue";
-import { ElMessageBox } from "element-plus";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import WxBindForm from "./WxBindForm.vue";
 import ProfileEditForm from "./ProfileEditForm.vue";
@@ -134,6 +134,7 @@ defineOptions({
 const size = ref<ComponentSize>("default");
 const userInfo = ref<UserInfoType>(userInfoTemplate);
 const wxLoading = ref(false);
+const { confirm } = useConfirmDialog();
 
 const wxBindStatus = ref({
   isBound: false,
@@ -228,7 +229,7 @@ const handleBindWx = async () => {
 
 const handleUnbindWx = async () => {
   try {
-    await ElMessageBox.confirm(
+    const ok = await confirm(
       "确定要解除微信绑定吗？解绑后将无法使用微信扫码登录。",
       "确认解绑",
       {
@@ -237,6 +238,7 @@ const handleUnbindWx = async () => {
         type: "warning"
       }
     );
+    if (!ok) return;
 
     wxLoading.value = true;
     const { code, msg } = await wxUnbindApi();
