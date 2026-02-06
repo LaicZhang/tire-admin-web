@@ -98,7 +98,7 @@
     "@eslint/js": "^9.39.2",
     "@iconify-json/ep": "^1.2.4",
     "@iconify-json/ri": "^1.2.9",
-    "@iconify/json": "^2.2.434",
+    "@iconify/json": "^2.2.435",
     "@iconify/vue": "5.0.0",
     "@playwright/test": "^1.58.1",
     "@tailwindcss/vite": "^4.1.18",
