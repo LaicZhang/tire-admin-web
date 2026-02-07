@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { ref, reactive, h } from "vue";
 import type { AuxiliaryAttrFormData, AuxiliaryAttrItem } from "./types";
 import { columns } from "./columns";
@@ -52,7 +53,7 @@ const {
   api: ({ page = 1 }) => getAuxiliaryAttrListApi(page, { ...form }),
   pagination: {
     total: 0,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   },

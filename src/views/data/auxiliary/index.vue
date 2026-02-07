@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { ref, reactive, h, watch } from "vue";
 import type {
   AuxiliaryFormData,
@@ -67,7 +68,7 @@ const {
     getAuxiliaryListApi(page, activeTab.value, { ...form }),
   pagination: {
     total: 0,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   },

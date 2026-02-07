@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { ref, reactive, onMounted, h, watch } from "vue";
 import type { SettlementFormData, SettlementItem } from "./types";
 import { columns } from "./columns";
@@ -56,7 +57,7 @@ const {
   api: async ({ page = 1, pageSize = 10, ...params }) =>
     getSettlementListApi(page, { ...params, pageSize }),
   pagination: {
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     background: true,
     layout: "total, sizes, prev, pager, next, jumper"
   },
