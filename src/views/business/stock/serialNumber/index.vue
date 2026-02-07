@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_PAGE_SIZE } from "../../../../utils/constants";
 import { ref, h } from "vue";
 import { columns, statusMap } from "./columns";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -56,7 +57,7 @@ const {
     }) as Promise<CommonResult<{ list: SerialNumber[]; count: number }>>,
   pagination: {
     total: 0,
-    pageSize: 20,
+    pageSize: DEFAULT_PAGE_SIZE,
     currentPage: 1,
     background: true
   },

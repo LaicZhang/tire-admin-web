@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
 import { ref, reactive, onMounted } from "vue";
 import { columns } from "./columns";
 import { getCollectionReminderListApi } from "@/api/finance";
@@ -18,7 +19,7 @@ const dataList = ref<CollectionReminder[]>([]);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const pagination = reactive({
   total: 0,
-  pageSize: 10,
+  pageSize: PAGE_SIZE_SMALL,
   currentPage: 1,
   background: true
 });

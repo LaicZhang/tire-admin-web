@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
 import { ref } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { columns } from "./columns";
@@ -21,7 +22,7 @@ const dataList = ref<Statement[]>([]);
 const loading = ref(true);
 const pagination = ref({
   total: 0,
-  pageSize: 10,
+  pageSize: PAGE_SIZE_SMALL,
   currentPage: 1,
   background: true
 });

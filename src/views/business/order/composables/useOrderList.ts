@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import type { FormInstance } from "element-plus";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
 import {
   getOrderListApi,
   getPurchasePlanListApi,
@@ -63,7 +64,7 @@ export function useOrderList() {
 
   const pagination = ref({
     total: 0,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   });

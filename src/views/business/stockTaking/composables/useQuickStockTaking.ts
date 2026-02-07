@@ -1,5 +1,6 @@
 import { ref, reactive, computed, type Ref } from "vue";
 import { message } from "@/utils/message";
+import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
 import {
   getReserveListApi,
   batchStockTakingApi,
@@ -24,13 +25,13 @@ export function useQuickStockTaking(currentRepo: Ref<string | undefined>) {
 
   const pagination = ref({
     currentPage: 1,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     total: 0
   });
 
   const quickPagination = reactive({
     total: 0,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   });

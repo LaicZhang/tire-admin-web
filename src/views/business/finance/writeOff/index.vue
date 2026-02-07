@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_PAGE_SIZE } from "../../../../utils/constants";
 import { h, ref, reactive } from "vue";
 import { columns } from "./columns";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -32,7 +33,7 @@ const loading = ref(true);
 const { confirm } = useConfirmDialog();
 const pagination = ref({
   total: 0,
-  pageSize: 20,
+  pageSize: DEFAULT_PAGE_SIZE,
   currentPage: 1,
   background: true
 });

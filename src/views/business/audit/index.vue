@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, onMounted, h, reactive } from "vue";
 import { columns, AuditOrder } from "./columns";
 import { getPendingAuditOrdersApi } from "@/api/business/order";
@@ -22,7 +23,7 @@ const total = ref(0);
 
 const pagination = reactive({
   total: 0,
-  pageSize: 20,
+  pageSize: DEFAULT_PAGE_SIZE,
   currentPage: 1,
   background: true
 });

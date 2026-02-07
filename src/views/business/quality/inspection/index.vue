@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
 import { ref, reactive } from "vue";
 import { columns } from "./columns";
 import {
@@ -42,7 +43,7 @@ const {
     >,
   pagination: {
     total: 0,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   },

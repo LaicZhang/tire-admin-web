@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { ref, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Add from "~icons/ep/plus";
@@ -18,7 +19,7 @@ const dataList = ref<ShippingWave[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
-  pageSize: 10,
+  pageSize: PAGE_SIZE_SMALL,
   currentPage: 1,
   background: true
 });

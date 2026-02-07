@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { onMounted, ref, h } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -26,7 +27,7 @@ const form = ref({
 });
 const pagination = ref({
   total: 0,
-  pageSize: 10,
+  pageSize: PAGE_SIZE_SMALL,
   currentPage: 1,
   background: true
 });
