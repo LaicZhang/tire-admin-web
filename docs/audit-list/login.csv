@@ -1,9 +1,0 @@
-文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/login/index.vue,REUSE,P2,登录页面使用useLoginForm composable封装良好,参考
-views/login/index.vue,SEC,P2,登录表单使用验证码机制良好,参考
-views/login/components/phone.vue,MAINT,P3,手机登录组件结构标准,参考
-views/login/components/register.vue,MAINT,P3,注册组件结构标准,参考
-views/login/components/update.vue,MAINT,P3,找回密码组件结构标准,参考
-views/login/components/qrCode.vue,MAINT,P3,扫码登录组件结构标准,参考
-views/login/utils/motion.tsx,REUSE,P3,动画效果组件可复用,参考
-views/login/utils/rule.ts,REUSE,P2,登录表单验证规则可作为参考,推广验证规则模式到其他表单,参考
