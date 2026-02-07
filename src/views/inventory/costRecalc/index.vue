@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessage } from "element-plus";
 import type { FormInstance } from "element-plus";
@@ -49,7 +50,7 @@ const queryParams = reactive<RecalcTaskQuery>({
 
 const pagination = ref({
   total: 0,
-  pageSize: 15,
+  pageSize: PAGE_SIZE_MEDIUM,
   currentPage: 1,
   background: true
 });

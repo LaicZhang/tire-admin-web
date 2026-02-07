@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -32,7 +33,7 @@ const { confirm } = useConfirmDialog();
 const paymentList = ref<Array<{ uid: string; name: string }>>([]);
 const pagination = reactive({
   total: 0,
-  pageSize: 20,
+  pageSize: DEFAULT_PAGE_SIZE,
   currentPage: 1,
   background: true
 });

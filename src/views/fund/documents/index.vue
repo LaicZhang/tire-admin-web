@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, reactive, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
@@ -93,7 +94,7 @@ const {
   },
   pagination: {
     total: 0,
-    pageSize: 20,
+    pageSize: DEFAULT_PAGE_SIZE,
     currentPage: 1,
     background: true
   },

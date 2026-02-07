@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -50,7 +51,7 @@ const dateRange = ref<[string, string] | null>(null);
 
 const pagination = ref({
   total: 0,
-  pageSize: 20,
+  pageSize: DEFAULT_PAGE_SIZE,
   currentPage: 1,
   background: true
 });

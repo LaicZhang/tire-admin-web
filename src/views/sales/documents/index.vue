@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { onMounted, ref } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -49,7 +50,7 @@ const dateRange = ref<[string, string] | null>(null);
 
 const pagination = ref({
   total: 0,
-  pageSize: 10,
+  pageSize: PAGE_SIZE_SMALL,
   currentPage: 1,
   background: true
 });

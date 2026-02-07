@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { onMounted, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -30,7 +31,7 @@ const { confirm } = useConfirmDialog();
 
 const pagination = reactive({
   total: 0,
-  pageSize: 20,
+  pageSize: DEFAULT_PAGE_SIZE,
   currentPage: 1,
   background: true
 });

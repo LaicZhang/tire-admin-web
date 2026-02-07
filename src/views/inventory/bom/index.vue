@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
 import { ref, reactive, h } from "vue";
 import { ElMessage } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -77,7 +78,7 @@ const {
   },
   params: queryParams,
   pagination: {
-    pageSize: 15,
+    pageSize: PAGE_SIZE_MEDIUM,
     background: true
   },
   transform: res => {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
 import type { TabPaneName } from "element-plus";
@@ -41,7 +42,7 @@ const activeTab = ref("flow");
 const fundFlowList = ref<FundFlow[]>([]);
 const flowPagination = reactive({
   total: 0,
-  pageSize: 20,
+  pageSize: DEFAULT_PAGE_SIZE,
   currentPage: 1,
   background: true
 });
@@ -53,7 +54,7 @@ const accountBalanceList = ref<AccountBalance[]>([]);
 const contactDebtList = ref<ContactDebt[]>([]);
 const debtPagination = reactive({
   total: 0,
-  pageSize: 20,
+  pageSize: DEFAULT_PAGE_SIZE,
   currentPage: 1,
   background: true
 });
