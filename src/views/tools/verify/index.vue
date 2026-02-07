@@ -4,6 +4,7 @@ import { getVerifyCodeApi } from "@/api/verify";
 import { message } from "@/utils/message";
 import { ReImageVerify } from "@/components/ReImageVerify";
 import { ReQrcode } from "@/components/ReQrcode";
+import { DEFAULT_QR_CONTENT } from "@/config/externalLinks";
 
 defineOptions({
   name: "VerifyTool"
@@ -17,7 +18,7 @@ const phoneForm = ref({
   code: ""
 });
 
-const qrContent = ref("https://pure-admin.github.io/pure-admin-table");
+const qrContent = ref(DEFAULT_QR_CONTENT);
 
 async function sendSms() {
   if (!phoneForm.value.phone) {

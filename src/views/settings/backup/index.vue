@@ -158,6 +158,20 @@ const startBackup = async () => {
 };
 
 const handleUploadRequest = async (options: UploadRequestOptions) => {
+  const toUploadAjaxError = (err: unknown) => {
+    const base = err instanceof Error ? err : new Error(String(err));
+    const e = base as Error & {
+      status: number;
+      method: string;
+      url: string;
+      name: string;
+    };
+    e.name = "UploadAjaxError";
+    e.status = 0;
+    e.method = options.method;
+    e.url = options.action;
+    return e;
+  };
   try {
     loading.value = true;
     const formData = new FormData();
@@ -168,12 +182,11 @@ const handleUploadRequest = async (options: UploadRequestOptions) => {
       message("上传成功", { type: "success" });
       loadData();
     } else {
-      const error = new Error("上传失败");
-      options.onError?.(error as any);
+      options.onError?.(toUploadAjaxError("上传失败"));
       message("上传失败", { type: "error" });
     }
   } catch (err) {
-    options.onError?.(err as any);
+    options.onError?.(toUploadAjaxError(err));
     message("上传失败", { type: "error" });
   } finally {
     loading.value = false;

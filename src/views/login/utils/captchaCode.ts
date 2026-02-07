@@ -1,6 +1,6 @@
 import type { FormInstance, FormItemProp } from "element-plus";
 import { clone } from "@pureadmin/utils";
-import { ref } from "vue";
+import { ref, onScopeDispose } from "vue";
 
 const isDisabled = ref(false);
 const timer = ref<ReturnType<typeof setInterval>>();
@@ -39,6 +39,9 @@ export const useCaptchaCode = () => {
     isDisabled.value = false;
     if (timer.value) clearInterval(timer.value);
   };
+
+  // 自动清理定时器
+  onScopeDispose(end);
 
   return {
     isDisabled,

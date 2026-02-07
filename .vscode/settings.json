@@ -39,6 +39,8 @@
   },
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": true,
   "files.eol": "\n",
   "files.insertFinalNewline": true,
   "files.simpleDialog.enable": true,

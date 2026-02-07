@@ -33,16 +33,17 @@
 - **样式检查**：StyleLint 16.26.1
 - **Git Hooks**：Husky 9.1.7
 - **提交规范**：Commitlint
+- **测试**：Jest
 
 ### 项目架构
 
 ```
 src/
 ├── api/              # API 接口层
-│   ├── business/     # 业务相关接口
-│   ├── company/      # 公司相关接口
-│   ├── data/         # 数据相关接口
-│   └── system/       # 系统相关接口
+│   ├── business/     # 业务相关
+│   ├── company/      # 公司相关
+│   ├── data/         # 数据相关
+│   └── system/       # 系统相关
 ├── assets/           # 静态资源（图片、图标等）
 ├── components/       # 全局组件
 ├── composables/      # 组合式函数
@@ -149,9 +150,6 @@ pnpm typecheck
 # 清理缓存并重新安装
 pnpm clean:cache
 
-# 优化 SVG 图标
-pnpm svgo
-
 # 统计代码行数
 pnpm cloc
 
@@ -176,9 +174,6 @@ VITE_PORT = 8848
 
 # 公共路径
 VITE_PUBLIC_PATH = /
-
-# 路由模式（hash 或 h5）
-VITE_ROUTER_HISTORY = "hash"
 
 # 后端服务器地址
 VITE_SERVER_URL = "http://localhost:3000"
@@ -281,7 +276,7 @@ VITE_COMPRESSION = gzip
 
 ### 样式规范
 
-- 优先使用 TailwindCSS 工具类
+- 优先使用 TailwindCSS 类
 - 复杂样式使用 SCSS
 - 全局样式放在 `src/style/` 目录
 - 组件样式使用 scoped CSS
@@ -345,12 +340,9 @@ docker run -p 80:80 tire-admin-web
 
 ### 待开发功能
 
-- ⏳ 数据可视化优化
-- ⏳ Redis 缓存集成
 - ⏳ 日志管理
 - ⏳ 文件管理增强
 - ⏳ 推送设置管理
-- ⏳ 用户删除及相关数据清理
 
 ## 常见问题
 
@@ -392,6 +384,7 @@ VITE_PORT = 3000
    ```
 
 3. 清理缓存并重新安装：
+
    ```bash
    pnpm clean:cache
    ```
@@ -411,9 +404,9 @@ VITE_PORT = 3000
 
 ## 相关资源
 
-- **前端仓库**：https://github.com/LaicZhang/tire-admin-web
-- **后端仓库**：https://github.com/LaicZhang/be-core
-- **项目主页**：https://tire.laiczhang.com
+- **前端仓库**：<https://github.com/LaicZhang/tire-admin-web>
+- **后端仓库**：<https://github.com/LaicZhang/be-core>
+- **项目主页**：<https://tire.laiczhang.com>
 - **许可证**：MIT
 
 ## 注意事项
@@ -458,4 +451,4 @@ pnpm dev
 
 **最后更新**：2026-01-05
 **维护者**：laiczhang
-**联系方式**：laiczhang@outlook.com
+**联系方式**：<laiczhang@outlook.com>
