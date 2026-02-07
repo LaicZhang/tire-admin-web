@@ -1,6 +1,7 @@
 import { ref, shallowRef, onUnmounted, toValue, type Ref, watch } from "vue";
 import { createLogger } from "@/utils/logger";
 
+import { PAGE_SIZE_SMALL } from "../utils/constants";
 const logger = createLogger("useCrud");
 
 export interface Pagination {
@@ -86,7 +87,7 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
 
   const pagination = shallowRef<Pagination>({
     currentPage: 1,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     total: 0,
     pageSizes: [10, 20, 50, 100],
     background: true,

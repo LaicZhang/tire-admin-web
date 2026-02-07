@@ -6,6 +6,8 @@
     QueryDto extends Record<string, unknown>
   "
 >
+import { PAGE_SIZE_SMALL } from "../../utils/constants";
+
 import { ref, onMounted, computed } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -75,7 +77,7 @@ const form = ref<Record<string, unknown>>({
 });
 const pagination = ref<PaginationConfig>({
   total: 0,
-  pageSize: 10,
+  pageSize: PAGE_SIZE_SMALL,
   currentPage: 1,
   background: true
 });
