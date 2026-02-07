@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { ref, reactive, h } from "vue";
 import { ElMessage } from "element-plus";
 import { columns } from "./columns";
@@ -52,7 +53,7 @@ const {
     getWorkflowListApi({ ...queryForm, page, pageSize }),
   pagination: {
     total: 0,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     pageSizes: [10, 20, 50, 100],
     background: true,

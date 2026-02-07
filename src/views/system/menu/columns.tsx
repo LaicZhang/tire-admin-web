@@ -1,3 +1,4 @@
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import type {
   LoadingConfig,
   AdaptiveConfig,
@@ -73,7 +74,7 @@ export function useColumns() {
 
   /** 分页配置 */
   const pagination = reactive<PaginationProps>({
-    pageSize: 10, // Tree table usually doesn't need pagination for root, but if API supports it.
+    pageSize: PAGE_SIZE_SMALL, // Tree table usually doesn't need pagination for root, but if API supports it.
     currentPage: 1,
     pageSizes: [10, 20, 50],
     total: 0,

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -28,7 +29,7 @@ const dataList = ref<NoticeItem[]>([]);
 const searchFormRef = ref();
 const pagination = reactive({
   total: 0,
-  pageSize: 10,
+  pageSize: PAGE_SIZE_SMALL,
   currentPage: 1,
   background: true
 });

@@ -1,4 +1,5 @@
 <script setup lang="tsx">
+import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -49,7 +50,7 @@ const {
       CommonResult<{ list: RecycleItem[]; count: number }>
     >,
   pagination: {
-    pageSize: 20,
+    pageSize: DEFAULT_PAGE_SIZE,
     currentPage: 1,
     pageSizes: [10, 20, 50, 100],
     background: true,

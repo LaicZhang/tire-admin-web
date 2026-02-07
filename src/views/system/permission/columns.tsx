@@ -1,3 +1,4 @@
+import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import type {
   LoadingConfig,
   AdaptiveConfig,
@@ -62,7 +63,7 @@ export function useColumns() {
 
   /** 分页配置 */
   const pagination = reactive<PaginationProps>({
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     pageSizes: [10, 20, 50],
     total: 0,

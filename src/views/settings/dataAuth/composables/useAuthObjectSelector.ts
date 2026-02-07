@@ -4,6 +4,7 @@ import { getCustomerListApi } from "@/api/business/customer";
 import { getProviderListApi } from "@/api/business/provider";
 import { getRepoListApi } from "@/api/company/repo";
 
+import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
 export type SelectType = "customer" | "supplier" | "warehouse";
 
 export type SelectRow = {
@@ -22,7 +23,7 @@ export function useAuthObjectSelector() {
   const selectSelectedRows = ref<SelectRow[]>([]);
   const selectPagination = ref({
     total: 0,
-    pageSize: 10,
+    pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   });

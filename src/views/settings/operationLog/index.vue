@@ -1,4 +1,5 @@
 <script setup lang="tsx">
+import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, computed } from "vue";
 import { columns } from "./columns";
 import "plus-pro-components/es/components/search/style/css";
@@ -49,7 +50,7 @@ const {
   api: ({ page, pageSize }) =>
     getOperationLogsApi({ page, pageSize, ...buildParams() }),
   pagination: {
-    pageSize: 20,
+    pageSize: DEFAULT_PAGE_SIZE,
     currentPage: 1,
     pageSizes: [10, 20, 50, 100],
     background: true,
