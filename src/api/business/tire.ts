@@ -87,7 +87,9 @@ export const updateTireApi = baseTireApi.update;
 export const deleteTireApi = baseTireApi.delete;
 
 /** 批量获取商品 */
-export const getTireBatchApi = baseTireApi.batch!;
+export const getTireBatchApi = baseTireApi.batch as NonNullable<
+  typeof baseTireApi.batch
+>;
 
 // ============ 商品查询扩展 ============
 

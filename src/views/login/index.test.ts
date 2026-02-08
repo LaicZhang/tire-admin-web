@@ -214,7 +214,7 @@ describe("Login.vue", () => {
       global: {
         stubs: commonStubs,
         directives: {
-          loading: () => {}
+          loading: () => undefined
         }
       }
     });

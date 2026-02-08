@@ -56,9 +56,10 @@ describe("useLoginForm", () => {
     const promise = handleGithubLogin();
 
     expect(messageHandler).toBeDefined();
+    if (!messageHandler) throw new Error("message handler not registered");
 
     // Simulate success message
-    messageHandler!({
+    messageHandler({
       data: { accessToken: "token" }
     } as MessageEvent);
 
@@ -78,7 +79,8 @@ describe("useLoginForm", () => {
 
     const promise = handleGithubLogin();
 
-    messageHandler!({ data: { error: "Access denied" } } as MessageEvent);
+    if (!messageHandler) throw new Error("message handler not registered");
+    messageHandler({ data: { error: "Access denied" } } as MessageEvent);
 
     await expect(promise).rejects.toThrow("Access denied");
     expect(githubLoading.value).toBe(false);

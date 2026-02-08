@@ -32,7 +32,7 @@ export function viteBuildInfo(): Plugin {
       outDir = resolvedConfig.build?.outDir ?? "dist";
     },
     buildStart() {
-      console.log(boxen(welcomeMessage, boxenOptions));
+      config.logger.info(boxen(welcomeMessage, boxenOptions));
       if (config.command === "build") {
         startTime = dayjs(new Date());
       }
@@ -43,7 +43,7 @@ export function viteBuildInfo(): Plugin {
         getPackageSize({
           folder: outDir,
           callback: (size: string | number) => {
-            console.log(
+            config.logger.info(
               boxen(
                 gradient(["cyan", "magenta"]).multiline(
                   `🎉 打包完成（总用时${dayjs

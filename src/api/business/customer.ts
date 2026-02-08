@@ -96,10 +96,14 @@ export const updateCustomerApi = baseCustomerApi.update;
 export const deleteCustomerApi = baseCustomerApi.delete;
 
 /** 恢复客户 */
-export const restoreCustomerApi = baseCustomerApi.restore!;
+export const restoreCustomerApi = baseCustomerApi.restore as NonNullable<
+  typeof baseCustomerApi.restore
+>;
 
 /** 批量获取客户 */
-export const getCustomerBatchApi = baseCustomerApi.batch!;
+export const getCustomerBatchApi = baseCustomerApi.batch as NonNullable<
+  typeof baseCustomerApi.batch
+>;
 
 // ============ 扩展 API ============
 

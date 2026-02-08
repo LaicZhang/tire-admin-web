@@ -90,10 +90,14 @@ export const updateProviderApi = baseProviderApi.update;
 export const deleteProviderApi = baseProviderApi.delete;
 
 /** 恢复供应商 */
-export const restoreProviderApi = baseProviderApi.restore!;
+export const restoreProviderApi = baseProviderApi.restore as NonNullable<
+  typeof baseProviderApi.restore
+>;
 
 /** 批量获取供应商 */
-export const getProviderBatchApi = baseProviderApi.batch!;
+export const getProviderBatchApi = baseProviderApi.batch as NonNullable<
+  typeof baseProviderApi.batch
+>;
 
 // ============ 扩展 API ============
 

@@ -73,10 +73,10 @@ export function createLogger(moduleName: string) {
 
     switch (level) {
       case "debug":
-        if (isDev) console.debug(formattedMessage, data ?? "");
+        if (isDev) console.warn(formattedMessage, data ?? "");
         break;
       case "info":
-        console.info(formattedMessage, data ?? "");
+        if (isDev) console.warn(formattedMessage, data ?? "");
         break;
       case "warn":
         console.warn(formattedMessage, data ?? "");

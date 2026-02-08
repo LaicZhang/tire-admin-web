@@ -8,11 +8,18 @@ import {
 } from "../logger";
 
 describe("logger", () => {
+  const noop = () => undefined;
+
+  let debugSpy: ReturnType<typeof vi.spyOn>;
+  let infoSpy: ReturnType<typeof vi.spyOn>;
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+  let errorSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
-    vi.spyOn(console, "debug").mockImplementation(() => {});
-    vi.spyOn(console, "info").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    debugSpy = vi.spyOn(console, "debug").mockImplementation(noop);
+    infoSpy = vi.spyOn(console, "info").mockImplementation(noop);
+    warnSpy = vi.spyOn(console, "warn").mockImplementation(noop);
+    errorSpy = vi.spyOn(console, "error").mockImplementation(noop);
   });
 
   afterEach(() => {
@@ -42,9 +49,8 @@ describe("logger", () => {
 
       testLogger.error("Test error", sensitiveData);
 
-      expect(console.error).toHaveBeenCalled();
-      const callArg = (console.error as ReturnType<typeof vi.fn>).mock
-        .calls[0][1];
+      expect(errorSpy).toHaveBeenCalled();
+      const callArg = errorSpy.mock.calls[0][1];
       expect(callArg).toContain("[REDACTED]");
       expect(callArg).not.toContain("secret123");
       expect(callArg).not.toContain("abc123");
@@ -57,9 +63,8 @@ describe("logger", () => {
 
       testLogger.error("Test error", data);
 
-      expect(console.error).toHaveBeenCalled();
-      const callArg = (console.error as ReturnType<typeof vi.fn>).mock
-        .calls[0][1];
+      expect(errorSpy).toHaveBeenCalled();
+      const callArg = errorSpy.mock.calls[0][1];
       expect(callArg).toContain("John");
       expect(callArg).toContain("30");
     });
@@ -69,25 +74,27 @@ describe("logger", () => {
     it("should log debug messages in dev", () => {
       const testLogger = createLogger("Test");
       testLogger.debug("Debug message");
-      expect(console.debug).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
+      expect(debugSpy).not.toHaveBeenCalled();
     });
 
     it("should log info messages", () => {
       const testLogger = createLogger("Test");
       testLogger.info("Info message");
-      expect(console.info).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
+      expect(infoSpy).not.toHaveBeenCalled();
     });
 
     it("should log warn messages", () => {
       const testLogger = createLogger("Test");
       testLogger.warn("Warn message");
-      expect(console.warn).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
     });
 
     it("should log error messages", () => {
       const testLogger = createLogger("Test");
       testLogger.error("Error message");
-      expect(console.error).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
     });
   });
 
@@ -114,8 +121,7 @@ describe("logger", () => {
       const testLogger = createLogger("Test");
       testLogger.info("Test message");
 
-      const callArg = (console.info as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+      const callArg = warnSpy.mock.calls[0][0];
       // Check for ISO timestamp pattern
       expect(callArg).toMatch(/\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
@@ -124,8 +130,7 @@ describe("logger", () => {
       const testLogger = createLogger("MyModule");
       testLogger.info("Test message");
 
-      const callArg = (console.info as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+      const callArg = warnSpy.mock.calls[0][0];
       expect(callArg).toContain("[MyModule]");
     });
 
@@ -133,8 +138,7 @@ describe("logger", () => {
       const testLogger = createLogger("Test");
       testLogger.warn("Test message");
 
-      const callArg = (console.warn as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+      const callArg = warnSpy.mock.calls[0][0];
       expect(callArg).toContain("[WARN]");
     });
   });
