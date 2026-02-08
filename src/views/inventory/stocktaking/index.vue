@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
-import { ElMessage } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -30,7 +29,7 @@ import {
   deleteInventoryCheckTaskApi
 } from "@/api/business/inventory-check";
 import { getRepoListApi } from "@/api/company/repo";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 
 defineOptions({
   name: "InventoryStocktaking"
@@ -148,7 +147,7 @@ const openCreateDialog = () => {
           try {
             const formData = formRef.getFormData();
             await createInventoryCheckTaskApi(formData);
-            ElMessage.success("创建成功");
+            message("创建成功", { type: "success" });
             done();
             fetchData();
           } catch (error) {
@@ -197,7 +196,7 @@ const handleComplete = async (row: StocktakingTask) => {
       let msg = "盘点完成";
       if (data.surplusOrderId) msg += `，已生成盘盈单`;
       if (data.wasteOrderId) msg += `，已生成盘亏单`;
-      ElMessage.success(msg);
+      message(msg, { type: "success" });
       fetchData();
     }
   } catch (error) {
@@ -211,7 +210,7 @@ const handleCancel = async (row: StocktakingTask) => {
 
   try {
     await cancelInventoryCheckTaskApi(row.id);
-    ElMessage.success("已取消");
+    message("已取消", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "操作失败");
@@ -224,7 +223,7 @@ const handleDelete = async (row: StocktakingTask) => {
 
   try {
     await deleteInventoryCheckTaskApi(row.id);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "删除失败");

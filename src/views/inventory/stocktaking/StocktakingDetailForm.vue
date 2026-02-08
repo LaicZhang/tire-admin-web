@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
-import { ElMessage } from "element-plus";
 import { detailColumns } from "./columns";
 import { type StocktakingTask, type StocktakingDetail } from "./types";
 import {
@@ -8,7 +7,7 @@ import {
   updateInventoryCheckDetailsApi
 } from "@/api/business/inventory-check";
 import { ElMessageBox } from "element-plus";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 
 interface Props {
   formInline: {
@@ -75,7 +74,7 @@ const handleUpdateDetail = async (detail: StocktakingDetail) => {
       ]
     });
 
-    ElMessage.success("更新成功");
+    message("更新成功", { type: "success" });
     loadDetails();
   } catch (error) {
     if (error !== "cancel") {

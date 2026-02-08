@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -31,7 +31,7 @@ import {
   saveDisassemblyOrderAsBomApi,
   updateDisassemblyOrderApi
 } from "@/api/inventory";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 
 defineOptions({
   name: "InventoryDisassembly"
@@ -141,10 +141,10 @@ const openDialog = (
             const formData = formRef.getFormData();
             if (row?.uid) {
               await updateDisassemblyOrderApi(row.uid, formData);
-              ElMessage.success("更新成功");
+              message("更新成功", { type: "success" });
             } else {
               await createDisassemblyOrderApi(formData);
-              ElMessage.success("创建成功");
+              message("创建成功", { type: "success" });
             }
             done();
             fetchData();
@@ -171,7 +171,7 @@ const handleDelete = async (row: DisassemblyOrder) => {
 
   try {
     await deleteDisassemblyOrderApi(row.uid);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "删除失败");
@@ -187,7 +187,7 @@ const handleApprove = async (row: DisassemblyOrder) => {
 
   try {
     await approveDisassemblyOrderApi(row.uid);
-    ElMessage.success("审核成功");
+    message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "审核失败");
@@ -205,7 +205,7 @@ const handleReject = async (row: DisassemblyOrder) => {
     if (typeof res === "string") return;
     const { value } = res;
     await rejectDisassemblyOrderApi(row.uid, value);
-    ElMessage.success("已拒绝");
+    message("已拒绝", { type: "success" });
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
@@ -222,7 +222,7 @@ const handleSaveAsBom = async (row: DisassemblyOrder) => {
 
   try {
     await saveDisassemblyOrderAsBomApi(row.uid);
-    ElMessage.success("已保存为BOM模板");
+    message("已保存为BOM模板", { type: "success" });
   } catch (error) {
     handleApiError(error, "操作失败");
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -31,7 +31,7 @@ import {
   rejectOtherOutboundOrderApi,
   updateOtherOutboundOrderApi
 } from "@/api/inventory";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 
 defineOptions({
@@ -154,10 +154,10 @@ const openDialog = (
             const formData = formRef.getFormData();
             if (row?.uid) {
               await updateOtherOutboundOrderApi(row.uid, formData);
-              ElMessage.success("更新成功");
+              message("更新成功", { type: "success" });
             } else {
               await createOtherOutboundOrderApi(formData);
-              ElMessage.success("创建成功");
+              message("创建成功", { type: "success" });
             }
             done();
             fetchData();
@@ -186,7 +186,7 @@ const handleDelete = async (row: OtherOutboundOrder) => {
 
   try {
     await deleteOtherOutboundOrderApi(row.uid);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "删除失败");
@@ -203,7 +203,7 @@ const handleApprove = async (row: OtherOutboundOrder) => {
 
   try {
     await approveOtherOutboundOrderApi(row.uid);
-    ElMessage.success("审核成功");
+    message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "审核失败");
@@ -221,7 +221,7 @@ const handleReject = async (row: OtherOutboundOrder) => {
     if (typeof res === "string") return;
     const { value } = res;
     await rejectOtherOutboundOrderApi(row.uid, value);
-    ElMessage.success("已拒绝");
+    message("已拒绝", { type: "success" });
     fetchData();
   } catch (error) {
     if (error !== "cancel") {

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
-import { ElMessage } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -28,7 +27,7 @@ import {
   getCostRecalcTaskListApi,
   restoreCostRecalcTaskApi
 } from "@/api/inventory";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 
 defineOptions({
   name: "InventoryCostRecalc"
@@ -133,7 +132,7 @@ const openCreateDialog = () => {
           try {
             const formData = formRef.getFormData();
             await createCostRecalcTaskApi(formData);
-            ElMessage.success("任务创建成功,正在后台执行");
+            message("任务创建成功,正在后台执行", { type: "success" });
             done();
             fetchData();
           } catch (error) {
@@ -146,7 +145,7 @@ const openCreateDialog = () => {
 };
 
 const handleViewDetail = (row: CostRecalcTask) => {
-  ElMessage.info("查看详情功能开发中");
+  message("查看详情功能开发中");
 };
 
 const handleCancel = async (row: CostRecalcTask) => {
@@ -155,7 +154,7 @@ const handleCancel = async (row: CostRecalcTask) => {
 
   try {
     await cancelCostRecalcTaskApi(row.uid);
-    ElMessage.success("已取消");
+    message("已取消", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "操作失败");
@@ -164,7 +163,7 @@ const handleCancel = async (row: CostRecalcTask) => {
 
 const handleRestore = async (row: CostRecalcTask) => {
   if (!row.backupId) {
-    ElMessage.warning("该任务没有备份数据");
+    message("该任务没有备份数据", { type: "warning" });
     return;
   }
   const ok = await confirm(
@@ -175,7 +174,7 @@ const handleRestore = async (row: CostRecalcTask) => {
 
   try {
     await restoreCostRecalcTaskApi(row.uid);
-    ElMessage.success("恢复成功");
+    message("恢复成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "操作失败");
@@ -188,7 +187,7 @@ const handleDelete = async (row: CostRecalcTask) => {
 
   try {
     await deleteCostRecalcTaskApi(row.uid);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "删除失败");

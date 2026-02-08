@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
 import { ref, reactive, h } from "vue";
-import { ElMessage } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
@@ -33,7 +32,7 @@ import {
   getBomListApi,
   updateBomApi
 } from "@/api/inventory";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 
 defineOptions({
   name: "InventoryBom"
@@ -134,10 +133,10 @@ const openDialog = (title: string, row?: Bom, isView: boolean = false) => {
             const formData = formRef.getFormData();
             if (row?.uid) {
               await updateBomApi(row.uid, formData);
-              ElMessage.success("更新成功");
+              message("更新成功", { type: "success" });
             } else {
               await createBomApi(formData);
-              ElMessage.success("创建成功");
+              message("创建成功", { type: "success" });
             }
             done();
             fetchData();
@@ -164,7 +163,7 @@ const handleDelete = async (row: Bom) => {
 
   try {
     await deleteBomApi(row.uid);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "删除失败");
@@ -177,7 +176,7 @@ const handleApprove = async (row: Bom) => {
 
   try {
     await approveBomApi(row.uid);
-    ElMessage.success("审核成功");
+    message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "审核失败");
@@ -190,7 +189,7 @@ const handleDisable = async (row: Bom) => {
 
   try {
     await disableBomApi(row.uid);
-    ElMessage.success("已禁用");
+    message("已禁用", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "操作失败");
@@ -205,7 +204,7 @@ const handleCreateAssembly = async (row: Bom) => {
 
   try {
     await createAssemblyOrderFromBomApi(row.uid);
-    ElMessage.success("组装单创建成功");
+    message("组装单创建成功", { type: "success" });
   } catch (error) {
     handleApiError(error, "操作失败");
   }
@@ -219,7 +218,7 @@ const handleCreateDisassembly = async (row: Bom) => {
 
   try {
     await createDisassemblyOrderFromBomApi(row.uid);
-    ElMessage.success("拆卸单创建成功");
+    message("拆卸单创建成功", { type: "success" });
   } catch (error) {
     handleApiError(error, "操作失败");
   }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import View from "~icons/ep/view";
@@ -31,7 +30,7 @@ import {
   deleteOtherOutboundOrderApi
 } from "@/api/inventory";
 import { logger } from "@/utils/logger";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 
 defineOptions({
   name: "InventoryDocuments"
@@ -143,7 +142,7 @@ const handleView = (row: InventoryDocument) => {
 
 const handleDelete = async (row: InventoryDocument) => {
   if (row.isApproved) {
-    ElMessage.warning("已审核的单据需要先反审核后才能删除");
+    message("已审核的单据需要先反审核后才能删除", { type: "warning" });
     return;
   }
   const ok = await confirm("确认删除该单据?", "确认删除", {
@@ -177,7 +176,7 @@ const handleDelete = async (row: InventoryDocument) => {
       default:
         throw new Error(`未知单据类型: ${String(row.type)}`);
     }
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error, "删除失败");
@@ -214,12 +213,14 @@ const deleteByType = async (row: InventoryDocument): Promise<void> => {
 
 const handleBatchDelete = async () => {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning("请先选择要删除的单据");
+    message("请先选择要删除的单据", { type: "warning" });
     return;
   }
   const approvedCount = selectedRows.value.filter(r => r.isApproved).length;
   if (approvedCount > 0) {
-    ElMessage.warning(`选中的${approvedCount}条已审核单据无法删除,请先反审核`);
+    message(`选中的${approvedCount}条已审核单据无法删除,请先反审核`, {
+      type: "warning"
+    });
     return;
   }
   const ok = await confirm(
@@ -243,9 +244,9 @@ const handleBatchDelete = async () => {
     await Promise.all(deletePromises);
 
     if (failCount === 0) {
-      ElMessage.success(`成功删除${successCount}条单据`);
+      message(`成功删除${successCount}条单据`, { type: "success" });
     } else {
-      ElMessage.warning(`成功${successCount}条,失败${failCount}条`);
+      message(`成功${successCount}条,失败${failCount}条`, { type: "warning" });
     }
     selectedRows.value = [];
     fetchData();
@@ -256,12 +257,12 @@ const handleBatchDelete = async () => {
 
 const handleExport = () => {
   const count = selectedRows.value.length || dataList.value.length;
-  ElMessage.info(`导出${count}条记录(功能开发中)`);
+  message(`导出${count}条记录(功能开发中)`);
 };
 
 const handlePrint = () => {
   const count = selectedRows.value.length || dataList.value.length;
-  ElMessage.info(`打印${count}条记录(功能开发中)`);
+  message(`打印${count}条记录(功能开发中)`);
 };
 
 onMounted(() => {
