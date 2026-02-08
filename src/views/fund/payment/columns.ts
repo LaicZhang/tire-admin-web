@@ -1,4 +1,4 @@
-import { getPaymentMethodText, getStatusInfo } from "./types";
+import { getPaymentMethodText } from "./types";
 import type { PaymentOrder } from "./types";
 import { fenToYuanOrDash } from "@/utils/formatMoney";
 
@@ -119,5 +119,3 @@ export const detailColumns: TableColumnList = [
     minWidth: 150
   }
 ];
-
-export { getStatusInfo };

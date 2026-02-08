@@ -139,17 +139,18 @@ export const PAYMENT_STATUS_OPTIONS: {
   { label: "已作废", value: "VOID", type: "danger" }
 ];
 
+export const paymentStatusMap: Record<
+  PaymentOrderStatus,
+  { label: string; type: "info" | "warning" | "success" | "danger" }
+> = {
+  DRAFT: { label: "草稿", type: "info" },
+  APPROVED: { label: "已审核", type: "warning" },
+  COMPLETED: { label: "已完成", type: "success" },
+  VOID: { label: "已作废", type: "danger" }
+};
+
 /** 获取付款方式文本 */
 export function getPaymentMethodText(method?: PaymentMethod): string {
   const option = PAYMENT_METHOD_OPTIONS.find(o => o.value === method);
   return option?.label || "-";
-}
-
-/** 获取状态文本和类型 */
-export function getStatusInfo(status: PaymentOrderStatus): {
-  label: string;
-  type: "info" | "warning" | "success" | "danger";
-} {
-  const option = PAYMENT_STATUS_OPTIONS.find(o => o.value === status);
-  return option || { label: "未知", type: "info" };
 }

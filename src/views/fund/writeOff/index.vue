@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -12,7 +11,7 @@ import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { http } from "@/utils/http";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
   type WriteOffOrder,
@@ -110,7 +109,7 @@ async function handleDelete(row: WriteOffOrder) {
 
   try {
     await http.delete(`/write-off-order/${row.uid}`);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "删除失败");
@@ -119,7 +118,7 @@ async function handleDelete(row: WriteOffOrder) {
 
 async function handleBatchDelete() {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning("请选择要删除的记录");
+    message("请选择要删除的记录", { type: "warning" });
     return;
   }
   const ok = await confirm(
@@ -132,7 +131,7 @@ async function handleBatchDelete() {
     for (const row of selectedRows.value) {
       await http.delete(`/write-off-order/${row.uid}`);
     }
-    ElMessage.success("批量删除成功");
+    message("批量删除成功", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "批量删除失败");
@@ -145,7 +144,7 @@ async function handleApprove(row: WriteOffOrder) {
 
   try {
     await http.post(`/write-off-order/${row.uid}/approve`);
-    ElMessage.success("审核成功");
+    message("审核成功", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "审核失败");
@@ -158,7 +157,7 @@ async function handleReject(row: WriteOffOrder) {
 
   try {
     await http.post(`/write-off-order/${row.uid}/reject`);
-    ElMessage.success("已拒绝");
+    message("已拒绝", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "操作失败");
@@ -167,10 +166,10 @@ async function handleReject(row: WriteOffOrder) {
 
 function handlePrint() {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning("请选择要打印的记录");
+    message("请选择要打印的记录", { type: "warning" });
     return;
   }
-  ElMessage.info("打印功能开发中");
+  message("打印功能开发中");
 }
 
 function handleSelectionChange(rows: WriteOffOrder[]) {

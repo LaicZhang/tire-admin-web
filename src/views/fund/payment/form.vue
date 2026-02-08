@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import { ElMessage } from "element-plus";
 import {
   PAYMENT_METHOD_OPTIONS,
   type PaymentOrder,
@@ -11,7 +10,7 @@ import {
 } from "./types";
 import dayjs from "dayjs";
 import { fenToYuan, fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
@@ -134,7 +133,7 @@ async function handleSubmit() {
     selectedPaymentBalance.value !== null &&
     formData.amount > selectedPaymentBalance.value
   ) {
-    ElMessage.warning("账户余额不足");
+    message("账户余额不足", { type: "warning" });
     return;
   }
 
@@ -149,7 +148,7 @@ async function handleSubmit() {
       }))
     };
 
-    ElMessage.success(props.editData ? "更新成功" : "创建成功");
+    message(props.editData ? "更新成功" : "创建成功", { type: "success" });
     dialogVisible.value = false;
     emit("success");
   } catch (e) {

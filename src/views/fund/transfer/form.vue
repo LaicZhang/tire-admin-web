@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import { ElMessage } from "element-plus";
 import { handleApiError } from "@/utils/error";
+import { message } from "@/utils";
 import { type Transfer, type CreateTransferDto } from "./types";
 import dayjs from "dayjs";
 import { fenToYuan } from "@/utils/formatMoney";
@@ -123,7 +123,7 @@ async function handleSubmit() {
 
   // 业务校验
   if (formData.fromPaymentId === formData.toPaymentId) {
-    ElMessage.warning("转出账户和转入账户不能相同");
+    message("转出账户和转入账户不能相同", { type: "warning" });
     return;
   }
 
@@ -133,7 +133,7 @@ async function handleSubmit() {
     selectedFromAccount.value?.balance !== undefined &&
     totalAmount > selectedFromAccount.value.balance / 100
   ) {
-    ElMessage.warning("转出账户余额不足");
+    message("转出账户余额不足", { type: "warning" });
     return;
   }
 
@@ -144,7 +144,7 @@ async function handleSubmit() {
       amount: Math.round(formData.amount * 100),
       fee: formData.fee ? Math.round(formData.fee * 100) : undefined
     };
-    ElMessage.success(props.editData ? "更新成功" : "创建成功");
+    message(props.editData ? "更新成功" : "创建成功", { type: "success" });
     dialogVisible.value = false;
     emit("success");
   } catch (e) {

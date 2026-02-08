@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import { ElMessage } from "element-plus";
 import {
   BUSINESS_TYPE_OPTIONS,
   type WriteOffOrder,
@@ -9,7 +8,7 @@ import {
   type WriteOffBusinessType
 } from "./types";
 import dayjs from "dayjs";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
@@ -154,13 +153,13 @@ async function handleSubmit() {
   // 业务校验
   if (formData.businessType === "RECEIVABLE_TRANSFER") {
     if (formData.fromCustomerId === formData.toCustomerId) {
-      ElMessage.warning("转出客户和转入客户不能相同");
+      message("转出客户和转入客户不能相同", { type: "warning" });
       return;
     }
   }
   if (formData.businessType === "PAYABLE_TRANSFER") {
     if (formData.fromProviderId === formData.toProviderId) {
-      ElMessage.warning("转出供应商和转入供应商不能相同");
+      message("转出供应商和转入供应商不能相同", { type: "warning" });
       return;
     }
   }
@@ -177,7 +176,7 @@ async function handleSubmit() {
         : undefined,
       writeOffAmount: Math.round(formData.writeOffAmount * 100)
     };
-    ElMessage.success(props.editData ? "更新成功" : "创建成功");
+    message(props.editData ? "更新成功" : "创建成功", { type: "success" });
     dialogVisible.value = false;
     emit("success");
   } catch (e) {

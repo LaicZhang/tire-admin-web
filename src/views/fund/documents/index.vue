@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, reactive, watch } from "vue";
-import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -13,7 +12,7 @@ import Download from "~icons/ep/download";
 import Upload from "~icons/ep/upload";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { http } from "@/utils/http";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import MoneyDisplay from "@/components/MoneyDisplay/index.vue";
 import {
@@ -172,7 +171,7 @@ async function handleDelete(row: FundDocument) {
   try {
     // 根据类型调用不同的删除接口
     await http.delete(`/fund/documents/${row.documentType}/${row.uid}`);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "删除失败");
@@ -181,7 +180,7 @@ async function handleDelete(row: FundDocument) {
 
 async function handleBatchDelete() {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning("请选择要删除的记录");
+    message("请选择要删除的记录", { type: "warning" });
     return;
   }
   const ok = await confirm(
@@ -195,7 +194,7 @@ async function handleBatchDelete() {
     for (const row of selectedRows.value) {
       await http.delete(`/fund/documents/${row.documentType}/${row.uid}`);
     }
-    ElMessage.success("批量删除成功");
+    message("批量删除成功", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "批量删除失败");
@@ -204,18 +203,18 @@ async function handleBatchDelete() {
 
 function handlePrint() {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning("请选择要打印的记录");
+    message("请选择要打印的记录", { type: "warning" });
     return;
   }
-  ElMessage.info("打印功能开发中");
+  message("打印功能开发中");
 }
 
 function handleExport() {
-  ElMessage.info("导出功能开发中");
+  message("导出功能开发中");
 }
 
 function handleImport() {
-  ElMessage.info("导入功能开发中");
+  message("导入功能开发中");
 }
 
 function handleSelectionChange(rows: FundDocument[]) {

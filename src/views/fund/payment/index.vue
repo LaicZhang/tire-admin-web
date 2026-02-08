@@ -1,26 +1,27 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import PageContainer from "@/components/PageContainer/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { http } from "@/utils/http";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
   type PaymentOrder,
   type PaymentOrderQueryParams,
   PAYMENT_STATUS_OPTIONS,
-  PAYMENT_METHOD_OPTIONS
+  PAYMENT_METHOD_OPTIONS,
+  paymentStatusMap
 } from "./types";
-import { columns, getStatusInfo } from "./columns";
+import { columns } from "./columns";
 import PaymentForm from "./form.vue";
 
 defineOptions({
@@ -108,7 +109,7 @@ async function handleDelete(row: PaymentOrder) {
 
   try {
     await http.delete(`/payment-order/${row.uid}`);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "删除失败");
@@ -117,7 +118,7 @@ async function handleDelete(row: PaymentOrder) {
 
 async function handleBatchDelete() {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning("请选择要删除的记录");
+    message("请选择要删除的记录", { type: "warning" });
     return;
   }
   const ok = await confirm(
@@ -130,7 +131,7 @@ async function handleBatchDelete() {
     for (const row of selectedRows.value) {
       await http.delete(`/payment-order/${row.uid}`);
     }
-    ElMessage.success("批量删除成功");
+    message("批量删除成功", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "批量删除失败");
@@ -143,7 +144,7 @@ async function handleApprove(row: PaymentOrder) {
 
   try {
     await http.post(`/payment-order/${row.uid}/approve`);
-    ElMessage.success("审核成功");
+    message("审核成功", { type: "success" });
     onSearch();
   } catch (e) {
     handleApiError(e, "审核失败");
@@ -152,14 +153,14 @@ async function handleApprove(row: PaymentOrder) {
 
 function handlePrint() {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning("请选择要打印的记录");
+    message("请选择要打印的记录", { type: "warning" });
     return;
   }
-  ElMessage.info("打印功能开发中");
+  message("打印功能开发中");
 }
 
 function handleExport() {
-  ElMessage.info("导出功能开发中");
+  message("导出功能开发中");
 }
 
 function handleSelectionChange(rows: PaymentOrder[]) {
@@ -291,9 +292,7 @@ onMounted(() => {
           "
         >
           <template #status="{ row }">
-            <el-tag :type="getStatusInfo(row.status).type" size="small">
-              {{ getStatusInfo(row.status).label }}
-            </el-tag>
+            <StatusTag :status="row.status" :status-map="paymentStatusMap" />
           </template>
           <template #operation="{ row, size }">
             <el-button

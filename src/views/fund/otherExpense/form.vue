@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import { ElMessage } from "element-plus";
 import { handleApiError } from "@/utils/error";
+import { message } from "@/utils";
 import {
   EXPENSE_TYPE_OPTIONS,
   type OtherExpense,
@@ -123,13 +123,13 @@ async function handleSubmit() {
 
   // 业务校验：如果有付款金额，必须选择付款账户
   if (formData.paidAmount && formData.paidAmount > 0 && !formData.paymentId) {
-    ElMessage.warning("请选择付款账户");
+    message("请选择付款账户", { type: "warning" });
     return;
   }
 
   // 付款金额不能大于总金额
   if (formData.paidAmount && formData.paidAmount > formData.amount) {
-    ElMessage.warning("本次付款金额不能大于总金额");
+    message("本次付款金额不能大于总金额", { type: "warning" });
     return;
   }
 
@@ -139,7 +139,7 @@ async function handleSubmit() {
     selectedPaymentBalance.value !== null &&
     formData.paidAmount > selectedPaymentBalance.value
   ) {
-    ElMessage.warning("账户余额不足");
+    message("账户余额不足", { type: "warning" });
     return;
   }
 
@@ -152,7 +152,7 @@ async function handleSubmit() {
         ? Math.round(formData.paidAmount * 100)
         : undefined
     };
-    ElMessage.success(props.editData ? "更新成功" : "创建成功");
+    message(props.editData ? "更新成功" : "创建成功", { type: "success" });
     dialogVisible.value = false;
     emit("success");
   } catch (e) {
