@@ -1,7 +1,7 @@
 文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/system/workflow/index.vue,MAINT,P1,使用ElMessage.success而非统一的message工具函数,替换为import { message } from '@/utils',小
+views/system/workflow/index.vue,MAINT,P1,使用ElMessage.success而非统一的message工具函数,替换为import { message } from '@/utils',已处理
 views/system/workflow/index.vue,REUSE,P1,使用useCrud和StatusTag组件模式良好,作为系统管理页面参考,参考
-views/system/workflow/WorkflowForm.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,小
+views/system/workflow/WorkflowForm.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,已处理
 views/system/user/index.vue,REUSE,P1,使用useCrud模式良好,参考
 views/system/role/index.vue,MAINT,P3,角色管理页面结构标准,参考
 views/system/permission/index.vue,MAINT,P3,权限管理页面结构标准,参考
