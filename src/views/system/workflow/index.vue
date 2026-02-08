@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "../../../utils/constants";
 import { ref, reactive, h } from "vue";
-import { ElMessage } from "element-plus";
 import { columns } from "./columns";
 import {
   getWorkflowListApi,
@@ -19,6 +18,7 @@ import WorkflowForm from "./WorkflowForm.vue";
 import { useCrud } from "@/composables";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import { message } from "@/utils";
 
 defineOptions({
   name: "WorkflowIndex"
@@ -169,7 +169,7 @@ const handleDelete = async (row: WorkflowVO) => {
 
   try {
     await deleteWorkflowApi(row.id);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     handleQuery();
   } catch {
     // ignore
@@ -179,7 +179,7 @@ const handleDelete = async (row: WorkflowVO) => {
 const handleRestore = async (row: WorkflowVO) => {
   try {
     await restoreWorkflowApi(row.id);
-    ElMessage.success("恢复成功");
+    message("恢复成功", { type: "success" });
     handleQuery();
   } catch {
     // ignore

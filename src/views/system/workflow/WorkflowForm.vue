@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from "vue";
 import type { FormInstance } from "element-plus";
-import { ElMessage } from "element-plus";
 import { handleApiError } from "@/utils/error";
+import { message } from "@/utils";
 import { Delete } from "@element-plus/icons-vue";
 import {
   createWorkflowApi,
@@ -81,10 +81,10 @@ const handleSubmit = async () => {
   try {
     if (formData.id) {
       await updateWorkflowApi(formData.id, formData);
-      ElMessage.success("修改成功");
+      message("修改成功", { type: "success" });
     } else {
       await createWorkflowApi(formData);
-      ElMessage.success("新增成功");
+      message("新增成功", { type: "success" });
     }
     return true;
   } catch (e) {
