@@ -11,6 +11,14 @@ export interface LogisticOrder {
   trackingNo?: string;
 }
 
+export const logisticStatusTextMap: Record<string, string> = {
+  0: "待发货",
+  1: "部分发货",
+  2: "已发货",
+  3: "已送达",
+  4: "已取消"
+};
+
 // ============ 发运计划 ============
 export interface ShippingPlan {
   uid: string;

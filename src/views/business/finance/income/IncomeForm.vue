@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
 import { handleApiError } from "@/utils/error";
+import { message } from "@/utils";
 import { http } from "@/utils/http";
 import { createLogger } from "@/utils/logger";
 import type { CommonResult } from "@/api/type";
@@ -50,15 +50,15 @@ const fetchPaymentList = async () => {
 // 提交表单
 const handleSubmit = async () => {
   if (!form.type) {
-    ElMessage.warning("请选择收入类型");
+    message("请选择收入类型", { type: "warning" });
     return;
   }
   if (!form.amount || form.amount <= 0) {
-    ElMessage.warning("请输入有效金额");
+    message("请输入有效金额", { type: "warning" });
     return;
   }
   if (!form.paymentId) {
-    ElMessage.warning("请选择收款账户");
+    message("请选择收款账户", { type: "warning" });
     return;
   }
 
@@ -74,7 +74,7 @@ const handleSubmit = async () => {
         payment: { connect: { uid: form.paymentId } }
       }
     });
-    ElMessage.success("创建成功");
+    message("创建成功", { type: "success" });
     props.onSuccess();
   } catch (error) {
     handleApiError(error);

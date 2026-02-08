@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "../../../../utils/constants";
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessageBox } from "element-plus";
 import { handleApiError } from "@/utils/error";
+import { message } from "@/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   getCostAdjustOrderList,
@@ -16,6 +17,7 @@ import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -97,7 +99,7 @@ const handleApprove = async (row: CostAdjustOrder) => {
 
   try {
     await approveCostAdjustOrder(row.id);
-    ElMessage.success("审核成功");
+    message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error);
@@ -116,7 +118,7 @@ const handleReject = async (row: CostAdjustOrder) => {
     if (typeof res === "string") return;
     const { value } = res;
     await rejectCostAdjustOrder(row.id, value);
-    ElMessage.success("已拒绝");
+    message("已拒绝", { type: "success" });
     fetchData();
   } catch (error) {
     if (error !== "cancel") {
@@ -134,22 +136,23 @@ const handleDelete = async (row: CostAdjustOrder) => {
 
   try {
     await deleteCostAdjustOrder(row.id);
-    ElMessage.success("删除成功");
+    message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
     handleApiError(error);
   }
 };
 
-// 格式化状态
-const getStatusTag = (row: CostAdjustOrder) => {
-  if (row.isApproved) {
-    return { type: "success" as const, text: "已审核" };
-  }
-  if (row.isLocked) {
-    return { type: "danger" as const, text: "已拒绝" };
-  }
-  return { type: "warning" as const, text: "待审核" };
+const costAdjustStatusMap = {
+  approved: { label: "已审核", type: "success" },
+  rejected: { label: "已拒绝", type: "danger" },
+  pending: { label: "待审核", type: "warning" }
+} as const;
+
+const getCostAdjustStatus = (row: CostAdjustOrder) => {
+  if (row.isApproved) return "approved";
+  if (row.isLocked) return "rejected";
+  return "pending";
 };
 
 onMounted(() => {
@@ -205,9 +208,10 @@ onMounted(() => {
             @page-current-change="handlePageChange"
           >
             <template #status="{ row }">
-              <el-tag :type="getStatusTag(row).type" size="small">
-                {{ getStatusTag(row).text }}
-              </el-tag>
+              <StatusTag
+                :status="getCostAdjustStatus(row)"
+                :status-map="costAdjustStatusMap"
+              />
             </template>
             <template #operation="{ row }">
               <el-button

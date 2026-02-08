@@ -13,7 +13,7 @@ import ShippingPlanTab from "./ShippingPlanTab.vue";
 import LoadingTaskTab from "./LoadingTaskTab.vue";
 import ShippingWaveTab from "./ShippingWaveTab.vue";
 import LogisticDetailDrawer from "./LogisticDetailDrawer.vue";
-import type { LogisticOrder } from "./types";
+import { logisticStatusTextMap, type LogisticOrder } from "./types";
 
 defineOptions({
   name: "Logistic"
@@ -61,14 +61,7 @@ const columns = ref<TableColumnList>([
     label: "物流状态",
     prop: "logisticsStatus",
     formatter: (row, column, cellValue) => {
-      const statusMap: Record<string, string> = {
-        0: "待发货",
-        1: "部分发货",
-        2: "已发货",
-        3: "已送达",
-        4: "已取消"
-      };
-      return statusMap[String(cellValue)] || "未知";
+      return logisticStatusTextMap[String(cellValue)] || "未知";
     }
   },
   {
