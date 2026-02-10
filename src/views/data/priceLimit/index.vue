@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { onMounted, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";

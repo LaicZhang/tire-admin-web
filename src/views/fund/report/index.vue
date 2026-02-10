@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
 import type { TabPaneName } from "element-plus";

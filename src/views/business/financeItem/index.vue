@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -16,6 +16,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import FinanceItemForm from "./FinanceItemForm.vue";
 
 defineOptions({
   name: "FinanceItem"
@@ -110,43 +111,18 @@ function openDialog() {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: ({ options }) => {
-      const { formInline } = options.props! as {
-        formInline: { name: string; type: "income" | "expense"; desc: string };
-      };
-      return h("div", [
-        h("el-form", { model: formInline, labelWidth: "80px" }, [
-          h("el-form-item", { label: "名称", required: true }, [
-            h("el-input", {
-              modelValue: formInline.name,
-              "onUpdate:modelValue": (val: string) => (formInline.name = val),
-              placeholder: "请输入项目名称"
-            })
-          ]),
-          h("el-form-item", { label: "类型", required: true }, [
-            h(
-              "el-radio-group",
-              {
-                modelValue: formInline.type,
-                "onUpdate:modelValue": (val: IncomeExpenseItem["type"]) =>
-                  (formInline.type = val)
-              },
-              [
-                h("el-radio", { label: "income" }, () => "收入"),
-                h("el-radio", { label: "expense" }, () => "支出")
-              ]
-            )
-          ]),
-          h("el-form-item", { label: "备注" }, [
-            h("el-input", {
-              modelValue: formInline.desc,
-              "onUpdate:modelValue": (val: string) => (formInline.desc = val),
-              type: "textarea"
-            })
-          ])
-        ])
-      ]);
-    },
+    contentRenderer: ({ options }) =>
+      h(FinanceItemForm, {
+        formInline: (
+          options.props! as {
+            formInline: {
+              name: string;
+              type: "income" | "expense";
+              desc: string;
+            };
+          }
+        ).formInline
+      }),
     beforeSure: (done, { options }) => {
       const curData = (
         options.props! as {

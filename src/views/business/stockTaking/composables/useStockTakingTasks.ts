@@ -1,7 +1,7 @@
 import { ref, reactive, type Ref } from "vue";
 import { useRouter } from "vue-router";
 import { message } from "@/utils/message";
-import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import {
   createInventoryCheckTaskApi,
   getInventoryCheckTasksApi,

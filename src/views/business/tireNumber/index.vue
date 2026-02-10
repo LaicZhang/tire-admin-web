@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { onMounted, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -29,57 +29,44 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
-const getTireNumberListInfo = async () => {
-  const { data, code, msg } = await getTireNumberListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) dataList.value = data.list || [];
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count ?? data.total ?? 0;
-};
-const onSearch = async () => {
+const fetchData = async (page?: number) => {
+  if (page !== undefined) pagination.value.currentPage = page;
   loading.value = true;
-  let res: Awaited<ReturnType<typeof getTireNumberListApi>>;
-  if (form.value.number === "" && form.value.desc === undefined)
-    res = await getTireNumberListApi(1);
-  else {
-    res = await getTireNumberListApi(pagination.value.currentPage, {
-      number: form.value.number,
-      desc: form.value.desc
-    });
+  try {
+    const filter =
+      form.value.number || form.value.desc !== undefined
+        ? { number: form.value.number, desc: form.value.desc }
+        : undefined;
+    const { data, code, msg } = await getTireNumberListApi(
+      pagination.value.currentPage,
+      filter
+    );
+    if (code === 200) {
+      dataList.value = data.list || [];
+      pagination.value.total = data.count ?? data.total ?? 0;
+    } else {
+      message(msg, { type: "error" });
+    }
+  } catch {
+    message("加载胎号列表失败", { type: "error" });
+  } finally {
+    loading.value = false;
   }
-  const { code, data, msg } = res;
-
-  dataList.value = data.list || [];
-  pagination.value.total = data.count ?? data.total ?? 0;
-  loading.value = false;
 };
+
+const onSearch = () => fetchData(1);
+
+const resetForm = (formEl: { resetFields: () => void } | undefined) => {
+  if (!formEl) return;
+  formEl.resetFields();
+  fetchData(1);
+};
+
+const handleCurrentChange = (val: number) => fetchData(val);
 
 const openImportDialog = () => {
   message("暂未开放", { type: "warning" });
 };
-
-const resetForm = (formEl: { resetFields: () => void } | undefined) => {
-  loading.value = true;
-  if (!formEl) return;
-  formEl.resetFields();
-  loading.value = false;
-};
-
-async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  const { data, code, msg } = await getTireNumberListApi(
-    pagination.value.currentPage,
-    {
-      number: form.value.number,
-      desc: form.value.desc
-    }
-  );
-  if (code === 200) dataList.value = data.list || [];
-  else message(msg, { type: "error" });
-  pagination.value.total = data.count ?? data.total ?? 0;
-  loading.value = false;
-}
 
 async function handleDelete(row: {
   uid: string;
@@ -128,7 +115,7 @@ onMounted(() => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="getTireNumberListInfo">
+      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
         <template #buttons>
           <el-button type="primary" @click="openImportDialog">
             批量导入

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
-import { ref, h } from "vue";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
+import { h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import Refresh from "~icons/ep/refresh";
@@ -16,6 +16,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import type { StockAlert, StockAlertDto } from "@/api/business/stock-alert";
+import StockAlertForm from "./StockAlertForm.vue";
 
 defineOptions({
   name: "StockAlert"
@@ -83,30 +84,10 @@ function openDialog(title = "新增") {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: ({ options }) => {
-      const { formInline } = options.props as {
-        formInline: StockAlertDto;
-      };
-      return h("div", [
-        h("el-form", { model: formInline, labelWidth: "80px" }, [
-          h("el-form-item", { label: "轮胎ID", required: true }, [
-            h("el-input", {
-              modelValue: formInline.tireId,
-              "onUpdate:modelValue": (val: string) => (formInline.tireId = val),
-              placeholder: "请输入轮胎ID"
-            })
-          ]),
-          h("el-form-item", { label: "最低库存" }, [
-            h("el-input-number", {
-              modelValue: formInline.minQuantity,
-              "onUpdate:modelValue": (val: number | undefined) =>
-                (formInline.minQuantity = val ?? 0),
-              min: 0
-            })
-          ])
-        ])
-      ]);
-    },
+    contentRenderer: ({ options }) =>
+      h(StockAlertForm, {
+        formInline: (options.props as { formInline: StockAlertDto }).formInline
+      }),
     beforeSure: (done, { options }) => {
       const data = (options.props as { formInline: StockAlertDto }).formInline;
       if (!data.tireId) {

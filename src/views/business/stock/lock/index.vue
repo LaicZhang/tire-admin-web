@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, reactive } from "vue";
 import { columns } from "./columns";
 import {
@@ -89,7 +89,9 @@ const handleLock = async (row: { id: string | number }) => {
         message(msg, { type: "error" });
       }
     })
-    .catch(() => {});
+    .catch(() => {
+      // 用户点击取消，无需处理
+    });
 };
 
 const handleUnlock = async (row: { id: string | number }) => {

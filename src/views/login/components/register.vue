@@ -30,9 +30,9 @@ const repeatPasswordRule = [
       callback: (error?: Error) => void
     ) => {
       if (value === "") {
-        callback(new Error("login.passwordSureReg"));
+        callback(new Error("请再次输入密码"));
       } else if (ruleForm.password !== value) {
-        callback(new Error("login.passwordDifferentReg"));
+        callback(new Error("两次输入的密码不一致"));
       } else {
         callback();
       }
@@ -54,13 +54,13 @@ const onUpdate = async (formEl: FormInstance | undefined) => {
 
     if (!checked.value) {
       loading.value = false;
-      message("login.tickPrivacy", { type: "warning" });
+      message("请勾选隐私政策", { type: "warning" });
       return;
     }
 
     // 模拟请求，需根据实际开发进行修改
     await new Promise(resolve => setTimeout(resolve, 2000));
-    message("login.registerSuccess", { type: "success" });
+    message("注册成功", { type: "success" });
   } catch {
     // 验证失败，不做处理
   } finally {
@@ -86,7 +86,7 @@ function onBack() {
         :rules="[
           {
             required: true,
-            message: 'login.usernameReg',
+            message: '请输入用户名',
             trigger: 'blur'
           }
         ]"
@@ -106,7 +106,7 @@ function onBack() {
         <el-input
           v-model="ruleForm.phone"
           clearable
-          placeholder="t('login.phone')"
+          placeholder="手机号"
           :prefix-icon="useRenderIcon(Iphone)"
         />
       </el-form-item>
@@ -118,7 +118,7 @@ function onBack() {
           <el-input
             v-model="ruleForm.captchaCode"
             clearable
-            placeholder="t('login.smsCaptchaCode')"
+            placeholder="短信验证码"
             :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
           />
           <el-button
@@ -126,7 +126,7 @@ function onBack() {
             class="ml-2"
             @click="useCaptchaCode().start(ruleFormRef, 'phone')"
           >
-            {{ text.length > 0 ? text + "login.info" : "login.getCaptchaCode" }}
+            {{ text.length > 0 ? text + "秒后重试" : "获取验证码" }}
           </el-button>
         </div>
       </el-form-item>
@@ -138,7 +138,7 @@ function onBack() {
           v-model="ruleForm.password"
           clearable
           show-password
-          placeholder="t('login.password')"
+          placeholder="密码"
           :prefix-icon="useRenderIcon(Lock)"
         />
       </el-form-item>
@@ -150,7 +150,7 @@ function onBack() {
           v-model="ruleForm.repeatPassword"
           clearable
           show-password
-          placeholder="t('login.sure')"
+          placeholder="确认密码"
           :prefix-icon="useRenderIcon(Lock)"
         />
       </el-form-item>
@@ -158,12 +158,8 @@ function onBack() {
 
     <Motion :delay="300">
       <el-form-item>
-        <el-checkbox v-model="checked">
-          {{ "login.readAccept" }}
-        </el-checkbox>
-        <el-button link type="primary">
-          {{ "login.privacyPolicy" }}
-        </el-button>
+        <el-checkbox v-model="checked"> 我已阅读并同意 </el-checkbox>
+        <el-button link type="primary"> 隐私政策 </el-button>
       </el-form-item>
     </Motion>
 
@@ -176,7 +172,7 @@ function onBack() {
           :loading="loading"
           @click="onUpdate(ruleFormRef)"
         >
-          登录
+          注册
         </el-button>
       </el-form-item>
     </Motion>
