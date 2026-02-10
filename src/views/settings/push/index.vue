@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { message } from "@/utils";
 import { getPushConfigApi, updatePushConfigApi } from "@/api/push";
 import { testPushDeerApi, testEmailApi, testSmsApi } from "@/api/push";
+import { usePushTest } from "./usePushTest";
 
 defineOptions({
   name: "PushSettings"
@@ -49,11 +50,7 @@ const testFormData = ref({
   }
 });
 
-const testing = ref({
-  pushDeer: false,
-  email: false,
-  sms: false
-});
+const { testing, createTestHandler } = usePushTest();
 
 const loadConfig = async () => {
   loading.value = true;
@@ -85,94 +82,56 @@ const handleSave = async () => {
   }
 };
 
-const handleTestPushDeer = async () => {
-  if (!formData.value.pushDeerKey) {
-    message("请先配置 PushDeer Key", { type: "warning" });
-    return;
-  }
-
-  testing.value.pushDeer = true;
-  try {
-    const { code } = await testPushDeerApi(
+const handleTestPushDeer = createTestHandler({
+  validate: () =>
+    !formData.value.pushDeerKey ? "请先配置 PushDeer Key" : null,
+  testApi: () =>
+    testPushDeerApi(
       testFormData.value.pushDeer.text,
       testFormData.value.pushDeer.desp,
       testFormData.value.pushDeer.type
-    );
-    if (code === 200) {
-      message("测试推送成功，请检查您的设备", { type: "success" });
-    } else {
-      message("测试推送失败", { type: "error" });
-    }
-  } catch {
-    message("测试推送失败", { type: "error" });
-  } finally {
-    testing.value.pushDeer = false;
-  }
-};
+    ),
+  loadingKey: "pushDeer",
+  successMsg: "测试推送成功，请检查您的设备",
+  failMsg: "测试推送失败"
+});
 
-const handleTestEmail = async () => {
-  if (!formData.value.emailAuthUser || !formData.value.emailAuthPass) {
-    message("请先配置邮箱账号和密码", { type: "warning" });
-    return;
-  }
-
-  if (!testFormData.value.email.email) {
-    message("请输入测试邮箱地址", { type: "warning" });
-    return;
-  }
-
-  testing.value.email = true;
-  try {
-    const { code } = await testEmailApi(
+const handleTestEmail = createTestHandler({
+  validate: () => {
+    if (!formData.value.emailAuthUser || !formData.value.emailAuthPass)
+      return "请先配置邮箱账号和密码";
+    if (!testFormData.value.email.email) return "请输入测试邮箱地址";
+    return null;
+  },
+  testApi: () =>
+    testEmailApi(
       testFormData.value.email.email,
       testFormData.value.email.title,
       testFormData.value.email.text,
       testFormData.value.email.type
-    );
-    if (code === 200) {
-      message("测试邮件发送成功，请检查邮箱", { type: "success" });
-    } else {
-      message("测试邮件发送失败", { type: "error" });
-    }
-  } catch {
-    message("测试邮件发送失败", { type: "error" });
-  } finally {
-    testing.value.email = false;
-  }
-};
+    ),
+  loadingKey: "email",
+  successMsg: "测试邮件发送成功，请检查邮箱",
+  failMsg: "测试邮件发送失败"
+});
 
-const handleTestSms = async () => {
-  if (
-    !formData.value.smsAppId ||
-    !formData.value.smsSignName ||
-    !formData.value.smsTemplateId
-  ) {
-    message("请先配置短信服务参数", { type: "warning" });
-    return;
-  }
-
-  if (!testFormData.value.sms.phone) {
-    message("请输入测试手机号", { type: "warning" });
-    return;
-  }
-
-  testing.value.sms = true;
-  try {
-    const { code } = await testSmsApi(
-      testFormData.value.sms.phone,
-      testFormData.value.sms.code
-    );
-    if (code === 200) {
-      message("测试短信发送成功，请检查手机", { type: "success" });
-    } else {
-      message("测试短信发送失败", { type: "error" });
-    }
-  } catch {
-    message("测试短信发送失败", { type: "error" });
-  } finally {
-    testing.value.sms = false;
-  }
-};
+const handleTestSms = createTestHandler({
+  validate: () => {
+    if (
+      !formData.value.smsAppId ||
+      !formData.value.smsSignName ||
+      !formData.value.smsTemplateId
+    )
+      return "请先配置短信服务参数";
+    if (!testFormData.value.sms.phone) return "请输入测试手机号";
+    return null;
+  },
+  testApi: () =>
+    testSmsApi(testFormData.value.sms.phone, testFormData.value.sms.code),
+  loadingKey: "sms",
+  successMsg: "测试短信发送成功，请检查手机",
+  failMsg: "测试短信发送失败"
+});
 
 onMounted(() => {
   loadConfig();
