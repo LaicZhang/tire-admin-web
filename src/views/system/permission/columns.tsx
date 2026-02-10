@@ -1,4 +1,4 @@
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import type {
   LoadingConfig,
   AdaptiveConfig,
