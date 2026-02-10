@@ -1,27 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { message } from "@/utils";
-import {
-  getSettingGroupApi,
-  batchUpdateSettingsApi,
-  type SettingItem
-} from "@/api/setting";
+import { useSettingsForm } from "@/composables";
 import type { SysParams } from "./types";
 
 defineOptions({
   name: "SysParams"
-});
-
-const loading = ref(false);
-const formRef = ref();
-
-const formData = ref<SysParams>({
-  companyName: "",
-  enableDate: "",
-  currency: "RMB",
-  quantityDecimals: 2,
-  priceDecimals: 2,
-  amountDecimals: 2
 });
 
 const currencyOptions = [{ label: "人民币 (RMB)", value: "RMB" }];
@@ -34,51 +16,16 @@ const decimalOptions = [
   { label: "4位", value: 4 }
 ];
 
-const loadSettings = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getSettingGroupApi();
-    if (code === 200 && data) {
-      const sysSettings = data.filter((s: SettingItem) => s.group === "sys");
-      sysSettings.forEach((s: SettingItem) => {
-        const key = s.key as keyof SysParams;
-        if (key in formData.value) {
-          const val = s.value;
-          (formData.value as Record<keyof SysParams, unknown>)[key] = [
-            "quantityDecimals",
-            "priceDecimals",
-            "amountDecimals"
-          ].includes(key)
-            ? Number(val)
-            : val;
-        }
-      });
-    }
-  } catch {
-    message("加载设置失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
-
-const handleSave = async () => {
-  loading.value = true;
-  try {
-    const { code } = await batchUpdateSettingsApi("sys", formData.value);
-    if (code === 200) {
-      message("保存成功", { type: "success" });
-    } else {
-      message("保存失败", { type: "error" });
-    }
-  } catch {
-    message("保存失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(() => {
-  loadSettings();
+const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
+  group: "sys",
+  defaults: () => ({
+    companyName: "",
+    enableDate: "",
+    currency: "RMB",
+    quantityDecimals: 2,
+    priceDecimals: 2,
+    amountDecimals: 2
+  })
 });
 </script>
 

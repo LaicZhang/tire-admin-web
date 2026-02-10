@@ -1,84 +1,32 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { message } from "@/utils";
-import {
-  getSettingGroupApi,
-  batchUpdateSettingsApi,
-  type SettingItem
-} from "@/api/setting";
+import { useSettingsForm } from "@/composables";
 import type { FuncParams } from "./types";
 
 defineOptions({
   name: "FuncParams"
 });
 
-const loading = ref(false);
-const formRef = ref();
-
-const formData = ref<FuncParams>({
-  enableAudit: false,
-  enableTax: false,
-  defaultTaxRate: 13,
-  enableAutoTaxPrice: false,
-  enableAdvancedPrint: false,
-  enableAuxAttribute: false,
-  enableShelfLife: false,
-  enableBatch: false,
-  enableSerialNumber: false,
-  allowNegativeStock: false,
-  enableAutoFillSettlement: false,
-  disableSalesDateEdit: false,
-  allowExceedSalesOrder: false,
-  allowExceedPurchaseOrder: false,
-  enableShelfLifeAlert: false,
-  allowBelowMinPrice: false,
-  allowAboveMaxPrice: false
-});
-
-const loadSettings = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getSettingGroupApi();
-    if (code === 200 && data) {
-      const funcSettings = data.filter((s: SettingItem) => s.group === "func");
-      funcSettings.forEach((s: SettingItem) => {
-        const key = s.key as keyof FuncParams;
-        if (key in formData.value) {
-          const val = s.value;
-          (formData.value as Record<keyof FuncParams, unknown>)[key] =
-            val === "true"
-              ? true
-              : val === "false"
-                ? false
-                : Number(val) || val;
-        }
-      });
-    }
-  } catch {
-    message("加载设置失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
-
-const handleSave = async () => {
-  loading.value = true;
-  try {
-    const { code } = await batchUpdateSettingsApi("func", formData.value);
-    if (code === 200) {
-      message("保存成功", { type: "success" });
-    } else {
-      message("保存失败", { type: "error" });
-    }
-  } catch {
-    message("保存失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(() => {
-  loadSettings();
+const { loading, formRef, formData, handleSave } = useSettingsForm<FuncParams>({
+  group: "func",
+  defaults: () => ({
+    enableAudit: false,
+    enableTax: false,
+    defaultTaxRate: 13,
+    enableAutoTaxPrice: false,
+    enableAdvancedPrint: false,
+    enableAuxAttribute: false,
+    enableShelfLife: false,
+    enableBatch: false,
+    enableSerialNumber: false,
+    allowNegativeStock: false,
+    enableAutoFillSettlement: false,
+    disableSalesDateEdit: false,
+    allowExceedSalesOrder: false,
+    allowExceedPurchaseOrder: false,
+    enableShelfLifeAlert: false,
+    allowBelowMinPrice: false,
+    allowAboveMaxPrice: false
+  })
 });
 </script>
 

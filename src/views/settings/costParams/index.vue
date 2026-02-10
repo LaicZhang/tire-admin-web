@@ -1,35 +1,18 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ArrowUp from "~icons/ep/arrow-up";
 import ArrowDown from "~icons/ep/arrow-down";
-import { message } from "@/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import {
-  getSettingGroupApi,
-  batchUpdateSettingsApi,
-  type SettingItem
-} from "@/api/setting";
+import { useSettingsForm } from "@/composables";
+import type { SettingItem } from "@/api/setting";
 import type { CostParams } from "./types";
 
 defineOptions({
   name: "CostParams"
 });
 
-const loading = ref(false);
-const formRef = ref();
 const { confirm } = useConfirmDialog();
-
-const formData = ref<CostParams>({
-  costMethod: "moving_average",
-  costCalcType: "total_warehouse",
-  abnormalCostOrder: [
-    { id: "1", name: "最近采购价", order: 1 },
-    { id: "2", name: "商品资料单价", order: 2 },
-    { id: "3", name: "手工录入成本", order: 3 }
-  ]
-});
 
 const costMethodOptions = [
   { label: "移动平均法", value: "moving_average" },
@@ -41,52 +24,39 @@ const costCalcTypeOptions = [
   { label: "分仓核算", value: "sub_warehouse" }
 ];
 
-const loadSettings = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getSettingGroupApi();
-    if (code === 200 && data) {
-      const costSettings = data.filter((s: SettingItem) => s.group === "cost");
-      costSettings.forEach((s: SettingItem) => {
-        const key = s.key;
-        if (key === "costMethod" || key === "costCalcType") {
-          (formData.value as Record<string, unknown>)[key] = s.value;
-        } else if (key === "abnormalCostOrder") {
-          try {
-            formData.value.abnormalCostOrder = JSON.parse(s.value);
-          } catch {
-            // keep default
-          }
+const { loading, formRef, formData, handleSave } = useSettingsForm<CostParams>({
+  group: "cost",
+  defaults: () => ({
+    costMethod: "moving_average",
+    costCalcType: "total_warehouse",
+    abnormalCostOrder: [
+      { id: "1", name: "最近采购价", order: 1 },
+      { id: "2", name: "商品资料单价", order: 2 },
+      { id: "3", name: "手工录入成本", order: 3 }
+    ]
+  }),
+  transformLoad: (settings: SettingItem[], form: CostParams) => {
+    settings.forEach((s: SettingItem) => {
+      const key = s.key;
+      if (key === "costMethod") {
+        form.costMethod = s.value as CostParams["costMethod"];
+      } else if (key === "costCalcType") {
+        form.costCalcType = s.value as CostParams["costCalcType"];
+      } else if (key === "abnormalCostOrder") {
+        try {
+          form.abnormalCostOrder = JSON.parse(s.value);
+        } catch {
+          // keep default
         }
-      });
-    }
-  } catch {
-    message("加载设置失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
-
-const handleSave = async () => {
-  loading.value = true;
-  try {
-    const saveData = {
-      costMethod: formData.value.costMethod,
-      costCalcType: formData.value.costCalcType,
-      abnormalCostOrder: JSON.stringify(formData.value.abnormalCostOrder)
-    };
-    const { code } = await batchUpdateSettingsApi("cost", saveData);
-    if (code === 200) {
-      message("保存成功", { type: "success" });
-    } else {
-      message("保存失败", { type: "error" });
-    }
-  } catch {
-    message("保存失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
+      }
+    });
+  },
+  transformSave: (form: CostParams) => ({
+    costMethod: form.costMethod,
+    costCalcType: form.costCalcType,
+    abnormalCostOrder: JSON.stringify(form.abnormalCostOrder)
+  })
+});
 
 const handleCostMethodChange = async (value: string) => {
   const ok = await confirm(
@@ -139,10 +109,6 @@ const updateOrder = () => {
     item.order = index + 1;
   });
 };
-
-onMounted(() => {
-  loadSettings();
-});
 </script>
 
 <template>

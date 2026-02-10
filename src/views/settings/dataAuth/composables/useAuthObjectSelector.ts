@@ -4,7 +4,7 @@ import { getCustomerListApi } from "@/api/business/customer";
 import { getProviderListApi } from "@/api/business/provider";
 import { getRepoListApi } from "@/api/company/repo";
 
-import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 export type SelectType = "customer" | "supplier" | "warehouse";
 
 export type SelectRow = {
