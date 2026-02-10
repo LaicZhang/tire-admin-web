@@ -5,6 +5,8 @@ import { ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
+import type { StatusConfig } from "@/components/StatusTag/types";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
@@ -16,12 +18,20 @@ import {
 } from "@/api/business/advance-payment";
 import { handleApiError, message } from "@/utils";
 import { type ReceiptQueryParams, RECEIPT_STATUS_OPTIONS } from "./types";
-import { columns, calcReceiptStatus, getStatusInfo } from "./columns";
+import { columns, calcReceiptStatus } from "./columns";
 import ReceiptForm from "./form.vue";
 
 defineOptions({
   name: "FundReceipt"
 });
+
+// Convert status options to StatusTag format
+const RECEIPT_STATUS_MAP: Record<string, StatusConfig> = Object.fromEntries(
+  RECEIPT_STATUS_OPTIONS.map(opt => [
+    opt.value,
+    { label: opt.label, type: opt.type }
+  ])
+);
 
 const loading = ref(false);
 const dataList = ref<AdvancePaymentListItem[]>([]);
@@ -286,12 +296,10 @@ onMounted(() => {
           "
         >
           <template #status="{ row }">
-            <el-tag
-              :type="getStatusInfo(calcReceiptStatus(row.remainingAmount)).type"
-              size="small"
-            >
-              {{ getStatusInfo(calcReceiptStatus(row.remainingAmount)).label }}
-            </el-tag>
+            <StatusTag
+              :status="calcReceiptStatus(row.remainingAmount)"
+              :status-map="RECEIPT_STATUS_MAP"
+            />
           </template>
 
           <template #operation="{ row, size: btnSize }">

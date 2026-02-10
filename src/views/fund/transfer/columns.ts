@@ -1,4 +1,3 @@
-import { getStatusInfo } from "./types";
 import type { Transfer } from "./types";
 import { fenToYuanOrDash } from "@/utils/formatMoney";
 
@@ -78,5 +77,3 @@ export const columns: TableColumnList = [
     slot: "operation"
   }
 ];
-
-export { getStatusInfo };
