@@ -1,5 +1,2 @@
 文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/data/customerBalance/index.vue,PERF,P2,客户余额查询涉及聚合计算,确保后端有适当索引,中
-views/data/supplierBalance/index.vue,PERF,P2,供应商余额查询涉及聚合计算,确保后端有适当索引,中
 views/data/priceInfo/index.vue,MAINT,P0,批发价/VIP价/会员价/最低销售价存储在localStorage而非后端API,必须将额外价格字段持久化到后端数据库,大
-

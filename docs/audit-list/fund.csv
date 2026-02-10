@@ -1,4 +1,2 @@
 文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
 views/fund/receipt/index.vue,MAINT,P2,332行与payment/index.vue(339行)高度相似,考虑提取共享的useFundOrder composable,中
-views/fund/receipt/index.vue,MAINT,P2,calcReceiptStatus函数可复用,提取到fund/utils或composables,小
-views/fund/report/index.vue,PERF,P2,资金报表可能涉及大量数据聚合,考虑后端预计算或缓存,中

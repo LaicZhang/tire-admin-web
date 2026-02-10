@@ -1,2 +1,0 @@
-文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/company/*/table.tsx,MAINT,P2,repo/position/department/salary/employee五个table.tsx重复getCompanyId()+company connect创建模式,提取createWithCompany工具函数,中

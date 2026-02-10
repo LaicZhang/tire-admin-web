@@ -1,9 +1,6 @@
 文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/system/log/index.vue,PERF,P2,日志查询可能涉及大量数据,确保后端有适当分页和索引,中
-views/settings/printTemplate/index.vue,MAINT,P1,与advancedPrint/index.vue有70%代码重复,提取共享printTemplateBase composable或组件,大
-views/settings/advancedPrint/index.vue,MAINT,P1,与printTemplate/index.vue有70%代码重复,合并重复逻辑到共享模块,大
+views/settings/printTemplate+advancedPrint,MAINT,P1,两个打印模板页面有70%代码重复,提取共享printTemplateBase composable或合并为统一模块,大
 views/settings/push/index.vue,MAINT,P1,437行大型组件包含3个推送渠道配置和测试功能,考虑拆分PushDeerTab/EmailTab/SmsTab子组件,中
 views/settings/push/index.vue,MAINT,P2,loadConfig/handleSave模式与sysParams/funcParams/costParams/companyInfo重复(共5处),考虑泛化useSettingsForm或创建独立composable,中
 views/settings/companyInfo/index.vue,MAINT,P2,loadSettings/handleSave模式与其他设置页面重复,考虑泛化useSettingsForm或创建独立composable,中
-views/settings/importFree/index.vue,MAINT,P2,handleRequestAuth使用ElMessageBox.prompt而非useConfirmDialog统一模式,考虑使用统一的对话框处理,小
 views/settings/permissions/index.vue,MAINT,P3,permissionModules硬编码在组件内,考虑迁移到配置文件或从后端获取,中

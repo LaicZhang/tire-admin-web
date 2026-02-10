@@ -2,15 +2,10 @@
 views/business/order/index.vue,MAINT,P2,文件438行过长且包含大量重复v-if条件判断按钮可见性逻辑,提取按钮可见性逻辑到useOrderButtonVisibility composable或使用TableOperations组件,中
 views/business/order/table.tsx,MAINT,P2,301行文件混合了对话框渲染/API调用/数据获取等多种职责,拆分为独立的useOrderDialog和useOrderApi composable,中
 views/business/order/form.vue,TYPE,P2,584行的大型表单组件对多种订单类型使用Union类型和类型断言较多,考虑使用泛型或条件类型更精确定义,中
-views/business/order/form.vue,REUSE,P2,getALlList函数在多个表单中重复实现,提取为共享的useListData composable,小
 views/business/stockTaking/index.vue,MAINT,P2,502行过长的复杂组件,考虑拆分快速盘点和任务盘点为独立子组件,中
 views/business/audit/index.vue,MAINT,P3,审核逻辑与业务订单耦合,考虑更通用的审核流程组件,中
-views/business/finance/reminder/index.vue,PERF,P2,应收应付提醒可能涉及大量数据查询,考虑分页或虚拟滚动优化,中
-views/business/expiryAlert/index.vue,MAINT,P2,openDialog使用h()渲染表单而非SFC组件,提取为ExpiryAlertForm.vue独立组件,小
-views/business/stockAlert/index.vue,MAINT,P2,openDialog使用h()渲染表单而非SFC组件,提取为StockAlertForm.vue独立组件,小
 views/business/expiryAlert/ + stockAlert/,MAINT,P1,效期预警和库存预警页面结构80%相似(useCrud+addDialog+h()表单),提取共享的useAlertCrud composable或AlertConfigPage基础组件,中
 views/business/tireNumber/index.vue,MAINT,P1,手动管理dataList/loading/pagination而非使用useCrud composable,重构为useCrud模式统一数据管理,中
 views/business/payment/index.vue,MAINT,P1,312行手动管理CRUD状态(getPaymentListInfo/handleCurrentChange等)未使用useCrud,重构为useCrud模式,中
-views/business/financeItem/index.vue,MAINT,P2,openDialog使用h()渲染复杂表单(含radio-group)而非SFC组件,提取为FinanceItemForm.vue组件,小
-views/business/unit/index.vue,MAINT,P2,openDialog使用h()渲染表单而非SFC组件,提取为UnitForm.vue组件,小
 views/business/*/table.tsx,MAINT,P1,8个table.tsx文件重复getCompanyId()+company connect模式(tire/provider/customer/repo/position/department/salary/employee),提取为createWithCompany工具函数或在API层封装,中
+
