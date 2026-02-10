@@ -26,3 +26,6 @@ export * from "./useFormValidation";
 
 // 确认弹窗
 export * from "./useConfirmDialog";
+
+// 设置表单
+export * from "./useSettingsForm";
