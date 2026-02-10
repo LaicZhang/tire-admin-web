@@ -6,6 +6,7 @@ import { handleApiError, message } from "@/utils";
 import { executeClosingApi, runClosingChecksApi } from "@/api/setting";
 import type { ClosingCheckItem } from "./types";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
+import { parseListData } from "./utils";
 
 const props = defineProps<{
   isClosing: boolean;
@@ -32,15 +33,6 @@ const checkColumns: TableColumnList = [
   },
   { label: "错误信息", prop: "errorMessage" }
 ];
-
-function parseListData<T>(data: unknown): T[] {
-  if (Array.isArray(data)) return data as T[];
-  if (data && typeof data === "object" && "list" in data) {
-    const list = (data as { list?: unknown }).list;
-    if (Array.isArray(list)) return list as T[];
-  }
-  return [];
-}
 
 const runCheck = async () => {
   if (!closingDate.value) {
