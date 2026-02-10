@@ -3,6 +3,8 @@ import { ref, watch, computed } from "vue";
 import TrackingPanel from "./TrackingPanel.vue";
 import DeliveryReceiptCard from "./DeliveryReceiptCard.vue";
 import DeliveryExceptionDialog from "./DeliveryExceptionDialog.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
+import type { StatusConfig } from "@/components/StatusTag/types";
 import type { LogisticOrder } from "./types";
 
 defineOptions({
@@ -29,12 +31,17 @@ const orderTypeMap: Record<string, string> = {
   "transfer-order": "调拨订单"
 };
 
-const statusMap: Record<string, string> = {
-  "0": "待发货",
-  "1": "部分发货",
-  "2": "已发货",
-  "3": "已送达",
-  "4": "已取消"
+const statusMap: Record<string, StatusConfig> = {
+  "0": { label: "待发货", type: "info" },
+  "1": { label: "部分发货", type: "warning" },
+  "2": { label: "已发货", type: "warning" },
+  "3": { label: "已送达", type: "success" },
+  "4": { label: "已取消", type: "danger" }
+};
+
+const arrivalStatusMap: Record<string, StatusConfig> = {
+  true: { label: "是", type: "success" },
+  false: { label: "否", type: "info" }
 };
 
 const logisticUid = computed(() => props.logistic?.uid || "");
@@ -90,29 +97,16 @@ function formatDate(date?: string | null) {
             {{ orderTypeMap[logistic.type] || logistic.type }}
           </el-descriptions-item>
           <el-descriptions-item label="物流状态">
-            <el-tag
-              :type="
-                logistic.logisticsStatus === 3
-                  ? 'success'
-                  : logistic.logisticsStatus === 4
-                    ? 'danger'
-                    : logistic.logisticsStatus === 2 ||
-                        logistic.logisticsStatus === 1
-                      ? 'warning'
-                      : 'info'
-              "
-              size="small"
-            >
-              {{ statusMap[String(logistic.logisticsStatus)] || "未知" }}
-            </el-tag>
+            <StatusTag
+              :status="String(logistic.logisticsStatus)"
+              :status-map="statusMap"
+            />
           </el-descriptions-item>
           <el-descriptions-item label="是否到达">
-            <el-tag
-              :type="logistic.isArrival ? 'success' : 'info'"
-              size="small"
-            >
-              {{ logistic.isArrival ? "是" : "否" }}
-            </el-tag>
+            <StatusTag
+              :status="logistic.isArrival"
+              :status-map="arrivalStatusMap"
+            />
           </el-descriptions-item>
           <el-descriptions-item label="发货时间">
             {{ formatDate(logistic.departureAt) }}

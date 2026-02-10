@@ -2,6 +2,8 @@
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
+import type { StatusConfig } from "@/components/StatusTag/types";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -11,6 +13,12 @@ import { message } from "@/utils/message";
 defineOptions({
   name: "StatementList"
 });
+
+const STATEMENT_STATUS_MAP: Record<string, StatusConfig> = {
+  DRAFT: { label: "草稿", type: "warning" },
+  CONFIRMED: { label: "已确认", type: "success" },
+  VOID: { label: "已作废", type: "info" }
+};
 
 const form = ref({
   type: "",
@@ -125,23 +133,10 @@ onSearch();
           "
         >
           <template #status="{ row }">
-            <el-tag
-              :type="
-                row.status === 'CONFIRMED'
-                  ? 'success'
-                  : row.status === 'VOID'
-                    ? 'info'
-                    : 'warning'
-              "
-            >
-              {{
-                row.status === "CONFIRMED"
-                  ? "已确认"
-                  : row.status === "VOID"
-                    ? "已作废"
-                    : "草稿"
-              }}
-            </el-tag>
+            <StatusTag
+              :status="row.status"
+              :status-map="STATEMENT_STATUS_MAP"
+            />
           </template>
           <template #operation="{ row }">
             <el-button
