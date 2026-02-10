@@ -3,6 +3,7 @@ import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, h } from "vue";
 import { columns, statusMap } from "./columns";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import {
@@ -210,17 +211,7 @@ function handleViewLogs(row: SerialNumber) {
           "
         >
           <template #status="{ row }">
-            <el-tag
-              :type="
-                (statusMap[row.status]?.type as
-                  | 'success'
-                  | 'info'
-                  | 'warning'
-                  | 'danger') || 'info'
-              "
-            >
-              {{ statusMap[row.status]?.label || row.status }}
-            </el-tag>
+            <StatusTag :status="row.status" :status-map="statusMap" />
           </template>
           <template #operation="{ row, size }">
             <el-button

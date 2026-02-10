@@ -1,3 +1,5 @@
+import type { StatusConfig } from "@/components/StatusTag/types";
+
 export const columns: TableColumnList = [
   {
     label: "序列号",
@@ -42,7 +44,7 @@ export const columns: TableColumnList = [
   }
 ];
 
-export const statusMap: Record<string, { label: string; type: string }> = {
+export const statusMap: Record<string, StatusConfig> = {
   IN_STOCK: { label: "在库", type: "success" },
   SOLD: { label: "已售", type: "info" },
   RETURNED: { label: "已退", type: "warning" },
