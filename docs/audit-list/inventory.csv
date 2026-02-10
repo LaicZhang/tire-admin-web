@@ -1,4 +1,3 @@
 文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
 views/inventory/assembly/index.vue,REUSE,P2,openDialog函数封装良好可作为弹框操作参考,提取为通用useFormDialog增强版,中
 views/inventory/report/index.vue,PERF,P2,库存报表可能涉及大量数据,考虑后端分页或虚拟滚动,中
-views/business/stock/lock/index.vue,MAINT,P2,handleLock中ElMessageBox.prompt使用.catch(() =>{})忽略取消操作,已确认为合理处理(用户取消ElMessageBox会reject),无需修改

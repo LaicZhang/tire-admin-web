@@ -10,7 +10,6 @@ views/business/expiryAlert/index.vue,MAINT,P2,openDialog使用h()渲染表单而
 views/business/stockAlert/index.vue,MAINT,P2,openDialog使用h()渲染表单而非SFC组件,提取为StockAlertForm.vue独立组件,小
 views/business/expiryAlert/ + stockAlert/,MAINT,P1,效期预警和库存预警页面结构80%相似(useCrud+addDialog+h()表单),提取共享的useAlertCrud composable或AlertConfigPage基础组件,中
 views/business/tireNumber/index.vue,MAINT,P1,手动管理dataList/loading/pagination而非使用useCrud composable,重构为useCrud模式统一数据管理,中
-views/business/tireNumber/index.vue,MAINT,P2,onSearch和handleCurrentChange中重复调用getTireNumberListApi并手动处理响应,合并为单一fetchData函数,小
 views/business/payment/index.vue,MAINT,P1,312行手动管理CRUD状态(getPaymentListInfo/handleCurrentChange等)未使用useCrud,重构为useCrud模式,中
 views/business/financeItem/index.vue,MAINT,P2,openDialog使用h()渲染复杂表单(含radio-group)而非SFC组件,提取为FinanceItemForm.vue组件,小
 views/business/unit/index.vue,MAINT,P2,openDialog使用h()渲染表单而非SFC组件,提取为UnitForm.vue组件,小

@@ -4,4 +4,4 @@ views/login/components/register.vue,MAINT,P3,注册功能使用setTimeout模拟�
 views/login/components/update.vue,MAINT,P3,密码修改功能使用setTimeout模拟请求,接入真实密码修改API,中
 views/login/components/qrCode.vue,MAINT,P3,轮询状态检查接口未实现(注释中标注),与后端协调实现状态检查API,中
 views/other/aiEntry/index.vue,MAINT,P1,663行最大的单页面组件已使用composable拆分但仍然较大,考虑将上传区域/识别结果/订单表单拆分为独立子组件,中
-views/**/index.vue,MAINT,P2,50+文件使用相对路径../../../utils/constants导入常量,统一替换为@/utils/constants路径别名,小
+
