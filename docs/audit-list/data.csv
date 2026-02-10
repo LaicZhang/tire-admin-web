@@ -25,3 +25,7 @@ views/data/customerBalance/index.vue,PERF,P2,客户余额查询涉及聚合计�
 views/data/supplierBalance/index.vue,PERF,P2,供应商余额查询涉及聚合计算,确保后端有适当索引,中
 views/data/initialStock/index.vue,MAINT,P3,期初库存管理页面,参考
 views/data/customerProductCode/index.vue,MAINT,P3,客户商品编码映射,参考
+views/data/priceInfo/index.vue,MAINT,P0,批发价/VIP价/会员价/最低销售价存储在localStorage而非后端API,必须将额外价格字段持久化到后端数据库,大
+views/data/priceInfo/index.vue,MAINT,P1,handleClear中updateTireApi使用静默.catch(() => {})忽略错误,使用handleApiError或显示失败提示,小
+views/data/priceInfo/index.vue,MAINT,P1,handleBatchEdit的beforeSure仅显示成功消息但未实际执行批量编辑操作,实现真正的批量价格编辑逻辑,中
+views/data/priceInfo/index.vue,MAINT,P2,handleBatchClear仅显示成功消息但未实际清空选中商品的价格,实现真正的批量清空逻辑,中

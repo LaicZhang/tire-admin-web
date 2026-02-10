@@ -1,0 +1,8 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+store/modules/user.ts,REUSE,P1,130行用户状态管理使用Pinia良好设计,参考
+store/modules/multiTags.ts,REUSE,P2,218行多标签页管理使用类型守卫函数良好,参考hasFixedTag类型守卫模式,参考
+store/modules/options.ts,REUSE,P1,159行统一选项数据Store设计优秀支持多类型,推广此集中式下拉数据管理模式,参考
+store/modules/permission.ts,REUSE,P1,85行权限状态管理结构清晰,参考
+store/modules/company.ts,REUSE,P1,公司状态管理模块设计良好,参考
+store/utils.ts,REUSE,P2,统一导出工具函数设计良好,参考
+store/types.ts,TYPE,P2,Store类型定义集中管理良好,参考

@@ -15,3 +15,28 @@ views/system/document/index.vue,MAINT,P3,文档管理页面结构标准,参考
 views/system/file/index.vue,MAINT,P3,文件管理页面结构标准,参考
 views/system/notice/index.vue,MAINT,P3,公告管理页面结构标准,参考
 views/system/feedback/index.vue,REUSE,P1,使用useCrud模式良好,参考
+views/settings/dataAuth/index.vue,REUSE,P1,使用3个独立composables处理复杂授权逻辑设计优秀,作为复杂页面composable拆分的参考模板,参考
+views/settings/dataAuth/composables/,REUSE,P1,useDataAuthUsers/useUserDataAuthDetail/useAuthObjectSelector拆分细粒度,推广此composable组织方式,参考
+views/settings/permissions/index.vue,REUSE,P2,使用addDialog动态渲染权限设置界面,参考
+views/settings/permissions/index.vue,MAINT,P3,permissionModules硬编码在组件内,考虑迁移到配置文件或从后端获取,中
+views/settings/closing/index.vue,REUSE,P1,使用handleApiError统一错误处理良好,参考
+views/settings/closing/index.vue,MAINT,P2,parseListData函数在index.vue和ClosingCheckForm.vue重复定义,提取到共享utils文件,小
+views/settings/codeRule/index.vue,REUSE,P2,编码规则管理使用useCrud模式良好,参考
+views/settings/backup/index.vue,REUSE,P2,备份管理使用StatusTag组件良好,参考
+views/settings/printTemplate/index.vue,MAINT,P1,与advancedPrint/index.vue有70%代码重复,提取共享printTemplateBase composable或组件,大
+views/settings/advancedPrint/index.vue,MAINT,P1,与printTemplate/index.vue有70%代码重复,合并重复逻辑到共享模块,大
+views/settings/printTemplate/index.vue,MAINT,P2,documentTypes数组应提取到共享配置文件,创建shared/documentTypes.ts,小
+views/settings/recycle/index.vue,REUSE,P1,使用useCrud composable处理分页列表良好,参考
+views/settings/operationLog/index.vue,REUSE,P1,使用useCrud和PlusSearch组件良好,参考
+views/settings/sysParams/index.vue,MAINT,P2,loadSettings和handleSave模式与funcParams/costParams重复,提取useSettingsForm composable,中
+views/settings/funcParams/index.vue,MAINT,P2,loadSettings和handleSave模式重复,提取useSettingsForm composable复用,中
+views/settings/costParams/index.vue,MAINT,P2,loadSettings和handleSave模式重复,使用useSettingsForm composable,中
+views/settings/costParams/index.vue,REUSE,P2,使用useConfirmDialog处理敏感操作良好,参考
+views/settings/push/index.vue,MAINT,P1,437行大型组件包含3个推送渠道配置和测试功能,考虑拆分PushDeerTab/EmailTab/SmsTab子组件,中
+views/settings/push/index.vue,MAINT,P2,loadConfig/handleSave模式与sysParams/funcParams/costParams/companyInfo重复(共5处),提取useSettingsForm composable统一处理,中
+views/settings/push/index.vue,MAINT,P2,handleTestPushDeer/handleTestEmail/handleTestSms三个测试函数结构高度相似,提取usePushTest composable或泛型测试函数,小
+views/settings/companyInfo/index.vue,MAINT,P2,loadSettings/handleSave模式与其他设置页面重复,使用useSettingsForm composable,中
+views/settings/companyInfo/index.vue,REUSE,P2,Logo上传+表单布局设计良好,参考
+views/settings/importFree/index.vue,REUSE,P1,使用useConfirmDialog处理危险操作良好,参考
+views/settings/importFree/index.vue,MAINT,P2,handleRequestAuth使用ElMessageBox.prompt而非useConfirmDialog统一模式,考虑使用统一的对话框处理,小
+views/system/menu/index.vue,MAINT,P3,第114行包含注释的console.log调试代码,删除注释的调试代码,小

@@ -6,3 +6,5 @@ views/company/department/index.vue,REUSE,P1,使用useCrud模式部门管理参�
 views/company/position/index.vue,REUSE,P1,使用useCrud模式职位管理参考,参考
 views/company/salary/index.vue,REUSE,P1,使用useCrud模式薪资管理参考,参考
 views/company/chat/index.vue,MAINT,P3,聊天功能页面结构独特,参考
+views/company/asset/index.vue,REUSE,P1,使用useCrud模式资产管理参考,参考
+views/company/*/table.tsx,MAINT,P2,repo/position/department/salary/employee五个table.tsx重复getCompanyId()+company connect创建模式,提取createWithCompany工具函数,中

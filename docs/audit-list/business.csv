@@ -19,3 +19,16 @@ views/business/provider/index.vue,MAINT,P3,供应商管理与customer类似结�
 views/business/quality/inspection/index.vue,MAINT,P3,质检模块使用useCrud模式,参考
 views/business/finance/income/IncomeForm.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,已处理
 views/business/finance/reminder/index.vue,PERF,P2,应收应付提醒可能涉及大量数据查询,考虑分页或虚拟滚动优化,中
+views/business/expiryAlert/index.vue,REUSE,P2,效期预警使用useCrud模式良好,参考
+views/business/expiryAlert/index.vue,MAINT,P2,openDialog使用h()渲染表单而非SFC组件,提取为ExpiryAlertForm.vue独立组件,小
+views/business/stockAlert/index.vue,REUSE,P2,库存预警使用useCrud模式良好,参考
+views/business/stockAlert/index.vue,MAINT,P2,openDialog使用h()渲染表单而非SFC组件,提取为StockAlertForm.vue独立组件,小
+views/business/expiryAlert/ + stockAlert/,MAINT,P1,效期预警和库存预警页面结构80%相似(useCrud+addDialog+h()表单),提取共享的useAlertCrud composable或AlertConfigPage基础组件,中
+views/business/tireNumber/index.vue,MAINT,P1,手动管理dataList/loading/pagination而非使用useCrud composable,重构为useCrud模式统一数据管理,中
+views/business/tireNumber/index.vue,MAINT,P2,onSearch和handleCurrentChange中重复调用getTireNumberListApi并手动处理响应,合并为单一fetchData函数,小
+views/business/payment/index.vue,MAINT,P1,312行手动管理CRUD状态(getPaymentListInfo/handleCurrentChange等)未使用useCrud,重构为useCrud模式,中
+views/business/financeItem/index.vue,MAINT,P2,openDialog使用h()渲染复杂表单(含radio-group)而非SFC组件,提取为FinanceItemForm.vue组件,小
+views/business/unit/index.vue,MAINT,P2,openDialog使用h()渲染表单而非SFC组件,提取为UnitForm.vue组件,小
+views/business/price/index.vue,REUSE,P2,使用useCrud和Form组件模式良好,参考
+views/business/warehouseManagement/index.vue,REUSE,P1,使用useCrud和独立table.tsx模式良好,参考
+views/business/*/table.tsx,MAINT,P1,8个table.tsx文件重复getCompanyId()+company connect模式(tire/provider/customer/repo/position/department/salary/employee),提取为createWithCompany工具函数或在API层封装,中

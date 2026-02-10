@@ -1,0 +1,11 @@
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
+components/CrudPage/index.vue,REUSE,P1,452行通用CRUD页面组件设计优秀支持泛型,作为基础组件模板推广使用,参考
+components/StatusTag/index.vue,REUSE,P1,31行简洁的状态标签组件使用statusMap配置,确保所有状态展示使用此组件,参考
+components/ReSearchForm/index.vue,REUSE,P1,87行搜索表单组件支持防抖设计良好,推广到所有列表页搜索,参考
+components/RePureTableBar/src/bar.tsx,REUSE,P1,165行表格工具栏使用composable拆分DensityDropdown和ColumnSettings,参考此composable拆分模式,参考
+components/ImportExport/,REUSE,P1,导入导出组件完整包含7个文件分工明确,参考此组件目录结构组织,参考
+components/ReDialog/index.vue,REUSE,P1,174行对话框管理组件支持动态渲染和事件回调,统一使用addDialog API,参考
+components/TableOperations/,REUSE,P1,表格操作列组件化良好,确保所有表格操作列使用此组件,已复用
+components/MoneyDisplay/,REUSE,P1,金额显示组件设计良好,确保所有金额展示使用此组件,已复用
+components/FormDialog/,REUSE,P2,表单对话框封装良好,考虑推广使用,参考
+components/PageContainer/,REUSE,P2,页面容器组件提供统一布局,参考

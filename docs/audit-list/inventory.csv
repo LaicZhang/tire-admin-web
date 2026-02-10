@@ -13,3 +13,4 @@ views/inventory/stocktaking/index.vue,MAINT,P1,使用ElMessage.success需统一,
 views/inventory/stocktaking/StocktakingDetailForm.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,已处理
 views/inventory/transfer/index.vue,MAINT,P3,调拨单与其他单据结构类似,确保使用一致的组件模式,参考
 views/inventory/report/index.vue,PERF,P2,库存报表可能涉及大量数据,考虑后端分页或虚拟滚动,中
+views/business/stock/lock/index.vue,MAINT,P2,handleLock中ElMessageBox.prompt使用静默.catch(() => {})忽略取消操作,应使用useConfirmDialog或明确处理cancel场景,小
