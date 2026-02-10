@@ -111,7 +111,6 @@ const openDialog = (title = "新增", row?: MenuItem) => {
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
-          // console.log("curData", curData);
           const promise =
             title === "新增"
               ? createMenuApi(curData)
