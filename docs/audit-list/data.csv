@@ -1,31 +1,5 @@
 文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/data/account/index.vue,REUSE,P1,使用useCrud模式良好,作为基础数据管理参考,参考
-views/data/product/index.vue,REUSE,P1,使用useCrud模式商品管理参考,确保所有数据管理页面使用此模式,参考
-views/data/customer/index.vue,REUSE,P1,使用useCrud模式良好,参考
-views/data/supplier/index.vue,REUSE,P1,使用useCrud模式良好,参考
-views/data/warehouse/index.vue,REUSE,P1,使用useCrud模式良好,参考
-views/data/staff/index.vue,REUSE,P1,使用useCrud且包含StatusTag使用,参考
-views/data/batchSerial/index.vue,REUSE,P1,使用useCrud且包含StatusTag使用,参考
-views/data/columnSettings/index.vue,REUSE,P2,列配置功能可推广到其他需要自定义列显示的页面,参考
-views/data/importExport/index.vue,REUSE,P1,导入导出管理中心化良好设计,参考
-views/data/priceInfo/index.vue,REUSE,P1,使用useCrud模式,参考
-views/data/priceLimit/index.vue,REUSE,P1,使用useCrud模式,参考
-views/data/priceRule/index.vue,REUSE,P1,使用useCrud模式,参考
-views/data/incomeCategory/index.vue,REUSE,P1,使用useCrud模式,参考
-views/data/expenseCategory/index.vue,REUSE,P1,使用useCrud模式,参考
-views/data/customerCategory/index.vue,MAINT,P3,分类管理页面结构标准,参考
-views/data/supplierCategory/index.vue,MAINT,P3,分类管理页面结构标准,参考
-views/data/productCategory/index.vue,MAINT,P3,分类管理页面结构标准,参考
-views/data/multiUnit/index.vue,MAINT,P3,多单位管理页面,参考
-views/data/singleUnit/index.vue,MAINT,P3,单位管理页面,参考
-views/data/settlement/index.vue,REUSE,P1,使用useCrud模式,参考
-views/data/auxiliary/index.vue,REUSE,P1,使用useCrud模式,参考
-views/data/auxiliaryAttr/index.vue,REUSE,P1,使用useCrud模式,参考
 views/data/customerBalance/index.vue,PERF,P2,客户余额查询涉及聚合计算,确保后端有适当索引,中
 views/data/supplierBalance/index.vue,PERF,P2,供应商余额查询涉及聚合计算,确保后端有适当索引,中
-views/data/initialStock/index.vue,MAINT,P3,期初库存管理页面,参考
-views/data/customerProductCode/index.vue,MAINT,P3,客户商品编码映射,参考
 views/data/priceInfo/index.vue,MAINT,P0,批发价/VIP价/会员价/最低销售价存储在localStorage而非后端API,必须将额外价格字段持久化到后端数据库,大
-views/data/priceInfo/index.vue,MAINT,P1,handleClear中updateTireApi使用静默.catch(() => {})忽略错误,使用handleApiError或显示失败提示,小
-views/data/priceInfo/index.vue,MAINT,P1,handleBatchEdit的beforeSure仅显示成功消息但未实际执行批量编辑操作,实现真正的批量价格编辑逻辑,中
-views/data/priceInfo/index.vue,MAINT,P2,handleBatchClear仅显示成功消息但未实际清空选中商品的价格,实现真正的批量清空逻辑,中
+views/data/priceInfo/index.vue,MAINT,P1,handleClear中updateTireApi使用静默.catch(() =>{})忽略错误,使用handleApiError或显示失败提示,小
