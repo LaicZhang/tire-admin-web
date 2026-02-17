@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import type { Plugin, ResolvedConfig } from "vite";
 import gradient from "gradient-string";
 import { getPackageSize } from "./utils";
 import dayjs, { type Dayjs } from "dayjs";
@@ -21,7 +21,7 @@ const boxenOptions: BoxenOptions = {
 };
 
 export function viteBuildInfo(): Plugin {
-  let config: { command: string };
+  let config: ResolvedConfig;
   let startTime: Dayjs;
   let endTime: Dayjs;
   let outDir: string;
