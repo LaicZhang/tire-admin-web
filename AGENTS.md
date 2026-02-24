@@ -6,6 +6,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 
 ## 0. Code Design
 
+- I will use codex or claude code to review the result
 - Do not over-design, follow the KISS principle and lightweight principle
 - Prioritize using components in the technology stack, if they cannot complete the task, choose to implement it yourself or use third-party libraries according to your suggestions
 - Prioritize reusing existing code to avoid duplicate development
