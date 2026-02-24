@@ -2,20 +2,10 @@
 views/business/order/index.vue,MAINT,P2,文件438行过长且包含大量重复v-if条件判断按钮可见性逻辑,提取按钮可见性逻辑到useOrderButtonVisibility composable或使用TableOperations组件,中
 views/business/order/table.tsx,MAINT,P2,301行文件混合了对话框渲染/API调用/数据获取等多种职责,拆分为独立的useOrderDialog和useOrderApi composable,中
 views/business/order/form.vue,TYPE,P2,584行的大型表单组件对多种订单类型使用Union类型和类型断言较多,考虑使用泛型或条件类型更精确定义,中
-views/business/order/form.vue,REUSE,P2,getALlList函数在多个表单中重复实现,提取为共享的useListData composable,小
-views/business/logistic/index.vue,REUSE,P1,物流模块Tab组件结构良好使用独立子组件,推广此Tab+子组件模式到其他多视图页面,参考
-views/business/logistic/index.vue,MAINT,P2,第63-70行物流状态statusMap硬编码,迁移到constants文件或使用StatusTag组件,已处理
-views/business/stock/costAdjust/index.vue,MAINT,P1,使用ElMessage.success而非统一的message工具函数,替换为import { message } from '@/utils',已处理
-views/business/stock/costAdjust/index.vue,MAINT,P2,getStatusTag函数手动返回tag配置,使用StatusTag组件替代,已处理
 views/business/stockTaking/index.vue,MAINT,P2,502行过长的复杂组件,考虑拆分快速盘点和任务盘点为独立子组件,中
-views/business/stockTaking/index.vue,REUSE,P2,盘点汇总计算逻辑calculateStockTakingSummary设计良好,确保已提取为独立工具函数复用,参考
-views/business/finance/writeOff/index.vue,REUSE,P1,使用StatusTag组件和APPROVAL_STATUS_MAP良好实践,推广到其他未使用StatusTag的模块,已复用
-views/business/customer/index.vue,REUSE,P1,使用useCrud composable设计良好,确保所有CRUD页面使用此模式,已复用
-views/business/customer/index.vue,REUSE,P2,导入导出对话框组件化良好使用ImportDialog/ExportDialog,推广到所有需要导入导出的页面,参考
 views/business/audit/index.vue,MAINT,P3,审核逻辑与业务订单耦合,考虑更通用的审核流程组件,中
-views/business/batch/index.vue,MAINT,P3,批量操作页面结构标准,参考
-views/business/tire/index.vue,MAINT,P3,轮胎管理页面作为商品管理参考模板,参考
-views/business/provider/index.vue,MAINT,P3,供应商管理与customer类似结构,确保使用一致的模式,参考
-views/business/quality/inspection/index.vue,MAINT,P3,质检模块使用useCrud模式,参考
-views/business/finance/income/IncomeForm.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,已处理
-views/business/finance/reminder/index.vue,PERF,P2,应收应付提醒可能涉及大量数据查询,考虑分页或虚拟滚动优化,中
+views/business/expiryAlert/ + stockAlert/,MAINT,P1,效期预警和库存预警页面结构80%相似(useCrud+addDialog+h()表单),提取共享的useAlertCrud composable或AlertConfigPage基础组件,中
+views/business/tireNumber/index.vue,MAINT,P1,手动管理dataList/loading/pagination而非使用useCrud composable,重构为useCrud模式统一数据管理,中
+views/business/payment/index.vue,MAINT,P1,312行手动管理CRUD状态(getPaymentListInfo/handleCurrentChange等)未使用useCrud,重构为useCrud模式,中
+views/business/*/table.tsx,MAINT,P1,8个table.tsx文件重复getCompanyId()+company connect模式(tire/provider/customer/repo/position/department/salary/employee),提取为createWithCompany工具函数或在API层封装,中
+

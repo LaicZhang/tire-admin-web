@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
 import ClearIcon from "~icons/ep/delete";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
-import { message } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -212,20 +212,102 @@ const handleBatchEdit = () => {
 
   addDialog({
     title: `批量编辑价格 (${selectedRows.value.length}个商品)`,
+    props: {
+      formInline: {
+        wholesalePrice: undefined as number | undefined,
+        vipPrice: undefined as number | undefined,
+        memberPrice: undefined as number | undefined,
+        minSalePrice: undefined as number | undefined
+      }
+    },
     width: "500px",
     draggable: true,
     closeOnClickModal: false,
-    contentRenderer: () =>
-      h("div", { class: "p-4" }, [
+    contentRenderer: ({ options }) => {
+      const { formInline } = options.props! as {
+        formInline: {
+          wholesalePrice?: number;
+          vipPrice?: number;
+          memberPrice?: number;
+          minSalePrice?: number;
+        };
+      };
+      return h("div", { class: "p-4" }, [
         h("el-alert", {
           title: "批量编辑说明",
           type: "info",
-          description: "将对选中的所有商品统一设置价格",
+          description: "留空的字段将保持不变，仅修改有值的字段",
           showIcon: true,
-          closable: false
-        })
-      ]),
-    beforeSure: done => {
+          closable: false,
+          class: "mb-4"
+        }),
+        h("el-form", { model: formInline, labelWidth: "100px" }, [
+          h("el-form-item", { label: "批发价" }, [
+            h("el-input-number", {
+              modelValue: formInline.wholesalePrice,
+              "onUpdate:modelValue": (v: number) =>
+                (formInline.wholesalePrice = v),
+              min: 0,
+              precision: 2,
+              placeholder: "留空不修改"
+            })
+          ]),
+          h("el-form-item", { label: "VIP价" }, [
+            h("el-input-number", {
+              modelValue: formInline.vipPrice,
+              "onUpdate:modelValue": (v: number) => (formInline.vipPrice = v),
+              min: 0,
+              precision: 2,
+              placeholder: "留空不修改"
+            })
+          ]),
+          h("el-form-item", { label: "会员价" }, [
+            h("el-input-number", {
+              modelValue: formInline.memberPrice,
+              "onUpdate:modelValue": (v: number) =>
+                (formInline.memberPrice = v),
+              min: 0,
+              precision: 2,
+              placeholder: "留空不修改"
+            })
+          ]),
+          h("el-form-item", { label: "最低销售价" }, [
+            h("el-input-number", {
+              modelValue: formInline.minSalePrice,
+              "onUpdate:modelValue": (v: number) =>
+                (formInline.minSalePrice = v),
+              min: 0,
+              precision: 2,
+              placeholder: "留空不修改"
+            })
+          ])
+        ])
+      ]);
+    },
+    beforeSure: (done, { options }) => {
+      const batch = (
+        options.props! as {
+          formInline: {
+            wholesalePrice?: number;
+            vipPrice?: number;
+            memberPrice?: number;
+            minSalePrice?: number;
+          };
+        }
+      ).formInline;
+      const extras = readExtra();
+      for (const row of selectedRows.value) {
+        const existing = extras[row.tireId] || {};
+        if (batch.wholesalePrice !== undefined)
+          existing.wholesalePrice = batch.wholesalePrice;
+        if (batch.vipPrice !== undefined) existing.vipPrice = batch.vipPrice;
+        if (batch.memberPrice !== undefined)
+          existing.memberPrice = batch.memberPrice;
+        if (batch.minSalePrice !== undefined)
+          existing.minSalePrice = batch.minSalePrice;
+        extras[row.tireId] = existing;
+      }
+      writeExtra(extras);
       message("批量编辑成功", { type: "success" });
       done();
       fetchData();
@@ -234,27 +316,51 @@ const handleBatchEdit = () => {
 };
 
 // 清空价格
-const handleClear = (row: PriceInfo) => {
+const handleClear = async (row: PriceInfo) => {
   const extras = readExtra();
   delete extras[row.tireId];
   writeExtra(extras);
-  updateTireApi(row.tireId, {
-    salePrice: undefined,
-    purchasePrice: undefined
-  }).catch(() => {});
-  message(`已清空${row.tireName}的价格设置`, { type: "success" });
+  try {
+    await updateTireApi(row.tireId, {
+      salePrice: undefined,
+      purchasePrice: undefined
+    });
+    message(`已清空${row.tireName}的价格设置`, { type: "success" });
+  } catch (e) {
+    handleApiError(e);
+  }
   fetchData();
 };
 
 // 批量清空
-const handleBatchClear = () => {
+const handleBatchClear = async () => {
   if (selectedRows.value.length === 0) {
     message("请选择要清空的商品", { type: "warning" });
     return;
   }
-  message(`已清空${selectedRows.value.length}个商品的价格设置`, {
-    type: "success"
-  });
+  const extras = readExtra();
+  const errors: string[] = [];
+  for (const row of selectedRows.value) {
+    delete extras[row.tireId];
+    try {
+      await updateTireApi(row.tireId, {
+        salePrice: undefined,
+        purchasePrice: undefined
+      });
+    } catch {
+      errors.push(row.tireName ?? row.tireId);
+    }
+  }
+  writeExtra(extras);
+  if (errors.length > 0) {
+    message(`${errors.length}个商品清空失败: ${errors.join(", ")}`, {
+      type: "warning"
+    });
+  } else {
+    message(`已清空${selectedRows.value.length}个商品的价格设置`, {
+      type: "success"
+    });
+  }
   fetchData();
 };
 </script>

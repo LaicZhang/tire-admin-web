@@ -18,7 +18,8 @@ import {
   copyTemplateApi,
   deleteTemplateApi
 } from "@/api/setting";
-import type { PrintTemplate, DocumentType } from "./types";
+import type { PrintTemplate } from "./types";
+import { documentTypes } from "../shared/documentTypes";
 
 defineOptions({
   name: "PrintTemplate"
@@ -29,21 +30,6 @@ const loading = ref(false);
 const { confirm } = useConfirmDialog();
 const templateList = ref<PrintTemplate[]>([]);
 const activeDocType = ref("purchase_order");
-
-const documentTypes: DocumentType[] = [
-  { value: "purchase_order", label: "采购订单" },
-  { value: "purchase_in", label: "采购入库单" },
-  { value: "purchase_return", label: "采购退货单" },
-  { value: "sales_order", label: "销售订单" },
-  { value: "sales_out", label: "销售出库单" },
-  { value: "sales_return", label: "销售退货单" },
-  { value: "transfer", label: "调拨单" },
-  { value: "inventory_check", label: "盘点单" },
-  { value: "other_in", label: "其他入库单" },
-  { value: "other_out", label: "其他出库单" },
-  { value: "receive", label: "收款单" },
-  { value: "pay", label: "付款单" }
-];
 
 const loadData = async () => {
   loading.value = true;

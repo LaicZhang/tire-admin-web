@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import type { FormInstance } from "element-plus";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
-import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import {
   getOrderListApi,
   getPurchasePlanListApi,

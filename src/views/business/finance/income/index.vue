@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DEFAULT_PAGE_SIZE } from "../../../../utils/constants";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { h, ref, reactive, onMounted } from "vue";
 import { http } from "@/utils/http";
 import { httpLogger } from "@/utils/logger";

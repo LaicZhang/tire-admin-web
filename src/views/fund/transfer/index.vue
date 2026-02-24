@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, reactive, onMounted } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
+import type { StatusConfig } from "@/components/StatusTag/types";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
@@ -17,12 +19,20 @@ import {
   type TransferQueryParams,
   TRANSFER_STATUS_OPTIONS
 } from "./types";
-import { columns, getStatusInfo } from "./columns";
+import { columns } from "./columns";
 import TransferForm from "./form.vue";
 
 defineOptions({
   name: "FundTransfer"
 });
+
+// Convert status options to StatusTag format
+const TRANSFER_STATUS_MAP: Record<string, StatusConfig> = Object.fromEntries(
+  TRANSFER_STATUS_OPTIONS.map(opt => [
+    opt.value,
+    { label: opt.label, type: opt.type }
+  ])
+);
 
 const loading = ref(true);
 const dataList = ref<Transfer[]>([]);
@@ -306,9 +316,7 @@ onMounted(() => {
           "
         >
           <template #status="{ row }">
-            <el-tag :type="getStatusInfo(row.status).type" size="small">
-              {{ getStatusInfo(row.status).label }}
-            </el-tag>
+            <StatusTag :status="row.status" :status-map="TRANSFER_STATUS_MAP" />
           </template>
           <template #operation="{ row, size }">
             <el-button

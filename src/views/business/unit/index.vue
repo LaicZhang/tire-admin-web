@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
-import { ref, h } from "vue";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
+import { h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -16,6 +16,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import UnitForm from "./UnitForm.vue";
 
 defineOptions({
   name: "Unit"
@@ -84,20 +85,13 @@ function openDialog() {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: ({ options }) => {
-      const props = options.props as { name: string };
-      return h("div", [
-        h("el-form", {}, [
-          h("el-form-item", { label: "名称", required: true }, [
-            h("el-input", {
-              modelValue: props.name,
-              "onUpdate:modelValue": (val: string) => (props.name = val),
-              placeholder: "请输入单位名称 (如: 个、箱)"
-            })
-          ])
-        ])
-      ]);
-    },
+    contentRenderer: ({ options }) =>
+      h(UnitForm, {
+        name: (options.props as { name: string }).name,
+        "onUpdate:name": (val: string) => {
+          (options.props as { name: string }).name = val;
+        }
+      }),
     beforeSure: (done, { options }) => {
       const props = options.props as { name: string };
       const name = props.name;

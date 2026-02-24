@@ -27,9 +27,9 @@ const repeatPasswordRule = [
       callback: (error?: Error) => void
     ) => {
       if (value === "") {
-        callback(new Error("login.passwordSureReg"));
+        callback(new Error("请再次输入密码"));
       } else if (ruleForm.password !== value) {
-        callback(new Error("login.passwordDifferentReg"));
+        callback(new Error("两次输入的密码不一致"));
       } else {
         callback();
       }
@@ -51,7 +51,7 @@ const onUpdate = async (formEl: FormInstance | undefined) => {
 
     // 模拟请求，需根据实际开发进行修改
     await new Promise(resolve => setTimeout(resolve, 2000));
-    message("login.passwordUpdateReg", { type: "success" });
+    message("密码修改成功", { type: "success" });
   } catch {
     // 验证失败，不做处理
   } finally {
@@ -77,7 +77,7 @@ function onBack() {
         <el-input
           v-model="ruleForm.phone"
           clearable
-          :placeholder="'login.phone'"
+          :placeholder="'手机号'"
           :prefix-icon="useRenderIcon(Iphone)"
         />
       </el-form-item>
@@ -89,7 +89,7 @@ function onBack() {
           <el-input
             v-model="ruleForm.captchaCode"
             clearable
-            :placeholder="'login.smsCaptchaCode'"
+            :placeholder="'短信验证码'"
             :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
           />
           <el-button
@@ -97,7 +97,7 @@ function onBack() {
             class="ml-2"
             @click="useCaptchaCode().start(ruleFormRef, 'phone')"
           >
-            {{ text.length > 0 ? text + "login.info" : "login.getCaptchaCode" }}
+            {{ text.length > 0 ? text + "秒后重试" : "获取验证码" }}
           </el-button>
         </div>
       </el-form-item>
@@ -109,7 +109,7 @@ function onBack() {
           v-model="ruleForm.password"
           clearable
           show-password
-          :placeholder="'login.password'"
+          :placeholder="'新密码'"
           :prefix-icon="useRenderIcon(Lock)"
         />
       </el-form-item>
@@ -121,7 +121,7 @@ function onBack() {
           v-model="ruleForm.repeatPassword"
           clearable
           show-password
-          :placeholder="'login.sure'"
+          :placeholder="'确认新密码'"
           :prefix-icon="useRenderIcon(Lock)"
         />
       </el-form-item>
@@ -136,7 +136,7 @@ function onBack() {
           :loading="loading"
           @click="onUpdate(ruleFormRef)"
         >
-          登录
+          确认修改
         </el-button>
       </el-form-item>
     </Motion>

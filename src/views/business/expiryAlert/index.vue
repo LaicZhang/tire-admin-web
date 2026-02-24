@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
-import { ref, h } from "vue";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
+import { h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -13,6 +13,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import ExpiryAlertForm from "./ExpiryAlertForm.vue";
 
 defineOptions({
   name: "ExpiryAlert"
@@ -84,30 +85,14 @@ function openDialog(title = "新增") {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: ({ options }) => {
-      const { formInline } = options.props as {
-        formInline: { repoId: string; daysBefore: number };
-      };
-      return h("div", [
-        h("el-form", { model: formInline, labelWidth: "100px" }, [
-          h("el-form-item", { label: "仓库ID（可选）" }, [
-            h("el-input", {
-              modelValue: formInline.repoId,
-              "onUpdate:modelValue": (val: string) => (formInline.repoId = val),
-              placeholder: "为空表示所有仓库"
-            })
-          ]),
-          h("el-form-item", { label: "提前预警天数" }, [
-            h("el-input-number", {
-              modelValue: formInline.daysBefore,
-              "onUpdate:modelValue": (val: number) =>
-                (formInline.daysBefore = val),
-              min: 1
-            })
-          ])
-        ])
-      ]);
-    },
+    contentRenderer: ({ options }) =>
+      h(ExpiryAlertForm, {
+        formInline: (
+          options.props as {
+            formInline: { repoId: string; daysBefore: number };
+          }
+        ).formInline
+      }),
     beforeSure: (done, { options }) => {
       const data = (
         options.props as { formInline: { repoId: string; daysBefore: number } }

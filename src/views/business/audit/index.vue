@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, onMounted, h, reactive } from "vue";
 import { columns, AuditOrder } from "./columns";
 import { getPendingAuditOrdersApi } from "@/api/business/order";

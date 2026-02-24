@@ -25,6 +25,7 @@ import {
   importPrintTemplatesApi
 } from "@/api/setting";
 import type { AdvancedPrintTemplate } from "./types";
+import { documentTypes as allDocumentTypes } from "../shared/documentTypes";
 
 defineOptions({
   name: "AdvancedPrint"
@@ -37,7 +38,7 @@ const templateList = ref<AdvancedPrintTemplate[]>([]);
 const activeDocType = ref("sales_out");
 const selectedRows = ref<AdvancedPrintTemplate[]>([]);
 
-const documentTypes = [{ label: "销售出库", value: "sales_out" }] as const;
+const documentTypes = allDocumentTypes.filter(d => d.value === "sales_out");
 
 const loadData = async () => {
   loading.value = true;

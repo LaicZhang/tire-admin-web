@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, reactive, onMounted, h, watch } from "vue";
 import type { SettlementFormData, SettlementItem } from "./types";
 import { columns } from "./columns";

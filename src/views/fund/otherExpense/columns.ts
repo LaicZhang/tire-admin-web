@@ -1,4 +1,4 @@
-import { getExpenseTypeText, getStatusInfo } from "./types";
+import { getExpenseTypeText } from "./types";
 import type { OtherExpense } from "./types";
 import { fenToYuanOrDash } from "@/utils/formatMoney";
 
@@ -91,4 +91,4 @@ export const columns: TableColumnList = [
   }
 ];
 
-export { getStatusInfo, getExpenseTypeText };
+export { getExpenseTypeText };

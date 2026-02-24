@@ -1,17 +1,6 @@
 文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/system/workflow/index.vue,MAINT,P1,使用ElMessage.success而非统一的message工具函数,替换为import { message } from '@/utils',已处理
-views/system/workflow/index.vue,REUSE,P1,使用useCrud和StatusTag组件模式良好,作为系统管理页面参考,参考
-views/system/workflow/WorkflowForm.vue,MAINT,P1,使用ElMessage.success需统一,替换为message工具函数,已处理
-views/system/user/index.vue,REUSE,P1,使用useCrud模式良好,参考
-views/system/role/index.vue,MAINT,P3,角色管理页面结构标准,参考
-views/system/permission/index.vue,MAINT,P3,权限管理页面结构标准,参考
-views/system/menu/index.vue,MAINT,P3,菜单管理页面结构标准,参考
-views/system/dict/index.vue,MAINT,P3,字典管理页面结构标准,参考
-views/system/log/index.vue,PERF,P2,日志查询可能涉及大量数据,确保后端有适当分页和索引,中
-views/system/companies/index.vue,MAINT,P3,公司管理页面结构标准,参考
-views/system/backup/index.vue,REUSE,P2,使用StatusTag组件良好,参考
-views/system/task/index.vue,MAINT,P3,任务管理页面结构标准,参考
-views/system/document/index.vue,MAINT,P3,文档管理页面结构标准,参考
-views/system/file/index.vue,MAINT,P3,文件管理页面结构标准,参考
-views/system/notice/index.vue,MAINT,P3,公告管理页面结构标准,参考
-views/system/feedback/index.vue,REUSE,P1,使用useCrud模式良好,参考
+views/settings/printTemplate+advancedPrint,MAINT,P1,两个打印模板页面有70%代码重复,提取共享printTemplateBase composable或合并为统一模块,大
+views/settings/push/index.vue,MAINT,P1,437行大型组件包含3个推送渠道配置和测试功能,考虑拆分PushDeerTab/EmailTab/SmsTab子组件,中
+views/settings/push/index.vue,MAINT,P2,loadConfig/handleSave模式与sysParams/funcParams/costParams/companyInfo重复(共5处),考虑泛化useSettingsForm或创建独立composable,中
+views/settings/companyInfo/index.vue,MAINT,P2,loadSettings/handleSave模式与其他设置页面重复,考虑泛化useSettingsForm或创建独立composable,中
+views/settings/permissions/index.vue,MAINT,P3,permissionModules硬编码在组件内,考虑迁移到配置文件或从后端获取,中

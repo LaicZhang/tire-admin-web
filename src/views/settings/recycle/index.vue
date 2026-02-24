@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";

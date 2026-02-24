@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { DEFAULT_PAGE_SIZE } from "../../../utils/constants";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, reactive, onMounted } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import PageContainer from "@/components/PageContainer/index.vue";
+import StatusTag from "@/components/StatusTag/index.vue";
+import type { StatusConfig } from "@/components/StatusTag/types";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
@@ -20,7 +22,7 @@ import {
   EXPENSE_TYPE_OPTIONS,
   OTHER_EXPENSE_STATUS_OPTIONS
 } from "./types";
-import { columns, getStatusInfo, getExpenseTypeText } from "./columns";
+import { columns, getExpenseTypeText } from "./columns";
 import OtherExpenseForm from "./form.vue";
 
 defineOptions({
@@ -28,6 +30,15 @@ defineOptions({
 });
 
 const { confirm } = useConfirmDialog();
+
+// Convert status options to StatusTag format
+const OTHER_EXPENSE_STATUS_MAP: Record<string, StatusConfig> =
+  Object.fromEntries(
+    OTHER_EXPENSE_STATUS_OPTIONS.map(opt => [
+      opt.value,
+      { label: opt.label, type: opt.type }
+    ])
+  );
 const loading = ref(true);
 const dataList = ref<OtherExpense[]>([]);
 const selectedRows = ref<OtherExpense[]>([]);
@@ -303,9 +314,10 @@ onMounted(() => {
             </span>
           </template>
           <template #status="{ row }">
-            <el-tag :type="getStatusInfo(row.status).type" size="small">
-              {{ getStatusInfo(row.status).label }}
-            </el-tag>
+            <StatusTag
+              :status="row.status"
+              :status-map="OTHER_EXPENSE_STATUS_MAP"
+            />
           </template>
           <template #operation="{ row, size }">
             <el-button

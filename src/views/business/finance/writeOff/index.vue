@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DEFAULT_PAGE_SIZE } from "../../../../utils/constants";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { h, ref, reactive } from "vue";
 import { columns } from "./columns";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";

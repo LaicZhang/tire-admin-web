@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE_MEDIUM } from "../../../utils/constants";
+import { PAGE_SIZE_MEDIUM } from "@/utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
 import { ElMessageBox } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";

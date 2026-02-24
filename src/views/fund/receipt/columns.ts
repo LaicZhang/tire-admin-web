@@ -1,5 +1,5 @@
 import type { AdvancePaymentListItem } from "@/api/business/advance-payment";
-import { calcReceiptStatus, getStatusInfo } from "./types";
+import { calcReceiptStatus } from "./types";
 
 function formatCentMoney(value?: string): string {
   if (!value) return "-";
@@ -73,4 +73,4 @@ export const columns: TableColumnList = [
   }
 ];
 
-export { calcReceiptStatus, getStatusInfo };
+export { calcReceiptStatus };

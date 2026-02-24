@@ -9,6 +9,7 @@ import { getClosingRecordsApi } from "@/api/setting";
 import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import type { ClosingRecord } from "./types";
 import ClosingCheckForm from "./ClosingCheckForm.vue";
+import { parseListData } from "./utils";
 
 defineOptions({
   name: "Closing"
@@ -16,15 +17,6 @@ defineOptions({
 
 const tableLoading = ref(false);
 const closingRecords = ref<ClosingRecord[]>([]);
-
-function parseListData<T>(data: unknown): T[] {
-  if (Array.isArray(data)) return data as T[];
-  if (data && typeof data === "object" && "list" in data) {
-    const list = (data as { list?: unknown }).list;
-    if (Array.isArray(list)) return list as T[];
-  }
-  return [];
-}
 
 const loadData = async () => {
   tableLoading.value = true;

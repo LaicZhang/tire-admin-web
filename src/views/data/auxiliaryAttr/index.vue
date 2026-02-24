@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, reactive, h } from "vue";
 import type { AuxiliaryAttrFormData, AuxiliaryAttrItem } from "./types";
 import { columns } from "./columns";

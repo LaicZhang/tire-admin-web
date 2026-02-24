@@ -1,6 +1,6 @@
 import { ref, reactive, computed, type Ref } from "vue";
 import { message } from "@/utils/message";
-import { PAGE_SIZE_SMALL } from "../../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import {
   getReserveListApi,
   batchStockTakingApi,

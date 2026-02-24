@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "../../../utils/constants";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
 import type { DictItem } from "@/api/system/dict";
 import { columns } from "./columns";
