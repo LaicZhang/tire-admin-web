@@ -8,6 +8,11 @@ export const columns: TableColumnList = [
     minWidth: 100
   },
   {
+    label: "traceId",
+    prop: "traceId",
+    minWidth: 220
+  },
+  {
     label: "方法",
     prop: "method",
     minWidth: 120
@@ -47,6 +52,6 @@ export const columns: TableColumnList = [
     label: "操作",
     fixed: "right",
     slot: "operation",
-    width: 100
+    width: 220
   }
 ];

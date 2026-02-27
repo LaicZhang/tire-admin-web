@@ -13,6 +13,10 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { handleApiError } from "@/utils";
 import View from "~icons/ep/view";
+import RollbackTraceDialog from "./RollbackTraceDialog.vue";
+import { message } from "@/utils/message";
+import Search from "~icons/ep/search";
+import Refresh from "~icons/ep/refresh";
 
 defineOptions({
   name: "SystemLog"
@@ -31,14 +35,20 @@ const pagination = reactive({
 const form = reactive({
   module: "",
   operator: "",
-  status: undefined as boolean | undefined,
+  traceId: "",
+  success: undefined as boolean | undefined,
   dateRange: [] as string[]
 });
 
 async function onSearch() {
   loading.value = true;
   try {
-    const params: Record<string, unknown> = { ...form };
+    const params: Record<string, unknown> = {
+      module: form.module || undefined,
+      operator: form.operator || undefined,
+      traceId: form.traceId || undefined,
+      success: form.success
+    };
     if (form.dateRange && form.dateRange.length === 2) {
       params.startDate = form.dateRange[0];
       params.endDate = form.dateRange[1];
@@ -73,6 +83,7 @@ function viewDetail(row: OperationLogItem) {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: true,
+    hideFooter: true,
     contentRenderer: () =>
       h("div", { class: "log-detail" }, [
         h(
@@ -84,6 +95,11 @@ function viewDetail(row: OperationLogItem) {
                 h("el-descriptions-item", { label: "模块" }, row.module),
                 h("el-descriptions-item", { label: "方法" }, row.method),
                 h("el-descriptions-item", { label: "操作人" }, row.operator),
+                h(
+                  "el-descriptions-item",
+                  { label: "traceId" },
+                  row.traceId || "-"
+                ),
                 h("el-descriptions-item", { label: "IP地址" }, row.ip),
                 h(
                   "el-descriptions-item",
@@ -141,6 +157,39 @@ function viewDetail(row: OperationLogItem) {
   });
 }
 
+function openTraceDialog(
+  row: OperationLogItem,
+  initialSection: "plan" | "execute"
+) {
+  if (!row.traceId) {
+    message("该日志缺少 traceId，无法溯源/回滚", { type: "warning" });
+    return;
+  }
+
+  addDialog({
+    title: initialSection === "execute" ? "溯源与回滚" : "溯源预览",
+    width: "70%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(RollbackTraceDialog, {
+        traceId: row.traceId as string,
+        initialSection,
+        logSummary: {
+          module: row.module,
+          method: row.method,
+          operator: row.operator,
+          createdAt: row.createdAt,
+          success: row.success
+        },
+        onSuccess: () => onSearch()
+      })
+  });
+}
+
 function handlePageChange() {
   onSearch();
 }
@@ -173,11 +222,19 @@ onMounted(() => {
           placeholder="请输入操作人"
           clearable
           class="w-[180px]!"
-        />s
+        />
       </el-form-item>
-      <el-form-item label="状态" prop="status">
+      <el-form-item label="traceId" prop="traceId">
+        <el-input
+          v-model="form.traceId"
+          placeholder="请输入 traceId"
+          clearable
+          class="w-[240px]!"
+        />
+      </el-form-item>
+      <el-form-item label="状态" prop="success">
         <el-select
-          v-model="form.status"
+          v-model="form.success"
           placeholder="请选择状态"
           clearable
           class="w-[120px]!"
@@ -228,6 +285,26 @@ onMounted(() => {
               @click="viewDetail(row)"
             >
               详情
+            </el-button>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :icon="useRenderIcon(Search)"
+              :disabled="!row.traceId"
+              @click="openTraceDialog(row, 'plan')"
+            >
+              溯源
+            </el-button>
+            <el-button
+              class="reset-margin"
+              link
+              type="warning"
+              :icon="useRenderIcon(Refresh)"
+              :disabled="!row.traceId"
+              @click="openTraceDialog(row, 'execute')"
+            >
+              回滚
             </el-button>
           </template>
         </pure-table>
