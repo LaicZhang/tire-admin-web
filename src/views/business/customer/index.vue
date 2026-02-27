@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { h, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -7,6 +7,7 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
+import { addDialog } from "@/components/ReDialog";
 import {
   getCustomerListApi,
   deleteCustomerApi,
@@ -27,6 +28,7 @@ import LevelIcon from "~icons/ri/vip-crown-line";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import UserFollowIcon from "~icons/ri/user-follow-line";
+import BalanceHistoryPanel from "@/components/BalanceAdjustment/BalanceHistoryPanel.vue";
 
 defineOptions({
   name: "tire"
@@ -89,6 +91,22 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
 function handleFollowUp(row: Customer) {
   currentCustomerUid.value = row.uid;
   showFollowUpDialog.value = true;
+}
+
+function handleBalance(row: Customer) {
+  addDialog({
+    title: `${row.name} - 余额`,
+    width: "980px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(BalanceHistoryPanel, {
+        partyType: "customer",
+        partyUid: row.uid,
+        partyName: row.name
+      })
+  });
 }
 
 const onSearch = () => {
@@ -203,6 +221,15 @@ async function handleRestore(row: Customer) {
             @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                @click="handleBalance(row)"
+              >
+                余额
+              </el-button>
+
               <el-button
                 class="reset-margin"
                 link

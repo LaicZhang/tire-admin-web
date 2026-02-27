@@ -1,4 +1,5 @@
 import { formatDate } from "@/utils";
+import { formatMoneyFromFen } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -8,6 +9,15 @@ export const columns: TableColumnList = [
   {
     label: "名称",
     prop: "name"
+  },
+  {
+    label: "应付余额",
+    prop: "payableBalance",
+    formatter: (_row, _column, cellValue) => {
+      const value =
+        typeof cellValue === "number" ? cellValue : Number(cellValue ?? 0);
+      return `¥${formatMoneyFromFen(value)}`;
+    }
   },
   {
     label: "联系人",

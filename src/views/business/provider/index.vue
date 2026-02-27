@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref } from "vue";
+import { h, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -8,6 +8,7 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
+import { addDialog } from "@/components/ReDialog";
 import {
   getProviderListApi,
   deleteProviderApi,
@@ -21,6 +22,7 @@ import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import BalanceHistoryPanel from "@/components/BalanceAdjustment/BalanceHistoryPanel.vue";
 
 defineOptions({
   name: "tire"
@@ -87,6 +89,22 @@ async function handleRestore(row: Provider) {
   await restoreProviderApi(row.uid);
   message(`已恢复${row.name}`, { type: "success" });
   fetchData();
+}
+
+function handleBalance(row: Provider) {
+  addDialog({
+    title: `${row.name} - 余额`,
+    width: "980px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(BalanceHistoryPanel, {
+        partyType: "provider",
+        partyUid: row.uid,
+        partyName: row.name
+      })
+  });
 }
 </script>
 
@@ -165,6 +183,15 @@ async function handleRestore(row: Provider) {
             @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                @click="handleBalance(row)"
+              >
+                余额
+              </el-button>
+
               <el-button
                 class="reset-margin"
                 link
