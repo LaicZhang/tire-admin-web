@@ -12,6 +12,7 @@ export interface OperationLogItem {
   operatorId?: string;
   ip?: string;
   path?: string;
+  traceId?: string;
   params?: string;
   result?: string;
   success: boolean;
@@ -29,6 +30,7 @@ export async function getOperationLogListApi(
     module?: string;
     method?: string;
     operator?: string;
+    traceId?: string;
     startDate?: string;
     endDate?: string;
     success?: boolean;
