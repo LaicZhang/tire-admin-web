@@ -6,11 +6,12 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import StatusTag from "@/components/StatusTag/index.vue";
-import { APPROVAL_STATUS_MAP } from "@/components/StatusTag/types";
+import type { StatusConfig } from "@/components/StatusTag/types";
 import {
   getWriteOffList,
   approveWriteOff,
   rejectWriteOff,
+  reverseWriteOff,
   deleteWriteOff,
   type WriteOffOrder
 } from "@/api/business/writeOff";
@@ -18,10 +19,17 @@ import { message } from "@/utils/message";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import WriteOffForm from "./WriteOffForm.vue";
+import { getWriteOffStatusKey, type WriteOffStatusKey } from "./writeOffStatus";
 
 defineOptions({
   name: "WriteOffList"
 });
+
+const WRITE_OFF_STATUS_MAP: Record<WriteOffStatusKey, StatusConfig> = {
+  PENDING: { label: "待审核", type: "info" },
+  APPROVED: { label: "已审核", type: "success" },
+  REVERSED: { label: "已撤销", type: "warning" }
+};
 
 const form = ref({
   type: "",
@@ -113,6 +121,22 @@ async function handleReject(row: WriteOffOrder) {
   }
 }
 
+async function handleReverse(row: WriteOffOrder) {
+  const ok = await confirm("确定撤销（红冲）该核销单吗？", "提示", {
+    type: "warning"
+  });
+  if (!ok) return;
+
+  try {
+    await reverseWriteOff(row.uid);
+    message("撤销成功", { type: "success" });
+    onSearch();
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "撤销失败";
+    message(msg, { type: "error" });
+  }
+}
+
 async function handleDelete(row: WriteOffOrder) {
   const ok = await confirm("确定删除该核销单吗？", "提示", {
     type: "warning"
@@ -198,8 +222,8 @@ onSearch();
         >
           <template #status="{ row }">
             <StatusTag
-              :status="row.isApproved"
-              :status-map="APPROVAL_STATUS_MAP"
+              :status="getWriteOffStatusKey(row)"
+              :status-map="WRITE_OFF_STATUS_MAP"
             />
           </template>
           <template #operation="{ row, size }">
@@ -230,7 +254,16 @@ onSearch();
             >
               删除
             </el-button>
-            <span v-if="row.isApproved" class="text-gray-400">-</span>
+            <el-button
+              v-if="row.isApproved && !row.isReversed"
+              link
+              type="danger"
+              :size="size"
+              @click="handleReverse(row)"
+            >
+              撤销
+            </el-button>
+            <span v-if="row.isReversed" class="text-gray-400">-</span>
           </template>
         </pure-table>
       </template>
