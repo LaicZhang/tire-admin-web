@@ -2,6 +2,7 @@ import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
 import { createCrudApi } from "../utils/crud-factory";
+import type { BalanceAdjustment } from "./balanceAdjustment";
 
 const prefix = "/customer/";
 
@@ -64,12 +65,25 @@ export interface Customer {
   address?: string;
   desc?: string;
   deleteAt?: string | null;
+  receivableBalance?: number;
   tags?: Array<{ id: number; name: string }>;
   level?: { id?: number; name: string };
   from?: string;
   isIndividual?: boolean;
   creditLimit?: number;
   info?: { phone?: string };
+}
+
+export function getCustomerBalanceHistoryApi(
+  uid: string,
+  params?: { index?: number; pageSize?: number }
+) {
+  return http.request<
+    CommonResult<{
+      count: number;
+      list: BalanceAdjustment[];
+    }>
+  >("get", baseUrlApi(prefix + `${uid}/balance-history`), { params });
 }
 
 // ============ 标准 CRUD API (使用工厂函数) ============

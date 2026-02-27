@@ -2,6 +2,7 @@ import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult, CountResponseDto } from "../type";
 import { createCrudApi } from "../utils/crud-factory";
+import type { BalanceAdjustment } from "./balanceAdjustment";
 
 const prefix = "/provider/";
 
@@ -64,6 +65,7 @@ export interface Provider {
   isPublic?: boolean;
   contactName?: string;
   province?: string;
+  payableBalance?: number;
 }
 
 // ============ 标准 CRUD API (使用工厂函数) ============
@@ -116,4 +118,16 @@ export async function migrateProviderApi(uid: string, data: { uid: string }) {
     baseUrlApi(prefix + "migrate/" + uid),
     { data }
   );
+}
+
+export function getProviderBalanceHistoryApi(
+  uid: string,
+  params?: { index?: number; pageSize?: number }
+) {
+  return http.request<
+    CommonResult<{
+      count: number;
+      list: BalanceAdjustment[];
+    }>
+  >("get", baseUrlApi(prefix + `${uid}/balance-history`), { params });
 }

@@ -25,6 +25,7 @@ export interface WriteOffOrder extends WriteOffOrderDto {
   id: number;
   uid: string;
   isApproved: boolean;
+  isReversed: boolean;
   operatorId: string;
   auditorId?: string;
   createAt: string;
@@ -87,6 +88,14 @@ export function rejectWriteOff(uid: string) {
   return http.request<CommonResult<{ success: boolean }>>(
     "post",
     baseUrlApi(`${prefix}/${uid}/reject`)
+  );
+}
+
+/** 撤销/红冲核销单 */
+export function reverseWriteOff(uid: string) {
+  return http.request<CommonResult<WriteOffOrder>>(
+    "post",
+    baseUrlApi(`${prefix}/${uid}/reverse`)
   );
 }
 
