@@ -119,6 +119,28 @@ function openDialog(title = "新增", row?: unknown) {
     },
     beforeSure: (done, { options }) => {
       const dialogProps = options.props as DialogProps;
+      dialogProps.repoId = String(dialogProps.repoId || "").trim();
+      dialogProps.name = String(dialogProps.name || "").trim();
+      if (!dialogProps.repoId) {
+        message("请输入仓库ID", { type: "warning" });
+        return;
+      }
+      if (
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          dialogProps.repoId
+        )
+      ) {
+        message("仓库ID不合法", { type: "warning" });
+        return;
+      }
+      if (!dialogProps.name) {
+        message("请输入库区名称", { type: "warning" });
+        return;
+      }
+      if (dialogProps.name.length > 50) {
+        message("库区名称最多 50 个字符", { type: "warning" });
+        return;
+      }
       const data = {
         name: dialogProps.name,
         repoId: dialogProps.repoId

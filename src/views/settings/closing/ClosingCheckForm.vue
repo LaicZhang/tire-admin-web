@@ -39,6 +39,10 @@ const runCheck = async () => {
     message("请选择结账日期", { type: "warning" });
     return;
   }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(closingDate.value))) {
+    message("结账日期格式不正确", { type: "warning" });
+    return;
+  }
   checkLoading.value = true;
   try {
     const res = await runClosingChecksApi(closingDate.value);
@@ -72,6 +76,10 @@ const doClosing = async () => {
     message(props.isClosing ? "请选择结账日期" : "反结账日期为空", {
       type: "warning"
     });
+    return;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(closingDate.value))) {
+    message("结账日期格式不正确", { type: "warning" });
     return;
   }
   const failedItems = checkItems.value.filter(item => !item.passed);

@@ -22,11 +22,24 @@ const newConversion = ref({
 });
 
 const validate = (): boolean => {
-  if (!newConversion.value.targetUnitId) {
+  const unitId = String(newConversion.value.targetUnitId || "").trim();
+  newConversion.value.targetUnitId = unitId;
+  if (!unitId) {
     message("请选择辅单位", { type: "warning" });
     return false;
   }
-  if (!newConversion.value.ratio || newConversion.value.ratio <= 0) {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      unitId
+    )
+  ) {
+    message("辅单位不合法", { type: "warning" });
+    return false;
+  }
+  if (
+    !Number.isFinite(newConversion.value.ratio) ||
+    newConversion.value.ratio <= 0
+  ) {
     message("换算比例必须大于0", { type: "warning" });
     return false;
   }

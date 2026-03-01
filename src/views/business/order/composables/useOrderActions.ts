@@ -79,6 +79,7 @@ export function useOrderActions(
         productionDate?: string;
         expiryDate?: string;
       };
+      validate: () => Promise<boolean>;
     } | null>(null);
 
     addDialog({
@@ -95,18 +96,11 @@ export function useOrderActions(
         }),
       beforeSure: async done => {
         try {
+          const ok = await formRef.value?.validate();
+          if (!ok) return;
+
           const payload = formRef.value?.getPayload();
-          if (!payload?.detailUid) {
-            message("请选择明细", { type: "warning" });
-            return;
-          }
-          if (
-            action === "sale-shipment" &&
-            (!payload.shipCount || payload.shipCount <= 0)
-          ) {
-            message("请输入有效的发货数量", { type: "warning" });
-            return;
-          }
+          if (!payload?.detailUid) return;
 
           await onSubmit(payload);
           message(`${title}成功`, { type: "success" });

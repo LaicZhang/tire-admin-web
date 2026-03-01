@@ -21,12 +21,17 @@ const phoneForm = ref({
 const qrContent = ref(DEFAULT_QR_CONTENT);
 
 async function sendSms() {
-  if (!phoneForm.value.phone) {
+  const phone = String(phoneForm.value.phone || "").trim();
+  if (!phone) {
     message("请输入手机号", { type: "warning" });
     return;
   }
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    message("请输入正确的手机号", { type: "warning" });
+    return;
+  }
   const { code, msg } = await getVerifyCodeApi({
-    phone: phoneForm.value.phone,
+    phone,
     code: "mock",
     type: 1
   });
@@ -52,7 +57,13 @@ async function sendSms() {
         <div class="w-1/2 p-4">
           <el-form label-width="100px">
             <el-form-item label="手机号">
-              <el-input v-model="phoneForm.phone" placeholder="请输入手机号" />
+              <el-input
+                v-model="phoneForm.phone"
+                placeholder="请输入手机号"
+                maxlength="11"
+                show-word-limit
+                clearable
+              />
             </el-form-item>
             <el-form-item label="操作">
               <el-button type="primary" @click="sendSms">发送验证码</el-button>

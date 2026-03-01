@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import type { FormRules } from "element-plus";
 import type { FormProps } from "./types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Plus from "~icons/ep/plus";
 import Delete from "~icons/ep/delete";
+import { message } from "@/utils";
+import { elementRules } from "@/utils/validation/elementRules";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -19,9 +22,47 @@ const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 const newValue = ref("");
 
+const rules: FormRules = {
+  name: [
+    elementRules.requiredStringTrim("请输入属性名称"),
+    elementRules.maxLen(50, "属性名称最多 50 个字符")
+  ],
+  values: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        const arr = Array.isArray(value) ? value : [];
+        if (arr.length === 0)
+          return callback(new Error("请至少添加 1 个属性值"));
+        const tooLong = arr.find(v => String(v || "").length > 50);
+        if (tooLong) return callback(new Error("属性值最多 50 个字符"));
+        callback();
+      }
+    }
+  ],
+  sort: [
+    {
+      trigger: "blur",
+      validator: (_rule, value, callback) => {
+        if (value === null || value === undefined || value === "")
+          return callback();
+        const n = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(n) || n < 0 || n > 9999)
+          return callback(new Error("排序需在 0~9999"));
+        callback();
+      }
+    }
+  ],
+  remark: [elementRules.maxLen(200, "备注最多 200 个字符")]
+};
+
 function addValue() {
   const val = newValue.value.trim();
   if (!val) return;
+  if (val.length > 50) {
+    message("属性值最多 50 个字符", { type: "warning" });
+    return;
+  }
   if (newFormInline.value.values.includes(val)) return;
   newFormInline.value.values.push(val);
   newValue.value = "";
@@ -39,12 +80,13 @@ defineExpose({ getRef });
 </script>
 
 <template>
-  <el-form ref="ruleFormRef" :model="newFormInline" label-width="90px">
-    <el-form-item
-      label="属性名称"
-      prop="name"
-      :rules="[{ required: true, message: '请输入属性名称', trigger: 'blur' }]"
-    >
+  <el-form
+    ref="ruleFormRef"
+    :model="newFormInline"
+    :rules="rules"
+    label-width="90px"
+  >
+    <el-form-item label="属性名称" prop="name">
       <el-input
         v-model="newFormInline.name"
         clearable
@@ -53,7 +95,7 @@ defineExpose({ getRef });
       />
     </el-form-item>
 
-    <el-form-item label="属性值">
+    <el-form-item label="属性值" prop="values">
       <div class="w-full">
         <div class="flex flex-wrap gap-2 mb-2">
           <el-tag
@@ -70,6 +112,9 @@ defineExpose({ getRef });
             v-model="newValue"
             placeholder="输入属性值后按回车添加"
             class="w-[200px]!"
+            maxlength="50"
+            show-word-limit
+            clearable
             @keyup.enter="addValue"
           />
           <el-button

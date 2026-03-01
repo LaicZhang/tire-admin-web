@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, h } from "vue";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -97,6 +98,7 @@ const handleDelete = async (row: IncomeExpenseItem) => {
 };
 
 function openDialog() {
+  const dialogFormRef = ref<{ getRef: () => FormInstance | undefined }>();
   addDialog({
     title: "新增收支项目",
     props: {
@@ -113,6 +115,7 @@ function openDialog() {
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
       h(FinanceItemForm, {
+        ref: dialogFormRef,
         formInline: (
           options.props! as {
             formInline: {
@@ -123,7 +126,13 @@ function openDialog() {
           }
         ).formInline
       }),
-    beforeSure: (done, { options }) => {
+    beforeSure: async (done, { options }) => {
+      const valid = await dialogFormRef.value
+        ?.getRef()
+        ?.validate()
+        .catch(() => false);
+      if (!valid) return;
+
       const curData = (
         options.props! as {
           formInline: {
@@ -133,10 +142,7 @@ function openDialog() {
           };
         }
       ).formInline;
-      if (!curData.name) {
-        message("请输入名称", { type: "warning" });
-        return;
-      }
+      curData.name = String(curData.name || "").trim();
       createIncomeExpenseItemApi(curData).then(() => {
         message("创建成功", { type: "success" });
         done();

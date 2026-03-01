@@ -91,14 +91,23 @@ const barcodeTypeOptions = [
 ];
 
 async function generateBarcode() {
-  if (!barcodeForm.value.code) {
+  const code = String(barcodeForm.value.code || "").trim();
+  if (!code) {
     message("请输入条码内容", { type: "warning" });
+    return;
+  }
+  if (code.length > 200) {
+    message("条码内容最多 200 个字符", { type: "warning" });
+    return;
+  }
+  if (!["code128", "qrcode"].includes(barcodeForm.value.type)) {
+    message("条码类型不合法", { type: "warning" });
     return;
   }
   barcodeLoading.value = true;
   try {
     const blob = await generateBarcodeApi({
-      code: barcodeForm.value.code,
+      code,
       type: barcodeForm.value.type,
       width: barcodeForm.value.width,
       height: barcodeForm.value.height
@@ -118,14 +127,19 @@ function downloadBarcode() {
 }
 
 async function handleScan() {
-  if (!scanCode.value) {
+  const barcode = String(scanCode.value || "").trim();
+  if (!barcode) {
     message("请输入条码", { type: "warning" });
+    return;
+  }
+  if (barcode.length > 200) {
+    message("条码最多 200 个字符", { type: "warning" });
     return;
   }
   barcodeLoading.value = true;
   try {
-    const { data, code, msg } = await scanBarcodeApi(scanCode.value);
-    if (code === 200) {
+    const { data, code: statusCode, msg } = await scanBarcodeApi(barcode);
+    if (statusCode === 200) {
       scanResult.value = data;
       message("查询成功", { type: "success" });
     } else {
@@ -280,6 +294,8 @@ function handleExportSuccess() {
                     v-model="barcodeForm.code"
                     placeholder="输入条码内容"
                     clearable
+                    maxlength="200"
+                    show-word-limit
                   />
                 </el-form-item>
                 <el-form-item label="条码类型">
@@ -344,6 +360,8 @@ function handleExportSuccess() {
                     v-model="scanCode"
                     placeholder="输入或扫描条码"
                     clearable
+                    maxlength="200"
+                    show-word-limit
                     @keyup.enter="handleScan"
                   />
                 </el-form-item>

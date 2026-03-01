@@ -229,6 +229,34 @@ const openDialog = (row: PriceLimit) => {
         ])
       ]),
     beforeSure: done => {
+      if (formData.value.enablePurchaseLimit) {
+        if (
+          formData.value.maxPurchasePrice === null ||
+          formData.value.maxPurchasePrice === undefined
+        ) {
+          message("请输入最高采购价", { type: "warning" });
+          return;
+        }
+        const n = Number(formData.value.maxPurchasePrice);
+        if (!Number.isFinite(n) || n < 0) {
+          message("最高采购价不合法", { type: "warning" });
+          return;
+        }
+      }
+      if (formData.value.enableSaleLimit) {
+        if (
+          formData.value.minSalePrice === null ||
+          formData.value.minSalePrice === undefined
+        ) {
+          message("请输入最低销售价", { type: "warning" });
+          return;
+        }
+        const n = Number(formData.value.minSalePrice);
+        if (!Number.isFinite(n) || n < 0) {
+          message("最低销售价不合法", { type: "warning" });
+          return;
+        }
+      }
       upsertPriceLimitApi({
         tireId: row.tireId,
         enablePurchaseLimit: formData.value.enablePurchaseLimit,

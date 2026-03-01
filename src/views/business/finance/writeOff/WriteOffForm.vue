@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
 import { createWriteOff, type WriteOffOrderDto } from "@/api/business/writeOff";
 import { getCustomerApi, getCustomerListApi } from "@/api/business/customer";
 import { getProviderApi, getProviderListApi } from "@/api/business/provider";
 import { message } from "@/utils/message";
 import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
+import { elementRules } from "@/utils/validation/elementRules";
 
 const props = defineProps<{
   onSuccess: () => void;
@@ -12,6 +14,7 @@ const props = defineProps<{
 }>();
 
 const loading = ref(false);
+const formRef = ref<FormInstance>();
 const customerList = ref<Array<{ uid: string; name: string }>>([]);
 const providerList = ref<Array<{ uid: string; name: string }>>([]);
 
@@ -27,6 +30,32 @@ const formData = reactive<WriteOffOrderDto>({
 });
 
 const balanceLoading = ref(false);
+
+const rules: FormRules = {
+  type: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        const allowed = new Set(["OFFSET", "BAD_DEBT"]);
+        if (!allowed.has(String(value)))
+          return callback(new Error("核销类型不合法"));
+        callback();
+      }
+    }
+  ],
+  customerId: [elementRules.uuidV4("客户不合法", "change")],
+  providerId: [elementRules.uuidV4("供应商不合法", "change")],
+  writeOffAmount: [
+    elementRules.requiredSelect("请输入核销金额", "blur"),
+    elementRules.moneyYuan({
+      min: 0,
+      minExclusive: true,
+      message: "核销金额必须大于 0"
+    })
+  ],
+  reason: [elementRules.maxLen(200, "核销原因最多 200 个字符")],
+  remark: [elementRules.maxLen(200, "备注最多 200 个字符")]
+};
 
 async function loadSelectData() {
   try {
@@ -83,6 +112,9 @@ async function loadProviderBalance(uid: string) {
 }
 
 async function handleSubmit() {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
+
   if (formData.type === "BAD_DEBT") {
     if (!formData.customerId) {
       message("坏账核销必须选择客户", { type: "warning" });
@@ -173,14 +205,14 @@ watch(
 
 <template>
   <div>
-    <el-form :model="formData" label-width="100px">
-      <el-form-item label="核销类型">
+    <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px">
+      <el-form-item label="核销类型" prop="type">
         <el-radio-group v-model="formData.type">
           <el-radio value="OFFSET">互抵核销</el-radio>
           <el-radio value="BAD_DEBT">坏账核销</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="客户">
+      <el-form-item label="客户" prop="customerId">
         <el-select
           v-model="formData.customerId"
           placeholder="请选择客户"
@@ -196,7 +228,7 @@ watch(
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="供应商">
+      <el-form-item label="供应商" prop="providerId">
         <el-select
           v-model="formData.providerId"
           placeholder="请选择供应商"
@@ -231,7 +263,7 @@ watch(
           class="w-full!"
         />
       </el-form-item>
-      <el-form-item label="核销金额">
+      <el-form-item label="核销金额" prop="writeOffAmount">
         <el-input-number
           v-model="formData.writeOffAmount"
           :min="0"
@@ -244,11 +276,23 @@ watch(
           class="w-full!"
         />
       </el-form-item>
-      <el-form-item label="核销原因">
-        <el-input v-model="formData.reason" type="textarea" :rows="2" />
+      <el-form-item label="核销原因" prop="reason">
+        <el-input
+          v-model="formData.reason"
+          type="textarea"
+          :rows="2"
+          maxlength="200"
+          show-word-limit
+        />
       </el-form-item>
-      <el-form-item label="备注">
-        <el-input v-model="formData.remark" type="textarea" :rows="2" />
+      <el-form-item label="备注" prop="remark">
+        <el-input
+          v-model="formData.remark"
+          type="textarea"
+          :rows="2"
+          maxlength="200"
+          show-word-limit
+        />
       </el-form-item>
     </el-form>
     <div class="flex justify-end gap-2 mt-4">

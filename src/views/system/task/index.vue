@@ -243,8 +243,38 @@ function openDialog(title = "新增", row?: TaskItem) {
           };
         }
       ).formInline;
+      data.name = String(data.name || "").trim();
+      data.service = String(data.service || "").trim();
+      data.cron = String(data.cron || "").trim();
+      data.parameters = String(data.parameters || "").trim();
+      data.description = String(data.description || "").trim();
+
       if (!data.name || !data.cron || !data.service) {
         message("请补全必填信息", { type: "warning" });
+        return;
+      }
+      if (data.name.length > 50) {
+        message("任务名称最多 50 个字符", { type: "warning" });
+        return;
+      }
+      if (data.service.length > 50) {
+        message("Service 最多 50 个字符", { type: "warning" });
+        return;
+      }
+      if (data.cron.length > 100) {
+        message("Cron 表达式最多 100 个字符", { type: "warning" });
+        return;
+      }
+      if (data.parameters) {
+        try {
+          JSON.parse(data.parameters);
+        } catch {
+          message("参数需为合法的 JSON", { type: "warning" });
+          return;
+        }
+      }
+      if (data.description.length > 200) {
+        message("描述最多 200 个字符", { type: "warning" });
         return;
       }
       const promise =

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
 import { getOrderApi } from "@/api/business/order";
 import { message } from "@/utils/message";
+import { elementRules } from "@/utils/validation/elementRules";
 
 type Action =
   | "purchase-arrival"
@@ -44,6 +46,7 @@ const props = defineProps<{
 const loading = ref(false);
 const details = ref<OrderDetail[]>([]);
 
+const formRef = ref<FormInstance>();
 const form = ref<ConfirmFormState>({
   detailUid: "",
   shipCount: 1,
@@ -51,6 +54,49 @@ const form = ref<ConfirmFormState>({
   productionDate: "",
   expiryDate: ""
 });
+
+const rules: FormRules = {
+  detailUid: [
+    elementRules.requiredSelect("请选择明细", "change"),
+    elementRules.uuidV4("明细不合法", "change")
+  ],
+  shipCount: [elementRules.positiveInt("请输入有效的发货数量")],
+  batchNo: [elementRules.maxLen(50, "批次号最多 50 个字符")],
+  productionDate: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        if (!value) return callback();
+        const s = typeof value === "string" ? value : String(value);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(s))
+          return callback(new Error("生产日期格式不正确"));
+        callback();
+      }
+    }
+  ],
+  expiryDate: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        if (!value) return callback();
+        const s = typeof value === "string" ? value : String(value);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(s))
+          return callback(new Error("过期日期格式不正确"));
+        const p = form.value.productionDate
+          ? new Date(form.value.productionDate).getTime()
+          : undefined;
+        const e = new Date(s).getTime();
+        if (
+          Number.isFinite(p as any) &&
+          Number.isFinite(e) &&
+          (p as number) > e
+        )
+          return callback(new Error("过期日期不能早于生产日期"));
+        callback();
+      }
+    }
+  ]
+};
 
 const selectedDetail = computed(() => {
   return details.value.find(d => d.uid === form.value.detailUid);
@@ -122,14 +168,26 @@ function getPayload(): ConfirmPayload {
   };
 }
 
-defineExpose({ getPayload });
+async function validate(): Promise<boolean> {
+  const ok = await formRef.value?.validate().catch(() => false);
+  if (!ok) message("请检查表单填写", { type: "warning" });
+  return !!ok;
+}
+
+defineExpose({ getPayload, validate });
 
 onMounted(load);
 </script>
 
 <template>
-  <el-form v-loading="loading" label-width="90px">
-    <el-form-item label="明细" required>
+  <el-form
+    ref="formRef"
+    v-loading="loading"
+    :model="form"
+    :rules="rules"
+    label-width="90px"
+  >
+    <el-form-item label="明细" prop="detailUid">
       <el-select
         v-model="form.detailUid"
         class="w-full"
@@ -145,16 +203,22 @@ onMounted(load);
     </el-form-item>
 
     <template v-if="props.action === 'sale-shipment'">
-      <el-form-item label="发货数量" required>
+      <el-form-item label="发货数量" prop="shipCount">
         <el-input-number v-model="form.shipCount" :min="1" />
       </el-form-item>
     </template>
 
     <template v-if="props.action === 'purchase-arrival'">
-      <el-form-item label="批次号">
-        <el-input v-model="form.batchNo" placeholder="可选" />
+      <el-form-item label="批次号" prop="batchNo">
+        <el-input
+          v-model="form.batchNo"
+          placeholder="可选"
+          maxlength="50"
+          show-word-limit
+          clearable
+        />
       </el-form-item>
-      <el-form-item label="生产日期">
+      <el-form-item label="生产日期" prop="productionDate">
         <el-date-picker
           v-model="form.productionDate"
           type="date"
@@ -162,7 +226,7 @@ onMounted(load);
           placeholder="可选"
         />
       </el-form-item>
-      <el-form-item label="过期日期">
+      <el-form-item label="过期日期" prop="expiryDate">
         <el-date-picker
           v-model="form.expiryDate"
           type="date"

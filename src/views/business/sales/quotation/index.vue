@@ -96,6 +96,20 @@ function openDialog(title = "新增", row?: SalesQuotation) {
     },
     beforeSure: (done, { options }) => {
       const dialogProps = options.props as DialogProps;
+      dialogProps.customerName = String(dialogProps.customerName || "").trim();
+      dialogProps.desc = String(dialogProps.desc || "").trim();
+      if (!dialogProps.customerName) {
+        message("请输入客户名称", { type: "warning" });
+        return;
+      }
+      if (dialogProps.customerName.length > 100) {
+        message("客户名称最多 100 个字符", { type: "warning" });
+        return;
+      }
+      if (dialogProps.desc.length > 200) {
+        message("备注最多 200 个字符", { type: "warning" });
+        return;
+      }
       const data = {
         customerName: dialogProps.customerName,
         desc: dialogProps.desc,

@@ -97,6 +97,11 @@ function openDialog(title = "新增", row?: PurchasePlan) {
     },
     beforeSure: (done, { options }) => {
       const props = options.props as DialogProps;
+      props.desc = String(props.desc || "").trim();
+      if (props.desc.length > 200) {
+        message("备注最多 200 个字符", { type: "warning" });
+        return;
+      }
       const data = {
         desc: props.desc,
         status: "DRAFT",

@@ -25,7 +25,8 @@ import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
-import type { FormInstance } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
+import { elementRules } from "@/utils/validation/elementRules";
 
 defineOptions({
   name: "AuxiliaryAttrManagement"
@@ -37,6 +38,19 @@ const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 const form = reactive({
   name: ""
 });
+
+const searchRules: FormRules = {
+  name: [elementRules.maxLen(50, "属性名称最多 50 个字符")]
+};
+
+const handleSearch = async () => {
+  const valid = await (searchFormRef.value as FormInstance | undefined)
+    ?.validate()
+    .catch(() => false);
+  if (!valid) return;
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  getData();
+};
 
 const {
   loading,
@@ -178,7 +192,10 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
           h("el-input", {
             modelValue: formData.name,
             "onUpdate:modelValue": (val: string) => (formData.name = val),
-            placeholder: "请输入属性值"
+            placeholder: "请输入属性值",
+            maxlength: 50,
+            showWordLimit: true,
+            clearable: true
           })
         ])
       ]);
@@ -186,14 +203,19 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
     beforeSure: async (done, { options }) => {
       const formData = (options.props as { formInline: { name: string } })
         .formInline;
-      if (!formData.name?.trim()) {
+      formData.name = String(formData.name || "").trim();
+      if (!formData.name) {
         message("请输入属性值", { type: "warning" });
+        return;
+      }
+      if (formData.name.length > 50) {
+        message("属性值最多 50 个字符", { type: "warning" });
         return;
       }
       try {
         const { code, msg } = await addAuxiliaryAttrValueApi(
           row.uid,
-          formData.name.trim()
+          formData.name
         );
         if (code === 200) {
           message("添加成功", { type: "success" });
@@ -217,6 +239,7 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
       ref="searchFormRef"
       :inline="true"
       :model="form"
+      :rules="searchRules"
       class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
     >
       <el-form-item label="属性名称" prop="name">
@@ -225,7 +248,9 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
           placeholder="请输入属性名称"
           clearable
           class="w-[200px]!"
-          @keyup.enter="getData"
+          maxlength="50"
+          show-word-limit
+          @keyup.enter="handleSearch"
         />
       </el-form-item>
       <el-form-item>
@@ -233,7 +258,7 @@ function openAddValueDialog(row: AuxiliaryAttrItem) {
           type="primary"
           :icon="useRenderIcon(Search)"
           :loading="loading"
-          @click="getData"
+          @click="handleSearch"
         >
           搜索
         </el-button>

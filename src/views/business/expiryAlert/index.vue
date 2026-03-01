@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { h } from "vue";
+import { h, ref } from "vue";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -72,6 +73,7 @@ const columns = [
 ];
 
 function openDialog(title = "新增") {
+  const dialogFormRef = ref<{ getRef: () => FormInstance | undefined }>();
   addDialog({
     title: `${title}效期预警配置`,
     props: {
@@ -87,13 +89,20 @@ function openDialog(title = "新增") {
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
       h(ExpiryAlertForm, {
+        ref: dialogFormRef,
         formInline: (
           options.props as {
             formInline: { repoId: string; daysBefore: number };
           }
         ).formInline
       }),
-    beforeSure: (done, { options }) => {
+    beforeSure: async (done, { options }) => {
+      const valid = await dialogFormRef.value
+        ?.getRef()
+        ?.validate()
+        .catch(() => false);
+      if (!valid) return;
+
       const data = (
         options.props as { formInline: { repoId: string; daysBefore: number } }
       ).formInline;

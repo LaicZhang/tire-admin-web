@@ -95,6 +95,20 @@ function openDialog(title = "新增", row?: PurchaseInquiry) {
     },
     beforeSure: (done, { options }) => {
       const dialogProps = options.props as DialogProps;
+      dialogProps.providerName = String(dialogProps.providerName || "").trim();
+      dialogProps.desc = String(dialogProps.desc || "").trim();
+      if (!dialogProps.providerName) {
+        message("请输入供应商名称", { type: "warning" });
+        return;
+      }
+      if (dialogProps.providerName.length > 100) {
+        message("供应商名称最多 100 个字符", { type: "warning" });
+        return;
+      }
+      if (dialogProps.desc.length > 200) {
+        message("备注最多 200 个字符", { type: "warning" });
+        return;
+      }
       const data = {
         providerName: dialogProps.providerName,
         desc: dialogProps.desc,

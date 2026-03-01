@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
 import {
   getProductPriceApi,
   type ProductPriceQueryResult
@@ -7,6 +8,7 @@ import {
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import TireSelect from "@/components/EntitySelect/TireSelect.vue";
 import { message } from "@/utils";
+import { elementRules } from "@/utils/validation/elementRules";
 
 defineOptions({
   name: "PriceQuery"
@@ -17,14 +19,20 @@ const form = ref({
   customerId: undefined as string | undefined,
   date: new Date()
 });
+const formRef = ref<FormInstance>();
+const rules: FormRules = {
+  tireId: [
+    elementRules.requiredSelect("请选择商品", "change"),
+    elementRules.uuidV4("商品不合法", "change")
+  ],
+  customerId: [elementRules.uuidV4("客户不合法", "change")]
+};
 const result = ref<ProductPriceQueryResult | null>(null);
 const loading = ref(false);
 
 const onSearch = async () => {
-  if (!form.value.tireId) {
-    message("请选择商品", { type: "warning" });
-    return;
-  }
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
   loading.value = true;
   const { data, code, msg } = await getProductPriceApi(form.value);
   if (code === 200) {
@@ -45,11 +53,11 @@ const onSearch = async () => {
         </div>
       </template>
 
-      <el-form :inline="true">
-        <el-form-item label="商品">
+      <el-form ref="formRef" :model="form" :rules="rules" :inline="true">
+        <el-form-item label="商品" prop="tireId">
           <TireSelect v-model="form.tireId" placeholder="搜索商品名称/条码" />
         </el-form-item>
-        <el-form-item label="客户">
+        <el-form-item label="客户" prop="customerId">
           <CustomerSelect
             v-model="form.customerId"
             placeholder="选填，搜索客户"

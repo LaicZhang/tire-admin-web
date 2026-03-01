@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, reactive, h } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
 import { columns } from "./columns";
 import {
   getWorkflowListApi,
@@ -19,6 +20,7 @@ import { useCrud } from "@/composables";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { message } from "@/utils";
+import { elementRules } from "@/utils/validation/elementRules";
 
 defineOptions({
   name: "WorkflowIndex"
@@ -31,11 +33,41 @@ type WorkflowFormExpose = {
 const formRef = ref<WorkflowFormExpose>();
 const { confirm } = useConfirmDialog();
 
+const queryFormRef = ref<FormInstance>();
 const queryForm = reactive<Pick<WorkflowQuery, "name" | "status" | "scope">>({
   name: "",
   status: undefined,
   scope: "nonDeleted"
 });
+
+const queryRules: FormRules = {
+  name: [elementRules.maxLen(50, "流程名称最多 50 个字符")],
+  status: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        if (value === null || value === undefined || value === "")
+          return callback();
+        if (value !== 0 && value !== 1)
+          return callback(new Error("状态不合法"));
+        callback();
+      }
+    }
+  ],
+  scope: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        if (value === null || value === undefined || value === "")
+          return callback();
+        const allowed = new Set(["nonDeleted", "deleted", "all"]);
+        if (!allowed.has(String(value)))
+          return callback(new Error("范围不合法"));
+        callback();
+      }
+    }
+  ]
+};
 
 const {
   loading,
@@ -86,7 +118,9 @@ const resetQuery = () => {
 };
 
 // Search
-const onSearch = () => {
+const onSearch = async () => {
+  const valid = await queryFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   pagination.value = { ...pagination.value, currentPage: 1 };
   handleQuery();
 };
@@ -190,7 +224,12 @@ const handleRestore = async (row: WorkflowVO) => {
 <template>
   <div class="main-content">
     <el-card shadow="never" class="search-wrapper">
-      <el-form ref="queryFormRef" :model="queryForm" :inline="true">
+      <el-form
+        ref="queryFormRef"
+        :model="queryForm"
+        :rules="queryRules"
+        :inline="true"
+      >
         <el-form-item label="流程名称" prop="name">
           <el-input
             v-model="queryForm.name"

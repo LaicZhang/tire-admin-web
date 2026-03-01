@@ -161,8 +161,28 @@ function openDialog(title = "新增", row?: DictItem) {
           };
         }
       ).formInline;
+      data.name = String(data.name || "").trim();
+      data.cn = String(data.cn || "").trim();
+      data.en = String(data.en || "").trim();
+
       if (!data.name) {
         message("请输入字典类型名称", { type: "warning" });
+        return;
+      }
+      if (data.name.length > 50) {
+        message("字典类型最多 50 个字符", { type: "warning" });
+        return;
+      }
+      if (!Number.isInteger(data.key) || data.key < 0) {
+        message("键值需为不小于 0 的整数", { type: "warning" });
+        return;
+      }
+      if (data.cn.length > 50) {
+        message("中文标签最多 50 个字符", { type: "warning" });
+        return;
+      }
+      if (data.en.length > 50) {
+        message("英文标签最多 50 个字符", { type: "warning" });
         return;
       }
       const promise =

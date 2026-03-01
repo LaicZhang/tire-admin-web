@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { h } from "vue";
+import { h, ref } from "vue";
+import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import Refresh from "~icons/ep/refresh";
@@ -71,6 +72,7 @@ const handleScan = async () => {
 };
 
 function openDialog(title = "新增") {
+  const dialogFormRef = ref<{ getRef: () => FormInstance | undefined }>();
   addDialog({
     title: `${title}库存预警配置`,
     props: {
@@ -86,14 +88,18 @@ function openDialog(title = "新增") {
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
       h(StockAlertForm, {
+        ref: dialogFormRef,
         formInline: (options.props as { formInline: StockAlertDto }).formInline
       }),
-    beforeSure: (done, { options }) => {
+    beforeSure: async (done, { options }) => {
+      const valid = await dialogFormRef.value
+        ?.getRef()
+        ?.validate()
+        .catch(() => false);
+      if (!valid) return;
+
       const data = (options.props as { formInline: StockAlertDto }).formInline;
-      if (!data.tireId) {
-        message("请输入轮胎ID", { type: "warning" });
-        return;
-      }
+      data.tireId = String(data.tireId || "").trim();
       createStockAlertApi(data).then(() => {
         message("操作成功", { type: "success" });
         done();

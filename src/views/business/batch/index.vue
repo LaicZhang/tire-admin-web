@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
 import { getBatchListApi, getBatchTransactionsApi } from "@/api/batch";
 import { getRepoListApi } from "@/api/company/repo";
 import { message } from "@/utils/message";
@@ -13,6 +14,7 @@ import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import BatchCreateForm from "./BatchCreateForm.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import { elementRules } from "@/utils/validation/elementRules";
 
 defineOptions({
   name: "BusinessBatch"
@@ -37,11 +39,17 @@ interface RepoItem {
 const repoList = ref<RepoItem[]>([]);
 
 // 查询条件
+const queryFormRef = ref<FormInstance>();
 const queryForm = ref({
   repoId: undefined,
   tireId: undefined,
   batchNo: undefined
 });
+
+const queryRules: FormRules = {
+  repoId: [elementRules.uuidV4("仓库不合法", "change")],
+  batchNo: [elementRules.maxLen(50, "批次号最多 50 个字符")]
+};
 
 // 流水抽屉
 const drawerVisible = ref(false);
@@ -90,7 +98,9 @@ const getRepos = async () => {
   }
 };
 
-const handleSearch = () => {
+const handleSearch = async () => {
+  const valid = await queryFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
   pagination.value = { ...pagination.value, currentPage: 1 };
   fetchData();
 };
@@ -142,7 +152,12 @@ onMounted(() => {
 <template>
   <div class="main p-4">
     <el-card class="mb-4">
-      <el-form :inline="true" :model="queryForm">
+      <el-form
+        ref="queryFormRef"
+        :inline="true"
+        :model="queryForm"
+        :rules="queryRules"
+      >
         <el-form-item label="仓库">
           <el-select
             v-model="queryForm.repoId"

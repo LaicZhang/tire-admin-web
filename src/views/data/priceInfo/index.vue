@@ -297,6 +297,19 @@ const handleBatchEdit = () => {
           };
         }
       ).formInline;
+      for (const [label, v] of [
+        ["批发价", batch.wholesalePrice],
+        ["VIP价", batch.vipPrice],
+        ["会员价", batch.memberPrice],
+        ["最低销售价", batch.minSalePrice]
+      ] as const) {
+        if (v === undefined) continue;
+        const n = Number(v);
+        if (!Number.isFinite(n) || n < 0) {
+          message(`${label}不合法`, { type: "warning" });
+          return;
+        }
+      }
       const extras = readExtra();
       for (const row of selectedRows.value) {
         const existing = extras[row.tireId] || {};

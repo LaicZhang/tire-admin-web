@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import type { FormRules } from "element-plus";
 import type { FormProps, TreeCategoryItem } from "./types";
+import { elementRules } from "@/utils/validation/elementRules";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -14,6 +16,27 @@ const props = withDefaults(defineProps<FormProps>(), {
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
+const rules: FormRules = {
+  name: [
+    elementRules.requiredStringTrim("请输入类别名称"),
+    elementRules.maxLen(50, "类别名称最多 50 个字符")
+  ],
+  parentUid: [elementRules.uuidV4("上级类别不合法")],
+  sort: [
+    {
+      trigger: "blur",
+      validator: (_rule, value, callback) => {
+        if (value === null || value === undefined || value === "")
+          return callback();
+        const n = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(n) || n < 0 || n > 9999)
+          return callback(new Error("排序需在 0~9999"));
+        callback();
+      }
+    }
+  ]
+};
 
 const treeSelectData = computed(() => {
   const formatTree = (items: TreeCategoryItem[]): TreeCategoryItem[] => {
@@ -33,12 +56,13 @@ defineExpose({ getRef });
 </script>
 
 <template>
-  <el-form ref="ruleFormRef" :model="newFormInline" label-width="90px">
-    <el-form-item
-      label="类别名称"
-      prop="name"
-      :rules="[{ required: true, message: '请输入类别名称', trigger: 'blur' }]"
-    >
+  <el-form
+    ref="ruleFormRef"
+    :model="newFormInline"
+    :rules="rules"
+    label-width="90px"
+  >
+    <el-form-item label="类别名称" prop="name">
       <el-input
         v-model="newFormInline.name"
         clearable

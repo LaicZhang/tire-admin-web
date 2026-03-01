@@ -48,20 +48,65 @@ const resetForm = () => {
 
 // 表单验证
 const validate = (): boolean => {
+  formData.tireId = String(formData.tireId || "").trim();
+  formData.repoId = String(formData.repoId || "").trim();
+  formData.serialNo = String(formData.serialNo || "").trim();
+  formData.serialNos = String(formData.serialNos || "");
+  formData.batchNo = String(formData.batchNo || "").trim();
+
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
   if (!formData.tireId) {
     message("请选择商品", { type: "warning" });
+    return false;
+  }
+  if (!isUuid.test(formData.tireId)) {
+    message("商品不合法", { type: "warning" });
     return false;
   }
   if (!formData.repoId) {
     message("请选择仓库", { type: "warning" });
     return false;
   }
+  if (!isUuid.test(formData.repoId)) {
+    message("仓库不合法", { type: "warning" });
+    return false;
+  }
   if (props.formInline.type === "single" && !formData.serialNo) {
     message("请输入序列号", { type: "warning" });
     return false;
   }
-  if (props.formInline.type === "batch" && !formData.serialNos) {
+  if (props.formInline.type === "single" && formData.serialNo.length > 100) {
+    message("序列号最多 100 个字符", { type: "warning" });
+    return false;
+  }
+  if (props.formInline.type === "batch" && !formData.serialNos.trim()) {
     message("请输入序列号（每行一个）", { type: "warning" });
+    return false;
+  }
+  if (props.formInline.type === "batch") {
+    const serialNos = formData.serialNos
+      .split("\n")
+      .map(s => s.trim())
+      .filter(Boolean);
+    if (serialNos.length === 0) {
+      message("请输入有效的序列号", { type: "warning" });
+      return false;
+    }
+    const tooLong = serialNos.find(s => s.length > 100);
+    if (tooLong) {
+      message("序列号最多 100 个字符", { type: "warning" });
+      return false;
+    }
+    const uniq = new Set(serialNos);
+    if (uniq.size !== serialNos.length) {
+      message("序列号列表存在重复项", { type: "warning" });
+      return false;
+    }
+  }
+  if (formData.batchNo && formData.batchNo.length > 50) {
+    message("批次号最多 50 个字符", { type: "warning" });
     return false;
   }
   return true;
@@ -136,6 +181,9 @@ defineExpose({
       <el-input
         v-model="formData.serialNo"
         placeholder="请输入序列号（如：SN20241226001）"
+        maxlength="100"
+        show-word-limit
+        clearable
       />
     </el-form-item>
     <el-form-item
@@ -148,6 +196,8 @@ defineExpose({
         type="textarea"
         :rows="6"
         placeholder="每行输入一个序列号"
+        maxlength="5000"
+        show-word-limit
       />
     </el-form-item>
     <el-form-item label="商品" required>
@@ -187,13 +237,20 @@ defineExpose({
       </div>
     </el-form-item>
     <el-form-item v-if="formInline.type === 'single'" label="批次号">
-      <el-input v-model="formData.batchNo" placeholder="可选" />
+      <el-input
+        v-model="formData.batchNo"
+        placeholder="可选"
+        maxlength="50"
+        show-word-limit
+        clearable
+      />
     </el-form-item>
     <el-form-item v-if="formInline.type === 'single'" label="生产日期">
       <el-date-picker
         v-model="formData.productionDate"
         type="date"
         placeholder="选择日期"
+        value-format="YYYY-MM-DD"
         class="w-full!"
       />
     </el-form-item>
@@ -202,6 +259,7 @@ defineExpose({
         v-model="formData.expiryDate"
         type="date"
         placeholder="选择日期"
+        value-format="YYYY-MM-DD"
         class="w-full!"
       />
     </el-form-item>

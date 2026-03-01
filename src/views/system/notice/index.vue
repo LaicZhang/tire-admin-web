@@ -211,8 +211,23 @@ function openDialog(title = "新增", row?: NoticeItem) {
           };
         }
       ).formInline;
+      data.title = String(data.title || "").trim();
+      data.content = String(data.content || "").trim();
+
       if (!data.title) {
         message("请输入标题", { type: "warning" });
+        return;
+      }
+      if (data.title.length > 100) {
+        message("标题最多 100 个字符", { type: "warning" });
+        return;
+      }
+      if (![1, 2].includes(Number(data.type))) {
+        message("公告类型不合法", { type: "warning" });
+        return;
+      }
+      if (data.content.length > 2000) {
+        message("内容最多 2000 个字符", { type: "warning" });
         return;
       }
       const promise =

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
 import { handleApiError } from "@/utils/error";
 import { message } from "@/utils";
 import { http } from "@/utils/http";
 import { createLogger } from "@/utils/logger";
 import type { CommonResult } from "@/api/type";
 import { useSysDictOptions } from "@/composables/useSysDict";
+import { elementRules } from "@/utils/validation/elementRules";
 
 const logger = createLogger("IncomeForm");
 
@@ -15,6 +17,7 @@ const props = defineProps<{
 }>();
 
 const loading = ref(false);
+const formRef = ref<FormInstance>();
 const form = reactive({
   type: "",
   category: "",
@@ -22,6 +25,27 @@ const form = reactive({
   paymentId: "",
   remark: ""
 });
+
+const rules: FormRules = {
+  type: [
+    elementRules.requiredSelect("请选择收入类型", "change"),
+    elementRules.maxLen(50, "收入类型最多 50 个字符")
+  ],
+  paymentId: [
+    elementRules.requiredSelect("请选择收款账户", "change"),
+    elementRules.uuidV4("收款账户不合法", "change")
+  ],
+  amount: [
+    elementRules.requiredSelect("请输入金额", "blur"),
+    elementRules.moneyYuan({
+      min: 0,
+      minExclusive: true,
+      message: "金额需大于 0"
+    })
+  ],
+  category: [elementRules.maxLen(50, "分类最多 50 个字符")],
+  remark: [elementRules.maxLen(200, "备注最多 200 个字符")]
+};
 
 // 收入类型选项
 const incomeTypes = [
@@ -51,18 +75,8 @@ const fetchPaymentList = async () => {
 
 // 提交表单
 const handleSubmit = async () => {
-  if (!form.type) {
-    message("请选择收入类型", { type: "warning" });
-    return;
-  }
-  if (!form.amount || form.amount <= 0) {
-    message("请输入有效金额", { type: "warning" });
-    return;
-  }
-  if (!form.paymentId) {
-    message("请选择收款账户", { type: "warning" });
-    return;
-  }
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
 
   loading.value = true;
   try {
@@ -72,7 +86,7 @@ const handleSubmit = async () => {
         category: form.category || form.type,
         amount: Math.round(form.amount * 100),
         direction: "IN",
-        remark: form.remark,
+        remark: form.remark.trim(),
         payment: { connect: { uid: form.paymentId } }
       }
     });
@@ -92,8 +106,8 @@ onMounted(() => {
 
 <template>
   <div>
-    <el-form :model="form" label-width="100px">
-      <el-form-item label="收入类型" required>
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+      <el-form-item label="收入类型" prop="type">
         <el-select
           v-model="form.type"
           placeholder="请选择收入类型"
@@ -107,7 +121,7 @@ onMounted(() => {
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="收款账户" required>
+      <el-form-item label="收款账户" prop="paymentId">
         <el-select
           v-model="form.paymentId"
           placeholder="请选择收款账户"
@@ -121,16 +135,16 @@ onMounted(() => {
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="金额" required>
+      <el-form-item label="金额" prop="amount">
         <el-input-number
           v-model="form.amount"
-          :min="0"
+          :min="0.01"
           :precision="2"
           :step="100"
           style="width: 100%"
         />
       </el-form-item>
-      <el-form-item label="分类">
+      <el-form-item label="分类" prop="category">
         <el-select
           v-model="form.category"
           placeholder="请选择或输入分类"
@@ -148,12 +162,14 @@ onMounted(() => {
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="备注">
+      <el-form-item label="备注" prop="remark">
         <el-input
           v-model="form.remark"
           type="textarea"
           :rows="3"
           placeholder="备注信息"
+          maxlength="200"
+          show-word-limit
         />
       </el-form-item>
     </el-form>

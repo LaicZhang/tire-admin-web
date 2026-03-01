@@ -46,7 +46,20 @@ defineExpose({ getRef });
     <el-form-item
       label="实际库存"
       prop="actualCount"
-      :rules="[{ required: true, message: '请输入实际库存', trigger: 'blur' }]"
+      :rules="[
+        { required: true, message: '请输入实际库存', trigger: 'blur' },
+        {
+          trigger: 'blur',
+          validator: (_rule, value, callback) => {
+            if (value === null || value === undefined || value === '')
+              return callback();
+            const n = typeof value === 'number' ? value : Number(value);
+            if (!Number.isFinite(n) || n < 0 || !Number.isInteger(n))
+              return callback(new Error('实际库存需为不小于 0 的整数'));
+            callback();
+          }
+        }
+      ]"
     >
       <el-input-number v-model="newFormInline.actualCount" :min="0" />
     </el-form-item>

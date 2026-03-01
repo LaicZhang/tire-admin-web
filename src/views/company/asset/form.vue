@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import type { FormRules } from "element-plus";
+import { elementRules } from "@/utils/validation/elementRules";
 
 const props = defineProps({
   formInline: {
@@ -23,6 +25,34 @@ const props = defineProps({
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
+const rules: FormRules = {
+  name: [
+    elementRules.requiredStringTrim("请输入资产名称"),
+    elementRules.maxLen(50, "资产名称最多 50 个字符")
+  ],
+  type: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        if (value === null || value === undefined || value === "")
+          return callback(new Error("请选择资产类型"));
+        if (![0, 1, 2].includes(Number(value)))
+          return callback(new Error("资产类型不合法"));
+        callback();
+      }
+    }
+  ],
+  count: [elementRules.positiveInt("数量需为正整数")],
+  unit: [
+    elementRules.requiredStringTrim("请输入单位"),
+    elementRules.maxLen(10, "单位最多 10 个字符")
+  ],
+  initValue: [elementRules.nonNegativeNumber("原值不合法")],
+  currentValue: [elementRules.nonNegativeNumber("当前价值不合法")],
+  monthlyDepreciation: [elementRules.nonNegativeNumber("月折旧不合法")],
+  desc: [elementRules.maxLen(200, "备注最多 200 个字符")]
+};
+
 function getRef() {
   return ruleFormRef.value;
 }
@@ -31,7 +61,12 @@ defineExpose({ getRef });
 </script>
 
 <template>
-  <el-form ref="ruleFormRef" :model="newFormInline" label-width="82px">
+  <el-form
+    ref="ruleFormRef"
+    :model="newFormInline"
+    :rules="rules"
+    label-width="82px"
+  >
     <el-form-item
       label="资产名称"
       prop="name"
@@ -41,10 +76,12 @@ defineExpose({ getRef });
         v-model="newFormInline.name"
         placeholder="请输入资产名称"
         clearable
+        maxlength="50"
+        show-word-limit
       />
     </el-form-item>
 
-    <el-form-item label="资产类型" prop="type">
+    <el-form-item label="资产类型" prop="type" required>
       <el-select
         v-model="newFormInline.type"
         placeholder="请选择资产类型"
@@ -65,6 +102,7 @@ defineExpose({ getRef });
           v-model="newFormInline.unit"
           placeholder="单位"
           class="!w-[100px]"
+          maxlength="10"
         />
       </el-form-item>
     </div>
@@ -119,6 +157,8 @@ defineExpose({ getRef });
         placeholder="请输入备注"
         type="textarea"
         clearable
+        maxlength="200"
+        show-word-limit
       />
     </el-form-item>
   </el-form>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import type { FormInstance, FormRules } from "element-plus";
 import {
   upsertDocumentNumberRuleApi,
   DocumentTypeOptions,
@@ -7,6 +8,7 @@ import {
   type UpsertDocumentNumberRuleDto
 } from "@/api/system/document-number";
 import { message } from "@/utils/message";
+import { elementRules } from "@/utils/validation/elementRules";
 
 const props = defineProps<{
   initialData: UpsertDocumentNumberRuleDto;
@@ -16,7 +18,58 @@ const props = defineProps<{
 }>();
 
 const loading = ref(false);
+const formRef = ref<FormInstance>();
 const editForm = ref<UpsertDocumentNumberRuleDto>({ ...props.initialData });
+
+const rules: FormRules = {
+  documentType: [elementRules.requiredSelect("请选择单据类型", "change")],
+  prefix: [
+    elementRules.requiredStringTrim("请输入前缀"),
+    elementRules.maxLen(10, "前缀最多 10 个字符")
+  ],
+  dateFormat: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        const allowed = new Set([
+          "YYYYMMDD",
+          "YYMMDD",
+          "YYYYMM",
+          "YYMM",
+          "MMDD",
+          ""
+        ]);
+        if (!allowed.has(String(value ?? "")))
+          return callback(new Error("日期格式不合法"));
+        callback();
+      }
+    }
+  ],
+  sequenceDigits: [
+    {
+      trigger: "blur",
+      validator: (_rule, value, callback) => {
+        if (value === null || value === undefined || value === "")
+          return callback();
+        const n = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(n) || !Number.isInteger(n) || n < 2 || n > 10)
+          return callback(new Error("序号位数需为 2~10 的整数"));
+        callback();
+      }
+    }
+  ],
+  separator: [
+    {
+      trigger: "change",
+      validator: (_rule, value, callback) => {
+        const allowed = new Set(["-", "", "_", "/"]);
+        if (!allowed.has(String(value ?? "")))
+          return callback(new Error("分隔符不合法"));
+        callback();
+      }
+    }
+  ]
+};
 
 // 日期格式选项
 const dateFormatOptions = [
@@ -74,14 +127,10 @@ const examplePreview = computed(() => {
 
 // 保存规则
 const handleSave = async () => {
-  if (!editForm.value.documentType) {
-    message("请选择单据类型", { type: "warning" });
-    return;
-  }
-  if (!editForm.value.prefix) {
-    message("请输入前缀", { type: "warning" });
-    return;
-  }
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
+
+  editForm.value.prefix = String(editForm.value.prefix || "").trim();
 
   try {
     loading.value = true;
@@ -106,8 +155,8 @@ function setResetCycle(type: "daily" | "monthly" | "yearly") {
 
 <template>
   <div>
-    <el-form :model="editForm" label-width="100px">
-      <el-form-item label="单据类型" required>
+    <el-form ref="formRef" :model="editForm" :rules="rules" label-width="100px">
+      <el-form-item label="单据类型" prop="documentType">
         <el-select
           v-model="editForm.documentType"
           :disabled="
@@ -132,7 +181,7 @@ function setResetCycle(type: "daily" | "monthly" | "yearly") {
         </el-select>
       </el-form-item>
 
-      <el-form-item label="前缀" required>
+      <el-form-item label="前缀" prop="prefix">
         <el-input
           v-model="editForm.prefix"
           placeholder="如：SO、PO、RO"
@@ -141,7 +190,7 @@ function setResetCycle(type: "daily" | "monthly" | "yearly") {
         />
       </el-form-item>
 
-      <el-form-item label="日期格式">
+      <el-form-item label="日期格式" prop="dateFormat">
         <el-select v-model="editForm.dateFormat" class="w-full">
           <el-option
             v-for="item in dateFormatOptions"
@@ -152,11 +201,11 @@ function setResetCycle(type: "daily" | "monthly" | "yearly") {
         </el-select>
       </el-form-item>
 
-      <el-form-item label="序号位数">
+      <el-form-item label="序号位数" prop="sequenceDigits">
         <el-input-number v-model="editForm.sequenceDigits" :min="2" :max="10" />
       </el-form-item>
 
-      <el-form-item label="分隔符">
+      <el-form-item label="分隔符" prop="separator">
         <el-select v-model="editForm.separator" class="w-full">
           <el-option
             v-for="item in separatorOptions"

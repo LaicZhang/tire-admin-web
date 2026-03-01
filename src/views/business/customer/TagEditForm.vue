@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { message } from "@/utils";
+import type { FormInstance, FormRules } from "element-plus";
+import { elementRules } from "@/utils/validation/elementRules";
 
 const props = defineProps<{
   formData: {
@@ -16,6 +17,15 @@ const emit = defineEmits<{
 
 const loading = ref(false);
 const localForm = ref({ ...props.formData });
+const formRef = ref<FormInstance>();
+
+const rules: FormRules = {
+  name: [
+    elementRules.requiredStringTrim("请输入标签名称"),
+    elementRules.maxLen(50, "标签名称最多 50 个字符")
+  ],
+  color: [elementRules.requiredSelect("请选择标签颜色", "change")]
+};
 
 const colors = [
   "#409EFF",
@@ -29,14 +39,15 @@ const colors = [
 ];
 
 async function handleSubmit() {
-  if (!localForm.value.name.trim()) {
-    message("请输入标签名称", { type: "warning" });
-    return;
-  }
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
 
   loading.value = true;
   try {
-    emit("submit", localForm.value);
+    emit("submit", {
+      name: localForm.value.name.trim(),
+      color: localForm.value.color
+    });
   } finally {
     loading.value = false;
   }
@@ -45,11 +56,17 @@ async function handleSubmit() {
 
 <template>
   <div>
-    <el-form :model="localForm" label-width="80px">
-      <el-form-item label="标签名称" required>
-        <el-input v-model="localForm.name" placeholder="请输入标签名称" />
+    <el-form ref="formRef" :model="localForm" :rules="rules" label-width="80px">
+      <el-form-item label="标签名称" prop="name">
+        <el-input
+          v-model="localForm.name"
+          placeholder="请输入标签名称"
+          maxlength="50"
+          show-word-limit
+          clearable
+        />
       </el-form-item>
-      <el-form-item label="标签颜色">
+      <el-form-item label="标签颜色" prop="color">
         <div class="flex flex-wrap gap-2">
           <div
             v-for="color in colors"
