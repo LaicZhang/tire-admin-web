@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { h } from "vue";
+import { h, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -17,6 +17,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import UnitForm from "./UnitForm.vue";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "Unit"
@@ -75,6 +76,7 @@ const handleDelete = async (row: Unit) => {
 };
 
 function openDialog() {
+  const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
   addDialog({
     title: "新增计量单位",
     props: {
@@ -87,16 +89,26 @@ function openDialog() {
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
       h(UnitForm, {
+        ref: dialogFormRef,
         name: (options.props as { name: string }).name,
         "onUpdate:name": (val: string) => {
           (options.props as { name: string }).name = val;
         }
       }),
-    beforeSure: (done, { options }) => {
+    beforeSure: async (done, { options }) => {
+      const elForm = dialogFormRef.value?.getRef();
+      if (elForm) {
+        const valid = await elForm.validate().catch(() => false);
+        if (!valid) return;
+      }
       const props = options.props as { name: string };
-      const name = props.name;
+      const name = String(props.name || "").trim();
       if (!name) {
         message("请输入名称", { type: "warning" });
+        return;
+      }
+      if (name.length > 20) {
+        message("名称最多 20 个字符", { type: "warning" });
         return;
       }
       createUnitApi({ name }).then(() => {
