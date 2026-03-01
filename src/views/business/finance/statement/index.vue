@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import StatusTag from "@/components/StatusTag/index.vue";
 import type { StatusConfig } from "@/components/StatusTag/types";
@@ -9,6 +9,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { getStatementList, type Statement } from "@/api/business/statement";
 import { message } from "@/utils/message";
+import { useOptions } from "@/composables/useOptions";
 
 defineOptions({
   name: "StatementList"
@@ -24,6 +25,26 @@ const form = ref({
   type: "",
   targetName: "",
   status: ""
+});
+const { customers, providers } = useOptions();
+
+const targetNameOptions = computed(() => {
+  const type = form.value.type;
+  const pool =
+    type === "CUSTOMER"
+      ? customers.value
+      : type === "PROVIDER"
+        ? providers.value
+        : [...customers.value, ...providers.value];
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of pool) {
+    const name = String(item.name || "").trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
 });
 
 const dataList = ref<Statement[]>([]);
@@ -92,12 +113,22 @@ onSearch();
         </el-select>
       </el-form-item>
       <el-form-item label="往来单位" prop="targetName">
-        <el-input
+        <el-select
           v-model="form.targetName"
-          placeholder="请输入单位名称"
+          placeholder="请选择或输入单位名称"
+          filterable
           clearable
+          allow-create
+          default-first-option
           class="w-[160px]"
-        />
+        >
+          <el-option
+            v-for="name in targetNameOptions"
+            :key="name"
+            :label="name"
+            :value="name"
+          />
+        </el-select>
       </el-form-item>
     </ReSearchForm>
 

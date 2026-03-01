@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -23,6 +23,7 @@ import {
 } from "./types";
 import { columns } from "./columns";
 import PaymentForm from "./form.vue";
+import { useOptions } from "@/composables/useOptions";
 
 defineOptions({
   name: "FundPayment"
@@ -33,6 +34,19 @@ const dataList = ref<PaymentOrder[]>([]);
 const selectedRows = ref<PaymentOrder[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
 const { confirm } = useConfirmDialog();
+const { providers } = useOptions();
+
+const providerNameOptions = computed(() => {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of providers.value) {
+    const name = String(item.name || "").trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
+});
 const pagination = reactive({
   total: 0,
   pageSize: DEFAULT_PAGE_SIZE,
@@ -195,12 +209,22 @@ onMounted(() => {
           />
         </el-form-item>
         <el-form-item label="供应商" prop="providerName">
-          <el-input
+          <el-select
             v-model="queryForm.providerName"
-            placeholder="请输入供应商名称"
+            placeholder="请选择或输入供应商名称"
+            filterable
             clearable
             class="w-[160px]"
-          />
+            allow-create
+            default-first-option
+          >
+            <el-option
+              v-for="name in providerNameOptions"
+              :key="name"
+              :label="name"
+              :value="name"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select

@@ -26,6 +26,7 @@ import ReportStatisticsCards from "./components/ReportStatisticsCards.vue";
 import FundFlowTab from "./components/FundFlowTab.vue";
 import AccountBalanceTab from "./components/AccountBalanceTab.vue";
 import ContactDebtTab from "./components/ContactDebtTab.vue";
+import { useOptions } from "@/composables/useOptions";
 
 defineOptions({
   name: "FundReport"
@@ -34,6 +35,26 @@ defineOptions({
 const loading = ref(true);
 const formRef = ref<{ resetFields: () => void }>();
 const paymentList = ref<Array<{ uid: string; name: string }>>([]);
+const { customers, providers } = useOptions();
+
+const debtTargetNameOptions = computed(() => {
+  const type = queryForm.targetType;
+  const pool =
+    type === "CUSTOMER"
+      ? customers.value
+      : type === "PROVIDER"
+        ? providers.value
+        : [...customers.value, ...providers.value];
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of pool) {
+    const name = String(item.name || "").trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
+});
 
 // 当前激活的标签页
 const activeTab = ref("flow");
@@ -340,12 +361,22 @@ onMounted(() => {
         label="单位名称"
         prop="targetName"
       >
-        <el-input
+        <el-select
           v-model="queryForm.targetName"
-          placeholder="请输入名称"
+          placeholder="请选择或输入名称"
+          filterable
           clearable
+          allow-create
+          default-first-option
           class="!w-[140px]"
-        />
+        >
+          <el-option
+            v-for="name in debtTargetNameOptions"
+            :key="name"
+            :label="name"
+            :value="name"
+          />
+        </el-select>
       </el-form-item>
     </ReSearchForm>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
-import { ref, reactive, watch } from "vue";
+import { ref, reactive, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -24,6 +24,7 @@ import {
 } from "./types";
 import { columns, getDocumentTypeInfo } from "./columns";
 import { useCrud } from "@/composables";
+import { useOptions } from "@/composables/useOptions";
 
 defineOptions({
   name: "FundDocuments"
@@ -33,6 +34,19 @@ const router = useRouter();
 const { confirm } = useConfirmDialog();
 const selectedRows = ref<FundDocument[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
+const { customers, providers } = useOptions();
+
+const targetNameOptions = computed(() => {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of [...customers.value, ...providers.value]) {
+    const name = String(item.name || "").trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
+});
 
 const queryForm = reactive<FundDocumentQueryParams>({
   documentType: undefined,
@@ -270,12 +284,22 @@ function handleSelectionChange(rows: FundDocument[]) {
         </el-select>
       </el-form-item>
       <el-form-item label="往来单位" prop="targetName">
-        <el-input
+        <el-select
           v-model="queryForm.targetName"
-          placeholder="请输入名称"
+          placeholder="请选择或输入名称"
+          filterable
           clearable
+          allow-create
+          default-first-option
           class="!w-[140px]"
-        />
+        >
+          <el-option
+            v-for="name in targetNameOptions"
+            :key="name"
+            :label="name"
+            :value="name"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select

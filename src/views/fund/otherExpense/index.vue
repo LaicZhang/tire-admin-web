@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -24,6 +24,7 @@ import {
 } from "./types";
 import { columns, getExpenseTypeText } from "./columns";
 import OtherExpenseForm from "./form.vue";
+import { useOptions } from "@/composables/useOptions";
 
 defineOptions({
   name: "FundOtherExpense"
@@ -43,6 +44,19 @@ const loading = ref(true);
 const dataList = ref<OtherExpense[]>([]);
 const selectedRows = ref<OtherExpense[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
+const { providers } = useOptions();
+
+const providerNameOptions = computed(() => {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of providers.value) {
+    const name = String(item.name || "").trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
+});
 const pagination = reactive({
   total: 0,
   pageSize: DEFAULT_PAGE_SIZE,
@@ -222,12 +236,22 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <el-form-item label="供应商" prop="providerName">
-          <el-input
+          <el-select
             v-model="queryForm.providerName"
-            placeholder="请输入供应商名称"
+            placeholder="请选择或输入供应商名称"
+            filterable
             clearable
+            allow-create
+            default-first-option
             class="!w-[140px]"
-          />
+          >
+            <el-option
+              v-for="name in providerNameOptions"
+              :key="name"
+              :label="name"
+              :value="name"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="日期范围" prop="dateRange">
           <el-date-picker

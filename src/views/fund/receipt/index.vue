@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref, computed } from "vue";
 import { ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -20,6 +20,7 @@ import { handleApiError, message } from "@/utils";
 import { type ReceiptQueryParams, RECEIPT_STATUS_OPTIONS } from "./types";
 import { columns, calcReceiptStatus } from "./columns";
 import ReceiptForm from "./form.vue";
+import { useOptions } from "@/composables/useOptions";
 
 defineOptions({
   name: "FundReceipt"
@@ -38,6 +39,19 @@ const dataList = ref<AdvancePaymentListItem[]>([]);
 const selectedRows = ref<AdvancePaymentListItem[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
 const { confirm } = useConfirmDialog();
+const { customers } = useOptions();
+
+const customerNameOptions = computed(() => {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of customers.value) {
+    const name = String(item.name || "").trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
+});
 
 const pagination = reactive({
   total: 0,
@@ -222,12 +236,22 @@ onMounted(() => {
       @reset="resetForm(formRef)"
     >
       <el-form-item label="客户" prop="customerName">
-        <el-input
+        <el-select
           v-model="queryForm.customerName"
-          placeholder="请输入客户名称"
+          placeholder="请选择或输入客户名称"
+          filterable
           clearable
+          allow-create
+          default-first-option
           class="w-[180px]!"
-        />
+        >
+          <el-option
+            v-for="name in customerNameOptions"
+            :key="name"
+            :label="name"
+            :value="name"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -14,6 +14,7 @@ import { message } from "@/utils/message";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import { useOptions } from "@/composables/useOptions";
 
 defineOptions({
   name: "AdvancePaymentList"
@@ -25,6 +26,26 @@ const form = ref({
 });
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const { customers, providers } = useOptions();
+
+const targetNameOptions = computed(() => {
+  const type = form.value.type;
+  const pool =
+    type === "RECEIPT"
+      ? customers.value
+      : type === "PAYMENT"
+        ? providers.value
+        : [...customers.value, ...providers.value];
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of pool) {
+    const name = String(item.name || "").trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
+});
 
 const {
   loading,
@@ -109,12 +130,22 @@ function handleDelete(_row: AdvancePaymentDto) {
         </el-select>
       </el-form-item>
       <el-form-item label="往来单位" prop="targetName">
-        <el-input
+        <el-select
           v-model="form.targetName"
-          placeholder="请输入单位名称"
+          placeholder="请选择或输入单位名称"
+          filterable
           clearable
+          allow-create
+          default-first-option
           class="w-[160px]"
-        />
+        >
+          <el-option
+            v-for="name in targetNameOptions"
+            :key="name"
+            :label="name"
+            :value="name"
+          />
+        </el-select>
       </el-form-item>
     </ReSearchForm>
 
