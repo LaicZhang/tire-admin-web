@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import type { FormRules } from "element-plus";
 import type { UserFormProps } from "./types";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 const props = withDefaults(defineProps<UserFormProps>(), {
   formInline: () => ({
@@ -29,13 +31,10 @@ const warehouseOptions = ref([
   { label: "分仓库B", value: "w3" }
 ]);
 
-const rules = {
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-  phone: [
-    { required: true, message: "请输入手机号", trigger: "blur" },
-    { pattern: /^1[3-9]\d{9}$/, message: "请输入正确的手机号", trigger: "blur" }
-  ],
-  roleId: [{ required: true, message: "请选择角色", trigger: "change" }]
+const rules: FormRules = {
+  username: fieldRules.username({ label: "用户名" }),
+  phone: fieldRules.phone({ required: true, label: "手机号" }),
+  roleId: fieldRules.select({ label: "角色" })
 };
 
 function getRef() {

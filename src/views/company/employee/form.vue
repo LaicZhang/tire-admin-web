@@ -5,6 +5,7 @@ import type { FormRules } from "element-plus";
 import { ALL_LIST, localForage, message, SYS } from "@/utils";
 import { FormProps } from "./table";
 import type { PositionItem } from "./types";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -24,18 +25,13 @@ const props = withDefaults(defineProps<FormProps>(), {
 
 const allPositionList = ref<PositionItem[]>([]);
 /** 自定义表单规则校验 */
-const formRules = reactive({
-  name: [{ required: true, message: "真实姓名为必填项", trigger: "blur" }],
-  phone: [
-    // { required: true, message: "手机号为必填项", trigger: "blur" },
-    {
-      pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
-      message: "请输入手机号",
-      trigger: "blur"
-    }
-  ],
-  username: [{ required: true, message: "用户名为必填项", trigger: "blur" }],
-  nickname: [{ required: true, message: "昵称为必填项", trigger: "blur" }]
+const formRules: FormRules = reactive({
+  username: fieldRules.username({ label: "用户名" }),
+  name: fieldRules.name({ label: "真实姓名" }),
+  nickname: fieldRules.name({ label: "昵称" }),
+  phone: fieldRules.phone({ required: false, label: "手机号" }),
+  email: fieldRules.email({ required: false, label: "邮箱" }),
+  status: fieldRules.select({ label: "状态" })
 });
 
 const ruleFormRef = ref();

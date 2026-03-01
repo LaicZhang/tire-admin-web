@@ -3,6 +3,7 @@ import { ref, reactive } from "vue";
 import type { FormRules } from "element-plus";
 import type { FormItemProps, FormProps } from "./table";
 import { useSysDictOptions } from "@/composables/useSysDict";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -19,14 +20,16 @@ const props = withDefaults(defineProps<FormProps>(), {
 
 /** 自定义表单规则校验 */
 const formRules: FormRules = reactive({
-  name: [{ required: true, message: "公司名称为必填项", trigger: "blur" }],
-  principalPhone: [
-    {
-      pattern: /^1[3-9]\d{9}$/,
-      message: "请输入正确的手机号码",
-      trigger: "blur"
-    }
-  ]
+  name: fieldRules.name({ label: "公司名称" }),
+  principalName: fieldRules.name({ required: false, label: "负责人" }),
+  principalPhone: fieldRules.phone({ required: false, label: "联系电话" }),
+  province: fieldRules.name({
+    required: false,
+    label: "省份",
+    trigger: "change"
+  }),
+  city: fieldRules.name({ required: false, label: "城市", trigger: "change" }),
+  desc: fieldRules.remark({ required: false, label: "备注" })
 });
 
 const ruleFormRef = ref();
