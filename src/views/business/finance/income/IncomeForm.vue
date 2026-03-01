@@ -5,6 +5,7 @@ import { message } from "@/utils";
 import { http } from "@/utils/http";
 import { createLogger } from "@/utils/logger";
 import type { CommonResult } from "@/api/type";
+import { useSysDictOptions } from "@/composables/useSysDict";
 
 const logger = createLogger("IncomeForm");
 
@@ -33,6 +34,7 @@ const incomeTypes = [
 
 // 结算账户
 const paymentList = ref<{ uid: string; name: string }[]>([]);
+const { options: fundCategoryOptions } = useSysDictOptions("fundCategory");
 
 // 获取结算账户列表
 const fetchPaymentList = async () => {
@@ -129,7 +131,22 @@ onMounted(() => {
         />
       </el-form-item>
       <el-form-item label="分类">
-        <el-input v-model="form.category" placeholder="可选分类" />
+        <el-select
+          v-model="form.category"
+          placeholder="请选择或输入分类"
+          filterable
+          clearable
+          allow-create
+          default-first-option
+          class="w-full"
+        >
+          <el-option
+            v-for="item in fundCategoryOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="备注">
         <el-input

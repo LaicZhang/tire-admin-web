@@ -2,6 +2,8 @@
 import { ref } from "vue";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
+import { useOptionsByType } from "@/composables/useOptions";
+import { useSysDictOptions } from "@/composables/useSysDict";
 
 interface FormItemProps {
   id: number;
@@ -44,6 +46,9 @@ const formRules = reactive({
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
+const { options: employeeOptions } = useOptionsByType("employees");
+const { options: provinceOptions } = useSysDictOptions("province");
+
 function getRef() {
   return ruleFormRef.value;
 }
@@ -75,19 +80,39 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="省份" prop="province">
-      <el-input
+      <el-select
         v-model="newFormInline.province"
+        filterable
         clearable
-        placeholder="请输入省份"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入省份"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in provinceOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="操作人" prop="operatorId">
-      <el-input
+      <el-select
         v-model="newFormInline.operatorId"
+        placeholder="请选择操作人"
+        filterable
         clearable
-        placeholder="请输入操作人"
-      />
+        class="w-full"
+      >
+        <el-option
+          v-for="item in employeeOptions"
+          :key="item.uid"
+          :label="item.name"
+          :value="item.uid"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="状态" prop="status">

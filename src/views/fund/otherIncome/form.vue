@@ -5,6 +5,7 @@ import { getCustomerListApi } from "@/api/business/customer";
 import { getPaymentListApi } from "@/api/payment";
 import { handleApiError, message } from "@/utils";
 import { logger } from "@/utils/logger";
+import { useSysDictOptions } from "@/composables/useSysDict";
 import {
   INCOME_TYPE_OPTIONS,
   type OtherIncome,
@@ -38,6 +39,7 @@ const customerList = ref<Array<{ uid: string; name: string }>>([]);
 const paymentList = ref<Array<{ uid: string; name: string; balance?: number }>>(
   []
 );
+const { options: fundCategoryOptions } = useSysDictOptions("fundCategory");
 
 const formData = reactive<CreateOtherIncomeDto>({
   customerId: "",
@@ -280,11 +282,22 @@ function handleClose() {
       </el-row>
 
       <el-form-item label="分类" prop="category">
-        <el-input
+        <el-select
           v-model="formData.category"
-          placeholder="可选分类标签"
+          placeholder="请选择或输入分类"
+          filterable
           clearable
-        />
+          allow-create
+          default-first-option
+          class="w-full"
+        >
+          <el-option
+            v-for="item in fundCategoryOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </el-form-item>
 
       <el-form-item label="备注" prop="remark">

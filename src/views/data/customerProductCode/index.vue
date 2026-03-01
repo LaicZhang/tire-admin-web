@@ -20,6 +20,7 @@ import {
 } from "@/api/data/customer-product-code";
 import { getCustomerBatchApi } from "@/api/business/customer";
 import { getTireBatchApi } from "@/api/business/tire";
+import { useOptions } from "@/composables/useOptions";
 
 defineOptions({
   name: "CustomerProductCode"
@@ -56,6 +57,8 @@ const columns = [
     minWidth: 140
   }
 ];
+
+const { customers, tires } = useOptions();
 
 const getList = async () => {
   loading.value = true;
@@ -199,20 +202,36 @@ onMounted(() => {
       @reset="onReset"
     >
       <el-form-item label="客户" prop="customerId">
-        <el-input
+        <el-select
           v-model="form.customerId"
-          placeholder="请输入客户名称"
+          placeholder="请选择客户"
+          filterable
           clearable
           class="w-[180px]"
-        />
+        >
+          <el-option
+            v-for="item in customers"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="商品" prop="tireId">
-        <el-input
+        <el-select
           v-model="form.tireId"
-          placeholder="请输入商品名称"
+          placeholder="请选择商品"
+          filterable
           clearable
           class="w-[180px]"
-        />
+        >
+          <el-option
+            v-for="item in tires"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="编码" prop="keyword">
         <el-input

@@ -26,6 +26,7 @@ import {
 import type { FormInstance, TabPaneName } from "element-plus";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import { useOptionsByType } from "@/composables/useOptions";
 
 defineOptions({
   name: "BatchSerial"
@@ -34,6 +35,8 @@ defineOptions({
 const activeTab = ref("batch");
 const batchSearchFormRef = ref<InstanceType<typeof ReSearchForm>>();
 const serialSearchFormRef = ref<InstanceType<typeof ReSearchForm>>();
+
+const { options: tireOptions } = useOptionsByType("tires");
 
 // 批次相关
 const batchForm = ref({
@@ -403,12 +406,20 @@ const handleTabChange = (tab: TabPaneName) => {
             @reset="onBatchReset"
           >
             <el-form-item label="商品：" prop="tireId">
-              <el-input
+              <el-select
                 v-model="batchForm.tireId"
-                placeholder="请输入商品"
+                placeholder="请选择商品"
+                filterable
                 clearable
                 class="w-[160px]!"
-              />
+              >
+                <el-option
+                  v-for="item in tireOptions"
+                  :key="item.uid"
+                  :label="item.name"
+                  :value="item.uid"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="批次号：" prop="batchNo">
               <el-input
@@ -483,12 +494,20 @@ const handleTabChange = (tab: TabPaneName) => {
             @reset="onSerialReset"
           >
             <el-form-item label="商品：" prop="tireId">
-              <el-input
+              <el-select
                 v-model="serialForm.tireId"
-                placeholder="请输入商品"
+                placeholder="请选择商品"
+                filterable
                 clearable
                 class="w-[160px]!"
-              />
+              >
+                <el-option
+                  v-for="item in tireOptions"
+                  :key="item.uid"
+                  :label="item.name"
+                  :value="item.uid"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="状态：" prop="status">
               <el-select

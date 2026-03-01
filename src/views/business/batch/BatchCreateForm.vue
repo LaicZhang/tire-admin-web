@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { createBatchApi } from "@/api/batch";
 import { message } from "@/utils/message";
 import type { FormInstance } from "element-plus";
+import { useOptionsByType } from "@/composables/useOptions";
 
 interface RepoItem {
   uid: string;
@@ -14,6 +15,8 @@ const props = defineProps<{
   onSuccess: () => void;
   onClose: () => void;
 }>();
+
+const { options: tireOptions } = useOptionsByType("tires");
 
 const formRef = ref<FormInstance | null>(null);
 const loading = ref(false);
@@ -28,7 +31,7 @@ const batchForm = ref({
 
 const rules = {
   repoId: [{ required: true, message: "请选择仓库", trigger: "change" }],
-  tireId: [{ required: true, message: "请输入轮胎ID", trigger: "blur" }],
+  tireId: [{ required: true, message: "请选择商品", trigger: "change" }],
   batchNo: [{ required: true, message: "请输入批次号", trigger: "blur" }],
   quantity: [{ required: true, message: "请输入数量", trigger: "blur" }]
 };
@@ -80,7 +83,20 @@ const handleSubmit = async () => {
         </el-select>
       </el-form-item>
       <el-form-item label="商品ID" prop="tireId">
-        <el-input v-model="batchForm.tireId" placeholder="请输入商品ID" />
+        <el-select
+          v-model="batchForm.tireId"
+          placeholder="请选择商品"
+          filterable
+          clearable
+          class="w-full"
+        >
+          <el-option
+            v-for="item in tireOptions"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="批次号" prop="batchNo">
         <el-input v-model="batchForm.batchNo" placeholder="请输入批次号" />

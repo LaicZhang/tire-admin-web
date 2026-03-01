@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import type { FormProps } from "./types";
+import { useSysDictOptions } from "@/composables/useSysDict";
+import { getAllUnitsApi, type Unit } from "@/api/business/unit";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -29,6 +31,21 @@ const formRules = reactive({
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
+const { options: groupOptions } = useSysDictOptions("tireGroup");
+const { options: brandOptions } = useSysDictOptions("tireBrand");
+const { options: patternOptions } = useSysDictOptions("tirePattern");
+const { options: formatOptions } = useSysDictOptions("tireFormat");
+
+const unitList = ref<Unit[]>([]);
+onMounted(async () => {
+  try {
+    const { data, code } = await getAllUnitsApi();
+    if (code === 200) unitList.value = data || [];
+  } catch {
+    unitList.value = [];
+  }
+});
+
 function getRef() {
   return ruleFormRef.value;
 }
@@ -53,44 +70,98 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="分组" prop="group">
-      <el-input
+      <el-select
         v-model="newFormInline.group"
+        filterable
         clearable
-        placeholder="请输入分组"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入分组"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in groupOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="品牌" prop="brand">
-      <el-input
+      <el-select
         v-model="newFormInline.brand"
+        filterable
         clearable
-        placeholder="请输入品牌"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入品牌"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in brandOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="花纹" prop="pattern">
-      <el-input
+      <el-select
         v-model="newFormInline.pattern"
+        filterable
         clearable
-        placeholder="请输入花纹"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入花纹"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in patternOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="规格" prop="format">
-      <el-input
+      <el-select
         v-model="newFormInline.format"
+        filterable
         clearable
-        placeholder="请输入规格"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入规格"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in formatOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="单位" prop="unit">
-      <el-input
+      <el-select
         v-model="newFormInline.unit"
+        filterable
         clearable
-        placeholder="请输入单位"
+        allow-create
+        default-first-option
+        placeholder="请选择或输入单位"
         class="w-32"
-      />
+      >
+        <el-option
+          v-for="unit in unitList"
+          :key="unit.uid"
+          :label="unit.name"
+          :value="unit.name"
+        />
+      </el-select>
     </el-form-item>
 
     <el-divider content-position="left">价格信息</el-divider>

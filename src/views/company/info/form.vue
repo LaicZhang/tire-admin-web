@@ -2,6 +2,7 @@
 import { ref, reactive } from "vue";
 import type { FormRules } from "element-plus";
 import type { FormItemProps, FormProps } from "./table";
+import { useSysDictOptions } from "@/composables/useSysDict";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -30,6 +31,9 @@ const formRules: FormRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
+const { options: provinceOptions } = useSysDictOptions("province");
+const { options: cityOptions } = useSysDictOptions("city");
 
 function getRef() {
   return ruleFormRef.value;
@@ -78,21 +82,43 @@ defineExpose({ getRef });
 
       <el-col :xs="24" :sm="12">
         <el-form-item label="省份" prop="province">
-          <el-input
+          <el-select
             v-model="newFormInline.province"
+            filterable
             clearable
-            placeholder="请输入省份"
-          />
+            allow-create
+            default-first-option
+            placeholder="请选择或输入省份"
+            class="w-full"
+          >
+            <el-option
+              v-for="item in provinceOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </el-form-item>
       </el-col>
 
       <el-col :xs="24" :sm="12">
         <el-form-item label="城市" prop="city">
-          <el-input
+          <el-select
             v-model="newFormInline.city"
+            filterable
             clearable
-            placeholder="请输入城市"
-          />
+            allow-create
+            default-first-option
+            placeholder="请选择或输入城市"
+            class="w-full"
+          >
+            <el-option
+              v-for="item in cityOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </el-form-item>
       </el-col>
 

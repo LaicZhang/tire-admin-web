@@ -16,6 +16,7 @@ import {
   formatMoneyFromFen
 } from "@/utils/formatMoney";
 import { useFundForm } from "../composables/useFundForm";
+import { useSysDictOptions } from "@/composables/useSysDict";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -38,6 +39,7 @@ const dialogTitle = computed(() =>
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
+const { options: fundCategoryOptions } = useSysDictOptions("fundCategory");
 
 // 使用 fund 模块通用 composable
 const { providerList, paymentList, loadProviders, loadPayments } =
@@ -279,11 +281,22 @@ function handleClose() {
       </el-row>
 
       <el-form-item label="分类" prop="category">
-        <el-input
+        <el-select
           v-model="formData.category"
-          placeholder="可选分类标签"
+          placeholder="请选择或输入分类"
+          filterable
           clearable
-        />
+          allow-create
+          default-first-option
+          class="w-full"
+        >
+          <el-option
+            v-for="item in fundCategoryOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </el-form-item>
 
       <el-form-item label="备注" prop="remark">

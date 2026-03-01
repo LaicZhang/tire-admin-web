@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from "vue";
 import { getCustomerTagListApi, getCustomerLevelListApi } from "@/api";
+import { useSysDictOptions } from "@/composables/useSysDict";
 
 interface FormItemProps {
   uid: string;
@@ -44,6 +45,7 @@ const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 const tagList = ref<TagItem[]>([]);
 const levelList = ref<LevelItem[]>([]);
+const { options: customerSourceOptions } = useSysDictOptions("customerSource");
 
 const formRules = reactive({
   name: [{ required: true, message: "客户名称为必填项", trigger: "blur" }]
@@ -154,11 +156,22 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="来源" prop="from">
-      <el-input
+      <el-select
         v-model="newFormInline.from"
+        filterable
         clearable
-        placeholder="请输入客户来源"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入客户来源"
+        style="width: 100%"
+      >
+        <el-option
+          v-for="item in customerSourceOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="备注">

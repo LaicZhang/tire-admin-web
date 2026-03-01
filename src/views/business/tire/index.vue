@@ -18,6 +18,7 @@ import StockIcon from "~icons/ri/stack-line";
 import type { Tire } from "@/api/business/tire";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import { useSysDictOptions } from "@/composables/useSysDict";
 
 defineOptions({
   name: "Tire"
@@ -29,6 +30,7 @@ const form = ref({
   name: undefined as string | undefined,
   desc: undefined as string | undefined
 });
+const { options: groupOptions } = useSysDictOptions("tireGroup");
 
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
@@ -109,12 +111,22 @@ onMounted(async () => {
       @reset="resetForm"
     >
       <el-form-item label="分组名称：" prop="group">
-        <el-input
+        <el-select
           v-model="form.group"
-          placeholder="请输入分组名称"
+          placeholder="请选择或输入分组"
+          filterable
           clearable
+          allow-create
+          default-first-option
           class="w-[180px]!"
-        />
+        >
+          <el-option
+            v-for="item in groupOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="名称：" prop="name">
         <el-input

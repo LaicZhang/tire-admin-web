@@ -18,6 +18,7 @@ import { getTireListApi, updateTireApi } from "@/api/business/tire";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import type { Tire } from "@/api/business/tire";
+import { useSysDictOptions } from "@/composables/useSysDict";
 
 defineOptions({
   name: "PriceInfo"
@@ -29,6 +30,7 @@ const form = ref({
   keyword: undefined,
   group: undefined
 });
+const { options: groupOptions } = useSysDictOptions("tireGroup");
 
 type TireLike = Tire & {
   barcode?: string;
@@ -383,12 +385,22 @@ const handleBatchClear = async () => {
         />
       </el-form-item>
       <el-form-item label="分组" prop="group">
-        <el-input
+        <el-select
           v-model="form.group"
-          placeholder="请输入分组"
+          placeholder="请选择或输入分组"
+          filterable
           clearable
+          allow-create
+          default-first-option
           class="w-[180px]"
-        />
+        >
+          <el-option
+            v-for="item in groupOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </el-form-item>
     </ReSearchForm>
 

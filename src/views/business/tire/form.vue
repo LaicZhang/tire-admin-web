@@ -30,6 +30,7 @@ import {
   type Unit,
   type UnitConversion
 } from "@/api/business/unit";
+import { useSysDictOptions } from "@/composables/useSysDict";
 
 interface FormItemProps {
   id?: number;
@@ -125,6 +126,13 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
+const { options: groupOptions } = useSysDictOptions("tireGroup");
+const { options: brandOptions } = useSysDictOptions("tireBrand");
+const { options: patternOptions } = useSysDictOptions("tirePattern");
+const { options: loadIndexOptions } = useSysDictOptions("tireLoadIndex");
+const { options: speedLevelOptions } = useSysDictOptions("tireSpeedLevel");
+const { options: formatOptions } = useSysDictOptions("tireFormat");
 
 // 多单位相关
 const unitList = ref<Unit[]>([]);
@@ -322,11 +330,22 @@ watch(
     </el-form-item>
 
     <el-form-item label="分组" prop="group">
-      <el-input
+      <el-select
         v-model="newFormInline.group"
+        filterable
         clearable
-        placeholder="请输入分组"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入分组"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in groupOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="实物图" prop="covers">
@@ -437,43 +456,98 @@ watch(
     <el-divider content-position="left">商品信息</el-divider>
 
     <el-form-item label="品牌" prop="brand">
-      <el-input
+      <el-select
         v-model="newFormInline.brand"
+        filterable
         clearable
-        placeholder="请输入品牌"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入品牌"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in brandOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="花纹" prop="pattern">
-      <el-input
+      <el-select
         v-model="newFormInline.pattern"
+        filterable
         clearable
-        placeholder="请输入花纹"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入花纹"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in patternOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="载重指数" prop="loadIndex">
-      <el-input
+      <el-select
         v-model="newFormInline.loadIndex"
+        filterable
         clearable
-        placeholder="请输入载重指数"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入载重指数"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in loadIndexOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="速度级别" prop="speedLevel">
-      <el-input
+      <el-select
         v-model="newFormInline.speedLevel"
+        filterable
         clearable
-        placeholder="请输入速度级别"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入速度级别"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in speedLevelOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="规格" prop="format">
-      <el-input
+      <el-select
         v-model="newFormInline.format"
+        filterable
         clearable
-        placeholder="请输入规格"
-      />
+        allow-create
+        default-first-option
+        placeholder="请选择或输入规格"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in formatOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item label="重量" prop="weight">
