@@ -2,6 +2,7 @@
 import { ref, reactive } from "vue";
 import type { FormRules } from "element-plus";
 import type { PriceInfoForm } from "./types";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 interface FormProps {
   formInline?: PriceInfoForm;
@@ -22,7 +23,33 @@ const props = withDefaults(defineProps<FormProps>(), {
 });
 
 const formRules = reactive<FormRules>({
-  tireId: [{ required: true, message: "商品不能为空", trigger: "change" }]
+  tireId: fieldRules.uidSelect({ label: "商品" }),
+  retailPrice: fieldRules.moneyYuan({
+    required: false,
+    label: "零售价",
+    min: 0
+  }),
+  wholesalePrice: fieldRules.moneyYuan({
+    required: false,
+    label: "批发价",
+    min: 0
+  }),
+  vipPrice: fieldRules.moneyYuan({ required: false, label: "VIP价", min: 0 }),
+  memberPrice: fieldRules.moneyYuan({
+    required: false,
+    label: "会员价",
+    min: 0
+  }),
+  minSalePrice: fieldRules.moneyYuan({
+    required: false,
+    label: "最低销售价",
+    min: 0
+  }),
+  maxPurchasePrice: fieldRules.moneyYuan({
+    required: false,
+    label: "最高采购价",
+    min: 0
+  })
 });
 
 const ruleFormRef = ref();

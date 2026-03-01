@@ -2,6 +2,7 @@
 import { ref, reactive } from "vue";
 import type { FormRules } from "element-plus";
 import type { CustomerBalanceForm } from "./types";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 interface FormProps {
   formInline?: CustomerBalanceForm;
@@ -20,7 +21,18 @@ const props = withDefaults(defineProps<FormProps>(), {
 });
 
 const formRules = reactive<FormRules>({
-  customerId: [{ required: true, message: "请选择客户", trigger: "change" }]
+  customerId: fieldRules.uidSelect({ label: "客户" }),
+  balanceDate: fieldRules.date({ required: true, label: "余额日期" }),
+  receivableBalance: fieldRules.moneyYuanSigned({
+    required: true,
+    label: "期初应收余额"
+  }),
+  advanceBalance: fieldRules.moneyYuan({
+    required: true,
+    label: "期初预收余额",
+    min: 0
+  }),
+  remark: fieldRules.remark({ required: false, label: "备注" })
 });
 
 const ruleFormRef = ref();

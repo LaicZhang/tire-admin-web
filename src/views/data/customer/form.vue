@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
+import type { FormRules } from "element-plus";
 import type { FormProps } from "./types";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -17,8 +19,18 @@ const props = withDefaults(defineProps<FormProps>(), {
   disabled: false
 });
 
-const formRules = reactive({
-  name: [{ required: true, message: "客户名称为必填项", trigger: "blur" }]
+const formRules: FormRules = reactive({
+  code: fieldRules.code({ required: false, label: "客户编码" }),
+  name: fieldRules.name({ label: "客户名称" }),
+  contact: fieldRules.name({ required: false, label: "联系人" }),
+  phone: fieldRules.code({ required: false, label: "电话", max: 20 }),
+  address: fieldRules.address({ required: false, label: "地址" }),
+  creditLimit: fieldRules.moneyYuan({
+    required: false,
+    label: "信用额度",
+    min: 0
+  }),
+  desc: fieldRules.remark({ required: false, label: "备注" })
 });
 
 const ruleFormRef = ref();

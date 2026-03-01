@@ -3,6 +3,8 @@ import { ref, reactive, onMounted } from "vue";
 import type { FormProps } from "./types";
 import { useSysDictOptions } from "@/composables/useSysDict";
 import { getAllUnitsApi, type Unit } from "@/api/business/unit";
+import type { FormRules } from "element-plus";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -23,9 +25,38 @@ const props = withDefaults(defineProps<FormProps>(), {
   disabled: false
 });
 
-const formRules = reactive({
-  name: [{ required: true, message: "商品名称为必填项", trigger: "blur" }],
-  salePrice: [{ required: true, message: "售价为必填项", trigger: "blur" }]
+const formRules: FormRules = reactive({
+  name: fieldRules.name({ label: "商品名称" }),
+  group: fieldRules.name({ required: false, label: "分组", trigger: "change" }),
+  brand: fieldRules.name({ required: false, label: "品牌", trigger: "change" }),
+  pattern: fieldRules.name({
+    required: false,
+    label: "花纹",
+    trigger: "change"
+  }),
+  format: fieldRules.name({
+    required: false,
+    label: "规格",
+    trigger: "change"
+  }),
+  unit: fieldRules.name({ required: false, label: "单位", trigger: "change" }),
+  purchasePrice: fieldRules.moneyYuan({
+    required: false,
+    label: "进价",
+    min: 0
+  }),
+  salePrice: fieldRules.moneyYuan({ required: true, label: "售价", min: 0 }),
+  minStock: fieldRules.positiveInt({
+    required: false,
+    label: "最小库存",
+    min: 0
+  }),
+  maxStock: fieldRules.positiveInt({
+    required: false,
+    label: "最大库存",
+    min: 0
+  }),
+  desc: fieldRules.remark({ required: false, label: "备注" })
 });
 
 const ruleFormRef = ref();

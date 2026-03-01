@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
+import type { FormRules } from "element-plus";
 import type { FormProps } from "./types";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -14,8 +16,17 @@ const props = withDefaults(defineProps<FormProps>(), {
   disabled: false
 });
 
-const formRules = reactive({
-  name: [{ required: true, message: "账户名称为必填项", trigger: "blur" }]
+const formRules: FormRules = reactive({
+  name: fieldRules.name({ label: "账户名称" }),
+  accountType: fieldRules.select({ label: "账户类型" }),
+  bankName: fieldRules.name({ required: false, label: "开户行" }),
+  bankAccount: fieldRules.code({ required: false, label: "银行账号" }),
+  initialBalance: fieldRules.moneyYuan({
+    required: false,
+    label: "初始余额",
+    min: 0
+  }),
+  desc: fieldRules.remark({ required: false, label: "备注" })
 });
 
 const ruleFormRef = ref();
