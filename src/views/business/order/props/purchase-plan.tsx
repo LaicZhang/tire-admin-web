@@ -1,5 +1,7 @@
 // import { Action, FormItemProps } from "./index";
 import dayjs from "dayjs";
+import type { FormRules } from "element-plus";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 export const purchasePlanColumns: TableColumnList = [
   {
@@ -58,10 +60,10 @@ export const purchasePlanColumns: TableColumnList = [
   }
 ];
 
-export const purchasePlanFormRules = {
-  tireId: [{ required: true, message: "请选择商品", trigger: "change" }],
-  count: [{ required: true, message: "请输入数量", trigger: "blur" }],
-  repoId: [{ required: true, message: "请选择仓库", trigger: "change" }]
+export const purchasePlanFormRules: FormRules = {
+  tireId: fieldRules.uidSelect({ label: "商品" }),
+  count: fieldRules.positiveInt({ label: "数量", min: 1, required: true }),
+  repoId: fieldRules.uidSelect({ label: "仓库" })
 };
 
 export const purchasePlanDetailsColumns: TableColumnList = [

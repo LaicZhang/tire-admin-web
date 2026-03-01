@@ -1,5 +1,7 @@
 // import { Action, FormItemProps } from "./index";
 import dayjs from "dayjs";
+import type { FormRules } from "element-plus";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 export const saleQuotationColumns: TableColumnList = [
   {
@@ -45,9 +47,9 @@ export const saleQuotationColumns: TableColumnList = [
   }
 ];
 
-export const saleQuotationFormRules = {
-  customerId: [{ required: true, message: "请选择客户", trigger: "change" }],
-  validUntil: [{ required: true, message: "请选择有效期", trigger: "change" }]
+export const saleQuotationFormRules: FormRules = {
+  customerId: fieldRules.uidSelect({ label: "客户" }),
+  validUntil: fieldRules.date({ required: true, label: "有效期" })
 };
 
 export const saleQuotationDetailsColumns: TableColumnList = [

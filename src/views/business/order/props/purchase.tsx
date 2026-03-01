@@ -2,6 +2,7 @@ import { reactive } from "vue";
 // import { formatDate } from "@/utils";
 import { copySrc, copyStyle, onCopy } from "./common";
 import type { FormRules } from "element-plus";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 export interface PurchaseFormItemProps {
   id: number;
@@ -44,10 +45,10 @@ export interface PurchaseFormProps {
 }
 
 export const purchaseOrderFormRules: FormRules = reactive({
-  providerId: [{ required: true, message: "供应商为必填项", trigger: "blur" }],
-  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }],
-  count: [{ required: true, message: "数量为必填项", trigger: "blur" }],
-  total: [{ required: true, message: "总价为必填项", trigger: "blur" }]
+  providerId: fieldRules.uidSelect({ label: "供应商" }),
+  auditorId: fieldRules.uidSelect({ label: "审核人" }),
+  count: fieldRules.positiveInt({ label: "数量", min: 1, required: true }),
+  total: fieldRules.moneyYuan({ label: "总价", min: 0, required: true })
 });
 
 export const purchaseOrderDeatailsColumns: TableColumnList = [

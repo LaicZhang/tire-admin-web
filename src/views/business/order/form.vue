@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import type { FormRules } from "element-plus";
 import {
   PurchaseFormItemProps,
   SaleFormItemProps,
@@ -22,7 +23,7 @@ import { getColumns, getFormRules } from "./handleData";
 import { getFormTileInLocal } from "./table";
 const orderType = ref<ORDER_TYPE>(ORDER_TYPE.default);
 
-const formRules = ref(getFormRules(orderType.value));
+const formRules = ref<FormRules>(getFormRules(orderType.value));
 
 const ruleFormRef = ref();
 // 订单表单字段较多，且不同订单类型字段存在差异；这里以运行时为准
@@ -105,9 +106,71 @@ const managerList = ref<ListItem[]>([]);
 
 const detailsColumns = ref<TableColumnList>([]);
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function makeDetailsRule() {
+  return [
+    {
+      trigger: "change",
+      validator: (
+        _rule: unknown,
+        _value: unknown,
+        callback: (error?: Error) => void
+      ) => {
+        const details = (
+          newFormInline.value as unknown as { details?: unknown[] }
+        ).details;
+        const requiresRepo = (detailsColumns.value || []).some(
+          c => (c as unknown as { prop?: string }).prop === "repoId"
+        );
+        if (!Array.isArray(details) || details.length === 0) {
+          return callback(new Error("请至少添加 1 行明细"));
+        }
+
+        for (let i = 0; i < details.length; i++) {
+          const row = asRecord(details[i]);
+          const rowNo = i + 1;
+
+          if (!row.tireId)
+            return callback(new Error(`明细第 ${rowNo} 行：请选择轮胎`));
+
+          const rawCount = row.count;
+          const count =
+            typeof rawCount === "number" ? rawCount : Number(rawCount);
+          if (!Number.isInteger(count) || count < 1) {
+            return callback(
+              new Error(`明细第 ${rowNo} 行：数量需为不小于 1 的整数`)
+            );
+          }
+
+          if (requiresRepo && !row.repoId) {
+            return callback(new Error(`明细第 ${rowNo} 行：请选择仓库`));
+          }
+
+          if (formTitle.value === "确认到货") {
+            if (!row.batchNo)
+              return callback(new Error(`明细第 ${rowNo} 行：请输入批次号`));
+            if (!row.expiryDate)
+              return callback(new Error(`明细第 ${rowNo} 行：请选择过期时间`));
+          }
+        }
+
+        callback();
+      }
+    }
+  ];
+}
+
 function setDetailsColumnsAndFormRules() {
   detailsColumns.value = getColumns(orderType.value);
-  formRules.value = getFormRules(orderType.value);
+  formRules.value = {
+    ...getFormRules(orderType.value),
+    details: makeDetailsRule()
+  } as FormRules;
   if (formTitle.value === "确认到货" || formTitle.value === "新增") {
     // 确认到货时添加批次号和过期时间列
     // 新增时也可以允许录入(虽然逻辑上是到货才录入，但有时是一步到位)
@@ -435,7 +498,7 @@ onMounted(async () => {
       </el-form-item>
     </template>
 
-    <el-form-item label="详情">
+    <el-form-item label="详情" prop="details">
       <!-- 扫码栏，仅在新增或修改时显示 -->
       <div
         v-if="['新增', '修改'].includes(formTitle)"

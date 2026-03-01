@@ -28,8 +28,13 @@ export interface ReturnFormProps {
 
 import { formatDate } from "@/utils";
 import { reactive } from "vue";
-export const returnOrderFormRules = reactive({
-  auditorId: [{ required: true, message: "审核人为必填项", trigger: "blur" }]
+import type { FormRules } from "element-plus";
+import { fieldRules } from "@/utils/validation/fieldRules";
+export const returnOrderFormRules: FormRules = reactive({
+  customerId: fieldRules.uidSelect({ label: "客户" }),
+  auditorId: fieldRules.uidSelect({ label: "审核人" }),
+  count: fieldRules.positiveInt({ label: "数量", min: 1, required: true }),
+  total: fieldRules.moneyYuan({ label: "总价", min: 0, required: true })
 });
 export const returnOrderDetailsColumns: TableColumnList = [];
 

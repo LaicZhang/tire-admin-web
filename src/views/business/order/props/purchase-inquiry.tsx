@@ -1,5 +1,7 @@
 // import { Action, FormItemProps } from "./index";
 import dayjs from "dayjs";
+import type { FormRules } from "element-plus";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 // 采购询价单
 export const purchaseInquiryColumns: TableColumnList = [
@@ -41,9 +43,9 @@ export const purchaseInquiryColumns: TableColumnList = [
   }
 ];
 
-export const purchaseInquiryFormRules = {
-  providerId: [{ required: true, message: "请选择供应商", trigger: "change" }],
-  deadline: [{ required: true, message: "请选择截止日期", trigger: "change" }]
+export const purchaseInquiryFormRules: FormRules = {
+  providerId: fieldRules.uidSelect({ label: "供应商" }),
+  deadline: fieldRules.date({ required: true, label: "截止日期" })
 };
 
 export const purchaseInquiryDetailsColumns: TableColumnList = [
