@@ -4,6 +4,8 @@ import {
   getProductPriceApi,
   type ProductPriceQueryResult
 } from "@/api/business/price";
+import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
+import TireSelect from "@/components/EntitySelect/TireSelect.vue";
 import { message } from "@/utils";
 
 defineOptions({
@@ -11,15 +13,12 @@ defineOptions({
 });
 
 const form = ref({
-  tireId: undefined,
-  customerId: undefined,
+  tireId: undefined as string | undefined,
+  customerId: undefined as string | undefined,
   date: new Date()
 });
 const result = ref<ProductPriceQueryResult | null>(null);
 const loading = ref(false);
-
-// Simplified for now: just text inputs or simple selects could be implemented.
-// Real implementation might use a TireSelect component.
 
 const onSearch = async () => {
   if (!form.value.tireId) {
@@ -47,11 +46,14 @@ const onSearch = async () => {
       </template>
 
       <el-form :inline="true">
-        <el-form-item label="商品名称/条码">
-          <el-input v-model="form.tireId" placeholder="输入ID或名称" />
+        <el-form-item label="商品">
+          <TireSelect v-model="form.tireId" placeholder="搜索商品名称/条码" />
         </el-form-item>
         <el-form-item label="客户">
-          <el-input v-model="form.customerId" placeholder="选填，输入客户ID" />
+          <CustomerSelect
+            v-model="form.customerId"
+            placeholder="选填，搜索客户"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="onSearch"

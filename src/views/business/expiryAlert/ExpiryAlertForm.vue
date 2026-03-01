@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import RepoSelect from "@/components/EntitySelect/RepoSelect.vue";
 
 const props = defineProps<{
   formInline: {
@@ -21,7 +22,7 @@ const formData = computed({
 <template>
   <el-form :model="formData" label-width="100px">
     <el-form-item label="仓库ID（可选）">
-      <el-input v-model="formData.repoId" placeholder="为空表示所有仓库" />
+      <RepoSelect v-model="formData.repoId" clearable placeholder="全部仓库" />
     </el-form-item>
     <el-form-item label="提前预警天数">
       <el-input-number v-model="formData.daysBefore" :min="1" />
