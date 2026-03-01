@@ -25,7 +25,11 @@ const props = withDefaults(defineProps<SearchFormProps>(), {
 const emit = defineEmits<SearchFormEmits>();
 
 defineExpose({
-  resetFields: () => formRef.value?.resetFields()
+  resetFields: () => formRef.value?.resetFields(),
+  validate: (callback?: (valid: boolean) => void) =>
+    formRef.value?.validate(callback) ?? Promise.resolve(true),
+  clearValidate: (props?: string | string[]) =>
+    formRef.value?.clearValidate(props)
 });
 
 // 原始搜索函数
@@ -41,7 +45,13 @@ const debouncedSearch = computed(() => {
   return doSearch;
 });
 
-const handleSearch = () => {
+const hasRules = computed(() => Object.keys(props.rules || {}).length > 0);
+
+const handleSearch = async () => {
+  if (formRef.value && hasRules.value) {
+    const valid = await formRef.value.validate().catch(() => false);
+    if (!valid) return;
+  }
   debouncedSearch.value();
 };
 
