@@ -26,7 +26,7 @@ import Form from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import type { FormInstance, FormRules } from "element-plus";
-import { elementRules } from "@/utils/validation/elementRules";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 defineOptions({
   name: "AuxiliaryAttrManagement"
@@ -40,7 +40,7 @@ const form = reactive({
 });
 
 const searchRules: FormRules = {
-  name: [elementRules.maxLen(50, "属性名称最多 50 个字符")]
+  name: fieldRules.name({ required: false, label: "属性名称", max: 50 })
 };
 
 const handleSearch = async () => {

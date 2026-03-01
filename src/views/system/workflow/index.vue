@@ -20,7 +20,7 @@ import { useCrud } from "@/composables";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { message } from "@/utils";
-import { elementRules } from "@/utils/validation/elementRules";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 defineOptions({
   name: "WorkflowIndex"
@@ -41,7 +41,7 @@ const queryForm = reactive<Pick<WorkflowQuery, "name" | "status" | "scope">>({
 });
 
 const queryRules: FormRules = {
-  name: [elementRules.maxLen(50, "流程名称最多 50 个字符")],
+  name: fieldRules.name({ required: false, label: "流程名称", max: 50 }),
   status: [
     {
       trigger: "change",

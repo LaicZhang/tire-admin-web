@@ -14,7 +14,7 @@ import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import BatchCreateForm from "./BatchCreateForm.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
-import { elementRules } from "@/utils/validation/elementRules";
+import { fieldRules } from "@/utils/validation/fieldRules";
 
 defineOptions({
   name: "BusinessBatch"
@@ -47,8 +47,8 @@ const queryForm = ref({
 });
 
 const queryRules: FormRules = {
-  repoId: [elementRules.uuidV4("仓库不合法", "change")],
-  batchNo: [elementRules.maxLen(50, "批次号最多 50 个字符")]
+  repoId: fieldRules.uidSelect({ required: false, label: "仓库" }),
+  batchNo: fieldRules.code({ required: false, label: "批次号", max: 50 })
 };
 
 // 流水抽屉
