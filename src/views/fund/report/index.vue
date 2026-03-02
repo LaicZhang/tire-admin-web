@@ -96,7 +96,7 @@ const queryForm = reactive<FundReportQueryParams>({
   reportType: undefined,
   paymentId: undefined,
   targetType: undefined,
-  targetName: "",
+  targetName: undefined,
   startDate: dayjs().subtract(30, "day").format("YYYY-MM-DD"),
   endDate: dayjs().format("YYYY-MM-DD")
 });

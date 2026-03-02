@@ -50,12 +50,12 @@ const targetNameOptions = computed(() => {
 
 const queryForm = reactive<FundDocumentQueryParams>({
   documentType: undefined,
-  targetName: "",
+  targetName: undefined,
   status: undefined,
   direction: undefined,
-  startDate: "",
-  endDate: "",
-  billNo: ""
+  startDate: undefined,
+  endDate: undefined,
+  billNo: undefined
 });
 
 type DocumentStatusTagType = (typeof DOCUMENT_STATUS_OPTIONS)[number]["type"];

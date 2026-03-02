@@ -42,9 +42,9 @@ const queryForm = reactive<WriteOffQueryParams>({
   businessType: undefined,
   status: undefined,
   isApproved: undefined,
-  startDate: "",
-  endDate: "",
-  billNo: ""
+  startDate: undefined,
+  endDate: undefined,
+  billNo: undefined
 });
 
 const dialogVisible = ref(false);

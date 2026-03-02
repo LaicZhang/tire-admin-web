@@ -56,12 +56,12 @@ const pagination = reactive({
 });
 
 const queryForm = reactive<OtherIncomeQueryParams>({
-  customerName: "",
+  customerName: undefined,
   incomeType: undefined,
   status: undefined,
-  startDate: "",
-  endDate: "",
-  billNo: ""
+  startDate: undefined,
+  endDate: undefined,
+  billNo: undefined
 });
 
 const dialogVisible = ref(false);

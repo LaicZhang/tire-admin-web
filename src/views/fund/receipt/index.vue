@@ -61,7 +61,7 @@ const pagination = reactive({
 });
 
 const queryForm = reactive<ReceiptQueryParams>({
-  customerName: "",
+  customerName: undefined,
   status: undefined
 });
 

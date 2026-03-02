@@ -55,11 +55,11 @@ const pagination = reactive({
 });
 
 const queryForm = reactive<PaymentOrderQueryParams>({
-  providerName: "",
+  providerName: undefined,
   status: undefined,
-  startDate: "",
-  endDate: "",
-  billNo: ""
+  startDate: undefined,
+  endDate: undefined,
+  billNo: undefined
 });
 
 const dialogVisible = ref(false);
