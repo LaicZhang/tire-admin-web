@@ -50,7 +50,7 @@ const editFormRef = ref<{
 const queryParams = reactive<OtherInboundQuery>({
   type: undefined,
   status: undefined,
-  keyword: ""
+  keyword: undefined
 });
 
 const pagination = ref({

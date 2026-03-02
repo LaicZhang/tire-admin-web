@@ -46,9 +46,9 @@ const selectedRows = ref<InventoryDocument[]>([]);
 const queryParams = reactive<DocumentQuery>({
   type: undefined,
   status: undefined,
-  startDate: "",
-  endDate: "",
-  keyword: ""
+  startDate: undefined,
+  endDate: undefined,
+  keyword: undefined
 });
 
 const dateRange = ref<[string, string] | null>(null);

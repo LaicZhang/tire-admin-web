@@ -46,7 +46,7 @@ const { confirm } = useConfirmDialog();
 
 const queryParams = reactive<AssemblyOrderQuery>({
   status: undefined,
-  keyword: ""
+  keyword: undefined
 });
 
 const pagination = ref({

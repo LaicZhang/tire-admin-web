@@ -38,10 +38,10 @@ const summaryList = ref<InventorySummary[]>([]);
 const repoList = ref<{ uid: string; name: string }[]>([]);
 
 const queryParams = reactive<ReportQuery>({
-  repoId: "",
-  tireId: "",
-  startDate: "",
-  endDate: "",
+  repoId: undefined,
+  tireId: undefined,
+  startDate: undefined,
+  endDate: undefined,
   showZeroStock: false,
   showNegativeStock: false,
   showDisabledRepo: false

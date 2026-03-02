@@ -46,7 +46,7 @@ const editFormRef = ref<{
 } | null>(null);
 const queryParams = reactive<BomQuery>({
   status: undefined,
-  keyword: ""
+  keyword: undefined
 });
 
 const statusOptions = Object.entries(bomStatusMap).map(([value, config]) => ({

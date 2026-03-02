@@ -64,10 +64,10 @@ const managerList = ref<Array<{ uid: string; name: string }>>([]);
 const queryParams = reactive<
   TransferOrderQuery & { auditStatus?: "PENDING" | "APPROVED" | "REJECTED" }
 >({
-  fromRepositoryId: "",
-  toRepositoryId: "",
-  auditorId: "",
-  keyword: "",
+  fromRepositoryId: undefined,
+  toRepositoryId: undefined,
+  auditorId: undefined,
+  keyword: undefined,
   auditStatus: undefined
 });
 
