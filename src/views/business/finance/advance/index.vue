@@ -21,8 +21,8 @@ defineOptions({
 });
 
 const form = ref({
-  type: "",
-  targetName: ""
+  type: undefined as string | undefined,
+  targetName: undefined as string | undefined
 });
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);

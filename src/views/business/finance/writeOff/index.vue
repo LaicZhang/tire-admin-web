@@ -32,8 +32,8 @@ const WRITE_OFF_STATUS_MAP: Record<WriteOffStatusKey, StatusConfig> = {
 };
 
 const form = ref({
-  type: "",
-  isApproved: ""
+  type: undefined as string | undefined,
+  isApproved: undefined as string | undefined
 });
 
 const dataList = ref<WriteOffOrder[]>([]);

@@ -18,9 +18,9 @@ defineOptions({
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = reactive({
-  type: "",
-  startDate: "",
-  endDate: ""
+  type: undefined as string | undefined,
+  startDate: undefined as string | undefined,
+  endDate: undefined as string | undefined
 });
 
 const {

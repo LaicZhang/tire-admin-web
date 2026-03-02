@@ -23,7 +23,7 @@ defineOptions({
 });
 
 const form = reactive({
-  name: ""
+  name: undefined as string | undefined
 });
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);

@@ -20,7 +20,7 @@ const dataList = ref<TireNumberRow[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const form = ref({
-  number: "",
+  number: undefined as string | undefined,
   desc: undefined
 });
 const pagination = ref({

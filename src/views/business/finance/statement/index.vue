@@ -22,9 +22,9 @@ const STATEMENT_STATUS_MAP: Record<string, StatusConfig> = {
 };
 
 const form = ref({
-  type: "",
-  targetName: "",
-  status: ""
+  type: undefined as string | undefined,
+  targetName: undefined as string | undefined,
+  status: undefined as string | undefined
 });
 const { customers, providers } = useOptions();
 

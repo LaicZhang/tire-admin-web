@@ -20,9 +20,9 @@ defineOptions({
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = reactive({
-  purchaseOrderNo: "",
-  startDate: "",
-  endDate: ""
+  purchaseOrderNo: undefined as string | undefined,
+  startDate: undefined as string | undefined,
+  endDate: undefined as string | undefined
 });
 
 const {

@@ -25,7 +25,7 @@ const pagination = reactive({
 });
 
 const form = reactive({
-  status: ""
+  status: undefined as string | undefined
 });
 
 async function onSearch() {

@@ -24,7 +24,7 @@ defineOptions({
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = reactive({
-  keyword: ""
+  keyword: undefined as string | undefined
 });
 
 const {

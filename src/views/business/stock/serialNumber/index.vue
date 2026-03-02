@@ -24,8 +24,8 @@ defineOptions({
 });
 
 const form = ref({
-  keyword: "",
-  status: ""
+  keyword: undefined as string | undefined,
+  status: undefined as string | undefined
 });
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
