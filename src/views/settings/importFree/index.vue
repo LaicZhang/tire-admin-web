@@ -28,8 +28,8 @@ const selectedRows = ref<FreeAccountItem[]>([]);
 const { confirm } = useConfirmDialog();
 
 const state = ref({
-  accountName: "",
-  companyName: ""
+  accountName: undefined as string | undefined,
+  companyName: undefined as string | undefined
 });
 
 const formColumns: PlusColumn[] = [
@@ -60,7 +60,7 @@ const handleSearch = async () => {
 };
 
 const handleReset = () => {
-  state.value = { accountName: "", companyName: "" };
+  state.value = { accountName: undefined, companyName: undefined };
   handleSearch();
 };
 

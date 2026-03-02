@@ -29,8 +29,8 @@ const selectedRows = ref<RecycleItem[]>([]);
 const { confirm } = useConfirmDialog();
 
 const state = ref({
-  type: "",
-  keyword: ""
+  type: undefined as string | undefined,
+  keyword: undefined as string | undefined
 });
 
 const {
@@ -95,7 +95,7 @@ const handleSearch = () => {
 };
 
 const handleReset = () => {
-  state.value = { type: "", keyword: "" };
+  state.value = { type: undefined, keyword: undefined };
   handleSearch();
 };
 

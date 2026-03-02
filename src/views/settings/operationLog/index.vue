@@ -16,9 +16,9 @@ defineOptions({
 });
 
 const state = ref({
-  username: "",
-  operationType: "",
-  moduleName: "",
+  username: undefined as string | undefined,
+  operationType: undefined as string | undefined,
+  moduleName: undefined as string | undefined,
   dateRange: [] as string[]
 });
 
