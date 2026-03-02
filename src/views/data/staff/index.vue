@@ -33,8 +33,8 @@ const formRef = ref();
 const { confirm } = useConfirmDialog();
 
 const state = ref({
-  name: "",
-  keyword: ""
+  name: undefined as string | undefined,
+  keyword: undefined as string | undefined
 });
 
 const staffStatusMap = {
@@ -84,7 +84,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
 });
 
 const handleReset = () => {
-  state.value = { name: "", keyword: "" };
+  state.value = { name: undefined, keyword: undefined };
   fetchData();
 };
 

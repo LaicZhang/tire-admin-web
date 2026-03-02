@@ -34,8 +34,8 @@ const formRef = ref();
 
 const state = ref({
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
-  name: "",
-  keyword: ""
+  name: undefined as string | undefined,
+  keyword: undefined as string | undefined
 });
 
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
@@ -85,7 +85,7 @@ const handleSearch = () => {
 };
 
 const handleReset = () => {
-  state.value = { scope: "nonDeleted", name: "", keyword: "" };
+  state.value = { scope: "nonDeleted", name: undefined, keyword: undefined };
   handleSearch();
 };
 

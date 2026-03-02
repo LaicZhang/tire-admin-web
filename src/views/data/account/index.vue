@@ -33,7 +33,7 @@ const formRef = ref();
 const { confirm } = useConfirmDialog();
 
 const state = ref({
-  name: ""
+  name: undefined as string | undefined
 });
 
 const formColumns: PlusColumn[] = [
@@ -55,7 +55,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
     // 前端过滤搜索
     if (state.value.name) {
       list = list.filter((item: FormItemProps) =>
-        item.name?.toLowerCase().includes(state.value.name.toLowerCase())
+        item.name?.toLowerCase().includes(state.value.name?.toLowerCase() ?? "")
       );
     }
     return { list, total: list.length };
@@ -64,7 +64,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
 });
 
 const handleReset = () => {
-  state.value = { name: "" };
+  state.value = { name: undefined };
   fetchData();
 };
 

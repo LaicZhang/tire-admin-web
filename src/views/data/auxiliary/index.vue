@@ -48,8 +48,8 @@ const selectedRows = ref<AuxiliaryItem[]>([]);
 const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 const form = reactive({
-  name: "",
-  code: ""
+  name: undefined as string | undefined,
+  code: undefined as string | undefined
 });
 
 const {

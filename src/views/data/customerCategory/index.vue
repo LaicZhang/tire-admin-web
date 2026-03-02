@@ -34,12 +34,12 @@ const expandRowKeys = ref<string[]>([]);
 const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 const form = reactive({
-  name: ""
+  name: undefined as string | undefined
 });
 
 const filterTreeData = (
   data: TreeCategoryItem[],
-  keyword: string
+  keyword?: string
 ): TreeCategoryItem[] => {
   if (!keyword) return data;
   const result: TreeCategoryItem[] = [];

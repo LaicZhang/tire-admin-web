@@ -36,7 +36,7 @@ const searchFormRef = ref();
 const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 
 const form = reactive({
-  name: ""
+  name: undefined as string | undefined
 });
 
 const searchRules: FormRules = {

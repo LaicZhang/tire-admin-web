@@ -32,8 +32,8 @@ const formRef = ref();
 const { confirm } = useConfirmDialog();
 
 const state = ref({
-  name: "",
-  code: ""
+  name: undefined as string | undefined,
+  code: undefined as string | undefined
 });
 
 const formColumns: PlusColumn[] = [
@@ -63,7 +63,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
 });
 
 const handleReset = () => {
-  state.value = { name: "", code: "" };
+  state.value = { name: undefined, code: undefined };
   fetchData();
 };
 
