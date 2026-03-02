@@ -35,8 +35,8 @@ const pagination = reactive({
 });
 
 const form = reactive({
-  fileName: "",
-  fileType: "",
+  fileName: undefined as string | undefined,
+  fileType: undefined as string | undefined,
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all"
 });
 

@@ -40,7 +40,7 @@ const pagination = reactive({
 });
 
 const form = reactive({
-  name: "",
+  name: undefined as string | undefined,
   status: undefined as boolean | undefined
 });
 

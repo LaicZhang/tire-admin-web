@@ -43,8 +43,8 @@ const {
 
 const form = reactive({
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
-  title: "",
-  status: ""
+  title: undefined as string | undefined,
+  status: undefined as string | undefined
 });
 
 async function onSearch() {

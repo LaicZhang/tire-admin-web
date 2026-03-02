@@ -34,7 +34,7 @@ const { loading, columns, dataList, pagination, onSizeChange } = useColumns();
 
 const form = reactive({
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
-  name: ""
+  name: undefined as string | undefined
 });
 
 async function onSearch() {

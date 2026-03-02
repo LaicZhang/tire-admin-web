@@ -41,8 +41,8 @@ defineOptions({
 const formRef = ref();
 const state = ref({
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
-  name: "",
-  status: ""
+  name: undefined as string | undefined,
+  status: undefined as string | undefined
 });
 
 const formColumns: PlusColumn[] = [
@@ -99,7 +99,7 @@ const handleSearch = async () => {
 };
 
 const handleReset = () => {
-  state.value = { scope: "nonDeleted", name: "", status: "" };
+  state.value = { scope: "nonDeleted", name: undefined, status: undefined };
   handleSearch();
 };
 

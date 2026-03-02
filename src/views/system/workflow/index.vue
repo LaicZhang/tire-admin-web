@@ -35,7 +35,7 @@ const { confirm } = useConfirmDialog();
 
 const queryFormRef = ref<FormInstance>();
 const queryForm = reactive<Pick<WorkflowQuery, "name" | "status" | "scope">>({
-  name: "",
+  name: undefined,
   status: undefined,
   scope: "nonDeleted"
 });

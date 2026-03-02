@@ -33,9 +33,9 @@ const pagination = reactive({
 });
 
 const form = reactive({
-  module: "",
-  operator: "",
-  traceId: "",
+  module: undefined as string | undefined,
+  operator: undefined as string | undefined,
+  traceId: undefined as string | undefined,
   success: undefined as boolean | undefined,
   dateRange: [] as string[]
 });

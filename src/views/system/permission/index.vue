@@ -33,11 +33,11 @@ const { loading, columns, dataList, pagination, onSizeChange } = useColumns();
 
 const state = ref({
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
-  keyword: "",
-  module: "",
-  path: "",
-  type: "",
-  belong: ""
+  keyword: undefined as string | undefined,
+  module: undefined as string | undefined,
+  path: undefined as string | undefined,
+  type: undefined as string | undefined,
+  belong: undefined as string | undefined
 });
 
 const searchColumns: PlusColumn[] = [
@@ -105,11 +105,11 @@ async function onSearch() {
 const handleReset = () => {
   state.value = {
     scope: "nonDeleted",
-    keyword: "",
-    module: "",
-    path: "",
-    type: "",
-    belong: ""
+    keyword: undefined,
+    module: undefined,
+    path: undefined,
+    type: undefined,
+    belong: undefined
   };
   onSearch();
 };

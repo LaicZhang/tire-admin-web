@@ -34,8 +34,8 @@ defineOptions({
 
 const state = ref({
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
-  status: "",
-  username: ""
+  status: undefined as string | undefined,
+  username: undefined as string | undefined
 });
 const formRef = ref();
 
@@ -115,7 +115,7 @@ const handleSearch = () => {
 };
 
 const handleReset = () => {
-  state.value = { scope: "nonDeleted", status: "", username: "" };
+  state.value = { scope: "nonDeleted", status: undefined, username: undefined };
   handleSearch();
 };
 
