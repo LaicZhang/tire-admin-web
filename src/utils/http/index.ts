@@ -23,6 +23,7 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { resolveBaseURLFromViteEnv } from "./baseurl";
 import { createPendingQueue } from "./pending-queue";
+import { ensureIdempotencyKey } from "./idempotency";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 // 优先使用环境变量，其次：开发环境走相对路径配合 Vite 代理，生产环境兜底到公网 API
@@ -163,9 +164,15 @@ class PureHttp {
           return config;
         }
         // 跳过鉴权（登录/刷新等接口）
-        if (config.skipAuth) return config;
+        if (config.skipAuth) {
+          ensureIdempotencyKey(config);
+          return config;
+        }
 
-        if (authWhiteList.includes(config.url ?? "")) return config;
+        if (authWhiteList.includes(config.url ?? "")) {
+          ensureIdempotencyKey(config);
+          return config;
+        }
 
         config.headers ??= {};
 
@@ -179,17 +186,22 @@ class PureHttp {
               config.headers[csrfHeaderName] = csrfToken;
             }
           }
+          ensureIdempotencyKey(config);
           return config;
         }
 
         // 传统模式：Bearer token
         const data = getToken();
-        if (!data?.accessToken) return config;
+        if (!data?.accessToken) {
+          ensureIdempotencyKey(config);
+          return config;
+        }
 
         const expires = Number(data.expires);
         const expired = expires <= Date.now();
         if (!expired) {
           config.headers["Authorization"] = formatToken(data.accessToken);
+          ensureIdempotencyKey(config);
           return config;
         }
 
@@ -221,6 +233,7 @@ class PureHttp {
             });
         }
 
+        ensureIdempotencyKey(config);
         return PureHttp.pendingQueue.enqueue(config);
       },
       error => {
