@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { detailColumns } from "./columns";
-import { type StocktakingTask, type StocktakingDetail } from "./types";
+import type { StocktakingDetail, StocktakingTask } from "./types";
 import {
   getInventoryCheckTaskApi,
   updateInventoryCheckDetailsApi

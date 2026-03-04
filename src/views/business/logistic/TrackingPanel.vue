@@ -2,7 +2,7 @@
 import { ref, onMounted, watch } from "vue";
 import { getTrackingApi, syncTrackingApi, addTrackingNodeApi } from "@/api";
 import { message } from "@/utils";
-import { type TrackingInfo, type TrackingNode } from "./types";
+import type { TrackingInfo, TrackingNode } from "./types";
 import TrackingNodeDialog from "./TrackingNodeDialog.vue";
 
 defineOptions({

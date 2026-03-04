@@ -6,6 +6,48 @@ import configPrettier from "eslint-config-prettier";
 import pluginPrettier from "eslint-plugin-prettier";
 import { defineConfig, globalIgnores } from "eslint/config";
 
+const typescriptRules = {
+  "@typescript-eslint/no-redeclare": "error",
+  "@typescript-eslint/ban-ts-comment": "warn",
+  "@typescript-eslint/no-explicit-any": "error",
+  "@typescript-eslint/prefer-as-const": "warn",
+  "@typescript-eslint/no-empty-function": "warn",
+  "@typescript-eslint/no-non-null-assertion": "warn",
+  "@typescript-eslint/no-unused-expressions": "off",
+  "@typescript-eslint/no-unsafe-function-type": "off",
+  "@typescript-eslint/no-import-type-side-effects": "error",
+  "@typescript-eslint/explicit-module-boundary-types": "off",
+  "@typescript-eslint/consistent-type-imports": [
+    "error",
+    { disallowTypeAnnotations: false, fixStyle: "inline-type-imports" }
+  ],
+  "@typescript-eslint/prefer-literal-enum-member": [
+    "error",
+    { allowBitwiseExpressions: true }
+  ],
+  "@typescript-eslint/no-unused-vars": [
+    "error",
+    {
+      argsIgnorePattern: "^_",
+      varsIgnorePattern: "^_"
+    }
+  ]
+};
+
+const vueTypescriptRules = {
+  "@typescript-eslint/ban-ts-comment": "warn",
+  "@typescript-eslint/no-explicit-any": "error",
+  "@typescript-eslint/no-empty-function": "warn",
+  "@typescript-eslint/no-import-type-side-effects": "error",
+  "@typescript-eslint/no-non-null-assertion": "warn",
+  "@typescript-eslint/no-redeclare": "error",
+  "@typescript-eslint/prefer-as-const": "warn",
+  "@typescript-eslint/prefer-literal-enum-member": [
+    "error",
+    { allowBitwiseExpressions: true }
+  ]
+};
+
 export default defineConfig([
   globalIgnores([
     "**/.*",
@@ -76,33 +118,7 @@ export default defineConfig([
   ...tseslint.config({
     extends: [...tseslint.configs.recommended],
     files: ["**/*.?([cm])ts", "**/*.?([cm])tsx"],
-    rules: {
-      "@typescript-eslint/no-redeclare": "error",
-      "@typescript-eslint/ban-ts-comment": "warn",
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/prefer-as-const": "warn",
-      "@typescript-eslint/no-empty-function": "warn",
-      "@typescript-eslint/no-non-null-assertion": "warn",
-      "@typescript-eslint/no-unused-expressions": "off",
-      "@typescript-eslint/no-unsafe-function-type": "off",
-      "@typescript-eslint/no-import-type-side-effects": "error",
-      "@typescript-eslint/explicit-module-boundary-types": "off",
-      "@typescript-eslint/consistent-type-imports": [
-        "error",
-        { disallowTypeAnnotations: false, fixStyle: "inline-type-imports" }
-      ],
-      "@typescript-eslint/prefer-literal-enum-member": [
-        "error",
-        { allowBitwiseExpressions: true }
-      ],
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_"
-        }
-      ]
-    }
+    rules: typescriptRules
   }),
   {
     files: ["**/*.d.ts"],
@@ -147,6 +163,7 @@ export default defineConfig([
     },
     processor: pluginVue.processors[".vue"],
     rules: {
+      ...vueTypescriptRules,
       ...pluginVue.configs.base.rules,
       ...pluginVue.configs.essential.rules,
       ...pluginVue.configs.recommended.rules,

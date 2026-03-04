@@ -3,7 +3,7 @@ import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { handleApiError } from "@/utils/error";
 import { message } from "@/utils";
-import { type Transfer, type CreateTransferDto } from "./types";
+import type { CreateTransferDto, Transfer } from "./types";
 import dayjs from "dayjs";
 import { fenToYuan } from "@/utils/formatMoney";
 import { useFundForm } from "../composables/useFundForm";
