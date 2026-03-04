@@ -73,7 +73,7 @@ async function handleDelete(row: TaskItem) {
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
-    message(e.message || "删除失败", { type: "error" });
+    handleApiError(e, "删除失败");
   }
 }
 
@@ -82,7 +82,7 @@ async function handleRun(row: TaskItem) {
     await runTaskApi(row.id);
     message("执行指令已发送", { type: "success" });
   } catch (e) {
-    message(e.message || "执行失败", { type: "error" });
+    handleApiError(e, "执行失败");
   }
 }
 

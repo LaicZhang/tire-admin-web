@@ -68,7 +68,7 @@ async function handleDelete(row: NoticeItem) {
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
-    message(e.message || "删除失败", { type: "error" });
+    handleApiError(e, "删除失败");
   }
 }
 

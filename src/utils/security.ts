@@ -2,12 +2,7 @@ import { formatTimeOnlyNumber } from "@/utils/time";
 import CryptoJS from "crypto-js";
 
 export function getMD5(data: string) {
-  return (
-    CryptoJS as unknown as { MD5: (data: string) => { toString: () => string } }
-  )
-    .MD5(data)
-    .toString()
-    .toLowerCase();
+  return CryptoJS.MD5(data).toString().toLowerCase();
   // return CryptoJS.MD5(CryptoJS.lib.WordArray.create(data)).toString();
 }
 
@@ -22,9 +17,7 @@ export function getFileMd5(lastModified: number, size: number): string {
 export async function getFileContentMd5(file: Blob): Promise<string> {
   try {
     const buf = await file.arrayBuffer();
-    const wordArray = CryptoJS.lib.WordArray.create(
-      new Uint8Array(buf) as unknown as number[]
-    );
+    const wordArray = CryptoJS.lib.WordArray.create(new Uint8Array(buf));
     return CryptoJS.MD5(wordArray).toString().toLowerCase();
   } catch (e) {
     throw new Error(e instanceof Error ? e.message : String(e));
