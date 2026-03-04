@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends object">
 import { computed } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Eye from "~icons/ep/view";
@@ -14,7 +14,7 @@ defineOptions({
   name: "TableOperations"
 });
 
-const props = withDefaults(defineProps<TableOperationsProps<any>>(), {
+const props = withDefaults(defineProps<TableOperationsProps<T>>(), {
   showView: true,
   showEdit: true,
   showAudit: false,
@@ -26,13 +26,17 @@ const props = withDefaults(defineProps<TableOperationsProps<any>>(), {
   customActions: () => []
 });
 
-const emit = defineEmits<TableOperationsEmits<any>>();
+const emit = defineEmits<TableOperationsEmits<T>>();
 
-const isLocked = computed(() => Boolean(props.row[props.lockedField]));
-const isApproved = computed(() => Boolean(props.row[props.approvedField]));
+const getFieldValue = (field: string) => {
+  return (props.row as Record<string, unknown>)[field];
+};
+
+const isLocked = computed(() => Boolean(getFieldValue(props.lockedField)));
+const isApproved = computed(() => Boolean(getFieldValue(props.approvedField)));
 
 const visibleActions = computed(() => {
-  return props.customActions.filter((action: CustomAction<any>) => {
+  return props.customActions.filter((action: CustomAction<T>) => {
     if (action.visible === undefined) return true;
     if (typeof action.visible === "function") {
       return action.visible(props.row);
