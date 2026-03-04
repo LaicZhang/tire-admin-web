@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch } from "vue";
 import { createDeliveryExceptionApi } from "@/api";
 import {
-  formatToken,
-  getFileMd5,
   getImageWH,
-  getToken,
   message,
   StaticImageTypeEnum,
-  BaseStaticUploadPath
+  getFileContentMd5
 } from "@/utils";
+import { validateFile, type FileTypeConfig } from "@/composables/useFileValidation";
+import { checkStaticImageApi, uploadStaticImageApi } from "@/api/static";
 import { DeliveryExceptionType, deliveryExceptionTypeMap } from "./types";
-import type { UploadUserFile } from "element-plus";
+import type { UploadRequestOptions, UploadUserFile } from "element-plus";
 
 defineOptions({
   name: "DeliveryExceptionDialog"
@@ -30,7 +29,6 @@ const emit = defineEmits<{
 const dialogVisible = ref(props.visible);
 const formRef = ref();
 const loading = ref(false);
-const Authorization = ref("");
 
 const formData = ref({
   type: "" as DeliveryExceptionType,
@@ -52,7 +50,6 @@ const exceptionTypeOptions = Object.entries(deliveryExceptionTypeMap).map(
 );
 
 const fileList = ref<UploadUserFile[]>([]);
-const uploadData = ref({});
 
 watch(
   () => props.visible,
@@ -68,11 +65,6 @@ watch(dialogVisible, val => {
   emit("update:visible", val);
 });
 
-function getAuthorization() {
-  const token = getToken();
-  Authorization.value = token ? formatToken(token.accessToken) : "";
-}
-
 function resetForm() {
   formData.value = {
     type: "" as DeliveryExceptionType,
@@ -84,29 +76,38 @@ function resetForm() {
   formRef.value?.clearValidate();
 }
 
-async function handleBeforeUpload(file: File) {
-  const { name, size, type, lastModified } = file;
-  const hash = getFileMd5(lastModified, size);
-  const [filename, ext] = name.split(".");
-  const { width, height } = await getImageWH(file);
-  uploadData.value = {
-    hash,
-    ext,
-    filename,
-    size,
-    mimetype: type,
-    width,
-    height,
-    lastModified,
-    type: StaticImageTypeEnum.COVER
-  };
-  return true;
+const imageConfig: FileTypeConfig = {
+  mimeTypes: [
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/gif",
+    "image/webp",
+    "image/bmp"
+  ],
+  extensions: /\.(png|jpg|jpeg|gif|webp|bmp)$/i,
+  maxSize: 10 * 1024 * 1024,
+  errorMessages: {
+    invalidType: "仅支持 png、jpg、jpeg、gif、webp、bmp 格式图片",
+    tooLarge: "单张图片大小不能超过 10MB"
+  }
+};
+
+function parseExtFromFilename(filename: string) {
+  const clean = String(filename || "");
+  const idx = clean.lastIndexOf(".");
+  return idx >= 0 ? clean.slice(idx + 1).toLowerCase() : "";
+}
+
+function handleBeforeUpload(file: File) {
+  const result = validateFile(file, imageConfig, true);
+  return result.valid;
 }
 
 function handleUploadSuccess(response: {
   code: number;
   msg?: string;
-  data?: { id: string; hash: string; ext: string };
+  data?: { id?: string | number; hash: string; ext: string };
 }) {
   const { code, msg, data } = response;
   if (code !== 200) {
@@ -124,6 +125,68 @@ function handleRemove(file: UploadUserFile) {
     formData.value.images.splice(index, 1);
   }
 }
+
+const handleUploadRequest = async (options: UploadRequestOptions) => {
+  const toUploadAjaxError = (err: unknown) => {
+    const base = err instanceof Error ? err : new Error(String(err));
+    const e = base as Error & {
+      status: number;
+      method: string;
+      url: string;
+      name: string;
+    };
+    e.name = "UploadAjaxError";
+    e.status = 0;
+    e.method = options.method;
+    e.url = options.action;
+    return e;
+  };
+
+  const file = options.file as File;
+  try {
+    const hash = await getFileContentMd5(file);
+
+    try {
+      const { code, data } = await checkStaticImageApi(hash);
+      if (code === 200 && data) {
+        options.onSuccess?.({ code: 200, data });
+        return;
+      }
+    } catch {
+      // ignore and fallback to normal upload
+    }
+
+    const ext = parseExtFromFilename(file.name);
+    const { width, height } = await getImageWH(file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("filename", file.name);
+    formData.append("ext", ext);
+    formData.append("hash", hash);
+    formData.append("mimetype", file.type);
+    formData.append("size", String(file.size));
+    formData.append("width", String(width));
+    formData.append("height", String(height));
+    formData.append("lastModified", String(file.lastModified));
+    formData.append("type", String(StaticImageTypeEnum.COVER));
+
+    const res = await uploadStaticImageApi(formData, progress => {
+      options.onProgress?.({ percent: progress } as any);
+    });
+
+    if (res.code !== 200 || !res.data) {
+      const msg = res.msg || "上传失败";
+      message(msg, { type: "error" });
+      options.onError?.(toUploadAjaxError(msg));
+      return;
+    }
+
+    options.onSuccess?.(res);
+  } catch (e) {
+    options.onError?.(toUploadAjaxError(e));
+  }
+};
 
 async function handleSubmit() {
   if (!formRef.value) return;
@@ -158,10 +221,6 @@ async function handleSubmit() {
 function handleClose() {
   dialogVisible.value = false;
 }
-
-onMounted(() => {
-  getAuthorization();
-});
 </script>
 
 <template>
@@ -205,9 +264,7 @@ onMounted(() => {
       <el-form-item label="异常图片">
         <el-upload
           v-model:file-list="fileList"
-          :action="BaseStaticUploadPath"
-          :headers="{ Authorization }"
-          :data="uploadData"
+          :http-request="handleUploadRequest"
           :before-upload="handleBeforeUpload"
           :on-success="handleUploadSuccess"
           :on-remove="handleRemove"

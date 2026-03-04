@@ -12,17 +12,17 @@ import Add from "~icons/ep/plus";
 import Delete from "~icons/ep/delete";
 import { addDialog } from "@/components/ReDialog";
 import {
-  formatToken,
-  getFileMd5,
   getImageWH,
-  getToken,
   message,
   StaticImageTypeEnum,
   BaseImagePath,
-  BaseStaticUploadPath
+  getFileContentMd5
 } from "@/utils";
 import { logger } from "@/utils/logger";
 import { setUploadedImages } from "@/views/business/tire/store";
+import { validateFile, type FileTypeConfig } from "@/composables/useFileValidation";
+import { checkStaticImageApi, uploadStaticImageApi } from "@/api/static";
+import type { UploadRequestOptions } from "element-plus";
 import {
   getAllUnitsApi,
   createUnitConversionApi,
@@ -163,15 +163,28 @@ function getRef() {
   return ruleFormRef.value;
 }
 
-const Authorization = ref("");
+const imageConfig: FileTypeConfig = {
+  mimeTypes: [
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/gif",
+    "image/webp",
+    "image/bmp"
+  ],
+  extensions: /\.(png|jpg|jpeg|gif|webp|bmp)$/i,
+  maxSize: 10 * 1024 * 1024,
+  errorMessages: {
+    invalidType: "仅支持 png、jpg、jpeg、gif、webp、bmp 格式图片",
+    tooLarge: "单张图片大小不能超过 10MB"
+  }
+};
 
-function getAuthorization() {
-  const token = getToken();
-  if (!token?.accessToken) return;
-  Authorization.value = formatToken(token.accessToken);
+function parseExtFromFilename(filename: string) {
+  const clean = String(filename || "");
+  const idx = clean.lastIndexOf(".");
+  return idx >= 0 ? clean.slice(idx + 1).toLowerCase() : "";
 }
-
-const uploadData = ref();
 
 async function handleSuccess(
   response: unknown,
@@ -197,22 +210,71 @@ async function handleSuccess(
   await setUploadedImages(params);
 }
 
-const onBeforeUpload = async (file: File) => {
-  const { name, size, type, lastModified } = file;
-  const hash = getFileMd5(lastModified, size);
-  const [filename, ext] = name.split(".");
-  const { width, height } = await getImageWH(file);
-  uploadData.value = {
-    hash,
-    ext,
-    filename,
-    size,
-    mimetype: type,
-    width,
-    height,
-    lastModified,
-    type: StaticImageTypeEnum.COVER
+const onBeforeUpload = (file: File) => {
+  const result = validateFile(file, imageConfig, true);
+  return result.valid;
+};
+
+const handleUploadRequest = async (options: UploadRequestOptions) => {
+  const toUploadAjaxError = (err: unknown) => {
+    const base = err instanceof Error ? err : new Error(String(err));
+    const e = base as Error & {
+      status: number;
+      method: string;
+      url: string;
+      name: string;
+    };
+    e.name = "UploadAjaxError";
+    e.status = 0;
+    e.method = options.method;
+    e.url = options.action;
+    return e;
   };
+
+  const file = options.file as File;
+  try {
+    const hash = await getFileContentMd5(file);
+
+    try {
+      const { code, data } = await checkStaticImageApi(hash);
+      if (code === 200 && data) {
+        options.onSuccess?.({ code: 200, data });
+        return;
+      }
+    } catch {
+      // ignore and fallback to normal upload
+    }
+
+    const ext = parseExtFromFilename(file.name);
+    const { width, height } = await getImageWH(file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("filename", file.name);
+    formData.append("ext", ext);
+    formData.append("hash", hash);
+    formData.append("mimetype", file.type);
+    formData.append("size", String(file.size));
+    formData.append("width", String(width));
+    formData.append("height", String(height));
+    formData.append("lastModified", String(file.lastModified));
+    formData.append("type", String(StaticImageTypeEnum.COVER));
+
+    const res = await uploadStaticImageApi(formData, progress => {
+      options.onProgress?.({ percent: progress } as any);
+    });
+
+    if (res.code !== 200 || !res.data) {
+      const msg = res.msg || "上传失败";
+      message(msg, { type: "error" });
+      options.onError?.(toUploadAjaxError(msg));
+      return;
+    }
+
+    options.onSuccess?.(res);
+  } catch (e) {
+    options.onError?.(toUploadAjaxError(e));
+  }
 };
 
 // 加载单位列表
@@ -296,7 +358,6 @@ const availableUnits = computed(() => {
 defineExpose({ getRef });
 
 onMounted(() => {
-  getAuthorization();
   loadUnits();
 });
 
@@ -362,16 +423,14 @@ watch(
         <el-upload
           v-model="newFormInline.covers"
           :before-upload="onBeforeUpload"
+          :http-request="handleUploadRequest"
           :on-success="
             (response, file, fileList) => {
               return handleSuccess(response, file, fileList);
             }
           "
-          :data="uploadData"
           class="cover-uploader"
           drag
-          :action="BaseStaticUploadPath"
-          :headers="{ Authorization }"
         >
           <IconifyIconOffline :icon="Add" class="m-auto mt-4" />
         </el-upload>
