@@ -18,9 +18,13 @@ import {
   BaseImagePath,
   getFileContentMd5
 } from "@/utils";
+import { toUploadProgressEvent } from "@/utils/uploadProgress";
 import { logger } from "@/utils/logger";
 import { setUploadedImages } from "@/views/business/tire/store";
-import { validateFile, type FileTypeConfig } from "@/composables/useFileValidation";
+import {
+  validateFile,
+  type FileTypeConfig
+} from "@/composables/useFileValidation";
 import { checkStaticImageApi, uploadStaticImageApi } from "@/api/static";
 import type { UploadRequestOptions } from "element-plus";
 import {
@@ -261,7 +265,7 @@ const handleUploadRequest = async (options: UploadRequestOptions) => {
     formData.append("type", String(StaticImageTypeEnum.COVER));
 
     const res = await uploadStaticImageApi(formData, progress => {
-      options.onProgress?.({ percent: progress } as any);
+      options.onProgress?.(toUploadProgressEvent(progress));
     });
 
     if (res.code !== 200 || !res.data) {

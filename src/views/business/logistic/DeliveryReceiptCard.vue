@@ -7,7 +7,11 @@ import {
   StaticImageTypeEnum,
   getFileContentMd5
 } from "@/utils";
-import { validateFile, type FileTypeConfig } from "@/composables/useFileValidation";
+import { toUploadProgressEvent } from "@/utils/uploadProgress";
+import {
+  validateFile,
+  type FileTypeConfig
+} from "@/composables/useFileValidation";
 import { checkStaticImageApi, uploadStaticImageApi } from "@/api/static";
 import type { UploadRequestOptions, UploadUserFile } from "element-plus";
 
@@ -120,7 +124,7 @@ const handleUploadRequest = async (options: UploadRequestOptions) => {
     formData.append("type", String(StaticImageTypeEnum.COVER));
 
     const res = await uploadStaticImageApi(formData, progress => {
-      options.onProgress?.({ percent: progress } as any);
+      options.onProgress?.(toUploadProgressEvent(progress));
     });
 
     if (res.code !== 200 || !res.data) {
@@ -193,7 +197,6 @@ function resetForm() {
   fileList.value = [];
   formRef.value?.clearValidate();
 }
-
 </script>
 
 <template>

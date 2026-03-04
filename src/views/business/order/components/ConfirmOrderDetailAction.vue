@@ -84,13 +84,9 @@ const rules: FormRules = {
           return callback(new Error("过期日期格式不正确"));
         const p = form.value.productionDate
           ? new Date(form.value.productionDate).getTime()
-          : undefined;
+          : Number.NaN;
         const e = new Date(s).getTime();
-        if (
-          Number.isFinite(p as any) &&
-          Number.isFinite(e) &&
-          (p as number) > e
-        )
+        if (Number.isFinite(p) && Number.isFinite(e) && p > e)
           return callback(new Error("过期日期不能早于生产日期"));
         callback();
       }

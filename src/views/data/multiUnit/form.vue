@@ -41,10 +41,14 @@ const rules: FormRules = {
         if (baseUnitUid && !/^[0-9a-f-]{36}$/i.test(baseUnitUid))
           return callback(new Error("基本单位不合法"));
 
-        const list = Array.isArray(value) ? (value as any[]) : [];
+        const list = Array.isArray(value) ? (value as unknown[]) : [];
         const used = new Set<string>();
         for (const conv of list) {
-          const unitUid = String(conv?.unitUid || "").trim();
+          if (!conv || typeof conv !== "object")
+            return callback(new Error("换算单位数据不合法"));
+
+          const item = conv as Record<string, unknown>;
+          const unitUid = String(item.unitUid || "").trim();
           if (!unitUid) return callback(new Error("请选择换算单位"));
           if (baseUnitUid && unitUid === baseUnitUid)
             return callback(new Error("换算单位不能与基本单位相同"));
@@ -59,7 +63,7 @@ const rules: FormRules = {
             return callback(new Error("换算单位不合法"));
 
           const ratio =
-            typeof conv?.ratio === "number" ? conv.ratio : Number(conv?.ratio);
+            typeof item.ratio === "number" ? item.ratio : Number(item.ratio);
           if (!Number.isFinite(ratio) || ratio < 0.0001)
             return callback(new Error("换算比例需不小于 0.0001"));
         }
