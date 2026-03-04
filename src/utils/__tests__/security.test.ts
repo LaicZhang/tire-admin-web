@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { getMD5, getFileMd5, getUsernameOfOnlyNumber } from "../security";
+import {
+  getMD5,
+  getFileMd5,
+  getFileContentMd5,
+  getUsernameOfOnlyNumber
+} from "../security";
 
 // Mock formatTimeOnlyNumber
 vi.mock("@/utils/time", () => ({
@@ -72,6 +77,14 @@ describe("security utils", () => {
       const result = getFileMd5(0, 0);
       expect(typeof result).toBe("string");
       expect(result.length).toBe(32);
+    });
+  });
+
+  describe("getFileContentMd5", () => {
+    it("should generate md5 from file content", async () => {
+      const file = new File(["test"], "test.png", { type: "image/png" });
+      const result = await getFileContentMd5(file);
+      expect(result).toBe("098f6bcd4621d373cade4e832627b4f6");
     });
   });
 
