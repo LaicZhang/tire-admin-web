@@ -1,4 +1,7 @@
 /dist/*
 /public/*
 public/*
+/playwright-report/*
+/playwright-report-uni-mini/*
+/test-results/*
 src/style/reset.scss

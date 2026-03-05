@@ -16,6 +16,7 @@ tests/**/coverage/
 
 # Playwright
 /playwright-report/
+/playwright-report-uni-mini/
 /playwright/.cache/
 /test-results/
 
