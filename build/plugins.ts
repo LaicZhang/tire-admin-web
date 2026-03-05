@@ -37,7 +37,7 @@ export function getPluginsList(
     Components({
       resolvers: [ElementPlusResolver()],
       dirs: [], // 禁用自动扫描 src/components，避免与项目自定义组件冲突
-      dts: "types/components.d.ts"
+      dts: mode === "e2e" ? false : "types/components.d.ts"
     }),
     // jsx、tsx语法支持
     vueJsx(),
