@@ -24,8 +24,12 @@ export interface MenuDto {
   frameSrc?: string;
   /** 路由重定向 */
   redirect?: string;
+  /** 角色约束（后端 Menu.roles 字段，字符串） */
+  roles?: string;
   /** 是否显示 */
   showLink?: boolean;
+  /** 后端字段：是否显示 */
+  isShow?: boolean;
   /** 是否缓存 */
   keepAlive?: boolean;
   /** 是否隐藏 */
@@ -51,34 +55,72 @@ export interface MenuItem extends MenuDto {
   children?: MenuItem[];
 }
 
+function toBackendMenuDto(input: MenuDto): Record<string, unknown> {
+  return {
+    code: input.code,
+    parentId: input.parentId,
+    name: input.name,
+    title: input.title,
+    path: input.path,
+    icon: input.icon,
+    component: input.component,
+    rank: input.rank,
+    redirect: input.redirect,
+    frameSrc: input.frameSrc,
+    auths: input.auths,
+    isShow: input.showLink ?? input.isShow,
+    roles: input.roles
+  };
+}
+
+function normalizeMenuItem(item: MenuItem): MenuItem {
+  const isShow = item.isShow ?? item.showLink;
+  return {
+    ...item,
+    showLink: typeof isShow === "boolean" ? isShow : item.showLink
+  };
+}
+
 export async function getMenuListApi(params?: Record<string, unknown>) {
-  return await http.request<CommonResult<MenuItem[]>>(
+  const res = await http.request<CommonResult<MenuItem[]>>(
     "get",
     baseUrlApi(`${prefix}/list`),
     {
       params
     }
   );
+  return {
+    ...res,
+    data: Array.isArray(res.data) ? res.data.map(normalizeMenuItem) : res.data
+  };
 }
 
 export async function createMenuApi(data: MenuDto) {
-  return await http.request<CommonResult<MenuItem>>(
+  const res = await http.request<CommonResult<MenuItem>>(
     "post",
     baseUrlApi(prefix),
     {
-      data
+      data: toBackendMenuDto(data)
     }
   );
+  return {
+    ...res,
+    data: res.data ? normalizeMenuItem(res.data) : res.data
+  };
 }
 
 export async function updateMenuApi(uid: string, data: Partial<MenuDto>) {
-  return await http.request<CommonResult<MenuItem>>(
+  const res = await http.request<CommonResult<MenuItem>>(
     "patch",
     baseUrlApi(`${prefix}/${uid}`),
     {
-      data
+      data: toBackendMenuDto(data)
     }
   );
+  return {
+    ...res,
+    data: res.data ? normalizeMenuItem(res.data) : res.data
+  };
 }
 
 export async function deleteMenuApi(uid: string) {
@@ -89,8 +131,12 @@ export async function deleteMenuApi(uid: string) {
 }
 
 export async function restoreMenuApi(uid: string) {
-  return await http.request<CommonResult<MenuItem>>(
+  const res = await http.request<CommonResult<MenuItem>>(
     "post",
     baseUrlApi(`${prefix}/${uid}/restore`)
   );
+  return {
+    ...res,
+    data: res.data ? normalizeMenuItem(res.data) : res.data
+  };
 }
