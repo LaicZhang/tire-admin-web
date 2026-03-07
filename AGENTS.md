@@ -19,7 +19,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
   available.
 - Prefer `rtk` for `git`, file reads, search, tests, and build commands.
 - Use `rtk git status|diff|log|add|commit|branch|fetch|pull|push` when supported.
-- Use `rtk read <file>`, `rtk ls`, `rtk grep <pattern>`, and `rtk pnpm|npm|yarn|pytest|cargo|go ...` when
+- Use `rtk read <file>`, `rtk grep <pattern>`, and `rtk pnpm|npm|lint|pytest|gh|cargo|ls| playwright |go ...` when
   supported.
 - If RTK output is sufficient, do not rerun the same command in raw form.
 - If RTK references a full-output file, read that file instead of rerunning the command when possible.
@@ -38,12 +38,6 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 - Runtime environment: Node 20.19+ / 22.13+ / 24+, pnpm ≥ 10 (enforced by only-allow)
 - Package management: `pnpm` (required)
 - Production deployment: Static site (can be deployed via Docker + Nginx, Vercel, object storage/cloud hosting, etc.), HTML5 History rewritten to `index.html` via `vercel.json`
-
-Reference files:
-
-- package.json:1
-- vite.config.ts:1
-- vercel.json:1
 
 ---
 
@@ -89,13 +83,6 @@ Reference files:
 
 - 常见字段示例：
   - `Title`、`Layout`、`Theme`、`DarkMode`、`EpThemeColor`、`ResponsiveStorageNameSpace` 等
-
-参考文件：
-
-- src/main.ts:1
-- src/config/index.ts:1
-- public/platform-config.json:1
-- types/global.d.ts:1
 
 ---
 
