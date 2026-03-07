@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { getCurrentScope, onScopeDispose, ref } from "vue";
 import { generateBarcodeApi, scanBarcodeApi } from "@/api/tools";
 import { message } from "@/utils/message";
 import { downloadFromUrl } from "@/utils/download";
@@ -22,6 +22,7 @@ export function useIoBarcode() {
   const scanCode = ref("");
   const scanResult = ref<BarcodeProduct | null>(null);
   const barcodeLoading = ref(false);
+  let currentObjectUrl: string | null = null;
 
   const barcodeTypeOptions: Array<{
     label: string;
@@ -31,20 +32,38 @@ export function useIoBarcode() {
     { label: "二维码 (QRCode)", value: "qrcode" }
   ];
 
+  function revokeBarcodeImage() {
+    if (!currentObjectUrl) return;
+    window.URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = null;
+  }
+
   async function generateBarcode() {
-    if (!barcodeForm.value.code) {
+    const code = String(barcodeForm.value.code || "").trim();
+    if (!code) {
       message("请输入条码内容", { type: "warning" });
       return;
     }
+    if (code.length > 200) {
+      message("条码内容最多 200 个字符", { type: "warning" });
+      return;
+    }
+    if (!["code128", "qrcode"].includes(barcodeForm.value.type)) {
+      message("条码类型不合法", { type: "warning" });
+      return;
+    }
+
     barcodeLoading.value = true;
     try {
       const blob = await generateBarcodeApi({
-        code: barcodeForm.value.code,
+        code,
         type: barcodeForm.value.type,
         width: barcodeForm.value.width,
         height: barcodeForm.value.height
       });
-      barcodeImage.value = window.URL.createObjectURL(blob);
+      revokeBarcodeImage();
+      currentObjectUrl = window.URL.createObjectURL(blob);
+      barcodeImage.value = currentObjectUrl;
       message("条码生成成功", { type: "success" });
     } catch {
       message("条码生成失败", { type: "error" });
@@ -62,13 +81,19 @@ export function useIoBarcode() {
   }
 
   async function handleScan() {
-    if (!scanCode.value) {
+    const barcode = String(scanCode.value || "").trim();
+    if (!barcode) {
       message("请输入条码", { type: "warning" });
       return;
     }
+    if (barcode.length > 200) {
+      message("条码最多 200 个字符", { type: "warning" });
+      return;
+    }
+
     barcodeLoading.value = true;
     try {
-      const { data, code, msg } = await scanBarcodeApi(scanCode.value);
+      const { data, code, msg } = await scanBarcodeApi(barcode);
       if (code === 200) {
         scanResult.value = data;
         message("查询成功", { type: "success" });
@@ -84,6 +109,12 @@ export function useIoBarcode() {
     }
   }
 
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      revokeBarcodeImage();
+    });
+  }
+
   return {
     barcodeForm,
     barcodeImage,
@@ -93,6 +124,7 @@ export function useIoBarcode() {
     barcodeTypeOptions,
     generateBarcode,
     downloadBarcode,
-    handleScan
+    handleScan,
+    revokeBarcodeImage
   };
 }

@@ -6,15 +6,17 @@ import UploadIcon from "~icons/ri/upload-cloud-2-line";
 import DownloadIcon from "~icons/ri/download-cloud-2-line";
 import DeleteIcon from "~icons/ep/delete";
 import { message } from "@/utils";
-import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
-import DeleteButton from "@/components/DeleteButton/index.vue";
 import {
-  createUploadValidator,
-  FileTypePresets
-} from "@/composables/useFileValidation";
+  downloadBlob,
+  downloadFromUrl,
+  generateFilenameWithTimestamp
+} from "@/utils/download";
+import DeleteButton from "@/components/DeleteButton/index.vue";
+import { FileTypePresets } from "@/composables/useFileValidation";
+import { useImportExportTask } from "@/composables/useImportExport";
 import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
-import type { ImportExportTask, ModuleOption } from "./types";
+import type { ImportExportTask, ModuleOption } from "@/types/importExport";
 import {
   downloadImportTemplateApi,
   exportDataApi,
@@ -36,39 +38,8 @@ const loading = ref(false);
 const uploadRef = ref();
 const selectedModule = ref("tire");
 const exportModule = ref("tire");
-const taskList = ref<ImportExportTask[]>([]);
-
-const TASK_STORAGE_KEY = "data:import-export:tasks";
-
-const readTasks = (): ImportExportTask[] => {
-  try {
-    const raw = localStorage.getItem(TASK_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as ImportExportTask[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const writeTasks = (tasks: ImportExportTask[]) => {
-  localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
-};
-
-const pushTask = (task: ImportExportTask) => {
-  const tasks = readTasks();
-  tasks.unshift(task);
-  writeTasks(tasks.slice(0, 200));
-  taskList.value = tasks;
-};
-
-const nowText = () => {
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-};
+const { taskList, pushTask, deleteTask, loadTasks, nowText } =
+  useImportExportTask();
 
 const toToolType = (module: string): string | null => {
   const map: Record<string, string> = {
@@ -80,8 +51,7 @@ const toToolType = (module: string): string | null => {
   return map[module] ?? null;
 };
 
-// 模块选项
-const moduleOptions: ModuleOption[] = [
+const allModuleOptions: ModuleOption[] = [
   { label: "商品", value: "tire", templateUrl: "/templates/tire.xlsx" },
   { label: "客户", value: "customer", templateUrl: "/templates/customer.xlsx" },
   {
@@ -107,6 +77,10 @@ const moduleOptions: ModuleOption[] = [
     templateUrl: "/templates/supplier-balance.xlsx"
   }
 ];
+
+const moduleOptions = computed(() =>
+  allModuleOptions.filter(item => toToolType(item.value) !== null)
+);
 
 // 导出字段配置
 type ExportField = { name: string; label: string; selected: boolean };
@@ -148,15 +122,10 @@ const taskStatusMap = {
 const getTaskList = async () => {
   loading.value = true;
   try {
-    taskList.value = readTasks();
+    loadTasks();
   } finally {
     loading.value = false;
   }
-};
-
-const getModuleLabel = (module: string) => {
-  const item = moduleOptions.find(m => m.value === module);
-  return item?.label || module;
 };
 
 // 下载模板
@@ -288,14 +257,16 @@ const handleExport = () => {
 
 // 下载导出文件
 const handleDownload = (row: ImportExportTask) => {
-  message("该任务无可下载文件", { type: "warning" });
+  if (!row.downloadUrl) {
+    message("该任务无可下载文件", { type: "warning" });
+    return;
+  }
+  downloadFromUrl(row.downloadUrl, row.fileName || `${row.module}.xlsx`);
 };
 
 // 删除任务
 const handleDelete = async (row: ImportExportTask) => {
-  const tasks = readTasks().filter(t => t.uid !== row.uid);
-  writeTasks(tasks);
-  taskList.value = tasks;
+  deleteTask(row.uid);
   message(`删除任务${row.id}成功`, { type: "success" });
 };
 

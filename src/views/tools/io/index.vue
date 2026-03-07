@@ -4,14 +4,13 @@ import {
   downloadImportTemplateApi,
   downloadExportFileApi,
   getExportTaskStatusApi,
-  generateBarcodeApi,
-  scanBarcodeApi,
   getPrintTemplateApi,
-  savePrintTemplateApi,
-  type BarcodeProduct
+  savePrintTemplateApi
 } from "@/api/tools";
 import { message } from "@/utils/message";
-import { downloadBlob, downloadFromUrl } from "@/utils/download";
+import { downloadBlob } from "@/utils/download";
+import { useIoBarcode } from "@/composables/useIoBarcode";
+import { useExportData } from "@/composables/useImportExport";
 import ImportDialog from "@/components/ImportExport/ImportDialog.vue";
 import ExportDialog from "@/components/ImportExport/ExportDialog.vue";
 
@@ -45,6 +44,9 @@ async function downloadTemplate() {
 
 // 任务查询
 const taskId = ref("");
+const { queryAsyncTaskStatus, downloadAsyncTaskFile } = useExportData(
+  () => templateType.value
+);
 
 async function checkTask() {
   if (!taskId.value) {
@@ -52,21 +54,24 @@ async function checkTask() {
     return;
   }
   try {
-    const { data, code, msg } = await getExportTaskStatusApi(taskId.value);
-    if (code === 200) {
-      if (data.status === "completed") {
-        message("任务已完成，开始下载", { type: "success" });
-        const blob = await downloadExportFileApi(taskId.value);
-        downloadBlob(blob, `export_${taskId.value}.xlsx`);
-      } else if (data.status === "processing") {
-        message("任务处理中，请稍后再试", { type: "info" });
-      } else if (data.status === "failed") {
-        message("任务失败: " + (data.error || "未知错误"), { type: "error" });
-      } else {
-        message(`任务状态: ${data.status}`, { type: "info" });
-      }
+    const status = await queryAsyncTaskStatus(
+      getExportTaskStatusApi,
+      taskId.value
+    );
+    if (status === "completed") {
+      message("任务已完成，开始下载", { type: "success" });
+      await downloadAsyncTaskFile(
+        downloadExportFileApi,
+        taskId.value,
+        `export_${taskId.value}`
+      );
+    } else if (status === "processing" || status === "pending") {
+      message("任务处理中，请稍后再试", { type: "info" });
+    } else if (status === "failed") {
+      const { data } = await getExportTaskStatusApi(taskId.value);
+      message(`任务失败: ${data?.error || "未知错误"}`, { type: "error" });
     } else {
-      message(msg || "查询失败", { type: "error" });
+      message(`任务状态: ${status || "未知"}`, { type: "info" });
     }
   } catch {
     message("查询失败", { type: "error" });
@@ -74,85 +79,17 @@ async function checkTask() {
 }
 
 // 条码服务
-const barcodeForm = ref({
-  code: "",
-  type: "code128" as "code128" | "qrcode",
-  width: 200,
-  height: 100
-});
-const barcodeImage = ref<string | null>(null);
-const scanCode = ref("");
-const scanResult = ref<BarcodeProduct | null>(null);
-const barcodeLoading = ref(false);
-
-const barcodeTypeOptions = [
-  { label: "一维码 (Code128)", value: "code128" },
-  { label: "二维码 (QRCode)", value: "qrcode" }
-];
-
-async function generateBarcode() {
-  const code = String(barcodeForm.value.code || "").trim();
-  if (!code) {
-    message("请输入条码内容", { type: "warning" });
-    return;
-  }
-  if (code.length > 200) {
-    message("条码内容最多 200 个字符", { type: "warning" });
-    return;
-  }
-  if (!["code128", "qrcode"].includes(barcodeForm.value.type)) {
-    message("条码类型不合法", { type: "warning" });
-    return;
-  }
-  barcodeLoading.value = true;
-  try {
-    const blob = await generateBarcodeApi({
-      code,
-      type: barcodeForm.value.type,
-      width: barcodeForm.value.width,
-      height: barcodeForm.value.height
-    });
-    barcodeImage.value = window.URL.createObjectURL(blob);
-    message("条码生成成功", { type: "success" });
-  } catch {
-    message("条码生成失败", { type: "error" });
-  } finally {
-    barcodeLoading.value = false;
-  }
-}
-
-function downloadBarcode() {
-  if (!barcodeImage.value) return;
-  downloadFromUrl(barcodeImage.value, `barcode_${barcodeForm.value.code}.png`);
-}
-
-async function handleScan() {
-  const barcode = String(scanCode.value || "").trim();
-  if (!barcode) {
-    message("请输入条码", { type: "warning" });
-    return;
-  }
-  if (barcode.length > 200) {
-    message("条码最多 200 个字符", { type: "warning" });
-    return;
-  }
-  barcodeLoading.value = true;
-  try {
-    const { data, code: statusCode, msg } = await scanBarcodeApi(barcode);
-    if (statusCode === 200) {
-      scanResult.value = data;
-      message("查询成功", { type: "success" });
-    } else {
-      message(msg || "查询失败", { type: "error" });
-      scanResult.value = null;
-    }
-  } catch {
-    message("查询失败", { type: "error" });
-    scanResult.value = null;
-  } finally {
-    barcodeLoading.value = false;
-  }
-}
+const {
+  barcodeForm,
+  barcodeImage,
+  scanCode,
+  scanResult,
+  barcodeLoading,
+  barcodeTypeOptions,
+  generateBarcode,
+  downloadBarcode,
+  handleScan
+} = useIoBarcode();
 
 // 打印服务
 const printType = ref("sale-order");

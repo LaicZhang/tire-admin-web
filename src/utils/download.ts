@@ -81,7 +81,6 @@ export async function downloadFromRequest(
   options?: {
     addTimestamp?: boolean;
     showMessage?: boolean;
-    onProgress?: (progress: number) => void;
   }
 ): Promise<void> {
   try {

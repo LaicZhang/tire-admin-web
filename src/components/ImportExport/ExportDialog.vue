@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { message } from "@/utils";
-import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
+import { useExportData } from "@/composables/useImportExport";
 import {
   exportDataApi,
   createAsyncExportTaskApi,
@@ -33,116 +33,49 @@ const dialogVisible = computed({
   set: value => emit("update:visible", value)
 });
 
-const loading = ref(false);
 const exportMode = ref<"sync" | "async">("sync");
-const asyncTaskId = ref<string | null>(null);
-const taskStatus = ref<string | null>(null);
-const checkInterval = ref<number | null>(null);
+const {
+  loading,
+  asyncTaskId,
+  taskStatus,
+  handleSyncExport: runSyncExport,
+  handleAsyncExport: runAsyncExport,
+  stopPolling,
+  resetAsyncState
+} = useExportData(() => props.type);
 
 async function handleSyncExport() {
-  loading.value = true;
   try {
-    const blob = await exportDataApi(props.type, {
+    await runSyncExport(exportDataApi, {
       ids: props.selectedIds.length > 0 ? props.selectedIds : undefined,
       filters: props.filters
     });
-
-    downloadBlob(
-      blob,
-      generateFilenameWithTimestamp(`${props.type}_export`, "xlsx"),
-      {
-        showMessage: true
-      }
-    );
 
     emit("success");
     dialogVisible.value = false;
   } catch {
     message("导出失败", { type: "error" });
-  } finally {
-    loading.value = false;
   }
 }
 
 async function handleAsyncExport() {
-  loading.value = true;
   try {
-    const { data, code, msg } = await createAsyncExportTaskApi(props.type, {
-      filters: props.filters
-    });
-
-    if (code === 200 && data?.taskId) {
-      asyncTaskId.value = data.taskId;
-      taskStatus.value = "processing";
-      message("导出任务已创建，正在处理中...", { type: "info" });
-      startCheckTask();
-    } else {
-      message(msg || "创建导出任务失败", { type: "error" });
-    }
-  } catch {
-    message("创建导出任务失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-}
-
-function startCheckTask() {
-  if (checkInterval.value) {
-    clearInterval(checkInterval.value);
-  }
-
-  checkInterval.value = window.setInterval(async () => {
-    if (!asyncTaskId.value) return;
-
-    try {
-      const { data, code } = await getExportTaskStatusApi(asyncTaskId.value);
-
-      if (code === 200) {
-        taskStatus.value = data?.status;
-
-        if (data?.status === "completed") {
-          stopCheckTask();
-          await downloadAsyncFile();
-        } else if (data?.status === "failed") {
-          stopCheckTask();
-          message("导出任务失败", { type: "error" });
+    await runAsyncExport(
+      createAsyncExportTaskApi,
+      getExportTaskStatusApi,
+      downloadExportFileApi,
+      {
+        filters: props.filters,
+        ids: props.selectedIds.length > 0 ? props.selectedIds : undefined
+      },
+      status => {
+        if (status === "completed") {
+          emit("success");
         }
       }
-    } catch {
-      stopCheckTask();
-    }
-  }, 3000);
-}
-
-function stopCheckTask() {
-  if (checkInterval.value) {
-    clearInterval(checkInterval.value);
-    checkInterval.value = null;
-  }
-}
-
-async function downloadAsyncFile() {
-  if (!asyncTaskId.value) return;
-
-  loading.value = true;
-  try {
-    const blob = await downloadExportFileApi(asyncTaskId.value);
-
-    downloadBlob(
-      blob,
-      generateFilenameWithTimestamp(`${props.type}_export`, "xlsx"),
-      {
-        showMessage: true
-      }
     );
-
-    emit("success");
-    asyncTaskId.value = null;
-    taskStatus.value = null;
   } catch {
-    message("下载失败", { type: "error" });
-  } finally {
-    loading.value = false;
+    message("创建导出任务失败", { type: "error" });
   }
 }
 
@@ -154,16 +87,19 @@ function handleExport() {
   }
 }
 
+function resetDialogState() {
+  stopPolling();
+  resetAsyncState();
+}
+
 function handleClose() {
-  stopCheckTask();
-  asyncTaskId.value = null;
-  taskStatus.value = null;
+  resetDialogState();
   dialogVisible.value = false;
 }
 
 watch(dialogVisible, visible => {
   if (!visible) {
-    stopCheckTask();
+    resetDialogState();
   }
 });
 </script>

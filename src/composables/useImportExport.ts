@@ -3,7 +3,13 @@
  * 统一处理导入导出的通用逻辑，避免重复实现
  */
 
-import { ref } from "vue";
+import {
+  getCurrentScope,
+  onScopeDispose,
+  ref,
+  toValue,
+  type MaybeRefOrGetter
+} from "vue";
 import { message } from "@/utils/message";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import {
@@ -205,8 +211,60 @@ export function useImportFile(type: string) {
 /**
  * 导出数据处理
  */
-export function useExportData(type: string) {
+export function useExportData(type: MaybeRefOrGetter<string>) {
   const loading = ref(false);
+  const asyncTaskId = ref<string | null>(null);
+  const taskStatus = ref<string | null>(null);
+  let checkInterval: number | null = null;
+  let pollCount = 0;
+  const maxPollCount = 40;
+
+  const stopPolling = () => {
+    if (checkInterval) {
+      clearInterval(checkInterval);
+      checkInterval = null;
+    }
+  };
+
+  const resetAsyncState = () => {
+    asyncTaskId.value = null;
+    taskStatus.value = null;
+    pollCount = 0;
+  };
+  const resolveAsyncTaskStatus = (
+    status?: string | null,
+    onProgress?: (status: string) => void
+  ) => {
+    if (!status) return;
+    taskStatus.value = status;
+    onProgress?.(status);
+  };
+
+  const queryAsyncTaskStatus = async (
+    getStatusApi: (taskId: string) => Promise<{ data?: { status: string } }>,
+    taskId: string,
+    onProgress?: (status: string) => void
+  ) => {
+    asyncTaskId.value = taskId;
+    const { data } = await getStatusApi(taskId);
+    resolveAsyncTaskStatus(data?.status, onProgress);
+    return data?.status;
+  };
+
+  const downloadAsyncTaskFile = async (
+    downloadApi: (taskId: string) => Promise<Blob>,
+    taskId: string,
+    fileNamePrefix?: string
+  ) => {
+    const filename = generateFilenameWithTimestamp(
+      fileNamePrefix || `${toValue(type)}_export`,
+      "xlsx"
+    );
+    const blob = await downloadApi(taskId);
+    downloadBlob(blob, filename, {
+      showMessage: true
+    });
+  };
 
   /**
    * 处理同步导出
@@ -217,8 +275,12 @@ export function useExportData(type: string) {
   ): Promise<void> => {
     loading.value = true;
     try {
-      const blob = await exportApi(type, params || {});
-      const filename = generateFilenameWithTimestamp(`${type}_export`, "xlsx");
+      const currentType = toValue(type);
+      const blob = await exportApi(currentType, params || {});
+      const filename = generateFilenameWithTimestamp(
+        `${currentType}_export`,
+        "xlsx"
+      );
       downloadBlob(blob, filename, {
         showMessage: true
       });
@@ -243,60 +305,62 @@ export function useExportData(type: string) {
     onProgress?: (status: string) => void
   ): Promise<void> => {
     loading.value = true;
-    let taskId: string | null = null;
-    let checkInterval: number | null = null;
+    stopPolling();
+    resetAsyncState();
 
     try {
+      const currentType = toValue(type);
       // 创建导出任务
-      const { data } = await createTaskApi(type, params || {});
+      const { data } = await createTaskApi(currentType, params || {});
       if (!data?.taskId) {
         message("创建导出任务失败", { type: "error" });
         return;
       }
 
-      taskId = data.taskId;
+      asyncTaskId.value = data.taskId;
+      taskStatus.value = "processing";
       message("导出任务已创建，正在处理中...", { type: "info" });
       onProgress?.("processing");
 
       // 轮询任务状态
       checkInterval = window.setInterval(async () => {
+        const taskId = asyncTaskId.value;
         if (!taskId) return;
 
+        pollCount += 1;
+        if (pollCount >= maxPollCount) {
+          stopPolling();
+          taskStatus.value = "failed";
+          loading.value = false;
+          message("导出任务轮询超时，请稍后在任务中心查看结果", {
+            type: "warning"
+          });
+          onProgress?.("timeout");
+          return;
+        }
+
         try {
-          const { data: statusData } = await getStatusApi(taskId);
+          const status = await queryAsyncTaskStatus(
+            getStatusApi,
+            taskId,
+            onProgress
+          );
 
-          if (statusData?.status === "completed") {
-            if (checkInterval) {
-              clearInterval(checkInterval);
-              checkInterval = null;
-            }
-
-            // 下载文件
-            const blob = await downloadApi(taskId);
-            const filename = generateFilenameWithTimestamp(
-              `${type}_export`,
-              "xlsx"
+          if (status === "completed") {
+            stopPolling();
+            await downloadAsyncTaskFile(
+              downloadApi,
+              taskId,
+              `${currentType}_export`
             );
-            downloadBlob(blob, filename, {
-              showMessage: true
-            });
-
-            onProgress?.("completed");
             loading.value = false;
-          } else if (statusData?.status === "failed") {
-            if (checkInterval) {
-              clearInterval(checkInterval);
-              checkInterval = null;
-            }
+          } else if (status === "failed") {
+            stopPolling();
             message("导出任务失败", { type: "error" });
-            onProgress?.("failed");
             loading.value = false;
           }
         } catch {
-          if (checkInterval) {
-            clearInterval(checkInterval);
-            checkInterval = null;
-          }
+          stopPolling();
           loading.value = false;
         }
       }, 3000);
@@ -306,10 +370,22 @@ export function useExportData(type: string) {
     }
   };
 
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      stopPolling();
+    });
+  }
+
   return {
     loading,
+    asyncTaskId,
+    taskStatus,
     handleSyncExport,
-    handleAsyncExport
+    handleAsyncExport,
+    queryAsyncTaskStatus,
+    downloadAsyncTaskFile,
+    stopPolling,
+    resetAsyncState
   };
 }
 

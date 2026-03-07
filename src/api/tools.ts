@@ -200,11 +200,12 @@ export async function exportDataApi(
 /** 创建异步导出任务 */
 export async function createAsyncExportTaskApi(
   type: string,
-  data: { filters?: object; fields?: string[] }
+  data: { filters?: object; fields?: string[]; ids?: string[] }
 ) {
   const filter = JSON.stringify({
     ...(data.filters ? { filters: data.filters } : {}),
-    ...(data.fields ? { fields: data.fields } : {})
+    ...(data.fields ? { fields: data.fields } : {}),
+    ...(data.ids ? { ids: data.ids } : {})
   });
   const res = await http.request<
     CommonResult<{
