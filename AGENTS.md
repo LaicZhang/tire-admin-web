@@ -4,7 +4,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 
 ---
 
-## 0. Code Design
+## Development Principles
 
 - I will use codex or claude code to review the result
 - Do not over-design, follow the KISS principle and lightweight principle
@@ -12,6 +12,20 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 - Prioritize reusing existing code to avoid duplicate development
 - Do not add too much content in one file, keep the file concise
 - Pre-implementation confidence assessment (≥90% required). Use before starting any implementation to verify readiness with duplicate check, architecture compliance, official docs verification, OSS references, and root cause identification
+
+## RTK Policy
+
+- Use `rtk` first for any supported command; do not use the raw command when an equivalent RTK form is
+  available.
+- Prefer `rtk` for `git`, file reads, search, tests, and build commands.
+- Use `rtk git status|diff|log|add|commit|branch|fetch|pull|push` when supported.
+- Use `rtk read <file>`, `rtk ls`, `rtk grep <pattern>`, and `rtk pnpm|npm|yarn|pytest|cargo|go ...` when
+  supported.
+- If RTK output is sufficient, do not rerun the same command in raw form.
+- If RTK references a full-output file, read that file instead of rerunning the command when possible.
+- Raw commands are allowed only when RTK is unsupported, unavailable, failing, interactive, or exact stdout/
+  stderr or exact line-based inspection is required.
+- Do not invent RTK syntax or use RTK to bypass safety, sandbox, approval, or repository rules.
 
 ---
 
@@ -63,9 +77,6 @@ Reference files:
 - package.json:1
 - vite.config.ts:13
 - build/optimize.ts:1
-- .husky/pre-commit:1
-- .husky/commit-msg:1
-- .lintstagedrc:1
 
 ---
 
@@ -113,25 +124,6 @@ Reference files:
 - `build/`：Vite 插件列表、CDN/压缩配置、构建信息、依赖预构建 include/exclude、环境变量包装等
 - `types/`：全局类型声明（含 `ViteEnv`、`PlatformConfigs`、`TableColumnList` 等）
 
-参考文件：
-
-- src/router/index.ts:1
-- src/router/modules/auth.ts:1
-- src/router/modules/remaining.ts:1
-- src/router/utils.ts:1
-- src/api/index.ts:1
-- src/utils/http/index.ts:1
-- src/views/business/tire/index.vue:1
-- src/views/business/tire/table.tsx:1
-- src/views/business/customer/columns.ts:1
-- src/components/ReAuth/src/auth.tsx:1
-- src/directives/index.ts:1
-- src/plugins/elementPlus.ts:1
-- src/plugins/echarts.ts:1
-- src/style/index.scss:1
-- build/plugins.ts:1
-- types/global.d.ts:1
-
 ---
 
 ## 5. 代码风格与约束
@@ -172,14 +164,6 @@ Reference files:
 ## 6. 环境变量与构建参数
 
 - `.env.*` 支持并通过 `build/utils.ts` 的 `warpperEnv` 处理到 `import.meta.env`：
-  - `VITE_PORT: number`（默认 8848）
-  - `VITE_PUBLIC_PATH: string`（部署二级路径或 CDN 前缀）
-  - `VITE_ROUTER_HISTORY: string`（`hash` 或 `h5`，可带 base，形如 `hash,/app`）
-  - `VITE_CDN: boolean`（生产是否使用 CDN 外链依赖）
-  - `VITE_HIDE_HOME: 'true' | 'false'`（是否隐藏首页菜单）
-  - `VITE_COMPRESSION: 'none' | 'gzip' | 'brotli' | 'both' | 'gzip-clear' | 'brotli-clear' | 'both-clear'`
-  - `VITE_PROXY_TARGET?: string`（仅 dev server：Vite proxy 的后端地址）
-
 - 开发代理：`/api` → `VITE_PROXY_TARGET`（未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
 - Axios `baseURL` 解析规则：
   - 开发环境：使用相对路径配合 Vite 代理（`/api` → `VITE_PROXY_TARGET`，未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
