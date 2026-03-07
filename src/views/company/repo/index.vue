@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import EditPen from "~icons/ep/edit-pen";
+import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
@@ -26,17 +26,24 @@ defineOptions({
 });
 
 const formRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const tableRef = ref<{
+  getTableRef?: () => { clearSelection?: () => void };
+} | null>(null);
+const selectedRows = ref<Repo[]>([]);
 const form = ref({
   name: undefined,
   desc: undefined,
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all"
 });
 
-const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
-  Repo,
-  CommonResult<PaginatedResponseDto<Repo>>,
-  { page: number }
->({
+const {
+  loading,
+  dataList,
+  pagination,
+  fetchData,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<Repo, CommonResult<PaginatedResponseDto<Repo>>, { page: number }>({
   api: (params: { page: number }) =>
     getRepoListApi(params.page, {
       name: form.value.name || undefined,
@@ -50,7 +57,13 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   immediate: true
 });
 
+const clearSelectedRows = () => {
+  selectedRows.value = [];
+  tableRef.value?.getTableRef?.()?.clearSelection?.();
+};
+
 const handleSearch = () => {
+  clearSelectedRows();
   pagination.value = { ...pagination.value, currentPage: 1 };
   fetchData();
 };
@@ -60,15 +73,47 @@ const resetForm = () => {
   handleSearch();
 };
 
+const handleRefresh = () => {
+  clearSelectedRows();
+  fetchData();
+};
+
+const handleSelectionChange = (rows: Repo[]) => {
+  selectedRows.value = rows;
+};
+
+const handleCurrentChange = (page: number) => {
+  clearSelectedRows();
+  onCurrentChange(page);
+};
+
+const handleSizeChange = (pageSize: number) => {
+  clearSelectedRows();
+  onSizeChange(pageSize);
+};
+
+async function handleBatchDelete() {
+  for (const row of selectedRows.value) {
+    await deleteRepoApi(row.uid);
+  }
+  message(`已批量删除${selectedRows.value.length}个仓库`, {
+    type: "success"
+  });
+  clearSelectedRows();
+  fetchData();
+}
+
 async function handleDelete(row: Repo) {
   await deleteRepoApi(row.uid);
   message(`您删除了${row.name}这条数据`, { type: "success" });
+  clearSelectedRows();
   fetchData();
 }
 
 async function handleRestore(row: Repo) {
   await restoreRepoApi(row.uid);
   message(`已恢复仓库「${row.name}」`, { type: "success" });
+  clearSelectedRows();
   fetchData();
 }
 
@@ -80,12 +125,14 @@ async function handleToggleRepo(row: Repo) {
     await startRepoApi(row.uid);
     message(`已启用仓库「${row.name}」`, { type: "success" });
   }
+  clearSelectedRows();
   fetchData();
 }
 
 async function handleSetDefault(row: Repo) {
   await setDefaultRepoApi(row.uid);
   message(`已将「${row.name}」设为默认仓库`, { type: "success" });
+  clearSelectedRows();
   fetchData();
 }
 </script>
@@ -127,7 +174,7 @@ async function handleSetDefault(row: Repo) {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
+      <PureTableBar :title="$route.meta.title" @refresh="handleRefresh">
         <template #buttons>
           <el-button
             type="primary"
@@ -136,10 +183,19 @@ async function handleSetDefault(row: Repo) {
           >
             新增仓库
           </el-button>
+          <el-button
+            type="danger"
+            :icon="useRenderIcon(Delete)"
+            :disabled="form.scope !== 'nonDeleted' || selectedRows.length === 0"
+            @click="handleBatchDelete"
+          >
+            批量删除
+          </el-button>
         </template>
         <template v-slot="{ size }">
           <pure-table
-            row-key="id"
+            ref="tableRef"
+            row-key="uid"
             adaptive
             :size
             :columns
@@ -147,7 +203,9 @@ async function handleSetDefault(row: Repo) {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="onCurrentChange"
+            @selection-change="handleSelectionChange"
+            @page-size-change="handleSizeChange"
+            @page-current-change="handleCurrentChange"
           >
             <template #operation="{ row }">
               <el-button

@@ -54,6 +54,13 @@ interface OrderDetail {
   expiryDate?: string;
 }
 
+type OrderFormModel = OrderFormData & {
+  count: number;
+  total: number;
+  showTotal: number;
+  details: OrderDetail[];
+};
+
 type OrderFormProps = {
   formInline?: OrderFormData;
 };
@@ -87,10 +94,10 @@ const props = withDefaults(defineProps<OrderFormProps>(), {
       fee: 0,
       isReceive: false,
       details: [] as OrderDetail[]
-    }) as unknown as OrderFormData
+    }) as OrderFormModel
 });
 
-const newFormInline = ref<OrderFormData>(props.formInline as OrderFormData);
+const newFormInline = ref<OrderFormModel>(props.formInline as OrderFormModel);
 const formTitle = ref("新增");
 function getRef() {
   return ruleFormRef.value;
@@ -112,6 +119,13 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function getDetails(): OrderDetail[] {
+  if (!Array.isArray(newFormInline.value.details)) {
+    newFormInline.value.details = [];
+  }
+  return newFormInline.value.details;
+}
+
 function makeDetailsRule() {
   return [
     {
@@ -121,11 +135,9 @@ function makeDetailsRule() {
         _value: unknown,
         callback: (error?: Error) => void
       ) => {
-        const details = (
-          newFormInline.value as unknown as { details?: unknown[] }
-        ).details;
+        const details = getDetails();
         const requiresRepo = (detailsColumns.value || []).some(
-          c => (c as unknown as { prop?: string }).prop === "repoId"
+          c => asRecord(c).prop === "repoId"
         );
         if (!Array.isArray(details) || details.length === 0) {
           return callback(new Error("请至少添加 1 行明细"));
@@ -203,11 +215,7 @@ async function getFormTitle() {
 }
 
 function onAdd(item?: ListItem) {
-  if (!("details" in newFormInline.value) || !newFormInline.value.details) {
-    (newFormInline.value as unknown as { details: OrderDetail[] }).details = [];
-  }
-  const details = (newFormInline.value as unknown as { details: OrderDetail[] })
-    .details;
+  const details = getDetails();
   details.push({
     index: details.length + 1,
     count: item ? 1 : 0,
@@ -220,7 +228,7 @@ function onAdd(item?: ListItem) {
   }
 }
 function onDel(row: OrderDetail) {
-  const details = newFormInline.value.details as OrderDetail[];
+  const details = getDetails();
   const index = details.indexOf(row);
   if (index !== -1) details.splice(index, 1);
   newFormInline.value.count = newFormInline.value.count - row.count;
@@ -283,9 +291,7 @@ async function handleScan() {
         message("条码商品缺少 uid，无法添加到明细", { type: "warning" });
         return;
       }
-      const formDetails = (
-        newFormInline.value as unknown as { details: OrderDetail[] }
-      ).details;
+      const formDetails = getDetails();
       const existing = formDetails.find(
         d => !!d.tireId && d.tireId === data.uid
       );
@@ -531,7 +537,7 @@ onMounted(async () => {
         adaptive
         :columns="detailsColumns"
         border
-        :data="(newFormInline as unknown as { details: OrderDetail[] }).details"
+        :data="newFormInline.details"
         showOverflowTooltip
       >
         <template #tireIdSelect="{ row }">

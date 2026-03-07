@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "@/utils/constants";
-import { ref, reactive, onMounted, h } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { ElMessageBox } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -10,8 +10,6 @@ import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { addDialog } from "@/components/ReDialog";
-import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";
 import {
@@ -32,14 +30,14 @@ import {
   updateOtherOutboundOrderApi
 } from "@/api/inventory";
 import { handleApiError, message } from "@/utils";
+import { useCrud } from "@/composables";
+import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 
 defineOptions({
   name: "InventoryOtherOutbound"
 });
 
-const dataList = ref<OtherOutboundOrder[]>([]);
-const loading = ref(false);
 const { confirm } = useConfirmDialog();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{
@@ -53,11 +51,34 @@ const queryParams = reactive<OtherOutboundQuery>({
   keyword: undefined
 });
 
-const pagination = ref({
-  total: 0,
-  pageSize: PAGE_SIZE_MEDIUM,
-  currentPage: 1,
-  background: true
+const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
+  OtherOutboundOrder,
+  Awaited<ReturnType<typeof getOtherOutboundOrderListApi>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getOtherOutboundOrderListApi(page, {
+      ...queryParams,
+      type: queryParams.type || undefined,
+      status: queryParams.status || undefined
+    }),
+  pagination: {
+    total: 0,
+    pageSize: PAGE_SIZE_MEDIUM,
+    currentPage: 1,
+    background: true
+  },
+  immediate: true,
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "获取其他出库单列表失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.count ?? res.data?.total ?? 0
+    };
+  }
 });
 
 const statusOptions = Object.entries(otherOutboundStatusMap).map(
@@ -74,28 +95,6 @@ const typeOptions = Object.entries(otherOutboundTypeMap).map(
   })
 );
 
-const fetchData = async () => {
-  loading.value = true;
-  try {
-    const { data, code } = await getOtherOutboundOrderListApi(
-      pagination.value.currentPage,
-      {
-        ...queryParams,
-        type: queryParams.type || undefined,
-        status: queryParams.status || undefined
-      }
-    );
-    if (code === 200) {
-      dataList.value = data.list;
-      pagination.value.total = data.count;
-    }
-  } catch (error) {
-    handleApiError(error, "获取其他出库单列表失败");
-  } finally {
-    loading.value = false;
-  }
-};
-
 const handleSearch = () => {
   pagination.value.currentPage = 1;
   fetchData();
@@ -109,73 +108,56 @@ const onReset = () => {
   handleSearch();
 };
 
-const handleCurrentChange = (page: number) => {
-  pagination.value.currentPage = page;
-  fetchData();
-};
-
-const openDialog = (
-  title: string,
-  row?: OtherOutboundOrder,
-  isView: boolean = false
-) => {
-  addDialog({
-    title,
-    props: {
-      formInline: row || {},
-      isView
+const { openDialog } = useActionFormDialog<
+  Partial<OtherOutboundOrder>,
+  {
+    getRef: () => FormInstance | undefined;
+    getFormData: () => CreateOtherOutboundDto;
+  }
+>({
+  entityName: "其他出库单",
+  formComponent: editForm,
+  formRef: editFormRef,
+  dialogWidth: "70%",
+  buildFormData: (row?: Partial<OtherOutboundOrder>) =>
+    row
+      ? { ...row }
+      : {
+          type: OtherOutboundType.OTHER_OUTBOUND,
+          status: OtherOutboundStatus.DRAFT,
+          details: []
+        },
+  buildFormProps: (formInline, action) => ({
+    formInline,
+    isView: action === "查看"
+  }),
+  handlers: {
+    新增: async () => {
+      const formData = editFormRef.value?.getFormData();
+      if (!formData) return false;
+      await createOtherOutboundOrderApi(formData);
+      message("创建成功", { type: "success" });
     },
-    width: "70%",
-    draggable: true,
-    fullscreen: deviceDetection(),
-    fullscreenIcon: true,
-    closeOnClickModal: false,
-    contentRenderer: ({ options }) =>
-      h(editForm, {
-        ref: editFormRef,
-        formInline: (
-          options.props as { formInline: Partial<OtherOutboundOrder> }
-        ).formInline,
-        isView: (options.props as { isView?: boolean }).isView
-      }),
-    beforeSure: async done => {
-      if (isView) {
-        done();
-        return;
+    修改: async formInline => {
+      const formData = editFormRef.value?.getFormData();
+      if (!formData) return false;
+      if (!formInline.uid) {
+        message("缺少出库单ID，无法更新", { type: "error" });
+        return false;
       }
-      const formRef = editFormRef.value;
-      if (!formRef) return;
-      const formInstance = formRef.getRef();
-      if (!formInstance) return;
-
-      await formInstance.validate(async (valid: boolean) => {
-        if (valid) {
-          try {
-            const formData = formRef.getFormData();
-            if (row?.uid) {
-              await updateOtherOutboundOrderApi(row.uid, formData);
-              message("更新成功", { type: "success" });
-            } else {
-              await createOtherOutboundOrderApi(formData);
-              message("创建成功", { type: "success" });
-            }
-            done();
-            fetchData();
-          } catch (error) {
-            handleApiError(error, "操作失败");
-          }
-        }
-      });
+      await updateOtherOutboundOrderApi(formInline.uid, formData);
+      message("更新成功", { type: "success" });
     }
-  });
-};
+  },
+  afterSuccess: fetchData
+});
 
 const handleView = (row: OtherOutboundOrder) => {
-  openDialog("查看其他出库单", row, true);
+  openDialog("查看", row);
 };
 
 const handleEdit = (row: OtherOutboundOrder) => {
-  openDialog("编辑其他出库单", row, false);
+  openDialog("修改", row);
 };
 
 const handleDelete = async (row: OtherOutboundOrder) => {
@@ -229,10 +211,6 @@ const handleReject = async (row: OtherOutboundOrder) => {
     }
   }
 };
-
-onMounted(() => {
-  fetchData();
-});
 </script>
 
 <template>
@@ -290,7 +268,7 @@ onMounted(() => {
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog('新增其他出库单')"
+            @click="openDialog('新增')"
           >
             新增出库单
           </el-button>

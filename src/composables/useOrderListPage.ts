@@ -5,6 +5,7 @@
 
 import { ref, onMounted, computed } from "vue";
 import type { Ref, ComputedRef } from "vue";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { handleApiError, message } from "@/utils";
 import { useOptionsStoreHook, type OptionItem } from "@/store/modules/options";
 
@@ -20,17 +21,7 @@ export interface PaginationState {
 }
 
 /** API 响应格式 */
-export interface ListApiResponse<T> {
-  code: number;
-  msg?: string;
-  data?:
-    | {
-        list: T[];
-        count: number;
-      }
-    | T[]
-    | { list?: T[]; count?: number };
-}
+export type ListApiResponse<T> = CommonResult<PaginatedResponseDto<T>>;
 
 /** 下拉数据键类型 */
 type SelectDataKey =
@@ -45,7 +36,11 @@ type SelectDataKey =
 /** 配置选项 */
 export interface UseOrderListPageOptions<T, Q> {
   /** 列表 API 函数 */
-  listApi: (page: number, query: Q) => Promise<ListApiResponse<T>>;
+  listApi: (
+    page: number,
+    pageSize: number,
+    query: Q
+  ) => Promise<ListApiResponse<T>>;
 
   /** 要加载的下拉数据 key 列表 */
   selectDataKeys: SelectDataKey[];
@@ -93,6 +88,8 @@ export interface UseOrderListPageReturn<T, Q> {
   onReset: () => void;
   /** 翻页 */
   handlePageChange: (page: number) => void;
+  /** 分页大小变更 */
+  handleSizeChange: (size: number) => void;
   /** 加载下拉数据 */
   loadSelectData: () => Promise<void>;
 }
@@ -176,23 +173,15 @@ export function useOrderListPage<T, Q>(
   async function getList(): Promise<void> {
     try {
       loading.value = true;
-      const res = await listApi(pagination.value.currentPage, searchForm.value);
+      const res = await listApi(
+        pagination.value.currentPage,
+        pagination.value.pageSize,
+        searchForm.value
+      );
 
       if (res.code === 200) {
-        const data = res.data as
-          | { list?: T[]; count?: number }
-          | T[]
-          | undefined;
-        if (Array.isArray(data)) {
-          dataList.value = data;
-          pagination.value.total = data.length;
-        } else if (data && "list" in data) {
-          dataList.value = data.list ?? [];
-          pagination.value.total = data.count ?? 0;
-        } else {
-          dataList.value = [];
-          pagination.value.total = 0;
-        }
+        dataList.value = res.data?.list ?? [];
+        pagination.value.total = res.data?.count ?? res.data?.total ?? 0;
       } else {
         message(res.msg || listErrorMessage, { type: "error" });
       }
@@ -230,6 +219,12 @@ export function useOrderListPage<T, Q>(
     getList();
   }
 
+  function handleSizeChange(size: number): void {
+    pagination.value.pageSize = size;
+    pagination.value.currentPage = 1;
+    getList();
+  }
+
   // 生命周期
   onMounted(async () => {
     await loadSelectData();
@@ -246,6 +241,7 @@ export function useOrderListPage<T, Q>(
     onSearch,
     onReset,
     handlePageChange,
+    handleSizeChange,
     loadSelectData
   };
 }

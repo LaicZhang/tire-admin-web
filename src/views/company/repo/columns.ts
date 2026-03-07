@@ -1,6 +1,11 @@
 import { formatDate } from "@/utils";
 
 export const columns: TableColumnList = [
+  {
+    type: "selection",
+    width: 50,
+    reserveSelection: true
+  },
   // {
   //   label: "ID",
   //   prop: "id"

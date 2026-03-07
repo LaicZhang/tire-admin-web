@@ -41,7 +41,7 @@ export interface OrderFormData<T extends OrderDetailBase> {
 
 export interface OrderFormOptions<T extends OrderDetailBase> {
   /** 表单数据 */
-  formData: T;
+  formData: OrderFormData<T>;
   /** 表单标题（用于判断只读状态） */
   formTitle: string;
   /** 主数据源类型：provider=供应商, customer=客户 */
@@ -147,12 +147,12 @@ export function useOrderForm<T extends OrderDetailBase>(
       ...defaultFields
     } as T;
 
-    (formData as unknown as OrderFormData<T>).details.push(newDetail);
+    formData.details.push(newDetail);
     return newDetail;
   }
 
   function onDeleteDetail(index: number) {
-    const details = (formData as unknown as OrderFormData<T>).details;
+    const details = formData.details;
     const _detail = details[index];
     recalcOrderTotal();
     details.splice(index, 1);
@@ -175,8 +175,7 @@ export function useOrderForm<T extends OrderDetailBase>(
   }
 
   function recalcOrderTotal() {
-    const orderData = formData as unknown as OrderFormData<T>;
-    const details = orderData.details;
+    const details = formData.details;
     let totalCount = 0;
     let totalAmount = 0;
 
@@ -185,9 +184,9 @@ export function useOrderForm<T extends OrderDetailBase>(
       totalAmount += d.total || 0;
     });
 
-    orderData.count = totalCount;
-    orderData.total = totalAmount;
-    orderData.showTotal = totalAmount;
+    formData.count = totalCount;
+    formData.total = totalAmount;
+    formData.showTotal = totalAmount;
   }
 
   function getRef() {

@@ -15,12 +15,17 @@ export interface Pagination {
 }
 
 export interface UseCrudOptions<T, Res, Params> {
-  api: (params: Params) => Promise<Res>;
+  api: (params: Params, context?: UseCrudRequestContext) => Promise<Res>;
   deleteApi?: (id: string | number) => Promise<unknown>;
   params?: Ref<Params> | Params | (() => Params);
   pagination?: Partial<Pagination>;
   immediate?: boolean;
   transform?: (res: Res) => { list: T[]; total?: number };
+}
+
+export interface UseCrudRequestContext {
+  signal: AbortSignal;
+  requestId: number;
 }
 
 /**
@@ -96,6 +101,7 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
   });
 
   let abortController: AbortController | null = null;
+  let requestId = 0;
 
   const fetchData = async () => {
     if (abortController) {
@@ -103,6 +109,7 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
     }
     const myController = new AbortController();
     abortController = myController;
+    const currentRequestId = ++requestId;
 
     loading.value = true;
     try {
@@ -115,7 +122,10 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
         pageSize: pageSize
       } as Params;
 
-      const res = await api(requestParams);
+      const res = await api(requestParams, {
+        signal: myController.signal,
+        requestId: currentRequestId
+      });
       if (myController.signal.aborted) return;
 
       let list: T[] = [];
@@ -156,8 +166,12 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
         dataList.value = [];
       }
     } finally {
-      loading.value = false;
-      abortController = null;
+      if (abortController === myController) {
+        abortController = null;
+      }
+      if (requestId === currentRequestId) {
+        loading.value = false;
+      }
     }
   };
 

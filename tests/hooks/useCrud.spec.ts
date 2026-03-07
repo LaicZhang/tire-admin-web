@@ -154,7 +154,10 @@ describe("useCrud", () => {
     await nextTick();
     await flushPromises();
 
-    expect(mockApi).toHaveBeenCalledWith(expect.objectContaining({ page: 2 }));
+    expect(mockApi).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2 }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
     expect(pagination.value.currentPage).toBe(2);
 
     // Change size
@@ -163,7 +166,8 @@ describe("useCrud", () => {
     await flushPromises();
 
     expect(mockApi).toHaveBeenCalledWith(
-      expect.objectContaining({ pageSize: 20, page: 1 })
+      expect.objectContaining({ pageSize: 20, page: 1 }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
     );
     expect(pagination.value.pageSize).toBe(20);
     expect(pagination.value.currentPage).toBe(1);
@@ -248,6 +252,74 @@ describe("useCrud", () => {
 
     // Second request should succeed
     expect(dataList.value).toEqual(["second"]);
+  });
+
+  it("should keep loading for the latest in-flight request", async () => {
+    let resolveFirst:
+      | ((value: { list: string[]; total: number }) => void)
+      | undefined;
+    const firstPromise = new Promise<{ list: string[]; total: number }>(
+      resolve => {
+        resolveFirst = resolve;
+      }
+    );
+
+    let resolveSecond:
+      | ((value: { list: string[]; total: number }) => void)
+      | undefined;
+    const secondPromise = new Promise<{ list: string[]; total: number }>(
+      resolve => {
+        resolveSecond = resolve;
+      }
+    );
+
+    mockApi.mockReturnValueOnce(firstPromise);
+    mockApi.mockReturnValueOnce(secondPromise);
+
+    const { result } = withSetup(() =>
+      useCrud({
+        api: mockApi,
+        immediate: false
+      })
+    );
+    const { fetchData, loading } = result;
+
+    const p1 = fetchData();
+    const p2 = fetchData();
+
+    expect(loading.value).toBe(true);
+
+    resolveFirst!({ list: ["first"], total: 1 });
+    await p1;
+
+    expect(loading.value).toBe(true);
+
+    resolveSecond!({ list: ["second"], total: 1 });
+    await p2;
+
+    expect(loading.value).toBe(false);
+  });
+
+  it("should pass abort signal to api when supported", async () => {
+    mockApi.mockImplementation(async (_params, context) => {
+      expect(context?.signal).toBeInstanceOf(AbortSignal);
+      expect(typeof context?.requestId).toBe("number");
+      return { list: [], total: 0 };
+    });
+
+    const { result } = withSetup(() =>
+      useCrud({
+        api: mockApi,
+        immediate: false
+      })
+    );
+
+    await result.fetchData();
+
+    expect(mockApi).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1, pageSize: 10 }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
   });
 
   it("should abort request on unmount", async () => {

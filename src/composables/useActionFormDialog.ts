@@ -1,9 +1,8 @@
 import type { Component, Ref } from "vue";
 import { h } from "vue";
 import type { FormInstance } from "element-plus";
-import { addDialog } from "@/components/ReDialog";
-import { deviceDetection } from "@pureadmin/utils";
 import { handleApiError } from "@/utils";
+import { openManagedFormDialog } from "./formDialogBase";
 
 export type ActionFormDialogAction =
   | "新增"
@@ -67,14 +66,11 @@ export function useActionFormDialog<
   const openDialog = (action: ActionFormDialogAction, row?: TData) => {
     const formData = buildFormData(row);
 
-    addDialog({
+    openManagedFormDialog({
       title: getDialogTitle(action),
       props: buildFormProps(formData, action),
       width: dialogWidth,
       hideFooter: action === "查看",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
       closeOnClickModal,
       contentRenderer: () =>
         h(formComponent, {

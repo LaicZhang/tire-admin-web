@@ -1,8 +1,8 @@
 import { ref, type Component, type Ref, h } from "vue";
-import { addDialog } from "@/components/ReDialog";
 import type { CommonResult } from "@/api/type";
 import { message } from "@/utils";
 import { createLogger } from "@/utils/logger";
+import { openManagedFormDialog } from "./formDialogBase";
 
 const logger = createLogger("useFormDialog");
 
@@ -147,7 +147,7 @@ export function useFormDialog<
     const title = getDialogTitle(m, dialogConfig.title);
     const width = dialogConfig.width || "60%";
 
-    addDialog({
+    openManagedFormDialog({
       title,
       width,
       showClose: dialogConfig.showClose !== false,
@@ -304,7 +304,7 @@ export interface QuickDialogOptions {
 
 export function useQuickDialog() {
   const openQuickDialog = (options: QuickDialogOptions) => {
-    addDialog({
+    openManagedFormDialog({
       title: options.title,
       width: "400px",
       showClose: true,

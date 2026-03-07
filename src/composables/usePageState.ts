@@ -37,6 +37,7 @@ function getUid(value: unknown): string | null {
  */
 export type ApiFunction<T, Q = QueryParams> = (
   page: number,
+  pageSize: number,
   params?: Q
 ) => Promise<CommonResult<PaginatedResponseDto<T>>>;
 
@@ -180,7 +181,11 @@ export function usePageState<
   const fetchData = async (page: number = pagination.value.currentPage) => {
     loading.value = true;
     try {
-      const { data, code, msg } = await api(page, queryParams.value);
+      const { data, code, msg } = await api(
+        page,
+        pagination.value.pageSize,
+        queryParams.value
+      );
       if (code === 200) {
         let list = data.list || [];
         if (transform) {

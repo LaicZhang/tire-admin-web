@@ -6,6 +6,13 @@ import {
   type SettingItem
 } from "@/api/setting";
 
+function parseSettingValue(value: string): boolean | number | string {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  if (value !== "" && !Number.isNaN(Number(value))) return Number(value);
+  return value;
+}
+
 export interface UseSettingsFormOptions<T extends object> {
   /** Settings group name, e.g. "sys", "func", "cost" */
   group: string;
@@ -52,11 +59,7 @@ export function useSettingsForm<T extends object>(
             if (key in formData.value) {
               const val = s.value;
               (formData.value as Record<string, unknown>)[key as string] =
-                val === "true"
-                  ? true
-                  : val === "false"
-                    ? false
-                    : Number(val) || val;
+                parseSettingValue(val);
             }
           });
         }

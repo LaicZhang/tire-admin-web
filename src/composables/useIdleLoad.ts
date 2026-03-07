@@ -117,9 +117,11 @@ export function useIdleLoadBatch(
 
   let currentIndex = 0;
   let idleCallbackId: number | null = null;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let cancelled = false;
 
   const executeNext = () => {
-    if (currentIndex >= tasks.length) return;
+    if (cancelled || currentIndex >= tasks.length) return;
 
     const task = tasks[currentIndex];
     currentIndex++;
@@ -127,7 +129,9 @@ export function useIdleLoadBatch(
     if ("requestIdleCallback" in window) {
       idleCallbackId = window.requestIdleCallback(
         async deadline => {
+          if (cancelled) return;
           await task();
+          if (cancelled) return;
           if (deadline.timeRemaining() > 0 || deadline.didTimeout) {
             executeNext();
           } else {
@@ -138,16 +142,24 @@ export function useIdleLoadBatch(
         { timeout }
       );
     } else {
-      setTimeout(async () => {
+      timeoutId = setTimeout(async () => {
+        if (cancelled) return;
         await task();
+        if (cancelled) return;
         executeNext();
       }, 50);
     }
   };
 
   const cancel = () => {
+    cancelled = true;
     if (idleCallbackId !== null && "cancelIdleCallback" in window) {
       window.cancelIdleCallback(idleCallbackId);
+      idleCallbackId = null;
+    }
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
     }
   };
 
