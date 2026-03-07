@@ -7,7 +7,7 @@ import { deviceDetection } from "@pureadmin/utils";
 const props = defineProps({
   noticeItem: {
     type: Object as PropType<ListItem>,
-    default: () => {}
+    default: () => ({}) as ListItem
   }
 });
 

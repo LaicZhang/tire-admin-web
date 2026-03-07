@@ -167,7 +167,7 @@ function openDialog(title = "新增", row?: TaskItem) {
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props! as {
+      const { formInline } = options.props as {
         formInline: {
           name: string;
           service: string;
@@ -232,7 +232,7 @@ function openDialog(title = "新增", row?: TaskItem) {
     },
     beforeSure: (done, { options }) => {
       const data = (
-        options.props! as {
+        options.props as {
           formInline: {
             name: string;
             service: string;
@@ -277,8 +277,12 @@ function openDialog(title = "新增", row?: TaskItem) {
         message("描述最多 200 个字符", { type: "warning" });
         return;
       }
+      if (title !== "新增" && !row?.id) {
+        message("缺少任务ID，无法更新", { type: "error" });
+        return;
+      }
       const promise =
-        title === "新增" ? createTaskApi(data) : updateTaskApi(row!.id, data);
+        title === "新增" ? createTaskApi(data) : updateTaskApi(row.id, data);
       promise.then(() => {
         message("操作成功", { type: "success" });
         done();

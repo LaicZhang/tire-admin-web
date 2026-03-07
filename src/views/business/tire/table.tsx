@@ -2,7 +2,12 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addTireApi, updateTireApi } from "@/api";
+import {
+  getCompanyId,
+  getCompanyConnect,
+  addTireApi,
+  updateTireApi
+} from "@/api";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
 
@@ -126,9 +131,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             ...tireData,
             name: curData.name,
             ...(covers.length > 0 ? { covers } : {}),
-            company: {
-              connect: { uid: await getCompanyId() }
-            }
+            company: getCompanyConnect(await getCompanyId())
           };
 
           if (title === "新增") {

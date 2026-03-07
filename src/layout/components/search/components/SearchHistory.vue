@@ -14,13 +14,13 @@ interface Emits {
   (e: "drag", val: dragItem): void;
 }
 
-const historyRef = ref<HTMLDivElement>(null!);
+const historyRef = ref<HTMLDivElement | null>(null);
 const innerHeight = ref(0);
 /** 判断是否停止鼠标移入事件处理 */
 const stopMouseEvent = ref(false);
 
 const emit = defineEmits<Emits>();
-const instance = getCurrentInstance()!;
+const instance = getCurrentInstance();
 const props = withDefaults(defineProps<Props>(), {});
 
 const itemStyle = computed(() => {

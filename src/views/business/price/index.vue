@@ -118,13 +118,17 @@ function openDialog(title = "新增", row?: PriceList) {
       }),
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormInline }).formInline;
+      if (title !== "新增" && !curData.id) {
+        message("缺少报价单ID", { type: "error" });
+        return;
+      }
       const promise =
         title === "新增"
           ? createPriceListApi(
               curData as Parameters<typeof createPriceListApi>[0]
             )
           : updatePriceListApi(
-              curData.id!,
+              curData.id,
               curData as Parameters<typeof updatePriceListApi>[1]
             );
 

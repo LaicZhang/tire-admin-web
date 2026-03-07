@@ -21,7 +21,7 @@ import {
   refundReturnOrderApi,
   updatePurchaseReturnOrderApi
 } from "@/api/purchase";
-import { getCompanyId } from "@/api/company";
+import { getCompanyConnect, getCompanyId } from "@/api/company";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import { returnOrderColumns } from "./columns";
 import type { ReturnOrder, ReturnOrderQueryParams } from "./types";
@@ -166,7 +166,7 @@ function openDialog(title: string, row?: ReturnOrder) {
             await createPurchaseReturnOrderApi({
               order: {
                 ...orderData,
-                company: { connect: { uid: companyId } },
+                company: getCompanyConnect(companyId),
                 provider: { connect: { uid: orderData.providerId } },
                 ...(orderData.auditorId
                   ? { auditor: { connect: { uid: orderData.auditorId } } }
@@ -178,7 +178,7 @@ function openDialog(title: string, row?: ReturnOrder) {
           } else if (title === "修改") {
             await updatePurchaseReturnOrderApi(formData.uid, {
               ...orderData,
-              company: { connect: { uid: companyId } }
+              company: getCompanyConnect(companyId)
             });
             message("修改成功", { type: "success" });
           } else if (title === "审核") {
@@ -187,7 +187,7 @@ function openDialog(title: string, row?: ReturnOrder) {
               isLocked: formData.isApproved,
               rejectReason: formData.rejectReason,
               auditAt: formData.isApproved ? new Date().toISOString() : null,
-              company: { connect: { uid: companyId } }
+              company: getCompanyConnect(companyId)
             });
             message("审核完成", { type: "success" });
           } else if (title === "退款") {

@@ -4,6 +4,7 @@ import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import {
   getCompanyId,
+  getCompanyConnect,
   addOrderApi,
   updateOrderApi,
   payPurchaseOrderApi,
@@ -229,9 +230,7 @@ export async function openDialog(title = "新增", type: string, row?: OrderRow)
                 isApproved: orderData.isApproved ?? true,
                 isLocked: orderData.isApproved ?? true,
                 auditAt: orderData.isApproved ? new Date().toISOString() : null,
-                company: {
-                  connect: { uid: await getCompanyId() }
-                }
+                company: getCompanyConnect(await getCompanyId())
               });
             } else if (title === "付款" && type === ORDER_TYPE.purchase) {
               await payPurchaseOrderApi(uid, {
@@ -246,9 +245,7 @@ export async function openDialog(title = "新增", type: string, row?: OrderRow)
             } else {
               await updateOrderApi(type, uid, {
                 ...orderData,
-                company: {
-                  connect: { uid: await getCompanyId() }
-                }
+                company: getCompanyConnect(await getCompanyId())
               });
             }
             chores();
@@ -287,9 +284,7 @@ export async function openDialog(title = "新增", type: string, row?: OrderRow)
           } else {
             await updateOrderApi(type, uid, {
               ...orderData,
-              company: {
-                connect: { uid: await getCompanyId() }
-              }
+              company: getCompanyConnect(await getCompanyId())
             });
             chores();
           }

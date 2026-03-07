@@ -226,7 +226,7 @@ const handleBatchEdit = () => {
     draggable: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
-      const { formInline } = options.props! as {
+      const { formInline } = options.props as {
         formInline: {
           wholesalePrice?: number;
           vipPrice?: number;
@@ -288,7 +288,7 @@ const handleBatchEdit = () => {
     },
     beforeSure: (done, { options }) => {
       const batch = (
-        options.props! as {
+        options.props as {
           formInline: {
             wholesalePrice?: number;
             vipPrice?: number;

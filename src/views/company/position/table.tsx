@@ -2,7 +2,7 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addPositionApi, updatePositionApi } from "@/api";
+import { getCompanyConnect, addPositionApi, updatePositionApi } from "@/api";
 import editForm from "./form.vue";
 import menuForm from "./menuForm.vue";
 import type { FormInstance } from "element-plus";
@@ -66,9 +66,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             await addPositionApi({
               name,
               desc,
-              company: {
-                connect: { uid: getCompanyId() }
-              }
+              company: getCompanyConnect()
             });
             chores();
           } else {

@@ -186,7 +186,9 @@ function openDialog(title = "新增", row?: DictItem) {
         return;
       }
       const promise =
-        title === "新增" ? createDictApi(data) : updateDictApi(row!.id, data);
+        title === "新增" || !row
+          ? createDictApi(data)
+          : updateDictApi(row.id, data);
 
       promise.then(() => {
         message("操作成功", { type: "success" });

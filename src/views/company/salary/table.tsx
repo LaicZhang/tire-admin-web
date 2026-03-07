@@ -2,7 +2,12 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addSalaryApi, updateSalaryApi } from "@/api";
+import {
+  getCompanyId,
+  getCompanyConnect,
+  addSalaryApi,
+  updateSalaryApi
+} from "@/api";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
 
@@ -71,9 +76,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             const { id: _id, ...curSalaryData } = curData;
             await addSalaryApi({
               ...curSalaryData,
-              company: {
-                connect: { uid: await getCompanyId() }
-              }
+              company: getCompanyConnect(await getCompanyId())
             });
             chores();
           } else {

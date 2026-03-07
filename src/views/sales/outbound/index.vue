@@ -11,7 +11,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
-import { getCompanyId } from "@/api";
+import { getCompanyConnect, getCompanyId } from "@/api";
 import {
   getSalesOutboundListApi,
   createSalesOutboundApi,
@@ -165,7 +165,7 @@ function openDialog(title: string, row?: OutboundOrder) {
             await createSalesOutboundApi({
               order: {
                 ...orderData,
-                company: { connect: { uid: companyId } },
+                company: getCompanyConnect(companyId),
                 customer: { connect: { uid: orderData.customerId } },
                 ...(orderData.auditorId
                   ? { auditor: { connect: { uid: orderData.auditorId } } }
@@ -177,7 +177,7 @@ function openDialog(title: string, row?: OutboundOrder) {
           } else if (title === "修改") {
             await updateSalesOutboundApi(formData.uid, {
               ...orderData,
-              company: { connect: { uid: companyId } }
+              company: getCompanyConnect(companyId)
             });
             message("修改成功", { type: "success" });
           } else if (title === "审核") {
@@ -186,7 +186,7 @@ function openDialog(title: string, row?: OutboundOrder) {
               isLocked: formData.isApproved,
               rejectReason: formData.rejectReason,
               auditAt: formData.isApproved ? new Date().toISOString() : null,
-              company: { connect: { uid: companyId } }
+              company: getCompanyConnect(companyId)
             });
             message("审核完成", { type: "success" });
           }

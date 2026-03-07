@@ -29,7 +29,7 @@ import Vertical from "./components/sidebar/vertical.vue";
 import Horizontal from "./components/sidebar/horizontal.vue";
 import backTop from "@/assets/svg/back_top.svg?component";
 
-const appWrapperRef = ref<HTMLDivElement>(null!);
+const appWrapperRef = ref<HTMLDivElement | null>(null);
 const { isDark } = useDark();
 const { layout } = useLayout();
 const isMobile = deviceDetection();

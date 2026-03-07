@@ -9,6 +9,14 @@ export function getCompanyId() {
   return useCurrentCompanyStoreHook().companyId;
 }
 
+export function getCompanyConnect(uid: string = getCompanyId()) {
+  return {
+    connect: {
+      uid
+    }
+  };
+}
+
 export async function getCompanyListApi(
   index: number,
   params?: Record<string, unknown>

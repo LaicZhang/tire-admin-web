@@ -116,10 +116,11 @@ async function loadReportData() {
             percentage: 0
           });
         }
-        const cData = customerMap.get(customerId)!;
-        cData.orderCount++;
-        cData.totalAmount += order.total || 0;
-        cData.totalQuantity += order.count || 0;
+        const customerData = customerMap.get(customerId);
+        if (!customerData) return;
+        customerData.orderCount++;
+        customerData.totalAmount += order.total || 0;
+        customerData.totalQuantity += order.count || 0;
 
         const dateKey = formatDate(order.createdAt);
         if (!dateMap.has(dateKey)) {
@@ -130,10 +131,11 @@ async function loadReportData() {
             quantity: 0
           });
         }
-        const tData = dateMap.get(dateKey)!;
-        tData.orderCount++;
-        tData.amount += order.total || 0;
-        tData.quantity += order.count || 0;
+        const trendData = dateMap.get(dateKey);
+        if (!trendData) return;
+        trendData.orderCount++;
+        trendData.amount += order.total || 0;
+        trendData.quantity += order.count || 0;
       });
 
       statistics.value = {

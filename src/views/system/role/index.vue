@@ -123,7 +123,7 @@ const openDialog = (title = "新增", row?: CompanyRoleItem) => {
     contentRenderer: ({ options }) =>
       h(RoleForm, {
         ref: formRef,
-        formInline: (options.props! as { formInline: FormItemProps }).formInline
+        formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormItemProps })

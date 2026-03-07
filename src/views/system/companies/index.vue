@@ -83,7 +83,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     contentRenderer: ({ options }) =>
       h(CompanyForm, {
         ref: formRef,
-        formInline: (options.props! as { formInline: FormItemProps }).formInline
+        formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormItemProps })
@@ -91,11 +91,16 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
+          const companyUid = curData.uid || row?.uid;
+          if (!companyUid) {
+            message("缺少公司ID", { type: "error" });
+            return;
+          }
           const promise =
             title === "新增"
               ? addCompanyApi({
                   company: {
-                    uid: curData.uid,
+                    uid: companyUid,
                     name: curData.name,
                     province: curData.province || null,
                     city: curData.city || null,
@@ -104,7 +109,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
                     principalPhone: curData.principalPhone || null,
                     boss: { connect: { uid: userStore.uid } }
                   },
-                  info: { company: { connect: { uid: curData.uid! } } }
+                  info: { company: { connect: { uid: companyUid } } }
                 })
               : updateCompanyApi(row?.uid ?? "", {
                   name: curData.name,

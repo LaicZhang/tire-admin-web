@@ -117,7 +117,7 @@ function openDialog() {
       h(FinanceItemForm, {
         ref: dialogFormRef,
         formInline: (
-          options.props! as {
+          options.props as {
             formInline: {
               name: string;
               type: "income" | "expense";
@@ -134,7 +134,7 @@ function openDialog() {
       if (!valid) return;
 
       const curData = (
-        options.props! as {
+        options.props as {
           formInline: {
             name: string;
             type: "income" | "expense";

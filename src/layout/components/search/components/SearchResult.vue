@@ -11,10 +11,10 @@ interface Emits {
   (e: "enter"): void;
 }
 
-const resultRef = ref<HTMLDivElement>(null!);
+const resultRef = ref<HTMLDivElement | null>(null);
 const innerHeight = ref(0);
 const emit = defineEmits<Emits>();
-const instance = getCurrentInstance()!;
+const instance = getCurrentInstance();
 const props = withDefaults(defineProps<Props>(), {});
 
 const itemStyle = computed(() => {

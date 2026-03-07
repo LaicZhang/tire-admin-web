@@ -151,7 +151,7 @@ async function handleCreate() {
       const FormRef = editFormRef.value?.getRef();
       if (!FormRef) return;
       const curData = (
-        options.props! as {
+        options.props as {
           formInline: {
             name: string;
             type: string;

@@ -18,7 +18,7 @@ import {
   payPurchaseOrderApi,
   updatePurchaseOrderApi
 } from "@/api/purchase";
-import { getCompanyId } from "@/api/company";
+import { getCompanyConnect, getCompanyId } from "@/api/company";
 import { message, handleApiError } from "@/utils";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { useOrderListPage } from "@/composables/useOrderListPage";
@@ -50,9 +50,11 @@ const {
   getList,
   onSearch,
   onReset,
-  handlePageChange
+  handlePageChange,
+  handleSizeChange
 } = useOrderListPage<PurchaseOrder, PurchaseOrderQueryParams>({
-  listApi: getPurchaseOrderListApi,
+  listApi: (page, pageSize, query) =>
+    getPurchaseOrderListApi(page, { ...query, pageSize }),
   selectDataKeys: ["employee", "manager", "provider"],
   initialQuery: {
     operatorId: undefined,
@@ -112,7 +114,7 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
         await createPurchaseOrderApi({
           order: {
             ...orderData,
-            company: { connect: { uid: companyId } },
+            company: getCompanyConnect(companyId),
             provider: { connect: { uid: orderData.providerId } },
             ...(orderData.auditorId
               ? { auditor: { connect: { uid: orderData.auditorId } } }
@@ -133,7 +135,7 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
         } = formData;
         await updatePurchaseOrderApi(formData.uid, {
           ...orderData,
-          company: { connect: { uid: companyId } }
+          company: getCompanyConnect(companyId)
         });
         message("修改成功", { type: "success" });
       },
@@ -144,7 +146,7 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
           isLocked: formData.isApproved,
           rejectReason: formData.rejectReason,
           auditAt: formData.isApproved ? new Date().toISOString() : null,
-          company: { connect: { uid: companyId } }
+          company: getCompanyConnect(companyId)
         });
         message("审核完成", { type: "success" });
       },
@@ -307,6 +309,7 @@ onMounted(async () => {
             show-overflow-tooltip
             :pagination="{ ...pagination, size }"
             @page-current-change="handlePageChange"
+            @page-size-change="handleSizeChange"
           >
             <template #operation="{ row }">
               <TableOperations

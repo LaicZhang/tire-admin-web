@@ -156,10 +156,11 @@ async function loadReportData() {
           percentage: 0
         });
       }
-      const pData = providerMap.get(providerId)!;
-      pData.orderCount += 1;
-      pData.totalAmount += orderTotal;
-      pData.totalQuantity += quantity;
+      const providerData = providerMap.get(providerId);
+      if (!providerData) return;
+      providerData.orderCount += 1;
+      providerData.totalAmount += orderTotal;
+      providerData.totalQuantity += quantity;
 
       const dateKey = order.createdAt ? getGroupKey(order.createdAt) : "未知";
       if (!dateMap.has(dateKey)) {
@@ -170,10 +171,11 @@ async function loadReportData() {
           quantity: 0
         });
       }
-      const tData = dateMap.get(dateKey)!;
-      tData.orderCount += 1;
-      tData.amount += orderTotal;
-      tData.quantity += quantity;
+      const trendData = dateMap.get(dateKey);
+      if (!trendData) return;
+      trendData.orderCount += 1;
+      trendData.amount += orderTotal;
+      trendData.quantity += quantity;
     });
 
     statistics.value = {

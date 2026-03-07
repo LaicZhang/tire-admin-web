@@ -8,7 +8,7 @@ import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
 import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
-import { getCompanyId } from "@/api";
+import { getCompanyConnect, getCompanyId } from "@/api";
 import {
   getSalesOrderListApi,
   createSalesOrderApi,
@@ -47,9 +47,11 @@ const {
   getList,
   onSearch,
   onReset,
-  handlePageChange
+  handlePageChange,
+  handleSizeChange
 } = useOrderListPage<SalesOrder, SalesOrderQueryParams>({
-  listApi: getSalesOrderListApi,
+  listApi: (page, pageSize, query) =>
+    getSalesOrderListApi(page, { ...query, pageSize }),
   selectDataKeys: ["employee", "manager", "customer"],
   initialQuery: {
     operatorId: undefined,
@@ -110,7 +112,7 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
       await createSalesOrderApi({
         order: {
           ...orderData,
-          company: { connect: { uid: companyId } },
+          company: getCompanyConnect(companyId),
           customer: { connect: { uid: orderData.customerId } },
           ...(orderData.auditorId
             ? { auditor: { connect: { uid: orderData.auditorId } } }
@@ -131,7 +133,7 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
       } = formData;
       await updateSalesOrderApi(formData.uid, {
         ...orderData,
-        company: { connect: { uid: companyId } }
+        company: getCompanyConnect(companyId)
       });
       message("修改成功", { type: "success" });
     },
@@ -142,7 +144,7 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
         isLocked: formData.isApproved,
         rejectReason: formData.rejectReason,
         auditAt: formData.isApproved ? new Date().toISOString() : null,
-        company: { connect: { uid: companyId } }
+        company: getCompanyConnect(companyId)
       });
       message("审核完成", { type: "success" });
     },
@@ -276,6 +278,7 @@ async function onConfirmDelivery(row: SalesOrder) {
             show-overflow-tooltip
             :pagination="{ ...pagination, size }"
             @page-current-change="handlePageChange"
+            @page-size-change="handleSizeChange"
           >
             <template #operation="{ row }">
               <TableOperations

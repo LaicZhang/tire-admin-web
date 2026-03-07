@@ -103,7 +103,7 @@ const openDialog = (title = "新增", row?: MenuItem) => {
     contentRenderer: ({ options }) =>
       h(MenuForm, {
         ref: formRef,
-        formInline: (options.props! as { formInline: FormItemProps }).formInline
+        formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormItemProps })

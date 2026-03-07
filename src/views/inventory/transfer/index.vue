@@ -202,7 +202,7 @@ const { openDialog } = useActionFormDialog<
       await addOrderApi(ORDER_TYPE, {
         order: {
           uid: formInline.uid,
-          company: { connect: { uid: companyId } },
+          company: getCompanyConnect(companyId),
           operator: { connect: { uid: operatorId } },
           auditor: { connect: { uid: data.auditorId } },
           fromRepository: { connect: { uid: data.fromRepositoryId } },
@@ -234,7 +234,7 @@ const { openDialog } = useActionFormDialog<
         fromRepository: { connect: { uid: data.fromRepositoryId } },
         toRepository: { connect: { uid: data.toRepositoryId } },
         desc: data.desc || null,
-        company: { connect: { uid: companyId } }
+        company: getCompanyConnect(companyId)
       });
       message("更新成功", { type: "success" });
     }
@@ -265,7 +265,7 @@ async function handleApprove(row: TransferOrder) {
   try {
     const companyId = await getCompanyId();
     await updateOrderApi(ORDER_TYPE, row.uid, {
-      company: { connect: { uid: companyId } },
+      company: getCompanyConnect(companyId),
       isApproved: true,
       isLocked: true,
       rejectReason: null,
@@ -290,7 +290,7 @@ async function handleReject(row: TransferOrder) {
     const { value } = res;
     const companyId = await getCompanyId();
     await updateOrderApi(ORDER_TYPE, row.uid, {
-      company: { connect: { uid: companyId } },
+      company: getCompanyConnect(companyId),
       isApproved: false,
       isLocked: false,
       rejectReason: value,

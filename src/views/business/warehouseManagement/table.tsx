@@ -2,7 +2,7 @@ import { h, ref } from "vue";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId } from "@/api/company";
+import { getCompanyConnect } from "@/api/company";
 import { addRepoApi, updateRepoApi, type Repo } from "@/api/company/repo";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
@@ -68,9 +68,7 @@ export function openDialog(
               manager: managerId ? { connect: { uid: managerId } } : undefined,
               desc,
               status,
-              company: {
-                connect: { uid: getCompanyId() }
-              }
+              company: getCompanyConnect()
             });
             await chores();
           } else {

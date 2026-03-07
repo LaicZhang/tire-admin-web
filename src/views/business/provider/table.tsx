@@ -2,7 +2,7 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addProviderApi, updateProviderApi } from "@/api";
+import { getCompanyConnect, addProviderApi, updateProviderApi } from "@/api";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
 
@@ -89,9 +89,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                 ...(_operatorId
                   ? { operator: { connect: { uid: _operatorId } } }
                   : {}),
-                company: {
-                  connect: { uid: getCompanyId() }
-                }
+                company: getCompanyConnect()
               }
             });
             chores();
@@ -102,9 +100,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                 ...(_operatorId
                   ? { operator: { connect: { uid: _operatorId } } }
                   : {}),
-                company: {
-                  connect: { uid: getCompanyId() }
-                }
+                company: getCompanyConnect()
               }
             });
             chores();

@@ -1,4 +1,5 @@
 import { h, ref } from "vue";
+import type { FormInstance } from "element-plus";
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
@@ -19,7 +20,11 @@ interface FormProps {
 
 export type { FormItemProps, FormProps };
 
-const formRef = ref<InstanceType<typeof editForm> | null>(null);
+type CompanyInfoFormInstance = {
+  getRef: () => FormInstance | undefined;
+};
+
+const formRef = ref<CompanyInfoFormInstance | null>(null);
 
 export function handleSelectionChange(_val: unknown): void {
   // 选择变化处理

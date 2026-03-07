@@ -8,6 +8,7 @@
     "noImplicitAny": true,
     "strictFunctionTypes": true,
     "noImplicitThis": true,
+    "noEmit": true,
     "jsx": "preserve",
     "importHelpers": true,
     "experimentalDecorators": true,

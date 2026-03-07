@@ -2,7 +2,12 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "../../../components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addRepoApi, updateRepoApi } from "@/api";
+import {
+  getCompanyId,
+  getCompanyConnect,
+  addRepoApi,
+  updateRepoApi
+} from "@/api";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
 
@@ -24,10 +29,6 @@ interface FormProps {
 export type { FormItemProps, FormProps };
 
 const formRef = ref<{ getRef: () => FormInstance } | null>(null);
-
-export function handleSelectionChange(_val: unknown) {
-  // 选择变化处理
-}
 
 function toDate(value: string | Date | undefined, fallback: Date): Date {
   if (!value) return fallback;
@@ -83,9 +84,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
               startAt,
               endAt,
               address,
-              company: {
-                connect: { uid: await getCompanyId() }
-              }
+              company: getCompanyConnect(await getCompanyId())
             });
             chores();
           } else {
