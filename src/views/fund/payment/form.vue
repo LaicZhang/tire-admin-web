@@ -9,9 +9,13 @@ import {
   type PaymentDetailItem
 } from "./types";
 import dayjs from "dayjs";
-import { fenToYuan, fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
+import { fenToYuan, fenToYuanNumber } from "@/utils/formatMoney";
 import { handleApiError, message } from "@/utils";
 import { useFundForm } from "../composables/useFundForm";
+import {
+  createPaymentOrderApi,
+  updatePaymentOrderApi
+} from "@/api/fund/payment-order";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -75,8 +79,7 @@ const totalWriteOffAmount = computed(() => {
 
 // 计算预付金额（付款金额 - 核销金额）
 const advanceAmount = computed(() => {
-  const amount = yuanToFen(formData.amount);
-  return Math.max(0, amount - totalWriteOffAmount.value);
+  return Math.max(0, formData.amount - totalWriteOffAmount.value);
 });
 
 // 选中账户的余额
@@ -115,7 +118,12 @@ watch(
           paymentDate:
             props.editData.paymentDate || dayjs().format("YYYY-MM-DD"),
           remark: props.editData.remark || "",
-          details: props.editData.details || []
+          details:
+            props.editData.details?.map(detail => ({
+              ...detail,
+              payableAmount: (detail.payableAmount || 0) / 100,
+              writeOffAmount: (detail.writeOffAmount || 0) / 100
+            })) || []
         });
       } else {
         resetForm();
@@ -144,9 +152,16 @@ async function handleSubmit() {
       amount: Math.round(formData.amount * 100),
       details: formData.details.map(d => ({
         ...d,
+        payableAmount: Math.round((d.payableAmount || 0) * 100),
         writeOffAmount: Math.round((d.writeOffAmount || 0) * 100)
       }))
     };
+
+    if (props.editData?.uid) {
+      await updatePaymentOrderApi(props.editData.uid, submitData);
+    } else {
+      await createPaymentOrderApi(submitData);
+    }
 
     message(props.editData ? "更新成功" : "创建成功", { type: "success" });
     dialogVisible.value = false;
@@ -305,7 +320,7 @@ const formColumns: TableColumnList = [
         <el-col :span="12">
           <el-form-item label="本次预付">
             <el-input
-              :model-value="fenToYuan(advanceAmount)"
+              :model-value="advanceAmount.toFixed(2)"
               disabled
               class="w-full"
             >
@@ -380,7 +395,7 @@ const formColumns: TableColumnList = [
       </pure-table>
 
       <div class="flex justify-end text-sm text-gray-500">
-        核销合计: ¥{{ fenToYuan(totalWriteOffAmount) }}
+        核销合计: ¥{{ totalWriteOffAmount.toFixed(2) }}
       </div>
     </el-form>
 

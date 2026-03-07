@@ -99,8 +99,9 @@ function handleAdd() {
 }
 
 function handleEdit(row: WriteOffOrder) {
-  editData.value = row;
-  dialogVisible.value = true;
+  message(`单据 ${row.billNo || row.uid} 的编辑能力暂未接入`, {
+    type: "warning"
+  });
 }
 
 async function handleDelete(row: WriteOffOrder) {

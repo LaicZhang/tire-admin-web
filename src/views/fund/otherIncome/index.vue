@@ -127,8 +127,9 @@ function handleAdd() {
 }
 
 function handleEdit(row: OtherIncome) {
-  editData.value = row;
-  dialogVisible.value = true;
+  message(`单据 ${row.billNo || row.uid} 的编辑能力暂未接入`, {
+    type: "warning"
+  });
 }
 
 async function handleDelete(row: OtherIncome) {
@@ -169,11 +170,6 @@ async function handleBatchDelete() {
   } catch (e) {
     handleApiError(e, "批量删除失败");
   }
-}
-
-function handleReceive(row: OtherIncome) {
-  // 跳转到收款单页面或打开收款弹窗
-  message("请前往收款单进行收款操作");
 }
 
 function handlePrint() {
@@ -289,12 +285,8 @@ onMounted(() => {
         >
           批量删除
         </el-button>
-        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
-          打印
-        </el-button>
-        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
-          导出
-        </el-button>
+        <el-button :icon="useRenderIcon(Printer)" disabled> 打印 </el-button>
+        <el-button :icon="useRenderIcon(Download)" disabled> 导出 </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
@@ -356,7 +348,7 @@ onMounted(() => {
               link
               type="success"
               :size="size"
-              @click="handleReceive(row)"
+              disabled
             >
               收款
             </el-button>

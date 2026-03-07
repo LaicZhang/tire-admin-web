@@ -94,6 +94,12 @@ onSearch();
 
 <template>
   <div class="main">
+    <el-alert
+      title="对账单模块仍在建设中，当前仅开放列表查看，新增与详情暂不可用。"
+      type="warning"
+      :closable="false"
+      class="mb-4"
+    />
     <ReSearchForm
       ref="searchFormRef"
       :form="form"
@@ -134,11 +140,7 @@ onSearch();
 
     <PureTableBar title="对账单列表" :columns="columns" @refresh="onSearch">
       <template #buttons>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(AddFill)"
-          @click="handleAdd"
-        >
+        <el-button type="primary" :icon="useRenderIcon(AddFill)" disabled>
           新建对账
         </el-button>
       </template>
@@ -169,13 +171,8 @@ onSearch();
               :status-map="STATEMENT_STATUS_MAP"
             />
           </template>
-          <template #operation="{ row }">
-            <el-button
-              link
-              type="primary"
-              :size="size"
-              @click="handleDetail(row)"
-            >
+          <template #operation>
+            <el-button link type="primary" :size="size" disabled>
               查看
             </el-button>
           </template>

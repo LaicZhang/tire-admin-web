@@ -111,6 +111,12 @@ function handleDelete(_row: AdvancePaymentDto) {
 
 <template>
   <div class="main">
+    <el-alert
+      title="预收预付模块仍在建设中，当前仅开放列表查询，新建与删除暂不可用。"
+      type="warning"
+      :closable="false"
+      class="mb-4"
+    />
     <ReSearchForm
       ref="searchFormRef"
       :form="form"
@@ -151,11 +157,7 @@ function handleDelete(_row: AdvancePaymentDto) {
 
     <PureTableBar title="预收预付列表" :columns="columns" @refresh="onSearch">
       <template #buttons>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(AddFill)"
-          @click="handleAdd"
-        >
+        <el-button type="primary" :icon="useRenderIcon(AddFill)" disabled>
           新建
         </el-button>
       </template>
@@ -184,6 +186,7 @@ function handleDelete(_row: AdvancePaymentDto) {
             <DeleteButton
               :show-icon="false"
               size="small"
+              disabled
               @confirm="handleDelete(row)"
             />
           </template>

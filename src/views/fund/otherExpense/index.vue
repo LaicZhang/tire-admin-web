@@ -125,8 +125,9 @@ function handleAdd() {
 }
 
 function handleEdit(row: OtherExpense) {
-  editData.value = row;
-  dialogVisible.value = true;
+  message(`单据 ${row.billNo || row.uid} 的编辑能力暂未接入`, {
+    type: "warning"
+  });
 }
 
 async function handleDelete(row: OtherExpense) {
@@ -167,14 +168,6 @@ async function handleBatchDelete() {
   } catch (e) {
     handleApiError(e, "批量删除失败");
   }
-}
-
-function handlePay(row: OtherExpense) {
-  message("请前往付款单进行付款操作");
-}
-
-function handleLink(row: OtherExpense) {
-  message("关联功能开发中");
 }
 
 function handlePrint() {
@@ -290,12 +283,8 @@ onMounted(() => {
         >
           批量删除
         </el-button>
-        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
-          打印
-        </el-button>
-        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
-          导出
-        </el-button>
+        <el-button :icon="useRenderIcon(Printer)" disabled> 打印 </el-button>
+        <el-button :icon="useRenderIcon(Download)" disabled> 导出 </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
@@ -357,13 +346,11 @@ onMounted(() => {
               link
               type="success"
               :size="size"
-              @click="handlePay(row)"
+              disabled
             >
               付款
             </el-button>
-            <el-button link type="info" :size="size" @click="handleLink(row)">
-              关联
-            </el-button>
+            <el-button link type="info" :size="size" disabled> 关联 </el-button>
             <el-button
               link
               type="danger"

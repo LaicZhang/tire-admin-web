@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
+import { createTransferApi } from "@/api/fund/transfer";
 import { handleApiError } from "@/utils/error";
 import { message } from "@/utils";
 import type { CreateTransferDto, Transfer } from "./types";
@@ -121,6 +122,13 @@ async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
 
+  if (props.editData) {
+    message("当前仅支持新建，编辑能力待后端补齐更新接口", {
+      type: "warning"
+    });
+    return;
+  }
+
   // 业务校验
   if (formData.fromPaymentId === formData.toPaymentId) {
     message("转出账户和转入账户不能相同", { type: "warning" });
@@ -139,12 +147,19 @@ async function handleSubmit() {
 
   loading.value = true;
   try {
+    if (props.editData) {
+      message("当前版本暂不支持编辑转账单", { type: "warning" });
+      return;
+    }
+
     const submitData = {
       ...formData,
       amount: Math.round(formData.amount * 100),
       fee: formData.fee ? Math.round(formData.fee * 100) : undefined
     };
-    message(props.editData ? "更新成功" : "创建成功", { type: "success" });
+
+    await createTransferApi(submitData);
+    message("创建成功", { type: "success" });
     dialogVisible.value = false;
     emit("success");
   } catch (e) {

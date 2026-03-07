@@ -278,12 +278,8 @@ onMounted(() => {
         >
           批量删除
         </el-button>
-        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
-          打印
-        </el-button>
-        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
-          导出
-        </el-button>
+        <el-button :icon="useRenderIcon(Printer)" disabled> 打印 </el-button>
+        <el-button :icon="useRenderIcon(Download)" disabled> 导出 </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table

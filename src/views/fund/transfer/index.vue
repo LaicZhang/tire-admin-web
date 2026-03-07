@@ -120,8 +120,9 @@ function handleAdd() {
 }
 
 function handleEdit(row: Transfer) {
-  editData.value = row;
-  dialogVisible.value = true;
+  message(`单据 ${row.billNo || row.uid} 的编辑能力暂未接入`, {
+    type: "warning"
+  });
 }
 
 async function handleDelete(row: Transfer) {
@@ -281,9 +282,7 @@ onMounted(() => {
         >
           批量删除
         </el-button>
-        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
-          打印
-        </el-button>
+        <el-button :icon="useRenderIcon(Printer)" disabled> 打印 </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table

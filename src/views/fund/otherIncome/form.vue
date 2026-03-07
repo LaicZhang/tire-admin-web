@@ -2,6 +2,7 @@
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { getCustomerListApi } from "@/api/business/customer";
+import { createOtherIncomeApi } from "@/api/fund/other-income";
 import { getPaymentListApi } from "@/api/payment";
 import { handleApiError, message } from "@/utils";
 import { logger } from "@/utils/logger";
@@ -129,6 +130,13 @@ async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
 
+  if (props.editData) {
+    message("当前仅支持新建，编辑能力待后端补齐更新接口", {
+      type: "warning"
+    });
+    return;
+  }
+
   // 业务校验：如果有收款金额，必须选择收款账户
   if (
     formData.receivedAmount &&
@@ -147,6 +155,11 @@ async function handleSubmit() {
 
   loading.value = true;
   try {
+    if (props.editData) {
+      message("当前版本暂不支持编辑其他收入单", { type: "warning" });
+      return;
+    }
+
     const submitData = {
       ...formData,
       amount: Math.round(formData.amount * 100),
@@ -155,7 +168,8 @@ async function handleSubmit() {
         : undefined
     };
 
-    message(props.editData ? "更新成功" : "创建成功", { type: "success" });
+    await createOtherIncomeApi(submitData);
+    message("创建成功", { type: "success" });
     dialogVisible.value = false;
     emit("success");
   } catch (e) {

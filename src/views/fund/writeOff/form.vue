@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
+import { createWriteOffApi } from "@/api/fund/write-off-order";
 import {
   BUSINESS_TYPE_OPTIONS,
   type WriteOffOrder,
@@ -150,6 +151,13 @@ async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
 
+  if (props.editData) {
+    message("当前仅支持新建，编辑能力待后端补齐更新接口", {
+      type: "warning"
+    });
+    return;
+  }
+
   // 业务校验
   if (formData.businessType === "RECEIVABLE_TRANSFER") {
     if (formData.fromCustomerId === formData.toCustomerId) {
@@ -176,7 +184,9 @@ async function handleSubmit() {
         : undefined,
       writeOffAmount: Math.round(formData.writeOffAmount * 100)
     };
-    message(props.editData ? "更新成功" : "创建成功", { type: "success" });
+
+    await createWriteOffApi(submitData);
+    message("创建成功", { type: "success" });
     dialogVisible.value = false;
     emit("success");
   } catch (e) {
