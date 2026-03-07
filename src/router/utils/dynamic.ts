@@ -4,7 +4,6 @@
 import {
   type RouterHistory,
   type RouteRecordRaw,
-  type RouteRecordNormalized,
   createWebHistory,
   createWebHashHistory
 } from "vue-router";
@@ -16,7 +15,6 @@ import { toMultiTypeArray } from "@/store/utils";
 import { buildHierarchyTree } from "@/utils/tree";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
-import { ascending } from "./filter";
 // 导入静态路由配置，用于组件映射
 import staticRoutes from "../modules/auth";
 import type { ExtendedRouteRecord } from "../types";
@@ -139,28 +137,11 @@ export function handleAsyncRoutes(routeList: RouteRecordRaw[]): void {
   } else {
     formatFlatteningRoutes(addAsyncRoutes(routeList)).map(
       (v: RouteRecordRaw) => {
-        // 防止重复添加路由
-        if (
-          router.options.routes[0]?.children?.findIndex(
-            value => value.path === v.path
-          ) !== -1
-        ) {
+        if (v.path === "/") {
           return;
-        } else {
-          // 切记将路由push到routes后还需要使用addRoute，这样路由才能正常跳转
-          router.options.routes[0]?.children?.push(v);
-          // 最终路由进行升序
-          ascending(
-            (router.options.routes[0]?.children ?? []) as unknown as Parameters<
-              typeof ascending
-            >[0]
-          );
-          if (v?.name && !router.hasRoute(v.name)) router.addRoute(v);
-          const flattenRouters: RouteRecordNormalized | undefined = router
-            .getRoutes()
-            .find(n => n.path === "/");
-          if (flattenRouters) router.addRoute(flattenRouters);
         }
+
+        if (v?.name && !router.hasRoute(v.name)) router.addRoute(v);
       }
     );
     usePermissionStoreHook().handleWholeMenus(routeList);

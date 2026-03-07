@@ -5,7 +5,8 @@ import type {
   Method,
   AxiosError,
   AxiosResponse,
-  AxiosRequestConfig
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig
 } from "axios";
 
 /**
@@ -29,13 +30,14 @@ export type RequestMethods = Extract<
 export interface PureHttpError extends AxiosError {
   /** 是否为取消请求 */
   isCancelRequest?: boolean;
+  config?: InternalPureHttpRequestConfig;
 }
 
 /**
  * HTTP 响应扩展类型
  */
 export interface PureHttpResponse extends AxiosResponse {
-  config: PureHttpRequestConfig;
+  config: InternalPureHttpRequestConfig;
 }
 
 /**
@@ -48,6 +50,11 @@ export interface PureHttpRequestConfig extends AxiosRequestConfig {
   beforeResponseCallback?: (response: PureHttpResponse) => void;
   /** 跳过鉴权与无感刷新（用于登录/刷新等接口） */
   skipAuth?: boolean;
+}
+
+export interface InternalPureHttpRequestConfig
+  extends InternalAxiosRequestConfig, PureHttpRequestConfig {
+  beforeRequestCallback?: (request: InternalPureHttpRequestConfig) => void;
 }
 
 /**

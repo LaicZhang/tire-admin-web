@@ -3,12 +3,18 @@
  * 处理 HttpOnly 模式下 401 自动 refresh 并重试
  */
 import type { AxiosInstance } from "axios";
-import type { PureHttpError, PureHttpRequestConfig } from "../types.d";
+import type {
+  PureHttpError,
+  PureHttpRequestConfig,
+  InternalPureHttpRequestConfig
+} from "../types.d";
 import type { createPendingQueue } from "../pending-queue";
 import { useUserStoreHook } from "@/store/modules/user";
 import { authWhiteList } from "./auth";
 
-type CookieAuthConfig = PureHttpRequestConfig & { __cookieAuthRetry?: boolean };
+type CookieAuthConfig = InternalPureHttpRequestConfig & {
+  __cookieAuthRetry?: boolean;
+};
 
 export interface CookieAuthInterceptorOptions {
   pendingQueue: ReturnType<typeof createPendingQueue>;
@@ -56,8 +62,8 @@ export const createCookieAuthInterceptor = (
       // 并发请求时加入队列等待
       if (state.isRefreshing) {
         return pendingQueue
-          .enqueue(originalConfig)
-          .then(config => instance.request(config));
+          .enqueue(originalConfig as PureHttpRequestConfig)
+          .then(config => instance.request(config as CookieAuthConfig));
       }
 
       state.isRefreshing = true;

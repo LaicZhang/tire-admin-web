@@ -4,6 +4,7 @@ import { storageLocal } from "@pureadmin/utils";
 import {
   formatToken,
   getToken,
+  setToken,
   refreshTokenKey,
   TokenKey,
   userKey
@@ -51,7 +52,10 @@ vi.mock("@/store/modules/user", () => ({
   useUserStoreHook: () => ({
     isRemember: false,
     loginDay: 7,
+    setAvatar: vi.fn(),
     setUsername: vi.fn(),
+    setNickname: vi.fn(),
+    setPerms: vi.fn(),
     setRoles: vi.fn(),
     setUid: vi.fn()
   })
@@ -138,6 +142,34 @@ describe("auth utils", () => {
       vi.mocked(storageLocal().getItem).mockReturnValue(null);
 
       expect(getToken()).toBeNull();
+    });
+  });
+
+  describe("setToken", () => {
+    it("should persist avatar nickname and permissions", () => {
+      setToken({
+        accessToken: "access-token",
+        refreshToken: "refresh-token",
+        expires: new Date("2026-01-01T00:00:00.000Z"),
+        username: "tester",
+        roles: ["admin"],
+        uid: "uid-1",
+        avatar: "avatar.png",
+        nickname: "Tester",
+        permissions: ["order.read"]
+      });
+
+      expect(vi.mocked(storageLocal().setItem)).toHaveBeenCalledWith(
+        userKey,
+        expect.objectContaining({
+          username: "tester",
+          roles: ["admin"],
+          uid: "uid-1",
+          avatar: "avatar.png",
+          nickname: "Tester",
+          permissions: ["order.read"]
+        })
+      );
     });
   });
 });

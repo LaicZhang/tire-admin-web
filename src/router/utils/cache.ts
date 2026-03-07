@@ -5,6 +5,9 @@ import { cloneDeep, storageLocal } from "@pureadmin/utils";
 import { useTimeoutFn } from "@vueuse/core";
 import type { RouteRecordRaw } from "vue-router";
 import { getConfig } from "@/config";
+import type { CurrentCompanyInfo } from "@/utils/auth";
+import { userKey, type DataInfo } from "@/utils/auth";
+import { currentCompanyKey } from "@/store/modules/company";
 import { router } from "../index";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { handleAsyncRoutes } from "./dynamic";
@@ -22,6 +25,18 @@ interface RouteCacheData {
   timestamp: number;
 }
 
+function getAsyncRouteCacheKey() {
+  const userInfo = storageLocal().getItem<DataInfo<number>>(userKey);
+  const companyInfo =
+    storageLocal().getItem<CurrentCompanyInfo>(currentCompanyKey);
+  const uid = userInfo?.uid || "anonymous";
+  const companyId = companyInfo?.companyId || "no-company";
+  const roles = Array.isArray(userInfo?.roles)
+    ? userInfo.roles.slice().sort().join(",")
+    : "no-roles";
+  return `async-routes:${uid}:${companyId}:${roles}`;
+}
+
 /**
  * 检查路由缓存是否过期
  */
@@ -31,12 +46,12 @@ function isRouteCacheExpired(cacheData: RouteCacheData | null): boolean {
 }
 
 /**
- * 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）
+ * 初始化路由
  */
-export function initRouter() {
+export async function initRouter() {
   if (getConfig()?.CachingAsyncRoutes) {
     // 开启动态路由缓存本地localStorage
-    const key = "async-routes";
+    const key = getAsyncRouteCacheKey();
     const cachedData = storageLocal().getItem(key) as RouteCacheData | null;
 
     // 检查缓存是否存在且未过期
@@ -46,32 +61,22 @@ export function initRouter() {
       cachedData.routes.length > 0 &&
       !isRouteCacheExpired(cachedData)
     ) {
-      return new Promise(resolve => {
-        handleAsyncRoutes(cachedData.routes);
-        resolve(router);
-      });
-    } else {
-      // 缓存不存在或已过期，从后端获取
-      return new Promise(resolve => {
-        getAsyncRoutes().then(({ data }) => {
-          handleAsyncRoutes(cloneDeep(data));
-          // 存储路由和时间戳
-          storageLocal().setItem(key, {
-            routes: data,
-            timestamp: Date.now()
-          } as RouteCacheData);
-          resolve(router);
-        });
-      });
+      handleAsyncRoutes(cachedData.routes);
+      return router;
     }
-  } else {
-    return new Promise(resolve => {
-      getAsyncRoutes().then(({ data }) => {
-        handleAsyncRoutes(cloneDeep(data));
-        resolve(router);
-      });
-    });
+
+    const { data } = await getAsyncRoutes();
+    handleAsyncRoutes(cloneDeep(data));
+    storageLocal().setItem(key, {
+      routes: data,
+      timestamp: Date.now()
+    } as RouteCacheData);
+    return router;
   }
+
+  const { data } = await getAsyncRoutes();
+  handleAsyncRoutes(cloneDeep(data));
+  return router;
 }
 
 /**

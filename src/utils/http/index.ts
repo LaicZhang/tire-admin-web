@@ -2,7 +2,8 @@ import Axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
   type CustomParamsSerializer,
-  type AxiosError
+  type AxiosError,
+  type InternalAxiosRequestConfig
 } from "axios";
 import type {
   PureHttpError,
@@ -12,18 +13,18 @@ import type {
 } from "./types.d";
 import { stringify } from "qs";
 import { httpLogger } from "@/utils/logger";
-import {
-  getToken,
-  formatToken,
-  getCsrfToken,
-  csrfHeaderName
-} from "@/utils/auth";
 import { useHttpOnlyCookie } from "@/utils/auth-config";
 import { useUserStoreHook } from "@/store/modules/user";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { resolveBaseURLFromViteEnv } from "./baseurl";
 import { createPendingQueue } from "./pending-queue";
 import { ensureIdempotencyKey } from "./idempotency";
+import {
+  createCookieAuthInterceptor,
+  createRetryInterceptor,
+  registerAuthInterceptor,
+  registerCsrfInterceptor
+} from "./interceptors";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 // 优先使用环境变量，其次：开发环境走相对路径配合 Vite 代理，生产环境兜底到公网 API
@@ -88,9 +89,6 @@ export const getRetryDelay = (retryCount: number): number => {
   return Math.min(1000 * Math.pow(2, retryCount), 10000);
 };
 
-/** 请求白名单：不需要 token 的接口（避免 refresh-token 请求再次触发 refresh 导致死循环） */
-const authWhiteList = ["/api/auth/login", "/api/auth/refresh-token"];
-
 const defaultConfig: AxiosRequestConfig = {
   baseURL: resolveBaseURL(),
   // 请求超时时间
@@ -121,12 +119,6 @@ class PureHttp {
     timeoutMessage: "请求等待超时，请重试"
   });
 
-  /** 防止重复刷新token */
-  private static isRefreshing = false;
-
-  /** HttpOnly Cookie 模式：防止重复 refresh */
-  private static isCookieRefreshing = false;
-
   private static cookiePendingQueue = createPendingQueue({
     maxSize: 100,
     timeoutMs: 15000,
@@ -142,9 +134,10 @@ class PureHttp {
 
   /** 请求拦截 */
   private httpInterceptorsRequest(): void {
-    PureHttp.axiosInstance.interceptors.request.use(
-      // @ts-expect-error PureHttpRequestConfig extends InternalAxiosRequestConfig with optional headers
-      async (config: PureHttpRequestConfig) => {
+    const instance = PureHttp.axiosInstance;
+
+    instance.interceptors.request.use(
+      async (config: InternalAxiosRequestConfig & PureHttpRequestConfig) => {
         if (fatalApiConfigError) {
           notifyFatalApiConfigOnce();
           const error = new Error(fatalApiConfigError) as Error & {
@@ -163,88 +156,35 @@ class PureHttp {
           PureHttp.initConfig.beforeRequestCallback(config);
           return config;
         }
-        // 跳过鉴权（登录/刷新等接口）
-        if (config.skipAuth) {
-          ensureIdempotencyKey(config);
-          return config;
-        }
-
-        if (authWhiteList.includes(config.url ?? "")) {
-          ensureIdempotencyKey(config);
-          return config;
-        }
-
-        config.headers ??= {};
-
-        // HttpOnly Cookie 模式：不发 Authorization header，添加 CSRF token
-        if (useHttpOnlyCookie) {
-          const method = config.method?.toLowerCase() ?? "get";
-          // 非 GET/HEAD/OPTIONS 请求需要 CSRF token
-          if (!["get", "head", "options"].includes(method)) {
-            const csrfToken = getCsrfToken();
-            if (csrfToken) {
-              config.headers[csrfHeaderName] = csrfToken;
-            }
-          }
-          ensureIdempotencyKey(config);
-          return config;
-        }
-
-        // 传统模式：Bearer token
-        const data = getToken();
-        if (!data?.accessToken) {
-          ensureIdempotencyKey(config);
-          return config;
-        }
-
-        const expires = Number(data.expires);
-        const expired = expires <= Date.now();
-        if (!expired) {
-          config.headers["Authorization"] = formatToken(data.accessToken);
-          ensureIdempotencyKey(config);
-          return config;
-        }
-
-        // accessToken 已过期，但 refreshToken 不存在：直接登出并快速失败
-        if (!data.refreshToken) {
-          useUserStoreHook().logOut();
-          return Promise.reject(new Error("登录已过期，请重新登录"));
-        }
-
-        // Token 过期：将当前请求加入等待队列，等待刷新完成后重试
-        if (!PureHttp.isRefreshing) {
-          PureHttp.isRefreshing = true;
-          useUserStoreHook()
-            .handRefreshToken({ refreshToken: data.refreshToken })
-            .then(res => {
-              const token = res.data.accessToken;
-              PureHttp.pendingQueue.resolveAll(pendingConfig => {
-                pendingConfig.headers ??= {};
-                pendingConfig.headers["Authorization"] = formatToken(token);
-                return pendingConfig;
-              });
-            })
-            .catch(error => {
-              PureHttp.pendingQueue.rejectAll(error);
-              useUserStoreHook().logOut();
-            })
-            .finally(() => {
-              PureHttp.isRefreshing = false;
-            });
-        }
-
         ensureIdempotencyKey(config);
-        return PureHttp.pendingQueue.enqueue(config);
+        return config;
       },
       error => {
         return Promise.reject(error);
       }
     );
+
+    if (useHttpOnlyCookie) {
+      registerCsrfInterceptor(instance);
+    } else {
+      registerAuthInterceptor(instance, {
+        pendingQueue: PureHttp.pendingQueue,
+        onLogout: () => useUserStoreHook().logOut()
+      });
+    }
   }
 
   /** 响应拦截 */
   private httpInterceptorsResponse(): void {
     const instance = PureHttp.axiosInstance;
+    const cookieAuthInterceptor = createCookieAuthInterceptor({
+      pendingQueue: PureHttp.cookiePendingQueue,
+      onLogout: () => useUserStoreHook().logOut()
+    });
+    const retryInterceptor = createRetryInterceptor({
+      excludeErrorCodes: [fatalApiConfigErrorCode]
+    });
+
     instance.interceptors.response.use(
       (response: PureHttpResponse) => {
         const $config = response.config;
@@ -260,8 +200,26 @@ class PureHttp {
         return response.data;
       },
       async (error: PureHttpError) => {
-        const $error = error;
+        let $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
+
+        try {
+          return await cookieAuthInterceptor.responseErrorInterceptor(
+            $error,
+            instance
+          );
+        } catch (cookieError) {
+          $error = cookieError as PureHttpError;
+        }
+
+        try {
+          return await retryInterceptor.responseErrorInterceptor(
+            $error,
+            instance
+          );
+        } catch (retryError) {
+          $error = retryError as PureHttpError;
+        }
 
         const responseData = $error.response?.data as unknown;
         const isApiEnvelope = (
@@ -278,65 +236,6 @@ class PureHttp {
           "msg" in value &&
           typeof (value as { code?: unknown }).code === "number" &&
           typeof (value as { msg?: unknown }).msg === "string";
-
-        // HttpOnly Cookie 模式：401 自动 refresh 并重试（并发只 refresh 一次）
-        const originalConfig = error.config as
-          | (PureHttpRequestConfig & { __cookieAuthRetry?: boolean })
-          | undefined;
-        const status = $error.response?.status;
-        if (
-          useHttpOnlyCookie &&
-          status === 401 &&
-          originalConfig &&
-          !originalConfig.skipAuth &&
-          !authWhiteList.includes(originalConfig.url ?? "") &&
-          !originalConfig.__cookieAuthRetry
-        ) {
-          originalConfig.__cookieAuthRetry = true;
-
-          if (PureHttp.isCookieRefreshing) {
-            return PureHttp.cookiePendingQueue
-              .enqueue(originalConfig)
-              .then(config => instance.request(config));
-          }
-
-          PureHttp.isCookieRefreshing = true;
-          try {
-            await instance.request({
-              method: "post",
-              url: "/api/auth/refresh-token",
-              skipAuth: true
-            } as PureHttpRequestConfig);
-            PureHttp.cookiePendingQueue.resolveAll(config => config);
-            return instance.request(originalConfig);
-          } catch (refreshError) {
-            PureHttp.cookiePendingQueue.rejectAll(refreshError);
-            useUserStoreHook().logOut();
-            return Promise.reject(refreshError);
-          } finally {
-            PureHttp.isCookieRefreshing = false;
-          }
-        }
-
-        // 重试逻辑：仅对网络错误和幂等请求进行重试
-        const config = error.config as PureHttpRequestConfig & {
-          __retryCount?: number;
-        };
-        if (config && shouldRetry(error as unknown as AxiosError)) {
-          config.__retryCount = config.__retryCount || 0;
-          if (config.__retryCount < 3) {
-            config.__retryCount++;
-            const delay = getRetryDelay(config.__retryCount);
-            if (import.meta.env.DEV) {
-              httpLogger.warn(
-                `[HTTP] 请求失败，${delay}ms 后进行第 ${config.__retryCount} 次重试:`,
-                config.url
-              );
-            }
-            await new Promise(resolve => setTimeout(resolve, delay));
-            return instance.request(config);
-          }
-        }
 
         // 非取消请求时显示错误提示
         if (

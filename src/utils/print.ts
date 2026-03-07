@@ -184,22 +184,35 @@ Print.prototype = {
     );
 
     const conf = this.conf;
+    const removeIframe = () => {
+      if (iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe);
+      }
+    };
+
     iframe.onload = (): void => {
       const w = iframe.contentWindow;
       const doc = iframe.contentDocument ?? w?.document;
-      if (!doc || !w) return;
+      if (!doc || !w) {
+        removeIframe();
+        return;
+      }
       // Before popping, callback
       if (conf.printBeforeFn) {
         conf.printBeforeFn({ doc });
       }
       this.toPrint(w);
       setTimeout((): void => {
-        document.body.removeChild(iframe);
+        removeIframe();
         // After popup, callback
         if (conf.printDoneCallBack) {
           conf.printDoneCallBack();
         }
       }, 100);
+    };
+
+    iframe.onerror = () => {
+      removeIframe();
     };
 
     const f: HTMLIFrameElement = document.body.appendChild(iframe);

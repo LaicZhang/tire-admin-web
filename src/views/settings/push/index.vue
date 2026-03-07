@@ -177,6 +177,7 @@ onMounted(() => {
                 <a
                   href="https://www.pushdeer.com"
                   target="_blank"
+                  rel="noopener noreferrer"
                   class="text-blue-500 hover:underline"
                 >
                   前往 PushDeer 官网获取 Key

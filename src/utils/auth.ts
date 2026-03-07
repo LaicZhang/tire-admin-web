@@ -1,6 +1,7 @@
 import Cookies from "js-cookie";
 import { storageLocal } from "@pureadmin/utils";
 import { useUserStoreHook } from "@/store/modules/user";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 import {
   useHttpOnlyCookie,
   csrfCookieName,
@@ -166,28 +167,49 @@ export function setToken(data: SetTokenPayload) {
     ...(isRemember ? { expires: loginDay } : {})
   });
 
-  function setUserKey(username: string, roles: Array<string>, uid: string) {
-    useUserStoreHook().setUsername(username);
-    useUserStoreHook().setRoles(roles);
-    useUserStoreHook().setUid(uid);
+  function setUserKey(
+    username: string,
+    roles: Array<string>,
+    uid: string,
+    extra?: Pick<DataInfo<number>, "avatar" | "nickname" | "permissions">
+  ) {
+    const avatar = extra?.avatar ?? "";
+    const nickname = extra?.nickname ?? "";
+    const permissions = extra?.permissions ?? [];
+    const userStore = useUserStoreHook();
+
+    userStore.setUsername(username);
+    userStore.setRoles(roles);
+    userStore.setUid(uid);
+    userStore.setAvatar(avatar);
+    userStore.setNickname(nickname);
+    userStore.setPerms(permissions);
+
     storageLocal().setItem(userKey, {
       expires,
       username,
+      avatar,
+      nickname,
+      permissions,
       roles,
       uid
     });
   }
 
   if (data.username && data.roles) {
-    const { username, roles, uid } = data;
-    setUserKey(username, roles, uid ?? "");
+    const { username, roles, uid, avatar, nickname, permissions } = data;
+    setUserKey(username, roles, uid ?? "", {
+      avatar: avatar ?? "",
+      nickname: nickname ?? "",
+      permissions: permissions ?? []
+    });
   } else {
-    const username =
-      storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "";
-    const roles =
-      storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [];
-    const uid = storageLocal().getItem<DataInfo<number>>(userKey)?.uid ?? "";
-    setUserKey(username, roles, uid);
+    const stored = storageLocal().getItem<DataInfo<number>>(userKey);
+    setUserKey(stored?.username ?? "", stored?.roles ?? [], stored?.uid ?? "", {
+      avatar: stored?.avatar ?? "",
+      nickname: stored?.nickname ?? "",
+      permissions: stored?.permissions ?? []
+    });
   }
 }
 
@@ -196,6 +218,7 @@ export function removeToken() {
   Cookies.remove(TokenKey);
   Cookies.remove(multipleTabsKey);
   storageLocal().removeItem(userKey);
+  useCurrentCompanyStoreHook().clearCurrentCompany();
   sessionStorage.removeItem(refreshTokenKey);
 }
 

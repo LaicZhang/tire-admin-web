@@ -15,10 +15,8 @@ const router = useRouter();
 const qrContent = ref("");
 const loading = ref(false);
 const expired = ref(false);
-const polling = ref(false);
 
 let state = "";
-let pollTimer: ReturnType<typeof setInterval> | null = null;
 let expireTimer: ReturnType<typeof setTimeout> | null = null;
 
 // 获取微信扫码登录 URL
@@ -42,13 +40,9 @@ async function fetchQrLoginUrl() {
       expireTimer = setTimeout(
         () => {
           expired.value = true;
-          stopPolling();
         },
         (result.expiresIn - 10) * 1000
       ); // 提前 10 秒标记过期
-
-      // 开始轮询检查登录状态
-      startPolling();
     } else {
       message(msg || "获取二维码失败", { type: "error" });
     }
@@ -60,38 +54,8 @@ async function fetchQrLoginUrl() {
   }
 }
 
-// 轮询检查登录状态
-function startPolling() {
-  if (polling.value) return;
-  polling.value = true;
-
-  pollTimer = setInterval(async () => {
-    if (!state || expired.value) {
-      stopPolling();
-      return;
-    }
-
-    try {
-      // 注意：这里需要后端提供一个状态检查接口
-      // 当前实现假设用户扫码后会触发回调，前端通过 URL 参数接收
-      // 如果后端支持轮询状态检查，可以在这里调用
-    } catch {
-      // 忽略轮询错误
-    }
-  }, 2000);
-}
-
-function stopPolling() {
-  polling.value = false;
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
-}
-
 // 刷新二维码
 function refreshQr() {
-  stopPolling();
   fetchQrLoginUrl();
 }
 
@@ -141,7 +105,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  stopPolling();
   if (expireTimer) {
     clearTimeout(expireTimer);
     expireTimer = null;

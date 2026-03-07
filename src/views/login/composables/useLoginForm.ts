@@ -1,7 +1,8 @@
-import { ref, reactive, watch, onUnmounted } from "vue";
+import { ref, reactive, watch, getCurrentScope, onScopeDispose } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import { baseUrlApi } from "@/api/utils";
 import { useUserStoreHook } from "@/store/modules/user";
+import { isObject } from "@/utils/type-guards";
 
 /**
  * 验证码逻辑 composable
@@ -90,6 +91,12 @@ export function useLoginForm() {
         `width=${width},height=${height},left=${left},top=${top}`
       );
 
+      if (!popup) {
+        githubLoading.value = false;
+        reject(new Error("登录窗口打开失败，请检查浏览器弹窗设置"));
+        return;
+      }
+
       let checkClosedTimer: ReturnType<typeof setInterval> | null = null;
       let timeoutTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -104,11 +111,19 @@ export function useLoginForm() {
       cleanupFn = cleanup;
 
       const handleMessage = (event: MessageEvent) => {
-        const data = event.data;
-        if (data?.accessToken) {
+        if (event.origin !== window.location.origin) return;
+        if (event.source !== popup) return;
+        if (!isObject(event.data)) return;
+
+        const data = event.data as {
+          accessToken?: string;
+          error?: string;
+        };
+
+        if (typeof data.accessToken === "string" && data.accessToken) {
           cleanup();
           resolve(data);
-        } else if (data?.error) {
+        } else if (typeof data.error === "string" && data.error) {
           cleanup();
           reject(new Error(data.error));
         }
@@ -133,9 +148,11 @@ export function useLoginForm() {
     });
   };
 
-  onUnmounted(() => {
-    if (cleanupFn) cleanupFn();
-  });
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      if (cleanupFn) cleanupFn();
+    });
+  }
 
   return {
     loading,

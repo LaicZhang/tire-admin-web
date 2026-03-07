@@ -2,7 +2,11 @@
  * Bearer Token 认证拦截器
  * 处理 token 验证、刷新逻辑、白名单检查
  */
-import type { AxiosInstance } from "axios";
+import {
+  AxiosHeaders,
+  type AxiosInstance,
+  type InternalAxiosRequestConfig
+} from "axios";
 import type { PureHttpRequestConfig } from "../types.d";
 import type { createPendingQueue } from "../pending-queue";
 import { getToken, formatToken } from "@/utils/auth";
@@ -29,13 +33,13 @@ export const createAuthInterceptor = (options: AuthInterceptorOptions) => {
   };
 
   const requestInterceptor = async (
-    config: PureHttpRequestConfig
-  ): Promise<PureHttpRequestConfig> => {
+    config: InternalAxiosRequestConfig & PureHttpRequestConfig
+  ): Promise<InternalAxiosRequestConfig & PureHttpRequestConfig> => {
     // 跳过鉴权（登录/刷新等接口）
     if (config.skipAuth) return config;
     if (authWhiteList.includes(config.url ?? "")) return config;
 
-    config.headers ??= {};
+    config.headers = AxiosHeaders.from(config.headers);
 
     const data = getToken();
     if (!data?.accessToken) return config;
@@ -62,7 +66,9 @@ export const createAuthInterceptor = (options: AuthInterceptorOptions) => {
         .then(res => {
           const token = res.data.accessToken;
           options.pendingQueue.resolveAll(pendingConfig => {
-            pendingConfig.headers ??= {};
+            pendingConfig.headers = AxiosHeaders.from(
+              pendingConfig.headers as never
+            );
             pendingConfig.headers["Authorization"] = formatToken(token);
             return pendingConfig;
           });
@@ -76,7 +82,9 @@ export const createAuthInterceptor = (options: AuthInterceptorOptions) => {
         });
     }
 
-    return options.pendingQueue.enqueue(config);
+    return options.pendingQueue.enqueue(config) as Promise<
+      InternalAxiosRequestConfig & PureHttpRequestConfig
+    >;
   };
 
   return {
@@ -94,9 +102,7 @@ export const registerAuthInterceptor = (
 ) => {
   const { requestInterceptor } = createAuthInterceptor(options);
 
-  return instance.interceptors.request.use(
-    // @ts-expect-error PureHttpRequestConfig extends InternalAxiosRequestConfig
-    requestInterceptor,
-    error => Promise.reject(error)
+  return instance.interceptors.request.use(requestInterceptor, error =>
+    Promise.reject(error)
   );
 };

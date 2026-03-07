@@ -13,6 +13,7 @@ const TITLE = getConfig("Title");
       class="hover:text-primary"
       href="https://github.com/pure-admin"
       target="_blank"
+      rel="noopener noreferrer"
     >
       &nbsp;{{ TITLE }}
     </a>

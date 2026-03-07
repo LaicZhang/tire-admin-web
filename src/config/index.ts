@@ -61,14 +61,15 @@ let config: PlatformConfigs = Object.assign(
 );
 const { VITE_PUBLIC_PATH } = import.meta.env;
 
-const setConfig = (cfg?: unknown) => {
+const setConfig = (cfg?: Partial<PlatformConfigs>) => {
   config = Object.assign(config, cfg);
 };
 
-function getConfig<T = PlatformConfigs>(): T;
-function getConfig<T = unknown>(key: string): T;
+function getConfig(): PlatformConfigs;
+function getConfig<K extends keyof PlatformConfigs>(key: K): PlatformConfigs[K];
+function getConfig(key: string): unknown;
 
-function getConfig<T = PlatformConfigs>(key?: string): T {
+function getConfig(key?: string): unknown {
   if (typeof key === "string") {
     const arr = key.split(".");
     if (arr.length) {
@@ -80,10 +81,10 @@ function getConfig<T = PlatformConfigs>(key?: string): T {
           data = null;
         }
       });
-      return data as T;
+      return data;
     }
   }
-  return config as unknown as T;
+  return config;
 }
 
 /** 获取项目动态全局配置 */
@@ -114,6 +115,7 @@ export const getPlatformConfig = async (app: App): Promise<PlatformConfigs> => {
 };
 
 /** 本地响应式存储的命名空间 */
-const responsiveStorageNameSpace = () => getConfig().ResponsiveStorageNameSpace;
+const responsiveStorageNameSpace = () =>
+  String(getConfig("ResponsiveStorageNameSpace") ?? "responsive-");
 
 export { getConfig, setConfig, responsiveStorageNameSpace };

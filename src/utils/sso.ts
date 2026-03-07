@@ -1,63 +1,71 @@
-import { removeToken, setToken, type DataInfo } from "./auth";
-import { subBefore, getQueryMap } from "@pureadmin/utils";
+import { getQueryMap, subBefore } from "@pureadmin/utils";
+import { removeToken, setToken, type SetTokenPayload } from "./auth";
 
-/**
- * 简版前端单点登录，根据实际业务自行编写，平台启动后本地可以跳后面这个链接进行测试 http://localhost:8848/#/permission/page/index?username=sso&roles=admin&accessToken=eyJhbGciOiJIUzUxMiJ9.admin
- * 划重点：
- * 判断是否为单点登录，不为则直接返回不再进行任何逻辑处理，下面是单点登录后的逻辑处理
- * 1.清空本地旧信息；
- * 2.获取url中的重要参数信息，然后通过 setToken 保存在本地；
- * 3.删除不需要显示在 url 的参数
- * 4.使用 window.location.replace 跳转正确页面
- */
+function parseSsoPayload(): SetTokenPayload | null {
+  const params = getQueryMap(location.href) as Record<
+    string,
+    string | undefined
+  >;
+  const username = String(params.username || "").trim();
+  const accessToken = String(params.accessToken || "").trim();
+  const rolesRaw = params.roles;
+
+  if (!username || !accessToken || !rolesRaw) {
+    return null;
+  }
+
+  const roles = String(rolesRaw)
+    .split(",")
+    .map(role => role.trim())
+    .filter(Boolean);
+
+  if (roles.length === 0) {
+    return null;
+  }
+
+  const payload: SetTokenPayload = {
+    username,
+    accessToken,
+    roles,
+    uid: String(params.uid || "").trim() || undefined,
+    avatar: String(params.avatar || "").trim() || undefined,
+    nickname: String(params.nickname || "").trim() || undefined,
+    permissions: params.permissions
+      ? String(params.permissions)
+          .split(",")
+          .map(permission => permission.trim())
+          .filter(Boolean)
+      : undefined
+  };
+
+  return payload;
+}
+
 (function () {
-  // 获取 url 中的参数
-  const params = getQueryMap(location.href) as DataInfo<Date>;
-  const must = ["username", "roles", "accessToken"];
-  const mustLength = must.length;
-  if (Object.keys(params).length !== mustLength) return;
+  const payload = parseSsoPayload();
+  if (!payload) return;
 
-  // url 参数满足 must 里的全部值，才判定为单点登录，避免非单点登录时刷新页面无限循环
-  let sso = [];
-  let start = 0;
+  removeToken();
+  setToken(payload);
 
-  while (start < mustLength) {
-    if (Object.keys(params).includes(must[start]) && sso.length <= mustLength) {
-      sso.push(must[start]);
-    } else {
-      sso = [];
-    }
-    start++;
-  }
+  const params = getQueryMap(location.href) as Record<
+    string,
+    string | undefined
+  >;
+  const {
+    roles: _roles,
+    accessToken: _accessToken,
+    permissions: _permissions,
+    ...rest
+  } = params;
 
-  if (sso.length === mustLength) {
-    // 判定为单点登录
+  const newUrl = `${location.origin}${location.pathname}${subBefore(
+    location.hash,
+    "?"
+  )}?${JSON.stringify(rest)
+    .replace(/["{}]/g, "")
+    .replace(/:/g, "=")
+    .replace(/,/g, "&")}`;
 
-    // 清空本地旧信息
-    removeToken();
-
-    // 保存新信息到本地
-    setToken(params);
-
-    // 移除不需要显示在 url 的参数
-
-    const {
-      roles: _roles,
-      accessToken: _accessToken,
-      ...rest
-    } = params as DataInfo<Date> & { roles: unknown; accessToken: unknown };
-
-    const newUrl = `${location.origin}${location.pathname}${subBefore(
-      location.hash,
-      "?"
-    )}?${JSON.stringify(rest)
-      .replace(/["{}]/g, "")
-      .replace(/:/g, "=")
-      .replace(/,/g, "&")}`;
-
-    // 替换历史记录项
-    window.location.replace(newUrl);
-  } else {
-    return;
-  }
+  window.location.replace(newUrl);
 })();

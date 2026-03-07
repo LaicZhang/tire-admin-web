@@ -4,6 +4,7 @@ import type { currentCompanyType } from "./types";
 import { storageLocal } from "@pureadmin/utils";
 import type { CurrentCompanyInfo } from "@/utils";
 import { getCurrentCompanyApi } from "@/api";
+import { isObject } from "@/utils/type-guards";
 
 export const currentCompanyKey = "current-company";
 
@@ -34,10 +35,25 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
         ...company
       });
     },
+    clearCurrentCompany() {
+      this.setCurrentCompany({
+        companyName: "",
+        companyId: ""
+      });
+      storageLocal().removeItem(currentCompanyKey);
+    },
     /** 获取并设置当前公司信息 */
     async handleCurrentCompany() {
       const res = await getCurrentCompanyApi();
-      const data = res.data as Array<{ uid: string; name: string }>;
+      const data = Array.isArray(res.data)
+        ? res.data.filter(
+            (item): item is { uid: string; name: string } =>
+              isObject(item) &&
+              typeof item.uid === "string" &&
+              typeof item.name === "string"
+          )
+        : [];
+
       if (data.length === 0) {
         throw new Error("当前用户没有公司信息");
       }

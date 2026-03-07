@@ -2,7 +2,11 @@
  * CSRF Token 拦截器
  * 处理 HttpOnly Cookie 模式的 CSRF token 注入
  */
-import type { AxiosInstance } from "axios";
+import {
+  AxiosHeaders,
+  type AxiosInstance,
+  type InternalAxiosRequestConfig
+} from "axios";
 import type { PureHttpRequestConfig } from "../types.d";
 import { getCsrfToken, csrfHeaderName } from "@/utils/auth";
 
@@ -14,9 +18,9 @@ const SAFE_METHODS = ["get", "head", "options"];
  */
 export const createCsrfInterceptor = () => {
   const requestInterceptor = (
-    config: PureHttpRequestConfig
-  ): PureHttpRequestConfig => {
-    config.headers ??= {};
+    config: InternalAxiosRequestConfig & PureHttpRequestConfig
+  ): InternalAxiosRequestConfig & PureHttpRequestConfig => {
+    config.headers = AxiosHeaders.from(config.headers);
 
     const method = config.method?.toLowerCase() ?? "get";
 
@@ -40,9 +44,7 @@ export const createCsrfInterceptor = () => {
 export const registerCsrfInterceptor = (instance: AxiosInstance) => {
   const { requestInterceptor } = createCsrfInterceptor();
 
-  return instance.interceptors.request.use(
-    // @ts-expect-error PureHttpRequestConfig extends InternalAxiosRequestConfig
-    requestInterceptor,
-    error => Promise.reject(error)
+  return instance.interceptors.request.use(requestInterceptor, error =>
+    Promise.reject(error)
   );
 };

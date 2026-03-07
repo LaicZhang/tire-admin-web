@@ -43,6 +43,8 @@ const OPTION_KEY_MAP: Record<OptionType, ALL_LIST> = {
   positions: ALL_LIST.position
 };
 
+let loadAllPromise: Promise<void> | null = null;
+
 /**
  * 统一选项数据 Store
  * 集中管理下拉数据（员工、经理、客户、供应商、仓库、轮胎、职位）
@@ -85,40 +87,48 @@ export const useOptionsStore = defineStore("pure-options", {
      * 从 localForage 加载所有选项数据
      */
     async loadAll(): Promise<void> {
-      if (this.isLoading) return;
-
-      this.isLoading = true;
-      try {
-        const storage = localForage();
-        const [
-          employees,
-          managers,
-          customers,
-          providers,
-          repos,
-          tires,
-          positions
-        ] = await Promise.all([
-          storage.getItem<OptionItem[]>(ALL_LIST.employee),
-          storage.getItem<OptionItem[]>(ALL_LIST.manager),
-          storage.getItem<OptionItem[]>(ALL_LIST.customer),
-          storage.getItem<OptionItem[]>(ALL_LIST.provider),
-          storage.getItem<OptionItem[]>(ALL_LIST.repo),
-          storage.getItem<OptionItem[]>(ALL_LIST.tire),
-          storage.getItem<OptionItem[]>(ALL_LIST.position)
-        ]);
-
-        this.employees = employees || [];
-        this.managers = managers || [];
-        this.customers = customers || [];
-        this.providers = providers || [];
-        this.repos = repos || [];
-        this.tires = tires || [];
-        this.positions = positions || [];
-        this.isLoaded = true;
-      } finally {
-        this.isLoading = false;
+      if (loadAllPromise) {
+        await loadAllPromise;
+        return;
       }
+
+      loadAllPromise = (async () => {
+        this.isLoading = true;
+        try {
+          const storage = localForage();
+          const [
+            employees,
+            managers,
+            customers,
+            providers,
+            repos,
+            tires,
+            positions
+          ] = await Promise.all([
+            storage.getItem<OptionItem[]>(ALL_LIST.employee),
+            storage.getItem<OptionItem[]>(ALL_LIST.manager),
+            storage.getItem<OptionItem[]>(ALL_LIST.customer),
+            storage.getItem<OptionItem[]>(ALL_LIST.provider),
+            storage.getItem<OptionItem[]>(ALL_LIST.repo),
+            storage.getItem<OptionItem[]>(ALL_LIST.tire),
+            storage.getItem<OptionItem[]>(ALL_LIST.position)
+          ]);
+
+          this.employees = employees || [];
+          this.managers = managers || [];
+          this.customers = customers || [];
+          this.providers = providers || [];
+          this.repos = repos || [];
+          this.tires = tires || [];
+          this.positions = positions || [];
+          this.isLoaded = true;
+        } finally {
+          this.isLoading = false;
+          loadAllPromise = null;
+        }
+      })();
+
+      await loadAllPromise;
     },
 
     /**
@@ -143,7 +153,12 @@ export const useOptionsStore = defineStore("pure-options", {
      * 确保数据已加载（如果未加载则加载）
      */
     async ensureLoaded(): Promise<void> {
-      if (!this.isLoaded && !this.isLoading) {
+      if (loadAllPromise) {
+        await loadAllPromise;
+        return;
+      }
+
+      if (!this.isLoaded) {
         await this.loadAll();
       }
     }

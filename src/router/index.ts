@@ -1,6 +1,5 @@
 import NProgress from "@/utils/progress";
 import { buildHierarchyTree } from "@/utils/tree";
-import { routerLogger } from "@/utils/logger";
 import remainingRouter from "./modules/remaining";
 
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -17,7 +16,6 @@ import {
   type RouteComponent
 } from "vue-router";
 import type { ExtendedRouteRecord } from "./types";
-import { removeToken } from "@/utils/auth";
 
 /** 自动导入全部静态路由，无需再手动引入！匹配 src/router/modules 目录（任何嵌套级别）中具有 .ts 扩展名的所有文件，除了 remaining.ts 文件
  * 如何匹配所有文件请看：https://github.com/mrmlnc/fast-glob#basic-syntax
@@ -148,27 +146,6 @@ router.beforeEach(async (to: ToRouteType, _from, next) => {
 
     // 处理外部链接
     if (_from?.name && handleExternalLink(to, next)) return;
-
-    // 刷新情况下的路由初始化
-    if (!_from?.name) {
-      if (
-        usePermissionStoreHook().wholeMenus.length === 0 &&
-        to.path !== "/login"
-      ) {
-        import("./utils/cache").then(({ initRouter }) => {
-          initRouter()
-            .then(() => {
-              next({ ...to, replace: true });
-            })
-            .catch(error => {
-              routerLogger.error("[Router] initRouter failed:", error);
-              removeToken();
-              next({ path: "/login", replace: true });
-            });
-        });
-        return;
-      }
-    }
 
     // 正常路由跳转
     toCorrectRoute(to, _from, next);

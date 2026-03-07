@@ -1,7 +1,7 @@
 import App from "./App.vue";
 import router from "./router";
 import { setupStore } from "@/store";
-import { getConfig, getPlatformConfig } from "./config";
+import { getPlatformConfig } from "./config";
 import { MotionPlugin } from "@vueuse/motion";
 import { createApp, type Directive } from "vue";
 import { useElementPlus } from "@/plugins/elementPlus";
@@ -10,9 +10,6 @@ import "@/utils/globalPolyfills";
 
 import Table from "@pureadmin/table";
 import PureDescriptions from "@pureadmin/descriptions";
-import { useAppStoreHook } from "@/store/modules/app";
-import { useSettingStoreHook } from "@/store/modules/settings";
-import { useEpThemeStoreHook } from "@/store/modules/epTheme";
 
 // 引入重置样式
 import "./style/reset.scss";
@@ -24,7 +21,6 @@ import "./style/index.scss";
 import "./style/tailwind.css";
 // Element Plus 样式通过 unplugin-vue-components 按需导入
 // 导入字体图标
-import "./assets/iconfont/iconfont.js";
 import "./assets/iconfont/iconfont.css";
 
 const app = createApp(App);
@@ -39,60 +35,16 @@ Object.keys(directives).forEach(key => {
 import { IconifyIconOffline } from "./components/ReIcon";
 app.component("IconifyIconOffline", IconifyIconOffline);
 
-const bootConfig = Object.assign({}, getConfig<PlatformConfigs>());
-app.config.globalProperties.$config = bootConfig;
-injectResponsiveStorage(app, bootConfig);
+async function bootstrap() {
+  const platformConfig = await getPlatformConfig(app);
 
-setupStore(app);
-app.use(router);
-app.use(MotionPlugin).use(useElementPlus).use(Table).use(PureDescriptions);
+  injectResponsiveStorage(app, platformConfig);
+  setupStore(app);
+  app.use(router);
+  app.use(MotionPlugin).use(useElementPlus).use(Table).use(PureDescriptions);
 
-router.isReady().then(() => {
+  await router.isReady();
   app.mount("#app");
-});
-
-function applyPlatformConfigAfterLoad(
-  initial: PlatformConfigs,
-  latest: PlatformConfigs
-) {
-  const settingStore = useSettingStoreHook();
-  if (settingStore.title === (initial.Title ?? "")) {
-    settingStore.changeSetting({ key: "title", value: latest.Title ?? "" });
-  }
-  if (settingStore.fixedHeader === (initial.FixedHeader ?? false)) {
-    settingStore.changeSetting({
-      key: "fixedHeader",
-      value: latest.FixedHeader ?? false
-    });
-  }
-  if (settingStore.hiddenSideBar === (initial.HiddenSideBar ?? false)) {
-    settingStore.changeSetting({
-      key: "hiddenSideBar",
-      value: latest.HiddenSideBar ?? false
-    });
-  }
-
-  const appStore = useAppStoreHook();
-  if (appStore.layout === (initial.Layout ?? "vertical")) {
-    appStore.setLayout(latest.Layout ?? "vertical");
-  }
-  if (appStore.sidebar.opened === (initial.SidebarStatus ?? true)) {
-    appStore.sidebar.opened = latest.SidebarStatus ?? true;
-  }
-
-  const epThemeStore = useEpThemeStoreHook();
-  if (epThemeStore.epThemeColor === (initial.EpThemeColor ?? "#409EFF")) {
-    epThemeStore.setEpThemeColor(latest.EpThemeColor ?? "#409EFF");
-  }
-
-  const currentRoute = router.currentRoute.value;
-  const routeTitle = currentRoute?.meta?.title as string | undefined;
-  if (routeTitle) {
-    const appTitle = latest.Title;
-    document.title = appTitle ? `${routeTitle} | ${appTitle}` : routeTitle;
-  }
 }
 
-void getPlatformConfig(app).then(latest => {
-  applyPlatformConfigAfterLoad(bootConfig, latest);
-});
+void bootstrap();
