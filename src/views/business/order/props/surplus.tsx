@@ -1,0 +1,97 @@
+import { formatDate } from "@/utils";
+import { reactive } from "vue";
+import type { FormRules } from "element-plus";
+import { fieldRules } from "@/utils/validation/fieldRules";
+
+export interface SurplusFormItemProps {
+  id: number;
+  uid: string;
+  customerId?: string;
+  desc?: string;
+  operatorId?: string;
+  auditorId?: string;
+  count: number;
+  total: number;
+  orderStatus: number;
+  logisticsStatus: number;
+  paidAmount?: number;
+  isApproved: boolean;
+  isLocked: boolean;
+  rejectReason?: string;
+  paymentId?: string;
+  auditAt?: Date;
+  arrivalAt?: Date;
+  payAt?: Date;
+}
+
+export interface SurplusFormProps {
+  formInline: SurplusFormItemProps;
+}
+
+export const surplusOrderFormRules: FormRules = reactive({
+  auditorId: fieldRules.uidSelect({ label: "审核人", required: false }),
+  count: fieldRules.positiveInt({ label: "数量", min: 1, required: true }),
+  total: fieldRules.moneyYuan({ label: "总价", min: 0, required: true })
+});
+export const surplusOrderDetailsColumns: TableColumnList = [];
+export const surplusOrderColumns: TableColumnList = [
+  {
+    label: "流水号",
+    prop: "number"
+  },
+  {
+    label: "数量",
+    prop: "count"
+  },
+  {
+    label: "总价",
+    prop: "total"
+  },
+  {
+    label: "操作员",
+    prop: "operatorId"
+  },
+  {
+    label: "审核员",
+    prop: "auditorId"
+  },
+  {
+    label: "状态",
+    prop: "status",
+    formatter: (_row, _column, cellValue) => {
+      return cellValue === true ? "正常" : "关闭";
+    }
+  },
+  {
+    label: "审核状态",
+    prop: "isApproved",
+    formatter: (_row, _column, cellValue) => {
+      return cellValue === true ? "已批准" : "未批准";
+    }
+  },
+  {
+    label: "是否锁单",
+    prop: "isLocked",
+    formatter: (_row, _column, cellValue) => {
+      return cellValue === true ? "已锁单" : "未锁单";
+    }
+  },
+  {
+    label: "备注",
+    prop: "desc"
+  },
+  {
+    label: "审核时间",
+    prop: "auditAt",
+    formatter: (_row, _column, cellValue) => {
+      return formatDate(cellValue);
+    }
+  },
+  {
+    label: "操作",
+    fixed: "right",
+    prop: "operation",
+    slot: "operation",
+    minWidth: 120
+  }
+];

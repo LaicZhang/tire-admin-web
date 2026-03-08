@@ -18,15 +18,13 @@ import {
   reportTypeMap
 } from "./types";
 import { http } from "@/utils/http";
-import { getRepoListApi } from "@/api/company/repo";
-import { useRouter } from "vue-router";
 import { logger } from "@/utils/logger";
+import RepoSelect from "@/components/EntitySelect/RepoSelect.vue";
 
 defineOptions({
   name: "InventoryReport"
 });
 
-const router = useRouter();
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
@@ -34,8 +32,6 @@ const currentReportType = ref<ReportType>(ReportType.BALANCE);
 const balanceList = ref<InventoryBalance[]>([]);
 const detailList = ref<InventoryDetail[]>([]);
 const summaryList = ref<InventorySummary[]>([]);
-
-const repoList = ref<{ uid: string; name: string }[]>([]);
 
 const queryParams = reactive<ReportQuery>({
   repoId: undefined,
@@ -83,17 +79,6 @@ const currentData = computed(() => {
       return balanceList.value;
   }
 });
-
-const loadRepos = async () => {
-  try {
-    const { data, code } = await getRepoListApi(1, {});
-    if (code === 200) {
-      repoList.value = data.list;
-    }
-  } catch (error) {
-    logger.error("获取仓库列表失败", error);
-  }
-};
 
 const fetchData = async () => {
   loading.value = true;
@@ -191,7 +176,7 @@ const handleColumnSetting = () => {
 };
 
 onMounted(() => {
-  Promise.all([loadRepos(), fetchData()]);
+  fetchData();
 });
 </script>
 
@@ -222,19 +207,11 @@ onMounted(() => {
       @reset="onReset"
     >
       <el-form-item label="仓库" prop="repoId">
-        <el-select
+        <RepoSelect
           v-model="queryParams.repoId"
           placeholder="请选择仓库"
-          clearable
           class="w-[150px]"
-        >
-          <el-option
-            v-for="repo in repoList"
-            :key="repo.uid"
-            :label="repo.name"
-            :value="repo.uid"
-          />
-        </el-select>
+        />
       </el-form-item>
       <el-form-item
         v-if="currentReportType !== ReportType.BALANCE"

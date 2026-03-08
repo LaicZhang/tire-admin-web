@@ -2,6 +2,7 @@
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { createOtherExpenseApi } from "@/api/fund/other-expense";
+import { getPaymentApi } from "@/api";
 import { handleApiError } from "@/utils/error";
 import { message } from "@/utils";
 import {
@@ -11,13 +12,10 @@ import {
   type ExpenseType
 } from "./types";
 import dayjs from "dayjs";
-import {
-  yuanToFen,
-  fenToYuanNumber as fenToYuan,
-  formatMoneyFromFen
-} from "@/utils/formatMoney";
-import { useFundForm } from "../composables/useFundForm";
+import { yuanToFen, fenToYuanNumber as fenToYuan } from "@/utils/formatMoney";
 import { useSysDictOptions } from "@/composables/useSysDict";
+import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
+import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -41,10 +39,6 @@ const dialogTitle = computed(() =>
 const formRef = ref<FormInstance>();
 const loading = ref(false);
 const { options: fundCategoryOptions } = useSysDictOptions("fundCategory");
-
-// 使用 fund 模块通用 composable
-const { providerList, paymentList, loadProviders, loadPayments } =
-  useFundForm();
 
 const formData = reactive<CreateOtherExpenseDto>({
   providerId: "",
@@ -74,10 +68,7 @@ const needPay = computed(() => {
 });
 
 // 选中账户的余额
-const selectedPaymentBalance = computed(() => {
-  const selected = paymentList.value.find(p => p.uid === formData.paymentId);
-  return selected?.balance !== undefined ? selected.balance / 100 : null;
-});
+const selectedPaymentBalance = ref<number | null>(null);
 
 function resetForm() {
   Object.assign(formData, {
@@ -98,8 +89,6 @@ watch(
   () => props.modelValue,
   val => {
     if (val) {
-      loadProviders();
-      loadPayments();
       if (props.editData) {
         Object.assign(formData, {
           providerId: props.editData.providerId || "",
@@ -118,6 +107,32 @@ watch(
       }
     }
   }
+);
+
+watch(
+  () => formData.paymentId,
+  async paymentId => {
+    if (!paymentId) {
+      selectedPaymentBalance.value = null;
+      return;
+    }
+
+    try {
+      const res = await getPaymentApi(paymentId);
+      if (res.code !== 200) {
+        selectedPaymentBalance.value = null;
+        return;
+      }
+
+      const balance = Number(res.data?.balance ?? NaN);
+      selectedPaymentBalance.value = Number.isFinite(balance)
+        ? balance / 100
+        : null;
+    } catch {
+      selectedPaymentBalance.value = null;
+    }
+  },
+  { immediate: true }
 );
 
 async function handleSubmit() {
@@ -201,20 +216,11 @@ function handleClose() {
       class="pr-4"
     >
       <el-form-item label="供应商" prop="providerId">
-        <el-select
+        <ProviderSelect
           v-model="formData.providerId"
           placeholder="请选择供应商（可选）"
-          filterable
-          clearable
           class="w-full"
-        >
-          <el-option
-            v-for="item in providerList"
-            :key="item.uid"
-            :label="item.name"
-            :value="item.uid"
-          />
-        </el-select>
+        />
       </el-form-item>
 
       <el-form-item label="支出类型" prop="expenseType">
@@ -276,21 +282,12 @@ function handleClose() {
         </el-col>
         <el-col :span="12">
           <el-form-item label="付款账户" prop="paymentId">
-            <el-select
+            <PaymentSelect
               v-model="formData.paymentId"
               placeholder="请选择付款账户"
-              filterable
-              clearable
               class="w-full"
               :disabled="!needPay"
-            >
-              <el-option
-                v-for="item in paymentList"
-                :key="item.uid"
-                :label="`${item.name}${item.balance !== undefined ? ` (${formatMoneyFromFen(item.balance)})` : ''}`"
-                :value="item.uid"
-              />
-            </el-select>
+            />
           </el-form-item>
         </el-col>
       </el-row>

@@ -8,6 +8,7 @@ import {
   returnOrderDetailsColumns,
   transferOrderDetailsColumns,
   wasteOrderDetailsColumns,
+  surplusOrderDetailsColumns,
   assemblyOrderFormRules,
   claimOrderFormRules,
   purchaseOrderFormRules,
@@ -15,6 +16,7 @@ import {
   saleOrderFormRules,
   transferOrderFormRules,
   wasteOrderFormRules,
+  surplusOrderFormRules,
   purchasePlanDetailsColumns,
   purchasePlanFormRules,
   purchaseInquiryDetailsColumns,
@@ -58,7 +60,7 @@ const columnsMap: Record<ORDER_TYPE, TableColumnList> = {
   [ORDER_TYPE.purchasePlan]: purchasePlanDetailsColumns,
   [ORDER_TYPE.purchaseInquiry]: purchaseInquiryDetailsColumns,
   [ORDER_TYPE.saleQuotation]: saleQuotationDetailsColumns,
-  [ORDER_TYPE.surplus]: [],
+  [ORDER_TYPE.surplus]: surplusOrderDetailsColumns,
   [ORDER_TYPE.default]: []
 };
 
@@ -73,7 +75,7 @@ const formRulesMap: Record<ORDER_TYPE, FormRules> = {
   [ORDER_TYPE.purchasePlan]: purchasePlanFormRules,
   [ORDER_TYPE.purchaseInquiry]: purchaseInquiryFormRules,
   [ORDER_TYPE.saleQuotation]: saleQuotationFormRules,
-  [ORDER_TYPE.surplus]: {} as FormRules,
+  [ORDER_TYPE.surplus]: surplusOrderFormRules,
   [ORDER_TYPE.default]: {} as FormRules
 };
 

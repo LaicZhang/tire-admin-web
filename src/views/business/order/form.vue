@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { FormRules } from "element-plus";
+import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
+import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
+import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 import {
   PurchaseFormItemProps,
   SaleFormItemProps,
@@ -14,7 +17,7 @@ import {
   message,
   ORDER_TYPE
 } from "@/utils";
-import { getPaymentListApi, getCompanyId, scanBarcodeApi } from "@/api";
+import { scanBarcodeApi } from "@/api";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
@@ -29,11 +32,12 @@ const ruleFormRef = ref();
 // 订单表单字段较多，且不同订单类型字段存在差异；这里以运行时为准
 
 // Union type for all order form data types
-type OrderFormData =
-  | PurchaseFormItemProps
-  | SaleFormItemProps
-  | ClaimFormItemProps
-  | ReturnFormItemProps;
+type OrderFormData = Partial<
+  PurchaseFormItemProps &
+    SaleFormItemProps &
+    ClaimFormItemProps &
+    ReturnFormItemProps
+>;
 
 // Common list item type
 interface ListItem {
@@ -78,6 +82,7 @@ const props = withDefaults(defineProps<OrderFormProps>(), {
       count: 0,
       total: 0,
       showTotal: 0,
+      status: true,
       orderStatus: 0,
       logisticsStatus: 0,
       paidAmount: 0,
@@ -85,10 +90,10 @@ const props = withDefaults(defineProps<OrderFormProps>(), {
       isLocked: false,
       rejectReason: undefined,
       paymentId: undefined,
-      auditAt: null,
-      arrivalAt: null,
-      payAt: null,
-      updateAt: null,
+      auditAt: undefined,
+      arrivalAt: undefined,
+      payAt: undefined,
+      updateAt: undefined,
       providerId: undefined,
       customerId: undefined,
       fee: 0,
@@ -240,31 +245,17 @@ function onDel(row: OrderDetail) {
 
 const allRepoList = ref<ListItem[]>([]);
 const allTireList = ref<ListItem[]>([]);
-const allCustomerList = ref<ListItem[]>([]);
-const allProviderList = ref<ListItem[]>([]);
-const allPaymentList = ref<ListItem[]>([]);
 async function getALlList() {
   try {
-    const [managerData, repoData, tireData, customerData, providerData] =
-      await Promise.all([
-        localForage().getItem<ListItem[]>(ALL_LIST.manager),
-        localForage().getItem<ListItem[]>(ALL_LIST.repo),
-        localForage().getItem<ListItem[]>(ALL_LIST.tire),
-        localForage().getItem<ListItem[]>(ALL_LIST.customer),
-        localForage().getItem<ListItem[]>(ALL_LIST.provider)
-      ]);
+    const [managerData, repoData, tireData] = await Promise.all([
+      localForage().getItem<ListItem[]>(ALL_LIST.manager),
+      localForage().getItem<ListItem[]>(ALL_LIST.repo),
+      localForage().getItem<ListItem[]>(ALL_LIST.tire)
+    ]);
 
     managerList.value = managerData ?? [];
     allRepoList.value = repoData ?? [];
     allTireList.value = tireData ?? [];
-    allCustomerList.value = customerData ?? [];
-    allProviderList.value = providerData ?? [];
-
-    const cid = await getCompanyId();
-    const { data: paymentData } = await getPaymentListApi(cid);
-    allPaymentList.value = (
-      Array.isArray(paymentData) ? paymentData : paymentData.list
-    ) as ListItem[];
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载基础数据失败";
     message(msg, { type: "error" });
@@ -351,21 +342,11 @@ onMounted(async () => {
         prop="providerId"
         :disabled="getDisabled(['修改', '新增'])"
       >
-        <el-select
+        <ProviderSelect
           v-model="(newFormInline as PurchaseFormItemProps).providerId"
-          clearable
           placeholder="请输入供应商"
           class="w-60!"
-        >
-          <el-option
-            v-for="item in allProviderList"
-            :key="item.id"
-            :label="item.name"
-            :value="item.uid"
-          >
-            {{ item.name }}
-          </el-option>
-        </el-select>
+        />
       </el-form-item>
 
       <el-form-item
@@ -373,21 +354,11 @@ onMounted(async () => {
         label="客户"
         prop="customerId"
       >
-        <el-select
+        <CustomerSelect
           v-model="(newFormInline as SaleFormItemProps).customerId"
-          clearable
           placeholder="请选择客户"
           class="w-60!"
-        >
-          <el-option
-            v-for="item in allCustomerList"
-            :key="item.id"
-            :label="item.name"
-            :value="item.uid"
-          >
-            {{ item.name }}
-          </el-option>
-        </el-select>
+        />
       </el-form-item>
 
       <el-form-item label="审核人" prop="auditorId">
@@ -453,20 +424,11 @@ onMounted(async () => {
         />
       </el-form-item>
       <el-form-item label="支付账户" prop="paymentId">
-        <el-select
+        <PaymentSelect
           v-model="newFormInline.paymentId"
           placeholder="请选择支付账户"
-          clearable
           class="w-60!"
-        >
-          <!-- 支付账户选项需要从API获取 -->
-          <el-option
-            v-for="item in allPaymentList"
-            :key="item.uid"
-            :label="item.name + ' (余额:' + (item.balance || 0) + ')'"
-            :value="item.uid"
-          />
-        </el-select>
+        />
       </el-form-item>
     </template>
 

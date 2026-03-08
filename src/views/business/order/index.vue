@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { getOrderTypeList, message, ORDER_TYPE } from "@/utils";
@@ -53,6 +53,13 @@ const {
   handleSendInquiry,
   handleConvertQuotation
 } = useOrderActions(orderType, onSearch);
+
+const supportsManualCreate = computed(
+  () => orderType.value !== ORDER_TYPE.surplus
+);
+const supportsWorkflowActions = computed(
+  () => orderType.value !== ORDER_TYPE.surplus
+);
 
 onMounted(async () => {
   await getOrderType();
@@ -135,6 +142,7 @@ onMounted(async () => {
       <PureTableBar :title="$route.meta.title" @refresh="getOrderListInfo">
         <template #buttons>
           <el-button
+            v-if="supportsManualCreate"
             type="primary"
             :icon="useRenderIcon(AddFill)"
             @click="handleOpenDialog('新增', orderType, undefined)"
@@ -156,6 +164,7 @@ onMounted(async () => {
           >
             <template #operation="{ row }">
               <el-button
+                v-if="supportsWorkflowActions"
                 class="reset-margin"
                 link
                 type="primary"
@@ -165,6 +174,7 @@ onMounted(async () => {
               </el-button>
 
               <el-button
+                v-if="supportsWorkflowActions"
                 class="reset-margin"
                 link
                 type="primary"
@@ -174,6 +184,7 @@ onMounted(async () => {
               </el-button>
 
               <el-button
+                v-if="supportsWorkflowActions"
                 class="reset-margin"
                 link
                 type="primary"
@@ -193,9 +204,10 @@ onMounted(async () => {
 
               <el-button
                 v-if="
-                  orderType === ORDER_TYPE.purchase ||
-                  orderType === ORDER_TYPE.sale ||
-                  orderType === ORDER_TYPE.return
+                  supportsWorkflowActions &&
+                  (orderType === ORDER_TYPE.purchase ||
+                    orderType === ORDER_TYPE.sale ||
+                    orderType === ORDER_TYPE.return)
                 "
                 class="reset-margin"
                 link
@@ -413,7 +425,7 @@ onMounted(async () => {
               </el-button>
 
               <el-button
-                v-if="row.isLocked === false"
+                v-if="row.isLocked === false && supportsWorkflowActions"
                 class="reset-margin"
                 link
                 type="primary"
@@ -423,7 +435,7 @@ onMounted(async () => {
               </el-button>
 
               <DeleteButton
-                v-if="row.isLocked === false"
+                v-if="row.isLocked === false && supportsWorkflowActions"
                 :show-icon="false"
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"

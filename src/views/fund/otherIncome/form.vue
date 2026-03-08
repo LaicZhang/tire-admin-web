@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import { getCustomerListApi } from "@/api/business/customer";
 import { createOtherIncomeApi } from "@/api/fund/other-income";
-import { getPaymentListApi } from "@/api/payment";
 import { handleApiError, message } from "@/utils";
-import { logger } from "@/utils/logger";
 import { useSysDictOptions } from "@/composables/useSysDict";
+import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
+import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 import {
   INCOME_TYPE_OPTIONS,
   type OtherIncome,
@@ -36,10 +35,6 @@ const dialogTitle = computed(() =>
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
-const customerList = ref<Array<{ uid: string; name: string }>>([]);
-const paymentList = ref<Array<{ uid: string; name: string; balance?: number }>>(
-  []
-);
 const { options: fundCategoryOptions } = useSysDictOptions("fundCategory");
 
 const formData = reactive<CreateOtherIncomeDto>({
@@ -68,26 +63,6 @@ const needReceive = computed(() => {
   return formData.receivedAmount && formData.receivedAmount > 0;
 });
 
-async function loadCustomers() {
-  try {
-    const res = await getCustomerListApi(1, { keyword: "" });
-    customerList.value = res.data?.list || [];
-  } catch (e) {
-    logger.error("加载客户列表失败", e);
-  }
-}
-
-async function loadPayments() {
-  try {
-    const res = await getPaymentListApi();
-    paymentList.value =
-      (res.data as Array<{ uid: string; name: string; balance?: number }>) ||
-      [];
-  } catch (e) {
-    logger.error("加载账户列表失败", e);
-  }
-}
-
 function resetForm() {
   Object.assign(formData, {
     customerId: "",
@@ -106,8 +81,6 @@ watch(
   () => props.modelValue,
   val => {
     if (val) {
-      loadCustomers();
-      loadPayments();
       if (props.editData) {
         Object.assign(formData, {
           customerId: props.editData.customerId || "",
@@ -201,20 +174,11 @@ function handleClose() {
       class="pr-4"
     >
       <el-form-item label="客户" prop="customerId">
-        <el-select
+        <CustomerSelect
           v-model="formData.customerId"
           placeholder="请选择客户（可选）"
-          filterable
-          clearable
           class="w-full"
-        >
-          <el-option
-            v-for="item in customerList"
-            :key="item.uid"
-            :label="item.name"
-            :value="item.uid"
-          />
-        </el-select>
+        />
       </el-form-item>
 
       <el-form-item label="收入类型" prop="incomeType">
@@ -276,21 +240,12 @@ function handleClose() {
         </el-col>
         <el-col :span="12">
           <el-form-item label="收款账户" prop="paymentId">
-            <el-select
+            <PaymentSelect
               v-model="formData.paymentId"
               placeholder="请选择收款账户"
-              filterable
-              clearable
               class="w-full"
               :disabled="!needReceive"
-            >
-              <el-option
-                v-for="item in paymentList"
-                :key="item.uid"
-                :label="item.name"
-                :value="item.uid"
-              />
-            </el-select>
+            />
           </el-form-item>
         </el-col>
       </el-row>

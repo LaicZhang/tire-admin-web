@@ -7,7 +7,8 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
 import { ALL_LIST, localForage, message } from "@/utils";
-import { getPaymentListApi, getCompanyId } from "@/api";
+import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
+import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -32,11 +33,9 @@ interface SelectItem {
   balance?: number;
 }
 
-const allCustomerList = ref<SelectItem[]>([]);
 const allTireList = ref<SelectItem[]>([]);
 const allRepoList = ref<SelectItem[]>([]);
 const managerList = ref<SelectItem[]>([]);
-const allPaymentList = ref<SelectItem[]>([]);
 
 const isReadOnly = computed(() => ["查看", "审核"].includes(props.formTitle));
 
@@ -44,23 +43,14 @@ const isEditable = computed(() => ["新增", "修改"].includes(props.formTitle)
 
 async function loadBaseData() {
   try {
-    const [customerData, tireData, repoData, managerData] = await Promise.all([
-      localForage().getItem(ALL_LIST.customer),
+    const [tireData, repoData, managerData] = await Promise.all([
       localForage().getItem(ALL_LIST.tire),
       localForage().getItem(ALL_LIST.repo),
       localForage().getItem(ALL_LIST.manager)
     ]);
-    allCustomerList.value = (customerData as SelectItem[]) || [];
     allTireList.value = (tireData as SelectItem[]) || [];
     allRepoList.value = (repoData as SelectItem[]) || [];
     managerList.value = (managerData as SelectItem[]) || [];
-
-    const cid = await getCompanyId();
-    const { data: paymentData } = await getPaymentListApi(cid);
-    const paymentList = paymentData as SelectItem[] | { list?: SelectItem[] };
-    allPaymentList.value = Array.isArray(paymentList)
-      ? paymentList
-      : paymentList?.list || [];
   } catch {
     message("加载基础数据失败", { type: "error" });
   }
@@ -134,21 +124,12 @@ watch(
     <el-row :gutter="20">
       <el-col :span="6">
         <el-form-item label="客户" prop="customerId">
-          <el-select
+          <CustomerSelect
             v-model="formData.customerId"
             placeholder="请选择客户"
-            clearable
-            filterable
             :disabled="isReadOnly || !!formData.saleOrderId"
             class="w-full"
-          >
-            <el-option
-              v-for="item in allCustomerList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
+          />
         </el-form-item>
       </el-col>
       <el-col :span="6">
@@ -223,19 +204,11 @@ watch(
         </el-col>
         <el-col :span="8">
           <el-form-item label="收款账户" prop="paymentId">
-            <el-select
+            <PaymentSelect
               v-model="formData.paymentId"
               placeholder="请选择收款账户"
-              clearable
               class="w-full"
-            >
-              <el-option
-                v-for="item in allPaymentList"
-                :key="item.uid"
-                :label="`${item.name} (余额: ${item.balance || 0})`"
-                :value="item.uid"
-              />
-            </el-select>
+            />
           </el-form-item>
         </el-col>
       </el-row>

@@ -3,6 +3,7 @@ export * from "./sale";
 export * from "./claim";
 export * from "./return";
 export * from "./waste";
+export * from "./surplus";
 export * from "./transfer";
 export * from "./assembly";
 export * from "./purchase-plan";

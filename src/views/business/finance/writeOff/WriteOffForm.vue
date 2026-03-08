@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, reactive, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { createWriteOff, type WriteOffOrderDto } from "@/api/business/writeOff";
-import { getCustomerApi, getCustomerListApi } from "@/api/business/customer";
-import { getProviderApi, getProviderListApi } from "@/api/business/provider";
+import { getCustomerApi } from "@/api/business/customer";
+import { getProviderApi } from "@/api/business/provider";
 import { message } from "@/utils/message";
 import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import { elementRules } from "@/utils/validation/elementRules";
+import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
+import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
 
 const props = defineProps<{
   onSuccess: () => void;
@@ -15,8 +17,6 @@ const props = defineProps<{
 
 const loading = ref(false);
 const formRef = ref<FormInstance>();
-const customerList = ref<Array<{ uid: string; name: string }>>([]);
-const providerList = ref<Array<{ uid: string; name: string }>>([]);
 
 const formData = reactive<WriteOffOrderDto>({
   type: "OFFSET",
@@ -56,20 +56,6 @@ const rules: FormRules = {
   reason: [elementRules.maxLen(200, "核销原因最多 200 个字符")],
   remark: [elementRules.maxLen(200, "备注最多 200 个字符")]
 };
-
-async function loadSelectData() {
-  try {
-    const [customerRes, providerRes] = await Promise.all([
-      getCustomerListApi(1, { keyword: "" }),
-      getProviderListApi(1, { keyword: "" })
-    ]);
-    customerList.value = customerRes.data?.list || [];
-    providerList.value = providerRes.data?.list || [];
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "加载数据失败";
-    message(msg, { type: "error" });
-  }
-}
 
 async function loadCustomerBalance(uid: string) {
   balanceLoading.value = true;
@@ -166,10 +152,6 @@ async function handleSubmit() {
   }
 }
 
-onMounted(() => {
-  loadSelectData();
-});
-
 watch(
   () => formData.type,
   type => {
@@ -213,37 +195,19 @@ watch(
         </el-radio-group>
       </el-form-item>
       <el-form-item label="客户" prop="customerId">
-        <el-select
+        <CustomerSelect
           v-model="formData.customerId"
           placeholder="请选择客户"
-          clearable
-          filterable
           class="w-full!"
-        >
-          <el-option
-            v-for="item in customerList"
-            :key="item.uid"
-            :label="item.name"
-            :value="item.uid"
-          />
-        </el-select>
+        />
       </el-form-item>
       <el-form-item label="供应商" prop="providerId">
-        <el-select
+        <ProviderSelect
           v-model="formData.providerId"
           placeholder="请选择供应商"
-          clearable
-          filterable
           :disabled="formData.type === 'BAD_DEBT'"
           class="w-full!"
-        >
-          <el-option
-            v-for="item in providerList"
-            :key="item.uid"
-            :label="item.name"
-            :value="item.uid"
-          />
-        </el-select>
+        />
       </el-form-item>
       <el-form-item label="应收金额">
         <el-input-number
