@@ -83,7 +83,7 @@ const BREAKPOINTS = {
   TABLET: 990
 } as const;
 
-useResizeObserver(appWrapperRef, entries => {
+useResizeObserver(".app-wrapper", entries => {
   if (isMobile) return;
   const entry = entries[0];
   const [{ inlineSize: width, blockSize: height }] = entry.borderBoxSize;

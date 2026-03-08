@@ -284,7 +284,7 @@ const handleReject = async (row: OtherOutboundOrder) => {
             :loading="loading"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
               <el-button

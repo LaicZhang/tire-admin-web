@@ -20,6 +20,7 @@ import {
   confirmTransferOrderArrivalApi,
   confirmTransferOrderShipmentApi,
   deleteOrderApi,
+  getCompanyConnect,
   getCompanyId,
   getOrderListApi,
   updateOrderApi

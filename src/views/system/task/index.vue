@@ -277,12 +277,19 @@ function openDialog(title = "新增", row?: TaskItem) {
         message("描述最多 200 个字符", { type: "warning" });
         return;
       }
-      if (title !== "新增" && !row?.id) {
-        message("缺少任务ID，无法更新", { type: "error" });
-        return;
+      let promise:
+        | ReturnType<typeof createTaskApi>
+        | ReturnType<typeof updateTaskApi>;
+
+      if (title === "新增") {
+        promise = createTaskApi(data);
+      } else {
+        if (!row?.id) {
+          message("缺少任务ID，无法更新", { type: "error" });
+          return;
+        }
+        promise = updateTaskApi(row.id, data);
       }
-      const promise =
-        title === "新增" ? createTaskApi(data) : updateTaskApi(row.id, data);
       promise.then(() => {
         message("操作成功", { type: "success" });
         done();

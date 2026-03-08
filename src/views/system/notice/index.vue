@@ -230,14 +230,19 @@ function openDialog(title = "新增", row?: NoticeItem) {
         message("内容最多 2000 个字符", { type: "warning" });
         return;
       }
-      if (title !== "新增" && !row?.id) {
-        message("缺少公告ID，无法更新", { type: "error" });
-        return;
+      let promise:
+        | ReturnType<typeof createNoticeApi>
+        | ReturnType<typeof updateNoticeApi>;
+
+      if (title === "新增") {
+        promise = createNoticeApi(data);
+      } else {
+        if (!row?.id) {
+          message("缺少公告ID，无法更新", { type: "error" });
+          return;
+        }
+        promise = updateNoticeApi(row.id, data);
       }
-      const promise =
-        title === "新增"
-          ? createNoticeApi(data)
-          : updateNoticeApi(row.id, data);
       promise.then(() => {
         message("操作成功", { type: "success" });
         done();

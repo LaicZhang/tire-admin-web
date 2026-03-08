@@ -13,13 +13,13 @@ interface Props {
   visible: boolean;
   type: string;
   title?: string;
-  filters?: object;
+  filters?: Record<string, unknown>;
   selectedIds?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: "数据导出",
-  filters: () => ({}),
+  filters: () => ({}) as Record<string, unknown>,
   selectedIds: () => []
 });
 

@@ -107,14 +107,19 @@ function openDialog(title = "新增", row?: PurchasePlan) {
         status: "DRAFT",
         items: [] // Mock items
       };
-      if (title !== "新增" && !row) {
-        message("缺少采购计划ID", { type: "error" });
-        return;
+      let promise:
+        | ReturnType<typeof createPurchasePlanApi>
+        | ReturnType<typeof updatePurchasePlanApi>;
+
+      if (title === "新增") {
+        promise = createPurchasePlanApi(data);
+      } else {
+        if (!row) {
+          message("缺少采购计划ID", { type: "error" });
+          return;
+        }
+        promise = updatePurchasePlanApi(String(row.id), data);
       }
-      const promise =
-        title === "新增"
-          ? createPurchasePlanApi(data)
-          : updatePurchasePlanApi(String(row.id), data);
 
       promise.then(() => {
         message("操作成功", { type: "success" });

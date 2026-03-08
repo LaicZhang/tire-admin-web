@@ -92,7 +92,7 @@ function resizeResult() {
   innerHeight.value = window.innerHeight - window.innerHeight / 10 - 140;
 }
 
-useResizeObserver(historyRef, resizeResult);
+useResizeObserver(".history", resizeResult);
 
 function handleScroll(index: number) {
   const curInstance = instance?.proxy?.$refs[`historyItemRef${index}`];

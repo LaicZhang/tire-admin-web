@@ -13,7 +13,7 @@ export type ActionFormDialogAction =
   | "付款";
 
 export interface ActionFormDialogFormRef {
-  getRef: () => FormInstance;
+  getRef: () => FormInstance | undefined;
 }
 
 export type ActionFormDialogHandlers<TData> = Partial<

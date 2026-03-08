@@ -118,19 +118,24 @@ function openDialog(title = "新增", row?: PriceList) {
       }),
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormInline }).formInline;
-      if (title !== "新增" && !curData.id) {
-        message("缺少报价单ID", { type: "error" });
-        return;
+      let promise:
+        | ReturnType<typeof createPriceListApi>
+        | ReturnType<typeof updatePriceListApi>;
+
+      if (title === "新增") {
+        promise = createPriceListApi(
+          curData as Parameters<typeof createPriceListApi>[0]
+        );
+      } else {
+        if (!curData.id) {
+          message("缺少报价单ID", { type: "error" });
+          return;
+        }
+        promise = updatePriceListApi(
+          curData.id,
+          curData as Parameters<typeof updatePriceListApi>[1]
+        );
       }
-      const promise =
-        title === "新增"
-          ? createPriceListApi(
-              curData as Parameters<typeof createPriceListApi>[0]
-            )
-          : updatePriceListApi(
-              curData.id,
-              curData as Parameters<typeof updatePriceListApi>[1]
-            );
 
       promise.then(() => {
         message("操作成功", { type: "success" });
