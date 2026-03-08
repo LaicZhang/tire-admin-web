@@ -32,6 +32,12 @@ export {
   // cache.ts
   initRouter,
   handleAliveRoute,
+  // navigation.ts
+  safeNavigate,
+  isChunkLoadError,
+  getNavigationErrorMessage,
+  resolveSafeHomeRoute,
+  resolveSafeErrorRoute,
   // permission.ts
   hasAuth,
   getAuths
