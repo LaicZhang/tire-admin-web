@@ -66,6 +66,36 @@ export function isValidToken(
   return token !== null && !!token.accessToken;
 }
 
+let sessionValidated = false;
+let sessionValidationPromise: Promise<boolean> | null = null;
+
+export function resetSessionValidation() {
+  sessionValidated = false;
+  sessionValidationPromise = null;
+}
+
+export async function ensureSessionValidated() {
+  if (sessionValidated) return true;
+  if (!sessionValidationPromise) {
+    sessionValidationPromise = (async () => {
+      try {
+        const { getUserInfoApi } = await import("@/api/auth");
+        const res = await getUserInfoApi();
+        sessionValidated = res.code === 200;
+        return sessionValidated;
+      } catch (error) {
+        authLogger.warn("Session validation failed", error);
+        return false;
+      } finally {
+        if (!sessionValidated) {
+          sessionValidationPromise = null;
+        }
+      }
+    })();
+  }
+  return sessionValidationPromise;
+}
+
 /** 获取`token` */
 export function getToken(): DataInfo<number> | null {
   // HttpOnly Cookie 模式：token 由浏览器自动管理，无法读取
@@ -137,6 +167,7 @@ export function getToken(): DataInfo<number> | null {
  * 将 `refreshToken` 放在 sessionStorage（浏览器关闭后自动清理），作为 HttpOnly Cookie 迁移前的过渡方案
  */
 export function setToken(data: SetTokenPayload) {
+  resetSessionValidation();
   const { accessToken } = data;
   const refreshToken = data.refreshToken ?? "";
   const { isRemember, loginDay } = useUserStoreHook();
@@ -215,6 +246,7 @@ export function setToken(data: SetTokenPayload) {
 
 /** 删除`token`以及key值为`user-info`的localStorage信息 */
 export function removeToken() {
+  resetSessionValidation();
   Cookies.remove(TokenKey);
   Cookies.remove(multipleTabsKey);
   storageLocal().removeItem(userKey);

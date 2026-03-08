@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref } from "vue";
 import Search from "./search/index.vue";
 import Notice from "./notice/index.vue";
 import mixNav from "./sidebar/mixNav.vue";
@@ -8,6 +9,9 @@ import Breadcrumb from "./sidebar/breadCrumb.vue";
 import topCollapse from "./sidebar/topCollapse.vue";
 import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import Setting from "~icons/ri/settings-3-line";
+import ArrowDown from "~icons/ep/arrow-down";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
+import { switchCompany } from "@/services";
 
 const {
   layout,
@@ -20,6 +24,31 @@ const {
   avatarsStyle,
   toggleSideBar
 } = useNav();
+
+const companyStore = useCurrentCompanyStoreHook();
+const switchingCompany = ref(false);
+
+const companyList = computed(() => companyStore.availableCompanies ?? []);
+const currentCompanyName = computed(
+  () => companyStore.companyName || "选择公司"
+);
+
+const onCompanyDropdownVisibleChange = async (visible: boolean) => {
+  if (!visible) return;
+  try {
+    await companyStore.fetchAvailableCompanies();
+  } catch {}
+};
+
+const onSelectCompany = async (companyId: string) => {
+  if (switchingCompany.value) return;
+  switchingCompany.value = true;
+  try {
+    await switchCompany(companyId);
+  } finally {
+    switchingCompany.value = false;
+  }
+};
 </script>
 
 <template>
@@ -45,6 +74,29 @@ const {
       <FullScreen id="full-screen" />
       <!-- 消息通知 -->
       <Notice id="header-notice" />
+      <!-- 公司切换（多公司） -->
+      <el-dropdown
+        v-if="companyList.length > 1"
+        trigger="click"
+        @visible-change="onCompanyDropdownVisibleChange"
+      >
+        <span class="el-dropdown-link navbar-bg-hover select-none">
+          <p class="dark:text-white">{{ currentCompanyName }}</p>
+          <IconifyIconOffline :icon="ArrowDown" style="margin-left: 6px" />
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item
+              v-for="c in companyList"
+              :key="c.uid"
+              :disabled="switchingCompany || c.uid === companyStore.companyId"
+              @click="onSelectCompany(c.uid)"
+            >
+              {{ c.name }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <!-- 退出登录 -->
       <el-dropdown trigger="click">
         <span class="el-dropdown-link navbar-bg-hover select-none">

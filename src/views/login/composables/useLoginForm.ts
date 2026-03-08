@@ -3,6 +3,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { baseUrlApi } from "@/api/utils";
 import { useUserStoreHook } from "@/store/modules/user";
 import { isObject } from "@/utils/type-guards";
+import type { SetTokenPayload } from "@/utils/auth";
 
 /**
  * 验证码逻辑 composable
@@ -69,13 +70,71 @@ export function useLoginForm() {
 
   let cleanupFn: (() => void) | null = null;
 
-  interface GithubLoginResponse {
-    accessToken?: string;
-    error?: string;
+  function parseGithubLoginMessage(
+    data: unknown
+  ): { payload?: SetTokenPayload; error?: string } | null {
+    if (!isObject(data)) return null;
+    const record = data as Record<string, unknown>;
+
+    // Support { code, data: {...} } or { data: {...} }
+    if (isObject(record.data)) {
+      return parseGithubLoginMessage(record.data);
+    }
+
+    const error = record.error;
+    if (typeof error === "string" && error.trim()) {
+      return { error: error.trim() };
+    }
+
+    const accessToken = record.accessToken;
+    if (typeof accessToken !== "string" || !accessToken.trim()) return null;
+
+    const refreshToken =
+      typeof record.refreshToken === "string" ? record.refreshToken : undefined;
+    const username =
+      typeof record.username === "string" ? record.username : undefined;
+    const uid = typeof record.uid === "string" ? record.uid : undefined;
+    const nickname =
+      typeof record.nickname === "string" ? record.nickname : undefined;
+    const avatar =
+      typeof record.avatar === "string" ? record.avatar : undefined;
+
+    const roles = Array.isArray(record.roles)
+      ? (record.roles.filter(
+          (r): r is string => typeof r === "string"
+        ) as string[])
+      : undefined;
+    const permissions = Array.isArray(record.permissions)
+      ? (record.permissions.filter(
+          (p): p is string => typeof p === "string"
+        ) as string[])
+      : undefined;
+
+    const expiresRaw = record.expires;
+    const expires =
+      expiresRaw instanceof Date
+        ? expiresRaw
+        : typeof expiresRaw === "string" || typeof expiresRaw === "number"
+          ? new Date(expiresRaw)
+          : undefined;
+
+    const payload: SetTokenPayload = {
+      accessToken: accessToken.trim(),
+      ...(refreshToken ? { refreshToken } : {}),
+      ...(expires && !Number.isNaN(expires.getTime()) ? { expires } : {}),
+      ...(roles ? { roles } : {}),
+      ...(permissions ? { permissions } : {}),
+      ...(username ? { username } : {}),
+      ...(uid ? { uid } : {}),
+      ...(nickname ? { nickname } : {}),
+      ...(avatar ? { avatar } : {})
+    };
+
+    return { payload };
   }
 
   const handleGithubLogin = () => {
-    return new Promise<GithubLoginResponse>((resolve, reject) => {
+    return new Promise<SetTokenPayload>((resolve, reject) => {
       if (githubLoading.value) return;
       githubLoading.value = true;
 
@@ -83,7 +142,7 @@ export function useLoginForm() {
       const height = 600;
       const left = (window.screen.width - width) / 2;
       const top = (window.screen.height - height) / 2;
-      const url = "/api/auth/github";
+      const url = baseUrlApi("/auth/github");
 
       const popup = window.open(
         url,
@@ -113,19 +172,18 @@ export function useLoginForm() {
       const handleMessage = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
         if (event.source !== popup) return;
-        if (!isObject(event.data)) return;
+        const parsed = parseGithubLoginMessage(event.data);
+        if (!parsed) return;
 
-        const data = event.data as {
-          accessToken?: string;
-          error?: string;
-        };
+        if (parsed.payload) {
+          cleanup();
+          resolve(parsed.payload);
+          return;
+        }
 
-        if (typeof data.accessToken === "string" && data.accessToken) {
+        if (parsed.error) {
           cleanup();
-          resolve(data);
-        } else if (typeof data.error === "string" && data.error) {
-          cleanup();
-          reject(new Error(data.error));
+          reject(new Error(parsed.error));
         }
       };
 

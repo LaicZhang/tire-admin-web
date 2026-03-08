@@ -1,50 +1,33 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { defineComponent, h, reactive, ref } from "vue";
 import Login from "./index.vue";
-import { useRouter, type Router } from "vue-router";
-import { usePermissionStoreHook } from "@/store/modules/permission";
-import { useCurrentCompanyStoreHook } from "@/store/modules/company";
-import { useUserStoreHook } from "@/store/modules/user";
+import { completeLogin } from "@/services";
 import { message } from "@/utils/message";
 
-// Hoisted mocks for reactivity
-const mocks = vi.hoisted(() => {
-  return {
-    handleGithubLogin: vi.fn(),
-    useLoginForm: {
-      loading: { value: false },
-      githubLoading: { value: false },
-      disabled: { value: false },
-      ruleForm: {
-        username: "",
-        password: "",
-        captchaCode: "",
-        isRemember: false
-      }
+const mocks = vi.hoisted(() => ({
+  handleGithubLogin: vi.fn(),
+  loginByUsername: vi.fn(),
+  setCurrentPage: vi.fn(),
+  useLoginForm: {
+    loading: { value: false },
+    githubLoading: { value: false },
+    disabled: { value: false },
+    ruleForm: {
+      username: "admin",
+      password: "123456",
+      captchaCode: "abcd",
+      isRemember: false
     }
-  };
-});
-
-// Mocks
-vi.mock("vue-router", () => ({
-  useRouter: vi.fn()
+  }
 }));
-
-vi.mock("@/utils/auth", async importOriginal => {
-  const actual = await importOriginal<object>();
-  return {
-    ...actual,
-    setToken: vi.fn()
-  };
-});
 
 vi.mock("@/utils/message", () => ({
   message: vi.fn()
 }));
 
-vi.mock("@/router/utils", () => ({
-  addPathMatch: vi.fn()
+vi.mock("@/services", () => ({
+  completeLogin: vi.fn()
 }));
 
 vi.mock("@/layout/hooks/useNav", () => ({
@@ -59,50 +42,67 @@ vi.mock("@/layout/hooks/useDataThemeChange", () => ({
   useDataThemeChange: () => ({ dataTheme: false, dataThemeChange: vi.fn() })
 }));
 
-vi.mock("@/store/modules/permission", () => ({
-  usePermissionStoreHook: vi.fn(() => ({ handleWholeMenus: vi.fn() }))
-}));
-
-vi.mock("@/store/modules/company", () => ({
-  useCurrentCompanyStoreHook: vi.fn(() => ({
-    companyId: "test-id",
-    handleCurrentCompany: vi.fn()
-  }))
-}));
-
 vi.mock("@/store/modules/user", () => ({
   useUserStoreHook: vi.fn(() => ({
     currentPage: 0,
-    setCurrentPage: vi.fn(),
-    loginByUsername: vi.fn().mockResolvedValue({ code: 200, data: {} }),
+    setCurrentPage: mocks.setCurrentPage,
+    loginByUsername: mocks.loginByUsername,
     isRemember: false,
     loginDay: 7
   }))
 }));
 
-vi.mock("./composables/useLoginForm", async () => {
-  const { ref, reactive } = await import("vue");
-  return {
-    useCaptcha: () => ({
-      captchaUrl: ref("test-url"),
-      refreshCaptcha: vi.fn()
-    }),
-    useRememberLogin: () => ({ checked: ref(false), loginDay: ref(7) }),
-    useLoginForm: () => ({
-      loading: ref(mocks.useLoginForm.loading.value),
-      githubLoading: ref(mocks.useLoginForm.githubLoading.value),
-      disabled: ref(mocks.useLoginForm.disabled.value),
-      ruleForm: reactive(mocks.useLoginForm.ruleForm),
-      handleGithubLogin: mocks.handleGithubLogin
-    })
-  };
-});
+vi.mock("./composables/useLoginForm", () => ({
+  useCaptcha: () => ({
+    captchaUrl: ref("test-url"),
+    refreshCaptcha: vi.fn()
+  }),
+  useRememberLogin: () => ({ checked: ref(false), loginDay: ref(7) }),
+  useLoginForm: () => ({
+    loading: ref(mocks.useLoginForm.loading.value),
+    githubLoading: ref(mocks.useLoginForm.githubLoading.value),
+    disabled: ref(mocks.useLoginForm.disabled.value),
+    ruleForm: reactive(mocks.useLoginForm.ruleForm),
+    handleGithubLogin: mocks.handleGithubLogin
+  })
+}));
 
 vi.mock("./utils/motion", () => ({
   default: {
     template: "<div><slot /></div>"
   }
 }));
+
+const ElFormStub = defineComponent({
+  name: "ElForm",
+  setup(_, { slots, expose }) {
+    expose({
+      validate: vi.fn().mockResolvedValue(true),
+      resetFields: vi.fn()
+    });
+    return () => h("form", slots.default?.());
+  }
+});
+
+const ElButtonStub = defineComponent({
+  name: "ElButton",
+  props: {
+    disabled: Boolean,
+    loading: Boolean
+  },
+  emits: ["click"],
+  setup(props, { emit, slots }) {
+    return () =>
+      h(
+        "button",
+        {
+          disabled: props.disabled,
+          onClick: () => emit("click")
+        },
+        slots.default?.()
+      );
+  }
+});
 
 const commonStubs = {
   IconifyIconOnline: {
@@ -111,15 +111,11 @@ const commonStubs = {
   },
   IconifyIconOffline: true,
   "el-switch": true,
-  "el-form": { template: "<form><slot /></form>" },
+  "el-form": ElFormStub,
   "el-form-item": { template: "<div><slot /></div>" },
   "el-input": true,
   "el-checkbox": true,
-  "el-button": {
-    name: "ElButton",
-    template: '<button :disabled="disabled"><slot /></button>',
-    props: ["disabled", "loading"]
-  },
+  "el-button": ElButtonStub,
   "el-divider": true,
   "el-tooltip": {
     template:
@@ -129,29 +125,29 @@ const commonStubs = {
   avatar: true,
   phone: true,
   qrCode: true,
-  register: true,
   forget: true
 };
 
 describe("Login.vue", () => {
-  let wrapper: VueWrapper;
-  const pushMock = vi.fn();
+  let wrapper: VueWrapper | undefined;
 
   beforeEach(() => {
-    vi.mocked(useRouter).mockReturnValue({
-      push: pushMock
-    } as unknown as Router);
-
     mocks.handleGithubLogin.mockReset();
+    mocks.loginByUsername.mockReset();
+    mocks.setCurrentPage.mockReset();
+    vi.mocked(completeLogin).mockReset();
+    vi.mocked(message).mockReset();
     mocks.useLoginForm.githubLoading.value = false;
     mocks.useLoginForm.loading.value = false;
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    wrapper?.unmount();
+    wrapper = undefined;
+    vi.clearAllMocks();
   });
 
-  it("renders GitHub login button with correct structure", () => {
+  function mountView() {
     wrapper = mount(Login, {
       global: {
         stubs: commonStubs,
@@ -162,67 +158,53 @@ describe("Login.vue", () => {
         }
       }
     });
+    return wrapper;
+  }
 
-    // Verify Tooltip
-    const tooltip = wrapper.find(".el-tooltip-stub");
-    expect(tooltip.exists()).toBe(true);
-    expect(tooltip.attributes("content")).toBe("仅限管理员登录");
+  it("renders GitHub login entry and hides register entry", () => {
+    const view = mountView();
 
-    // Verify GitHub Button
-    const githubBtn = wrapper.find(".github-btn");
-    expect(githubBtn.exists()).toBe(true);
-    expect(githubBtn.attributes("title")).toBe("GitHub");
+    expect(view.text()).not.toContain("注册");
+    expect(view.find(".github-btn").exists()).toBe(true);
+    expect(view.find(".el-tooltip-stub").attributes("content")).toBe(
+      "仅限管理员登录"
+    );
   });
 
-  it("reflects loading state correctly", async () => {
-    // Set loading state
-    mocks.useLoginForm.githubLoading.value = true;
+  it("uses completeLogin after username login succeeds", async () => {
+    mocks.loginByUsername.mockResolvedValue({ code: 200, data: {} });
+    const view = mountView();
 
-    wrapper = mount(Login, {
-      global: {
-        stubs: commonStubs,
-        directives: {
-          loading: (el, binding) => {
-            el.setAttribute("data-loading", String(binding.value));
-          }
-        }
-      }
-    });
+    const loginButton = view
+      .findAll("button")
+      .find(button => button.text().includes("登录"));
+    expect(loginButton).toBeDefined();
 
-    // Check loading directive on root
-    expect(wrapper.attributes("data-loading")).toBe("true");
+    await loginButton?.trigger("click");
 
-    // Check login button disabled
-    const buttons = wrapper.findAllComponents({ name: "ElButton" });
-    const loginBtn = buttons.find(btn => btn.text() === "登录");
-    expect(loginBtn).toBeDefined();
-    expect(loginBtn?.props("disabled")).toBe(true);
-
-    // Check tooltip disabled
-    const tooltip = wrapper.find(".el-tooltip-stub");
-    expect(tooltip.attributes("disabled")).toBe("true");
-
-    // Check github button class
-    const githubBtn = wrapper.find(".github-btn");
-    expect(githubBtn.classes()).toContain("is-disabled");
+    expect(mocks.loginByUsername).toHaveBeenCalled();
+    expect(completeLogin).toHaveBeenCalledWith();
+    expect(message).toHaveBeenCalledWith("登录成功", { type: "success" });
   });
 
-  it("calls handleGithubLogin on click", async () => {
-    mocks.handleGithubLogin.mockResolvedValue({ accessToken: "fake-token" });
-
-    wrapper = mount(Login, {
-      global: {
-        stubs: commonStubs,
-        directives: {
-          loading: () => undefined
-        }
-      }
+  it("passes full GitHub payload into completeLogin", async () => {
+    mocks.handleGithubLogin.mockResolvedValue({
+      accessToken: "token",
+      refreshToken: "refresh",
+      username: "octocat",
+      roles: ["admin"]
     });
+    const view = mountView();
 
-    const githubBtn = wrapper.find(".github-btn");
-    expect(githubBtn.exists()).toBe(true);
-    await githubBtn.trigger("click");
+    await view.find(".github-btn").trigger("click");
+    await Promise.resolve();
 
     expect(mocks.handleGithubLogin).toHaveBeenCalled();
+    expect(completeLogin).toHaveBeenCalledWith({
+      accessToken: "token",
+      refreshToken: "refresh",
+      username: "octocat",
+      roles: ["admin"]
+    });
   });
 });

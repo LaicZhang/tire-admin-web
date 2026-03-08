@@ -4,9 +4,6 @@ const operates = [
   },
   {
     title: "扫码登录"
-  },
-  {
-    title: "注册"
   }
 ];
 

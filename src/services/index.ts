@@ -4,3 +4,4 @@
  */
 
 export * from "./order.service";
+export * from "./auth-bootstrap.service";

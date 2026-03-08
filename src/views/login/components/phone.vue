@@ -8,9 +8,7 @@ import { useCaptchaCode } from "../utils/captchaCode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Iphone from "~icons/ep/iphone";
-import { useCurrentCompanyStoreHook } from "@/store/modules/company";
-import { initRouter, getTopMenu } from "@/router/utils";
-import { useRouter } from "vue-router";
+import { completeLogin } from "@/services";
 import { getVerifyCodeApi } from "@/api";
 
 const loading = ref(false);
@@ -20,7 +18,6 @@ const ruleForm = reactive({
 });
 const ruleFormRef = ref<FormInstance>();
 const { isDisabled, text } = useCaptchaCode();
-const router = useRouter();
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
@@ -40,10 +37,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
     });
     const { code, msg } = res;
     if (code === 200) {
-      useCurrentCompanyStoreHook().handleCurrentCompany();
-      await initRouter();
-      const topMenu = getTopMenu(true);
-      router.push(topMenu.path || "/");
+      await completeLogin();
       message("登录成功", { type: "success" });
     } else {
       message(msg, { type: "error" });

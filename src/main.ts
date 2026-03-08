@@ -7,6 +7,7 @@ import { createApp, type Directive } from "vue";
 import { useElementPlus } from "@/plugins/elementPlus";
 import { injectResponsiveStorage } from "@/utils/responsive";
 import "@/utils/globalPolyfills";
+import { applySsoFromCurrentUrl } from "@/utils/sso";
 
 import Table from "@pureadmin/table";
 import PureDescriptions from "@pureadmin/descriptions";
@@ -36,6 +37,7 @@ import { IconifyIconOffline } from "./components/ReIcon";
 app.component("IconifyIconOffline", IconifyIconOffline);
 
 async function bootstrap() {
+  if (applySsoFromCurrentUrl()) return;
   const platformConfig = await getPlatformConfig(app);
 
   injectResponsiveStorage(app, platformConfig);

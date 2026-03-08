@@ -9,6 +9,7 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Lock from "~icons/ri/lock-fill";
 import Iphone from "~icons/ep/iphone";
+import { forgetPasswordApi, getVerifyCodeApi } from "@/api";
 
 const loading = ref(false);
 const ruleForm = reactive({
@@ -38,6 +39,20 @@ const repeatPasswordRule = [
   }
 ];
 
+const sendSmsCode = () => {
+  useCaptchaCode().start(ruleFormRef.value, "phone");
+  getVerifyCodeApi({ phone: ruleForm.phone, type: "reset-password" }).then(
+    res => {
+      const { code, msg } = res;
+      if (code === 200) {
+        message("验证码发送成功", { type: "success" });
+      } else {
+        message(msg, { type: "error" });
+      }
+    }
+  );
+};
+
 const onUpdate = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   loading.value = true;
@@ -49,9 +64,16 @@ const onUpdate = async (formEl: FormInstance | undefined) => {
       return;
     }
 
-    // 模拟请求，需根据实际开发进行修改
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    message("密码修改成功", { type: "success" });
+    const res = await forgetPasswordApi(ruleForm.phone, {
+      newPassword: ruleForm.password,
+      code: ruleForm.captchaCode
+    });
+    if (res.code === 200) {
+      message("密码修改成功", { type: "success" });
+      onBack();
+    } else {
+      message(res.msg || "密码修改失败", { type: "error" });
+    }
   } catch {
     // 验证失败，不做处理
   } finally {
@@ -92,11 +114,7 @@ function onBack() {
             :placeholder="'短信验证码'"
             :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
           />
-          <el-button
-            :disabled="isDisabled"
-            class="ml-2"
-            @click="useCaptchaCode().start(ruleFormRef, 'phone')"
-          >
+          <el-button :disabled="isDisabled" class="ml-2" @click="sendSmsCode()">
             {{ text.length > 0 ? text + "秒后重试" : "获取验证码" }}
           </el-button>
         </div>

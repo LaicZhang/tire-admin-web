@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import Motion from "./utils/motion";
-import { useRouter } from "vue-router";
 import { message } from "@/utils/message";
 import { loginRules } from "./utils/rule";
 import { useNav } from "@/layout/hooks/useNav";
 import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
-import { addPathMatch } from "@/router/utils";
 import { bgPng, bgWebp, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { ref, toRaw, onMounted, computed } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
-import { setToken } from "@/utils/auth";
+import { completeLogin } from "@/services";
 import {
   useCaptcha,
   useRememberLogin,
@@ -28,17 +26,13 @@ import User from "~icons/ri/user-3-fill";
 import Info from "~icons/ri/information-line";
 import phone from "./components/phone.vue";
 import qrCode from "./components/qrCode.vue";
-import register from "./components/register.vue";
 import forget from "./components/update.vue";
 import { operates, thirdParty } from "./utils/enums";
-import { useCurrentCompanyStoreHook } from "@/store/modules/company";
-import { usePermissionStoreHook } from "@/store/modules/permission";
 
 defineOptions({
   name: "Login"
 });
 
-const router = useRouter();
 const ruleFormRef = ref<FormInstance>();
 const showThirdPartyLogin = ref(true);
 
@@ -75,12 +69,8 @@ const onLogin = async (formEl: FormInstance | undefined) => {
     const res = await useUserStoreHook().loginByUsername(ruleForm);
     const { code, msg } = res;
     if (code === 200) {
-      // 全部采取静态路由模式
-      usePermissionStoreHook().handleWholeMenus([]);
-      useCurrentCompanyStoreHook().handleCurrentCompany();
-      addPathMatch();
+      await completeLogin();
       message("登录成功", { type: "success" });
-      router.push("/");
     } else {
       message(msg, { type: "error" });
     }
@@ -107,16 +97,9 @@ const onThirdPartyLogin = (icon: string) => {
   if (icon === "github") {
     if (githubLoading.value) return;
     handleGithubLogin()
-      .then(data => {
-        const accessToken = data?.accessToken;
-        if (accessToken) {
-          setToken({ accessToken });
-          usePermissionStoreHook().handleWholeMenus([]);
-          useCurrentCompanyStoreHook().handleCurrentCompany();
-          addPathMatch();
-          message("登录成功", { type: "success" });
-          router.push("/");
-        }
+      .then(async tokenPayload => {
+        await completeLogin(tokenPayload);
+        message("登录成功", { type: "success" });
       })
       .catch(err => {
         message(err.message, { type: "error" });
@@ -263,7 +246,7 @@ onMounted(() => {
                   <el-button
                     link
                     type="primary"
-                    @click="useUserStoreHook().setCurrentPage(4)"
+                    @click="useUserStoreHook().setCurrentPage(3)"
                   >
                     忘记密码？
                   </el-button>
@@ -347,10 +330,8 @@ onMounted(() => {
           <phone v-if="currentPage === 1" />
           <!-- 二维码登录 -->
           <qrCode v-if="currentPage === 2" />
-          <!-- 注册 -->
-          <register v-if="currentPage === 3" />
           <!-- 忘记密码 -->
-          <forget v-if="currentPage === 4" />
+          <forget v-if="currentPage === 3" />
         </div>
       </div>
     </div>

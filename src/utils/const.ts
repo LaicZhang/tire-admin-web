@@ -77,6 +77,10 @@ export const ORDER_TYPE_LIST = [
     label: "报废订单"
   },
   {
+    value: ORDER_TYPE.surplus,
+    label: "盘盈订单"
+  },
+  {
     value: ORDER_TYPE.transfer,
     label: "调拨订单"
   },

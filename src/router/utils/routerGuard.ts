@@ -13,7 +13,8 @@ import {
   type DataInfo,
   userKey,
   removeToken,
-  multipleTabsKey
+  multipleTabsKey,
+  ensureSessionValidated
 } from "@/utils/auth";
 
 /** 路由白名单 */
@@ -164,4 +165,15 @@ export function handleUnauthenticated(
   } else {
     next();
   }
+}
+
+export async function handleSessionValidation(
+  next: (to?: unknown) => void
+): Promise<boolean> {
+  const valid = await ensureSessionValidated();
+  if (valid) return false;
+
+  removeToken();
+  next({ path: "/login", replace: true });
+  return true;
 }

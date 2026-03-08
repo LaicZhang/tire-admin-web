@@ -116,6 +116,7 @@ import {
   handleExternalLink,
   handleRouterInit,
   handlePermissionCheck,
+  handleSessionValidation,
   toCorrectRoute,
   isAuthenticated,
   handleUnauthenticated
@@ -137,6 +138,8 @@ router.beforeEach(async (to: ToRouteType, _from, next) => {
   const { authenticated, userInfo } = isAuthenticated();
 
   if (authenticated) {
+    if (await handleSessionValidation(next)) return;
+
     // 已登录：处理路由初始化
     const handled = await handleRouterInit(to, next, externalLink);
     if (handled) return;

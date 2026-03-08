@@ -5,18 +5,13 @@ import ReQrcode from "@/components/ReQrcode";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getWxQrLoginUrlApi, wxQrCallbackApi } from "@/api/auth";
 import { message, authLogger } from "@/utils";
-import { useRouter } from "vue-router";
-import { addPathMatch } from "@/router/utils";
-import { usePermissionStoreHook } from "@/store/modules/permission";
-import { useCurrentCompanyStoreHook } from "@/store/modules/company";
-import { setToken } from "@/utils/auth";
+import { completeLogin } from "@/services";
+import type { SetTokenPayload } from "@/utils/auth";
 
-const router = useRouter();
 const qrContent = ref("");
 const loading = ref(false);
 const expired = ref(false);
 
-let state = "";
 let expireTimer: ReturnType<typeof setTimeout> | null = null;
 
 // 获取微信扫码登录 URL
@@ -33,7 +28,6 @@ async function fetchQrLoginUrl() {
       };
       // 二维码内容为授权 URL
       qrContent.value = result.authUrl;
-      state = result.state;
 
       // 设置过期定时器
       if (expireTimer) clearTimeout(expireTimer);
@@ -79,14 +73,10 @@ async function checkUrlCallback() {
       });
 
       if (resCode === 200 && data) {
-        setToken(data);
-        usePermissionStoreHook().handleWholeMenus([]);
-        useCurrentCompanyStoreHook().handleCurrentCompany();
-        addPathMatch();
-        message("登录成功", { type: "success" });
         // 清除 URL 参数
         window.history.replaceState({}, "", window.location.pathname);
-        router.push("/");
+        await completeLogin(data as unknown as SetTokenPayload);
+        message("登录成功", { type: "success" });
       } else {
         message(msg || "登录失败", { type: "error" });
       }
