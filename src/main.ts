@@ -2,12 +2,15 @@ import App from "./App.vue";
 import router from "./router";
 import { setupStore } from "@/store";
 import { getPlatformConfig } from "./config";
+import { logger } from "@/utils/logger";
 import { MotionPlugin } from "@vueuse/motion";
-import { createApp, type Directive } from "vue";
+import { h, createApp, defineComponent, type Directive } from "vue";
 import { useElementPlus } from "@/plugins/elementPlus";
 import { injectResponsiveStorage } from "@/utils/responsive";
 import "@/utils/globalPolyfills";
 import { applySsoFromCurrentUrl } from "@/utils/sso";
+import AppErrorFallback from "@/components/AppErrorFallback.vue";
+import { formatRuntimeError, showRuntimeError } from "@/utils/runtimeError";
 
 import Table from "@pureadmin/table";
 import PureDescriptions from "@pureadmin/descriptions";
@@ -36,17 +39,62 @@ Object.keys(directives).forEach(key => {
 import { IconifyIconOffline } from "./components/ReIcon";
 app.component("IconifyIconOffline", IconifyIconOffline);
 
+app.config.errorHandler = (error, _instance, info) => {
+  const detail = formatRuntimeError(error, info);
+  logger.critical("[App] unhandled runtime error", detail);
+  showRuntimeError({
+    kind: "render",
+    title: "页面渲染异常",
+    message: "当前页面发生异常，请返回上一页或刷新重试",
+    detail
+  });
+};
+
+function mountBootstrapFallback(error: unknown) {
+  const detail = formatRuntimeError(error, "bootstrap");
+
+  createApp(
+    defineComponent({
+      setup() {
+        return () =>
+          h(AppErrorFallback, {
+            title: "应用启动失败",
+            message: "应用初始化未完成，请刷新页面后重试",
+            detail,
+            showBack:
+              typeof window !== "undefined" && window.history.length > 1,
+            onBack: () => window.history.back(),
+            onHome: () => window.location.assign("/"),
+            onReload: () => window.location.reload()
+          });
+      }
+    })
+  ).mount("#app");
+}
+
 async function bootstrap() {
-  if (applySsoFromCurrentUrl()) return;
-  const platformConfig = await getPlatformConfig(app);
+  try {
+    if (applySsoFromCurrentUrl()) return;
+    const platformConfig = await getPlatformConfig(app);
 
-  injectResponsiveStorage(app, platformConfig);
-  setupStore(app);
-  app.use(router);
-  app.use(MotionPlugin).use(useElementPlus).use(Table).use(PureDescriptions);
+    injectResponsiveStorage(app, platformConfig);
+    setupStore(app);
+    app.use(router);
+    app.use(MotionPlugin).use(useElementPlus).use(Table).use(PureDescriptions);
 
-  await router.isReady();
-  app.mount("#app");
+    await router.isReady();
+    app.mount("#app");
+  } catch (error) {
+    const detail = formatRuntimeError(error, "bootstrap");
+    logger.critical("[App] bootstrap failed", detail);
+    showRuntimeError({
+      kind: "bootstrap",
+      title: "应用启动失败",
+      message: "应用初始化失败，请刷新页面后重试",
+      detail
+    });
+    mountBootstrapFallback(error);
+  }
 }
 
 void bootstrap();
