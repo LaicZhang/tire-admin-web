@@ -1,13 +1,20 @@
 import NProgress from "@/utils/progress";
+import { message } from "@/utils/message";
 import { buildHierarchyTree } from "@/utils/tree";
 import remainingRouter from "./modules/remaining";
+import { routerLogger } from "@/utils/logger";
+import { formatRuntimeError, showRuntimeError } from "@/utils/runtimeError";
 
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import {
   ascending,
   getHistoryMode,
   formatTwoStageRoutes,
-  formatFlatteningRoutes
+  formatFlatteningRoutes,
+  getNavigationErrorMessage,
+  isChunkLoadError,
+  resolveSafeErrorRoute,
+  safeNavigate
 } from "./utils";
 import {
   type Router,
@@ -161,6 +168,40 @@ router.beforeEach(async (to: ToRouteType, _from, next) => {
 router.afterEach(to => {
   loadedPaths.add(to.path);
   NProgress.done();
+});
+
+router.onError(async error => {
+  NProgress.done();
+
+  const errorDetail = formatRuntimeError(
+    error,
+    router.currentRoute.value.fullPath
+  );
+  routerLogger.error("[Router] unhandled navigation error", errorDetail);
+
+  if (!isChunkLoadError(error)) {
+    message(getNavigationErrorMessage(error), { type: "error" });
+  }
+
+  const fallback = resolveSafeErrorRoute(router);
+  const currentPath = router.currentRoute.value.path;
+  const fallbackPath = router.resolve(fallback).path;
+
+  if (currentPath !== fallbackPath) {
+    const navigated = await safeNavigate(router, fallback, {
+      replace: true,
+      fallback: { path: "/login" },
+      silent: true
+    });
+    if (navigated) return;
+  }
+
+  showRuntimeError({
+    kind: "router",
+    title: "页面跳转异常",
+    message: getNavigationErrorMessage(error),
+    detail: errorDetail
+  });
 });
 
 export default router;
