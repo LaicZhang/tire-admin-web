@@ -1,7 +1,13 @@
 import { h, ref } from "vue";
 import { ElMessageBox, ElOption, ElSelect } from "element-plus";
 import { router, resetRouter } from "@/router";
-import { addPathMatch, getTopMenu, initRouter } from "@/router/utils";
+import {
+  addPathMatch,
+  getTopMenu,
+  initRouter,
+  resolveSafeHomeRoute,
+  safeNavigate
+} from "@/router/utils";
 import {
   useCurrentCompanyStoreHook,
   type CompanyOption
@@ -85,7 +91,10 @@ function resetUiForContextChange() {
 
 async function redirectToTopMenu() {
   const topMenu = getTopMenu(true);
-  await router.push(topMenu.path || "/");
+  await safeNavigate(router, topMenu.path || resolveSafeHomeRoute(router), {
+    replace: true,
+    fallback: resolveSafeHomeRoute(router)
+  });
 }
 
 /**

@@ -9,6 +9,7 @@ import {
   computed,
   Transition,
   defineComponent,
+  onBeforeUnmount,
   type PropType
 } from "vue";
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -25,6 +26,18 @@ const { $storage, $config } = useGlobal<GlobalPropertiesApi>();
 const router = useRouter();
 const isRouteLoading = ref(false);
 let loadingTimer: ReturnType<typeof setTimeout> | null = null;
+let routeLoadingSafetyTimer: ReturnType<typeof setTimeout> | null = null;
+
+function clearLoadingTimers() {
+  if (loadingTimer) {
+    clearTimeout(loadingTimer);
+    loadingTimer = null;
+  }
+  if (routeLoadingSafetyTimer) {
+    clearTimeout(routeLoadingSafetyTimer);
+    routeLoadingSafetyTimer = null;
+  }
+}
 
 // 获取路由的一级菜单路径
 function getTopLevelPath(path: string): string {
@@ -33,22 +46,37 @@ function getTopLevelPath(path: string): string {
 }
 
 router.beforeEach((to, from) => {
-  if (loadingTimer) {
-    clearTimeout(loadingTimer);
-  }
+  clearLoadingTimers();
   // 只在跨一级菜单切换时显示骨架屏，二级菜单内部切换不触发
   const toTop = getTopLevelPath(to.path);
   const fromTop = getTopLevelPath(from.path);
   if (toTop !== fromTop || !from.name) {
     isRouteLoading.value = true;
+    routeLoadingSafetyTimer = setTimeout(() => {
+      isRouteLoading.value = false;
+    }, 10000);
   }
 });
 
 router.afterEach(() => {
+  if (routeLoadingSafetyTimer) {
+    clearTimeout(routeLoadingSafetyTimer);
+    routeLoadingSafetyTimer = null;
+  }
   // 最小显示 200ms，避免闪烁
   loadingTimer = setTimeout(() => {
     isRouteLoading.value = false;
+    loadingTimer = null;
   }, 200);
+});
+
+router.onError(() => {
+  clearLoadingTimers();
+  isRouteLoading.value = false;
+});
+
+onBeforeUnmount(() => {
+  clearLoadingTimers();
 });
 
 const isKeepAlive = computed(() => {

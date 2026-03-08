@@ -2,7 +2,7 @@ import { storeToRefs } from "pinia";
 import { getConfig } from "@/config";
 import { emitter } from "@/utils/mitt";
 import userAvatar from "@/assets/user.webp";
-import { getTopMenu } from "@/router/utils";
+import { getTopMenu, safeNavigate } from "@/router/utils";
 import { useFullscreen } from "@vueuse/core";
 import { useGlobal } from "@pureadmin/utils";
 import type { routeMetaType } from "../types";
@@ -78,7 +78,9 @@ export function useNav() {
 
   function backTopMenu() {
     const path = getTopMenu()?.path;
-    if (path) router.push(path);
+    if (path) {
+      void safeNavigate(router, path, { silent: true });
+    }
   }
 
   function onPanel() {

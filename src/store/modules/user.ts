@@ -18,6 +18,7 @@ import {
 } from "@/api";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
+import { safeNavigate } from "@/router/utils";
 
 export const useUserStore = defineStore("pure-user", {
   state: (): userType => {
@@ -107,7 +108,14 @@ export const useUserStore = defineStore("pure-user", {
         toMultiTypeArray([...routerArrays])
       );
       resetRouter();
-      router.push("/login");
+      void safeNavigate(
+        router,
+        { path: "/login" },
+        {
+          replace: true,
+          silent: true
+        }
+      );
     },
     /**
      * 刷新 Token
