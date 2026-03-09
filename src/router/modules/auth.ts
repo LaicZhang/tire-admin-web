@@ -537,6 +537,40 @@ export default [
         }
       },
       {
+        id: 4101,
+        uid: "7cd4bf61-a0bf-449f-b4d4-cf8254745b291",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "stockTakingSurplusBridge",
+        path: "/business/surplus",
+        redirect: null,
+        component: () =>
+          import("@/views/business/stockTaking/components/SurplusBridge.vue"),
+        isShow: false,
+        meta: {
+          roles: ["admin", "boss", "warehouseManager"],
+          title: "盘点盘盈单",
+          icon: null,
+          showLink: false
+        }
+      },
+      {
+        id: 4102,
+        uid: "7cd4bf61-a0bf-449f-b4d4-cf8254745b292",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "stockTakingWasteBridge",
+        path: "/business/waste",
+        redirect: null,
+        component: () =>
+          import("@/views/business/stockTaking/components/WasteBridge.vue"),
+        isShow: false,
+        meta: {
+          roles: ["admin", "boss", "warehouseManager"],
+          title: "盘点盘亏单",
+          icon: null,
+          showLink: false
+        }
+      },
+      {
         id: 42,
         uid: "8cd4bf61-a0bf-449f-b4d4-cf8254745b30",
         parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",

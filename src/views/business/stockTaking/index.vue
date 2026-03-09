@@ -10,9 +10,11 @@ import List from "~icons/ep/list";
 import Close from "~icons/ep/close";
 import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
+import { ORDER_TYPE } from "@/utils/const";
 import { useRepoSelector } from "./composables/useRepoSelector";
 import { useQuickStockTaking } from "./composables/useQuickStockTaking";
 import { useStockTakingTasks } from "./composables/useStockTakingTasks";
+import { getStockTakingRoute, getStockTakingStorageKey } from "./orderBridge";
 import { calculateStockTakingSummary } from "./utils";
 import {
   quickStockColumns,
@@ -80,17 +82,18 @@ const handleCreateSurplusOrder = () => {
     return;
   }
   sessionStorage.setItem(
-    "stockTakingSurplus",
+    getStockTakingStorageKey(ORDER_TYPE.surplus),
     JSON.stringify(
       surplusItems.map(item => ({
         repoId: item.repoId || currentRepo.value,
         tireId: item.tireId,
         tireName: item.tire?.name || item.tireName,
-        count: item.actualCount - item.count
+        count: item.actualCount - item.count,
+        desc: item.description || undefined
       }))
     )
   );
-  router.push("/business/surplus");
+  router.push(getStockTakingRoute(ORDER_TYPE.surplus));
 };
 
 const handleCreateWasteOrder = () => {
@@ -101,17 +104,18 @@ const handleCreateWasteOrder = () => {
     return;
   }
   sessionStorage.setItem(
-    "stockTakingWaste",
+    getStockTakingStorageKey(ORDER_TYPE.waste),
     JSON.stringify(
       wasteItems.map(item => ({
         repoId: item.repoId || currentRepo.value,
         tireId: item.tireId,
         tireName: item.tire?.name || item.tireName,
-        count: item.count - item.actualCount
+        count: item.count - item.actualCount,
+        desc: item.description || undefined
       }))
     )
   );
-  router.push("/business/waste");
+  router.push(getStockTakingRoute(ORDER_TYPE.waste));
 };
 
 const handleTabChange = (tab: string | number | boolean | undefined) => {

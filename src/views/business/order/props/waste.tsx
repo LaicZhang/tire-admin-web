@@ -1,7 +1,6 @@
 export interface WasteFormItemProps {
   id: number;
   uid: string;
-  customerId: string;
   desc?: string;
   operatorId: string;
   auditorId: string;
@@ -28,12 +27,37 @@ import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 import { fieldRules } from "@/utils/validation/fieldRules";
 export const wasteOrderFormRules: FormRules = reactive({
-  customerId: fieldRules.uidSelect({ label: "客户" }),
   auditorId: fieldRules.uidSelect({ label: "审核人" }),
-  count: fieldRules.positiveInt({ label: "数量", min: 1, required: true }),
-  total: fieldRules.moneyYuan({ label: "总价", min: 0, required: true })
+  count: fieldRules.positiveInt({ label: "数量", min: 1, required: true })
 });
-export const wasteOrderDetailsColumns: TableColumnList = [];
+export const wasteOrderDetailsColumns: TableColumnList = [
+  {
+    label: "轮胎",
+    prop: "tireId",
+    slot: "tireIdSelect"
+  },
+  {
+    label: "仓库",
+    prop: "repoId",
+    slot: "repoIdSelect"
+  },
+  {
+    label: "数量",
+    prop: "count",
+    slot: "countInput"
+  },
+  {
+    label: "备注",
+    prop: "desc",
+    cellRenderer: ({ row }) => <el-input v-model={row.desc} />
+  },
+  {
+    label: "操作",
+    fixed: "right",
+    prop: "operation",
+    slot: "operation"
+  }
+];
 export const wasteOrderColumns: TableColumnList = [
   {
     label: "流水号",

@@ -23,6 +23,7 @@ import {
   ORDER_TYPE
 } from "@/utils";
 import type { FormInstance } from "element-plus";
+import type { DialogOptions } from "../../../components/ReDialog";
 
 const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 export function handleSelectionChange(_val: unknown) {
@@ -45,6 +46,9 @@ interface _OrderDetail {
   batchNo?: string;
   expiryDate?: string;
   tireId?: string;
+  repoId?: string;
+  desc?: string;
+  number?: string;
   [key: string]: unknown;
 }
 
@@ -68,6 +72,12 @@ interface OrderRow {
   details?: _OrderDetail[];
   name?: string;
 }
+
+type CreateOrderType =
+  | ORDER_TYPE.purchase
+  | ORDER_TYPE.sale
+  | ORDER_TYPE.surplus
+  | ORDER_TYPE.waste;
 
 export const allTireList = ref<BasicEntity[]>([]);
 export const allRepoList = ref<BasicEntity[]>([]);
@@ -110,7 +120,93 @@ import { v7 as uuid } from "uuid";
 import { getCommonData } from "./handleData";
 import { getFooterButtons } from "./props";
 
-export async function openDialog(title = "新增", type: string, row?: OrderRow) {
+function normalizeCreateDetails(details: _OrderDetail[]) {
+  return details.map(({ index: _idx, ...rest }, index) => ({ ...rest, index }));
+}
+
+export function buildCreateOrderPayload(
+  type: CreateOrderType,
+  curData: Required<Pick<OrderRow, "uid" | "details">> &
+    Omit<OrderRow, "uid" | "details">,
+  companyId: string
+) {
+  const { uid, details, providerId, customerId, auditorId, ...orderData } =
+    curData;
+  const commonData = getCommonData(uid, companyId, { auditorId });
+  const normalizedDetails = normalizeCreateDetails(details);
+
+  if (type === ORDER_TYPE.purchase) {
+    return {
+      order: {
+        ...orderData,
+        ...commonData,
+        provider: {
+          connect: { uid: providerId }
+        }
+      },
+      details: normalizedDetails.map(({ index: _idx, ...rest }) => ({
+        companyId,
+        tireId: String(rest.tireId ?? ""),
+        count: Number(rest.count ?? 0),
+        ...rest
+      }))
+    };
+  }
+
+  if (type === ORDER_TYPE.sale) {
+    return {
+      order: {
+        ...orderData,
+        ...commonData,
+        customer: {
+          connect: { uid: customerId }
+        }
+      },
+      details: normalizedDetails.map(({ index: _idx, ...rest }) => rest)
+    };
+  }
+
+  if (type === ORDER_TYPE.surplus) {
+    return {
+      order: {
+        ...orderData,
+        ...commonData
+      },
+      details: normalizedDetails.map(({ index: _idx, ...rest }) => ({
+        companyId,
+        repoId: String(rest.repoId ?? ""),
+        tireId: String(rest.tireId ?? ""),
+        count: Number(rest.count ?? 0),
+        desc: typeof rest.desc === "string" ? rest.desc : undefined
+      }))
+    };
+  }
+
+  return {
+    order: {
+      ...orderData,
+      ...commonData
+    },
+    details: normalizedDetails.map(({ index: _idx, ...rest }, index) => ({
+      companyId,
+      repoId: String(rest.repoId ?? ""),
+      tireId: String(rest.tireId ?? ""),
+      count: Number(rest.count ?? 0),
+      number:
+        typeof rest.number === "string" && rest.number.length > 0
+          ? rest.number
+          : `WD-${uid}-${index + 1}`,
+      desc: typeof rest.desc === "string" ? rest.desc : undefined
+    }))
+  };
+}
+
+export async function openDialog(
+  title = "新增",
+  type: string,
+  row?: OrderRow,
+  dialogOptions?: Pick<DialogOptions, "closeCallBack">
+) {
   addDialog({
     title: `${title}`,
     props: {
@@ -141,6 +237,7 @@ export async function openDialog(title = "新增", type: string, row?: OrderRow)
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
+    closeCallBack: dialogOptions?.closeCallBack,
     contentRenderer: () => h(editForm, { ref: formRef }),
     beforeSure: (done, { options }) => {
       const FormRef = formRef.value?.getRef();
@@ -167,50 +264,28 @@ export async function openDialog(title = "新增", type: string, row?: OrderRow)
             Omit<OrderRow, "uid" | "details">;
           const companyId = await getCompanyId();
           if (title === "新增") {
-            const commonData = getCommonData(uid, companyId, curData);
-            delete orderData.auditorId;
-            if (type === ORDER_TYPE.purchase) {
-              const purchaseOrderData = {
-                provider: {
-                  connect: { uid: curData.providerId }
+            if (
+              [
+                ORDER_TYPE.purchase,
+                ORDER_TYPE.sale,
+                ORDER_TYPE.surplus,
+                ORDER_TYPE.waste
+              ].includes(type as CreateOrderType)
+            ) {
+              await addOrderApi(
+                type,
+                buildCreateOrderPayload(
+                  type as CreateOrderType,
+                  { uid, details, ...orderData },
+                  companyId
+                ) as {
+                  order: Record<string, unknown>;
+                  details: OrderDetailDto[];
                 }
-              };
-              delete orderData.providerId;
-              const detailsRes: OrderDetailDto[] = [];
-              details.forEach((item: _OrderDetail) => {
-                const { index: _idx, ...rest } = item;
-                detailsRes.push({
-                  companyId,
-                  tireId: rest.tireId ?? "",
-                  count: rest.count ?? 0,
-                  ...rest
-                });
-              });
-              await addOrderApi(type, {
-                order: {
-                  ...orderData,
-                  ...commonData,
-                  ...purchaseOrderData
-                },
-                details: detailsRes
-              });
-            } else if (type === ORDER_TYPE.sale) {
-              const saleOrderData = {
-                customer: {
-                  connect: { uid: curData.customerId }
-                }
-              };
-              delete orderData.customerId;
-              await addOrderApi(type, {
-                order: {
-                  ...orderData,
-                  ...commonData,
-                  ...saleOrderData
-                },
-                details: details as unknown as Parameters<
-                  typeof addOrderApi
-                >[1]["details"]
-              });
+              );
+            } else {
+              message("当前订单类型暂不支持新增", { type: "warning" });
+              return;
             }
             chores();
           } else if (

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import type { FormRules } from "element-plus";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
@@ -53,6 +53,9 @@ interface OrderDetail {
   count: number;
   total: number;
   tireId?: string;
+  repoId?: string;
+  desc?: string;
+  number?: string;
   isArrival?: boolean;
   batchNo?: string;
   expiryDate?: string;
@@ -104,6 +107,9 @@ const props = withDefaults(defineProps<OrderFormProps>(), {
 
 const newFormInline = ref<OrderFormModel>(props.formInline as OrderFormModel);
 const formTitle = ref("新增");
+const showSettlementFields = computed(
+  () => ![ORDER_TYPE.surplus, ORDER_TYPE.waste].includes(orderType.value)
+);
 function getRef() {
   return ruleFormRef.value;
 }
@@ -594,21 +600,23 @@ onMounted(async () => {
         <el-input-number v-model="newFormInline.count" disabled class="w-48!" />
       </el-form-item>
 
-      <el-form-item label="应付货款" prop="showTotal">
-        <el-input-number
-          v-model="newFormInline.showTotal"
-          disabled
-          class="w-48!"
-        />
-      </el-form-item>
+      <template v-if="showSettlementFields">
+        <el-form-item label="应付货款" prop="showTotal">
+          <el-input-number
+            v-model="newFormInline.showTotal"
+            disabled
+            class="w-48!"
+          />
+        </el-form-item>
 
-      <el-form-item label="实付货款" prop="total">
-        <el-input-number v-model="newFormInline.total" class="w-48!" />
-      </el-form-item>
+        <el-form-item label="实付货款" prop="total">
+          <el-input-number v-model="newFormInline.total" class="w-48!" />
+        </el-form-item>
 
-      <el-form-item label="已付货款" prop="paidAmount">
-        <el-input-number v-model="newFormInline.paidAmount" class="w-48!" />
-      </el-form-item>
+        <el-form-item label="已付货款" prop="paidAmount">
+          <el-input-number v-model="newFormInline.paidAmount" class="w-48!" />
+        </el-form-item>
+      </template>
     </div>
   </el-form>
 </template>

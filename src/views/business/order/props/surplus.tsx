@@ -29,11 +29,37 @@ export interface SurplusFormProps {
 }
 
 export const surplusOrderFormRules: FormRules = reactive({
-  auditorId: fieldRules.uidSelect({ label: "审核人", required: false }),
-  count: fieldRules.positiveInt({ label: "数量", min: 1, required: true }),
-  total: fieldRules.moneyYuan({ label: "总价", min: 0, required: true })
+  auditorId: fieldRules.uidSelect({ label: "审核人" }),
+  count: fieldRules.positiveInt({ label: "数量", min: 1, required: true })
 });
-export const surplusOrderDetailsColumns: TableColumnList = [];
+export const surplusOrderDetailsColumns: TableColumnList = [
+  {
+    label: "轮胎",
+    prop: "tireId",
+    slot: "tireIdSelect"
+  },
+  {
+    label: "仓库",
+    prop: "repoId",
+    slot: "repoIdSelect"
+  },
+  {
+    label: "数量",
+    prop: "count",
+    slot: "countInput"
+  },
+  {
+    label: "备注",
+    prop: "desc",
+    cellRenderer: ({ row }) => <el-input v-model={row.desc} />
+  },
+  {
+    label: "操作",
+    fixed: "right",
+    prop: "operation",
+    slot: "operation"
+  }
+];
 export const surplusOrderColumns: TableColumnList = [
   {
     label: "流水号",

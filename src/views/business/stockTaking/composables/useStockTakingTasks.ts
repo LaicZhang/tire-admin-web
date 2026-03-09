@@ -12,6 +12,8 @@ import {
   type InventoryCheckTask,
   type InventoryCheckDetail
 } from "@/api/business/inventory-check";
+import { ORDER_TYPE } from "@/utils/const";
+import { getStockTakingRoute, getStockTakingStorageKey } from "../orderBridge";
 
 export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
   const router = useRouter();
@@ -185,17 +187,18 @@ export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
       return;
     }
     sessionStorage.setItem(
-      "stockTakingSurplus",
+      getStockTakingStorageKey(ORDER_TYPE.surplus),
       JSON.stringify(
         surplusItems.map((item: InventoryCheckDetail) => ({
           repoId: item.repoId || currentRepo.value,
           tireId: item.tireId,
           tireName: item.tire?.name || item.tireName,
-          count: (item.actualCount ?? 0) - item.bookCount
+          count: (item.actualCount ?? 0) - item.bookCount,
+          desc: item.remark || undefined
         }))
       )
     );
-    router.push("/business/surplus");
+    router.push(getStockTakingRoute(ORDER_TYPE.surplus));
   };
 
   const handleCreateWasteOrder = () => {
@@ -208,17 +211,18 @@ export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
       return;
     }
     sessionStorage.setItem(
-      "stockTakingWaste",
+      getStockTakingStorageKey(ORDER_TYPE.waste),
       JSON.stringify(
         wasteItems.map((item: InventoryCheckDetail) => ({
           repoId: item.repoId || currentRepo.value,
           tireId: item.tireId,
           tireName: item.tire?.name || item.tireName,
-          count: item.bookCount - (item.actualCount ?? 0)
+          count: item.bookCount - (item.actualCount ?? 0),
+          desc: item.remark || undefined
         }))
       )
     );
-    router.push("/business/waste");
+    router.push(getStockTakingRoute(ORDER_TYPE.waste));
   };
 
   return {
