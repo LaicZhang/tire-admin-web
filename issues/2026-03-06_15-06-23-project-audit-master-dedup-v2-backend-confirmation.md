@@ -13,18 +13,18 @@
 
 2. `CSV:19` 登录公司上下文
    - 结论：后端已提供当前公司查询与切换接口，前端缺少多公司登录分支处理
-   - 状态：已实施待验证
-   - 证据：`be-core/src/domains/system/auth/auth.controller.ts`、`be-core/docs/api-desc/system/auth.md`
+   - 状态：已验证
+   - 证据：`be-core/src/domains/system/auth/auth.controller.ts`、`be-core/docs/api-desc/system/auth.md`、`tire-admin-web/src/services/auth-bootstrap.service.ts`、`tire-admin-web/src/services/__tests__/auth-bootstrap.service.test.ts`
 
 3. `CSV:20` 盘点流程
-   - 结论：后端已有盘点任务、盘盈单、报损单能力，前端缺少承接页面与路由
-   - 状态：已实施待验证
-   - 证据：`be-core/docs/api-desc/inventory/inventory-check.md`、`be-core/docs/api-desc/orders/surplus-order.md`、`be-core/docs/api-desc/orders/waste-order.md`
+   - 结论：前端已补齐盘点结果承接路由，可从盘点页直接拉起盘盈/盘亏订单新增流程并回填明细
+   - 状态：已验证
+   - 证据：`be-core/docs/api-desc/inventory/inventory-check.md`、`be-core/docs/api-desc/orders/surplus-order.md`、`be-core/docs/api-desc/orders/waste-order.md`、`tire-admin-web/src/views/business/stockTaking/components/OrderBridge.vue`、`tire-admin-web/src/views/business/order/table.tsx`、`tire-admin-web/src/views/business/order/table.test.ts`、`tire-admin-web/src/views/business/stockTaking/components/OrderBridge.test.ts`
 
 4. `CSV:22` 第三方登录
    - 结论：后端 GitHub 登录流程会返回完整登录结果，前端只错误写入部分 token
-   - 状态：已实施待验证
-   - 证据：`be-core/src/domains/system/auth/auth.controller.ts`、`be-core/src/domains/system/auth/auth-flows/github.flow.ts`
+   - 状态：已验证
+   - 证据：`be-core/src/domains/system/auth/auth.controller.ts`、`be-core/src/domains/system/auth/auth-flows/github.flow.ts`、`tire-admin-web/src/views/login/composables/useLoginForm.test.ts`、`tire-admin-web/src/views/login/index.test.ts`
 
 5. `CSV:25` 菜单权限
    - 结论：后端已有基于用户/角色的异步路由与菜单权限计算，前端仍直接读本地角色
@@ -32,23 +32,23 @@
 
 6. `CSV:49` 库存报表
    - 结论：后端仓库分页接口已存在，前端只是固定以第一页全量方式消费
-   - 状态：已实施待验证
-   - 证据：`be-core/src/domains/business/repo/repo.controller.ts`、`be-core/docs/api-desc/business/repo.md`
+   - 状态：已验证
+   - 证据：`be-core/src/domains/business/repo/repo.controller.ts`、`be-core/docs/api-desc/business/repo.md`、`tire-admin-web/src/views/inventory/report/index.vue`、`tire-admin-web/src/views/inventory/report/index.test.ts`、`tire-admin-web/tests/components/entity-select.spec.ts`
 
 7. `CSV:58` 登录判定
    - 结论：后端已有 `auth/info`、刷新、登出等会话相关接口，前端登录判定仍只依赖本地存储
-   - 状态：已实施待验证
-   - 证据：`be-core/src/domains/system/auth/auth.controller.ts`、`be-core/docs/api-desc/system/auth.md`
+   - 状态：已验证
+   - 证据：`be-core/src/domains/system/auth/auth.controller.ts`、`be-core/docs/api-desc/system/auth.md`、`tire-admin-web/src/router/utils/routerGuard.ts`、`tire-admin-web/src/router/utils/__tests__/routerGuard.test.ts`
 
 8. `CSV:59` 登录流程
-   - 结论：后端已有注册与重置密码接口，前端组件仍停留在 `setTimeout` 模拟流程
-   - 状态：已实施待验证
-   - 证据：`be-core/src/domains/system/auth/auth.controller.ts`、`be-core/docs/api-desc/system/auth.md`
+   - 结论：前端已关闭未接真实接口的自助注册占位流程，仅保留已接通的密码修改链路
+   - 状态：已验证
+   - 证据：`be-core/src/domains/system/auth/auth.controller.ts`、`be-core/docs/api-desc/system/auth.md`、`tire-admin-web/src/views/login/index.vue`、`tire-admin-web/src/views/login/index.test.ts`、`tire-admin-web/src/views/login/components/update.vue`
 
 9. `CSV:62` 资金下拉
-   - 结论：后端客户/供应商分页接口与支付账户列表接口已存在，前端调用方式仍过度简化
-   - 状态：已实施待验证
-   - 证据：`be-core/src/domains/sales/customer/customer.controller.ts`、`be-core/src/domains/purchase/provider/provider.controller.ts`、`be-core/src/domains/finance/payment/payment.controller.ts`
+   - 结论：前端资金表单已显式请求大页客户/供应商选项，并对支付账户数组/分页响应做统一归一化
+   - 状态：已验证
+   - 证据：`be-core/src/domains/sales/customer/customer.controller.ts`、`be-core/src/domains/purchase/provider/provider.controller.ts`、`be-core/src/domains/finance/payment/payment.controller.ts`、`tire-admin-web/src/views/fund/composables/useFundForm.ts`、`tire-admin-web/src/views/fund/composables/useFundForm.test.ts`
 
 ## 后端部分支持待契约对齐（9）
 
@@ -106,18 +106,18 @@
 
 1. `CSV:6` OAuth
    - 结论：问题是前端未校验 `postMessage` 来源，修复不依赖后端新增能力
-   - 状态：已实施待验证
+   - 状态：已验证
    - 证据：`tire-admin-web/src/views/login/composables/useLoginForm.ts` 已校验 `event.origin` 与 `event.source` 且对消息 payload 做解析；`tire-admin-web/src/views/login/composables/useLoginForm.test.ts` 已覆盖同源/同 popup 与错误来源用例
 
 2. `CSV:66` 单点登录
    - 结论：问题是前端对 URL 参数做了不安全强转，属于前端解析与类型约束问题
-   - 状态：已实施待验证
+   - 状态：已验证
    - 证据：`tire-admin-web/src/utils/sso.ts` 提供 URL payload 解析与校验并在成功写入 token 后清理 URL；`tire-admin-web/src/main.ts` 在启动时调用 `applySsoFromCurrentUrl`；`tire-admin-web/src/utils/__tests__/sso.test.ts` 覆盖解析与清理逻辑
 
 3. `CSV:73` 扫码登录
    - 结论：后端当前提供的是登录 URL 与回调能力，不存在“前端已接但后端缺轮询接口”的必然要求；当前轮询器是前端误导性占位
-   - 状态：已实施待验证
-   - 证据：`tire-admin-web/src/views/login/components/qrCode.vue` 已移除轮询占位逻辑并仅依赖 URL 回调；后端证据仍为 `be-core/src/domains/system/auth/auth.controller.ts`、`be-core/docs/api-desc/system/auth.md`
+   - 状态：已验证
+   - 证据：`tire-admin-web/src/views/login/components/qrCode.vue` 已移除轮询占位逻辑并仅依赖 URL 回调；`tire-admin-web/src/views/login/components/qrCode.test.ts` 已覆盖二维码加载、过期刷新与 URL 回调登录；后端证据仍为 `be-core/src/domains/system/auth/auth.controller.ts`、`be-core/docs/api-desc/system/auth.md`
 
 ## 建议跟进顺序
 
