@@ -3,11 +3,24 @@ import { getProviderListApi } from "@/api/business/provider";
 import { getCustomerListApi } from "@/api/business/customer";
 import { getPaymentListApi } from "@/api/payment";
 import { logger } from "@/utils/logger";
+import { MAX_FETCH_PAGE_SIZE } from "@/utils/constants";
 
 export interface SelectOption {
   uid: string;
   name: string;
   balance?: number;
+}
+
+function normalizePaymentOptions(data: unknown): SelectOption[] {
+  if (Array.isArray(data)) return data as SelectOption[];
+  if (
+    data &&
+    typeof data === "object" &&
+    Array.isArray((data as { list?: unknown }).list)
+  ) {
+    return (data as { list: SelectOption[] }).list;
+  }
+  return [];
 }
 
 /**
@@ -27,7 +40,10 @@ export function useFundForm() {
     if (loadingProviders.value) return;
     loadingProviders.value = true;
     try {
-      const res = await getProviderListApi(1, { keyword: "" });
+      const res = await getProviderListApi(1, {
+        keyword: "",
+        pageSize: MAX_FETCH_PAGE_SIZE
+      });
       providerList.value = res.data?.list || [];
     } catch (e) {
       logger.error("加载供应商列表失败", e);
@@ -40,7 +56,10 @@ export function useFundForm() {
     if (loadingCustomers.value) return;
     loadingCustomers.value = true;
     try {
-      const res = await getCustomerListApi(1, { keyword: "" });
+      const res = await getCustomerListApi(1, {
+        keyword: "",
+        pageSize: MAX_FETCH_PAGE_SIZE
+      });
       customerList.value = res.data?.list || [];
     } catch (e) {
       logger.error("加载客户列表失败", e);
@@ -54,7 +73,7 @@ export function useFundForm() {
     loadingPayments.value = true;
     try {
       const res = await getPaymentListApi();
-      paymentList.value = (res.data as SelectOption[]) || [];
+      paymentList.value = normalizePaymentOptions(res.data);
     } catch (e) {
       logger.error("加载账户列表失败", e);
     } finally {

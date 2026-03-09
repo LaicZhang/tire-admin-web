@@ -11,6 +11,7 @@ export interface CustomerQueryDto {
   keyword?: string;
   name?: string;
   desc?: string;
+  pageSize?: number;
   tagId?: number;
   levelId?: number;
   regionId?: number;

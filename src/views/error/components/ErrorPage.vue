@@ -26,6 +26,10 @@ function handleBack() {
   }
   handleHome();
 }
+
+function handleReload() {
+  window.location.reload();
+}
 </script>
 
 <template>
@@ -115,7 +119,7 @@ function handleBack() {
               delay: 240
             }
           }"
-          @click="window.location.reload()"
+          @click="handleReload"
         >
           刷新重试
         </el-button>

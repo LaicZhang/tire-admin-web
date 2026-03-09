@@ -11,6 +11,7 @@ export interface ProviderQueryDto {
   keyword?: string;
   name?: string;
   desc?: string;
+  pageSize?: number;
   scope?: "nonDeleted" | "deleted" | "all";
 }
 
