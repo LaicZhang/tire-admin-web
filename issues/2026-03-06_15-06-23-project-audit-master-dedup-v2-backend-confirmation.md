@@ -2,10 +2,10 @@
 
 - 来源主表：`tire-admin-web/issues/2026-03-06_15-06-23-project-audit-master-dedup-v2.csv`
 - 处理范围：仅覆盖主表中 `是否需后端配合=是` 的 24 条审计项
-- 当前分布：`后端已支持待前端接入` 9 条、`后端部分支持待契约对齐` 9 条、`后端缺失待后端实施` 3 条、`无需后端处理待前端修复` 3 条
+- 当前分布：`后端已支持待前端接入` 12 条、`后端部分支持待契约对齐` 9 条、`后端缺失待后端实施` 0 条、`无需后端处理待前端修复` 3 条
 - 判定依据：以 `be-core` 中已存在的 `controller/service/dto/docs/tests` 为准，不以注释或前端假设为准
 
-## 后端已支持待前端接入（9）
+## 后端已支持待前端接入（12）
 
 1. `CSV:14` 按钮权限
    - 结论：后端已有按钮级权限字段与权限路由能力，前端未正确消费用户权限状态
@@ -50,6 +50,24 @@
    - 状态：已验证
    - 证据：`be-core/src/domains/sales/customer/customer.controller.ts`、`be-core/src/domains/purchase/provider/provider.controller.ts`、`be-core/src/domains/finance/payment/payment.controller.ts`、`tire-admin-web/src/views/fund/composables/useFundForm.ts`、`tire-admin-web/src/views/fund/composables/useFundForm.test.ts`
 
+10. `CSV:16` 数据持久化
+
+- 结论：后端已新增 `data-config` 模块，覆盖客户商品编码、价格限制、价格规则、期初库存 4 类业务主数据的分页、创建/更新、批量导入/覆盖、软删除能力
+- 状态：已实施待前端接入
+- 证据：`be-core/prisma/schema/data_config.prisma`、`be-core/src/domains/business/data-config/data-config.controller.ts`、`be-core/src/domains/business/data-config/data-config.service.ts`、`be-core/src/domains/business/data-config/__tests__/data-config.controller.spec.ts`、`be-core/src/domains/business/data-config/__tests__/data-config.service.spec.ts`、`be-core/docs/api-desc/business/data-config.md`
+
+11. `CSV:17` 本地数据隔离
+
+- 结论：后端化后的业务主数据统一从鉴权上下文读取 `companyId`，已具备按公司隔离的服务端持久化基础；前端切换接口后即可消除本地全局 key 串数据问题
+- 状态：已实施待前端接入
+- 证据：`be-core/src/domains/business/data-config/data-config.controller.ts`、`be-core/src/domains/business/data-config/data-config.service.ts`、`be-core/prisma/schema/data_config.prisma`
+
+12. `CSV:53` 文档中心
+
+- 结论：后端已新增统一文档中心聚合列表、导出、打印 DTO 与批量审核入口，并补齐 `/purchase-inbound`、`/sale-outbound` 兼容路由；同时已将 `PAYMENT`、`TRANSFER`、`OTHER_INCOME`、`OTHER_EXPENSE` 纳入统一文档中心真实状态与批量审核链路，历史 `expense-order` 已迁移到 `other_transaction`
+- 状态：已实施待前端接入
+- 证据：`be-core/prisma/schema/payment_order.prisma`、`be-core/prisma/schema/finance_extension.prisma`、`be-core/prisma/migrations/20260309183000_finance_extension_auditable_documents/migration.sql`、`be-core/src/domains/finance/payment-order/payment-order.controller.ts`、`be-core/src/domains/finance/payment-order/payment-order.service.ts`、`be-core/src/domains/finance/payment-order/__tests__/payment-order.controller.spec.ts`、`be-core/src/domains/finance/payment-order/__tests__/payment-order.service.spec.ts`、`be-core/src/domains/finance/finance-extension/finance-extension.controller.ts`、`be-core/src/domains/finance/finance-extension/finance-extension.service.ts`、`be-core/src/domains/finance/finance-extension/__tests__/finance-extension.controller.spec.ts`、`be-core/src/domains/finance/finance-extension/__tests__/finance-extension.service.spec.ts`、`be-core/src/domains/business/document-center/document-center.controller.ts`、`be-core/src/domains/business/document-center/document-center.service.ts`、`be-core/src/domains/business/document-center/__tests__/document-center.controller.spec.ts`、`be-core/src/domains/business/document-center/__tests__/document-center.service.spec.ts`、`be-core/src/domains/orders/purchase-order/purchase-inbound.controller.ts`、`be-core/src/domains/orders/sale-order/sale-outbound.controller.ts`、`be-core/src/domains/orders/expense-order/expense-order.service.ts`、`be-core/docs/api-desc/business/document-center.md`、`be-core/docs/api-desc/finance/payment-order.md`、`be-core/docs/api-desc/finance/finance-extension.md`、`be-core/docs/api-desc/orders/expense-order.md`
+
 ## 后端部分支持待契约对齐（9）
 
 1. `CSV:12` 导入导出页
@@ -88,19 +106,9 @@
    - 结论：后端导出字段按类型生成，前端固定字段集合与后端多模块能力不匹配
    - 证据：`be-core/src/domains/business/tools/export.service.ts`、`be-core/src/domains/business/tools/export.processor.ts`
 
-## 后端缺失待后端实施（3）
+## 后端缺失待后端实施（0）
 
-1. `CSV:16` 数据持久化
-   - 结论：客户商品编码、价格限制、价格规则等业务数据当前无对应后端 API，前端仍落在 localStorage
-   - 证据：`be-core/src` 与 `be-core/docs/api-desc` 未见对应 domain/controller
-
-2. `CSV:17` 本地数据隔离
-   - 结论：根因仍是这些业务数据尚未后端化；在后端缺失前，前端很难真正实现跨用户/公司隔离
-   - 证据：同 `CSV:16`
-
-3. `CSV:53` 文档中心
-   - 结论：前端页面中的打印/导出/批量审核仍是占位，未找到统一文档中心或相应批处理后端接口
-   - 证据：`be-core/src`、`be-core/docs/api-desc` 未见 `fund/documents` 或统一 documents controller
+- 当前批次中原先 3 条 `后端缺失待后端实施` 已全部进入“后端已支持待前端接入”
 
 ## 无需后端处理待前端修复（3）
 
@@ -121,18 +129,14 @@
 
 ## 建议跟进顺序
 
-1. 先处理 `后端缺失待后端实施`
-   - 数据持久化
-   - 本地数据隔离
-   - 文档中心
-
-2. 再处理 `后端部分支持待契约对齐`
+1. 先处理 `后端部分支持待契约对齐`
    - 导入导出类型与字段契约
    - 异步导出 `ids` 契约
    - 支付账户/核销单分页契约
    - Cookie Auth / 备份下载 / iframe 安全收口
 
-3. 最后批量修 `后端已支持待前端接入`
+2. 再批量修 `后端已支持待前端接入`
    - 登录与公司上下文
+   - 数据配置与本地数据隔离前端切线
    - 菜单/按钮权限消费
    - 第三方登录与库存报表等前端接线项

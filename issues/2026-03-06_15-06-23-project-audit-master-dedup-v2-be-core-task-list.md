@@ -9,6 +9,12 @@
 
 ### 1. 业务主数据后端化（覆盖 `CSV:16`、`CSV:17`）
 
+**状态**
+
+- 已实施，待前端切换接口
+- 实际落地：新增 `data-config` 模块、4 张 Prisma 表、分页/创建更新/批量导入覆盖/软删除接口、配套 API 文档与单测
+- 证据：`be-core/prisma/schema/data_config.prisma`、`be-core/src/domains/business/data-config/data-config.controller.ts`、`be-core/src/domains/business/data-config/data-config.service.ts`、`be-core/docs/api-desc/business/data-config.md`
+
 **目标**
 
 - 将前端 localStorage 中的业务主数据迁移为后端持久化能力，并按公司隔离。
@@ -48,7 +54,18 @@
 - 导入/批量覆盖场景测试。
 - 跨公司越权访问拒绝测试。
 
+**回写说明**
+
+- `backend-confirmation` 中 `CSV:16`、`CSV:17` 已回写为 `后端已支持待前端接入`
+
 ### 2. 统一文档中心后端（覆盖 `CSV:53`）
+
+**状态**
+
+- 已实施，待前端切换接口
+- 已落地：统一文档中心分页列表、导出 Excel、打印 DTO、批量审核入口，以及 `/purchase-inbound`、`/sale-outbound` 兼容路由、独立 `payment-order` 模块
+- 当前支持：`WRITE_OFF`、`PAYMENT`、`TRANSFER`、`OTHER_INCOME`、`OTHER_EXPENSE` 已接入批量审核；`TRANSFER` 与 `OTHER_*` 已改为读取真实状态流转，历史 `expense-order` 已迁移并兼容到 `other_transaction`
+- 证据：`be-core/prisma/schema/payment_order.prisma`、`be-core/prisma/schema/finance_extension.prisma`、`be-core/prisma/migrations/20260309183000_finance_extension_auditable_documents/migration.sql`、`be-core/src/domains/finance/payment-order/payment-order.controller.ts`、`be-core/src/domains/finance/payment-order/payment-order.service.ts`、`be-core/src/domains/finance/payment-order/__tests__/payment-order.controller.spec.ts`、`be-core/src/domains/finance/payment-order/__tests__/payment-order.service.spec.ts`、`be-core/src/domains/finance/finance-extension/finance-extension.controller.ts`、`be-core/src/domains/finance/finance-extension/finance-extension.service.ts`、`be-core/src/domains/finance/finance-extension/__tests__/finance-extension.controller.spec.ts`、`be-core/src/domains/finance/finance-extension/__tests__/finance-extension.service.spec.ts`、`be-core/src/domains/business/document-center/document-center.controller.ts`、`be-core/src/domains/business/document-center/document-center.service.ts`、`be-core/src/domains/orders/purchase-order/purchase-inbound.controller.ts`、`be-core/src/domains/orders/sale-order/sale-outbound.controller.ts`、`be-core/src/domains/orders/expense-order/expense-order.service.ts`、`be-core/docs/api-desc/business/document-center.md`、`be-core/docs/api-desc/finance/payment-order.md`、`be-core/docs/api-desc/finance/finance-extension.md`、`be-core/docs/api-desc/orders/expense-order.md`
 
 **目标**
 
@@ -62,6 +79,7 @@
   - 采购：采购单、采购入库单、采购退货单
   - 销售：销售单、销售出库单、销售退货单
 - 提供批量审核接口，仅覆盖当前已有审核状态机的单据类型。
+- 将 `account-transfer`、`other-transaction` 升级为可审核单据，并把历史 `expense-order` 迁移到 `other_transaction direction=OUT`。
 - 提供导出接口，先输出结构化 Excel，不做前端本地拼装。
 - 提供打印数据接口，返回标准打印 DTO，由前端模板渲染。
 
@@ -93,6 +111,10 @@
 - 聚合列表分页与筛选测试。
 - 批量审核成功/部分失败/越权测试。
 - 导出与打印 DTO 结构测试。
+
+**回写说明**
+
+- `backend-confirmation` 中 `CSV:53` 已回写为 `后端已支持待前端接入`
 
 ## P1：补齐契约并收口行为
 
