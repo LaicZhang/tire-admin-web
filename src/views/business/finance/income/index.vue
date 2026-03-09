@@ -1,37 +1,33 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { h, ref, reactive, onMounted } from "vue";
-import { http } from "@/utils/http";
 import { httpLogger } from "@/utils/logger";
 import { formatMoney } from "@/utils/formatMoney";
 import dayjs from "dayjs";
 import { columns } from "./columns";
-import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { PureTable } from "@pureadmin/table";
 import type { PaginationProps } from "@pureadmin/table";
 import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import IncomeForm from "./IncomeForm.vue";
+import { getOtherIncomeListApi } from "@/api/fund/other-income";
 
 defineOptions({
   name: "Income"
 });
 
-interface OtherTransaction {
+interface OtherIncomeRow {
   id: number;
   uid: string;
-  type: string;
-  amount: bigint;
-  direction: "IN" | "OUT";
+  incomeType: string;
+  amount: number;
   category?: string;
   remark?: string;
-  createdAt: string;
-  payment?: {
-    name: string;
-  };
+  createdAt?: string;
+  paymentName?: string;
 }
 
 // 列表数据
-const tableData = ref<OtherTransaction[]>([]);
+const tableData = ref<OtherIncomeRow[]>([]);
 const loading = ref(false);
 
 // 查询参数
@@ -51,11 +47,8 @@ const pagination = reactive<PaginationProps>({
 const fetchData = async () => {
   loading.value = true;
   try {
-    const { data } = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<OtherTransaction>>
-    >(`/finance-extension/other-transaction/${queryParams.index}`, {
-      params: { direction: "IN", size: queryParams.size }
+    const { data } = await getOtherIncomeListApi(queryParams.index, {
+      pageSize: queryParams.size
     });
     tableData.value = data.list;
     pagination.total = data.total ?? data.count;
@@ -140,13 +133,13 @@ onMounted(() => {
         "
       >
         <template #type="{ row }">
-          <el-tag type="success" size="small">{{ row.type }}</el-tag>
+          <el-tag type="success" size="small">{{ row.incomeType }}</el-tag>
         </template>
         <template #amount="{ row }">
           <span class="text-success">+{{ formatAmount(row.amount) }}</span>
         </template>
         <template #payment="{ row }">
-          {{ row.payment?.name || "-" }}
+          {{ row.paymentName || "-" }}
         </template>
         <template #createdAt="{ row }">
           {{ formatDate(row.createdAt) }}

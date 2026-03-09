@@ -11,10 +11,8 @@ import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { http } from "@/utils/http";
 import { handleApiError, message } from "@/utils";
 import { fenToYuanOrDash as formatMoney } from "@/utils/formatMoney";
-import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
   type OtherIncome,
   type OtherIncomeQueryParams,
@@ -25,6 +23,10 @@ import { columns, getStatusInfo, getIncomeTypeText } from "./columns";
 import OtherIncomeForm from "./form.vue";
 import type { StatusConfig } from "@/components/StatusTag/types";
 import { useOptions } from "@/composables/useOptions";
+import {
+  deleteOtherIncomeApi,
+  getOtherIncomeListApi
+} from "@/api/fund/other-income";
 
 defineOptions({
   name: "FundOtherIncome"
@@ -79,24 +81,19 @@ const OTHER_INCOME_STATUS_MAP: Record<string, StatusConfig> =
 async function onSearch() {
   loading.value = true;
   try {
-    const params: Record<string, unknown> = {
-      ...queryForm,
-      direction: "IN"
-    };
+    const params: Record<string, unknown> = { ...queryForm };
     Object.keys(params).forEach(key => {
       if (params[key] === "" || params[key] === undefined) {
         delete params[key];
       }
     });
 
-    const { data } = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<OtherIncome>>
-    >(`/finance-extension/other-transaction/${pagination.currentPage}`, {
+    const { data } = await getOtherIncomeListApi(
+      pagination.currentPage,
       params
-    });
+    );
 
-    dataList.value = data.list || [];
+    dataList.value = (data.list || []) as OtherIncome[];
     pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
     handleApiError(e, "查询失败");
@@ -141,7 +138,7 @@ async function handleDelete(row: OtherIncome) {
   if (!ok) return;
 
   try {
-    await http.delete(`/finance-extension/other-transaction/${row.id}`);
+    await deleteOtherIncomeApi(row.uid);
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -163,7 +160,7 @@ async function handleBatchDelete() {
 
   try {
     for (const row of selectedRows.value) {
-      await http.delete(`/finance-extension/other-transaction/${row.id}`);
+      await deleteOtherIncomeApi(row.uid);
     }
     message("批量删除成功", { type: "success" });
     onSearch();

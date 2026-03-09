@@ -39,22 +39,22 @@ export async function getOtherIncomeListApi(
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<OtherIncome>>>(
     "get",
-    baseUrlApi(`/finance-extension/other-transaction/${index}`),
-    { params: { ...params, direction: "IN" } }
+    baseUrlApi(`/other-income-order/${index}`),
+    { params }
   );
 }
 
 export async function createOtherIncomeApi(data: CreateOtherIncomeDto) {
   return await http.request<CommonResult<OtherIncome>>(
     "post",
-    baseUrlApi("/finance-extension/other-transaction"),
-    { data: { ...data, direction: "IN" } }
+    baseUrlApi("/other-income-order"),
+    { data }
   );
 }
 
-export async function deleteOtherIncomeApi(id: number) {
+export async function deleteOtherIncomeApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(`/finance-extension/other-transaction/${id}`)
+    baseUrlApi(`/other-income-order/${uid}`)
   );
 }

@@ -11,7 +11,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "账户",
-    prop: "paymentUid"
+    prop: "paymentName"
   },
   {
     label: "日期",

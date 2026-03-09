@@ -35,11 +35,12 @@ const {
   CommonResult<{ list: OtherTransaction[]; total?: number; count?: number }>,
   { page: number; pageSize: number }
 >({
-  api: ({ page }) =>
+  api: ({ page, pageSize }) =>
     getOtherTransactionListApi(page, {
       type: form.type,
       startDate: form.startDate,
-      endDate: form.endDate
+      endDate: form.endDate,
+      pageSize
     }) as Promise<
       CommonResult<{ list: OtherTransaction[]; total?: number; count?: number }>
     >,

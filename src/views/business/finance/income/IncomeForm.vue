@@ -80,14 +80,15 @@ const handleSubmit = async () => {
 
   loading.value = true;
   try {
-    await http.post("/finance-extension/other-transaction", {
+    await http.post("/other-income-order", {
       data: {
-        type: form.type,
+        incomeType: form.type,
         category: form.category || form.type,
         amount: Math.round(form.amount * 100),
-        direction: "IN",
+        receivedAmount: Math.round(form.amount * 100),
+        paymentId: form.paymentId,
         remark: form.remark.trim(),
-        payment: { connect: { uid: form.paymentId } }
+        incomeDate: new Date().toISOString().slice(0, 10)
       }
     });
     message("创建成功", { type: "success" });

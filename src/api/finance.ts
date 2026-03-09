@@ -6,16 +6,46 @@ const prefix = "/finance-extension/";
 
 export interface OtherTransaction {
   id: number;
+  uid: string;
   type: "income" | "expense";
-  categoryId?: number;
   categoryName?: string;
   amount: number;
-  paymentUid: string;
+  paymentUid?: string;
   paymentName?: string;
   date?: string;
   desc?: string;
   createTime?: string;
+  createdAt?: string;
+  status?: string;
 }
+
+type OtherIncomeOrder = {
+  id: number;
+  uid: string;
+  amount: number;
+  incomeType: string;
+  category?: string;
+  paymentId?: string;
+  paymentName?: string;
+  incomeDate?: string;
+  remark?: string;
+  createdAt?: string;
+  status?: string;
+};
+
+type OtherExpenseOrder = {
+  id: number;
+  uid: string;
+  amount: number;
+  expenseType: string;
+  category?: string;
+  paymentId?: string;
+  paymentName?: string;
+  expenseDate?: string;
+  remark?: string;
+  createdAt?: string;
+  status?: string;
+};
 
 export interface CollectionReminder {
   id: number;
@@ -76,30 +106,141 @@ export async function accountTransferApi(data: {
   );
 }
 
-/** 创建其他收支记录 */
-export async function createOtherTransactionApi(data: {
-  type: "income" | "expense";
-  categoryId?: number;
-  amount: number;
-  paymentUid: string;
-  date?: string;
-  desc?: string;
-}) {
-  return await http.request<CommonResult<OtherTransaction>>(
-    "post",
-    baseUrlApi(prefix + "other-transaction"),
-    { data }
-  );
+function mapIncomeOrderToTransaction(item: OtherIncomeOrder): OtherTransaction {
+  return {
+    id: item.id,
+    uid: item.uid,
+    type: "income",
+    categoryName: item.category,
+    amount: item.amount,
+    paymentUid: item.paymentId,
+    paymentName: item.paymentName,
+    date: item.incomeDate,
+    desc: item.remark,
+    createTime: item.createdAt,
+    createdAt: item.createdAt,
+    status: item.status
+  };
+}
+
+function mapExpenseOrderToTransaction(
+  item: OtherExpenseOrder
+): OtherTransaction {
+  return {
+    id: item.id,
+    uid: item.uid,
+    type: "expense",
+    categoryName: item.category,
+    amount: item.amount,
+    paymentUid: item.paymentId,
+    paymentName: item.paymentName,
+    date: item.expenseDate,
+    desc: item.remark,
+    createTime: item.createdAt,
+    createdAt: item.createdAt,
+    status: item.status
+  };
+}
+
+function buildMergedResult(
+  list: OtherTransaction[],
+  total: number
+): CommonResult<PaginatedResponseDto<OtherTransaction>> {
+  return {
+    code: 200,
+    msg: "success",
+    data: {
+      list,
+      total,
+      count: total
+    }
+  };
 }
 
 /** 获取其他收支列表 */
 export async function getOtherTransactionListApi(
   index: number,
-  params?: { type?: string; startDate?: string; endDate?: string }
+  params?: {
+    type?: string;
+    startDate?: string;
+    endDate?: string;
+    pageSize?: number;
+  }
 ) {
-  return await http.request<
-    CommonResult<PaginatedResponseDto<OtherTransaction>>
-  >("get", baseUrlApi(prefix + `other-transaction/${index}`), { params });
+  const pageSize = params?.pageSize ?? 10;
+
+  if (params?.type === "income") {
+    const result = await http.request<
+      CommonResult<PaginatedResponseDto<OtherIncomeOrder>>
+    >("get", baseUrlApi(`/other-income-order/${index}`), {
+      params: {
+        startDate: params.startDate,
+        endDate: params.endDate,
+        pageSize
+      }
+    });
+    return buildMergedResult(
+      (result.data.list ?? []).map(mapIncomeOrderToTransaction),
+      result.data.total ?? result.data.count ?? 0
+    );
+  }
+
+  if (params?.type === "expense") {
+    const result = await http.request<
+      CommonResult<PaginatedResponseDto<OtherExpenseOrder>>
+    >("get", baseUrlApi(`/expense-order/${index}`), {
+      params: {
+        startDate: params.startDate,
+        endDate: params.endDate,
+        pageSize
+      }
+    });
+    return buildMergedResult(
+      (result.data.list ?? []).map(mapExpenseOrderToTransaction),
+      result.data.total ?? result.data.count ?? 0
+    );
+  }
+
+  const fetchSize = index * pageSize;
+  const [incomeResult, expenseResult] = await Promise.all([
+    http.request<CommonResult<PaginatedResponseDto<OtherIncomeOrder>>>(
+      "get",
+      baseUrlApi("/other-income-order/1"),
+      {
+        params: {
+          startDate: params?.startDate,
+          endDate: params?.endDate,
+          pageSize: fetchSize
+        }
+      }
+    ),
+    http.request<CommonResult<PaginatedResponseDto<OtherExpenseOrder>>>(
+      "get",
+      baseUrlApi("/expense-order/1"),
+      {
+        params: {
+          startDate: params?.startDate,
+          endDate: params?.endDate,
+          pageSize: fetchSize
+        }
+      }
+    )
+  ]);
+
+  const total =
+    (incomeResult.data.total ?? incomeResult.data.count ?? 0) +
+    (expenseResult.data.total ?? expenseResult.data.count ?? 0);
+  const merged = [
+    ...(incomeResult.data.list ?? []).map(mapIncomeOrderToTransaction),
+    ...(expenseResult.data.list ?? []).map(mapExpenseOrderToTransaction)
+  ].sort((left, right) => {
+    const leftTime = new Date(left.createdAt ?? left.date ?? 0).getTime();
+    const rightTime = new Date(right.createdAt ?? right.date ?? 0).getTime();
+    return rightTime - leftTime;
+  });
+  const start = Math.max(index - 1, 0) * pageSize;
+
+  return buildMergedResult(merged.slice(start, start + pageSize), total);
 }
 
 /** 创建催收提醒 */

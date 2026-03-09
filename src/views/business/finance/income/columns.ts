@@ -1,7 +1,7 @@
 export const columns: TableColumnList = [
   {
     label: "收入类型",
-    prop: "type",
+    prop: "incomeType",
     width: 120,
     slot: "type"
   },
@@ -13,7 +13,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "收款账户",
-    prop: "payment.name",
+    prop: "paymentName",
     width: 150,
     slot: "payment"
   },
