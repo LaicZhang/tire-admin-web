@@ -20,6 +20,7 @@ defineOptions({
 });
 
 const activeTab = ref<"sale" | "purchase">("sale");
+const configUid = ref<string | undefined>();
 
 // 销售价格取数规则
 const defaultSaleRules: PriceRule[] = [
@@ -85,6 +86,7 @@ const {
 >({
   api: () => getPriceRuleConfigApi(),
   transform: (res: PriceRuleConfig | null) => {
+    configUid.value = res?.uid;
     const list = (res?.saleRules ?? []) as PriceRule[];
     return {
       list: list.length ? list : defaultSaleRules.map(r => ({ ...r })),
@@ -138,6 +140,7 @@ const {
 >({
   api: () => getPriceRuleConfigApi(),
   transform: (res: PriceRuleConfig | null) => {
+    configUid.value = res?.uid;
     const list = (res?.purchaseRules ?? []) as PriceRule[];
     return {
       list: list.length ? list : defaultPurchaseRules.map(r => ({ ...r })),
@@ -201,6 +204,7 @@ const updatePriority = (rules: PriceRule[]) => {
 
 const handleSave = () => {
   savePriceRuleConfigApi({
+    uid: configUid.value,
     saleRules: saleRules.value,
     purchaseRules: purchaseRules.value
   }).then(() => message("保存成功", { type: "success" }));

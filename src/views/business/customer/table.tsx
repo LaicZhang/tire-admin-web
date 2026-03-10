@@ -132,13 +132,6 @@ export function openDialog(
           }
 
           if (title === "新增") {
-            // 如果有期初欠款，可能需要特殊处理，但这里先尝试作为普通字段（如果后端模型支持）
-            // 注意：initialBalance 通常不直接存在于 customer 表，而是作为 debtProfile 或 transaction 存在。
-            // 这里仅传递给后端，看后端如何处理。如果不支持会报错。
-            if (curData.initialBalance) {
-              baseData.initialBalance = curData.initialBalance;
-            }
-
             await addCustomerApi({
               customer: baseData
             });

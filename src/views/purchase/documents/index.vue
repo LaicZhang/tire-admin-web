@@ -1,28 +1,17 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { onMounted, ref } from "vue";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRouter } from "vue-router";
+import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import {
-  getPurchaseInboundListApi,
-  getPurchaseOrderListApi,
-  getPurchaseReturnOrderListApi,
-  PURCHASE_INBOUND_ORDER_TYPE,
-  PURCHASE_ORDER_TYPE,
-  PURCHASE_RETURN_ORDER_TYPE
-} from "@/api/purchase";
-import type { PurchaseOrder } from "@/views/purchase/order/types";
-import type { InboundOrder } from "@/views/purchase/inbound/types";
-import type { ReturnOrder } from "@/views/purchase/return/types";
-import {
-  message,
-  ALL_LIST,
-  localForage,
-  handleApiError,
-  formatDate
-} from "@/utils";
+  exportDocumentCenterApi,
+  getDocumentCenterListApi,
+  getDocumentCenterPrintApi,
+  type DocumentCenterType
+} from "@/api/document-center";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { documentColumns } from "./columns";
 import type { DocumentItem, DocumentQueryParams, DocumentType } from "./types";
 import { DOCUMENT_TYPE_OPTIONS } from "./types";
@@ -60,7 +49,14 @@ interface SelectItem {
   uid: string;
   name: string;
 }
+
 const providerList = ref<SelectItem[]>([]);
+
+const documentTypeMap: Record<DocumentType, DocumentCenterType> = {
+  order: "PURCHASE_ORDER",
+  inbound: "PURCHASE_INBOUND",
+  return: "PURCHASE_RETURN"
+};
 
 async function loadSelectData() {
   try {
@@ -75,93 +71,65 @@ async function getList() {
   try {
     loading.value = true;
 
-    const typeMap: Record<string, string> = {
-      order: "purchase-order",
-      inbound: "purchase-inbound",
-      return: "return-order"
-    };
-
-    const typeNameMap: Record<string, string> = {
-      "purchase-order": "采购订单",
-      "purchase-inbound": "采购入库单",
-      "return-order": "采购退货单"
-    };
-
-    const allData: DocumentItem[] = [];
-
     if (dateRange.value) {
       searchForm.value.startDate = dateRange.value[0];
       searchForm.value.endDate = dateRange.value[1];
     }
 
-    const queryParams = {
-      providerId: searchForm.value.providerId,
-      isApproved: searchForm.value.isApproved,
-      status: searchForm.value.status,
+    const targetName = providerList.value.find(
+      item => item.uid === searchForm.value.providerId
+    )?.name;
+
+    const res = await getDocumentCenterListApi(pagination.value.currentPage, {
+      pageSize: pagination.value.pageSize,
+      documentType: searchForm.value.type
+        ? documentTypeMap[searchForm.value.type]
+        : undefined,
+      status:
+        searchForm.value.isApproved === undefined
+          ? undefined
+          : searchForm.value.isApproved
+            ? "APPROVED"
+            : "DRAFT",
+      targetName,
       startDate: searchForm.value.startDate,
       endDate: searchForm.value.endDate,
       keyword: searchForm.value.keyword
-    };
+    });
 
-    const typesToQuery = searchForm.value.type
-      ? [typeMap[searchForm.value.type]]
-      : Object.values(typeMap);
-
-    type PurchaseDocSourceItem = PurchaseOrder | InboundOrder | ReturnOrder;
-    const fetchByType: Record<
-      string,
-      (
-        index: number,
-        params?: Record<string, unknown>
-      ) => Promise<{
-        code: number;
-        msg: string;
-        data: { list: PurchaseDocSourceItem[]; count: number };
-      }>
-    > = {
-      [PURCHASE_ORDER_TYPE]: getPurchaseOrderListApi,
-      [PURCHASE_INBOUND_ORDER_TYPE]: getPurchaseInboundListApi,
-      [PURCHASE_RETURN_ORDER_TYPE]: getPurchaseReturnOrderListApi
-    };
-
-    for (const orderType of typesToQuery) {
-      try {
-        const fetch = fetchByType[orderType];
-        if (!fetch) continue;
-        const res = await fetch(pagination.value.currentPage, queryParams);
-        if (res.code === 200 && res.data.list) {
-          const items = res.data.list;
-          const docType = Object.keys(typeMap).find(
-            k => typeMap[k] === orderType
-          ) as DocumentType;
-          const mappedItems: DocumentItem[] = items.map(item => ({
-            uid: item.uid,
-            number: item.number,
-            type: docType,
-            typeName: typeNameMap[orderType],
-            providerId: item.providerId,
-            providerName: item.provider?.name || item.providerName || "",
-            count: item.count,
-            total: item.total,
-            status: item.status,
-            isApproved: item.isApproved,
-            createdAt: formatDate(item.createdAt),
-            operatorName: item.operator?.name || item.operatorName || "",
-            desc: item.desc
-          }));
-          allData.push(...mappedItems);
-        }
-      } catch {
-        // Continue with other types
-      }
+    if (res.code !== 200) {
+      message(res.msg || "获取采购单据列表失败", { type: "error" });
+      dataList.value = [];
+      pagination.value.total = 0;
+      return;
     }
 
-    dataList.value = allData.sort(
-      (a, b) =>
-        new Date(b.createdAt || 0).getTime() -
-        new Date(a.createdAt || 0).getTime()
-    );
-    pagination.value.total = allData.length;
+    dataList.value = (res.data?.list ?? [])
+      .filter(item =>
+        Object.values(documentTypeMap).includes(item.documentType)
+      )
+      .map(item => ({
+        id: item.id,
+        uid: item.uid,
+        number: item.billNo,
+        type:
+          item.documentType === "PURCHASE_ORDER"
+            ? "order"
+            : item.documentType === "PURCHASE_INBOUND"
+              ? "inbound"
+              : "return",
+        typeName: item.documentTypeLabel,
+        providerName: item.targetName,
+        count: item.count ?? 0,
+        total: Number(item.amount ?? 0),
+        status: item.status === "APPROVED",
+        isApproved: item.status === "APPROVED",
+        createdAt: item.createdAt,
+        operatorName: item.operatorName,
+        desc: item.remark
+      }));
+    pagination.value.total =
+      res.data?.total ?? res.data?.count ?? dataList.value.length;
   } catch (error) {
     handleApiError(error, "获取采购单据列表失败");
   } finally {
@@ -222,12 +190,73 @@ function auditDocument(row: DocumentItem) {
   });
 }
 
-async function handleBatchApprove() {
-  message("批量审核功能开发中", { type: "info" });
+function handleBatchApprove() {
+  message("采购单据暂不支持统一批量审核", { type: "info" });
 }
 
 async function handleExport() {
-  message("导出功能开发中", { type: "info" });
+  try {
+    const blob = await exportDocumentCenterApi({
+      documentType: searchForm.value.type
+        ? documentTypeMap[searchForm.value.type]
+        : undefined,
+      status:
+        searchForm.value.isApproved === undefined
+          ? undefined
+          : searchForm.value.isApproved
+            ? "APPROVED"
+            : "DRAFT",
+      targetName: providerList.value.find(
+        item => item.uid === searchForm.value.providerId
+      )?.name,
+      startDate: searchForm.value.startDate,
+      endDate: searchForm.value.endDate,
+      keyword: searchForm.value.keyword
+    });
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp("purchase-document-center", "xlsx"),
+      { showMessage: true }
+    );
+  } catch {
+    message("导出失败", { type: "error" });
+  }
+}
+
+async function handlePrint(row: DocumentItem) {
+  try {
+    const { code, data, msg } = await getDocumentCenterPrintApi(
+      documentTypeMap[row.type],
+      row.uid
+    );
+    if (code !== 200 || !data) {
+      message(msg || "获取打印数据失败", { type: "error" });
+      return;
+    }
+    const popup = window.open(
+      "",
+      "_blank",
+      "noopener,noreferrer,width=960,height=720"
+    );
+    if (!popup) {
+      message("打印窗口打开失败", { type: "warning" });
+      return;
+    }
+    const rows = Object.entries(data.detail)
+      .map(
+        ([key, value]) =>
+          `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
+      )
+      .join("");
+    popup.document.write(
+      `<!doctype html><html><head><title>${data.billNo}</title></head><body style="font-family:sans-serif;padding:24px;"><h2>${data.billNo}</h2><p>状态：${data.status}</p><p>供应商：${data.targetName ?? "-"}</p><table style="border-collapse:collapse;width:100%;margin-top:16px;">${rows}</table></body></html>`
+    );
+    popup.document.close();
+    popup.focus();
+    popup.print();
+  } catch {
+    message("获取打印数据失败", { type: "error" });
+  }
 }
 
 onMounted(async () => {
@@ -349,7 +378,9 @@ onMounted(async () => {
               >
                 审核
               </el-button>
-              <el-button link type="info"> 打印 </el-button>
+              <el-button link type="info" @click="handlePrint(row)">
+                打印
+              </el-button>
             </template>
           </pure-table>
         </template>

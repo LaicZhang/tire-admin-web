@@ -4,24 +4,14 @@ import { onMounted, ref } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRouter } from "vue-router";
+import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import {
-  getSalesOrderListApi,
-  getSalesOutboundListApi,
-  getSalesReturnOrderListApi,
-  SALES_ORDER_TYPE,
-  SALES_OUTBOUND_ORDER_TYPE,
-  SALES_RETURN_ORDER_TYPE
-} from "@/api/sales";
-import type { SalesOrder } from "@/views/sales/order/types";
-import type { OutboundOrder } from "@/views/sales/outbound/types";
-import type { SalesReturnOrder } from "@/views/sales/return/types";
-import {
-  message,
-  ALL_LIST,
-  localForage,
-  handleApiError,
-  formatDate
-} from "@/utils";
+  exportDocumentCenterApi,
+  getDocumentCenterListApi,
+  getDocumentCenterPrintApi,
+  type DocumentCenterType
+} from "@/api/document-center";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { documentColumns } from "./columns";
 import type { DocumentItem, DocumentQueryParams, DocumentType } from "./types";
 import { DOCUMENT_TYPE_OPTIONS } from "./types";
@@ -62,6 +52,12 @@ interface SelectItem {
 
 const customerList = ref<SelectItem[]>([]);
 
+const documentTypeMap: Record<DocumentType, DocumentCenterType> = {
+  order: "SALE_ORDER",
+  outbound: "SALE_OUTBOUND",
+  return: "SALE_RETURN"
+};
+
 async function loadSelectData() {
   const customers = await localForage().getItem(ALL_LIST.customer);
   customerList.value = (customers as SelectItem[]) || [];
@@ -71,93 +67,65 @@ async function getList() {
   try {
     loading.value = true;
 
-    const typeMap: Record<string, string> = {
-      order: "sale-order",
-      outbound: "sale-outbound",
-      return: "return-order"
-    };
-
-    const typeNameMap: Record<string, string> = {
-      "sale-order": "销售订单",
-      "sale-outbound": "销售出库单",
-      "return-order": "销售退货单"
-    };
-
-    const allData: DocumentItem[] = [];
-
     if (dateRange.value) {
       searchForm.value.startDate = dateRange.value[0];
       searchForm.value.endDate = dateRange.value[1];
     }
 
-    const queryParams = {
-      customerId: searchForm.value.customerId,
-      isApproved: searchForm.value.isApproved,
-      status: searchForm.value.status,
+    const targetName = customerList.value.find(
+      item => item.uid === searchForm.value.customerId
+    )?.name;
+
+    const res = await getDocumentCenterListApi(pagination.value.currentPage, {
+      pageSize: pagination.value.pageSize,
+      documentType: searchForm.value.type
+        ? documentTypeMap[searchForm.value.type]
+        : undefined,
+      status:
+        searchForm.value.isApproved === undefined
+          ? undefined
+          : searchForm.value.isApproved
+            ? "APPROVED"
+            : "DRAFT",
+      targetName,
       startDate: searchForm.value.startDate,
       endDate: searchForm.value.endDate,
       keyword: searchForm.value.keyword
-    };
+    });
 
-    const typesToQuery = searchForm.value.type
-      ? [typeMap[searchForm.value.type]]
-      : Object.values(typeMap);
-
-    type SalesDocSourceItem = SalesOrder | OutboundOrder | SalesReturnOrder;
-    const fetchByType: Record<
-      string,
-      (
-        index: number,
-        params?: Record<string, unknown>
-      ) => Promise<{
-        code: number;
-        msg: string;
-        data: { list: SalesDocSourceItem[]; count: number };
-      }>
-    > = {
-      [SALES_ORDER_TYPE]: getSalesOrderListApi,
-      [SALES_OUTBOUND_ORDER_TYPE]: getSalesOutboundListApi,
-      [SALES_RETURN_ORDER_TYPE]: getSalesReturnOrderListApi
-    };
-
-    for (const orderType of typesToQuery) {
-      try {
-        const fetch = fetchByType[orderType];
-        if (!fetch) continue;
-        const res = await fetch(pagination.value.currentPage, queryParams);
-        if (res.code === 200 && res.data.list) {
-          const items = res.data.list;
-          const docType = Object.keys(typeMap).find(
-            k => typeMap[k] === orderType
-          ) as DocumentType;
-          const mappedItems: DocumentItem[] = items.map(item => ({
-            uid: item.uid,
-            number: item.number,
-            type: docType,
-            typeName: typeNameMap[orderType],
-            customerId: item.customerId,
-            customerName: item.customer?.name || item.customerName || "",
-            count: item.count,
-            total: item.total,
-            status: item.status,
-            isApproved: item.isApproved,
-            createdAt: formatDate(item.createdAt),
-            operatorName: item.operator?.name || item.operatorName || "",
-            desc: item.desc
-          }));
-          allData.push(...mappedItems);
-        }
-      } catch {
-        // Continue with other types
-      }
+    if (res.code !== 200) {
+      message(res.msg || "获取销售单据列表失败", { type: "error" });
+      dataList.value = [];
+      pagination.value.total = 0;
+      return;
     }
 
-    dataList.value = allData.sort(
-      (a, b) =>
-        new Date(b.createdAt || 0).getTime() -
-        new Date(a.createdAt || 0).getTime()
-    );
-    pagination.value.total = allData.length;
+    dataList.value = (res.data?.list ?? [])
+      .filter(item =>
+        Object.values(documentTypeMap).includes(item.documentType)
+      )
+      .map(item => ({
+        id: item.id,
+        uid: item.uid,
+        number: item.billNo,
+        type:
+          item.documentType === "SALE_ORDER"
+            ? "order"
+            : item.documentType === "SALE_OUTBOUND"
+              ? "outbound"
+              : "return",
+        typeName: item.documentTypeLabel,
+        customerName: item.targetName,
+        count: item.count ?? 0,
+        total: Number(item.amount ?? 0),
+        status: item.status === "APPROVED",
+        isApproved: item.status === "APPROVED",
+        createdAt: item.createdAt,
+        operatorName: item.operatorName,
+        desc: item.remark
+      }));
+    pagination.value.total =
+      res.data?.total ?? res.data?.count ?? dataList.value.length;
   } catch (error) {
     handleApiError(error, "获取销售单据列表失败");
   } finally {
@@ -206,12 +174,73 @@ function editDocument(row: DocumentItem) {
   });
 }
 
-async function handleBatchApprove() {
-  message("批量审核功能开发中", { type: "info" });
+function handleBatchApprove() {
+  message("销售单据暂不支持统一批量审核", { type: "info" });
 }
 
 async function handleExport() {
-  message("导出功能开发中", { type: "info" });
+  try {
+    const blob = await exportDocumentCenterApi({
+      documentType: searchForm.value.type
+        ? documentTypeMap[searchForm.value.type]
+        : undefined,
+      status:
+        searchForm.value.isApproved === undefined
+          ? undefined
+          : searchForm.value.isApproved
+            ? "APPROVED"
+            : "DRAFT",
+      targetName: customerList.value.find(
+        item => item.uid === searchForm.value.customerId
+      )?.name,
+      startDate: searchForm.value.startDate,
+      endDate: searchForm.value.endDate,
+      keyword: searchForm.value.keyword
+    });
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp("sales-document-center", "xlsx"),
+      { showMessage: true }
+    );
+  } catch {
+    message("导出失败", { type: "error" });
+  }
+}
+
+async function handlePrint(row: DocumentItem) {
+  try {
+    const { code, data, msg } = await getDocumentCenterPrintApi(
+      documentTypeMap[row.type],
+      row.uid
+    );
+    if (code !== 200 || !data) {
+      message(msg || "获取打印数据失败", { type: "error" });
+      return;
+    }
+    const popup = window.open(
+      "",
+      "_blank",
+      "noopener,noreferrer,width=960,height=720"
+    );
+    if (!popup) {
+      message("打印窗口打开失败", { type: "warning" });
+      return;
+    }
+    const rows = Object.entries(data.detail)
+      .map(
+        ([key, value]) =>
+          `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
+      )
+      .join("");
+    popup.document.write(
+      `<!doctype html><html><head><title>${data.billNo}</title></head><body style="font-family:sans-serif;padding:24px;"><h2>${data.billNo}</h2><p>状态：${data.status}</p><p>客户：${data.targetName ?? "-"}</p><table style="border-collapse:collapse;width:100%;margin-top:16px;">${rows}</table></body></html>`
+    );
+    popup.document.close();
+    popup.focus();
+    popup.print();
+  } catch {
+    message("获取打印数据失败", { type: "error" });
+  }
 }
 
 onMounted(async () => {
@@ -326,10 +355,17 @@ onMounted(async () => {
               >
                 编辑
               </el-button>
-              <el-button v-if="!row.isApproved" link type="success">
+              <el-button
+                v-if="!row.isApproved"
+                link
+                type="success"
+                @click="handleBatchApprove"
+              >
                 审核
               </el-button>
-              <el-button link type="info"> 打印 </el-button>
+              <el-button link type="info" @click="handlePrint(row)">
+                打印
+              </el-button>
             </template>
           </pure-table>
         </template>

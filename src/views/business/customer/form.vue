@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from "vue";
-import { getCustomerTagListApi, getCustomerLevelListApi } from "@/api";
+import { ref, onMounted, reactive, watch } from "vue";
+import {
+  getCustomerInitialBalanceApi,
+  getCustomerTagListApi,
+  getCustomerLevelListApi
+} from "@/api";
 import { useSysDictOptions } from "@/composables/useSysDict";
 
 interface FormItemProps {
@@ -45,6 +49,12 @@ const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 const tagList = ref<TagItem[]>([]);
 const levelList = ref<LevelItem[]>([]);
+const initialBalanceLoading = ref(false);
+const initialBalanceSummary = ref({
+  receivableBalance: 0,
+  advanceBalance: 0,
+  totalBalance: 0
+});
 const { options: customerSourceOptions } = useSysDictOptions("customerSource");
 
 const formRules = reactive({
@@ -65,13 +75,45 @@ async function loadOptions() {
   }
 }
 
+async function loadInitialBalance(uid?: string) {
+  if (!uid) {
+    initialBalanceSummary.value = {
+      receivableBalance: 0,
+      advanceBalance: 0,
+      totalBalance: 0
+    };
+    return;
+  }
+  initialBalanceLoading.value = true;
+  try {
+    const { code, data } = await getCustomerInitialBalanceApi(uid);
+    if (code === 200 && data?.summary) {
+      initialBalanceSummary.value = {
+        receivableBalance: Number(data.summary.receivableBalance || 0),
+        advanceBalance: Number(data.summary.advanceBalance || 0),
+        totalBalance: Number(data.summary.totalBalance || 0)
+      };
+    }
+  } finally {
+    initialBalanceLoading.value = false;
+  }
+}
+
 function getRef() {
   return ruleFormRef.value;
 }
 
 onMounted(() => {
   loadOptions();
+  loadInitialBalance(newFormInline.value.uid);
 });
+
+watch(
+  () => newFormInline.value.uid,
+  uid => {
+    loadInitialBalance(uid);
+  }
+);
 
 defineExpose({ getRef });
 </script>
@@ -147,11 +189,22 @@ defineExpose({ getRef });
         :min="0"
         :step="100"
         style="width: 100%"
-        placeholder="请输入期初欠款金额"
-        :disabled="!!newFormInline.uid"
+        placeholder="客户创建后请通过财务期初余额维护"
+        disabled
       />
       <div class="text-xs text-gray-400 mt-1">
-        仅新建客户时可设置，后期请通过财务调整
+        <template v-if="newFormInline.uid">
+          <span v-if="initialBalanceLoading">正在加载期初余额摘要...</span>
+          <span v-else>
+            当前期初净额：{{
+              initialBalanceSummary.totalBalance / 100
+            }}
+            （应收：{{
+              initialBalanceSummary.receivableBalance / 100
+            }}，预收：{{ initialBalanceSummary.advanceBalance / 100 }}）
+          </span>
+        </template>
+        <template v-else>客户创建后请通过财务期初余额维护。</template>
       </div>
     </el-form-item>
 

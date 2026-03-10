@@ -21,8 +21,7 @@ import {
   getInitialStockListApi,
   upsertInitialStockApi
 } from "@/api/data/initial-stock";
-import { getRepoListApi, getRepoBatchApi, type Repo } from "@/api/company/repo";
-import { getTireBatchApi, type Tire } from "@/api/business/tire";
+import { getRepoListApi } from "@/api/company/repo";
 
 defineOptions({
   name: "InitialStock"
@@ -64,51 +63,33 @@ const columns = [
   }
 ];
 
-// 仓库列表
 const repoList = ref<Array<{ uid: string; name: string }>>([]);
 
 const getList = async () => {
   loading.value = true;
   try {
-    const [rawList, repoRes] = await Promise.all([
-      getInitialStockListApi(),
+    const [stockRes, repoRes] = await Promise.all([
+      getInitialStockListApi(pagination.value.currentPage, {
+        tireId: form.value.tireId || undefined,
+        repoId: form.value.repoId || undefined,
+        keyword: form.value.keyword || undefined,
+        pageSize: pagination.value.pageSize
+      }),
       getRepoListApi(1).catch(() => null)
     ]);
     repoList.value =
       repoRes?.data?.list?.map(r => ({ uid: r.uid, name: r.name })) ?? [];
-
-    const tireIds = Array.from(new Set(rawList.map(i => i.tireId)));
-    const repoIds = Array.from(new Set(rawList.map(i => i.repoId)));
-
-    // 批量获取 (2次请求代替 N*2 次)
-    const [tiresRes, reposRes] = await Promise.all([
-      getTireBatchApi(tireIds).catch(() => null),
-      getRepoBatchApi(repoIds).catch(() => null)
-    ]);
-
-    const tireMap = new Map<string, Tire>();
-    for (const t of tiresRes?.data ?? []) {
-      tireMap.set(t.uid, t);
-    }
-
-    const repoMap = new Map<string, Repo>();
-    for (const r of reposRes?.data ?? []) {
-      repoMap.set(r.uid, r);
-    }
-
-    let rows: InitialStock[] = rawList.map((item, idx) => {
-      const tire = tireMap.get(item.tireId);
-      const repo = repoMap.get(item.repoId);
-      const costPrice = item.costPrice ?? 0;
-      const quantity = item.quantity ?? 0;
+    dataList.value = (stockRes.data?.list ?? []).map((item, idx) => {
+      const costPrice = Number(item.costPrice ?? 0) / 100;
+      const quantity = Number(item.quantity ?? 0);
       return {
-        id: idx + 1,
+        id: item.id ?? idx + 1,
         uid: item.uid,
         tireId: item.tireId,
-        tireName: tire?.name,
-        tireCode: tire?.barcode ?? tire?.barCode ?? tire?.number,
+        tireName: item.tire?.name,
+        tireCode: item.tireId,
         repoId: item.repoId,
-        repoName: repo?.name,
+        repoName: item.repo?.name,
         quantity,
         costPrice,
         costAmount: quantity * costPrice,
@@ -117,22 +98,7 @@ const getList = async () => {
         createdAt: item.createdAt
       };
     });
-
-    if (form.value.repoId)
-      rows = rows.filter(r => r.repoId === form.value.repoId);
-    const keyword = (form.value.keyword ?? "").trim();
-    if (keyword) {
-      rows = rows.filter(
-        r =>
-          (r.tireName ?? "").includes(keyword) ||
-          (r.tireCode ?? "").includes(keyword)
-      );
-    }
-
-    pagination.value.total = rows.length;
-    const start =
-      (pagination.value.currentPage - 1) * pagination.value.pageSize;
-    dataList.value = rows.slice(start, start + pagination.value.pageSize);
+    pagination.value.total = stockRes.data?.total ?? stockRes.data?.count ?? 0;
   } finally {
     loading.value = false;
   }
@@ -150,6 +116,12 @@ const resetForm = (formEl: InstanceType<typeof ReSearchForm> | null) => {
 
 const handleCurrentChange = (val: number) => {
   pagination.value.currentPage = val;
+  getList();
+};
+
+const handleSizeChange = (val: number) => {
+  pagination.value.pageSize = val;
+  pagination.value.currentPage = 1;
   getList();
 };
 
@@ -196,9 +168,11 @@ const openDialog = (title = "新增", row?: InitialStock) => {
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           const stockItems = dialogFormRef.value?.getStockItems();
-          // 验证库存明细
           const validItems = stockItems?.filter(
-            item => item.repoId && item.quantity > 0
+            (
+              item
+            ): item is InitialStockItem & { _uid: string; repoId: string } =>
+              Boolean(item.repoId) && item.quantity > 0
           );
           if (!validItems || validItems.length === 0) {
             message("请至少添加一个仓库的期初库存", { type: "warning" });
@@ -212,7 +186,7 @@ const openDialog = (title = "新增", row?: InitialStock) => {
               tireId: cur.tireId,
               repoId: it.repoId,
               quantity: it.quantity,
-              costPrice: it.costPrice,
+              costPrice: Math.round(it.costPrice * 100),
               batchNo: it.batchNo,
               remark: cur.remark
             })
@@ -323,6 +297,7 @@ onMounted(() => {
             :loading="loading"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
+            @page-size-change="handleSizeChange"
             @page-current-change="handleCurrentChange"
             @selection-change="handleSelectionChange"
           >

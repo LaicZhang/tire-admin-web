@@ -184,7 +184,7 @@ const handleApprove = async (row: AssemblyOrder) => {
   if (!ok) return;
 
   try {
-    await http.request("post", `/api/assembly-order/${row.uid}/approve`);
+    await http.request("post", `/api/v1/assembly-order/${row.uid}/approve`);
     message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
@@ -202,7 +202,7 @@ const handleReject = async (row: AssemblyOrder) => {
     });
     if (typeof res === "string") return;
     const { value } = res;
-    await http.request("post", `/api/assembly-order/${row.uid}/reject`, {
+    await http.request("post", `/api/v1/assembly-order/${row.uid}/reject`, {
       data: { reason: value }
     });
     message("已拒绝", { type: "success" });
@@ -221,7 +221,7 @@ const handleSaveAsBom = async (row: AssemblyOrder) => {
   if (!ok) return;
 
   try {
-    await http.request("post", `/api/assembly-order/${row.uid}/save-as-bom`);
+    await http.request("post", `/api/v1/assembly-order/${row.uid}/save-as-bom`);
     message("已保存为BOM模板", { type: "success" });
   } catch (error) {
     handleApiError(error, "操作失败");

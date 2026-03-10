@@ -145,7 +145,7 @@ describe("InventoryReport", () => {
 
     expect(http.request).toHaveBeenCalledWith(
       "get",
-      "/api/inventory-report/balance/1",
+      "/api/v1/inventory-report/balance/1",
       expect.objectContaining({
         params: expect.objectContaining({
           repoId: undefined
@@ -182,7 +182,7 @@ describe("InventoryReport", () => {
 
     expect(http.request).toHaveBeenCalledWith(
       "get",
-      "/api/inventory-report/balance/1",
+      "/api/v1/inventory-report/balance/1",
       expect.objectContaining({
         params: expect.objectContaining({
           repoId: "repo-2"
@@ -218,7 +218,7 @@ describe("InventoryReport", () => {
 
     expect(http.request).toHaveBeenCalledWith(
       "get",
-      "/api/inventory-report/summary/1",
+      "/api/v1/inventory-report/summary/1",
       expect.any(Object)
     );
   });

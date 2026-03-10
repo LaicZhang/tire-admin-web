@@ -8,6 +8,7 @@ import Refresh from "~icons/ep/refresh";
 import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { message } from "@/utils";
+import { downloadBlob } from "@/utils/download";
 import {
   ElMessageBox,
   type UploadInstance,
@@ -232,19 +233,10 @@ const downloadBackup = async (row: BackupItem) => {
   }
   try {
     loading.value = true;
-    const { code, data } = await downloadBackupApi(row.uid);
-    if (code !== 200) {
-      message("获取下载信息失败", { type: "error" });
-      return;
-    }
-    const downloadUrl =
-      typeof data === "string" ? data : (data as { url?: string }).url;
-    if (!downloadUrl) {
-      message("下载链接为空", { type: "error" });
-      return;
-    }
-    window.open(downloadUrl, "_blank");
-    message("开始下载备份文件", { type: "success" });
+    const blob = await downloadBackupApi(row.uid);
+    downloadBlob(blob, row.fileName || `backup-${row.uid}.zip`, {
+      showMessage: true
+    });
   } catch {
     message("下载失败", { type: "error" });
   } finally {

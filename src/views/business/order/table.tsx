@@ -201,6 +201,175 @@ export function buildCreateOrderPayload(
   };
 }
 
+type OrderSubmitData = Required<Pick<OrderRow, "uid" | "details">> &
+  Omit<OrderRow, "uid" | "details">;
+
+type OrderDialogTitle =
+  | "新增"
+  | "审核"
+  | "修改"
+  | "付款"
+  | "收款"
+  | "更新物流"
+  | "更新状态"
+  | "确认到货"
+  | "处理理赔费用"
+  | "退款";
+
+interface SubmitContext {
+  title: OrderDialogTitle;
+  type: string;
+  curData: OrderRow;
+  submitData: OrderSubmitData;
+  companyId: string;
+}
+
+function createCompanyPayload(
+  submitData: OrderSubmitData,
+  companyId: string
+): Record<string, unknown> {
+  const { details: _details, ...orderData } = submitData;
+  return {
+    ...orderData,
+    company: getCompanyConnect(companyId)
+  };
+}
+
+async function submitCreateOrder({
+  type,
+  submitData,
+  companyId
+}: SubmitContext) {
+  if (
+    ![
+      ORDER_TYPE.purchase,
+      ORDER_TYPE.sale,
+      ORDER_TYPE.surplus,
+      ORDER_TYPE.waste
+    ].includes(type as CreateOrderType)
+  ) {
+    message("当前订单类型暂不支持新增", { type: "warning" });
+    return false;
+  }
+
+  await addOrderApi(
+    type,
+    buildCreateOrderPayload(type as CreateOrderType, submitData, companyId) as {
+      order: Record<string, unknown>;
+      details: OrderDetailDto[];
+    }
+  );
+  return true;
+}
+
+async function submitAuditOrder({
+  type,
+  submitData,
+  companyId
+}: SubmitContext) {
+  const payload = createCompanyPayload(submitData, companyId);
+  await updateOrderApi(type, submitData.uid, {
+    ...payload,
+    isApproved: submitData.isApproved ?? true,
+    isLocked: submitData.isApproved ?? true,
+    auditAt: submitData.isApproved ? new Date().toISOString() : null
+  });
+  return true;
+}
+
+async function submitOrderPayment({ title, type, submitData }: SubmitContext) {
+  const payload = {
+    fee: Number(submitData.total) || 0,
+    paymentId: submitData.paymentId
+  };
+  if (title === "付款" && type === ORDER_TYPE.purchase) {
+    await payPurchaseOrderApi(submitData.uid, payload);
+    return true;
+  }
+  if (title === "收款" && type === ORDER_TYPE.sale) {
+    await paySaleOrderApi(submitData.uid, payload);
+    return true;
+  }
+
+  return false;
+}
+
+async function submitClaimPayment({ submitData }: SubmitContext) {
+  await processClaimOrderPaymentApi(submitData.uid, {
+    fee: submitData.fee || 0,
+    isReceive: submitData.isReceive ?? false
+  });
+  return true;
+}
+
+async function submitRefund({ submitData }: SubmitContext) {
+  await refundReturnOrderApi(submitData.uid, {
+    fee: submitData.fee || 0
+  });
+  return true;
+}
+
+async function submitConfirmArrival({ submitData }: SubmitContext) {
+  const selected = (
+    submitData.details as Array<_OrderDetail & { isArrival?: boolean }>
+  ).filter(item => Boolean(item.isArrival));
+
+  if (selected.length === 0) {
+    message("请在明细中勾选要确认到货的行（是否到货）", {
+      type: "warning"
+    });
+    return false;
+  }
+
+  for (const item of selected) {
+    if (!item.uid) continue;
+    await confirmPurchaseOrderArrivalApi(submitData.uid, {
+      detailUid: item.uid,
+      batchNo: item.batchNo,
+      expiryDate: item.expiryDate
+    });
+  }
+  return true;
+}
+
+async function submitGenericUpdate({
+  type,
+  submitData,
+  companyId
+}: SubmitContext) {
+  await updateOrderApi(type, submitData.uid, {
+    ...createCompanyPayload(submitData, companyId)
+  });
+  return true;
+}
+
+async function submitDialogAction(context: SubmitContext) {
+  switch (context.title) {
+    case "新增":
+      return submitCreateOrder(context);
+    case "审核":
+      return submitAuditOrder(context);
+    case "付款":
+    case "收款": {
+      const handled = await submitOrderPayment(context);
+      if (handled) return true;
+      return submitGenericUpdate(context);
+    }
+    case "处理理赔费用":
+      return submitClaimPayment(context);
+    case "退款":
+      return submitRefund(context);
+    case "确认到货":
+      return submitConfirmArrival(context);
+    case "修改":
+    case "更新物流":
+    case "更新状态":
+      return submitGenericUpdate(context);
+    default:
+      return submitGenericUpdate(context);
+  }
+}
+
 export async function openDialog(
   title = "新增",
   type: string,
@@ -239,132 +408,43 @@ export async function openDialog(
     closeOnClickModal: false,
     closeCallBack: dialogOptions?.closeCallBack,
     contentRenderer: () => h(editForm, { ref: formRef }),
-    beforeSure: (done, { options }) => {
+    beforeSure: async (done, { options }) => {
       const FormRef = formRef.value?.getRef();
       if (!FormRef) return;
 
+      try {
+        await FormRef.validate();
+      } catch {
+        return;
+      }
+
       const curData = (options.props as { formInline?: OrderRow })
         ?.formInline as OrderRow;
-      function chores() {
+      if (!curData.details || curData.details.length === 0) {
+        message("请添加订单详情项", { type: "error" });
+        return;
+      }
+
+      const submitData = curData as OrderSubmitData;
+      try {
+        const companyId = await getCompanyId();
+        const handled = await submitDialogAction({
+          title: title as OrderDialogTitle,
+          type,
+          curData,
+          submitData,
+          companyId
+        });
+
+        if (!handled) return;
         message(`您${title}了名称为${curData.name}的这条数据`, {
           type: "success"
         });
-        done(); // 关闭弹框
+        done();
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : `${title}失败`;
+        message(msg, { type: "error" });
       }
-      FormRef.validate(async (valid: boolean) => {
-        if (valid) {
-          if (!curData.details || curData.details.length === 0) {
-            message("请添加订单详情项", { type: "error" });
-            return;
-          }
-
-          const { uid, details, ...orderData } = curData as Required<
-            Pick<OrderRow, "uid" | "details">
-          > &
-            Omit<OrderRow, "uid" | "details">;
-          const companyId = await getCompanyId();
-          if (title === "新增") {
-            if (
-              [
-                ORDER_TYPE.purchase,
-                ORDER_TYPE.sale,
-                ORDER_TYPE.surplus,
-                ORDER_TYPE.waste
-              ].includes(type as CreateOrderType)
-            ) {
-              await addOrderApi(
-                type,
-                buildCreateOrderPayload(
-                  type as CreateOrderType,
-                  { uid, details, ...orderData },
-                  companyId
-                ) as {
-                  order: Record<string, unknown>;
-                  details: OrderDetailDto[];
-                }
-              );
-            } else {
-              message("当前订单类型暂不支持新增", { type: "warning" });
-              return;
-            }
-            chores();
-          } else if (
-            [
-              "审核",
-              "修改",
-              "付款",
-              "收款",
-              "更新物流",
-              "更新状态",
-              "确认到货"
-            ].includes(title)
-          ) {
-            if (title === "审核") {
-              await updateOrderApi(type, uid, {
-                ...orderData,
-                isApproved: orderData.isApproved ?? true,
-                isLocked: orderData.isApproved ?? true,
-                auditAt: orderData.isApproved ? new Date().toISOString() : null,
-                company: getCompanyConnect(await getCompanyId())
-              });
-            } else if (title === "付款" && type === ORDER_TYPE.purchase) {
-              await payPurchaseOrderApi(uid, {
-                fee: Number(orderData.total) || 0,
-                paymentId: orderData.paymentId
-              });
-            } else if (title === "收款" && type === ORDER_TYPE.sale) {
-              await paySaleOrderApi(uid, {
-                fee: Number(orderData.total) || 0,
-                paymentId: orderData.paymentId
-              });
-            } else {
-              await updateOrderApi(type, uid, {
-                ...orderData,
-                company: getCompanyConnect(await getCompanyId())
-              });
-            }
-            chores();
-          } else if (title === "处理理赔费用") {
-            await processClaimOrderPaymentApi(uid, {
-              fee: orderData.fee || 0,
-              isReceive: orderData.isReceive ?? false
-            });
-            chores();
-          } else if (title === "退款") {
-            await refundReturnOrderApi(uid, {
-              fee: orderData.fee || 0
-            });
-            chores();
-          } else if (title === "确认到货") {
-            const selected = (
-              curData.details as Array<_OrderDetail & { isArrival?: boolean }>
-            ).filter(item => Boolean(item.isArrival));
-
-            if (selected.length === 0) {
-              message("请在明细中勾选要确认到货的行（是否到货）", {
-                type: "warning"
-              });
-              return;
-            }
-
-            for (const item of selected) {
-              if (!item.uid) continue;
-              await confirmPurchaseOrderArrivalApi(uid, {
-                detailUid: item.uid,
-                batchNo: item.batchNo,
-                expiryDate: item.expiryDate
-              });
-            }
-            chores();
-          } else {
-            await updateOrderApi(type, uid, {
-              ...orderData,
-              company: getCompanyConnect(await getCompanyId())
-            });
-            chores();
-          }
-        }
-      });
     }
   });
 }

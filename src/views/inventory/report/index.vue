@@ -86,13 +86,13 @@ const fetchData = async () => {
     let endpoint = "";
     switch (currentReportType.value) {
       case ReportType.DETAIL:
-        endpoint = "/api/inventory-report/detail";
+        endpoint = "/api/v1/inventory-report/detail";
         break;
       case ReportType.SUMMARY:
-        endpoint = "/api/inventory-report/summary";
+        endpoint = "/api/v1/inventory-report/summary";
         break;
       default:
-        endpoint = "/api/inventory-report/balance";
+        endpoint = "/api/v1/inventory-report/balance";
     }
 
     const { data, code } = await http.request<{

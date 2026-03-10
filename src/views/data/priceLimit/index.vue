@@ -10,15 +10,13 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import type { PriceLimit, PriceLimitForm, PriceLimitConfig } from "./types";
-import { getTireListApi } from "@/api/business/tire";
 import {
-  getPriceLimitMapApi,
+  getPriceLimitListApi,
   upsertPriceLimitApi,
   type PriceLimitRecord
 } from "@/api/data/price-limit";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
-import type { Tire } from "@/api/business/tire";
 
 defineOptions({
   name: "PriceLimit"
@@ -38,60 +36,53 @@ const config = ref<PriceLimitConfig>({
   saleBelowPriceAction: "warn"
 });
 
-type TireLike = Tire & {
-  barcode?: string;
-  barCode?: string;
-  number?: string;
-};
-
-type PriceLimitListRes = {
-  tireRes: CommonResult<PaginatedResponseDto<Tire>>;
-  limitMap: Record<string, PriceLimitRecord>;
-};
-
 const {
   loading,
   dataList,
   pagination,
   fetchData: getList,
   onCurrentChange
-} = useCrud<PriceLimit, PriceLimitListRes, { page: number; pageSize: number }>({
-  api: async ({ page }) => {
-    const [tireRes, limitMap] = await Promise.all([
-      getTireListApi(page, { keyword: form.value.keyword || undefined }),
-      getPriceLimitMapApi()
-    ]);
-    return { tireRes, limitMap };
-  },
+} = useCrud<
+  PriceLimit,
+  CommonResult<PaginatedResponseDto<PriceLimitRecord>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page, pageSize }) =>
+    getPriceLimitListApi(page, {
+      keyword: form.value.keyword || undefined,
+      pageSize
+    }) as Promise<CommonResult<PaginatedResponseDto<PriceLimitRecord>>>,
   pagination: {
     total: 0,
     pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   },
-  transform: (res: PriceLimitListRes) => {
-    if (res.tireRes.code !== 200) {
-      message(res.tireRes.msg || "获取列表失败", { type: "error" });
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "获取列表失败", { type: "error" });
       return { list: [], total: 0 };
     }
 
-    const list = (res.tireRes.data?.list ?? []).map(tire => {
-      const t = tire as TireLike;
-      const limit = res.limitMap[t.uid];
-      return {
-        id: t.id,
-        uid: t.uid,
-        tireId: t.uid,
-        tireName: t.name,
-        tireCode: t.barcode ?? t.barCode ?? t.number,
-        group: t.group,
-        maxPurchasePrice: limit?.maxPurchasePrice,
-        minSalePrice: limit?.minSalePrice,
-        enablePurchaseLimit: limit?.enablePurchaseLimit ?? false,
-        enableSaleLimit: limit?.enableSaleLimit ?? false,
-        updatedAt: limit?.updatedAt
-      } as PriceLimit;
-    });
+    const list = (res.data?.list ?? []).map(item => ({
+      id: item.id ?? 0,
+      uid: item.uid,
+      tireId: item.tireId,
+      tireName: item.tire?.name,
+      tireCode: item.tireId,
+      group: undefined,
+      maxPurchasePrice:
+        item.maxPurchasePrice === undefined
+          ? undefined
+          : Number(item.maxPurchasePrice) / 100,
+      minSalePrice:
+        item.minSalePrice === undefined
+          ? undefined
+          : Number(item.minSalePrice) / 100,
+      enablePurchaseLimit: item.enablePurchaseLimit,
+      enableSaleLimit: item.enableSaleLimit,
+      updatedAt: item.updatedAt
+    }));
 
     // 前端过滤开关（保持原逻辑：total 不随过滤变化）
     let filtered = list;
@@ -106,7 +97,10 @@ const {
       filtered = filtered.filter(r => Boolean(r.enableSaleLimit) === expect);
     }
 
-    return { list: filtered, total: res.tireRes.data?.count ?? 0 };
+    return {
+      list: filtered,
+      total: res.data?.total ?? res.data?.count ?? filtered.length
+    };
   },
   immediate: true
 });
@@ -258,11 +252,18 @@ const openDialog = (row: PriceLimit) => {
         }
       }
       upsertPriceLimitApi({
+        uid: row.uid,
         tireId: row.tireId,
         enablePurchaseLimit: formData.value.enablePurchaseLimit,
         enableSaleLimit: formData.value.enableSaleLimit,
-        maxPurchasePrice: formData.value.maxPurchasePrice,
-        minSalePrice: formData.value.minSalePrice
+        maxPurchasePrice:
+          formData.value.maxPurchasePrice === undefined
+            ? undefined
+            : Math.round(formData.value.maxPurchasePrice * 100),
+        minSalePrice:
+          formData.value.minSalePrice === undefined
+            ? undefined
+            : Math.round(formData.value.minSalePrice * 100)
       }).then(() => {
         message("保存成功", { type: "success" });
         done();
@@ -434,6 +435,13 @@ const handleBatchEdit = () => {
             :loading="loading"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
+            @page-size-change="
+              val => {
+                pagination.pageSize = val;
+                pagination.currentPage = 1;
+                getList();
+              }
+            "
             @page-current-change="onCurrentChange"
             @selection-change="handleSelectionChange"
           >

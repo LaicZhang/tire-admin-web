@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
-import { getOrderTypeList, message, ORDER_TYPE } from "@/utils";
+import Search from "~icons/ep/search";
+import { getOrderTypeList, ORDER_TYPE } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
@@ -17,6 +19,7 @@ defineOptions({
 const userRoles = useUserStoreHook().roles;
 const orderTypeList = ref(getOrderTypeList(userRoles ?? []));
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const route = useRoute();
 
 // 使用 composables
 const {
@@ -31,7 +34,7 @@ const {
   setOrderType,
   getOrderType,
   handleCurrentChange,
-  resetForm
+  applyKeyword
 } = useOrderList();
 
 const { employeeList, managerList, loadAllData } = useOrderData(orderType);
@@ -61,7 +64,20 @@ const supportsWorkflowActions = computed(
   () => orderType.value !== ORDER_TYPE.surplus
 );
 
+watch(
+  () => route.query.keyword,
+  keyword => {
+    applyKeyword(typeof keyword === "string" ? keyword : undefined);
+    if (orderType.value) {
+      onSearch();
+    }
+  }
+);
+
 onMounted(async () => {
+  applyKeyword(
+    typeof route.query.keyword === "string" ? route.query.keyword : undefined
+  );
   await getOrderType();
   await Promise.all([getOrderListInfo(), loadAllData()]);
 });
@@ -135,6 +151,19 @@ onMounted(async () => {
           clearable
           class="w-48!"
         />
+      </el-form-item>
+
+      <el-form-item label="关键字：" prop="keyword">
+        <el-input
+          v-model="form.keyword"
+          placeholder="请输入订单号/关联单号"
+          clearable
+          class="w-52!"
+        >
+          <template #prefix>
+            <component :is="useRenderIcon(Search)" />
+          </template>
+        </el-input>
       </el-form-item>
     </ReSearchForm>
 
@@ -324,18 +353,19 @@ onMounted(async () => {
               </el-button>
 
               <!-- 采购计划：生成订单 -->
-              <el-button
+              <el-tooltip
                 v-if="
                   orderType === ORDER_TYPE.purchasePlan &&
                   row.status !== 'ordered'
                 "
-                class="reset-margin"
-                link
-                type="primary"
-                @click="message('功能开发中', { type: 'info' })"
+                content="待后端提供采购计划转订单接口后开放"
               >
-                生成订单
-              </el-button>
+                <span class="inline-flex">
+                  <el-button class="reset-margin" link type="primary" disabled>
+                    生成订单
+                  </el-button>
+                </span>
+              </el-tooltip>
 
               <!-- 采购询价：发送询价 -->
               <el-button

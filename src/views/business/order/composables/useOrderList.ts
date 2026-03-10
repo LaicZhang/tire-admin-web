@@ -171,6 +171,11 @@ export function useOrderList() {
     loading.value = false;
   };
 
+  const applyKeyword = (keyword?: string) => {
+    const nextKeyword = keyword?.trim();
+    form.value.keyword = nextKeyword ? nextKeyword : undefined;
+  };
+
   return {
     dataList,
     loading,
@@ -183,6 +188,7 @@ export function useOrderList() {
     setOrderType,
     getOrderType,
     handleCurrentChange,
-    resetForm
+    resetForm,
+    applyKeyword
   };
 }
