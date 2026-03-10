@@ -34,7 +34,7 @@ This project is an inventory management application for the tire trading industr
 
 ## Environment & BaseURL
 
-- `DEV`：HTTP `baseURL` 为空字符串，走相对路径 + Vite 代理（`/api` → `VITE_PROXY_TARGET`，未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
+- `DEV`：HTTP `baseURL` 为空字符串，走相对路径 + Vite 代理（`/api/v1` → `VITE_PROXY_TARGET`，未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
 - `staging/production`：必须配置 `VITE_SERVER_URL`，构建产物会使用该值作为 HTTP `baseURL`
 - 构建硬化：`staging/production` 构建默认移除 `console.*`（避免泄露敏感信息）
 
@@ -46,7 +46,7 @@ pnpm i
 
 ## demo
 
-![](https://img1.tucang.cc/api/image/show/07a84b802411ad04bd8d32bfabedab6b)
+![](https://img1.tucang.cc/api/v1/image/show/07a84b802411ad04bd8d32bfabedab6b)
 
 ## Thanks
 

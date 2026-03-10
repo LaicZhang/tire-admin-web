@@ -44,7 +44,7 @@
 import { downloadBlob } from "@/utils/download";
 
 // 基础用法
-const blob = await fetch("/api/export").then(r => r.blob());
+const blob = await fetch("/api/v1/export").then(r => r.blob());
 downloadBlob(blob, "data.xlsx");
 
 // 带时间戳和消息提示
@@ -94,7 +94,7 @@ await downloadFromRequest(
 import { downloadFromUrl } from "@/utils/download";
 
 // 同源 URL
-await downloadFromUrl("/api/files/report.pdf", "report.pdf");
+await downloadFromUrl("/api/v1/files/report.pdf", "report.pdf");
 
 // 跨域 URL（会自动 fetch 后下载）
 await downloadFromUrl("https://example.com/file.xlsx", "data.xlsx", {

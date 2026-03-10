@@ -192,7 +192,7 @@ VITE_COMPRESSION = gzip
 
 **开发环境**：
 
-- 使用 Vite 代理，`/api` 请求转发到 `VITE_PROXY_TARGET`
+- 使用 Vite 代理，`/api/v1` 请求转发到 `VITE_PROXY_TARGET`
 - 如果未配置 `VITE_PROXY_TARGET`，则回落到 `VITE_SERVER_URL`
 - 如果都未配置，默认使用 `http://localhost:3000`
 

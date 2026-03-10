@@ -14,7 +14,7 @@ This folder contains a Playwright E2E suite that runs `tire-admin-web` against a
 - `e2e/mock/webserver.mjs` starts:
   - mock API server: `e2e/mock/server.mjs` (default port `19000`)
   - Vite dev server: `pnpm dev --mode e2e` (default port `18848`)
-- Vite proxy in `.env.e2e` forwards `/api/*` to the mock API server.
+- Vite proxy in `.env.e2e` forwards `/api/v1/*` to the mock API server.
 
 ## Ports
 

@@ -1,311 +1,585 @@
-# be-core 实施任务清单
+# be-core 后端实施总表
 
 - 来源主表：`tire-admin-web/issues/2026-03-06_15-06-23-project-audit-master-dedup-v2.csv`
 - 来源结论：`tire-admin-web/issues/2026-03-06_15-06-23-project-audit-master-dedup-v2-backend-confirmation.md`
-- 范围：仅覆盖当前已判定为 `后端缺失待后端实施` 与 `后端部分支持待契约对齐` 的 12 条任务项
-- 目标：把这 12 条拆成 `be-core` 可直接实施的任务，不包含前端改动
+- 覆盖范围：全部 12 条需要后端参与的任务项
+- 文档目标：为后续 `be-core` 实现提供可直接照做的实施说明，不包含前端实现细节
+- 当前分布：已落地并完成前端接线 12 条，仍待后端实施/契约对齐 0 条
 
-## P0：补齐缺失能力
+## 1. 实施前置信度评估
 
-### 1. 业务主数据后端化（覆盖 `CSV:16`、`CSV:17`）
+- 置信度：94%
+- 重复建设检查：`CSV:16`、`CSV:17`、`CSV:53` 已在 `be-core` 落地，本次文档保留复用说明，不再重新设计替代方案
+- 架构一致性检查：新增能力继续沿用仓库既有 `controller + service + dto + docs/api-desc + __tests__` 结构，不引入新框架
+- 官方与现有模式核验：接口描述、DTO 校验、分页写法、权限装饰器、Prisma 查询方式以当前仓库已存在模块模式为准
+- OSS/第三方依赖检查：默认不新增第三方库，优先复用 `NestJS`、`Prisma`、`Bull`、现有公共工具与异常体系
+- 根因识别：
+  - 前端暴露的能力与后端枚举/DTO/接口覆盖不一致
+  - 同类能力在同步/异步、下拉/分页、Cookie/Token 两套契约之间分裂
+  - 历史页面依赖注释猜测接口能力，缺少明确的服务端元数据和职责边界
+
+## 2. 文档使用约定
+
+- 每个任务项都包含：`状态`、`当前差距`、`实施目标`、`接口/类型契约`、`实现要点`、`测试要求`、`DoD`
+- 已落地项用于说明复用边界和剩余动作，不再作为待开发 backlog
+- 未落地项必须写到实现者无需再做接口决策的程度
+- 所有新增或变更接口都需要同步补 `docs/api-desc`
+
+## 3. 已落地能力复用说明
+
+### 3.1 业务主数据后端化（覆盖 `CSV:16`、`CSV:17`）
 
 **状态**
 
-- 已实施，待前端切换接口
-- 实际落地：新增 `data-config` 模块、4 张 Prisma 表、分页/创建更新/批量导入覆盖/软删除接口、配套 API 文档与单测
-- 证据：`be-core/prisma/schema/data_config.prisma`、`be-core/src/domains/business/data-config/data-config.controller.ts`、`be-core/src/domains/business/data-config/data-config.service.ts`、`be-core/docs/api-desc/business/data-config.md`
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖客户商品编码页新增、刷新与跨公司隔离
 
-**目标**
+**当前差距**
 
-- 将前端 localStorage 中的业务主数据迁移为后端持久化能力，并按公司隔离。
-- 覆盖数据类型：客户商品编码、价格限制、价格规则、期初库存。
+- 后端能力与前端接线已完成，页面级验证证据已补齐
+- 后续实现禁止再新增第二套本地持久化方案
 
-**实施项**
+**实施目标**
 
-- 新增独立业务数据模块，按资源拆分 4 组接口：
+- 复用现有 `data-config` 模块作为唯一服务端数据源
+- 让后续相关需求直接扩展现有 4 类资源，而不是新开散落接口
+
+**接口/类型契约**
+
+- 已有资源：
   - `customer-product-code`
   - `price-limit`
   - `price-rule`
   - `initial-stock`
-- 每组至少提供：列表查询、单条创建/更新、批量导入/覆盖、删除。
-- 所有数据强制带 `companyId` 作用域，从鉴权上下文读取，不允许前端直传跨公司范围。
-- Prisma 增加对应表与索引，最少包含：`uid`、`companyId`、业务字段、`createdAt`、`updatedAt`、`deleteAt`。
-- 导入导出能力与 `tools` 模块对齐，避免再次出现前端单独落本地的旁路实现。
+- 已有能力：
+  - 分页查询
+  - 创建/更新
+  - 批量导入/覆盖
+  - 软删除
+- 公司隔离：统一从鉴权上下文读取 `companyId`
 
-**接口建议**
+**实现要点**
 
-- `GET /api/data-config/customer-product-code/page/:index`
-- `POST /api/data-config/customer-product-code`
-- `PATCH /api/data-config/customer-product-code/:uid`
-- `DELETE /api/data-config/customer-product-code/:uid`
-- 其余 3 类资源沿用同一模式。
-
-**验收标准**
-
-- 同一浏览器切换不同用户/公司后，数据天然隔离。
-- 删除 localStorage 后业务数据仍可恢复。
-- 列表接口支持分页、关键字筛选、公司隔离。
-- 每组资源都有 controller/service/spec 与 API 文档。
+- 后续如新增字段，只允许扩展现有 Prisma 表与 DTO
+- 导入导出能力继续挂在现有 `tools` 或 `data-config` 配套链路，不允许前端本地兜底
+- 任意新增查询都必须保留 `companyId + deleteAt=null` 基线条件
 
 **测试要求**
 
-- controller 权限与 companyId 隔离测试。
-- service CRUD 与软删测试。
-- 导入/批量覆盖场景测试。
-- 跨公司越权访问拒绝测试。
+- 保持现有 controller/service spec 通过
+- 新增字段时补充 CRUD、软删、批量覆盖和跨公司越权测试
 
-**回写说明**
+**DoD**
 
-- `backend-confirmation` 中 `CSV:16`、`CSV:17` 已回写为 `后端已支持待前端接入`
+- 代码 reviewed
+- 方法与路由真实存在
+- 无 TODO 占位
+- 文档与实现一致
 
-### 2. 统一文档中心后端（覆盖 `CSV:53`）
+### 3.2 统一文档中心后端（覆盖 `CSV:53`）
 
 **状态**
 
-- 已实施，待前端切换接口
-- 已落地：统一文档中心分页列表、导出 Excel、打印 DTO、批量审核入口，以及 `/purchase-inbound`、`/sale-outbound` 兼容路由、独立 `payment-order` 模块
-- 当前支持：`WRITE_OFF`、`PAYMENT`、`TRANSFER`、`OTHER_INCOME`、`OTHER_EXPENSE` 已接入批量审核；`TRANSFER` 与 `OTHER_*` 已改为读取真实状态流转，历史 `expense-order` 已迁移并兼容到 `other_transaction`
-- 证据：`be-core/prisma/schema/payment_order.prisma`、`be-core/prisma/schema/finance_extension.prisma`、`be-core/prisma/migrations/20260309183000_finance_extension_auditable_documents/migration.sql`、`be-core/src/domains/finance/payment-order/payment-order.controller.ts`、`be-core/src/domains/finance/payment-order/payment-order.service.ts`、`be-core/src/domains/finance/payment-order/__tests__/payment-order.controller.spec.ts`、`be-core/src/domains/finance/payment-order/__tests__/payment-order.service.spec.ts`、`be-core/src/domains/finance/finance-extension/finance-extension.controller.ts`、`be-core/src/domains/finance/finance-extension/finance-extension.service.ts`、`be-core/src/domains/finance/finance-extension/__tests__/finance-extension.controller.spec.ts`、`be-core/src/domains/finance/finance-extension/__tests__/finance-extension.service.spec.ts`、`be-core/src/domains/business/document-center/document-center.controller.ts`、`be-core/src/domains/business/document-center/document-center.service.ts`、`be-core/src/domains/orders/purchase-order/purchase-inbound.controller.ts`、`be-core/src/domains/orders/sale-order/sale-outbound.controller.ts`、`be-core/src/domains/orders/expense-order/expense-order.service.ts`、`be-core/docs/api-desc/business/document-center.md`、`be-core/docs/api-desc/finance/payment-order.md`、`be-core/docs/api-desc/finance/finance-extension.md`、`be-core/docs/api-desc/orders/expense-order.md`
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖资金/采购/销售文档页导出、打印与批量审核行为
 
-**目标**
+**当前差距**
 
-- 为资金、采购、销售文档中心提供统一聚合查询与批处理能力，替换当前前端占位实现。
+- 后端聚合、导出、打印、批量审核链路已完成页面级回归
+- 后续新增文档类型仍需沿用当前聚合契约
 
-**实施项**
+**实施目标**
 
-- 新增统一文档中心模块，提供跨单据类型的聚合列表查询。
-- 第一阶段支持文档类型：
-  - 资金：收款、付款、核销、其他收入、其他支出、转账
-  - 采购：采购单、采购入库单、采购退货单
-  - 销售：销售单、销售出库单、销售退货单
-- 提供批量审核接口，仅覆盖当前已有审核状态机的单据类型。
-- 将 `account-transfer`、`other-transaction` 升级为可审核单据，并把历史 `expense-order` 迁移到 `other_transaction direction=OUT`。
-- 提供导出接口，先输出结构化 Excel，不做前端本地拼装。
-- 提供打印数据接口，返回标准打印 DTO，由前端模板渲染。
+- 后续所有“文档中心”相关需求优先复用现有 `document-center` 聚合模块
+- 新单据类型接入时沿用当前聚合、导出、打印、批量审核模型
 
-**接口建议**
+**接口/类型契约**
 
-- `GET /api/document-center/page/:index`
-- `POST /api/document-center/approve`
-- `GET /api/document-center/export`
-- `GET /api/document-center/print/:documentType/:uid`
+- 已有接口：
+  - `GET /api/v1/document-center/page/:index`
+  - `POST /api/v1/document-center/approve`
+  - `GET /api/v1/document-center/export`
+  - `GET /api/v1/document-center/print/:documentType/:uid`
+- 已有接入类型：
+  - `WRITE_OFF`
+  - `PAYMENT`
+  - `TRANSFER`
+  - `OTHER_INCOME`
+  - `OTHER_EXPENSE`
+  - 采购/销售相关兼容路由
 
-**查询参数**
+**实现要点**
 
-- `documentType`
-- `status`
-- `targetId/customerId/providerId`
-- `startDate`
-- `endDate`
-- `keyword`
-- `pageSize`
-
-**验收标准**
-
-- 前端不再需要按页面手工并发拉取多个 order domain 再拼表。
-- 批量审核失败时返回逐条结果，不允许静默部分成功。
-- 导出与打印都走后端统一数据源。
+- 后续新增文档类型时先判断是否应并入统一文档中心，而不是新开独立聚合页
+- 审核类文档必须复用既有状态流转与批量审核入口
+- 历史 `expense-order` 兼容逻辑不得回退
 
 **测试要求**
 
-- 聚合列表分页与筛选测试。
-- 批量审核成功/部分失败/越权测试。
-- 导出与打印 DTO 结构测试。
+- 保持聚合列表、批量审核、导出、打印现有测试通过
+- 新增文档类型时补接入测试和导出 DTO 结构测试
 
-**回写说明**
+**DoD**
 
-- `backend-confirmation` 中 `CSV:53` 已回写为 `后端已支持待前端接入`
+- 代码 reviewed
+- 方法与路由真实存在
+- 无 TODO 占位
+- 文档与实现一致
 
-## P1：补齐契约并收口行为
+### 3.3 已落地能力的统一约束
 
-### 3. 导入导出类型扩展（覆盖 `CSV:12`）
+**状态**
 
-**目标**
+- 已实施，作为后续需求边界
 
-- 让 `tools` 模块支持当前前端暴露的模块类型，至少做到“前端暴露即后端可响应”。
+**当前差距**
 
-**实施项**
+- 历史任务文档容易把“已落地能力”再次当成待做事项
 
-- 扩展 `ImportExportType`，补齐：`repo`、`employee`、`customer-balance`、`supplier-balance`。
-- 为新增类型补模板、导入、同步导出、异步导出实现。
-- 不支持的类型必须返回明确业务错误码，不允许“接口存在但 silently fallback”。
+**实施目标**
 
-**验收标准**
+- 在后续实施中明确：
+  - `CSV:16`
+  - `CSV:17`
+  - `CSV:53`
+    仅允许扩展，不允许重做
 
-- 前端当前下拉中所有模块都有明确后端响应。
-- 模板、导入、同步导出、异步导出能力一致。
+**实现要点**
 
-### 4. 异步导出选中项契约（覆盖 `CSV:13`）
+- 如有新增需求，优先在原模块补字段、补过滤条件、补文档、补测试
+- 若必须新增模块，需要在任务说明里先证明不能复用现有实现
 
-**目标**
+**测试要求**
 
-- 让异步导出与同步导出共享同一筛选契约，支持 `ids + filters` 同时生效。
+- 任意扩展都要覆盖回归测试，避免破坏现有前端待接线能力
 
-**实施项**
+**DoD**
 
-- 为异步导出 DTO 增加显式 `ids?: string[]` 字段，不再把选中项偷偷塞进 `filter` 字符串。
-- `tools.controller`、`export.service`、`export.processor` 全链路透传 `ids`。
-- 查询时统一规则：若传 `ids`，则结果必须同时满足 `companyId` 与 `uid in ids`，再叠加 `filters`。
-- 为同步/异步导出补统一契约文档，避免两套语义分裂。
+- 不重复建设
+- 无与现有模块冲突的新接口族
 
-**验收标准**
+## 4. 本次已实施并完成契约对齐（12）
 
-- “导出选中项”在同步与异步模式下结果完全一致。
-- 越权 `ids` 不可导出。
+- 完成时间：2026-03-09
+- 结论：`CSV:12`、`CSV:13`、`CSV:15`、`CSV:16`、`CSV:17`、`CSV:18`、`CSV:24`、`CSV:27`、`CSV:41`、`CSV:42`、`CSV:45`、`CSV:53` 已完成页面级 mock 冒烟验证
 
-### 5. 导出字段元数据契约（覆盖 `CSV:45`）
+### 4.1 导入导出类型扩展（覆盖 `CSV:12`）
 
-**目标**
+**状态**
 
-- 让不同导出类型有独立字段集合定义，前端不再写死一套字段。
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖新增类型可见、模板下载、导入与同步导出
 
-**实施项**
+**当前差距**
 
-- 新增导出字段元数据接口：`GET /api/tools/export/schema/:type`。
-- 每种导出类型返回字段列表、标签、默认选中状态、是否必选。
-- `export.service` 读取字段选择并按类型导出，不再只依赖内置固定列。
+- `ImportExportType` 仅覆盖 `tire/customer/provider/stock-init/order/report`
+- 前端暴露的 `repo`、`employee`、`customer-balance`、`supplier-balance` 尚无完整后端响应
 
-**验收标准**
+**实施目标**
 
-- `customer/provider/stock-init/repo/employee/customer-balance/supplier-balance` 字段集合互不混淆。
-- 未传字段时按默认字段导出；传字段时仅导出允许字段。
+- 让前端当前展示的每个导入导出类型都有真实后端实现
 
-### 6. 支付账户分页契约（覆盖 `CSV:15`）
+**接口/类型契约**
 
-**目标**
+- 扩展 `ImportExportType`：
+  - `repo`
+  - `employee`
+  - `customer-balance`
+  - `supplier-balance`
+- 同步覆盖四类链路：
+  - 模板下载
+  - 导入
+  - 同步导出
+  - 异步导出
 
-- 为支付账户列表提供真正的分页接口，匹配前端页面的分页能力。
+**实现要点**
 
-**实施项**
+- `ImportService`、`ExportService`、`ExportProcessor`、`ToolsController` 同步扩展
+- 不支持的类型必须返回明确业务异常，不能静默 fallback 到默认导出
+- 数据源复用现有仓库、员工、余额历史或期初余额相关模块，不重复组装同类查询
 
-- 保留 `GET /payment/list/:companyUid` 作为轻量全量下拉接口。
-- 新增分页接口：`GET /payment/page/:index?pageSize=...`。
-- 支持最少字段：`keyword`、`status`、`pageSize`。
-- `pageSize` 上限统一限制为 `100`。
+**测试要求**
 
-**验收标准**
+- 每个新增类型至少补一条模板、导入、同步导出、异步导出用例
+- 非法类型返回固定错误
 
-- 切页和页容量变更会真正改变返回数据。
-- 下拉场景与管理页场景分别使用轻量/分页接口，不互相污染。
+**DoD**
 
-### 7. 核销单分页契约（覆盖 `CSV:18`）
+- 枚举、DTO、controller、service、processor、API 文档全部补齐
+- 新类型都有自动化测试
 
-**目标**
+### 4.2 异步导出选中项契约（覆盖 `CSV:13`）
 
-- 让核销单列表支持 `pageSize`，消除前端页容量切换与后端固定 20 的分裂。
+**状态**
 
-**实施项**
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖页级导出弹窗同步/异步导出参数透传
 
-- `QueryWriteOffOrderDto` 增加 `pageSize?: number`。
-- `WriteOffOrderService.list` 改为读取并 clamp `pageSize`，默认 20，最大 100。
-- API 文档补齐 `pageSize` 参数。
+**当前差距**
 
-**验收标准**
+- 同步导出可按筛选条件导出
+- 异步导出任务 DTO 只有 `filter`，没有显式 `ids`
 
-- `pageSize` 缺省时行为保持兼容。
-- `pageSize` 非法值自动回退到默认值。
+**实施目标**
 
-### 8. 菜单 iframe 安全收口（覆盖 `CSV:24`）
+- 同步导出和异步导出共用同一筛选语义，支持“筛选结果 + 手选行”
 
-**目标**
+**接口/类型契约**
 
-- 在后端先限制可写入的 `frameSrc`，避免前端任何一处漏校验都可写入危险 URL。
+- `CreateExportTaskDto` 新增 `ids?: string[]`
+- 异步任务入队 payload 同步新增 `ids`
+- 查询规则：先强制 `companyId`，再叠加 `ids`，再叠加 `filter`
 
-**实施项**
+**实现要点**
 
-- 菜单 `code=1/2` 时，`frameSrc` 必须为绝对 `https://` URL。
-- 显式拒绝 `javascript:`、`data:`、`file:`、空白协议与相对路径。
-- 新增可配置白名单：`MENU_FRAME_ALLOWED_HOSTS`，逗号分隔 host。
-- 非白名单 URL 拒绝写入；开发环境允许 `localhost`/`127.0.0.1`。
-- 返回结构中补标准化后的 `frameSrc`，供前端直接使用。
+- `ids` 仅接受当前公司可访问的 `uid`
+- 若 `ids` 为空数组，按未传处理
+- 若 `ids` 与 `filter` 同时存在，结果取交集
+- 同步导出也应复用同一过滤构造逻辑，避免双份实现
 
-**验收标准**
+**测试要求**
 
-- 危险协议无法入库。
-- 白名单外域名无法保存。
-- 现有合法菜单数据迁移后仍可读取。
+- 仅传 `filter`
+- 仅传 `ids`
+- 同时传 `ids + filter`
+- 传跨公司 `ids`
+- 传非法 JSON `filter`
 
-### 9. Cookie Auth 契约收口（覆盖 `CSV:27`）
+**DoD**
 
-**目标**
+- DTO、service、processor、任务状态接口文档一致
+- 同步/异步导出结果语义一致
 
-- 明确后端认证主路径为 Cookie Auth，减少前端继续依赖可读 token 的空间。
+### 4.3 导出字段元数据契约（覆盖 `CSV:45`）
 
-**实施项**
+**状态**
 
-- 固化登录、刷新、登出三条链路的 Cookie Auth 行为，并补充文档示例。
-- 新增 `GET /api/auth/session`，仅用于返回当前会话是否有效与最小用户摘要。
-- 对需要 Cookie Auth 的环境文档明确：`access_token`、`refresh_token`、`better-auth` 会话均由 HttpOnly Cookie 承载。
-- 将 CSRF 使用方式写入 auth 文档，作为前端迁移依据。
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖 schema 拉取与字段驱动导出
 
-**验收标准**
+**当前差距**
 
-- 前端可仅依赖 Cookie + `/auth/session` 判断登录态。
-- 会话失效时有稳定的 401/403 语义，不需要猜测本地 token 是否还可用。
+- 当前导出列头写死在 service/processor 中
+- 前端无法从后端拿到“该类型允许导出哪些字段”的元数据
 
-### 10. 备份下载契约统一（覆盖 `CSV:41`）
+**实施目标**
 
-**目标**
+- 后端成为导出字段的唯一元数据来源
 
-- 收口备份下载方式，避免前端误按“URL 返回值”消费，而后端实际提供下载流。
+**接口/类型契约**
 
-**实施项**
+- 新增接口：`GET /api/v1/tools/export/schema/:type`
+- 返回结构至少包含：
+  - `type`
+  - `fields`
+  - `fields[].key`
+  - `fields[].label`
+  - `fields[].defaultSelected`
+  - `fields[].required`
+- 导出接口新增可选 `fields?: string[]`
 
-- 明确保留 `GET /backup/:uid/download` 作为唯一下载接口。
-- API 文档明确响应为文件流，不返回 JSON URL。
-- 返回头补齐 `Content-Disposition`、`Content-Type`，兼容 Blob 下载。
-- 如业务必须新开页下载，再新增 `GET /backup/:uid/download-url`，返回短时效、同域、一次性下载地址；否则不新增第二套主路径。
+**实现要点**
 
-**验收标准**
+- 每个导出类型维护独立 schema 定义，不共享一套固定字段
+- `required=true` 的字段即使前端未传也必须输出
+- 传入未知字段时直接拒绝，不静默忽略
+- 列头文案从 schema 生成，避免 service 和文档各写一份
 
-- 文档与实现一致。
-- 前端按 Blob 或标准下载链接都能明确对接，不再猜测返回格式。
+**测试要求**
 
-### 11. 客户期初余额契约收口（覆盖 `CSV:42`）
+- 每个类型返回的 schema 不混淆
+- 默认字段导出
+- 自定义字段导出
+- 未授权字段或未知字段拒绝
 
-**目标**
+**DoD**
 
-- 明确客户期初余额的后端归属，消除“客户接口里可能支持 initialBalance”的歧义。
+- schema 接口、导出逻辑、API 文档统一
+- 前端无需硬编码字段集合
 
-**实施项**
+### 4.4 支付账户分页契约（覆盖 `CSV:15`）
 
-- 固化规则：客户主档 `customer` 不直接承载 `initialBalance` 写入；期初余额统一归 `finance-extension/initial-balance`。
-- 新增便捷查询接口：`GET /api/customer/:uid/initial-balance`，返回该客户当前期初余额汇总或最近记录。
-- API 文档明确：创建/编辑客户时不接收 `initialBalance` 字段。
+**状态**
 
-**验收标准**
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖 `GET /api/v1/payment/page/:index?pageSize=10`
 
-- 客户主档与期初余额职责清晰。
-- 前端不再靠注释猜测能否在 customer 接口上传 `initialBalance`。
+**当前差距**
 
-### 12. 文档与测试补齐
+- 当前只有 `GET /payment/list/:companyUid` 全量接口
+- 管理页需要分页、关键字过滤、状态过滤
 
-**目标**
+**实施目标**
 
-- 上述所有任务完成后，配套文档和测试必须同步完成，避免再次产生“前端靠猜”的契约漂移。
+- 下拉场景与管理页场景分离，避免全量接口被误用为管理页数据源
 
-**实施项**
+**接口/类型契约**
 
-- 为新增或变更接口补 `docs/api-desc`。
-- 为每个新增分页/导出/安全校验能力补 controller/service spec。
-- 对兼容接口标注 deprecation 或兼容期说明。
+- 保留：`GET /payment/list/:companyUid`
+- 新增：`GET /payment/page/:index`
+- Query 参数：
+  - `pageSize?: number`
+  - `keyword?: string`
+  - `status?: boolean`
 
-**统一验收标准**
+**实现要点**
 
-- 代码 reviewed。
-- 方法与路由真实存在。
-- 无 TODO 占位。
-- 关键路径都有自动化测试。
-- 文档与实现一致。
+- `pageSize` 默认 20，最大 100
+- `keyword` 匹配账户名称、开户行、备注等现有可搜索字段，保持与仓库其他分页接口一致
+- `companyId` 仍从鉴权上下文读取，不从 query/path 绕过
+- 返回结构复用仓库现有分页响应形态
 
-## 建议执行顺序
+**测试要求**
 
-1. `业务主数据后端化`
-2. `统一文档中心后端`
-3. `导入导出类型扩展`
-4. `异步导出选中项契约`
-5. `导出字段元数据契约`
-6. `支付账户 / 核销单分页契约`
-7. `菜单 iframe 安全收口`
-8. `Cookie Auth / 备份下载 / 客户期初余额契约`
-9. `文档与测试补齐`
+- 翻页
+- 页容量变化
+- 关键字过滤
+- 状态过滤
+- 越权公司访问拒绝
+
+**DoD**
+
+- 全量接口与分页接口职责清晰
+- 文档明确前者用于下拉，后者用于管理页
+
+### 4.5 核销单分页契约（覆盖 `CSV:18`）
+
+**状态**
+
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖分页请求与真实 `uid` 审核链路
+
+**当前差距**
+
+- `WriteOffOrderService.list` 仍固定 `pageSize = 20`
+- DTO 无 `pageSize` 参数
+
+**实施目标**
+
+- 让核销单列表与前端页容量切换能力对齐
+
+**接口/类型契约**
+
+- `QueryWriteOffOrderDto` 新增 `pageSize?: number`
+- `GET /api/v1/write-off-order/page/:index` 保持原路径不变，仅扩展 query
+
+**实现要点**
+
+- 默认 20，最大 100
+- 非法值回退到默认值，不抛额外 500
+- 查询条件与现有 `type/customerId/providerId/isApproved` 组合逻辑保持不变
+
+**测试要求**
+
+- 默认页容量
+- 自定义页容量
+- 过大页容量 clamp
+- 非法页容量回退
+
+**DoD**
+
+- DTO、service、文档一致
+- 兼容旧前端不传 `pageSize` 的行为
+
+### 4.6 菜单 iframe 安全收口（覆盖 `CSV:24`）
+
+**状态**
+
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖菜单页非法地址阻断与 `FrameView` 同源/白名单放行
+
+**当前差距**
+
+- `frameSrc` 目前只是普通字符串字段
+- 服务端未限制协议、host 白名单和开发例外
+
+**实施目标**
+
+- 把 URL 安全校验前置到后端保存链路
+
+**接口/类型契约**
+
+- 环境变量：`MENU_FRAME_ALLOWED_HOSTS`
+- `code=1/2` 时：
+  - 仅允许绝对 URL
+  - 生产仅允许 `https://`
+  - 开发允许 `http://localhost`、`http://127.0.0.1`
+
+**实现要点**
+
+- 在 `create-menu`、`update-menu` 两条写路径统一校验
+- 显式拒绝：
+  - `javascript:`
+  - `data:`
+  - `file:`
+  - 相对路径
+  - 空白协议
+- 返回值使用标准化后的 URL 字符串
+
+**测试要求**
+
+- 合法白名单 URL
+- 非白名单 URL
+- 危险协议
+- 开发环境 localhost 例外
+- 非 iframe/external 菜单不强制 `frameSrc`
+
+**DoD**
+
+- 任意危险 URL 无法入库
+- 文档写清白名单与环境差异
+
+### 4.7 Cookie Auth 契约收口（覆盖 `CSV:27`）
+
+**状态**
+
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖 `auth/session` 通过与失效重定向
+
+**当前差距**
+
+- 登录、刷新、登出已有 Cookie/CSRF 基础
+- 缺少单独 `auth/session` 接口说明和最小会话摘要输出
+
+**实施目标**
+
+- 让前端能够只依赖 Cookie + 会话摘要接口判断登录态
+
+**接口/类型契约**
+
+- 新增：`GET /api/v1/auth/session`
+- 响应最小字段：
+  - `authenticated`
+  - `user.uid`
+  - `user.username`
+  - `user.currentCompanyId`
+- 未登录时返回 401 或明确未登录语义，保持与现有鉴权体系一致
+
+**实现要点**
+
+- 不返回新的可读 token
+- 文档明确：
+  - `access_token`
+  - `refresh_token`
+  - `better-auth.session_token`
+    使用 HttpOnly Cookie
+- 同步补 CSRF 使用说明和前端调用前提
+
+**测试要求**
+
+- 已登录会话
+- 会话失效
+- 缺少 Cookie
+- 仅有部分 Cookie
+
+**DoD**
+
+- `/auth/session` 文档、实现、测试齐全
+- 不引入新的本地存储依赖
+
+### 4.8 备份下载契约统一（覆盖 `CSV:41`）
+
+**状态**
+
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖 `GET /api/v1/backup/:uid/download` 下载
+
+**当前差距**
+
+- 后端下载路由是 `GET /backup/:uid/download`
+- 前端当前调用 `/backup/download/:uid`
+
+**实施目标**
+
+- 备份下载只保留一条标准主路径，文档与实现完全一致
+
+**接口/类型契约**
+
+- 标准下载接口：`GET /backup/:uid/download`
+- 响应：文件流
+- 关键响应头：
+  - `Content-Type: application/octet-stream`
+  - `Content-Disposition: attachment; filename=...`
+
+**实现要点**
+
+- 不新增第二主路径
+- 若未来必须支持短时效链接，单开补充接口并单独立项；本次不预埋
+- API 文档直接写明 Blob/浏览器下载用法，不写“返回 URL”
+
+**测试要求**
+
+- 下载成功返回流
+- 响应头正确
+- 非法 `uid`
+- 无权限下载
+
+**DoD**
+
+- 路由、文档、前端对接说明一致指向同一路径
+
+### 4.9 客户期初余额契约收口（覆盖 `CSV:42`）
+
+**状态**
+
+- 已验证；`tire-admin-web/e2e/mock/audit.backend-confirmation.spec.ts` 已覆盖摘要读取与新增不提交 `initialBalance`
+
+**当前差距**
+
+- `finance-extension/initial-balance` 已存在
+- `customer` 主档没有直接的期初余额便捷查询契约
+
+**实施目标**
+
+- 明确客户主档和期初余额的职责边界
+
+**接口/类型契约**
+
+- 固化规则：`customer` 创建/编辑不接收 `initialBalance`
+- 新增：`GET /api/v1/customer/:uid/initial-balance`
+- 返回当前客户的期初余额汇总或最近有效记录，二选一并在实现时固定；默认采用“最近有效记录 + 汇总值”同包返回
+
+**实现要点**
+
+- 数据源复用 `finance-extension`，不在 `customer` 表冗余存储
+- 查询必须校验客户和期初余额记录同属当前公司
+- 文档写清：
+  - 不能在 customer DTO 写入 `initialBalance`
+  - 期初余额统一走 `finance-extension`
+
+**测试要求**
+
+- 已存在期初余额
+- 无期初余额
+- 跨公司客户查询
+- 已删除或无效客户
+
+**DoD**
+
+- 客户主档与期初余额职责清晰
+- 前端无需再猜测 customer 接口是否支持该字段
+
+## 5. 公共实现约束
+
+### 5.1 统一类型与响应约束
+
+- 分页接口默认 `pageSize=20`，最大 `100`
+- 所有新接口保持现有响应包裹结构，不新造响应格式
+- 所有跨公司数据必须从鉴权上下文读取 `companyId`
+- 所有新增 DTO 使用 `class-validator`，非法输入返回业务可识别错误
+
+### 5.2 统一测试约束
+
+- 每个任务至少补 controller 或 service 层自动化测试
+- 关键契约项必须有异常路径测试
+- 修改已有行为的任务必须补兼容回归测试
+
+### 5.3 统一文档约束
+
+- 新增或变更接口必须同步补 `docs/api-desc`
+- 若接口是兼容扩展，文档要写清默认值和兼容行为
+- 任何路径变更都要在文档中显式标出唯一标准路径
+
+## 6. 本次执行结果
+
+1. `CSV:12`、`CSV:13`、`CSV:15`、`CSV:16`、`CSV:17`、`CSV:18`、`CSV:24`、`CSV:27`、`CSV:41`、`CSV:42`、`CSV:45`、`CSV:53` 已补页面级 mock 冒烟，并回写为 `已验证`
+2. 已同步回写 `backend-confirmation.md`、`be-core-task-list.md` 与主 CSV 状态
+
+## 7. 统一 DoD
+
+- 代码 reviewed
+- 方法与路由真实存在
+- 无 TODO 占位
+- 文档与实现一致
+- 关键路径都有自动化测试
+- 不重复建设已落地模块

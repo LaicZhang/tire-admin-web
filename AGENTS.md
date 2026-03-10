@@ -54,7 +54,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 - Local development:
   - `pnpm dev`
   - The default port is controlled by `VITE_PORT` in `.env.*` (default 8848), and `0.0.0.0` is opened for listening
-  - 开发代理：`/api` → `VITE_PROXY_TARGET`（未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
+  - 开发代理：`/api/v1` → `VITE_PROXY_TARGET`（未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
 
 - 类型检查与规范：
   - `pnpm typecheck`（tsc + vue-tsc）
@@ -99,7 +99,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
   - `modules/`：Pinia 模块（`user`、`permission`、`multiTags`、`company`、`settings`、`app`、`epTheme` 等）统一通过 `useXxxStoreHook()` 使用
 - `src/api/`
   - 统一的接口分层：`auth.ts`、`user.ts`、`company/*`、`business/*` 等
-  - 使用 `http` 封装（Axios 拦截与无感刷新），并用 `baseUrlApi()` 为相对路径自动加 `/api` 前缀（dev 环境由 Vite 代理到后端）
+  - 使用 `http` 封装（Axios 拦截与无感刷新），并用 `baseUrlApi()` 为相对路径自动加 `/api/v1` 前缀（dev 环境由 Vite 代理到后端）
   - 通用类型见 `src/api/type.ts`
 - `src/utils/http/`：Axios 实例、请求/响应拦截、刷新 Token、统一 `get/post` 包装
 - `src/views/`：页面视图，业务模块通常采用如下结构：
@@ -128,7 +128,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
   - 路由 `meta.roles` 控制页面级权限；按钮级权限通过 `<Auth :value="'perm.code' | ['perm.code']">` 包裹按钮渲染
   - 首页显隐由 `VITE_HIDE_HOME` 控制；动态路由缓存通过 `getConfig().CachingAsyncRoutes` 控制
 - HTTP 调用：
-  - 统一使用 `src/utils/http` 的 `http.get/post/request`；URL 统一经 `baseUrlApi('/xxx')` 生成（自动 `/api` 前缀）
+  - 统一使用 `src/utils/http` 的 `http.get/post/request`；URL 统一经 `baseUrlApi('/xxx')` 生成（自动 `/api/v1` 前缀）
   - 返回值一般为 `CommonResult` 或更具体类型；错误通过 Axios 拦截统一抛出
   - 令牌处理：`utils/auth.ts` 负责 `authorized-token` 与 `user-info` 存取、无感刷新
 - 样式：
@@ -151,9 +151,9 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 ## 6. 环境变量与构建参数
 
 - `.env.*` 支持并通过 `build/utils.ts` 的 `warpperEnv` 处理到 `import.meta.env`：
-- 开发代理：`/api` → `VITE_PROXY_TARGET`（未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
+- 开发代理：`/api/v1` → `VITE_PROXY_TARGET`（未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
 - Axios `baseURL` 解析规则：
-  - 开发环境：使用相对路径配合 Vite 代理（`/api` → `VITE_PROXY_TARGET`，未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
+  - 开发环境：使用相对路径配合 Vite 代理（`/api/v1` → `VITE_PROXY_TARGET`，未配置则回落到 `VITE_SERVER_URL`，再回落到 `http://localhost:3000`）
   - 生产/预发：优先读取 `.env.*` 中的 `VITE_SERVER_URL`；若未设置，则回落到 `https://tire-api.laiczhang.com`
 
 参考文件：

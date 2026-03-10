@@ -70,14 +70,14 @@
 │   Client    │                    │   Server    │
 └──────┬──────┘                    └──────┬──────┘
        │                                  │
-       │  1. GET /api/csrf-token          │
+       │  1. GET /api/v1/csrf-token          │
        │ ────────────────────────────────>│
        │                                  │
        │  2. Set-Cookie: csrf_token=xxx   │
        │     Body: { token: "xxx" }       │
        │ <────────────────────────────────│
        │                                  │
-       │  3. POST /api/login              │
+       │  3. POST /api/v1/login              │
        │     Cookie: csrf_token=xxx       │
        │     Header: X-CSRF-Token: xxx    │
        │ ────────────────────────────────>│
@@ -92,7 +92,7 @@
 1. **生成 Token 端点**
 
    ```
-   GET /api/csrf-token
+   GET /api/v1/csrf-token
    Response: { token: "随机生成的 token" }
    Set-Cookie: csrf_token=xxx; HttpOnly=false; SameSite=Strict
    ```
@@ -102,18 +102,18 @@
    - 不匹配返回 403
 
 3. **需要保护的端点**
-   - `POST /api/auth/login`
-   - `POST /api/auth/logout`
+   - `POST /api/v1/auth/login`
+   - `POST /api/v1/auth/logout`
    - `POST/PUT/DELETE` 所有敏感数据操作
 
 ### 前端对接
 
 ```typescript
 // 在登录前获取 CSRF Token
-const { token } = await fetch("/api/csrf-token").then(r => r.json());
+const { token } = await fetch("/api/v1/csrf-token").then(r => r.json());
 
 // 登录请求携带 Token
-await fetch("/api/auth/login", {
+await fetch("/api/v1/auth/login", {
   method: "POST",
   headers: {
     "X-CSRF-Token": token,
