@@ -1,8 +1,8 @@
 /**
  * 路由过滤相关工具函数
  */
-import { cloneDeep, intersection, storageLocal } from "@pureadmin/utils";
-import { userKey, type DataInfo } from "@/utils/auth";
+import { cloneDeep, intersection } from "@pureadmin/utils";
+import { useUserStoreHook } from "@/store/modules/user";
 
 /** 路由信息接口 */
 export interface RouteInfo {
@@ -97,14 +97,13 @@ export function filterChildrenTree(data: RouteInfo[]): RouteInfo[] {
 }
 
 /**
- * 从 localStorage 里取出当前登录用户的角色 roles，过滤无权限的菜单
+ * 按当前用户的角色过滤菜单；服务端动态路由已做首层过滤，这里只做前端收口
  * @param data - 原始路由树数据
  * @returns 过滤后只包含有权限访问的路由树
  * @remarks 会递归处理子路由，并自动移除空目录
  */
 export function filterNoPermissionTree(data: RouteInfo[]): RouteInfo[] {
-  const currentRoles =
-    storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [];
+  const currentRoles = useUserStoreHook().roles ?? [];
   const newTree = cloneDeep(data).filter((v: RouteInfo) =>
     isOneOfArray(v.meta?.roles ?? [], currentRoles)
   );
