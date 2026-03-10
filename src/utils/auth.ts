@@ -38,6 +38,15 @@ export interface CurrentCompanyInfo {
   companyId?: string;
 }
 
+type SessionSummary = {
+  authenticated?: boolean;
+  user?: {
+    uid?: string;
+    username?: string;
+    currentCompanyId?: string;
+  };
+};
+
 export const userKey = "user-info";
 export const TokenKey = "authorized-token";
 export const refreshTokenKey = "refresh-token";
@@ -79,9 +88,13 @@ export async function ensureSessionValidated() {
   if (!sessionValidationPromise) {
     sessionValidationPromise = (async () => {
       try {
-        const { getUserInfoApi } = await import("@/api/auth");
-        const res = await getUserInfoApi();
-        sessionValidated = res.code === 200;
+        const { getSessionApi } = await import("@/api/auth");
+        const res = await getSessionApi();
+        const data = res.data as SessionSummary | undefined;
+        sessionValidated =
+          res.code === 200 &&
+          data?.authenticated === true &&
+          typeof data.user?.uid === "string";
         return sessionValidated;
       } catch (error) {
         authLogger.warn("Session validation failed", error);

@@ -33,7 +33,7 @@ describe("useLoginForm", () => {
     handleGithubLogin();
     expect(githubLoading.value).toBe(true);
     expect(window.open).toHaveBeenCalledWith(
-      expect.stringContaining("/api/auth/github"),
+      expect.stringContaining("/api/v1/auth/github"),
       "github-login",
       expect.any(String)
     );
