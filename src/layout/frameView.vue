@@ -1,6 +1,20 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { ref, unref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+import {
+  computed,
+  ref,
+  unref,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick
+} from "vue";
+import {
+  DEFAULT_IFRAME_REFERRER_POLICY,
+  DEFAULT_IFRAME_SANDBOX,
+  resolveTrustedFrameSrc,
+  withFrameCacheBust
+} from "@/utils/frame";
 
 defineOptions({
   name: "FrameView"
@@ -15,14 +29,16 @@ const props = defineProps<{
 
 const loading = ref(true);
 const currentRoute = useRoute();
-const frameSrc = ref<string>("");
+const rawFrameSrc = ref<string>("");
 const frameRef = ref<HTMLElement | null>(null);
 const fallbackTimer = ref<number | null>(null);
-
-if (unref(currentRoute.meta)?.frameSrc) {
-  frameSrc.value = unref(currentRoute.meta)?.frameSrc as string;
-}
-// unref(currentRoute.meta)?.frameLoading === false && hideLoading();
+const frameState = computed(() => resolveTrustedFrameSrc(rawFrameSrc.value));
+const trustedFrameSrc = computed(() =>
+  frameState.value.trusted ? frameState.value.src : ""
+);
+const blockedReason = computed(() =>
+  frameState.value.trusted ? "" : frameState.value.reason
+);
 
 function clearFallbackTimer() {
   if (fallbackTimer.value !== null) {
@@ -53,6 +69,26 @@ function init() {
 let isRedirect = false;
 
 watch(
+  () => props.frameInfo?.frameSrc,
+  src => {
+    if (src) {
+      rawFrameSrc.value = src;
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => currentRoute.meta?.frameSrc,
+  src => {
+    if (typeof src === "string" && src) {
+      rawFrameSrc.value = src;
+    }
+  },
+  { immediate: true }
+);
+
+watch(
   () => currentRoute.fullPath,
   path => {
     const frameInfo = props.frameInfo;
@@ -61,23 +97,16 @@ watch(
       frameInfo?.fullPath &&
       path.includes(frameInfo.fullPath)
     ) {
-      // frameSrc.value = path; // redirect时，置换成任意值，待重定向后 重新赋值
       isRedirect = true;
       loading.value = true;
       return;
     }
-    // 重新赋值
-    // if (props.frameInfo?.fullPath === path) {
-    //   frameSrc.value = props.frameInfo?.frameSrc;
-    // }
     if (frameInfo?.fullPath === path && isRedirect) {
       loading.value = true;
       clearFallbackTimer();
       const src = frameInfo.frameSrc;
       if (!src) return;
-      const url = new URL(src, window.location.origin);
-      const joinChar = url.search ? "&" : "?";
-      frameSrc.value = `${src}${joinChar}t=${Date.now()}`;
+      rawFrameSrc.value = withFrameCacheBust(src);
       fallbackTimer.value = window.setTimeout(() => {
         if (loading.value) {
           hideLoading();
@@ -85,6 +114,20 @@ watch(
       }, 1500);
       isRedirect = false;
     }
+  },
+  { immediate: true }
+);
+
+watch(
+  trustedFrameSrc,
+  src => {
+    clearFallbackTimer();
+    if (!src) {
+      loading.value = false;
+      return;
+    }
+    loading.value = true;
+    init();
   },
   { immediate: true }
 );
@@ -99,8 +142,26 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-loading="loading" class="frame" element-loading-text="加载中...">
-    <iframe ref="frameRef" :src="frameSrc" class="frame-iframe" />
+  <div
+    v-loading="loading && !!trustedFrameSrc"
+    class="frame"
+    element-loading-text="加载中..."
+  >
+    <iframe
+      v-if="trustedFrameSrc"
+      ref="frameRef"
+      :src="trustedFrameSrc"
+      :sandbox="DEFAULT_IFRAME_SANDBOX"
+      :referrerpolicy="DEFAULT_IFRAME_REFERRER_POLICY"
+      class="frame-iframe"
+    />
+    <el-result
+      v-else
+      icon="warning"
+      title="嵌入内容已拦截"
+      :sub-title="blockedReason || '当前链接不在受信任范围内'"
+      class="frame-result"
+    />
   </div>
 </template>
 
@@ -117,6 +178,13 @@ onBeforeUnmount(() => {
     height: 100%;
     overflow: hidden;
     border: 0;
+  }
+
+  .frame-result {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
   }
 }
 

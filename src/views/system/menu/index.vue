@@ -8,6 +8,7 @@ import MenuForm from "./form.vue";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { message, handleApiError } from "@/utils";
+import { resolveTrustedFrameSrc } from "@/utils/frame";
 import {
   getMenuListApi,
   createMenuApi,
@@ -111,6 +112,15 @@ const openDialog = (title = "新增", row?: MenuItem) => {
       const FormRef = formRef.value.getRef();
       FormRef.validate((valid: boolean) => {
         if (valid) {
+          if (curData.code === 1 || curData.code === 2) {
+            const trustedFrame = resolveTrustedFrameSrc(curData.frameSrc);
+            if (!trustedFrame.trusted) {
+              message(trustedFrame.reason, { type: "warning" });
+              return;
+            }
+            curData.frameSrc = trustedFrame.src;
+          }
+
           const promise =
             title === "新增"
               ? createMenuApi(curData)

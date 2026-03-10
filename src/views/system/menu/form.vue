@@ -121,21 +121,21 @@ defineExpose({ getRef });
       </re-col>
 
       <re-col v-if="showType === 1" :value="12" :xs="24" :sm="24">
-        <el-form-item label="链接地址">
+        <el-form-item label="链接地址" prop="frameSrc">
           <el-input
             v-model="newFormInline.frameSrc"
             clearable
-            placeholder="请输入 Iframe 链接地址"
+            placeholder="请输入同源或白名单 Iframe 链接地址"
           />
         </el-form-item>
       </re-col>
 
       <re-col v-if="showType === 2" :value="12" :xs="24" :sm="24">
-        <el-form-item label="外链地址">
+        <el-form-item label="外链地址" prop="frameSrc">
           <el-input
             v-model="newFormInline.frameSrc"
             clearable
-            placeholder="请输入外链链接地址"
+            placeholder="请输入同源或白名单外链地址"
           />
         </el-form-item>
       </re-col>

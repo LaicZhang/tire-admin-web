@@ -72,6 +72,7 @@ declare global {
     VITE_COMPRESSION: ViteCompression;
     VITE_SERVER_URL?: string;
     VITE_PROXY_TARGET?: string;
+    VITE_TRUSTED_FRAME_HOSTS?: string;
   }
 
   /**
@@ -111,6 +112,7 @@ declare global {
     TooltipEffect?: Effect;
     ResponsiveStorageNameSpace?: string;
     MenuSearchHistory?: number;
+    TrustedFrameHosts?: string[] | string;
   }
 
   /**

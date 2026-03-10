@@ -29,7 +29,8 @@ const DEFAULT_PLATFORM_CONFIG: PlatformConfigs = {
   CachingAsyncRoutes: false,
   TooltipEffect: "light",
   ResponsiveStorageNameSpace: "responsive-",
-  MenuSearchHistory: 6
+  MenuSearchHistory: 6,
+  TrustedFrameHosts: []
 };
 
 function readCachedPlatformConfig(): Partial<PlatformConfigs> {
