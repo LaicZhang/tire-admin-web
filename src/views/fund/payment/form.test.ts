@@ -31,15 +31,11 @@ const PureTable = {
 describe("Payment Form", () => {
   it("renders correctly", async () => {
     const wrapper = mount(Form, {
-      props: {
-        modelValue: true
-      },
       global: {
         components: {
           PureTable
         },
         stubs: {
-          ElDialog: { template: "<div><slot /><slot name='footer' /></div>" },
           ElForm: { template: "<form><slot /></form>" },
           ElFormItem: { template: "<div><slot /></div>" },
           ElInput: true,

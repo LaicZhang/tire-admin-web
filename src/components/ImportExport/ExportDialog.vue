@@ -6,7 +6,9 @@ import {
   exportDataApi,
   createAsyncExportTaskApi,
   getExportTaskStatusApi,
-  downloadExportFileApi
+  downloadExportFileApi,
+  getExportSchemaApi,
+  type ExportSchemaField
 } from "@/api";
 
 interface Props {
@@ -34,6 +36,8 @@ const dialogVisible = computed({
 });
 
 const exportMode = ref<"sync" | "async">("sync");
+const schemaLoading = ref(false);
+const exportFields = ref<Array<ExportSchemaField & { selected: boolean }>>([]);
 const {
   loading,
   asyncTaskId,
@@ -45,10 +49,14 @@ const {
 } = useExportData(() => props.type);
 
 async function handleSyncExport() {
+  const fields = exportFields.value
+    .filter(field => field.selected)
+    .map(field => field.key);
   try {
     await runSyncExport(exportDataApi, {
       ids: props.selectedIds.length > 0 ? props.selectedIds : undefined,
-      filters: props.filters
+      filters: props.filters,
+      fields
     });
 
     emit("success");
@@ -59,6 +67,9 @@ async function handleSyncExport() {
 }
 
 async function handleAsyncExport() {
+  const fields = exportFields.value
+    .filter(field => field.selected)
+    .map(field => field.key);
   try {
     await runAsyncExport(
       createAsyncExportTaskApi,
@@ -66,7 +77,8 @@ async function handleAsyncExport() {
       downloadExportFileApi,
       {
         filters: props.filters,
-        ids: props.selectedIds.length > 0 ? props.selectedIds : undefined
+        ids: props.selectedIds.length > 0 ? props.selectedIds : undefined,
+        fields
       },
       status => {
         if (status === "completed") {
@@ -80,10 +92,39 @@ async function handleAsyncExport() {
 }
 
 function handleExport() {
+  if (
+    exportFields.value.length > 0 &&
+    !exportFields.value.some(field => field.selected)
+  ) {
+    message("请至少选择一个导出字段", { type: "warning" });
+    return;
+  }
   if (exportMode.value === "sync") {
     handleSyncExport();
   } else {
     handleAsyncExport();
+  }
+}
+
+async function loadExportSchema() {
+  if (!props.type || !dialogVisible.value) return;
+  schemaLoading.value = true;
+  try {
+    const { code, data, msg } = await getExportSchemaApi(props.type);
+    if (code !== 200) {
+      message(msg || "获取导出字段失败", { type: "error" });
+      exportFields.value = [];
+      return;
+    }
+    exportFields.value = (data?.fields ?? []).map(field => ({
+      ...field,
+      selected: field.required || field.defaultSelected
+    }));
+  } catch {
+    message("获取导出字段失败", { type: "error" });
+    exportFields.value = [];
+  } finally {
+    schemaLoading.value = false;
   }
 }
 
@@ -100,8 +141,43 @@ function handleClose() {
 watch(dialogVisible, visible => {
   if (!visible) {
     resetDialogState();
+    exportFields.value = [];
+    return;
   }
+  loadExportSchema();
 });
+
+watch(
+  () => props.type,
+  () => {
+    if (dialogVisible.value) {
+      loadExportSchema();
+    }
+  }
+);
+
+function toggleAllFields(value: boolean) {
+  exportFields.value.forEach(field => {
+    field.selected = field.required ? true : value;
+  });
+}
+
+function toggleField(
+  field: ExportSchemaField & { selected: boolean },
+  value: boolean
+) {
+  field.selected = field.required ? true : value;
+}
+
+const allSelected = computed(
+  () =>
+    exportFields.value.length > 0 &&
+    exportFields.value.every(field => field.selected)
+);
+
+const someSelected = computed(
+  () => exportFields.value.some(field => field.selected) && !allSelected.value
+);
 </script>
 
 <template>
@@ -144,6 +220,34 @@ watch(dialogVisible, visible => {
             全部数据
           </el-descriptions-item>
         </el-descriptions>
+      </div>
+
+      <div class="mb-4">
+        <h4 class="text-sm font-medium mb-3">导出字段</h4>
+        <div v-loading="schemaLoading" class="border rounded p-3 min-h-[108px]">
+          <template v-if="exportFields.length > 0">
+            <el-checkbox
+              :model-value="allSelected"
+              :indeterminate="someSelected"
+              @change="value => toggleAllFields(Boolean(value))"
+            >
+              全选
+            </el-checkbox>
+            <el-divider class="my-2" />
+            <div class="flex flex-wrap gap-3">
+              <el-checkbox
+                v-for="field in exportFields"
+                :key="field.key"
+                :model-value="field.selected"
+                :disabled="field.required"
+                @change="value => toggleField(field, Boolean(value))"
+              >
+                {{ field.label }}
+              </el-checkbox>
+            </div>
+          </template>
+          <el-empty v-else description="暂无可导出字段" :image-size="64" />
+        </div>
       </div>
 
       <!-- 异步任务状态 -->

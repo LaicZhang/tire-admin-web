@@ -11,19 +11,30 @@ import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { http } from "@/utils/http";
 import { handleApiError, message } from "@/utils";
-import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import {
+  approvePaymentOrderApi,
+  deletePaymentOrderApi,
+  getPaymentOrderListApi
+} from "@/api/fund/payment-order";
 import {
   type PaymentOrder,
   type PaymentOrderQueryParams,
   PAYMENT_STATUS_OPTIONS,
-  PAYMENT_METHOD_OPTIONS,
   paymentStatusMap
 } from "./types";
 import { columns } from "./columns";
 import PaymentForm from "./form.vue";
 import { useOptions } from "@/composables/useOptions";
+import {
+  exportRowsAsCsv,
+  printRows,
+  type PresentationColumn
+} from "../utils/tablePresentation";
+import {
+  useManagedSubmitDialog,
+  type ManagedSubmitDialogRef
+} from "@/composables/useManagedSubmitDialog";
 
 defineOptions({
   name: "FundPayment"
@@ -62,8 +73,8 @@ const queryForm = reactive<PaymentOrderQueryParams>({
   billNo: undefined
 });
 
-const dialogVisible = ref(false);
-const editData = ref<PaymentOrder | null>(null);
+const { openDialog: openPaymentDialog } =
+  useManagedSubmitDialog<ManagedSubmitDialogRef>();
 
 async function onSearch() {
   loading.value = true;
@@ -78,12 +89,12 @@ async function onSearch() {
       }
     });
 
-    const { data } = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<PaymentOrder>>
-    >(`/payment-order/${pagination.currentPage}`, { params });
+    const { data } = await getPaymentOrderListApi(
+      pagination.currentPage,
+      params
+    );
 
-    dataList.value = data.list || [];
+    dataList.value = (data.list || []) as PaymentOrder[];
     pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
     handleApiError(e, "查询失败");
@@ -108,13 +119,23 @@ function resetForm(formEl?: { resetFields: () => void }) {
 }
 
 function handleAdd() {
-  editData.value = null;
-  dialogVisible.value = true;
+  openPaymentDialog({
+    title: "新建付款单",
+    width: "800px",
+    formComponent: PaymentForm,
+    buildProps: () => ({ editData: null }),
+    onSuccess: handleFormSuccess
+  });
 }
 
 function handleEdit(row: PaymentOrder) {
-  editData.value = row;
-  dialogVisible.value = true;
+  openPaymentDialog({
+    title: "编辑付款单",
+    width: "800px",
+    formComponent: PaymentForm,
+    buildProps: () => ({ editData: row }),
+    onSuccess: handleFormSuccess
+  });
 }
 
 async function handleDelete(row: PaymentOrder) {
@@ -122,7 +143,7 @@ async function handleDelete(row: PaymentOrder) {
   if (!ok) return;
 
   try {
-    await http.delete(`/payment-order/${row.uid}`);
+    await deletePaymentOrderApi(row.uid);
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -143,7 +164,7 @@ async function handleBatchDelete() {
 
   try {
     for (const row of selectedRows.value) {
-      await http.delete(`/payment-order/${row.uid}`);
+      await deletePaymentOrderApi(row.uid);
     }
     message("批量删除成功", { type: "success" });
     onSearch();
@@ -157,7 +178,7 @@ async function handleApprove(row: PaymentOrder) {
   if (!ok) return;
 
   try {
-    await http.post(`/payment-order/${row.uid}/approve`);
+    await approvePaymentOrderApi(row.uid);
     message("审核成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -166,15 +187,31 @@ async function handleApprove(row: PaymentOrder) {
 }
 
 function handlePrint() {
-  if (selectedRows.value.length === 0) {
-    message("请选择要打印的记录", { type: "warning" });
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可打印的记录", { type: "warning" });
     return;
   }
-  message("打印功能开发中");
+
+  try {
+    printRows(rows, exportColumns, "付款单");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "打印失败";
+    message(msg, { type: "error" });
+  }
 }
 
 function handleExport() {
-  message("导出功能开发中");
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可导出的记录", { type: "warning" });
+    return;
+  }
+
+  exportRowsAsCsv(rows, exportColumns, "付款单");
+  message("导出成功", { type: "success" });
 }
 
 function handleSelectionChange(rows: PaymentOrder[]) {
@@ -184,6 +221,21 @@ function handleSelectionChange(rows: PaymentOrder[]) {
 function handleFormSuccess() {
   onSearch();
 }
+
+const exportColumns: PresentationColumn<PaymentOrder>[] = [
+  { label: "单据编号", value: row => row.billNo },
+  { label: "供应商", value: row => row.providerName || "-" },
+  { label: "付款金额", value: row => row.amount / 100 },
+  { label: "本次核销", value: row => (row.writeOffAmount || 0) / 100 },
+  { label: "本次预付", value: row => (row.advanceAmount || 0) / 100 },
+  { label: "结算账户", value: row => row.paymentName || "-" },
+  { label: "付款方式", value: row => row.paymentMethod || "-" },
+  {
+    label: "状态",
+    value: row => paymentStatusMap[row.status]?.label || row.status
+  },
+  { label: "备注", value: row => row.remark || "-" }
+];
 
 onMounted(() => {
   onSearch();
@@ -278,8 +330,12 @@ onMounted(() => {
         >
           批量删除
         </el-button>
-        <el-button :icon="useRenderIcon(Printer)" disabled> 打印 </el-button>
-        <el-button :icon="useRenderIcon(Download)" disabled> 导出 </el-button>
+        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
+          打印
+        </el-button>
+        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
+          导出
+        </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
@@ -345,11 +401,5 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <PaymentForm
-      v-model="dialogVisible"
-      :edit-data="editData"
-      @success="handleFormSuccess"
-    />
   </PageContainer>
 </template>

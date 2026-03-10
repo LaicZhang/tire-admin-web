@@ -1,3 +1,5 @@
+import { formatMoneyFromFen } from "@/utils/formatMoney";
+
 export const columns: TableColumnList = [
   {
     label: "对账单号",
@@ -31,7 +33,9 @@ export const columns: TableColumnList = [
   {
     label: "应收/应付金额",
     prop: "amount",
-    minWidth: 120
+    minWidth: 120,
+    formatter: ({ amount }: { amount?: string | number }) =>
+      formatMoneyFromFen(Number(amount || 0))
   },
   {
     label: "状态",
@@ -47,7 +51,7 @@ export const columns: TableColumnList = [
   {
     label: "操作",
     fixed: "right",
-    width: 140,
+    width: 220,
     slot: "operation"
   }
 ];

@@ -21,6 +21,10 @@ import { type ReceiptQueryParams, RECEIPT_STATUS_OPTIONS } from "./types";
 import { columns, calcReceiptStatus } from "./columns";
 import ReceiptForm from "./form.vue";
 import { useOptions } from "@/composables/useOptions";
+import {
+  useManagedSubmitDialog,
+  type ManagedSubmitDialogRef
+} from "@/composables/useManagedSubmitDialog";
 
 defineOptions({
   name: "FundReceipt"
@@ -65,7 +69,8 @@ const queryForm = reactive<ReceiptQueryParams>({
   status: undefined
 });
 
-const dialogVisible = ref(false);
+const { openDialog: openReceiptDialog } =
+  useManagedSubmitDialog<ManagedSubmitDialogRef>();
 
 async function onSearch() {
   loading.value = true;
@@ -110,7 +115,12 @@ function resetForm(formEl?: { resetFields: () => void }) {
 }
 
 function handleAdd() {
-  dialogVisible.value = true;
+  openReceiptDialog({
+    title: "新建预收款",
+    width: "560px",
+    formComponent: ReceiptForm,
+    onSuccess: onSearch
+  });
 }
 
 function handleSelectionChange(rows: AdvancePaymentListItem[]) {
@@ -350,8 +360,6 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <ReceiptForm v-model="dialogVisible" @success="onSearch" />
   </div>
 </template>
 

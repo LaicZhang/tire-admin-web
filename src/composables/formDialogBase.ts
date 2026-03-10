@@ -15,6 +15,8 @@ export function openManagedFormDialog(options: ManagedFormDialogOptions) {
     class: options.class,
     beforeClose: options.beforeClose,
     props: options.props,
+    footerButtons: options.footerButtons,
+    footerRenderer: options.footerRenderer,
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,

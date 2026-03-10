@@ -10,6 +10,8 @@ import AddFill from "~icons/ri/add-circle-line";
 import { getStatementList, type Statement } from "@/api/business/statement";
 import { message } from "@/utils/message";
 import { useOptions } from "@/composables/useOptions";
+import StatementFormDialog from "./StatementFormDialog.vue";
+import StatementSummaryDialog from "./StatementSummaryDialog.vue";
 
 defineOptions({
   name: "StatementList"
@@ -18,7 +20,7 @@ defineOptions({
 const STATEMENT_STATUS_MAP: Record<string, StatusConfig> = {
   DRAFT: { label: "草稿", type: "warning" },
   CONFIRMED: { label: "已确认", type: "success" },
-  VOID: { label: "已作废", type: "info" }
+  DISPUTED: { label: "已作废", type: "info" }
 };
 
 const form = ref({
@@ -27,6 +29,9 @@ const form = ref({
   status: undefined as string | undefined
 });
 const { customers, providers } = useOptions();
+const createDialogVisible = ref(false);
+const summaryDialogVisible = ref(false);
+const currentRow = ref<Statement | null>(null);
 
 const targetNameOptions = computed(() => {
   const type = form.value.type;
@@ -82,11 +87,12 @@ function onReset() {
 }
 
 function handleAdd() {
-  message("功能开发中", { type: "info" });
+  createDialogVisible.value = true;
 }
 
-function handleDetail(_row: Statement) {
-  message("功能开发中", { type: "info" });
+function handleDetail(row: Statement) {
+  currentRow.value = row;
+  summaryDialogVisible.value = true;
 }
 
 onSearch();
@@ -94,12 +100,6 @@ onSearch();
 
 <template>
   <div class="main">
-    <el-alert
-      title="对账单模块仍在建设中，当前仅开放列表查看，新增与详情暂不可用。"
-      type="warning"
-      :closable="false"
-      class="mb-4"
-    />
     <ReSearchForm
       ref="searchFormRef"
       :form="form"
@@ -140,7 +140,11 @@ onSearch();
 
     <PureTableBar title="对账单列表" :columns="columns" @refresh="onSearch">
       <template #buttons>
-        <el-button type="primary" :icon="useRenderIcon(AddFill)" disabled>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(AddFill)"
+          @click="handleAdd"
+        >
           新建对账
         </el-button>
       </template>
@@ -171,13 +175,25 @@ onSearch();
               :status-map="STATEMENT_STATUS_MAP"
             />
           </template>
-          <template #operation>
-            <el-button link type="primary" :size="size" disabled>
+          <template #operation="{ row }">
+            <el-button
+              link
+              type="primary"
+              :size="size"
+              @click="handleDetail(row)"
+            >
               查看
             </el-button>
           </template>
         </pure-table>
       </template>
     </PureTableBar>
+
+    <StatementFormDialog v-model="createDialogVisible" @success="onSearch" />
+    <StatementSummaryDialog
+      v-model="summaryDialogVisible"
+      :row="currentRow"
+      @success="onSearch"
+    />
   </div>
 </template>

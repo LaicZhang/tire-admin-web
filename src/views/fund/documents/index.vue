@@ -14,7 +14,15 @@ import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { http } from "@/utils/http";
 import { handleApiError, message } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import {
+  approveDocumentCenterApi,
+  exportDocumentCenterApi,
+  getDocumentCenterListApi,
+  getDocumentCenterPrintApi,
+  type DocumentCenterType
+} from "@/api/document-center";
 import MoneyDisplay from "@/components/MoneyDisplay/index.vue";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import {
   type FundDocument,
   type FundDocumentQueryParams,
@@ -75,8 +83,67 @@ const statistics = reactive({
   netAmount: 0
 });
 
+const approvableDocumentTypes = new Set<DocumentCenterType>([
+  "WRITE_OFF",
+  "PAYMENT",
+  "TRANSFER",
+  "OTHER_INCOME",
+  "OTHER_EXPENSE"
+]);
+
+function resolveDirection(
+  documentType: FundDocument["documentType"]
+): FundDocument["direction"] {
+  if (documentType === "RECEIPT" || documentType === "OTHER_INCOME")
+    return "IN";
+  if (documentType === "TRANSFER") return "TRANSFER";
+  return "OUT";
+}
+
+function openPrintPreview(data: {
+  billNo: string;
+  documentType: string;
+  status: string;
+  targetName?: string;
+  detail: Record<string, string>;
+}) {
+  const popup = window.open(
+    "",
+    "_blank",
+    "noopener,noreferrer,width=960,height=720"
+  );
+  if (!popup) {
+    message("打印窗口打开失败，请检查浏览器弹窗设置", { type: "warning" });
+    return;
+  }
+  const rows = Object.entries(data.detail)
+    .map(
+      ([key, value]) =>
+        `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
+    )
+    .join("");
+  popup.document.write(`<!doctype html>
+<html>
+  <head><title>${data.billNo}</title></head>
+  <body style="font-family: sans-serif; padding: 24px;">
+    <h2>${data.documentType} - ${data.billNo}</h2>
+    <p>状态：${data.status}</p>
+    <p>往来单位：${data.targetName ?? "-"}</p>
+    <table style="border-collapse: collapse; width: 100%; margin-top: 16px;">${rows}</table>
+  </body>
+</html>`);
+  popup.document.close();
+  popup.focus();
+  popup.print();
+}
+
 const buildParams = () => {
   const params: Record<string, unknown> = { ...queryForm };
+  if (params.billNo) {
+    params.keyword = params.billNo;
+  }
+  delete params.billNo;
+  delete params.direction;
   Object.keys(params).forEach(key => {
     if (params[key] === "" || params[key] === undefined) {
       delete params[key];
@@ -94,17 +161,20 @@ const {
   onSizeChange
 } = useCrud<
   FundDocument,
-  CommonResult<PaginatedResponseDto<FundDocument>>,
+  CommonResult<
+    PaginatedResponseDto<import("@/api/document-center").DocumentCenterItem>
+  >,
   { page: number; pageSize: number }
 >({
-  api: async ({ page }) => {
-    const params = buildParams();
-    const res = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<FundDocument>>
-    >(`/fund/documents/${page}`, { params });
-    return res;
-  },
+  api: async ({ page, pageSize }) =>
+    getDocumentCenterListApi(page, {
+      ...(buildParams() as Record<string, string | number | undefined>),
+      pageSize
+    }) as Promise<
+      CommonResult<
+        PaginatedResponseDto<import("@/api/document-center").DocumentCenterItem>
+      >
+    >,
   pagination: {
     total: 0,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -115,9 +185,28 @@ const {
     if (res.code !== 200) {
       return { list: [], total: 0 };
     }
+    let list = (res.data?.list ?? []).map(item => {
+      const documentType = item.documentType as FundDocument["documentType"];
+      return {
+        id: item.id,
+        uid: item.uid,
+        billNo: item.billNo,
+        documentType,
+        targetName: item.targetName,
+        amount: Number(item.amount ?? 0),
+        direction: resolveDirection(documentType),
+        status: item.status as FundDocument["status"],
+        remark: item.remark,
+        operatorName: item.operatorName,
+        createdAt: item.createdAt
+      };
+    });
+    if (queryForm.direction) {
+      list = list.filter(item => item.direction === queryForm.direction);
+    }
     return {
-      list: res.data?.list ?? [],
-      total: res.data?.total ?? res.data?.count ?? 0
+      list,
+      total: res.data?.total ?? res.data?.count ?? list.length
     };
   },
   immediate: true
@@ -220,11 +309,35 @@ function handlePrint() {
     message("请选择要打印的记录", { type: "warning" });
     return;
   }
-  message("打印功能开发中");
+  Promise.all(
+    selectedRows.value.map(row =>
+      getDocumentCenterPrintApi(row.documentType, row.uid)
+    )
+  )
+    .then(results => {
+      results.forEach(result => {
+        if (result.code === 200 && result.data) {
+          openPrintPreview(result.data);
+        }
+      });
+    })
+    .catch(() => {
+      message("获取打印数据失败", { type: "error" });
+    });
 }
 
 function handleExport() {
-  message("导出功能开发中");
+  exportDocumentCenterApi(buildParams())
+    .then(blob => {
+      downloadBlob(
+        blob,
+        generateFilenameWithTimestamp("fund-document-center", "xlsx"),
+        { showMessage: true }
+      );
+    })
+    .catch(() => {
+      message("导出失败", { type: "error" });
+    });
 }
 
 function handleImport() {
@@ -233,6 +346,37 @@ function handleImport() {
 
 function handleSelectionChange(rows: FundDocument[]) {
   selectedRows.value = rows;
+}
+
+async function handleBatchApprove() {
+  const items = selectedRows.value.filter(row =>
+    approvableDocumentTypes.has(row.documentType)
+  );
+  if (items.length === 0) {
+    message("所选单据不支持批量审核", { type: "warning" });
+    return;
+  }
+  try {
+    const { data, code, msg } = await approveDocumentCenterApi(
+      items.map(row => ({
+        documentType: row.documentType,
+        uid: row.uid
+      }))
+    );
+    if (code !== 200) {
+      message(msg || "批量审核失败", { type: "error" });
+      return;
+    }
+    const failed = (data ?? []).filter(item => !item.success);
+    if (failed.length > 0) {
+      message(`批量审核完成，失败 ${failed.length} 条`, { type: "warning" });
+    } else {
+      message("批量审核成功", { type: "success" });
+    }
+    onSearch();
+  } catch (e) {
+    handleApiError(e, "批量审核失败");
+  }
 }
 </script>
 
@@ -378,6 +522,13 @@ function handleSelectionChange(rows: FundDocument[]) {
         </el-button>
         <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
           打印
+        </el-button>
+        <el-button
+          type="primary"
+          :disabled="selectedRows.length === 0"
+          @click="handleBatchApprove"
+        >
+          批量审核
         </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">

@@ -57,9 +57,10 @@ export interface ExportConfig {
 
 /** 导出字段 */
 export interface ExportField {
-  name: string;
+  key: string;
   label: string;
   selected: boolean;
+  required?: boolean;
 }
 
 /** 模块选项 */

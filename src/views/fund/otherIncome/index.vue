@@ -12,7 +12,10 @@ import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { handleApiError, message } from "@/utils";
-import { fenToYuanOrDash as formatMoney } from "@/utils/formatMoney";
+import {
+  fenToYuanNumber,
+  fenToYuanOrDash as formatMoney
+} from "@/utils/formatMoney";
 import {
   type OtherIncome,
   type OtherIncomeQueryParams,
@@ -27,6 +30,16 @@ import {
   deleteOtherIncomeApi,
   getOtherIncomeListApi
 } from "@/api/fund/other-income";
+import ReceiptForm from "../receipt/form.vue";
+import {
+  exportRowsAsCsv,
+  printRows,
+  type PresentationColumn
+} from "../utils/tablePresentation";
+import {
+  useManagedSubmitDialog,
+  type ManagedSubmitDialogRef
+} from "@/composables/useManagedSubmitDialog";
 
 defineOptions({
   name: "FundOtherIncome"
@@ -66,8 +79,15 @@ const queryForm = reactive<OtherIncomeQueryParams>({
   billNo: undefined
 });
 
-const dialogVisible = ref(false);
-const editData = ref<OtherIncome | null>(null);
+const receiptInitialValues = ref<{
+  customerId?: string;
+  amount?: number;
+  remark?: string;
+} | null>(null);
+const { openDialog: openIncomeDialog } =
+  useManagedSubmitDialog<ManagedSubmitDialogRef>();
+const { openDialog: openReceiptDialog } =
+  useManagedSubmitDialog<ManagedSubmitDialogRef>();
 
 // Convert status options to StatusTag format
 const OTHER_INCOME_STATUS_MAP: Record<string, StatusConfig> =
@@ -119,8 +139,13 @@ function resetForm(formEl?: { resetFields: () => void }) {
 }
 
 function handleAdd() {
-  editData.value = null;
-  dialogVisible.value = true;
+  openIncomeDialog({
+    title: "新建其他收入单",
+    width: "600px",
+    formComponent: OtherIncomeForm,
+    buildProps: () => ({ editData: null }),
+    onSuccess: handleFormSuccess
+  });
 }
 
 function handleEdit(row: OtherIncome) {
@@ -170,15 +195,31 @@ async function handleBatchDelete() {
 }
 
 function handlePrint() {
-  if (selectedRows.value.length === 0) {
-    message("请选择要打印的记录", { type: "warning" });
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可打印的记录", { type: "warning" });
     return;
   }
-  message("打印功能开发中");
+
+  try {
+    printRows(rows, exportColumns, "其他收入单");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "打印失败";
+    message(msg, { type: "error" });
+  }
 }
 
 function handleExport() {
-  message("导出功能开发中");
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可导出的记录", { type: "warning" });
+    return;
+  }
+
+  exportRowsAsCsv(rows, exportColumns, "其他收入单");
+  message("导出成功", { type: "success" });
 }
 
 function handleSelectionChange(rows: OtherIncome[]) {
@@ -188,6 +229,44 @@ function handleSelectionChange(rows: OtherIncome[]) {
 function handleFormSuccess() {
   onSearch();
 }
+
+function handleReceive(row: OtherIncome) {
+  const unpaidAmount = Number(row.unpaidAmount ?? 0);
+  if (unpaidAmount <= 0) {
+    message("该单据已无待收金额", { type: "info" });
+    return;
+  }
+
+  receiptInitialValues.value = {
+    customerId: row.customerId,
+    amount: fenToYuanNumber(unpaidAmount),
+    remark: `其他收入单 ${row.billNo || row.uid} 收款`
+  };
+  openReceiptDialog({
+    title: "登记收款",
+    width: "560px",
+    formComponent: ReceiptForm,
+    buildProps: () => ({
+      initialValues: receiptInitialValues.value || undefined
+    }),
+    onSuccess: handleFormSuccess
+  });
+}
+
+const exportColumns: PresentationColumn<OtherIncome>[] = [
+  { label: "单据编号", value: row => row.billNo },
+  {
+    label: "收入类型",
+    value: row => getIncomeTypeText(row.incomeType) || row.incomeType
+  },
+  { label: "客户", value: row => row.customerName || "-" },
+  { label: "金额", value: row => formatMoney(row.amount) },
+  { label: "本次收款", value: row => formatMoney(row.receivedAmount) },
+  { label: "未收款", value: row => formatMoney(row.unpaidAmount) },
+  { label: "收款账户", value: row => row.paymentName || "-" },
+  { label: "状态", value: row => getStatusInfo(row.status).label },
+  { label: "备注", value: row => row.remark || "-" }
+];
 
 onMounted(() => {
   onSearch();
@@ -282,8 +361,12 @@ onMounted(() => {
         >
           批量删除
         </el-button>
-        <el-button :icon="useRenderIcon(Printer)" disabled> 打印 </el-button>
-        <el-button :icon="useRenderIcon(Download)" disabled> 导出 </el-button>
+        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
+          打印
+        </el-button>
+        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
+          导出
+        </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
@@ -345,7 +428,7 @@ onMounted(() => {
               link
               type="success"
               :size="size"
-              disabled
+              @click="handleReceive(row)"
             >
               收款
             </el-button>
@@ -361,11 +444,5 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <OtherIncomeForm
-      v-model="dialogVisible"
-      :edit-data="editData"
-      @success="handleFormSuccess"
-    />
   </PageContainer>
 </template>

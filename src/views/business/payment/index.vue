@@ -4,10 +4,8 @@ import { onMounted, ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import {
-  getPaymentListApi,
-  getPaymentApi,
+  getPaymentPageApi,
   createPaymentApi,
-  updatePaymentApi,
   checkPaymentBalanceApi,
   deletePaymentApi
 } from "@/api";
@@ -17,8 +15,8 @@ import { formatMoney } from "@/utils/formatMoney";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
-import { getCompanyId } from "@/api/company";
 import { addDialog } from "@/components/ReDialog";
+import { getCompanyId } from "@/api/company";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import AccountOperationDialog from "./accountOperationDialog.vue";
@@ -34,7 +32,8 @@ const formRef = ref();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{ getRef: () => FormInstance } | null>(null);
 const form = ref({
-  companyUid: undefined
+  keyword: "",
+  status: undefined as boolean | undefined
 });
 const pagination = ref({
   total: 0,
@@ -92,18 +91,17 @@ const columns = ref<TableColumnList>([
 const getPaymentListInfo = async () => {
   loading.value = true;
   try {
-    const companyUid = await getCompanyId();
-    const { data, code, msg } = await getPaymentListApi(companyUid);
+    const { data, code, msg } = await getPaymentPageApi(
+      pagination.value.currentPage,
+      {
+        pageSize: pagination.value.pageSize,
+        keyword: form.value.keyword || undefined,
+        status: form.value.status
+      }
+    );
     if (code === 200) {
-      const typedData = data as
-        | PaymentAccount[]
-        | { list?: PaymentAccount[]; count?: number };
-      dataList.value = Array.isArray(typedData)
-        ? typedData
-        : (typedData.list ?? []);
-      pagination.value.total = Array.isArray(typedData)
-        ? typedData.length
-        : (typedData.count ?? dataList.value.length);
+      dataList.value = data?.list ?? [];
+      pagination.value.total = data?.total ?? data?.count ?? 0;
     } else {
       message(msg, { type: "error" });
     }
@@ -116,6 +114,7 @@ const getPaymentListInfo = async () => {
 };
 
 const onSearch = async () => {
+  pagination.value.currentPage = 1;
   await getPaymentListInfo();
 };
 
@@ -126,6 +125,12 @@ const resetForm = () => {
 
 async function handleCurrentChange(val: number) {
   pagination.value.currentPage = val;
+  await getPaymentListInfo();
+}
+
+async function handleSizeChange(val: number) {
+  pagination.value.pageSize = val;
+  pagination.value.currentPage = 1;
   await getPaymentListInfo();
 }
 
@@ -248,6 +253,7 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
+            @page-size-change="handleSizeChange"
             @page-current-change="handleCurrentChange"
           >
             <template #operation="{ row }">

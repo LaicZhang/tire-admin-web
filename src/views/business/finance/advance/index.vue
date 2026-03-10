@@ -3,18 +3,26 @@ import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ref, computed } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { columns } from "./columns";
+import StatusTag from "@/components/StatusTag/index.vue";
+import type { StatusConfig } from "@/components/StatusTag/types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
-import DeleteButton from "@/components/DeleteButton/index.vue";
 import {
+  approveAdvancePayment,
+  deleteAdvancePayment,
   getAdvancePaymentList,
-  type AdvancePaymentDto
+  type AdvancePaymentListItem,
+  type AdvancePaymentType
 } from "@/api/business/advance-payment";
-import { message } from "@/utils/message";
+import { handleApiError, message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import { useOptions } from "@/composables/useOptions";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
+import AdvancePaymentFormDialog from "./AdvancePaymentFormDialog.vue";
+import { calcReceiptStatus } from "@/views/fund/receipt/types";
+import { paymentStatusMap } from "@/views/fund/payment/types";
 
 defineOptions({
   name: "AdvancePaymentList"
@@ -27,6 +35,18 @@ const form = ref({
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const { customers, providers } = useOptions();
+const { confirm } = useConfirmDialog();
+const dialogVisible = ref(false);
+const initialType = computed<AdvancePaymentType | undefined>(() => {
+  const value = form.value.type;
+  if (!value) return undefined;
+  return value as AdvancePaymentType;
+});
+const RECEIPT_STATUS_MAP: Record<string, StatusConfig> = {
+  ACTIVE: { label: "可用", type: "success" },
+  EXHAUSTED: { label: "已用完", type: "info" }
+};
+const PAYMENT_STATUS_MAP: Record<string, StatusConfig> = paymentStatusMap;
 
 const targetNameOptions = computed(() => {
   const type = form.value.type;
@@ -55,8 +75,12 @@ const {
   onCurrentChange,
   onSizeChange
 } = useCrud<
-  AdvancePaymentDto,
-  CommonResult<{ list: AdvancePaymentDto[]; total?: number; count?: number }>,
+  AdvancePaymentListItem,
+  CommonResult<{
+    list: AdvancePaymentListItem[];
+    total?: number;
+    count?: number;
+  }>,
   { page: number; pageSize: number }
 >({
   api: ({ page, pageSize }) =>
@@ -66,7 +90,7 @@ const {
       ...form.value
     }) as unknown as Promise<
       CommonResult<{
-        list: AdvancePaymentDto[];
+        list: AdvancePaymentListItem[];
         total?: number;
         count?: number;
       }>
@@ -101,19 +125,78 @@ function onReset() {
 }
 
 function handleAdd() {
-  message("功能开发中", { type: "info" });
+  dialogVisible.value = true;
 }
 
-function handleDelete(_row: AdvancePaymentDto) {
-  message("功能开发中", { type: "info" });
+function canDelete(row: AdvancePaymentListItem) {
+  return row.type === "RECEIPT" || row.status === "DRAFT";
+}
+
+function canApprove(row: AdvancePaymentListItem) {
+  return row.type === "PAYMENT" && row.status === "DRAFT";
+}
+
+function getStatusConfig(row: AdvancePaymentListItem) {
+  if (row.type === "RECEIPT") {
+    return {
+      status: calcReceiptStatus(row.remainingAmount),
+      statusMap: RECEIPT_STATUS_MAP
+    };
+  }
+  return {
+    status: row.status || "UNKNOWN",
+    statusMap: PAYMENT_STATUS_MAP
+  };
+}
+
+async function handleDelete(row: AdvancePaymentListItem) {
+  if (!canDelete(row)) {
+    message("当前状态不允许删除", { type: "warning" });
+    return;
+  }
+
+  const ok = await confirm(`确定删除单据 ${row.billNo} 吗？`, "删除确认", {
+    type: "warning"
+  });
+  if (!ok) return;
+
+  try {
+    await deleteAdvancePayment(String(row.id), row.type);
+    message("删除成功", { type: "success" });
+    fetchData();
+  } catch (error) {
+    handleApiError(error, "删除失败");
+  }
+}
+
+async function handleApprove(row: AdvancePaymentListItem) {
+  if (!canApprove(row)) {
+    message("仅草稿状态预付款允许审核", { type: "warning" });
+    return;
+  }
+
+  const ok = await confirm(
+    `确定审核单据 ${row.billNo} 吗？审核后会扣减对应账户余额。`,
+    "审核确认",
+    { type: "warning" }
+  );
+  if (!ok) return;
+
+  try {
+    await approveAdvancePayment(String(row.id), row.type);
+    message("审核成功", { type: "success" });
+    fetchData();
+  } catch (error) {
+    handleApiError(error, "审核失败");
+  }
 }
 </script>
 
 <template>
   <div class="main">
     <el-alert
-      title="预收预付模块仍在建设中，当前仅开放列表查询，新建与删除暂不可用。"
-      type="warning"
+      title="预收款支持核销闭环，预付款会生成付款单草稿并在审核后完成账户扣减。"
+      type="info"
       :closable="false"
       class="mb-4"
     />
@@ -157,7 +240,11 @@ function handleDelete(_row: AdvancePaymentDto) {
 
     <PureTableBar title="预收预付列表" :columns="columns" @refresh="onSearch">
       <template #buttons>
-        <el-button type="primary" :icon="useRenderIcon(AddFill)" disabled>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(AddFill)"
+          @click="handleAdd"
+        >
           新建
         </el-button>
       </template>
@@ -183,15 +270,46 @@ function handleDelete(_row: AdvancePaymentDto) {
           "
         >
           <template #operation="{ row }">
-            <DeleteButton
-              :show-icon="false"
+            <el-button
+              v-if="canApprove(row)"
+              link
+              type="primary"
               size="small"
-              disabled
-              @confirm="handleDelete(row)"
+              @click="handleApprove(row)"
+            >
+              审核
+            </el-button>
+            <el-button
+              v-if="canDelete(row)"
+              link
+              type="danger"
+              size="small"
+              @click="handleDelete(row)"
+            >
+              删除
+            </el-button>
+            <span
+              v-if="!canApprove(row) && !canDelete(row)"
+              class="text-gray-400"
+            >
+              -
+            </span>
+          </template>
+
+          <template #status="{ row }">
+            <StatusTag
+              :status="getStatusConfig(row).status"
+              :status-map="getStatusConfig(row).statusMap"
             />
           </template>
         </pure-table>
       </template>
     </PureTableBar>
+
+    <AdvancePaymentFormDialog
+      v-model="dialogVisible"
+      :initial-type="initialType"
+      @success="onSearch"
+    />
   </div>
 </template>

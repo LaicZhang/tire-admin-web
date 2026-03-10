@@ -8,12 +8,16 @@ import StatusTag from "@/components/StatusTag/index.vue";
 import type { StatusConfig } from "@/components/StatusTag/types";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
+import Download from "~icons/ep/download";
 import Printer from "~icons/ep/printer";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { http } from "@/utils/http";
 import { handleApiError, message } from "@/utils";
-import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { getPaymentListApi } from "@/api/payment";
+import {
+  approveTransferApi,
+  deleteTransferApi,
+  getTransferListApi
+} from "@/api/fund/transfer";
 import {
   type Transfer,
   type TransferQueryParams,
@@ -21,6 +25,15 @@ import {
 } from "./types";
 import { columns } from "./columns";
 import TransferForm from "./form.vue";
+import {
+  exportRowsAsCsv,
+  printRows,
+  type PresentationColumn
+} from "../utils/tablePresentation";
+import {
+  useManagedSubmitDialog,
+  type ManagedSubmitDialogRef
+} from "@/composables/useManagedSubmitDialog";
 
 defineOptions({
   name: "FundTransfer"
@@ -56,8 +69,8 @@ const queryForm = reactive<TransferQueryParams>({
   billNo: undefined
 });
 
-const dialogVisible = ref(false);
-const editData = ref<Transfer | null>(null);
+const { openDialog: openTransferDialog } =
+  useManagedSubmitDialog<ManagedSubmitDialogRef>();
 
 async function loadPayments() {
   try {
@@ -82,14 +95,9 @@ async function onSearch() {
       }
     });
 
-    const { data } = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<Transfer>>
-    >(`/finance-extension/account-transfer/${pagination.currentPage}`, {
-      params
-    });
+    const { data } = await getTransferListApi(pagination.currentPage, params);
 
-    dataList.value = data.list || [];
+    dataList.value = (data.list || []) as Transfer[];
     pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
     handleApiError(e, "查询失败");
@@ -115,8 +123,14 @@ function resetForm(formEl?: { resetFields: () => void }) {
 }
 
 function handleAdd() {
-  editData.value = null;
-  dialogVisible.value = true;
+  openTransferDialog({
+    title: "新建转账单",
+    width: "600px",
+    formComponent: TransferForm,
+    buildProps: () => ({ editData: null }),
+    confirmText: "确认转账",
+    onSuccess: handleFormSuccess
+  });
 }
 
 function handleEdit(row: Transfer) {
@@ -133,7 +147,7 @@ async function handleDelete(row: Transfer) {
   if (!ok) return;
 
   try {
-    await http.delete(`/finance-extension/account-transfer/${row.uid}`);
+    await deleteTransferApi(row.uid);
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -154,7 +168,7 @@ async function handleBatchDelete() {
 
   try {
     for (const row of selectedRows.value) {
-      await http.delete(`/finance-extension/account-transfer/${row.uid}`);
+      await deleteTransferApi(row.uid);
     }
     message("批量删除成功", { type: "success" });
     onSearch();
@@ -168,7 +182,7 @@ async function handleApprove(row: Transfer) {
   if (!ok) return;
 
   try {
-    await http.post(`/finance-extension/account-transfer/${row.uid}/approve`);
+    await approveTransferApi(row.uid);
     message("审核成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -177,21 +191,55 @@ async function handleApprove(row: Transfer) {
 }
 
 function handlePrint() {
-  if (selectedRows.value.length === 0) {
-    message("请选择要打印的记录", { type: "warning" });
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可打印的记录", { type: "warning" });
     return;
   }
-  message("打印功能开发中");
+
+  try {
+    printRows(rows, exportColumns, "转账单");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "打印失败";
+    message(msg, { type: "error" });
+  }
 }
 
 function handleSelectionChange(rows: Transfer[]) {
   selectedRows.value = rows;
 }
 
+function handleExport() {
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可导出的记录", { type: "warning" });
+    return;
+  }
+
+  exportRowsAsCsv(rows, exportColumns, "转账单");
+  message("导出成功", { type: "success" });
+}
+
 function handleFormSuccess() {
   onSearch();
   loadPayments(); // 刷新账户余额
 }
+
+const exportColumns: PresentationColumn<Transfer>[] = [
+  { label: "单据编号", value: row => row.billNo },
+  { label: "转出账户", value: row => row.fromPaymentName || "-" },
+  { label: "转入账户", value: row => row.toPaymentName || "-" },
+  { label: "转账金额", value: row => row.amount / 100 },
+  { label: "手续费", value: row => (row.fee || 0) / 100 },
+  { label: "手续费账户", value: row => row.feePaymentName || "-" },
+  {
+    label: "状态",
+    value: row => TRANSFER_STATUS_MAP[row.status]?.label || row.status
+  },
+  { label: "备注", value: row => row.remark || "-" }
+];
 
 onMounted(() => {
   loadPayments();
@@ -282,7 +330,12 @@ onMounted(() => {
         >
           批量删除
         </el-button>
-        <el-button :icon="useRenderIcon(Printer)" disabled> 打印 </el-button>
+        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
+          打印
+        </el-button>
+        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
+          导出
+        </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
@@ -348,12 +401,6 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <TransferForm
-      v-model="dialogVisible"
-      :edit-data="editData"
-      @success="handleFormSuccess"
-    />
   </div>
 </template>
 

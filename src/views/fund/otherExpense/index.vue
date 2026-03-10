@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, reactive, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -12,10 +13,11 @@ import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { http } from "@/utils/http";
 import { handleApiError, message } from "@/utils";
-import { fenToYuanOrDash as formatMoney } from "@/utils/formatMoney";
-import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import {
+  fenToYuanNumber,
+  fenToYuanOrDash as formatMoney
+} from "@/utils/formatMoney";
 import {
   type OtherExpense,
   type OtherExpenseQueryParams,
@@ -25,12 +27,27 @@ import {
 import { columns, getExpenseTypeText } from "./columns";
 import OtherExpenseForm from "./form.vue";
 import { useOptions } from "@/composables/useOptions";
+import {
+  deleteOtherExpenseApi,
+  getOtherExpenseListApi
+} from "@/api/fund/other-expense";
+import PaymentForm from "../payment/form.vue";
+import {
+  exportRowsAsCsv,
+  printRows,
+  type PresentationColumn
+} from "../utils/tablePresentation";
+import {
+  useManagedSubmitDialog,
+  type ManagedSubmitDialogRef
+} from "@/composables/useManagedSubmitDialog";
 
 defineOptions({
   name: "FundOtherExpense"
 });
 
 const { confirm } = useConfirmDialog();
+const router = useRouter();
 
 // Convert status options to StatusTag format
 const OTHER_EXPENSE_STATUS_MAP: Record<string, StatusConfig> =
@@ -73,15 +90,21 @@ const queryForm = reactive<OtherExpenseQueryParams>({
   billNo: undefined
 });
 
-const dialogVisible = ref(false);
-const editData = ref<OtherExpense | null>(null);
+const paymentInitialValues = ref<{
+  providerId?: string;
+  amount?: number;
+  remark?: string;
+} | null>(null);
+const { openDialog: openExpenseDialog } =
+  useManagedSubmitDialog<ManagedSubmitDialogRef>();
+const { openDialog: openPaymentDialog } =
+  useManagedSubmitDialog<ManagedSubmitDialogRef>();
 
 async function onSearch() {
   loading.value = true;
   try {
     const params: Record<string, unknown> = {
-      ...queryForm,
-      direction: "OUT"
+      ...queryForm
     };
     Object.keys(params).forEach(key => {
       if (params[key] === "" || params[key] === undefined) {
@@ -89,12 +112,12 @@ async function onSearch() {
       }
     });
 
-    const { data } = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<OtherExpense>>
-    >(`/expense-order/${pagination.currentPage}`, { params });
+    const { data } = await getOtherExpenseListApi(
+      pagination.currentPage,
+      params
+    );
 
-    dataList.value = data.list || [];
+    dataList.value = (data.list || []) as OtherExpense[];
     pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
     handleApiError(e, "查询失败");
@@ -120,8 +143,13 @@ function resetForm(formEl?: { resetFields: () => void }) {
 }
 
 function handleAdd() {
-  editData.value = null;
-  dialogVisible.value = true;
+  openExpenseDialog({
+    title: "新建其他支出单",
+    width: "600px",
+    formComponent: OtherExpenseForm,
+    buildProps: () => ({ editData: null }),
+    onSuccess: handleFormSuccess
+  });
 }
 
 function handleEdit(row: OtherExpense) {
@@ -139,7 +167,7 @@ async function handleDelete(row: OtherExpense) {
   if (!ok) return;
 
   try {
-    await http.delete(`/expense-order/${row.uid}`);
+    await deleteOtherExpenseApi(row.uid);
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -161,7 +189,7 @@ async function handleBatchDelete() {
 
   try {
     for (const row of selectedRows.value) {
-      await http.delete(`/expense-order/${row.uid}`);
+      await deleteOtherExpenseApi(row.uid);
     }
     message("批量删除成功", { type: "success" });
     onSearch();
@@ -171,15 +199,31 @@ async function handleBatchDelete() {
 }
 
 function handlePrint() {
-  if (selectedRows.value.length === 0) {
-    message("请选择要打印的记录", { type: "warning" });
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可打印的记录", { type: "warning" });
     return;
   }
-  message("打印功能开发中");
+
+  try {
+    printRows(rows, exportColumns, "其他支出单");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "打印失败";
+    message(msg, { type: "error" });
+  }
 }
 
 function handleExport() {
-  message("导出功能开发中");
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可导出的记录", { type: "warning" });
+    return;
+  }
+
+  exportRowsAsCsv(rows, exportColumns, "其他支出单");
+  message("导出成功", { type: "success" });
 }
 
 function handleSelectionChange(rows: OtherExpense[]) {
@@ -189,6 +233,56 @@ function handleSelectionChange(rows: OtherExpense[]) {
 function handleFormSuccess() {
   onSearch();
 }
+
+function handlePay(row: OtherExpense) {
+  const unpaidAmount = Number(row.unpaidAmount ?? 0);
+  if (unpaidAmount <= 0) {
+    message("该单据已无待付金额", { type: "info" });
+    return;
+  }
+
+  paymentInitialValues.value = {
+    providerId: row.providerId,
+    amount: fenToYuanNumber(unpaidAmount),
+    remark: `其他支出单 ${row.billNo || row.uid} 付款`
+  };
+  openPaymentDialog({
+    title: "登记付款",
+    width: "800px",
+    formComponent: PaymentForm,
+    buildProps: () => ({
+      initialValues: paymentInitialValues.value || undefined
+    }),
+    onSuccess: handleFormSuccess
+  });
+}
+
+function handleLink(row: OtherExpense) {
+  if (!row.relatedOrderNo) {
+    message("该单据尚未关联业务订单", { type: "info" });
+    return;
+  }
+
+  router.push({
+    path: "/business/order",
+    query: { keyword: row.relatedOrderNo }
+  });
+}
+
+const exportColumns: PresentationColumn<OtherExpense>[] = [
+  { label: "单据编号", value: row => row.billNo },
+  {
+    label: "支出类型",
+    value: row => getExpenseTypeText(row.expenseType) || row.expenseType
+  },
+  { label: "供应商", value: row => row.providerName || "-" },
+  { label: "金额", value: row => formatMoney(row.amount) },
+  { label: "本次付款", value: row => formatMoney(row.paidAmount) },
+  { label: "未付款", value: row => formatMoney(row.unpaidAmount) },
+  { label: "付款账户", value: row => row.paymentName || "-" },
+  { label: "关联单据", value: row => row.relatedOrderNo || "-" },
+  { label: "备注", value: row => row.remark || "-" }
+];
 
 onMounted(() => {
   onSearch();
@@ -283,8 +377,12 @@ onMounted(() => {
         >
           批量删除
         </el-button>
-        <el-button :icon="useRenderIcon(Printer)" disabled> 打印 </el-button>
-        <el-button :icon="useRenderIcon(Download)" disabled> 导出 </el-button>
+        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
+          打印
+        </el-button>
+        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
+          导出
+        </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
@@ -346,11 +444,13 @@ onMounted(() => {
               link
               type="success"
               :size="size"
-              disabled
+              @click="handlePay(row)"
             >
               付款
             </el-button>
-            <el-button link type="info" :size="size" disabled> 关联 </el-button>
+            <el-button link type="info" :size="size" @click="handleLink(row)">
+              关联
+            </el-button>
             <el-button
               link
               type="danger"
@@ -363,11 +463,5 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <OtherExpenseForm
-      v-model="dialogVisible"
-      :edit-data="editData"
-      @success="handleFormSuccess"
-    />
   </PageContainer>
 </template>

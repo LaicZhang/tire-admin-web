@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import UploadIcon from "~icons/ri/upload-cloud-2-line";
@@ -20,6 +20,7 @@ import type { ImportExportTask, ModuleOption } from "@/types/importExport";
 import {
   downloadImportTemplateApi,
   exportDataApi,
+  getExportSchemaApi,
   importDataApi
 } from "@/api/tools";
 import type {
@@ -46,7 +47,11 @@ const toToolType = (module: string): string | null => {
     tire: "tire",
     customer: "customer",
     provider: "provider",
-    initialStock: "stock-init"
+    repo: "repo",
+    employee: "employee",
+    initialStock: "stock-init",
+    customerBalance: "customer-balance",
+    supplierBalance: "supplier-balance"
   };
   return map[module] ?? null;
 };
@@ -83,17 +88,13 @@ const moduleOptions = computed(() =>
 );
 
 // 导出字段配置
-type ExportField = { name: string; label: string; selected: boolean };
-const exportFields = ref<ExportField[]>([
-  { name: "id", label: "ID", selected: true },
-  { name: "name", label: "名称", selected: true },
-  { name: "group", label: "分组", selected: true },
-  { name: "brand", label: "品牌", selected: true },
-  { name: "pattern", label: "花纹", selected: true },
-  { name: "purchasePrice", label: "进价", selected: true },
-  { name: "salePrice", label: "售价", selected: true },
-  { name: "desc", label: "备注", selected: false }
-]);
+type ExportField = {
+  key: string;
+  label: string;
+  selected: boolean;
+  required?: boolean;
+};
+const exportFields = ref<ExportField[]>([]);
 
 const columns = [
   { label: "ID", prop: "id", width: 80 },
@@ -125,6 +126,31 @@ const getTaskList = async () => {
     loadTasks();
   } finally {
     loading.value = false;
+  }
+};
+
+const loadExportSchema = async (module: string) => {
+  const toolType = toToolType(module);
+  if (!toolType) {
+    exportFields.value = [];
+    return;
+  }
+  try {
+    const { code, data, msg } = await getExportSchemaApi(toolType);
+    if (code !== 200) {
+      message(msg || "获取导出字段失败", { type: "error" });
+      exportFields.value = [];
+      return;
+    }
+    exportFields.value = (data?.fields ?? []).map(field => ({
+      key: field.key,
+      label: field.label,
+      selected: field.required || field.defaultSelected,
+      required: field.required
+    }));
+  } catch {
+    message("获取导出字段失败", { type: "error" });
+    exportFields.value = [];
   }
 };
 
@@ -219,7 +245,7 @@ const handleExport = () => {
   }
   const selectedFieldNames = exportFields.value
     .filter(f => f.selected)
-    .map(f => f.name);
+    .map(f => f.key);
 
   if (selectedFieldNames.length === 0) {
     message("请至少选择一个导出字段", { type: "warning" });
@@ -227,7 +253,7 @@ const handleExport = () => {
   }
 
   loading.value = true;
-  exportDataApi(toolType, { filters: { fields: selectedFieldNames } })
+  exportDataApi(toolType, { fields: selectedFieldNames })
     .then(blob => {
       const filename = generateFilenameWithTimestamp(
         `${toolType}_export`,
@@ -274,11 +300,15 @@ const handleDelete = async (row: ImportExportTask) => {
 const handleSelectAll = (val: CheckboxValueType) => {
   const checked = Boolean(val);
   exportFields.value.forEach(f => {
-    f.selected = checked;
+    f.selected = f.required ? true : checked;
   });
 };
 
 const handleToggleField = (field: ExportField, val: CheckboxValueType) => {
+  if (field.required) {
+    field.selected = true;
+    return;
+  }
   field.selected = Boolean(val);
 };
 
@@ -289,6 +319,11 @@ const someSelected = computed(
 
 onMounted(() => {
   getTaskList();
+  loadExportSchema(exportModule.value);
+});
+
+watch(exportModule, value => {
+  loadExportSchema(value);
 });
 </script>
 
@@ -392,8 +427,9 @@ onMounted(() => {
                   <div class="flex flex-wrap gap-4">
                     <el-checkbox
                       v-for="field in exportFields"
-                      :key="field.name"
+                      :key="field.key"
                       :model-value="field.selected"
+                      :disabled="field.required"
                       @change="
                         (val: CheckboxValueType) =>
                           handleToggleField(field, val)

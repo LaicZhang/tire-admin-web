@@ -10,17 +10,26 @@ import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { http } from "@/utils/http";
 import { handleApiError, message } from "@/utils";
-import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
   type WriteOffOrder,
   type WriteOffQueryParams,
   BUSINESS_TYPE_OPTIONS,
   WRITEOFF_STATUS_OPTIONS
 } from "./types";
-import { columns, getStatusInfo } from "./columns";
+import {
+  approveWriteOffApi,
+  deleteWriteOffApi,
+  getWriteOffListApi,
+  rejectWriteOffApi,
+  type WriteOffOrder as WriteOffOrderApi
+} from "@/api/fund/write-off-order";
+import { columns } from "./columns";
 import WriteOffForm from "./form.vue";
+import {
+  useManagedSubmitDialog,
+  type ManagedSubmitDialogRef
+} from "@/composables/useManagedSubmitDialog";
 
 defineOptions({
   name: "FundWriteOff"
@@ -47,28 +56,32 @@ const queryForm = reactive<WriteOffQueryParams>({
   billNo: undefined
 });
 
-const dialogVisible = ref(false);
-const editData = ref<WriteOffOrder | null>(null);
+const { openDialog: openWriteOffDialog } =
+  useManagedSubmitDialog<ManagedSubmitDialogRef>();
+
+function toViewWriteOffOrder(row: WriteOffOrderApi): WriteOffOrder {
+  return {
+    ...row,
+    businessType: row.businessType as WriteOffOrder["businessType"],
+    status: row.status as WriteOffOrder["status"]
+  };
+}
 
 async function onSearch() {
   loading.value = true;
   try {
     const params: Record<string, unknown> = {
       ...queryForm,
-      index: pagination.currentPage
+      pageSize: pagination.pageSize
     };
     Object.keys(params).forEach(key => {
       if (params[key] === "" || params[key] === undefined) {
         delete params[key];
       }
     });
+    const { data } = await getWriteOffListApi(pagination.currentPage, params);
 
-    const { data } = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<WriteOffOrder>>
-    >(`/write-off-order/${pagination.currentPage}`, { params });
-
-    dataList.value = data.list || [];
+    dataList.value = (data.list || []).map(toViewWriteOffOrder);
     pagination.total = data.total ?? data.count ?? 0;
   } catch (e) {
     handleApiError(e, "查询失败");
@@ -94,8 +107,13 @@ function resetForm(formEl?: { resetFields: () => void }) {
 }
 
 function handleAdd() {
-  editData.value = null;
-  dialogVisible.value = true;
+  openWriteOffDialog({
+    title: "新建核销单",
+    width: "700px",
+    formComponent: WriteOffForm,
+    buildProps: () => ({ editData: null }),
+    onSuccess: handleFormSuccess
+  });
 }
 
 function handleEdit(row: WriteOffOrder) {
@@ -109,7 +127,7 @@ async function handleDelete(row: WriteOffOrder) {
   if (!ok) return;
 
   try {
-    await http.delete(`/write-off-order/${row.uid}`);
+    await deleteWriteOffApi(row.uid);
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -130,7 +148,7 @@ async function handleBatchDelete() {
 
   try {
     for (const row of selectedRows.value) {
-      await http.delete(`/write-off-order/${row.uid}`);
+      await deleteWriteOffApi(row.uid);
     }
     message("批量删除成功", { type: "success" });
     onSearch();
@@ -144,7 +162,7 @@ async function handleApprove(row: WriteOffOrder) {
   if (!ok) return;
 
   try {
-    await http.post(`/write-off-order/${row.uid}/approve`);
+    await approveWriteOffApi(row.uid);
     message("审核成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -157,7 +175,7 @@ async function handleReject(row: WriteOffOrder) {
   if (!ok) return;
 
   try {
-    await http.post(`/write-off-order/${row.uid}/reject`);
+    await rejectWriteOffApi(row.uid);
     message("已拒绝", { type: "success" });
     onSearch();
   } catch (e) {
@@ -345,12 +363,6 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <WriteOffForm
-      v-model="dialogVisible"
-      :edit-data="editData"
-      @success="handleFormSuccess"
-    />
   </div>
 </template>
 
