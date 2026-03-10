@@ -58,9 +58,12 @@ export async function restoreBackupApi(backupId: string) {
 }
 
 export async function downloadBackupApi(backupId: string) {
-  return await http.request<CommonResult<{ url: string }>>(
+  return await http.request<Blob>(
     "get",
-    baseUrlApi("/backup/" + backupId + "/download")
+    baseUrlApi("/backup/" + backupId + "/download"),
+    {
+      responseType: "blob"
+    }
   );
 }
 

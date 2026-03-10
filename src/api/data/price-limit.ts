@@ -1,53 +1,64 @@
+import { http } from "@/utils/http";
+import { baseUrlApi } from "../utils";
+import type { CommonResult, PaginatedResponseDto } from "../type";
+
 export interface PriceLimitRecord {
+  id?: number;
+  uid: string;
   tireId: string;
   enablePurchaseLimit: boolean;
   enableSaleLimit: boolean;
   maxPurchasePrice?: number;
   minSalePrice?: number;
+  wholesalePrice?: number;
+  vipPrice?: number;
+  memberPrice?: number;
+  remark?: string;
   updatedAt?: string;
+  tire?: { uid?: string; name?: string };
 }
 
-const STORAGE_KEY = "data:price-limit";
-
-function readAll(): Record<string, PriceLimitRecord> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, PriceLimitRecord>;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
+export interface PriceLimitUpsertDto {
+  uid?: string;
+  tireId: string;
+  enablePurchaseLimit: boolean;
+  enableSaleLimit: boolean;
+  maxPurchasePrice?: number;
+  minSalePrice?: number;
+  wholesalePrice?: number;
+  vipPrice?: number;
+  memberPrice?: number;
+  remark?: string;
 }
 
-function writeAll(map: Record<string, PriceLimitRecord>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+export interface PriceLimitQuery {
+  tireId?: string;
+  keyword?: string;
+  pageSize?: number;
 }
 
-function nowText() {
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+const prefix = "/data-config/price-limit";
+
+export async function getPriceLimitListApi(
+  index: number,
+  params?: PriceLimitQuery
+) {
+  return await http.request<
+    CommonResult<PaginatedResponseDto<PriceLimitRecord>>
+  >("get", baseUrlApi(`${prefix}/page/${index}`), { params });
 }
 
-export async function getPriceLimitMapApi(): Promise<
-  Record<string, PriceLimitRecord>
-> {
-  return readAll();
+export async function upsertPriceLimitApi(data: PriceLimitUpsertDto) {
+  return await http.request<CommonResult<PriceLimitRecord>>(
+    data.uid ? "patch" : "post",
+    baseUrlApi(data.uid ? `${prefix}/${data.uid}` : prefix),
+    { data }
+  );
 }
 
-export async function upsertPriceLimitApi(
-  data: Omit<PriceLimitRecord, "updatedAt"> & { updatedAt?: string }
-): Promise<void> {
-  const map = readAll();
-  map[data.tireId] = { ...data, updatedAt: data.updatedAt ?? nowText() };
-  writeAll(map);
-}
-
-export async function deletePriceLimitApi(tireId: string): Promise<void> {
-  const map = readAll();
-  delete map[tireId];
-  writeAll(map);
+export async function deletePriceLimitApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "delete",
+    baseUrlApi(`${prefix}/${uid}`)
+  );
 }

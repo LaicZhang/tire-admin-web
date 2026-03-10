@@ -7,16 +7,21 @@ const prefix = "/finance/statement";
 export interface StatementDto {
   type: string;
   targetId: string;
-  startTime: string;
-  endTime: string;
-  title: string;
+  startDate: string;
+  endDate: string;
+  openingBalance?: number;
 }
 
 export interface Statement extends StatementDto {
   id: number;
   uid: string;
+  statementNo?: string;
   status?: string;
   targetName?: string;
+  amount?: string;
+  createTime?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 /** 获取对账单列表 */
@@ -44,9 +49,30 @@ export function getStatementDetail(id: string) {
 
 /** 创建对账单 */
 export function createStatement(data: StatementDto) {
-  return http.request<CommonResult<Statement>>("post", baseUrlApi(prefix), {
-    data
-  });
+  const payload =
+    data.type === "CUSTOMER"
+      ? {
+          type: "receivable",
+          customerId: data.targetId,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          openingBalance: data.openingBalance
+        }
+      : {
+          type: "payable",
+          providerId: data.targetId,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          openingBalance: data.openingBalance
+        };
+
+  return http.request<CommonResult<Statement>>(
+    "post",
+    baseUrlApi("/statement/generate"),
+    {
+      data: payload
+    }
+  );
 }
 
 /** 确认对账 */

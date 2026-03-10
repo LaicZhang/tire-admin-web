@@ -20,20 +20,20 @@ export const getBackupListApi = (index: number = 1) => {
   return http.request<{
     data: { count: number; list: BackupTask[] };
     code: number;
-  }>("get", `/api/backup/page/${index}`);
+  }>("get", `/api/v1/backup/page/${index}`);
 };
 
 // 创建备份
 export const createBackupApi = () => {
   return http.request<{ data: BackupTask; code: number }>(
     "post",
-    "/api/backup/create"
+    "/api/v1/backup/create"
   );
 };
 
 // 下载备份
 export const downloadBackupApi = (uid: string) => {
-  return http.request<Blob>("get", `/api/backup/download/${uid}`, {
+  return http.request<Blob>("get", `/api/v1/backup/${uid}/download`, {
     responseType: "blob"
   });
 };
@@ -42,7 +42,7 @@ export const downloadBackupApi = (uid: string) => {
 export const restoreBackupApi = (uid: string) => {
   return http.request<{ data: BackupTask; code: number }>(
     "post",
-    `/api/backup/restore/${uid}`
+    `/api/v1/backup/restore/${uid}`
   );
 };
 
@@ -50,6 +50,6 @@ export const restoreBackupApi = (uid: string) => {
 export const deleteBackupApi = (uid: string) => {
   return http.request<{ data: { uid: string }; code: number }>(
     "delete",
-    `/api/backup/${uid}`
+    `/api/v1/backup/${uid}`
   );
 };

@@ -4,20 +4,24 @@ import type { CommonResult } from "../type";
 
 const prefix = "/finance/advance-payment";
 
+export type AdvancePaymentType = "RECEIPT" | "PAYMENT";
+
 export interface AdvancePaymentDto {
-  type: "RECEIPT" | "PAYMENT";
+  type: AdvancePaymentType;
   targetId: string;
   /** 金额（分） */
   amount: number;
-  /** 后端暂未落库，兼容字段 */
+  paymentId?: string;
   paymentMethod?: string;
+  paymentDate?: string;
   remark?: string;
 }
 
 export interface AdvancePaymentListItem {
   id: number;
+  uid?: string;
   billNo: string;
-  type: "RECEIPT" | "PAYMENT";
+  type: AdvancePaymentType;
   targetName: string;
   /** 金额（分），后端返回为字符串（bigint 序列化） */
   amount: string;
@@ -26,6 +30,7 @@ export interface AdvancePaymentListItem {
   paymentMethod: string;
   remark?: string;
   createTime: string;
+  status?: string;
 }
 
 export interface AdvancePaymentListResponse {
@@ -57,10 +62,24 @@ export function createAdvancePayment(data: AdvancePaymentDto) {
 }
 
 /** 删除预收/预付款 */
-export function deleteAdvancePayment(id: string) {
+export function deleteAdvancePayment(id: string, type?: AdvancePaymentType) {
   return http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(`${prefix}/${id}`)
+    baseUrlApi(`${prefix}/${id}`),
+    {
+      params: type ? { type } : undefined
+    }
+  );
+}
+
+/** 审核预付款 */
+export function approveAdvancePayment(id: string, type?: AdvancePaymentType) {
+  return http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(`${prefix}/${id}/approve`),
+    {
+      params: type ? { type } : undefined
+    }
   );
 }
 

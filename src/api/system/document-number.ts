@@ -46,7 +46,7 @@ export interface UpsertDocumentNumberRuleDto {
 export const getDocumentNumberRulesApi = () => {
   return http.request<{ data: DocumentNumberRule[]; code: number }>(
     "get",
-    "/api/document-number/rules"
+    "/api/v1/document-number/rules"
   );
 };
 
@@ -54,7 +54,7 @@ export const getDocumentNumberRulesApi = () => {
 export const getDocumentNumberRuleApi = (documentType: string) => {
   return http.request<{ data: DocumentNumberRule; code: number }>(
     "get",
-    `/api/document-number/rule/${documentType}`
+    `/api/v1/document-number/rule/${documentType}`
   );
 };
 
@@ -64,7 +64,7 @@ export const upsertDocumentNumberRuleApi = (
 ) => {
   return http.request<{ data: DocumentNumberRule; code: number }>(
     "post",
-    "/api/document-number/rule",
+    "/api/v1/document-number/rule",
     { data }
   );
 };
@@ -73,6 +73,6 @@ export const upsertDocumentNumberRuleApi = (
 export const deleteDocumentNumberRuleApi = (documentType: string) => {
   return http.request<{ data: { documentType: string }; code: number }>(
     "delete",
-    `/api/document-number/rule/${documentType}`
+    `/api/v1/document-number/rule/${documentType}`
   );
 };

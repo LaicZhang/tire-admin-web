@@ -43,11 +43,13 @@ export function getWriteOffList(params?: {
   customerId?: string;
   providerId?: string;
   isApproved?: string;
+  pageSize?: number;
 }) {
+  const { index = 1, ...rest } = params ?? {};
   return http.request<CommonResult<{ count: number; list: WriteOffOrder[] }>>(
     "get",
-    baseUrlApi(prefix),
-    { params }
+    baseUrlApi(`${prefix}/page/${index}`),
+    { params: rest }
   );
 }
 

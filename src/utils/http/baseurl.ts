@@ -7,7 +7,7 @@ export type ViteEnvSubset = {
 export const resolveBaseURLFromViteEnv = (
   env: ViteEnvSubset
 ): { baseURL: string; fatalError?: string } => {
-  // 开发环境：使用相对路径，通过 Vite proxy 将 /api 转发到后端
+  // 开发环境：使用相对路径，通过 Vite proxy 将 /api/v1 转发到后端
   if (env.DEV) return { baseURL: "" };
 
   const serverUrl = (env.VITE_SERVER_URL ?? "").trim();

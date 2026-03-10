@@ -1,6 +1,11 @@
 import { http } from "@/utils/http";
 import { baseUrlApi } from "./utils";
-import type { CommonResult, RefreshTokenResult, UserResult } from "./type";
+import type {
+  AuthSessionResult,
+  CommonResult,
+  RefreshTokenResult,
+  UserResult
+} from "./type";
 
 /** 登录请求参数 */
 export type LoginDto =
@@ -97,6 +102,14 @@ export const getCurrentCompanyApi = async () => {
     "get",
     baseUrlApi("/auth/current-company")
   );
+};
+
+/**
+ * 获取当前服务端会话摘要
+ * @returns 当前登录态与最小用户上下文
+ */
+export const getSessionApi = () => {
+  return http.request<AuthSessionResult>("get", baseUrlApi("/auth/session"));
 };
 
 /**

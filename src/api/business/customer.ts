@@ -75,6 +75,15 @@ export interface Customer {
   info?: { phone?: string };
 }
 
+export interface CustomerInitialBalanceSummary {
+  latestRecord: Record<string, unknown> | null;
+  summary: {
+    receivableBalance: number;
+    advanceBalance: number;
+    totalBalance: number;
+  };
+}
+
 export function getCustomerBalanceHistoryApi(
   uid: string,
   params?: { index?: number; pageSize?: number }
@@ -85,6 +94,13 @@ export function getCustomerBalanceHistoryApi(
       list: BalanceAdjustment[];
     }>
   >("get", baseUrlApi(prefix + `${uid}/balance-history`), { params });
+}
+
+export function getCustomerInitialBalanceApi(uid: string) {
+  return http.request<CommonResult<CustomerInitialBalanceSummary>>(
+    "get",
+    baseUrlApi(prefix + `${uid}/initial-balance`)
+  );
 }
 
 // ============ 标准 CRUD API (使用工厂函数) ============

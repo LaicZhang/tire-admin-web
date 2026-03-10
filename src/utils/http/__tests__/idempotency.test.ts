@@ -4,7 +4,7 @@ import { ensureIdempotencyKey } from "../idempotency";
 
 describe("ensureIdempotencyKey", () => {
   it("should not set key for GET", () => {
-    const config: PureHttpRequestConfig = { method: "get", url: "/api/foo" };
+    const config: PureHttpRequestConfig = { method: "get", url: "/api/v1/foo" };
     const key = ensureIdempotencyKey(config, { nowMs: 0 });
     expect(key).toBeUndefined();
     expect(config.headers).toBeUndefined();
@@ -13,7 +13,7 @@ describe("ensureIdempotencyKey", () => {
   it("should set key for POST", () => {
     const config: PureHttpRequestConfig = {
       method: "post",
-      url: "/api/foo",
+      url: "/api/v1/foo",
       data: { a: 1 }
     };
     const key = ensureIdempotencyKey(config, { nowMs: 0, reuseMs: 3000 });
@@ -26,12 +26,12 @@ describe("ensureIdempotencyKey", () => {
   it("should reuse key for same signature within reuse window", () => {
     const a: PureHttpRequestConfig = {
       method: "post",
-      url: "/api/foo",
+      url: "/api/v1/foo",
       data: { a: 1, b: 2 }
     };
     const b: PureHttpRequestConfig = {
       method: "post",
-      url: "/api/foo",
+      url: "/api/v1/foo",
       data: { b: 2, a: 1 }
     };
 
@@ -44,7 +44,7 @@ describe("ensureIdempotencyKey", () => {
   it("should rotate key after reuse window", () => {
     const config: PureHttpRequestConfig = {
       method: "post",
-      url: "/api/foo-rotate",
+      url: "/api/v1/foo-rotate",
       data: { a: 1 }
     };
     const gen1 = (() => {
@@ -69,7 +69,7 @@ describe("ensureIdempotencyKey", () => {
   it("should keep existing header", () => {
     const config: PureHttpRequestConfig = {
       method: "post",
-      url: "/api/foo",
+      url: "/api/v1/foo",
       headers: { "x-idempotency-key": "fixed" }
     };
     const key = ensureIdempotencyKey(config, { nowMs: 0 });

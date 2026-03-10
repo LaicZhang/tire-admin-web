@@ -43,7 +43,7 @@ export async function getWriteOffListApi(
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<WriteOffOrder>>>(
     "get",
-    baseUrlApi(`/write-off-order/${index}`),
+    baseUrlApi(`/write-off-order/page/${index}`),
     { params }
   );
 }

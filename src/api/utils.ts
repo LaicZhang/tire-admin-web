@@ -12,7 +12,8 @@ export const baseUrlApi = (url: string): string => {
     for (const key in cachedResults) delete cachedResults[key];
   }
 
-  const result = url[0] === "/" ? `/api${url}` : `/api/${url}`;
+  const normalized = url.startsWith("/") ? url : `/${url}`;
+  const result = `/api/v1${normalized}`;
   cachedResults[url] = result;
   return result;
 };

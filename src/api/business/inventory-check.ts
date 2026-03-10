@@ -55,7 +55,7 @@ export interface UpdateInventoryCheckDto {
 export const createInventoryCheckTaskApi = (data: CreateInventoryCheckDto) => {
   return http.request<{ data: InventoryCheckTask; code: number }>(
     "post",
-    "/api/inventory-check/task",
+    "/api/v1/inventory-check/task",
     { data }
   );
 };
@@ -68,14 +68,14 @@ export const getInventoryCheckTasksApi = (
   return http.request<{
     data: { count: number; list: InventoryCheckTask[] };
     code: number;
-  }>("get", `/api/inventory-check/tasks/${index}`, { params });
+  }>("get", `/api/v1/inventory-check/tasks/${index}`, { params });
 };
 
 // 获取盘点任务详情
 export const getInventoryCheckTaskApi = (id: number) => {
   return http.request<{ data: InventoryCheckTask; code: number }>(
     "get",
-    `/api/inventory-check/task/${id}`
+    `/api/v1/inventory-check/task/${id}`
   );
 };
 
@@ -86,7 +86,7 @@ export const updateInventoryCheckDetailsApi = (
 ) => {
   return http.request<{ data: InventoryCheckTask; code: number }>(
     "put",
-    `/api/inventory-check/task/${id}/details`,
+    `/api/v1/inventory-check/task/${id}/details`,
     { data }
   );
 };
@@ -100,14 +100,14 @@ export const completeInventoryCheckTaskApi = (id: number) => {
       wasteOrderId?: string;
     };
     code: number;
-  }>("post", `/api/inventory-check/task/${id}/complete`);
+  }>("post", `/api/v1/inventory-check/task/${id}/complete`);
 };
 
 // 取消盘点任务
 export const cancelInventoryCheckTaskApi = (id: number) => {
   return http.request<{ data: InventoryCheckTask; code: number }>(
     "post",
-    `/api/inventory-check/task/${id}/cancel`
+    `/api/v1/inventory-check/task/${id}/cancel`
   );
 };
 
@@ -115,6 +115,6 @@ export const cancelInventoryCheckTaskApi = (id: number) => {
 export const deleteInventoryCheckTaskApi = (id: number) => {
   return http.request<{ data: InventoryCheckTask; code: number }>(
     "delete",
-    `/api/inventory-check/task/${id}`
+    `/api/v1/inventory-check/task/${id}`
   );
 };

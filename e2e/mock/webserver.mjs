@@ -9,7 +9,7 @@ const waitForHealth = async ({ port, timeoutMs }) => {
   while (Date.now() - startedAt < timeoutMs) {
     const ok = await new Promise(resolve => {
       const req = http.get(
-        { host: "127.0.0.1", port, path: "/api/__health", timeout: 1000 },
+        { host: "127.0.0.1", port, path: "/api/v1/__health", timeout: 1000 },
         res => {
           res.resume();
           resolve(res.statusCode === 200);

@@ -81,17 +81,17 @@ describe("http (HttpOnly Cookie 401 refresh)", () => {
     const refreshDeferred = createDeferred<unknown>();
 
     axiosRequestMock.mockImplementation((config: AxiosConfigLike) => {
-      if (config.url === "/api/auth/refresh-token")
+      if (config.url === "/api/v1/auth/refresh-token")
         return refreshDeferred.promise;
       return Promise.resolve({ ok: true, url: config.url });
     });
 
     const errorA = {
-      config: { url: "/api/a", method: "get", headers: {} },
+      config: { url: "/api/v1/a", method: "get", headers: {} },
       response: { status: 401, data: { msg: "unauthorized" } }
     };
     const errorB = {
-      config: { url: "/api/b", method: "get", headers: {} },
+      config: { url: "/api/v1/b", method: "get", headers: {} },
       response: { status: 401, data: { msg: "unauthorized" } }
     };
 
@@ -103,15 +103,19 @@ describe("http (HttpOnly Cookie 401 refresh)", () => {
     // refresh in-flight (only once)
     expect(axiosRequestMock).toHaveBeenCalledTimes(1);
     expect(axiosRequestMock).toHaveBeenCalledWith(
-      expect.objectContaining({ url: "/api/auth/refresh-token" })
+      expect.objectContaining({ url: "/api/v1/auth/refresh-token" })
     );
 
     refreshDeferred.resolve({ ok: true });
-    await expect(pA).resolves.toEqual({ ok: true, url: "/api/a" });
-    await expect(pB).resolves.toEqual({ ok: true, url: "/api/b" });
+    await expect(pA).resolves.toEqual({ ok: true, url: "/api/v1/a" });
+    await expect(pB).resolves.toEqual({ ok: true, url: "/api/v1/b" });
 
     const urls = axiosRequestMock.mock.calls.map(call => call[0]?.url);
-    expect(urls).toEqual(["/api/auth/refresh-token", "/api/a", "/api/b"]);
+    expect(urls).toEqual([
+      "/api/v1/auth/refresh-token",
+      "/api/v1/a",
+      "/api/v1/b"
+    ]);
 
     expect(logOutMock).not.toHaveBeenCalled();
   });

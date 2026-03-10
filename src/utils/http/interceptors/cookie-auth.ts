@@ -34,7 +34,7 @@ export const createCookieAuthInterceptor = (
 ) => {
   const {
     pendingQueue,
-    refreshUrl = "/api/auth/refresh-token",
+    refreshUrl = "/api/v1/auth/refresh-token",
     onLogout
   } = options;
 

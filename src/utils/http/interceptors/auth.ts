@@ -13,7 +13,10 @@ import { getToken, formatToken } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
 
 /** 请求白名单：不需要 token 的接口 */
-export const authWhiteList = ["/api/auth/login", "/api/auth/refresh-token"];
+export const authWhiteList = [
+  "/api/v1/auth/login",
+  "/api/v1/auth/refresh-token"
+];
 
 export interface AuthInterceptorOptions {
   pendingQueue: ReturnType<typeof createPendingQueue>;

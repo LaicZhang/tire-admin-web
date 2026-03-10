@@ -16,7 +16,7 @@ describe("HTTP errorHandler", () => {
       const error = {
         name: "CanceledError",
         code: "ERR_CANCELED",
-        config: { url: "/api/test", method: "get" }
+        config: { url: "/api/v1/test", method: "get" }
       } as unknown as AxiosError;
 
       const result = classifyHttpError(error);
@@ -27,7 +27,7 @@ describe("HTTP errorHandler", () => {
     it("should classify network error", () => {
       const error = {
         code: "ERR_NETWORK",
-        config: { url: "/api/test", method: "get" },
+        config: { url: "/api/v1/test", method: "get" },
         response: undefined
       } as unknown as AxiosError;
 
@@ -39,7 +39,7 @@ describe("HTTP errorHandler", () => {
       const error = {
         code: "ECONNABORTED",
         message: "",
-        config: { url: "/api/test", method: "get" },
+        config: { url: "/api/v1/test", method: "get" },
         response: undefined
       } as unknown as AxiosError;
 
@@ -50,7 +50,7 @@ describe("HTTP errorHandler", () => {
     it("should classify timeout error by message", () => {
       const error = {
         message: "timeout of 10000ms exceeded",
-        config: { url: "/api/test", method: "get" },
+        config: { url: "/api/v1/test", method: "get" },
         response: { status: 0 }
       } as unknown as AxiosError;
 
@@ -60,7 +60,7 @@ describe("HTTP errorHandler", () => {
 
     it("should classify 401 as unauthorized", () => {
       const error = {
-        config: { url: "/api/test", method: "get" },
+        config: { url: "/api/v1/test", method: "get" },
         response: { status: 401 },
         message: ""
       } as unknown as AxiosError;
@@ -72,7 +72,7 @@ describe("HTTP errorHandler", () => {
 
     it("should classify 403 as forbidden", () => {
       const error = {
-        config: { url: "/api/test", method: "get" },
+        config: { url: "/api/v1/test", method: "get" },
         response: { status: 403 },
         message: ""
       } as unknown as AxiosError;
@@ -83,7 +83,7 @@ describe("HTTP errorHandler", () => {
 
     it("should classify 404 as not found", () => {
       const error = {
-        config: { url: "/api/test", method: "get" },
+        config: { url: "/api/v1/test", method: "get" },
         response: { status: 404 },
         message: ""
       } as unknown as AxiosError;
@@ -94,7 +94,7 @@ describe("HTTP errorHandler", () => {
 
     it("should classify 5xx as server error", () => {
       const error = {
-        config: { url: "/api/test", method: "get" },
+        config: { url: "/api/v1/test", method: "get" },
         response: { status: 500 },
         message: ""
       } as unknown as AxiosError;
@@ -105,7 +105,7 @@ describe("HTTP errorHandler", () => {
 
     it("should classify 4xx as client error", () => {
       const error = {
-        config: { url: "/api/test", method: "post" },
+        config: { url: "/api/v1/test", method: "post" },
         response: { status: 422 },
         message: ""
       } as unknown as AxiosError;
@@ -116,13 +116,13 @@ describe("HTTP errorHandler", () => {
 
     it("should include url and method in result", () => {
       const error = {
-        config: { url: "/api/users", method: "post" },
+        config: { url: "/api/v1/users", method: "post" },
         response: { status: 400 },
         message: ""
       } as unknown as AxiosError;
 
       const result = classifyHttpError(error);
-      expect(result.url).toBe("/api/users");
+      expect(result.url).toBe("/api/v1/users");
       expect(result.method).toBe("POST");
     });
   });
@@ -135,7 +135,7 @@ describe("HTTP errorHandler", () => {
       setErrorReporter(mockReporter);
 
       const error = {
-        config: { url: "/api/test", method: "get" },
+        config: { url: "/api/v1/test", method: "get" },
         response: { status: 500 },
         message: ""
       } as unknown as AxiosError;

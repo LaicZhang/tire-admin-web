@@ -3,6 +3,7 @@ import { baseUrlApi } from "./utils";
 import type {
   CommonResult,
   CreatePaymentDto,
+  PaginatedResponseDto,
   PaymentAccount,
   UpdatePaymentDto
 } from "./type";
@@ -13,11 +14,30 @@ export type PaymentListData =
   | PaymentAccount[]
   | { list?: PaymentAccount[]; count?: number };
 
+export interface PaymentPageQuery {
+  pageSize?: number;
+  keyword?: string;
+  status?: boolean;
+}
+
 export async function getPaymentListApi(companyUid?: string) {
   const url = companyUid
     ? baseUrlApi(prefix + `list/${companyUid}`)
     : baseUrlApi(prefix + "list");
   return await http.request<CommonResult<PaymentListData>>("get", url);
+}
+
+export async function getPaymentPageApi(
+  index: number,
+  params?: PaymentPageQuery
+) {
+  return await http.request<CommonResult<PaginatedResponseDto<PaymentAccount>>>(
+    "get",
+    baseUrlApi(prefix + `page/${index}`),
+    {
+      params
+    }
+  );
 }
 
 export async function getPaymentApi(uid: string) {

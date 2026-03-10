@@ -26,6 +26,18 @@ export interface ExportTask {
   error?: string;
 }
 
+export interface ExportSchemaField {
+  key: string;
+  label: string;
+  defaultSelected: boolean;
+  required: boolean;
+}
+
+export interface ExportSchema {
+  type: string;
+  fields: ExportSchemaField[];
+}
+
 type ExportContent = {
   format: string;
   content: string;
@@ -180,21 +192,35 @@ export async function previewImportApi(data: FormData) {
 /** 同步导出数据 */
 export async function exportDataApi(
   type: string,
-  params?: { ids?: string[]; filters?: object }
+  params?: { ids?: string[]; filters?: object; fields?: string[] }
 ) {
-  const filterPayload = {
-    ...(params?.filters ? { ...(params.filters as object) } : {}),
-    ...(params?.ids ? { ids: params.ids } : {})
-  };
-  const filter = JSON.stringify(filterPayload);
+  const filter =
+    params?.filters && Object.keys(params.filters).length > 0
+      ? JSON.stringify(params.filters)
+      : undefined;
 
   const res = await http.request<CommonResult<ExportContent>>(
     "get",
     baseUrlApi(prefix + `export/${type}`),
-    { params: { type, filter } }
+    {
+      params: {
+        type,
+        ...(filter ? { filter } : {}),
+        ...(params?.ids?.length ? { ids: params.ids } : {}),
+        ...(params?.fields?.length ? { fields: params.fields } : {})
+      }
+    }
   );
   if (res.code !== 200) throw new Error(res.msg || "导出失败");
   return dataUrlToBlob(res.data?.content || "");
+}
+
+/** 获取导出字段 schema */
+export async function getExportSchemaApi(type: string) {
+  return await http.request<CommonResult<ExportSchema>>(
+    "get",
+    baseUrlApi(prefix + `export/schema/${type}`)
+  );
 }
 
 /** 创建异步导出任务 */
@@ -202,11 +228,10 @@ export async function createAsyncExportTaskApi(
   type: string,
   data: { filters?: object; fields?: string[]; ids?: string[] }
 ) {
-  const filter = JSON.stringify({
-    ...(data.filters ? { filters: data.filters } : {}),
-    ...(data.fields ? { fields: data.fields } : {}),
-    ...(data.ids ? { ids: data.ids } : {})
-  });
+  const filter =
+    data.filters && Object.keys(data.filters).length > 0
+      ? JSON.stringify(data.filters)
+      : undefined;
   const res = await http.request<
     CommonResult<{
       id: string;
@@ -215,7 +240,12 @@ export async function createAsyncExportTaskApi(
       error?: string;
     }>
   >("post", baseUrlApi(prefix + `export/async/${type}`), {
-    params: { type, filter }
+    params: {
+      type,
+      ...(filter ? { filter } : {}),
+      ...(data.ids?.length ? { ids: data.ids } : {}),
+      ...(data.fields?.length ? { fields: data.fields } : {})
+    }
   });
   return {
     ...res,

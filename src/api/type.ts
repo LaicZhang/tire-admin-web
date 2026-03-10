@@ -41,6 +41,17 @@ export type RefreshTokenResult = {
   };
 };
 
+export interface AuthSessionUser {
+  uid: string;
+  username: string;
+  currentCompanyId: string;
+}
+
+export type AuthSessionResult = CommonResult<{
+  authenticated: boolean;
+  user: AuthSessionUser;
+}>;
+
 export type PaginatedResponseDto<T = unknown> = {
   list: T[];
   total: number;

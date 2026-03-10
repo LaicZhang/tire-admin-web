@@ -67,3 +67,10 @@ export async function deleteTransferApi(uid: string) {
     baseUrlApi(`/finance-extension/account-transfer/${uid}`)
   );
 }
+
+export async function approveTransferApi(uid: string) {
+  return await http.request<CommonResult<void>>(
+    "post",
+    baseUrlApi(`/finance-extension/account-transfer/${uid}/approve`)
+  );
+}

@@ -42,7 +42,7 @@ export interface PurchaseSalesData {
 
 /**
  * 获取仪表盘汇总数据
- * GET /api/dashboard/summary
+ * GET /api/v1/dashboard/summary
  */
 export async function getDashboardSummaryApi() {
   return await http.request<CommonResult<DashboardSummary>>(
@@ -53,7 +53,7 @@ export async function getDashboardSummaryApi() {
 
 /**
  * 获取采购销售总览
- * GET /api/dashboard/purchase-sales
+ * GET /api/v1/dashboard/purchase-sales
  * @param days 查询天数，默认7，范围1-90
  */
 export async function getPurchaseSalesApi(days?: number) {

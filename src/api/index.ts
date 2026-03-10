@@ -39,3 +39,4 @@ export * from "./batch";
 export * from "./finance";
 export * from "./tools";
 export * from "./dashboard";
+export * from "./document-center";

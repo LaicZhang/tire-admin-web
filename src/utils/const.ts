@@ -1,7 +1,7 @@
 export const BaseImagePath =
   import.meta.env.VITE_IMAGE_PATH || "https://s4-tire.zyha.cn/cover/";
 export const BaseStaticUploadPath =
-  import.meta.env.VITE_UPLOAD_PATH || "/api/static";
+  import.meta.env.VITE_UPLOAD_PATH || "/api/v1/static";
 
 export const CUR_ORDER_TYPE = "curOrderType";
 export const CUR_FORM_TITLE = "curFormTitle";

@@ -1,29 +1,32 @@
+import { http } from "@/utils/http";
+import { baseUrlApi } from "../utils";
+import type { CommonResult, PaginatedResponseDto } from "../type";
+
 export type PriceRuleConfig = {
+  uid?: string;
   saleRules: unknown[];
   purchaseRules: unknown[];
+  remark?: string;
 };
 
-const STORAGE_KEY = "data:price-rule";
+const prefix = "/data-config/price-rule";
 
 export async function getPriceRuleConfigApi(): Promise<PriceRuleConfig | null> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as PriceRuleConfig;
-    if (!parsed || typeof parsed !== "object") return null;
-    if (
-      !Array.isArray(parsed.saleRules) ||
-      !Array.isArray(parsed.purchaseRules)
-    )
-      return null;
-    return parsed;
-  } catch {
-    return null;
+  const res = await http.request<
+    CommonResult<PaginatedResponseDto<PriceRuleConfig>>
+  >("get", baseUrlApi(`${prefix}/page/1`));
+  if (res.code !== 200) {
+    throw new Error(res.msg || "获取价格规则失败");
   }
+  return res.data?.list?.[0] ?? null;
 }
 
 export async function savePriceRuleConfigApi(
   config: PriceRuleConfig
 ): Promise<void> {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  const method = config.uid ? "patch" : "post";
+  const url = config.uid ? `${prefix}/${config.uid}` : prefix;
+  await http.request<CommonResult<PriceRuleConfig>>(method, baseUrlApi(url), {
+    data: config
+  });
 }
