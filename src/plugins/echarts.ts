@@ -1,6 +1,6 @@
 import type { App } from "vue";
-import * as echarts from "echarts/lib/core/echarts.js";
-import { use } from "echarts/lib/extension.js";
+import * as echarts from "echarts/core";
+import { use } from "echarts/core";
 import { PieChart, BarChart, LineChart } from "echarts/charts";
 import { CanvasRenderer, SVGRenderer } from "echarts/renderers";
 import {
