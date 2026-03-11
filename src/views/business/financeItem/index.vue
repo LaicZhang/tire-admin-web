@@ -18,6 +18,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import FinanceItemForm from "./FinanceItemForm.vue";
+import { columns } from "./columns";
 
 defineOptions({
   name: "FinanceItem"
@@ -58,33 +59,6 @@ const {
   },
   immediate: true
 });
-
-const columns = [
-  {
-    label: "名称",
-    prop: "name"
-  },
-  {
-    label: "类型",
-    prop: "type",
-    cellRenderer: ({ row }: { row: IncomeExpenseItem }) => {
-      const map: Record<IncomeExpenseItem["type"], string> = {
-        income: "收入",
-        expense: "支出"
-      };
-      return map[row.type];
-    }
-  },
-  {
-    label: "备注",
-    prop: "desc"
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation"
-  }
-];
 
 const handleSearch = () => {
   pagination.value = { ...pagination.value, currentPage: 1 };

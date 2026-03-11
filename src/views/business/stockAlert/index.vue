@@ -18,6 +18,7 @@ import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import type { StockAlert, StockAlertDto } from "@/api/business/stock-alert";
 import StockAlertForm from "./StockAlertForm.vue";
+import { columns } from "./columns";
 
 defineOptions({
   name: "StockAlert"
@@ -50,17 +51,6 @@ const {
   },
   immediate: true
 });
-
-const columns = [
-  {
-    label: "轮胎ID",
-    prop: "tireId"
-  },
-  {
-    label: "最低库存",
-    prop: "minQuantity"
-  }
-];
 
 const handleScan = async () => {
   const { code, msg } = await scanStockAlertApi();

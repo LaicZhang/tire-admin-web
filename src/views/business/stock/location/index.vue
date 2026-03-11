@@ -16,6 +16,7 @@ import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
+import { columns } from "./columns";
 
 defineOptions({
   name: "StockLocation"
@@ -54,26 +55,6 @@ const {
   },
   immediate: true
 });
-
-const columns = [
-  {
-    label: "库区名称",
-    prop: "name"
-  },
-  {
-    label: "所属仓库",
-    prop: "repoName"
-  },
-  {
-    label: "货位数量",
-    prop: "binCount"
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation"
-  }
-];
 
 const handleDelete = async (row: Zone) => {
   await deleteRepoZoneApi(String(row.id));

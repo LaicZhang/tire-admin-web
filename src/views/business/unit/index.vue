@@ -18,6 +18,7 @@ import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import UnitForm from "./UnitForm.vue";
 import type { FormInstance } from "element-plus";
+import { columns } from "./columns";
 
 defineOptions({
   name: "Unit"
@@ -56,18 +57,6 @@ const {
   },
   immediate: true
 });
-
-const columns = [
-  {
-    label: "单位名称",
-    prop: "name"
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation"
-  }
-];
 
 const handleDelete = async (row: Unit) => {
   await deleteUnitApi(row.id);

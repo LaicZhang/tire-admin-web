@@ -19,6 +19,7 @@ import Form from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import type { PriceList } from "@/api/business/price";
+import { columns } from "./columns";
 
 defineOptions({
   name: "PriceList"
@@ -58,30 +59,6 @@ const {
   },
   immediate: true
 });
-
-const columns = [
-  {
-    label: "名称",
-    prop: "name"
-  },
-  {
-    label: "类型",
-    prop: "type",
-    cellRenderer: ({ row }: { row: PriceList }) => {
-      const map: Record<string, string> = { SYSTEM: "系统", CUSTOM: "自定义" };
-      return map[String(row.type)] || row.type;
-    }
-  },
-  {
-    label: "备注",
-    prop: "desc"
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation"
-  }
-];
 
 const handleSearch = () => {
   pagination.value = { ...pagination.value, currentPage: 1 };

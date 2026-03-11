@@ -11,7 +11,6 @@ import {
 } from "@/api";
 import type { PaymentAccount } from "@/api/type";
 import { message } from "@/utils";
-import { formatMoney } from "@/utils/formatMoney";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
@@ -21,6 +20,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import AccountOperationDialog from "./accountOperationDialog.vue";
 import type { FormInstance } from "element-plus";
+import { columns } from "./columns";
 
 defineOptions({
   name: "Payment"
@@ -55,38 +55,6 @@ function handleOperation(
   operationType.value = type;
   showOperationDialog.value = true;
 }
-
-const columns = ref<TableColumnList>([
-  {
-    label: "账户UID",
-    prop: "uid"
-  },
-  {
-    label: "公司UID",
-    prop: "companyUid"
-  },
-  {
-    label: "余额",
-    prop: "balance",
-    formatter: (row, column, cellValue) => {
-      return formatMoney(Number(cellValue ?? 0));
-    }
-  },
-  {
-    label: "创建时间",
-    prop: "createAt",
-    formatter: (row, column, cellValue) => {
-      return cellValue ? new Date(cellValue).toLocaleString() : "-";
-    }
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    prop: "operation",
-    slot: "operation",
-    minWidth: 200
-  }
-]);
 
 const getPaymentListInfo = async () => {
   loading.value = true;

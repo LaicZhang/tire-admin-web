@@ -13,7 +13,8 @@ import ShippingPlanTab from "./ShippingPlanTab.vue";
 import LoadingTaskTab from "./LoadingTaskTab.vue";
 import ShippingWaveTab from "./ShippingWaveTab.vue";
 import LogisticDetailDrawer from "./LogisticDetailDrawer.vue";
-import { logisticStatusTextMap, type LogisticOrder } from "./types";
+import type { LogisticOrder } from "./types";
+import { columns, orderTypeOptions } from "./columns";
 
 defineOptions({
   name: "Logistic"
@@ -36,63 +37,6 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
-
-const orderTypeOptions = [
-  { label: "采购订单", value: "purchase-order" },
-  { label: "销售订单", value: "sale-order" },
-  { label: "退货订单", value: "return-order" },
-  { label: "调拨订单", value: "transfer-order" }
-];
-
-const columns = ref<TableColumnList>([
-  {
-    label: "订单UID",
-    prop: "uid"
-  },
-  {
-    label: "订单类型",
-    prop: "type",
-    formatter: (row, column, cellValue) => {
-      const option = orderTypeOptions.find(opt => opt.value === cellValue);
-      return option ? option.label : cellValue;
-    }
-  },
-  {
-    label: "物流状态",
-    prop: "logisticsStatus",
-    formatter: (row, column, cellValue) => {
-      return logisticStatusTextMap[String(cellValue)] || "未知";
-    }
-  },
-  {
-    label: "是否已到达",
-    prop: "isArrival",
-    formatter: (row, column, cellValue) => {
-      return cellValue ? "是" : "否";
-    }
-  },
-  {
-    label: "发货时间",
-    prop: "departureAt",
-    formatter: (row, column, cellValue) => {
-      return cellValue ? new Date(cellValue).toLocaleString() : "-";
-    }
-  },
-  {
-    label: "到达时间",
-    prop: "arrivalAt",
-    formatter: (row, column, cellValue) => {
-      return cellValue ? new Date(cellValue).toLocaleString() : "-";
-    }
-  },
-  {
-    label: "操作",
-    fixed: "right",
-    prop: "operation",
-    slot: "operation",
-    minWidth: 240
-  }
-]);
 
 const getLogisticListInfo = async () => {
   loading.value = true;

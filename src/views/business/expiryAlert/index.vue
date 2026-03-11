@@ -15,6 +15,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import ExpiryAlertForm from "./ExpiryAlertForm.vue";
+import { columns } from "./columns";
 
 defineOptions({
   name: "ExpiryAlert"
@@ -60,17 +61,6 @@ const {
   },
   immediate: true
 });
-
-const columns = [
-  {
-    label: "仓库",
-    prop: "repoId"
-  },
-  {
-    label: "提前预警天数",
-    prop: "daysBefore"
-  }
-];
 
 function openDialog(title = "新增") {
   const dialogFormRef = ref<{ getRef: () => FormInstance | undefined }>();
