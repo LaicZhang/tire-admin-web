@@ -5,7 +5,7 @@ import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import type { ECharts } from "echarts";
+import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
 
 defineOptions({
@@ -74,7 +74,7 @@ const netTrend = ref<NetTrendItem[]>([]);
 
 // 图表
 const chartRef = ref<HTMLElement | null>(null);
-let chartInstance: ECharts | null = null;
+let chartInstance: EChartsType | null = null;
 
 const dateParams = computed(() => {
   if (!dateRange.value) return {};
@@ -128,11 +128,12 @@ const updateChart = async () => {
     const echarts = await getEcharts();
     chartInstance = echarts.init(chartRef.value);
   }
+  const chart = chartInstance;
 
   // Merge trends (assuming same periods)
   const periods = grossTrend.value.map((d: GrossTrendItem) => d.period);
 
-  chartInstance.setOption({
+  chart.setOption({
     tooltip: { trigger: "axis" },
     legend: { data: ["销售收入", "销售成本", "毛利润", "净利润"] },
     grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },

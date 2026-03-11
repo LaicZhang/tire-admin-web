@@ -11,7 +11,7 @@ import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { slowMovingColumns, stockoutColumns } from "./columns";
 import Refresh from "~icons/ep/refresh";
-import type { ECharts } from "echarts";
+import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
 
 defineOptions({
@@ -82,8 +82,8 @@ const expiryData = ref<ExpiryDataItem[]>([]);
 // 图表引用
 const turnoverChartRef = ref<HTMLElement | null>(null);
 const expiryChartRef = ref<HTMLElement | null>(null);
-let turnoverChart: ECharts | null = null;
-let expiryChart: ECharts | null = null;
+let turnoverChart: EChartsType | null = null;
+let expiryChart: EChartsType | null = null;
 
 // 格式化金额
 const formatAmount = (val: string | number) => {
@@ -173,8 +173,9 @@ const updateTurnoverChart = async () => {
     const echarts = await getEcharts();
     turnoverChart = echarts.init(turnoverChartRef.value);
   }
+  const chart = turnoverChart;
   const details = turnoverData.value.details || [];
-  turnoverChart.setOption({
+  chart.setOption({
     tooltip: { trigger: "axis" },
     xAxis: {
       type: "category",
@@ -197,7 +198,8 @@ const updateExpiryChart = async () => {
     const echarts = await getEcharts();
     expiryChart = echarts.init(expiryChartRef.value);
   }
-  expiryChart.setOption({
+  const chart = expiryChart;
+  chart.setOption({
     tooltip: { trigger: "item" },
     series: [
       {

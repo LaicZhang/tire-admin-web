@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick, h } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { getReceivableAgingApi, getPayableAgingApi } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { receivableColumns, payableColumns } from "./columns";
 import Refresh from "~icons/ep/refresh";
-import type { ECharts } from "echarts";
+import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
 
 defineOptions({
@@ -52,8 +52,8 @@ const payableData = ref<AgingData>({
 
 const chartRefReceivable = ref<HTMLElement | null>(null);
 const chartRefPayable = ref<HTMLElement | null>(null);
-let chartInstanceReceivable: ECharts | null = null;
-let chartInstancePayable: ECharts | null = null;
+let chartInstanceReceivable: EChartsType | null = null;
+let chartInstancePayable: EChartsType | null = null;
 
 const dateParams = computed(() => {
   // 账龄分析通常不需要时间段筛选，而是截止日期，但API提供了startDate/endDate，可能是筛选订单生成时间
@@ -118,6 +118,7 @@ const updateChart = async (type: "receivable" | "payable") => {
     if (isReceivable) chartInstanceReceivable = instance;
     else chartInstancePayable = instance;
   }
+  const chart = instance;
 
   const option = {
     title: {
@@ -152,7 +153,7 @@ const updateChart = async (type: "receivable" | "payable") => {
     ]
   };
 
-  instance.setOption(option);
+  chart.setOption(option);
 };
 
 const loadData = async () => {

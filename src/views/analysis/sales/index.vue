@@ -11,7 +11,7 @@ import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import type { ECharts, EChartsOption } from "echarts";
+import type { EChartsCoreOption, EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
 import { useColumns } from "./columns";
 
@@ -23,7 +23,7 @@ const { customerColumns, productColumns, operatorColumns } = useColumns();
 
 const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
-let chartInstance: ECharts | null = null;
+let chartInstance: EChartsType | null = null;
 
 // 日期范围筛选
 const dateRange = ref<[Date, Date] | null>(null);
@@ -162,8 +162,9 @@ const updateChart = async () => {
     const echarts = await getEcharts();
     chartInstance = echarts.init(chartRef.value);
   }
+  const chart = chartInstance;
 
-  const option: EChartsOption = {
+  const option: EChartsCoreOption = {
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" }
@@ -213,7 +214,7 @@ const updateChart = async () => {
     ]
   };
 
-  chartInstance.setOption(option);
+  chart.setOption(option);
 };
 
 const loadData = async () => {

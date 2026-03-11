@@ -4,7 +4,7 @@ import { getPurchaseSalesApi } from "@/api";
 import type { DailySummaryItem } from "@/api/dashboard";
 import { handleApiError, message } from "@/utils";
 import { getEcharts } from "@/utils/echarts";
-import type { ECharts, EChartsOption } from "echarts";
+import type { EChartsCoreOption, EChartsType } from "echarts/core";
 
 defineOptions({
   name: "SalesChart"
@@ -12,7 +12,7 @@ defineOptions({
 
 const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
-let chartInstance: ECharts | null = null;
+let chartInstance: EChartsType | null = null;
 
 // 当前选择的天数 (7 或 30)
 const selectedDays = ref(7);
@@ -54,10 +54,11 @@ const loadData = async () => {
 const updateChart = async () => {
   if (!chartRef.value) return;
 
+  const echarts = await getEcharts();
   if (!chartInstance) {
-    const echarts = await getEcharts();
     chartInstance = echarts.init(chartRef.value);
   }
+  const chart = chartInstance;
 
   const dates = dailySummary.value.map(item => item.date);
   const purchaseData = dailySummary.value.map(item =>
@@ -65,8 +66,7 @@ const updateChart = async () => {
   );
   const salesData = dailySummary.value.map(item => Number(item.salesAmount));
 
-  const echarts = await getEcharts();
-  const option: EChartsOption = {
+  const option: EChartsCoreOption = {
     tooltip: {
       trigger: "axis",
       axisPointer: {
@@ -171,7 +171,7 @@ const updateChart = async () => {
     ]
   };
 
-  chartInstance.setOption(option);
+  chart.setOption(option);
 };
 
 const handleResize = () => {

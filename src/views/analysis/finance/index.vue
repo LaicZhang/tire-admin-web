@@ -9,7 +9,7 @@ import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
-import type { ECharts } from "echarts";
+import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
 
 defineOptions({
@@ -79,8 +79,8 @@ const balanceTrend = ref<BalanceTrendItem[]>([]);
 // 图表
 const cashFlowChartRef = ref<HTMLElement | null>(null);
 const balanceChartRef = ref<HTMLElement | null>(null);
-let cashFlowChart: ECharts | null = null;
-let balanceChart: ECharts | null = null;
+let cashFlowChart: EChartsType | null = null;
+let balanceChart: EChartsType | null = null;
 
 const dateParams = computed(() => {
   if (!dateRange.value) return {};
@@ -148,10 +148,11 @@ const updateCashFlowChart = async () => {
     const echarts = await getEcharts();
     cashFlowChart = echarts.init(cashFlowChartRef.value);
   }
+  const chart = cashFlowChart;
 
   const periods = cashFlowTrend.value.map((d: CashFlowTrendItem) => d.period);
 
-  cashFlowChart.setOption({
+  chart.setOption({
     tooltip: { trigger: "axis" },
     legend: { data: ["收入", "支出", "净现金流"] },
     grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
@@ -196,8 +197,9 @@ const updateBalanceChart = async () => {
     const echarts = await getEcharts();
     balanceChart = echarts.init(balanceChartRef.value);
   }
+  const chart = balanceChart;
 
-  balanceChart.setOption({
+  chart.setOption({
     tooltip: { trigger: "axis" },
     xAxis: {
       type: "category",
