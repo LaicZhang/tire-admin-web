@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import { createChatApi, chatApi, getChatApi, getChatCountApi } from "@/api";
 import { handleApiError, message } from "@/utils";
+import { createUid } from "@/utils/uid";
 import { Loading } from "@element-plus/icons-vue";
 import type { ChatMessage } from "@/api/chat";
 
@@ -26,7 +27,7 @@ const initNewChat = async () => {
       batchId.value = data.batchId || "";
       chatHistory.value = (data.messages || []).map(m => ({
         ...m,
-        _uid: m._uid || crypto.randomUUID()
+        _uid: m._uid || createUid()
       }));
       message("新对话已创建", { type: "success" });
     } else {
@@ -48,7 +49,7 @@ const sendMessage = async () => {
   const userMessage = {
     role: "user",
     content: inputMessage.value.trim(),
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   };
 
   chatHistory.value.push(userMessage);
@@ -69,7 +70,7 @@ const sendMessage = async () => {
         // Ensure all messages have _uid
         chatHistory.value = data.messages.map(m => ({
           ...m,
-          _uid: m._uid || crypto.randomUUID()
+          _uid: m._uid || createUid()
         }));
       }
     } else {

@@ -3,6 +3,7 @@ import { ref, reactive, watch } from "vue";
 import type { FormInstance } from "element-plus";
 import { handleApiError } from "@/utils/error";
 import { message } from "@/utils";
+import { createUid } from "@/utils/uid";
 import { Delete } from "@element-plus/icons-vue";
 import {
   createWorkflowApi,
@@ -59,7 +60,7 @@ const addStep = () => {
   formData.steps.push({
     name: `步骤 ${formData.steps.length + 1}`,
     approverType: "user",
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   });
 };
 

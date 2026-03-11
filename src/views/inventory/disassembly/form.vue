@@ -5,6 +5,7 @@ import { Plus, Delete } from "@element-plus/icons-vue";
 import type { DisassemblyOrder, CreateDisassemblyOrderDto } from "./types";
 import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
+import { createUid } from "@/utils/uid";
 
 interface Props {
   formInline: Partial<DisassemblyOrder>;
@@ -34,7 +35,7 @@ const formData = reactive<CreateDisassemblyOrderDto>({
     quantity: c.quantity,
     unitCost: c.unitCost,
     remark: c.remark,
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   })) || [
     {
       tireId: "",
@@ -42,7 +43,7 @@ const formData = reactive<CreateDisassemblyOrderDto>({
       quantity: 1,
       unitCost: 0,
       remark: "",
-      _uid: crypto.randomUUID()
+      _uid: createUid()
     }
   ]
 });
@@ -68,7 +69,7 @@ const addComponent = () => {
     quantity: 1,
     unitCost: 0,
     remark: "",
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   });
 };
 

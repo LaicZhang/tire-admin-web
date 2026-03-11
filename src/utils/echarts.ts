@@ -1,8 +1,10 @@
-export type EChartsModule = typeof import("echarts");
+export type EChartsModule = typeof import("echarts/core");
 
-let echartsModulePromise: Promise<EChartsModule> | null = null;
+let echartsInstancePromise: Promise<EChartsModule> | null = null;
 
-export function getEcharts() {
-  echartsModulePromise ||= import("echarts");
-  return echartsModulePromise;
+export function getEcharts(): Promise<EChartsModule> {
+  if (!echartsInstancePromise) {
+    echartsInstancePromise = import("@/plugins/echarts").then(m => m.default);
+  }
+  return echartsInstancePromise;
 }

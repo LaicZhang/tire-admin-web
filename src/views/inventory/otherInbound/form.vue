@@ -11,6 +11,7 @@ import { OtherInboundType, otherInboundTypeMap } from "./types";
 import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
 import { getProviderListApi } from "@/api/business/provider";
+import { createUid } from "@/utils/uid";
 
 interface Props {
   formInline: Partial<OtherInboundOrder>;
@@ -43,7 +44,7 @@ const formData = reactive<CreateOtherInboundDto>({
   operatorId: props.formInline.operatorId || "",
   remark: props.formInline.remark || "",
   details: props.formInline.details?.map(d => ({
-    _uid: crypto.randomUUID(),
+    _uid: createUid(),
     tireId: d.tireId,
     repoId: d.repoId,
     quantity: d.quantity,
@@ -51,7 +52,7 @@ const formData = reactive<CreateOtherInboundDto>({
     remark: d.remark
   })) || [
     {
-      _uid: crypto.randomUUID(),
+      _uid: createUid(),
       tireId: "",
       repoId: "",
       quantity: 1,
@@ -67,7 +68,7 @@ const rules = reactive<FormRules>({
 
 const addDetail = () => {
   formData.details.push({
-    _uid: crypto.randomUUID(),
+    _uid: createUid(),
     tireId: "",
     repoId: "",
     quantity: 1,

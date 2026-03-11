@@ -6,12 +6,14 @@ export interface PresentationColumn<T> {
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+  const map: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  };
+  return value.replace(/[&<>"']/g, c => map[c] ?? c);
 }
 
 function normalizeCell(value: string | number | boolean | null | undefined) {
@@ -99,7 +101,7 @@ export function exportRowsAsCsv<T>(
   const lines = rows.map(row =>
     columns
       .map(column => {
-        const value = normalizeCell(column.value(row)).replaceAll('"', '""');
+        const value = normalizeCell(column.value(row)).replace(/"/g, '""');
         return `"${value}"`;
       })
       .join(",")

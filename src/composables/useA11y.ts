@@ -57,7 +57,7 @@ function inputHasLabel(input: HTMLInputElement): boolean {
     const escapedId =
       typeof CSS !== "undefined" && typeof CSS.escape === "function"
         ? CSS.escape(id)
-        : id.replaceAll('"', '\\"');
+        : id.replace(/"/g, '\\"');
     const label = document.querySelector(`label[for="${escapedId}"]`);
     if (label && (label.textContent ?? "").trim()) return true;
   }

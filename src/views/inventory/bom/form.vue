@@ -4,6 +4,7 @@ import type { FormInstance, FormRules } from "element-plus";
 import { Plus, Delete } from "@element-plus/icons-vue";
 import type { Bom, CreateBomDto } from "./types";
 import { getTireListApi } from "@/api/business/tire";
+import { createUid } from "@/utils/uid";
 
 interface Props {
   formInline: Partial<Bom>;
@@ -29,8 +30,8 @@ const formData = reactive<CreateBomDto>({
     tireId: c.tireId,
     quantity: c.quantity,
     remark: c.remark,
-    _uid: crypto.randomUUID()
-  })) || [{ tireId: "", quantity: 1, remark: "", _uid: crypto.randomUUID() }]
+    _uid: createUid()
+  })) || [{ tireId: "", quantity: 1, remark: "", _uid: createUid() }]
 });
 
 const rules = reactive<FormRules>({
@@ -50,7 +51,7 @@ const addComponent = () => {
     tireId: "",
     quantity: 1,
     remark: "",
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   });
 };
 

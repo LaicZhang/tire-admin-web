@@ -10,6 +10,7 @@ import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
 import { getEmployeeListApi } from "@/api/company/employee";
 import { MoneyDisplay } from "@/components";
+import { createUid } from "@/utils/uid";
 
 interface Props {
   formInline: {
@@ -39,10 +40,10 @@ const formData = reactive<CreateCostAdjustOrderDto>({
   desc: props.formInline.desc || "",
   details: props.formInline.details?.map(d => ({
     ...d,
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   })) || [
     {
-      _uid: crypto.randomUUID(),
+      _uid: createUid(),
       repoId: "",
       tireId: "",
       originalCost: 0,
@@ -66,7 +67,7 @@ const totalAdjustAmount = computed(() => {
 
 const addDetail = () => {
   formData.details.push({
-    _uid: crypto.randomUUID(),
+    _uid: createUid(),
     repoId: "",
     tireId: "",
     originalCost: 0,

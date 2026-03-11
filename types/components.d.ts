@@ -64,6 +64,8 @@ declare module 'vue' {
     ElSteps: typeof import('element-plus/es')['ElSteps']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
+    ElTable: typeof import('element-plus/es')['ElTable']
+    ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
@@ -137,6 +139,8 @@ declare global {
   const ElSteps: (typeof import("element-plus/es"))["ElSteps"];
   const ElSubMenu: (typeof import("element-plus/es"))["ElSubMenu"];
   const ElSwitch: (typeof import("element-plus/es"))["ElSwitch"];
+  const ElTable: (typeof import("element-plus/es"))["ElTable"];
+  const ElTableColumn: (typeof import("element-plus/es"))["ElTableColumn"];
   const ElTabPane: (typeof import("element-plus/es"))["ElTabPane"];
   const ElTabs: (typeof import("element-plus/es"))["ElTabs"];
   const ElTag: (typeof import("element-plus/es"))["ElTag"];

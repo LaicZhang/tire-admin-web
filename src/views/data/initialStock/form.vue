@@ -7,6 +7,7 @@ import DeleteIcon from "~icons/ep/delete";
 import { MoneyDisplay } from "@/components";
 import { elementRules } from "@/utils/validation/elementRules";
 import { fieldRules } from "@/utils/validation/fieldRules";
+import { createUid } from "@/utils/uid";
 
 interface FormProps {
   formInline?: InitialStockForm;
@@ -87,7 +88,7 @@ const stockItems = ref<(InitialStockItem & { _uid: string })[]>([
     quantity: 0,
     costPrice: 0,
     batchNo: "",
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   }
 ]);
 
@@ -111,7 +112,7 @@ const handleAddItem = () => {
     quantity: 0,
     costPrice: 0,
     batchNo: "",
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   });
 };
 

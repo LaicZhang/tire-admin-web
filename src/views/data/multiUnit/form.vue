@@ -6,6 +6,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Plus from "~icons/ep/plus";
 import Delete from "~icons/ep/delete";
 import { elementRules } from "@/utils/validation/elementRules";
+import { createUid } from "@/utils/uid";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -106,7 +107,7 @@ function addConversion() {
   newFormInline.value.conversions.push({
     unitUid: "",
     ratio: 1,
-    _uid: crypto.randomUUID()
+    _uid: createUid()
   });
 }
 

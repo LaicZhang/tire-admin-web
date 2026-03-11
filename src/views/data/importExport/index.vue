@@ -6,6 +6,7 @@ import UploadIcon from "~icons/ri/upload-cloud-2-line";
 import DownloadIcon from "~icons/ri/download-cloud-2-line";
 import DeleteIcon from "~icons/ep/delete";
 import { message } from "@/utils";
+import { createUid } from "@/utils/uid";
 import {
   downloadBlob,
   downloadFromUrl,
@@ -209,7 +210,7 @@ const handleUpload = async (options: UploadRequestOptions) => {
 
     pushTask({
       id: Date.now(),
-      uid: crypto.randomUUID(),
+      uid: createUid(),
       type: "import",
       module: selectedModule.value,
       fileName: file.name,
@@ -265,7 +266,7 @@ const handleExport = () => {
 
       pushTask({
         id: Date.now(),
-        uid: crypto.randomUUID(),
+        uid: createUid(),
         type: "export",
         module: exportModule.value,
         fileName: filename,

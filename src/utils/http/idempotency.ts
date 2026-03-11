@@ -1,4 +1,5 @@
 import type { PureHttpRequestConfig } from "./types.d";
+import { createUid } from "@/utils/uid";
 
 const MUTATING_METHODS = new Set(["post", "put", "patch", "delete"]);
 const IDEMPOTENCY_HEADER = "x-idempotency-key";
@@ -73,9 +74,7 @@ export function ensureIdempotencyKey(
     return cached.key;
   }
 
-  const key = options?.generateKey
-    ? options.generateKey()
-    : crypto.randomUUID();
+  const key = options?.generateKey ? options.generateKey() : createUid();
   cache.set(signatureKey, { key, expireAtMs: nowMs + reuseMs });
   (config.headers as Record<string, unknown>)[IDEMPOTENCY_HEADER] = key;
   return key;
