@@ -56,7 +56,7 @@ export function useColumns() {
     },
     {
       label: "操作",
-      width: 180,
+      width: 260,
       fixed: "right",
       slot: "operation"
     }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Eye from "~icons/ep/view";
 import EditPen from "~icons/ep/edit-pen";
+import Setting from "~icons/ep/setting";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import "plus-pro-components/es/components/search/style/css";
@@ -20,6 +20,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import RoleForm from "./form.vue";
+import RolePermissionForm from "./permissionForm.vue";
 import { message, handleApiError } from "@/utils";
 import { FormItemProps } from "./utils/types";
 
@@ -39,6 +40,7 @@ defineOptions({
 });
 
 const formRef = ref();
+const permissionFormRef = ref<{ submit: () => Promise<boolean> } | null>(null);
 const state = ref({
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
   name: undefined as string | undefined,
@@ -165,6 +167,30 @@ const restoreOne = async (row: CompanyRoleItem) => {
   handleSearch();
 };
 
+const openPermissionDialog = (row: CompanyRoleItem) => {
+  if (!row.uid) {
+    message("缺少角色UID", { type: "error" });
+    return;
+  }
+  addDialog({
+    title: `${row.cn || row.name}权限设置`,
+    width: "720px",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () =>
+      h(RolePermissionForm, {
+        ref: permissionFormRef,
+        uid: row.uid
+      }),
+    beforeSure: async done => {
+      const success = await permissionFormRef.value?.submit();
+      if (success) done();
+    }
+  });
+};
+
 onMounted(() => {
   handleSearch();
 });
@@ -227,6 +253,17 @@ onMounted(() => {
                 @click.prevent="openDialog('修改', row)"
               >
                 修改
+              </el-button>
+              <el-button
+                v-if="!row.deleteAt && row.name !== 'boss'"
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(Setting)"
+                @click.prevent="openPermissionDialog(row)"
+              >
+                权限设置
               </el-button>
               <el-popconfirm
                 v-if="row.deleteAt"

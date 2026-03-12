@@ -14,6 +14,13 @@ export type CompanyRoleItem = {
   deleteAt?: string | null;
 };
 
+export interface RolePermissionTreeNode {
+  key: string;
+  label: string;
+  permissionUid?: string;
+  children?: RolePermissionTreeNode[];
+}
+
 function getCompanyId() {
   return useCurrentCompanyStoreHook().companyId;
 }
@@ -72,6 +79,38 @@ export async function setRoleMenusApi(
     baseUrlApi(`/role/${uid}/menus`),
     {
       data: { menuUids },
+      params: companyId ? { companyId } : undefined
+    }
+  );
+}
+
+export async function getRolePermissionTreeApi() {
+  return await http.request<CommonResult<RolePermissionTreeNode[]>>(
+    "get",
+    baseUrlApi("/role/permissions/tree")
+  );
+}
+
+export async function getRolePermissionsApi(uid: string, companyId?: string) {
+  return await http.request<CommonResult<string[]>>(
+    "get",
+    baseUrlApi(`/role/${uid}/permissions`),
+    {
+      params: companyId ? { companyId } : undefined
+    }
+  );
+}
+
+export async function setRolePermissionsApi(
+  uid: string,
+  permissionUids: string[],
+  companyId?: string
+) {
+  return await http.request<CommonResult<void>>(
+    "patch",
+    baseUrlApi(`/role/${uid}/permissions`),
+    {
+      data: { permissionUids },
       params: companyId ? { companyId } : undefined
     }
   );
