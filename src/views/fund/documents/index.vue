@@ -84,6 +84,7 @@ const statistics = reactive({
 });
 
 const approvableDocumentTypes = new Set<DocumentCenterType>([
+  "RECEIPT",
   "WRITE_OFF",
   "PAYMENT",
   "TRANSFER",
