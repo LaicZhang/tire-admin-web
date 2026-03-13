@@ -288,6 +288,21 @@ export default [
           title: "备份管理",
           icon: null
         }
+      },
+      {
+        id: 60,
+        uid: "0f0e0f69-b995-43bf-a18f-dc2599bb4698",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "helpCenter",
+        path: "/system/help-center",
+        redirect: null,
+        component: () => import("@/views/system/help-center/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "officer"],
+          title: "帮助中心",
+          icon: null
+        }
       }
     ]
   },
