@@ -248,7 +248,7 @@ export function useAiEntryRecognition(
         break;
     }
 
-    const { data, code, msg } = await chatApi({
+    const aiResponse = await chatApi({
       uid: chatUid.value || "",
       batchId: batchId.value || "",
       messages: [
@@ -276,16 +276,7 @@ export function useAiEntryRecognition(
         }
       ]
     });
-
-    if (code === 200 && data) {
-      const responseData = data as { messages?: Array<{ content?: string }> };
-      const aiResponse =
-        responseData.messages?.[responseData.messages.length - 1]?.content ||
-        "";
-      await parseAIResponse(aiResponse);
-    } else {
-      throw new Error(msg || "识别失败");
-    }
+    await parseAIResponse(aiResponse);
   }
 
   const reset = () => {

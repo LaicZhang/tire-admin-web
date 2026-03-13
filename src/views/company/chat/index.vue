@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { createChatApi, chatApi, getChatApi, getChatCountApi } from "@/api";
+import { createChatApi, chatApi, getChatCountApi } from "@/api";
 import { handleApiError, message } from "@/utils";
 import { createUid } from "@/utils/uid";
 import { Loading } from "@element-plus/icons-vue";
@@ -25,10 +25,7 @@ const initNewChat = async () => {
     if (code === 200) {
       chatUid.value = data.uid || "";
       batchId.value = data.batchId || "";
-      chatHistory.value = (data.messages || []).map(m => ({
-        ...m,
-        _uid: m._uid || createUid()
-      }));
+      chatHistory.value = [];
       message("新对话已创建", { type: "success" });
     } else {
       handleApiError(msg, "创建对话失败");
@@ -58,26 +55,18 @@ const sendMessage = async () => {
 
   try {
     loading.value = true;
-    const { data, code, msg } = await chatApi({
+    const responseText = await chatApi({
       uid: chatUid.value,
       batchId: batchId.value,
       messages: chatHistory.value
       // Note: url 和 model 由后端配置管理，前端不应暴露第三方 API 地址
     });
-
-    if (code === 200) {
-      if (data.messages) {
-        // Ensure all messages have _uid
-        chatHistory.value = data.messages.map(m => ({
-          ...m,
-          _uid: m._uid || createUid()
-        }));
-      }
-    } else {
-      handleApiError(msg, "发送消息失败");
-      chatHistory.value.pop();
-      inputMessage.value = currentMessage;
-    }
+    chatHistory.value.push({
+      role: "assistant",
+      content: responseText || "AI 未返回内容",
+      _uid: createUid()
+    });
+    await loadChatCount();
   } catch (error) {
     handleApiError(error, "发送消息失败");
     chatHistory.value.pop();
