@@ -28,6 +28,7 @@ import type { CommonResult } from "@/api/type";
 import ConfirmOrderDetailAction from "../components/ConfirmOrderDetailAction.vue";
 import ClaimDefectCategoryManager from "../components/ClaimDefectCategoryManager.vue";
 import ClaimInspectionDialog from "../components/ClaimInspectionDialog.vue";
+import { openPurchasePlanConvertDialog } from "../../purchase/plan/usePurchasePlanConvertDialog";
 
 /**
  * 订单行数据接口
@@ -429,6 +430,23 @@ export function useOrderActions(
     }
   };
 
+  const handleConvertPurchasePlan = async (row: OrderRow) => {
+    if (!row.id) {
+      message("采购计划缺少主键，无法转订单", { type: "warning" });
+      return;
+    }
+
+    await openPurchasePlanConvertDialog(
+      {
+        id: row.id,
+        repo: row.repo as { uid: string; name: string } | undefined,
+        tire: row.tire as { name?: string } | undefined,
+        count: Number(row.count ?? 0)
+      },
+      onSearch
+    );
+  };
+
   const handleConvertQuotation = async (row: OrderRow) => {
     try {
       const saleOrderUid = await promptSaleOrderUid(row);
@@ -461,6 +479,7 @@ export function useOrderActions(
     handleConfirmTransferArrival,
     handleReverseOrder,
     handleSendInquiry,
+    handleConvertPurchasePlan,
     handleConvertQuotation
   };
 }

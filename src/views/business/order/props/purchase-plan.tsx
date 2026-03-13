@@ -21,6 +21,11 @@ export const purchasePlanColumns: TableColumnList = [
     prop: "repo.name"
   },
   {
+    label: "关联采购单",
+    prop: "purchaseOrder.docNo",
+    formatter: ({ purchaseOrder }) => purchaseOrder?.docNo || "-"
+  },
+  {
     label: "计划数量",
     prop: "count"
   },
@@ -48,9 +53,14 @@ export const purchasePlanColumns: TableColumnList = [
     }
   },
   {
+    label: "备注",
+    prop: "note"
+  },
+  {
     label: "创建时间",
     prop: "createdAt",
-    formatter: ({ createdAt }) => dayjs(createdAt).format("YYYY-MM-DD HH:mm:ss")
+    formatter: ({ createdAt }) =>
+      createdAt ? dayjs(createdAt).format("YYYY-MM-DD HH:mm:ss") : "-"
   },
   {
     label: "操作",

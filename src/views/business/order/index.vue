@@ -56,6 +56,7 @@ const {
   handleConfirmTransferArrival,
   handleReverseOrder,
   handleSendInquiry,
+  handleConvertPurchasePlan,
   handleConvertQuotation
 } = useOrderActions(orderType, onSearch);
 
@@ -401,19 +402,18 @@ onMounted(async () => {
               </el-button>
 
               <!-- 采购计划：生成订单 -->
-              <el-tooltip
+              <el-button
                 v-if="
                   orderType === ORDER_TYPE.purchasePlan &&
                   row.status !== 'ordered'
                 "
-                content="待后端提供采购计划转订单接口后开放"
+                class="reset-margin"
+                link
+                type="primary"
+                @click="handleConvertPurchasePlan(row)"
               >
-                <span class="inline-flex">
-                  <el-button class="reset-margin" link type="primary" disabled>
-                    生成订单
-                  </el-button>
-                </span>
-              </el-tooltip>
+                生成订单
+              </el-button>
 
               <!-- 采购询价：发送询价 -->
               <el-button
