@@ -16,11 +16,12 @@ import {
   reverseClaimOrderApi,
   reverseSurplusOrderApi,
   sendPurchaseInquiryApi,
-  convertSaleQuotationApi
+  convertSaleQuotationApi,
+  getOrderListApi
 } from "@/api";
 import { addDialog } from "@/components/ReDialog";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { ElMessageBox } from "element-plus";
+import { ElMessageBox, ElOption, ElSelect } from "element-plus";
 import { CUR_FORM_TITLE, localForage, message, ORDER_TYPE } from "@/utils";
 import { openDialog } from "../table";
 import type { CommonResult } from "@/api/type";
@@ -37,9 +38,18 @@ export interface OrderRow {
   name?: string;
   status?: string;
   orderNo?: string;
+  customerId?: string;
+  customer?: { uid?: string; name?: string | null } | null;
+  orders?: Array<{ saleOrderUid?: string }>;
   total?: number | string;
   payStatus?: number;
   [key: string]: unknown;
+}
+
+interface SaleOrderCandidate {
+  uid: string;
+  number?: string | number;
+  desc?: string | null;
 }
 
 /**
@@ -52,6 +62,94 @@ export function useOrderActions(
 ) {
   const formTitle = { value: "" };
   const { confirm } = useConfirmDialog();
+
+  const resolveQuotationCustomerId = (row: OrderRow) => {
+    return row.customerId || row.customer?.uid || "";
+  };
+
+  const loadSaleOrderCandidates = async (customerId: string) => {
+    const { data, code, msg } = await getOrderListApi<SaleOrderCandidate>(
+      "sale-order",
+      1,
+      {
+        customerId,
+        pageSize: 100
+      }
+    );
+    if (code !== 200) {
+      throw new Error(msg || "加载销售订单失败");
+    }
+    return (data.list || []).filter(item => typeof item.uid === "string");
+  };
+
+  const promptSaleOrderUid = async (row: OrderRow) => {
+    const customerId = resolveQuotationCustomerId(row);
+    if (!customerId) {
+      throw new Error("报价单缺少客户信息，无法匹配销售订单");
+    }
+
+    const linkedOrderUids = new Set(
+      (row.orders || [])
+        .map(item => item.saleOrderUid)
+        .filter((value): value is string => typeof value === "string")
+    );
+    const candidates = (await loadSaleOrderCandidates(customerId)).filter(
+      item => !linkedOrderUids.has(item.uid)
+    );
+    if (candidates.length === 0) {
+      throw new Error("未找到可关联的销售订单，请先创建销售订单");
+    }
+
+    const selectedUid = ref(candidates[0].uid);
+    return await new Promise<string>((resolve, reject) => {
+      addDialog({
+        title: "选择关联销售订单",
+        width: "560px",
+        draggable: true,
+        closeOnClickModal: false,
+        contentRenderer: () =>
+          h("div", { class: "space-y-3" }, [
+            h(
+              "div",
+              { class: "text-sm text-gray-500" },
+              "销售报价需要关联一张已存在的销售订单，系统不会自动补仓库信息。"
+            ),
+            h(
+              ElSelect,
+              {
+                modelValue: selectedUid.value,
+                "onUpdate:modelValue": (value: string) => {
+                  selectedUid.value = value;
+                },
+                class: "w-full",
+                placeholder: "请选择销售订单"
+              },
+              () =>
+                candidates.map(item =>
+                  h(ElOption, {
+                    key: item.uid,
+                    label: `${item.number ?? item.uid}${
+                      item.desc ? ` | ${item.desc}` : ""
+                    }`,
+                    value: item.uid
+                  })
+                )
+            )
+          ]),
+        beforeSure: done => {
+          if (!selectedUid.value) {
+            message("请选择销售订单", { type: "warning" });
+            return;
+          }
+          done();
+          resolve(selectedUid.value);
+        },
+        closeCallBack: () => {
+          reject(new Error("cancel"));
+        }
+      });
+    });
+  };
 
   const openConfirmDetailActionDialog = async (
     title: string,
@@ -333,10 +431,13 @@ export function useOrderActions(
 
   const handleConvertQuotation = async (row: OrderRow) => {
     try {
-      await convertSaleQuotationApi(row.id ?? 0);
+      const saleOrderUid = await promptSaleOrderUid(row);
+      if (!saleOrderUid) return;
+      await convertSaleQuotationApi(row.id ?? 0, saleOrderUid);
       message("报价单转订单成功", { type: "success" });
       await onSearch();
     } catch (error: unknown) {
+      if (error instanceof Error && error.message === "cancel") return;
       const msg = error instanceof Error ? error.message : "转换失败";
       message(msg, { type: "error" });
     }

@@ -119,7 +119,10 @@ export function useOrderButtonVisibility(orderType: Ref<string>) {
    */
   const canConvertQuotation = (row: OrderRow) => {
     return (
-      orderType.value === ORDER_TYPE.saleQuotation && row.status === "accepted"
+      orderType.value === ORDER_TYPE.saleQuotation &&
+      row.status !== "REJECTED" &&
+      row.status !== "EXPIRED" &&
+      !(Array.isArray(row.orders) && row.orders.length > 0)
     );
   };
 

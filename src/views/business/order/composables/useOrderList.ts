@@ -6,7 +6,7 @@ import {
   getOrderListApi,
   getPurchasePlanListApi,
   getPurchaseInquiryListApi,
-  getSaleQuotationListApi
+  getSaleQuotationOrderListApi
 } from "@/api";
 import {
   CUR_ORDER_TYPE,
@@ -105,9 +105,9 @@ export function useOrderList() {
           PaginatedResponseDto<OrderRow>
         >;
       } else if (orderType.value === ORDER_TYPE.saleQuotation) {
-        res = (await getSaleQuotationListApi(params)) as CommonResult<
-          PaginatedResponseDto<OrderRow>
-        >;
+        res = (await getSaleQuotationOrderListApi({
+          index: pagination.value.currentPage
+        })) as unknown as CommonResult<PaginatedResponseDto<OrderRow>>;
       } else {
         res = (await getOrderListApi(
           orderType.value,

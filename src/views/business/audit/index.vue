@@ -87,7 +87,13 @@ function handlePageCurrentChange(page: number) {
 }
 
 function viewDetail(row: AuditOrder) {
-  router.push(`/business/order/detail/${row.uid}`);
+  router.push({
+    path: "/business/order",
+    query: {
+      keyword: row.uid,
+      orderType: activeTab.value
+    }
+  });
 }
 
 function formatDate(date: string) {

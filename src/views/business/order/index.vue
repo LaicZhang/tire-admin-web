@@ -60,11 +60,23 @@ const {
 } = useOrderActions(orderType, onSearch);
 
 const supportsManualCreate = computed(
-  () => orderType.value !== ORDER_TYPE.surplus
+  () =>
+    orderType.value !== ORDER_TYPE.surplus &&
+    orderType.value !== ORDER_TYPE.saleQuotation
 );
 const supportsWorkflowActions = computed(
-  () => orderType.value !== ORDER_TYPE.surplus
+  () =>
+    orderType.value !== ORDER_TYPE.surplus &&
+    orderType.value !== ORDER_TYPE.saleQuotation
 );
+
+const resolveRouteOrderType = () => {
+  const queryOrderType =
+    typeof route.query.orderType === "string" ? route.query.orderType : "";
+  return orderTypeList.value.some(item => item.value === queryOrderType)
+    ? queryOrderType
+    : "";
+};
 
 watch(
   () => route.query.keyword,
@@ -80,8 +92,26 @@ onMounted(async () => {
   applyKeyword(
     typeof route.query.keyword === "string" ? route.query.keyword : undefined
   );
-  await getOrderType();
-  await Promise.all([getOrderListInfo(), loadAllData()]);
+  const routeOrderType = resolveRouteOrderType();
+  let listLoaded = false;
+  if (routeOrderType) {
+    orderType.value = routeOrderType;
+    await setOrderType();
+    listLoaded = true;
+  } else {
+    await getOrderType();
+    if (!orderType.value && orderTypeList.value.length > 0) {
+      orderType.value = orderTypeList.value[0].value;
+      await setOrderType();
+      listLoaded = true;
+    } else if (orderType.value) {
+      listLoaded = true;
+    }
+  }
+  if (!listLoaded && orderType.value) {
+    await getOrderListInfo();
+  }
+  await loadAllData();
 });
 </script>
 
@@ -403,7 +433,9 @@ onMounted(async () => {
               <el-button
                 v-if="
                   orderType === ORDER_TYPE.saleQuotation &&
-                  row.status === 'accepted'
+                  row.status !== 'REJECTED' &&
+                  row.status !== 'EXPIRED' &&
+                  !(row.orders && row.orders.length > 0)
                 "
                 class="reset-margin"
                 link
