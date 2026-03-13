@@ -21,8 +21,8 @@ import type { CommonResult } from "@/api/type";
 import { useOptions } from "@/composables/useOptions";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import AdvancePaymentFormDialog from "./AdvancePaymentFormDialog.vue";
-import { calcReceiptStatus } from "@/views/fund/receipt/types";
 import { paymentStatusMap } from "@/views/fund/payment/types";
+import { calcAdvanceReceiptStatus } from "./types";
 
 defineOptions({
   name: "AdvancePaymentList"
@@ -139,7 +139,7 @@ function canApprove(row: AdvancePaymentListItem) {
 function getStatusConfig(row: AdvancePaymentListItem) {
   if (row.type === "RECEIPT") {
     return {
-      status: calcReceiptStatus(row.remainingAmount),
+      status: calcAdvanceReceiptStatus(row.remainingAmount),
       statusMap: RECEIPT_STATUS_MAP
     };
   }

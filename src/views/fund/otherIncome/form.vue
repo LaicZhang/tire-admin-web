@@ -242,7 +242,7 @@ defineExpose({ submit });
     </el-form-item>
 
     <div class="text-gray-400 text-sm">
-      提示：若本次收款金额为0，可后续通过收款单或核销单进行核销
+      提示：若本次收款金额为0，可后续通过收款单登记后再核销
     </div>
   </el-form>
 </template>

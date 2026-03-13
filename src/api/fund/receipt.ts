@@ -9,16 +9,40 @@ export interface Receipt {
   billNo: string;
   customerId: string;
   customerName?: string;
+  customer?: {
+    uid: string;
+    name: string;
+  };
   paymentId: string;
   paymentName?: string;
+  payment?: {
+    uid: string;
+    name: string;
+  };
   amount: number;
+  actualAmount?: number;
   writeOffAmount?: number;
   advanceAmount?: number;
   paymentMethod?: string;
   status: string;
   receiptDate?: string;
   remark?: string;
+  details?: ReceiptDetailItem[];
+  operatorId?: string;
+  approverId?: string;
+  approvedAt?: string;
   createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ReceiptDetailItem {
+  id?: number;
+  sourceOrderId?: string;
+  sourceOrderNo?: string;
+  sourceOrderType?: string;
+  receivableAmount: number;
+  writeOffAmount: number;
+  remark?: string;
 }
 
 export interface CreateReceiptDto {
@@ -28,6 +52,7 @@ export interface CreateReceiptDto {
   paymentMethod?: string;
   receiptDate?: string;
   remark?: string;
+  details?: Omit<ReceiptDetailItem, "id">[];
 }
 
 export async function getReceiptListApi(
@@ -36,7 +61,7 @@ export async function getReceiptListApi(
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<Receipt>>>(
     "get",
-    baseUrlApi(`/advance-receipt/${index}`),
+    baseUrlApi(`/receipt-order/${index}`),
     { params }
   );
 }
@@ -44,7 +69,7 @@ export async function getReceiptListApi(
 export async function createReceiptApi(data: CreateReceiptDto) {
   return await http.request<CommonResult<Receipt>>(
     "post",
-    baseUrlApi("/advance-receipt"),
+    baseUrlApi("/receipt-order"),
     { data }
   );
 }
@@ -55,7 +80,7 @@ export async function updateReceiptApi(
 ) {
   return await http.request<CommonResult<Receipt>>(
     "put",
-    baseUrlApi(`/advance-receipt/${uid}`),
+    baseUrlApi(`/receipt-order/${uid}`),
     { data }
   );
 }
@@ -63,13 +88,13 @@ export async function updateReceiptApi(
 export async function deleteReceiptApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(`/advance-receipt/${uid}`)
+    baseUrlApi(`/receipt-order/${uid}`)
   );
 }
 
 export async function approveReceiptApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "post",
-    baseUrlApi(`/advance-receipt/${uid}/approve`)
+    baseUrlApi(`/receipt-order/${uid}/approve`)
   );
 }

@@ -1,20 +1,5 @@
-import type { AdvancePaymentListItem } from "@/api/business/advance-payment";
-import { calcReceiptStatus } from "./types";
-
-function formatCentMoney(value?: string): string {
-  if (!value) return "-";
-  try {
-    const cent = BigInt(value);
-    const sign = cent < 0n ? "-" : "";
-    const abs = cent < 0n ? -cent : cent;
-    const s = abs.toString().padStart(3, "0");
-    const integer = s.slice(0, -2);
-    const decimal = s.slice(-2);
-    return `${sign}${integer}.${decimal}`;
-  } catch {
-    return "-";
-  }
-}
+import { fenToYuanOrDash } from "@/utils/formatMoney";
+import { getPaymentMethodText, type ReceiptOrder } from "./types";
 
 export const columns: TableColumnList = [
   {
@@ -30,27 +15,53 @@ export const columns: TableColumnList = [
   },
   {
     label: "客户",
-    prop: "targetName",
-    minWidth: 160
+    prop: "customerName",
+    minWidth: 150,
+    formatter: (row: ReceiptOrder) =>
+      row.customer?.name || row.customerName || "-"
   },
   {
-    label: "金额(元)",
+    label: "收款金额",
     prop: "amount",
     minWidth: 120,
     align: "right",
-    formatter: (row: AdvancePaymentListItem) => formatCentMoney(row.amount)
+    formatter: (row: ReceiptOrder) => fenToYuanOrDash(row.amount)
   },
   {
-    label: "剩余金额(元)",
-    prop: "remainingAmount",
+    label: "本次核销",
+    prop: "writeOffAmount",
     minWidth: 120,
     align: "right",
-    formatter: (row: AdvancePaymentListItem) =>
-      formatCentMoney(row.remainingAmount)
+    formatter: (row: ReceiptOrder) => fenToYuanOrDash(row.writeOffAmount)
+  },
+  {
+    label: "本次预收",
+    prop: "advanceAmount",
+    minWidth: 120,
+    align: "right",
+    formatter: (row: ReceiptOrder) => fenToYuanOrDash(row.advanceAmount)
+  },
+  {
+    label: "结算账户",
+    prop: "paymentName",
+    minWidth: 130,
+    formatter: (row: ReceiptOrder) =>
+      row.payment?.name || row.paymentName || "-"
+  },
+  {
+    label: "收款方式",
+    prop: "paymentMethod",
+    minWidth: 100,
+    formatter: (row: ReceiptOrder) => getPaymentMethodText(row.paymentMethod)
+  },
+  {
+    label: "收款日期",
+    prop: "receiptDate",
+    minWidth: 120
   },
   {
     label: "状态",
-    prop: "remainingAmount",
+    prop: "status",
     minWidth: 90,
     slot: "status"
   },
@@ -62,15 +73,13 @@ export const columns: TableColumnList = [
   },
   {
     label: "创建时间",
-    prop: "createTime",
+    prop: "createdAt",
     minWidth: 160
   },
   {
     label: "操作",
     fixed: "right",
-    width: 220,
+    width: 180,
     slot: "operation"
   }
 ];
-
-export { calcReceiptStatus };

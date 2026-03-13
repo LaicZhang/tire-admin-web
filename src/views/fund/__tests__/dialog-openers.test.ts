@@ -95,6 +95,24 @@ vi.mock("@/api/business/advance-payment", () => ({
   writeOffAdvancePayment: vi.fn()
 }));
 
+vi.mock("@/api/fund/receipt", () => ({
+  getReceiptListApi: vi.fn().mockResolvedValue({
+    data: {
+      list: [
+        {
+          uid: "receipt-order-1",
+          billNo: "SKD-001",
+          customerName: "客户A",
+          status: "DRAFT"
+        }
+      ],
+      total: 1
+    }
+  }),
+  approveReceiptApi: vi.fn(),
+  deleteReceiptApi: vi.fn()
+}));
+
 vi.mock("@/api/fund/payment-order", () => ({
   getPaymentOrderListApi: vi.fn().mockResolvedValue({
     data: {
@@ -296,13 +314,13 @@ describe("fund dialog openers", () => {
     const wrapper = mountPage(ReceiptPage);
     await flushPromises();
 
-    await getButtonByText(wrapper, "新建").trigger("click");
+    await getButtonByText(wrapper, "新建收款单").trigger("click");
 
     expect(openDialogSpies).toHaveLength(1);
     expect(openDialogSpies[0]).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "新建预收款",
-        width: "560px"
+        title: "新建收款单",
+        width: "800px"
       })
     );
   });
@@ -352,7 +370,7 @@ describe("fund dialog openers", () => {
     expect(openDialogSpies[1]).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "登记收款",
-        width: "560px"
+        width: "800px"
       })
     );
     expect(openDialogSpies[1].mock.calls[0][0].buildProps()).toEqual({

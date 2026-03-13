@@ -244,7 +244,7 @@ function handleReceive(row: OtherIncome) {
   };
   openReceiptDialog({
     title: "登记收款",
-    width: "560px",
+    width: "800px",
     formComponent: ReceiptForm,
     buildProps: () => ({
       initialValues: receiptInitialValues.value || undefined

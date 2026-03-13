@@ -1,26 +1,36 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
-import { onMounted, reactive, ref, computed } from "vue";
-import { ElMessageBox } from "element-plus";
+import { ref, reactive, onMounted, computed } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import PageContainer from "@/components/PageContainer/index.vue";
 import StatusTag from "@/components/StatusTag/index.vue";
-import type { StatusConfig } from "@/components/StatusTag/types";
 import AddFill from "~icons/ri/add-circle-line";
 import Delete from "~icons/ep/delete";
+import Printer from "~icons/ep/printer";
+import Download from "~icons/ep/download";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import {
-  deleteAdvancePayment,
-  getAdvancePaymentList,
-  writeOffAdvancePayment,
-  type AdvancePaymentListItem
-} from "@/api/business/advance-payment";
 import { handleApiError, message } from "@/utils";
-import { type ReceiptQueryParams, RECEIPT_STATUS_OPTIONS } from "./types";
-import { columns, calcReceiptStatus } from "./columns";
+import {
+  approveReceiptApi,
+  deleteReceiptApi,
+  getReceiptListApi
+} from "@/api/fund/receipt";
+import {
+  type ReceiptOrder,
+  type ReceiptQueryParams,
+  RECEIPT_STATUS_OPTIONS,
+  receiptStatusMap
+} from "./types";
+import { columns } from "./columns";
 import ReceiptForm from "./form.vue";
 import { useOptions } from "@/composables/useOptions";
+import {
+  exportRowsAsCsv,
+  printRows,
+  type PresentationColumn
+} from "../utils/tablePresentation";
 import {
   useManagedSubmitDialog,
   type ManagedSubmitDialogRef
@@ -30,17 +40,9 @@ defineOptions({
   name: "FundReceipt"
 });
 
-// Convert status options to StatusTag format
-const RECEIPT_STATUS_MAP: Record<string, StatusConfig> = Object.fromEntries(
-  RECEIPT_STATUS_OPTIONS.map(opt => [
-    opt.value,
-    { label: opt.label, type: opt.type }
-  ])
-);
-
-const loading = ref(false);
-const dataList = ref<AdvancePaymentListItem[]>([]);
-const selectedRows = ref<AdvancePaymentListItem[]>([]);
+const loading = ref(true);
+const dataList = ref<ReceiptOrder[]>([]);
+const selectedRows = ref<ReceiptOrder[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
 const { confirm } = useConfirmDialog();
 const { customers } = useOptions();
@@ -66,7 +68,10 @@ const pagination = reactive({
 
 const queryForm = reactive<ReceiptQueryParams>({
   customerName: undefined,
-  status: undefined
+  status: undefined,
+  startDate: undefined,
+  endDate: undefined,
+  billNo: undefined
 });
 
 const { openDialog: openReceiptDialog } =
@@ -75,27 +80,16 @@ const { openDialog: openReceiptDialog } =
 async function onSearch() {
   loading.value = true;
   try {
-    const res = await getAdvancePaymentList({
-      page: pagination.currentPage,
-      pageSize: pagination.pageSize,
-      type: "RECEIPT",
-      targetName: queryForm.customerName || undefined
+    const params: Record<string, unknown> = { ...queryForm };
+    Object.keys(params).forEach(key => {
+      if (params[key] === "" || params[key] === undefined) {
+        delete params[key];
+      }
     });
-    if (res.code !== 200) {
-      message(res.msg || "查询失败", { type: "error" });
-      dataList.value = [];
-      pagination.total = 0;
-      return;
-    }
 
-    const list = res.data?.list || [];
-    dataList.value = queryForm.status
-      ? list.filter(
-          row => calcReceiptStatus(row.remainingAmount) === queryForm.status
-        )
-      : list;
-
-    pagination.total = res.data?.total ?? res.data?.count ?? 0;
+    const { data } = await getReceiptListApi(pagination.currentPage, params);
+    dataList.value = (data.list || []) as ReceiptOrder[];
+    pagination.total = data.total ?? data.count ?? 0;
   } catch (error) {
     handleApiError(error, "查询失败");
     dataList.value = [];
@@ -108,39 +102,46 @@ async function onSearch() {
 function resetForm(formEl?: { resetFields: () => void }) {
   if (!formEl) return;
   formEl.resetFields();
-  queryForm.customerName = "";
-  queryForm.status = undefined;
-  pagination.currentPage = 1;
+  Object.assign(queryForm, {
+    customerName: "",
+    status: undefined,
+    startDate: "",
+    endDate: "",
+    billNo: ""
+  });
   onSearch();
 }
 
 function handleAdd() {
   openReceiptDialog({
-    title: "新建预收款",
-    width: "560px",
+    title: "新建收款单",
+    width: "800px",
     formComponent: ReceiptForm,
-    onSuccess: onSearch
+    buildProps: () => ({ editData: null }),
+    onSuccess: handleFormSuccess
   });
 }
 
-function handleSelectionChange(rows: AdvancePaymentListItem[]) {
-  selectedRows.value = rows;
+function handleEdit(row: ReceiptOrder) {
+  openReceiptDialog({
+    title: "编辑收款单",
+    width: "800px",
+    formComponent: ReceiptForm,
+    buildProps: () => ({ editData: row }),
+    onSuccess: handleFormSuccess
+  });
 }
 
-async function handleDelete(row: AdvancePaymentListItem) {
+async function handleDelete(row: ReceiptOrder) {
   const ok = await confirm(`确定删除单据 ${row.billNo} 吗？`, "删除确认");
   if (!ok) return;
 
-  loading.value = true;
   try {
-    await deleteAdvancePayment(String(row.id));
+    await deleteReceiptApi(row.uid);
     message("删除成功", { type: "success" });
-    selectedRows.value = [];
     onSearch();
   } catch (error) {
     handleApiError(error, "删除失败");
-  } finally {
-    loading.value = false;
   }
 }
 
@@ -155,81 +156,80 @@ async function handleBatchDelete() {
   );
   if (!ok) return;
 
-  loading.value = true;
   try {
-    await Promise.all(
-      selectedRows.value.map(row => deleteAdvancePayment(String(row.id)))
-    );
+    for (const row of selectedRows.value) {
+      await deleteReceiptApi(row.uid);
+    }
     message("批量删除成功", { type: "success" });
-    selectedRows.value = [];
     onSearch();
   } catch (error) {
     handleApiError(error, "批量删除失败");
-  } finally {
-    loading.value = false;
   }
 }
 
-async function handleWriteOff(row: AdvancePaymentListItem) {
-  if (calcReceiptStatus(row.remainingAmount) !== "ACTIVE") {
-    message("该单据余额已用完", { type: "info" });
+async function handleApprove(row: ReceiptOrder) {
+  const ok = await confirm("确定审核通过该收款单吗？", "审核确认");
+  if (!ok) return;
+
+  try {
+    await approveReceiptApi(row.uid);
+    message("审核成功", { type: "success" });
+    onSearch();
+  } catch (error) {
+    handleApiError(error, "审核失败");
+  }
+}
+
+function handlePrint() {
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可打印的记录", { type: "warning" });
     return;
   }
 
   try {
-    const orderRes = await ElMessageBox.prompt(
-      "请输入销售订单 UID",
-      "核销预收款",
-      {
-        confirmButtonText: "下一步",
-        cancelButtonText: "取消",
-        inputPattern: /.+/,
-        inputErrorMessage: "请输入销售订单 UID"
-      }
-    );
-    if (typeof orderRes === "string") return;
-    const orderUid = orderRes.value;
-
-    const amountRes = await ElMessageBox.prompt(
-      "请输入核销金额(元)",
-      "核销预收款",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputPattern: /^\\d+(\\.\\d{1,2})?$/,
-        inputErrorMessage: "请输入正确金额"
-      }
-    );
-    if (typeof amountRes === "string") return;
-    const amountYuan = amountRes.value;
-
-    const amountFen = Math.round(Number(amountYuan) * 100);
-    const remaining = BigInt(row.remainingAmount || "0");
-    if (amountFen <= 0) {
-      message("核销金额必须大于0", { type: "warning" });
-      return;
-    }
-    if (BigInt(amountFen) > remaining) {
-      message("核销金额不能大于剩余金额", { type: "warning" });
-      return;
-    }
-
-    loading.value = true;
-    await writeOffAdvancePayment({
-      advanceId: row.id,
-      orderUid,
-      amount: amountFen
-    });
-    message("核销成功", { type: "success" });
-    onSearch();
+    printRows(rows, exportColumns, "收款单");
   } catch (error) {
-    if ((error as string) !== "cancel") {
-      handleApiError(error, "核销失败");
-    }
-  } finally {
-    loading.value = false;
+    const msg = error instanceof Error ? error.message : "打印失败";
+    message(msg, { type: "error" });
   }
 }
+
+function handleExport() {
+  const rows =
+    selectedRows.value.length > 0 ? selectedRows.value : dataList.value;
+  if (rows.length === 0) {
+    message("当前没有可导出的记录", { type: "warning" });
+    return;
+  }
+
+  exportRowsAsCsv(rows, exportColumns, "收款单");
+  message("导出成功", { type: "success" });
+}
+
+function handleSelectionChange(rows: ReceiptOrder[]) {
+  selectedRows.value = rows;
+}
+
+function handleFormSuccess() {
+  onSearch();
+}
+
+const exportColumns: PresentationColumn<ReceiptOrder>[] = [
+  { label: "单据编号", value: row => row.billNo },
+  { label: "客户", value: row => row.customerName || "-" },
+  { label: "收款金额", value: row => row.amount / 100 },
+  { label: "本次核销", value: row => (row.writeOffAmount || 0) / 100 },
+  { label: "本次预收", value: row => (row.advanceAmount || 0) / 100 },
+  { label: "结算账户", value: row => row.paymentName || "-" },
+  { label: "收款方式", value: row => row.paymentMethod || "-" },
+  {
+    label: "状态",
+    value: row => receiptStatusMap[row.status]?.label || row.status
+  },
+  { label: "备注", value: row => row.remark || "-" }
+];
 
 onMounted(() => {
   onSearch();
@@ -237,66 +237,98 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="main">
-    <ReSearchForm
-      ref="formRef"
-      :form="queryForm"
-      :loading="loading"
-      @search="onSearch"
-      @reset="resetForm(formRef)"
-    >
-      <el-form-item label="客户" prop="customerName">
-        <el-select
-          v-model="queryForm.customerName"
-          placeholder="请选择或输入客户名称"
-          filterable
-          clearable
-          allow-create
-          default-first-option
-          class="w-[180px]!"
-        >
-          <el-option
-            v-for="name in customerNameOptions"
-            :key="name"
-            :label="name"
-            :value="name"
+  <PageContainer>
+    <template #search>
+      <ReSearchForm
+        ref="formRef"
+        :form="queryForm"
+        :loading="loading"
+        @search="onSearch"
+        @reset="resetForm(formRef)"
+      >
+        <el-form-item label="单据编号" prop="billNo">
+          <el-input
+            v-model="queryForm.billNo"
+            placeholder="请输入单据编号"
+            clearable
+            class="w-[160px]"
           />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select
-          v-model="queryForm.status"
-          placeholder="请选择状态"
-          clearable
-          class="w-[120px]!"
-        >
-          <el-option
-            v-for="item in RECEIPT_STATUS_OPTIONS"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+        </el-form-item>
+        <el-form-item label="客户" prop="customerName">
+          <el-select
+            v-model="queryForm.customerName"
+            placeholder="请选择或输入客户名称"
+            filterable
+            clearable
+            class="w-[160px]"
+            allow-create
+            default-first-option
+          >
+            <el-option
+              v-for="name in customerNameOptions"
+              :key="name"
+              :label="name"
+              :value="name"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态" prop="status">
+          <el-select
+            v-model="queryForm.status"
+            placeholder="请选择状态"
+            clearable
+            class="w-[120px]!"
+          >
+            <el-option
+              v-for="item in RECEIPT_STATUS_OPTIONS"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="日期范围" prop="dateRange">
+          <el-date-picker
+            v-model="queryForm.startDate"
+            type="date"
+            placeholder="开始日期"
+            value-format="YYYY-MM-DD"
+            class="!w-[140px]"
           />
-        </el-select>
-      </el-form-item>
-    </ReSearchForm>
+          <span class="mx-2">-</span>
+          <el-date-picker
+            v-model="queryForm.endDate"
+            type="date"
+            placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            class="!w-[140px]"
+          />
+        </el-form-item>
+      </ReSearchForm>
+    </template>
 
-    <PureTableBar title="预收款列表" :columns="columns" @refresh="onSearch">
+    <PureTableBar title="收款单列表" :columns="columns" @refresh="onSearch">
       <template #buttons>
         <el-button
           type="primary"
           :icon="useRenderIcon(AddFill)"
-          :disabled="loading"
           @click="handleAdd"
         >
-          新建
+          新建收款单
         </el-button>
         <el-button
           type="danger"
           :icon="useRenderIcon(Delete)"
-          :disabled="loading || selectedRows.length === 0"
+          :disabled="selectedRows.length === 0"
           @click="handleBatchDelete"
         >
           批量删除
+        </el-button>
+        <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
+          打印
+        </el-button>
+        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
+          导出
         </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
@@ -330,28 +362,31 @@ onMounted(() => {
           "
         >
           <template #status="{ row }">
-            <StatusTag
-              :status="calcReceiptStatus(row.remainingAmount)"
-              :status-map="RECEIPT_STATUS_MAP"
-            />
+            <StatusTag :status="row.status" :status-map="receiptStatusMap" />
           </template>
-
-          <template #operation="{ row, size: btnSize }">
+          <template #operation="{ row, size }">
             <el-button
-              v-if="calcReceiptStatus(row.remainingAmount) === 'ACTIVE'"
               link
-              type="success"
-              :size="btnSize"
-              :disabled="loading"
-              @click="handleWriteOff(row)"
+              type="primary"
+              :size="size"
+              @click="handleEdit(row)"
             >
-              核销
+              编辑
             </el-button>
             <el-button
+              v-if="row.status === 'DRAFT'"
+              link
+              type="success"
+              :size="size"
+              @click="handleApprove(row)"
+            >
+              审核
+            </el-button>
+            <el-button
+              v-if="row.status === 'DRAFT'"
               link
               type="danger"
-              :size="btnSize"
-              :disabled="loading"
+              :size="size"
               @click="handleDelete(row)"
             >
               删除
@@ -360,17 +395,5 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
-  </div>
+  </PageContainer>
 </template>
-
-<style scoped lang="scss">
-.main {
-  padding: 16px;
-}
-
-.search-form {
-  :deep(.el-form-item) {
-    margin-bottom: 12px;
-  }
-}
-</style>
