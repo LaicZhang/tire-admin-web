@@ -46,6 +46,8 @@ const {
   handleConfirmSaleShipment,
   handleConfirmSaleDelivery,
   handleProcessClaimPayment,
+  handleManageClaimDefectCategories,
+  handleManageClaimInspections,
   handleConfirmReturnCustomerArrival,
   handleConfirmReturnProviderShipment,
   handleConfirmReturnProviderDelivery,
@@ -178,6 +180,12 @@ onMounted(async () => {
           >
             新增订单
           </el-button>
+          <el-button
+            v-if="orderType === ORDER_TYPE.claim"
+            @click="handleManageClaimDefectCategories"
+          >
+            缺陷类别
+          </el-button>
         </template>
         <template v-slot="{ size }">
           <pure-table
@@ -296,6 +304,16 @@ onMounted(async () => {
               </el-button>
 
               <!-- 理赔订单：处理理赔费用 -->
+              <el-button
+                v-if="orderType === ORDER_TYPE.claim && row.isApproved === true"
+                class="reset-margin"
+                link
+                type="primary"
+                @click="handleManageClaimInspections(row)"
+              >
+                检测记录
+              </el-button>
+
               <el-button
                 v-if="orderType === ORDER_TYPE.claim && row.isApproved === true"
                 class="reset-margin"

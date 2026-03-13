@@ -114,6 +114,7 @@ export interface UpdateOrderDto extends Partial<BaseOrderDto> {
 export interface PayOrderDto {
   fee: number;
   paymentId?: string;
+  desc?: string;
 }
 
 /** 确认物流状态请求 DTO */
@@ -356,11 +357,71 @@ export async function deleteClaimOrderDetailApi(uid: string) {
 
 export async function processClaimOrderPaymentApi(
   uid: string,
-  data: { fee: number; isReceive: boolean }
+  data: { fee: number; paymentId: string; isReceive: boolean; desc?: string }
 ) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/claim-order/payment/${uid}`),
+    { data }
+  );
+}
+
+export interface ClaimDefectCategoryDto {
+  name: string;
+  code?: string;
+  remark?: string;
+  responsibilityType?:
+    | "SUPPLIER"
+    | "MANUFACTURER"
+    | "LOGISTICS"
+    | "STORAGE"
+    | "CUSTOMER"
+    | "UNKNOWN";
+  autoLinkProvider?: boolean;
+}
+
+export interface ClaimInspectionDto {
+  inspectedBy?: string;
+  result: string;
+  photos?: string[];
+  remark?: string;
+  defectCategoryId?: number;
+  lossAmount?: number;
+  linkedProviderId?: string;
+  responsibilityRatio?: number;
+}
+
+export async function getClaimDefectCategoryListApi() {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi("/claim-order/defect-category")
+  );
+}
+
+export async function createClaimDefectCategoryApi(
+  data: ClaimDefectCategoryDto
+) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi("/claim-order/defect-category"),
+    { data }
+  );
+}
+
+export async function getClaimInspectionListApi(uid: string) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(`/claim-order/${uid}/inspection`)
+  );
+}
+
+export async function createClaimInspectionApi(
+  uid: string,
+  data: ClaimInspectionDto
+) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/claim-order/${uid}/inspection`),
     { data }
   );
 }

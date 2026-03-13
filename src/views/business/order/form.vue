@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import type { FormRules } from "element-plus";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
+import ClaimAttachmentUpload from "./components/ClaimAttachmentUpload.vue";
 import {
   PurchaseFormItemProps,
   SaleFormItemProps,
@@ -99,6 +100,7 @@ const props = withDefaults(defineProps<OrderFormProps>(), {
       updateAt: undefined,
       providerId: undefined,
       customerId: undefined,
+      attachments: [] as string[],
       fee: 0,
       isReceive: false,
       details: [] as OrderDetail[]
@@ -135,6 +137,40 @@ function getDetails(): OrderDetail[] {
     newFormInline.value.details = [];
   }
   return newFormInline.value.details;
+}
+
+function toFiniteNumber(value: unknown) {
+  const next = Number(value);
+  return Number.isFinite(next) ? next : 0;
+}
+
+function resolveClaimLineAmount(detail: Record<string, unknown>) {
+  return (
+    toFiniteNumber(detail.claimFee) +
+    toFiniteNumber(detail.wearFee) +
+    toFiniteNumber(detail.claimTirePrice)
+  );
+}
+
+function syncSummaryFromDetails() {
+  const details = getDetails();
+  const count = details.reduce(
+    (sum, detail) => sum + toFiniteNumber(detail.count),
+    0
+  );
+  const total = details.reduce((sum, detail) => {
+    const row = asRecord(detail);
+    if (orderType.value === ORDER_TYPE.claim)
+      return sum + resolveClaimLineAmount(row);
+    if ("total" in row) return sum + toFiniteNumber(row.total);
+    return sum + toFiniteNumber(row.count) * toFiniteNumber(row.unitPrice);
+  }, 0);
+
+  newFormInline.value.count = count;
+  newFormInline.value.showTotal = total;
+  if (["新增", "修改"].includes(formTitle.value)) {
+    newFormInline.value.total = total;
+  }
 }
 
 function makeDetailsRule() {
@@ -227,16 +263,15 @@ async function getFormTitle() {
 
 function onAdd(item?: ListItem) {
   const details = getDetails();
+  const defaultCount = item || orderType.value === ORDER_TYPE.claim ? 1 : 0;
   details.push({
     index: details.length + 1,
-    count: item ? 1 : 0,
+    count: defaultCount,
     total: 0,
     tireId: item?.uid,
     isArrival: false
   });
-  if (item) {
-    newFormInline.value.count += 1;
-  }
+  if (defaultCount > 0) newFormInline.value.count += defaultCount;
 }
 function onDel(row: OrderDetail) {
   const details = getDetails();
@@ -266,10 +301,6 @@ async function getALlList() {
     const msg = error instanceof Error ? error.message : "加载基础数据失败";
     message(msg, { type: "error" });
   }
-}
-
-function getDisabled(arr: string[]) {
-  return arr.includes(formTitle.value);
 }
 
 // 条码扫描
@@ -331,7 +362,16 @@ onMounted(async () => {
   await getFormTitle(); // Move up to ensure title is ready before setting columns if we logic depends on it
   setDetailsColumnsAndFormRules();
   await getALlList();
+  syncSummaryFromDetails();
 });
+
+watch(
+  () => newFormInline.value.details,
+  () => {
+    syncSummaryFromDetails();
+  },
+  { deep: true }
+);
 </script>
 
 <template>
@@ -343,10 +383,9 @@ onMounted(async () => {
   >
     <div class="flex">
       <el-form-item
-        v-if="[ORDER_TYPE.purchase].includes(orderType)"
+        v-if="[ORDER_TYPE.purchase, ORDER_TYPE.claim].includes(orderType)"
         label="供应商"
         prop="providerId"
-        :disabled="getDisabled(['修改', '新增'])"
       >
         <ProviderSelect
           v-model="(newFormInline as PurchaseFormItemProps).providerId"
@@ -356,7 +395,7 @@ onMounted(async () => {
       </el-form-item>
 
       <el-form-item
-        v-if="[ORDER_TYPE.sale].includes(orderType)"
+        v-if="[ORDER_TYPE.sale, ORDER_TYPE.claim].includes(orderType)"
         label="客户"
         prop="customerId"
       >
@@ -390,6 +429,17 @@ onMounted(async () => {
         v-model="newFormInline.desc"
         placeholder="请输入备注信息"
         type="textarea"
+      />
+    </el-form-item>
+
+    <el-form-item
+      v-if="orderType === ORDER_TYPE.claim"
+      label="申请附件"
+      prop="attachments"
+    >
+      <ClaimAttachmentUpload
+        v-model="(newFormInline as ClaimFormItemProps).attachments"
+        :disabled="!['新增', '修改'].includes(formTitle)"
       />
     </el-form-item>
 
@@ -457,6 +507,13 @@ onMounted(async () => {
           <el-radio :label="true">收到理赔金</el-radio>
           <el-radio :label="false">支付理赔金</el-radio>
         </el-radio-group>
+      </el-form-item>
+      <el-form-item label="支付账户" prop="paymentId">
+        <PaymentSelect
+          v-model="(newFormInline as ClaimFormItemProps).paymentId"
+          placeholder="请选择支付账户"
+          class="w-60!"
+        />
       </el-form-item>
     </template>
 

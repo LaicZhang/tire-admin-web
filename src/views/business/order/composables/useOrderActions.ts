@@ -25,6 +25,8 @@ import { CUR_FORM_TITLE, localForage, message, ORDER_TYPE } from "@/utils";
 import { openDialog } from "../table";
 import type { CommonResult } from "@/api/type";
 import ConfirmOrderDetailAction from "../components/ConfirmOrderDetailAction.vue";
+import ClaimDefectCategoryManager from "../components/ClaimDefectCategoryManager.vue";
+import ClaimInspectionDialog from "../components/ClaimInspectionDialog.vue";
 
 /**
  * 订单行数据接口
@@ -193,6 +195,31 @@ export function useOrderActions(
     handleOpenDialog("处理理赔费用", orderType.value, row);
   };
 
+  const handleManageClaimDefectCategories = async () => {
+    addDialog({
+      title: "缺陷类别管理",
+      width: "960px",
+      draggable: true,
+      closeOnClickModal: false,
+      hideFooter: true,
+      contentRenderer: () => h(ClaimDefectCategoryManager)
+    });
+  };
+
+  const handleManageClaimInspections = async (row: OrderRow) => {
+    addDialog({
+      title: "检测记录",
+      width: "1080px",
+      draggable: true,
+      closeOnClickModal: false,
+      hideFooter: true,
+      contentRenderer: () =>
+        h(ClaimInspectionDialog, {
+          orderUid: row.uid
+        })
+    });
+  };
+
   // 退货订单：确认客户退货到货
   const handleConfirmReturnCustomerArrival = async (row: OrderRow) => {
     await openConfirmDetailActionDialog(
@@ -323,6 +350,8 @@ export function useOrderActions(
     handleConfirmSaleShipment,
     handleConfirmSaleDelivery,
     handleProcessClaimPayment,
+    handleManageClaimDefectCategories,
+    handleManageClaimInspections,
     handleConfirmReturnCustomerArrival,
     handleConfirmReturnProviderShipment,
     handleConfirmReturnProviderDelivery,

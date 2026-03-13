@@ -22,6 +22,7 @@ import {
   localForage,
   ORDER_TYPE
 } from "@/utils";
+import { useUserStoreHook } from "@/store/modules/user";
 import type { FormInstance } from "element-plus";
 import type { DialogOptions } from "../../../components/ReDialog";
 
@@ -43,12 +44,25 @@ interface _OrderDetail {
   uid?: string;
   index?: number;
   count?: number;
+  total?: number;
+  unitPrice?: number;
   batchNo?: string;
   expiryDate?: string;
   tireId?: string;
   repoId?: string;
   desc?: string;
   number?: string;
+  name?: string;
+  cause?: string;
+  causeDesc?: string;
+  claimFee?: number;
+  wearFee?: number;
+  claimTirePrice?: number;
+  percent?: number;
+  remainingPattern?: number;
+  isProviderClaim?: boolean;
+  claimType?: number;
+  identificationResult?: string;
   [key: string]: unknown;
 }
 
@@ -56,6 +70,7 @@ interface OrderRow {
   uid?: string;
   providerId?: string;
   customerId?: string;
+  operatorId?: string;
   auditorId?: string;
   isApproved?: boolean;
   isLocked?: boolean;
@@ -64,6 +79,7 @@ interface OrderRow {
   rejectReason?: string;
   status?: boolean | string;
   desc?: string;
+  attachments?: string[];
   total?: number | string;
   count?: number;
   paymentId?: string;
@@ -76,8 +92,11 @@ interface OrderRow {
 type CreateOrderType =
   | ORDER_TYPE.purchase
   | ORDER_TYPE.sale
+  | ORDER_TYPE.claim
   | ORDER_TYPE.surplus
   | ORDER_TYPE.waste;
+
+const userStore = useUserStoreHook();
 
 export const allTireList = ref<BasicEntity[]>([]);
 export const allRepoList = ref<BasicEntity[]>([]);
@@ -124,22 +143,52 @@ function normalizeCreateDetails(details: _OrderDetail[]) {
   return details.map(({ index: _idx, ...rest }, index) => ({ ...rest, index }));
 }
 
+function toOptionalString(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : undefined;
+}
+
+function toOptionalNumber(value: unknown) {
+  if (value === null || value === undefined || value === "") return undefined;
+  const next = Number(value);
+  return Number.isFinite(next) ? next : undefined;
+}
+
+function normalizeAttachments(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(item => (typeof item === "string" ? item.trim() : ""))
+    .filter(item => item.length > 0);
+}
+
 export function buildCreateOrderPayload(
   type: CreateOrderType,
   curData: Required<Pick<OrderRow, "uid" | "details">> &
     Omit<OrderRow, "uid" | "details">,
   companyId: string
 ) {
-  const { uid, details, providerId, customerId, auditorId, ...orderData } =
-    curData;
+  const {
+    uid,
+    details,
+    providerId,
+    customerId,
+    auditorId,
+    operatorId,
+    ...orderData
+  } = curData;
   const commonData = getCommonData(uid, companyId, { auditorId });
   const normalizedDetails = normalizeCreateDetails(details);
+  const resolvedOperatorId = toOptionalString(operatorId) ?? userStore.uid;
 
   if (type === ORDER_TYPE.purchase) {
     return {
       order: {
         ...orderData,
         ...commonData,
+        operator: {
+          connect: { uid: resolvedOperatorId }
+        },
         provider: {
           connect: { uid: providerId }
         }
@@ -158,6 +207,9 @@ export function buildCreateOrderPayload(
       order: {
         ...orderData,
         ...commonData,
+        operator: {
+          connect: { uid: resolvedOperatorId }
+        },
         customer: {
           connect: { uid: customerId }
         }
@@ -166,11 +218,69 @@ export function buildCreateOrderPayload(
     };
   }
 
+  if (type === ORDER_TYPE.claim) {
+    return {
+      order: {
+        desc:
+          typeof orderData.desc === "string" && orderData.desc.length > 0
+            ? orderData.desc
+            : null,
+        attachments: normalizeAttachments(orderData.attachments),
+        isApproved: Boolean(orderData.isApproved),
+        isLocked: Boolean(orderData.isLocked),
+        rejectReason:
+          typeof orderData.rejectReason === "string" &&
+          orderData.rejectReason.length > 0
+            ? orderData.rejectReason
+            : null,
+        ...commonData,
+        operator: {
+          connect: { uid: resolvedOperatorId }
+        },
+        ...(toOptionalString(customerId)
+          ? {
+              customer: {
+                connect: { uid: customerId }
+              }
+            }
+          : {}),
+        ...(toOptionalString(providerId)
+          ? {
+              provider: {
+                connect: { uid: providerId }
+              }
+            }
+          : {})
+      },
+      details: normalizedDetails.map((detail, index) => ({
+        companyId,
+        tireId: String(detail.tireId ?? ""),
+        repositoryId: toOptionalString(detail.repoId) ?? null,
+        number: toOptionalString(detail.number) ?? `CL-${uid}-${index + 1}`,
+        name: toOptionalString(detail.name) ?? "三包理赔",
+        cause: toOptionalString(detail.cause) ?? "待判定",
+        causeDesc: toOptionalString(detail.causeDesc) ?? null,
+        claimFee: toOptionalNumber(detail.claimFee) ?? 0,
+        wearFee: toOptionalNumber(detail.wearFee) ?? 0,
+        claimTirePrice: toOptionalNumber(detail.claimTirePrice) ?? 0,
+        percent: toOptionalNumber(detail.percent) ?? null,
+        remainingPattern: toOptionalNumber(detail.remainingPattern) ?? 0,
+        isProviderClaim: Boolean(detail.isProviderClaim),
+        claimType: toOptionalNumber(detail.claimType) ?? 0,
+        identificationResult:
+          toOptionalString(detail.identificationResult) ?? null
+      }))
+    };
+  }
+
   if (type === ORDER_TYPE.surplus) {
     return {
       order: {
         ...orderData,
-        ...commonData
+        ...commonData,
+        operator: {
+          connect: { uid: resolvedOperatorId }
+        }
       },
       details: normalizedDetails.map(({ index: _idx, ...rest }) => ({
         companyId,
@@ -185,7 +295,10 @@ export function buildCreateOrderPayload(
   return {
     order: {
       ...orderData,
-      ...commonData
+      ...commonData,
+      operator: {
+        connect: { uid: resolvedOperatorId }
+      }
     },
     details: normalizedDetails.map(({ index: _idx, ...rest }, index) => ({
       companyId,
@@ -228,11 +341,15 @@ function createCompanyPayload(
   submitData: OrderSubmitData,
   companyId: string
 ): Record<string, unknown> {
-  const { details: _details, ...orderData } = submitData;
-  return {
+  const { details: _details, attachments, ...orderData } = submitData;
+  const payload: Record<string, unknown> = {
     ...orderData,
     company: getCompanyConnect(companyId)
   };
+  if (Array.isArray(attachments)) {
+    payload.attachments = normalizeAttachments(attachments);
+  }
+  return payload;
 }
 
 async function submitCreateOrder({
@@ -244,6 +361,7 @@ async function submitCreateOrder({
     ![
       ORDER_TYPE.purchase,
       ORDER_TYPE.sale,
+      ORDER_TYPE.claim,
       ORDER_TYPE.surplus,
       ORDER_TYPE.waste
     ].includes(type as CreateOrderType)
@@ -297,7 +415,12 @@ async function submitOrderPayment({ title, type, submitData }: SubmitContext) {
 async function submitClaimPayment({ submitData }: SubmitContext) {
   await processClaimOrderPaymentApi(submitData.uid, {
     fee: submitData.fee || 0,
-    isReceive: submitData.isReceive ?? false
+    paymentId: String(submitData.paymentId || ""),
+    isReceive: submitData.isReceive ?? false,
+    desc:
+      typeof submitData.desc === "string" && submitData.desc.trim().length > 0
+        ? submitData.desc.trim()
+        : undefined
   });
   return true;
 }
@@ -391,6 +514,7 @@ export async function openDialog(
         rejectReason: row?.rejectReason ?? undefined,
         status: row?.status ?? true,
         desc: row?.desc ?? undefined,
+        attachments: row?.attachments ?? [],
         total: row?.total ?? 0,
         count: row?.count ?? 0,
         paymentId: row?.paymentId ?? undefined,
