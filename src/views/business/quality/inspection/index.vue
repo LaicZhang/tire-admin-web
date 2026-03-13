@@ -1,74 +1,116 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref, reactive } from "vue";
-import { columns } from "./columns";
-import {
-  getInspectionRecordListApi,
-  type InspectionRecord
-} from "@/api/business/quality";
+import { h, reactive, ref } from "vue";
+import { deviceDetection } from "@pureadmin/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Add from "~icons/ep/plus";
-import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import { addDialog } from "@/components/ReDialog";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { message } from "@/utils/message";
+import Add from "~icons/ep/plus";
+import {
+  createQualityInspectionApi,
+  getQualityInspectionListApi,
+  type CreateQualityInspectionDto,
+  type QualityInspectionRecord
+} from "@/api/business/quality";
+import { columns } from "./columns";
+import QualityInspectionFormDialog from "./components/QualityInspectionFormDialog.vue";
 
 defineOptions({
   name: "QualityInspection"
 });
 
+interface QualityInspectionFormExpose {
+  validate: () => Promise<boolean>;
+  getPayload: () => CreateQualityInspectionDto;
+}
+
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const loading = ref(false);
+const dataList = ref<QualityInspectionRecord[]>([]);
+const pagination = ref({
+  total: 0,
+  pageSize: PAGE_SIZE_SMALL,
+  currentPage: 1,
+  background: true
+});
 const form = reactive({
   purchaseOrderNo: undefined as string | undefined,
   startDate: undefined as string | undefined,
   endDate: undefined as string | undefined
 });
 
-const {
-  loading,
-  dataList,
-  pagination,
-  fetchData,
-  onCurrentChange,
-  onSizeChange
-} = useCrud<
-  InspectionRecord,
-  CommonResult<{ list: InspectionRecord[]; total?: number; count?: number }>,
-  { page: number; pageSize: number }
->({
-  api: ({ page }) =>
-    getInspectionRecordListApi(page, { ...form }) as Promise<
-      CommonResult<{ list: InspectionRecord[]; total?: number; count?: number }>
-    >,
-  pagination: {
-    total: 0,
-    pageSize: PAGE_SIZE_SMALL,
-    currentPage: 1,
-    background: true
-  },
-  transform: res => {
-    if (res.code !== 200) {
-      message(res.msg || "加载失败", { type: "error" });
-      return { list: [], total: 0 };
+async function fetchData() {
+  loading.value = true;
+  try {
+    const { data, code, msg } = await getQualityInspectionListApi({
+      page: pagination.value.currentPage,
+      ...form
+    });
+    if (code !== 200) {
+      message(msg || "加载质检记录失败", { type: "error" });
+      return;
     }
-    return {
-      list: res.data?.list ?? [],
-      total: res.data?.total ?? res.data?.count ?? 0
-    };
-  },
-  immediate: true
-});
+    dataList.value = data.list ?? [];
+    pagination.value.total = data.total ?? data.count ?? 0;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "加载质检记录失败";
+    message(msg, { type: "error" });
+  } finally {
+    loading.value = false;
+  }
+}
 
-const onSearch = () => {
-  pagination.value = { ...pagination.value, currentPage: 1 };
-  fetchData();
-};
+function onSearch() {
+  pagination.value.currentPage = 1;
+  void fetchData();
+}
 
-const onReset = () => {
+function onReset() {
   searchFormRef.value?.resetFields();
   onSearch();
-};
+}
+
+function handleCurrentChange(page: number) {
+  pagination.value.currentPage = page;
+  void fetchData();
+}
+
+function openCreateDialog() {
+  const formRef = ref<QualityInspectionFormExpose | null>(null);
+  addDialog({
+    title: "新增质检",
+    width: "680px",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    contentRenderer: () =>
+      h(QualityInspectionFormDialog, {
+        ref: formRef
+      }),
+    beforeSure: async done => {
+      try {
+        const valid = await formRef.value?.validate();
+        if (!valid) return;
+
+        const payload = formRef.value?.getPayload();
+        if (!payload) return;
+
+        await createQualityInspectionApi(payload);
+        message("质检记录创建成功", { type: "success" });
+        done();
+        await fetchData();
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "创建质检记录失败";
+        message(msg, { type: "error" });
+      }
+    }
+  });
+}
+
+void fetchData();
 </script>
 
 <template>
@@ -106,13 +148,17 @@ const onReset = () => {
       </el-form-item>
     </ReSearchForm>
 
-    <PureTableBar title="质检记录" @refresh="onSearch">
+    <PureTableBar title="质检记录" @refresh="fetchData">
       <template #buttons>
-        <el-button type="primary" :icon="useRenderIcon(Add)">
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(Add)"
+          @click="openCreateDialog"
+        >
           新增质检
         </el-button>
       </template>
-      <template v-slot="{ size, dynamicColumns }">
+      <template v-slot="{ size }">
         <pure-table
           border
           align-whole="center"
@@ -121,15 +167,14 @@ const onReset = () => {
           :loading="loading"
           :size="size"
           :data="dataList"
-          :columns="dynamicColumns"
-          :pagination="pagination"
+          :columns="columns"
+          :pagination="{ ...pagination, size }"
           :paginationSmall="size === 'small'"
           :header-cell-style="{
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
           }"
-          @page-size-change="onSearch"
-          @page-current-change="onSearch"
+          @page-current-change="handleCurrentChange"
         />
       </template>
     </PureTableBar>

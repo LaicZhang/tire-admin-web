@@ -1,28 +1,32 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref, onMounted, h } from "vue";
-import { columns } from "./columns";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import AddFill from "~icons/ri/add-circle-line";
-import EditPen from "~icons/ep/edit-pen";
-import { PureTableBar } from "@/components/RePureTableBar";
-import DeleteButton from "@/components/DeleteButton/index.vue";
-import {
-  getPurchaseInquiryListApi,
-  createPurchaseInquiryApi,
-  deletePurchaseInquiryApi,
-  updatePurchaseInquiryApi
-} from "@/api/business/purchase";
-import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { h, onMounted, ref } from "vue";
 import { deviceDetection } from "@pureadmin/utils";
-import type { PurchaseInquiry } from "@/api/business/purchase";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { addDialog } from "@/components/ReDialog";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { PAGE_SIZE_SMALL } from "@/utils/constants";
+import { message } from "@/utils";
+import AddFill from "~icons/ri/add-circle-line";
+import {
+  createPurchaseInquiryApi,
+  getPurchaseInquiryListApi,
+  sendPurchaseInquiryApi,
+  type CreatePurchaseInquiryApiDto,
+  type PurchaseInquiryDto
+} from "@/api/business/purchase-inquiry";
+import { columns } from "./columns";
+import PurchaseInquiryFormDialog from "./components/PurchaseInquiryFormDialog.vue";
 
 defineOptions({
   name: "PurchaseInquiry"
 });
 
-const dataList = ref<PurchaseInquiry[]>([]);
+interface PurchaseInquiryFormExpose {
+  validate: () => Promise<boolean>;
+  getPayload: () => CreatePurchaseInquiryApiDto;
+}
+
+const dataList = ref<PurchaseInquiryDto[]>([]);
 const loading = ref(false);
 const pagination = ref({
   total: 0,
@@ -31,105 +35,82 @@ const pagination = ref({
   background: true
 });
 
-const getData = async () => {
+async function getData() {
   loading.value = true;
-  const { data, code, msg } = await getPurchaseInquiryListApi(
-    pagination.value.currentPage
-  );
-  if (code === 200) {
-    dataList.value = data.list;
-    pagination.value.total = data.count;
-  } else {
+  try {
+    const { data, code, msg } = await getPurchaseInquiryListApi({
+      page: pagination.value.currentPage,
+      limit: pagination.value.pageSize
+    });
+    if (code !== 200) {
+      message(msg || "获取采购询价失败", { type: "error" });
+      return;
+    }
+    dataList.value = data.list ?? [];
+    pagination.value.total = data.total ?? data.count ?? 0;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "获取采购询价失败";
     message(msg, { type: "error" });
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
-};
+}
 
-const handleCurrentChange = (val: number) => {
-  pagination.value.currentPage = val;
-  getData();
-};
+function handleCurrentChange(page: number) {
+  pagination.value.currentPage = page;
+  void getData();
+}
 
-const handleDelete = async (row: PurchaseInquiry) => {
-  await deletePurchaseInquiryApi(String(row.id));
-  message("删除成功", { type: "success" });
-  getData();
-};
-
-type DialogProps = { providerName: string; desc: string };
-
-function openDialog(title = "新增", row?: PurchaseInquiry) {
+function openCreateDialog() {
+  const formRef = ref<PurchaseInquiryFormExpose | null>(null);
   addDialog({
-    title: `${title}询价单`,
-    props: {
-      providerName: row?.providerName ?? "",
-      desc: row?.desc ?? ""
-    },
-    width: "40%",
+    title: "新增询价单",
+    width: "780px",
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
-    contentRenderer: ({ options }) => {
-      const dialogProps = options.props as DialogProps;
-      return h("div", [
-        h("el-form", {}, [
-          h("el-form-item", { label: "供应商" }, [
-            h("el-input", {
-              modelValue: dialogProps.providerName,
-              "onUpdate:modelValue": (val: string) =>
-                (dialogProps.providerName = val),
-              placeholder: "请输入供应商名称"
-            })
-          ]),
-          h("el-form-item", { label: "备注" }, [
-            h("el-input", {
-              modelValue: dialogProps.desc,
-              "onUpdate:modelValue": (val: string) => (dialogProps.desc = val),
-              placeholder: "暂支持备注录入",
-              type: "textarea"
-            })
-          ])
-        ])
-      ]);
-    },
-    beforeSure: (done, { options }) => {
-      const dialogProps = options.props as DialogProps;
-      dialogProps.providerName = String(dialogProps.providerName || "").trim();
-      dialogProps.desc = String(dialogProps.desc || "").trim();
-      if (!dialogProps.providerName) {
-        message("请输入供应商名称", { type: "warning" });
-        return;
-      }
-      if (dialogProps.providerName.length > 100) {
-        message("供应商名称最多 100 个字符", { type: "warning" });
-        return;
-      }
-      if (dialogProps.desc.length > 200) {
-        message("备注最多 200 个字符", { type: "warning" });
-        return;
-      }
-      const data = {
-        providerName: dialogProps.providerName,
-        desc: dialogProps.desc,
-        status: "PENDING"
-      };
-      const promise =
-        title === "新增"
-          ? createPurchaseInquiryApi(data)
-          : updatePurchaseInquiryApi(String(row?.id ?? ""), data);
+    contentRenderer: () =>
+      h(PurchaseInquiryFormDialog, {
+        ref: formRef
+      }),
+    beforeSure: async done => {
+      try {
+        const valid = await formRef.value?.validate();
+        if (!valid) return;
 
-      promise.then(() => {
-        message("操作成功", { type: "success" });
+        const payload = formRef.value?.getPayload();
+        if (!payload) return;
+
+        await createPurchaseInquiryApi(payload);
+        message("询价单创建成功", { type: "success" });
         done();
-        getData();
-      });
+        await getData();
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "创建询价单失败";
+        message(msg, { type: "error" });
+      }
     }
   });
 }
 
+async function handleSend(row: PurchaseInquiryDto) {
+  try {
+    await sendPurchaseInquiryApi(row.id);
+    message("询价单发送成功", { type: "success" });
+    await getData();
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "发送询价单失败";
+    message(msg, { type: "error" });
+  }
+}
+
+function canSend(row: PurchaseInquiryDto) {
+  return row.status === "DRAFT";
+}
+
 onMounted(() => {
-  getData();
+  void getData();
 });
 </script>
 
@@ -141,7 +122,7 @@ onMounted(() => {
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog()"
+            @click="openCreateDialog"
           >
             新增询价
           </el-button>
@@ -150,6 +131,7 @@ onMounted(() => {
           <pure-table
             row-key="id"
             adaptive
+            :loading="loading"
             :size="size"
             :columns="columns"
             border
@@ -159,15 +141,14 @@ onMounted(() => {
           >
             <template #operation="{ row }">
               <el-button
+                v-if="canSend(row)"
                 class="reset-margin"
                 link
                 type="primary"
-                :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
+                @click="handleSend(row)"
               >
-                修改
+                发送询价
               </el-button>
-              <DeleteButton @confirm="handleDelete(row)" />
             </template>
           </pure-table>
         </template>

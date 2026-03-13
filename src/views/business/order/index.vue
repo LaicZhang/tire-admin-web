@@ -419,7 +419,7 @@ onMounted(async () => {
               <el-button
                 v-if="
                   orderType === ORDER_TYPE.purchaseInquiry &&
-                  row.status === 'draft'
+                  row.status === 'DRAFT'
                 "
                 class="reset-margin"
                 link

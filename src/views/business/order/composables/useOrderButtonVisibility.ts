@@ -110,7 +110,7 @@ export function useOrderButtonVisibility(orderType: Ref<string>) {
    */
   const canSendInquiry = (row: OrderRow) => {
     return (
-      orderType.value === ORDER_TYPE.purchaseInquiry && row.status === "draft"
+      orderType.value === ORDER_TYPE.purchaseInquiry && row.status === "DRAFT"
     );
   };
 

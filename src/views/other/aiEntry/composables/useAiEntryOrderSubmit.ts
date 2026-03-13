@@ -165,7 +165,7 @@ export function useAiEntryOrderSubmit(
           providerId: partyUid,
           remark: orderForm.value.remark,
           details: details.map(d => ({
-            tireId: d.productUid,
+            tireId: String(d.productUid || ""),
             quantity: Math.max(1, Math.floor(d.quantity || 1)),
             expectedPrice: d.price == null ? undefined : toCentInt(d.price)
           }))

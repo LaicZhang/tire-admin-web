@@ -2,7 +2,8 @@ import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
 
-const prefix = "/quality/";
+const legacyPrefix = "/quality/";
+const inspectionPrefix = "/quality-inspection";
 
 export interface DefectCategoryDto {
   name: string;
@@ -15,94 +16,107 @@ export interface DefectCategory extends DefectCategoryDto {
   status?: number;
 }
 
-export interface InspectionRecordDto {
-  purchaseOrderId: string;
-  inspectorId: string;
-  items: Array<{
-    tireId: string;
-    quantity: number;
-    qualifiedQuantity: number;
-    defectQuantity: number;
-    defectCategoryId?: number;
-    remark?: string;
-  }>;
+export type InspectionResult = "PASS" | "PARTIAL" | "FAIL";
+
+export interface CreateQualityInspectionDto {
+  purchaseOrderUid: string;
+  detailId?: number;
+  inspectedQty: number;
+  qualifiedQty: number;
+  unqualifiedQty: number;
+  result: InspectionResult;
+  handler?: string;
+  inspectedAt: string;
   remark?: string;
 }
 
-export interface InspectionRecord extends InspectionRecordDto {
+export interface QualityInspectionRecord extends CreateQualityInspectionDto {
   id: number;
-  uid: string;
+  uid?: string;
+  purchaseOrder?: {
+    uid?: string;
+    docNo?: string | null;
+    number?: string | null;
+  } | null;
+  inspectedBy?: {
+    uid?: string;
+    name?: string | null;
+  } | null;
+  createdAt?: string | null;
 }
 
-/** 获取缺陷分类列表 */
+export interface QualityInspectionQuery {
+  page?: number;
+  purchaseOrderNo?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+function resolveInspectionQuery(params?: QualityInspectionQuery) {
+  if (!params) return undefined;
+  return {
+    ...(params.page ? { index: params.page } : {}),
+    ...(params.purchaseOrderNo
+      ? { purchaseOrderNo: params.purchaseOrderNo }
+      : {}),
+    ...(params.startDate ? { startDate: params.startDate } : {}),
+    ...(params.endDate ? { endDate: params.endDate } : {})
+  };
+}
+
 export async function getDefectCategoryListApi(params?: {
   name?: string;
   status?: number;
 }) {
   return await http.request<CommonResult<DefectCategory[]>>(
     "get",
-    baseUrlApi(prefix + "defect-categories"),
+    baseUrlApi(legacyPrefix + "defect-categories"),
     { params }
   );
 }
 
-/** 创建缺陷分类 */
 export async function createDefectCategoryApi(data: DefectCategoryDto) {
   return await http.request<CommonResult<DefectCategory>>(
     "post",
-    baseUrlApi(prefix + "defect-categories"),
+    baseUrlApi(legacyPrefix + "defect-categories"),
     { data }
   );
 }
 
-/** 更新缺陷分类 */
 export async function updateDefectCategoryApi(
   id: number,
   data: Partial<DefectCategoryDto> & { status?: number }
 ) {
   return await http.request<CommonResult<DefectCategory>>(
     "patch",
-    baseUrlApi(prefix + `defect-categories/${id}`),
+    baseUrlApi(legacyPrefix + `defect-categories/${id}`),
     { data }
   );
 }
 
-/** 删除缺陷分类 */
 export async function deleteDefectCategoryApi(id: number) {
   return await http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(prefix + `defect-categories/${id}`)
+    baseUrlApi(legacyPrefix + `defect-categories/${id}`)
   );
 }
 
-/** 获取质检记录列表 */
-export async function getInspectionRecordListApi(
-  index: number,
-  params?: {
-    purchaseOrderNo?: string;
-    providerId?: string;
-    startDate?: string;
-    endDate?: string;
-  }
+export async function getQualityInspectionListApi(
+  params?: QualityInspectionQuery
 ) {
   return await http.request<
-    CommonResult<PaginatedResponseDto<InspectionRecord>>
-  >("get", baseUrlApi(prefix + `inspection-records/${index}`), { params });
+    CommonResult<PaginatedResponseDto<QualityInspectionRecord>>
+  >("get", baseUrlApi(inspectionPrefix), {
+    params: resolveInspectionQuery(params)
+  });
 }
 
-/** 创建质检记录 */
-export async function createInspectionRecordApi(data: InspectionRecordDto) {
-  return await http.request<CommonResult<InspectionRecord>>(
+export async function createQualityInspectionApi(
+  data: CreateQualityInspectionDto
+) {
+  return await http.request<CommonResult<QualityInspectionRecord>>(
     "post",
-    baseUrlApi(prefix + "inspection-records"),
+    baseUrlApi(inspectionPrefix),
     { data }
-  );
-}
-
-/** 获取质检记录详情 */
-export async function getInspectionRecordApi(id: string) {
-  return await http.request<CommonResult<InspectionRecord>>(
-    "get",
-    baseUrlApi(prefix + `inspection-records/detail/${id}`)
   );
 }

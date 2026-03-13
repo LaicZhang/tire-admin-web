@@ -23,10 +23,10 @@ export const purchaseInquiryColumns: TableColumnList = [
     prop: "status",
     formatter: ({ status }) => {
       const map: Record<string, string> = {
-        draft: "草稿",
-        sent: "已发送",
-        responded: "已报价",
-        ordered: "已下单"
+        DRAFT: "草稿",
+        SENT: "已发送",
+        REPLIED: "已报价",
+        CLOSED: "已关闭"
       };
       return map[status] || status;
     }
