@@ -7,6 +7,7 @@ import {
   getCompanyConnect,
   addOrderApi,
   updateOrderApi,
+  auditOrderApi,
   payPurchaseOrderApi,
   paySaleOrderApi,
   processClaimOrderPaymentApi,
@@ -337,6 +338,17 @@ interface SubmitContext {
   companyId: string;
 }
 
+export function buildAuditOrderPayload(
+  type: string,
+  submitData: Pick<OrderSubmitData, "isApproved" | "rejectReason">
+) {
+  return {
+    type,
+    isApproved: submitData.isApproved ?? true,
+    desc: submitData.isApproved ? null : (submitData.rejectReason ?? "")
+  };
+}
+
 function createCompanyPayload(
   submitData: OrderSubmitData,
   companyId: string
@@ -380,18 +392,8 @@ async function submitCreateOrder({
   return true;
 }
 
-async function submitAuditOrder({
-  type,
-  submitData,
-  companyId
-}: SubmitContext) {
-  const payload = createCompanyPayload(submitData, companyId);
-  await updateOrderApi(type, submitData.uid, {
-    ...payload,
-    isApproved: submitData.isApproved ?? true,
-    isLocked: submitData.isApproved ?? true,
-    auditAt: submitData.isApproved ? new Date().toISOString() : null
-  });
+async function submitAuditOrder({ type, submitData }: SubmitContext) {
+  await auditOrderApi(submitData.uid, buildAuditOrderPayload(type, submitData));
   return true;
 }
 

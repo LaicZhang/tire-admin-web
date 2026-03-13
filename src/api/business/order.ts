@@ -117,6 +117,12 @@ export interface PayOrderDto {
   desc?: string;
 }
 
+export interface AuditOrderDto {
+  type: string;
+  isApproved: boolean;
+  desc?: string | null;
+}
+
 /** 确认物流状态请求 DTO */
 export type ConfirmDetailUidDto = {
   detailUid: string;
@@ -668,4 +674,10 @@ export async function getPendingAuditOrdersApi(
     baseUrlApi(prefix + "pending/" + type + "/page/" + index),
     { params }
   );
+}
+
+export async function auditOrderApi(uid: string, data: AuditOrderDto) {
+  return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
+    data
+  });
 }

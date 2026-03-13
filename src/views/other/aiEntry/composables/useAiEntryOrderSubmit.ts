@@ -142,16 +142,18 @@ export function useAiEntryOrderSubmit(
 
       let createdId: string | number | undefined;
       if (currentDocConfig.value.partyType === "customer") {
+        const customerId = partyUid!;
+        const quotationDetails = details.map(d => ({
+          tireId: d.productUid!,
+          quantity: Math.max(1, Math.floor(d.quantity || 1)),
+          quotedPrice: toCentInt(d.price),
+          originalPrice: toCentInt(d.price),
+          remark: d.remark
+        }));
         const res = await createSaleQuotationApi({
-          customerId: partyUid,
+          customerId,
           remark: orderForm.value.remark,
-          details: details.map(d => ({
-            tireId: d.productUid,
-            quantity: Math.max(1, Math.floor(d.quantity || 1)),
-            quotedPrice: toCentInt(d.price),
-            originalPrice: toCentInt(d.price),
-            remark: d.remark
-          }))
+          details: quotationDetails
         });
         if (res.code !== 200) throw new Error(res.msg || "创建失败");
         const resData = res.data as

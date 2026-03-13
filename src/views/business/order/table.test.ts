@@ -29,7 +29,7 @@ vi.mock("./form.vue", () => ({
 }));
 
 import { ORDER_TYPE } from "@/utils";
-import { buildCreateOrderPayload } from "./table";
+import { buildAuditOrderPayload, buildCreateOrderPayload } from "./table";
 
 describe("business/order/table", () => {
   it("builds surplus order payload with repo-based details", () => {
@@ -111,6 +111,30 @@ describe("business/order/table", () => {
           desc: undefined
         }
       ]
+    });
+  });
+
+  it("builds audit payload for approval and rejection", () => {
+    expect(
+      buildAuditOrderPayload(ORDER_TYPE.sale, {
+        isApproved: true,
+        rejectReason: "ignored"
+      })
+    ).toEqual({
+      type: ORDER_TYPE.sale,
+      isApproved: true,
+      desc: null
+    });
+
+    expect(
+      buildAuditOrderPayload(ORDER_TYPE.sale, {
+        isApproved: false,
+        rejectReason: "库存不足"
+      })
+    ).toEqual({
+      type: ORDER_TYPE.sale,
+      isApproved: false,
+      desc: "库存不足"
     });
   });
 });
