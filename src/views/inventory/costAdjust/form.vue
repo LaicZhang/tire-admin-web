@@ -11,6 +11,7 @@ import { getTireListApi } from "@/api/business/tire";
 import { getEmployeeListApi } from "@/api/company/employee";
 import { MoneyDisplay } from "@/components";
 import { createUid } from "@/utils/uid";
+import { useUserStoreHook } from "@/store/modules/user";
 
 interface Props {
   formInline: {
@@ -27,6 +28,8 @@ const props = withDefaults(defineProps<Props>(), {
   isView: false
 });
 
+const currentUserUid = useUserStoreHook().uid;
+
 const formRef = ref<FormInstance>();
 const repoList = ref<{ uid: string; name: string }[]>([]);
 const tireList = ref<{ uid: string; name: string; barcode?: string }[]>([]);
@@ -34,7 +37,7 @@ const employeeList = ref<{ uid: string; name: string }[]>([]);
 const loading = ref(false);
 
 const formData = reactive<CreateCostAdjustOrderDto>({
-  operatorId: props.formInline.operatorId || "",
+  operatorId: props.formInline.operatorId || currentUserUid || "",
   auditorId: props.formInline.auditorId || "",
   reason: props.formInline.reason || "",
   desc: props.formInline.desc || "",

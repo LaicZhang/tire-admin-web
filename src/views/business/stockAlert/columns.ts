@@ -1,6 +1,6 @@
 export const columns: TableColumnList = [
   {
-    label: "轮胎ID",
+    label: "商品",
     prop: "tireId"
   },
   {

@@ -70,7 +70,7 @@ const handleReset = () => {
 const getDetails = async (row: FormItemProps) => {
   const uid = row.uid;
   if (!uid) {
-    message("缺少仓库 UID", { type: "warning" });
+    message("缺少仓库信息", { type: "warning" });
     return;
   }
   loading.value = true;
@@ -136,7 +136,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         if (valid) {
           const uid = row?.uid ?? curData.uid ?? "";
           if (title !== "新增" && !uid) {
-            message("缺少仓库 UID", { type: "warning" });
+            message("缺少仓库信息", { type: "warning" });
             return;
           }
           const promise =
@@ -156,7 +156,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 
 const deleteOne = async (row: { uid?: string; name: string }) => {
   if (!row.uid) {
-    message("缺少仓库 UID", { type: "warning" });
+    message("缺少仓库信息", { type: "warning" });
     return;
   }
   const ok = await confirm(

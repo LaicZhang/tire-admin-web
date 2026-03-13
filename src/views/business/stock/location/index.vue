@@ -17,6 +17,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import { columns } from "./columns";
+import RepoSelect from "@/components/EntitySelect/RepoSelect.vue";
 
 defineOptions({
   name: "StockLocation"
@@ -80,12 +81,12 @@ function openDialog(title = "新增", row?: unknown) {
       const dialogProps = options.props as DialogProps;
       return h("div", [
         h("el-form", {}, [
-          h("el-form-item", { label: "仓库ID" }, [
-            h("el-input", {
+          h("el-form-item", { label: "仓库" }, [
+            h(RepoSelect, {
               modelValue: dialogProps.repoId,
               "onUpdate:modelValue": (val: string) =>
                 (dialogProps.repoId = val),
-              placeholder: "请输入仓库ID (后期改为下拉)"
+              placeholder: "请选择仓库"
             })
           ]),
           h("el-form-item", { label: "库区名称" }, [
@@ -103,15 +104,7 @@ function openDialog(title = "新增", row?: unknown) {
       dialogProps.repoId = String(dialogProps.repoId || "").trim();
       dialogProps.name = String(dialogProps.name || "").trim();
       if (!dialogProps.repoId) {
-        message("请输入仓库ID", { type: "warning" });
-        return;
-      }
-      if (
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-          dialogProps.repoId
-        )
-      ) {
-        message("仓库ID不合法", { type: "warning" });
+        message("请选择仓库", { type: "warning" });
         return;
       }
       if (!dialogProps.name) {

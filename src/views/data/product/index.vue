@@ -144,7 +144,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
                 ? updateTireApi(row.uid, curData)
                 : null;
           if (!promise) {
-            message("缺少商品ID，无法更新", { type: "error" });
+            message("缺少商品信息，无法更新", { type: "error" });
             return;
           }
           promise.then(() => {

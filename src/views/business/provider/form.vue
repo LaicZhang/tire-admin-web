@@ -4,6 +4,7 @@ import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 import { useOptionsByType } from "@/composables/useOptions";
 import { useSysDictOptions } from "@/composables/useSysDict";
+import { useUserStoreHook } from "@/store/modules/user";
 
 interface FormItemProps {
   id: number;
@@ -23,13 +24,15 @@ interface FormProps {
   formInline?: FormItemProps;
 }
 
+const currentUserUid = useUserStoreHook().uid;
+
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     uid: "",
     name: "",
     id: 0,
     desc: "",
-    operatorId: "",
+    operatorId: currentUserUid || "",
     isIndividual: false,
     isPublic: false,
     contactName: "",
@@ -45,6 +48,9 @@ const formRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+if (!newFormInline.value.uid && !newFormInline.value.operatorId) {
+  newFormInline.value.operatorId = currentUserUid || "";
+}
 
 const { options: employeeOptions } = useOptionsByType("employees");
 const { options: provinceOptions } = useSysDictOptions("province");

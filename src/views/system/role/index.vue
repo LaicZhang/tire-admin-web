@@ -169,7 +169,7 @@ const restoreOne = async (row: CompanyRoleItem) => {
 
 const openPermissionDialog = (row: CompanyRoleItem) => {
   if (!row.uid) {
-    message("缺少角色UID", { type: "error" });
+    message("缺少角色信息，无法设置权限", { type: "error" });
     return;
   }
   addDialog({

@@ -12,6 +12,7 @@ import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
 import { getProviderListApi } from "@/api/business/provider";
 import { createUid } from "@/utils/uid";
+import { useUserStoreHook } from "@/store/modules/user";
 
 interface Props {
   formInline: Partial<OtherInboundOrder>;
@@ -21,6 +22,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   isView: false
 });
+
+const currentUserUid = useUserStoreHook().uid;
 
 const formRef = ref<FormInstance>();
 const repoList = ref<{ uid: string; name: string }[]>([]);
@@ -41,7 +44,7 @@ const formData = reactive<CreateOtherInboundDto>({
     OtherInboundType.OTHER_INBOUND,
   providerId: props.formInline.providerId || "",
   orderDate: props.formInline.orderDate || new Date().toISOString(),
-  operatorId: props.formInline.operatorId || "",
+  operatorId: props.formInline.operatorId || currentUserUid || "",
   remark: props.formInline.remark || "",
   details: props.formInline.details?.map(d => ({
     _uid: createUid(),

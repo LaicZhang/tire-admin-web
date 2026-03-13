@@ -140,7 +140,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             chores();
           } else {
             if (!uid) {
-              message("缺少轮胎ID，无法更新", { type: "error" });
+              message("缺少商品信息，无法更新", { type: "error" });
               return;
             }
             const tire = await updateTireApi(uid, payload);

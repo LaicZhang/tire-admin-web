@@ -158,7 +158,8 @@ const openDialog = (title = "新增", row?: PermissionDto) => {
               ? updatePermissionApi(row.uid, payload)
               : null;
 
-        if (!promise) return message("缺少权限UID", { type: "error" });
+        if (!promise)
+          return message("缺少权限信息，无法更新", { type: "error" });
 
         promise.then(() => {
           message("操作成功", { type: "success" });

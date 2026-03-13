@@ -114,7 +114,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
             chores();
           } else {
             if (!uid) {
-              message("缺少员工UID", { type: "error" });
+              message("缺少员工信息，无法更新", { type: "error" });
               return;
             }
             const userWithoutPassword: Partial<EmployeeUserDto> = {

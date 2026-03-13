@@ -44,7 +44,7 @@ defineExpose({ getRef });
     :rules="rules"
     label-width="100px"
   >
-    <el-form-item label="仓库ID（可选）" prop="repoId">
+    <el-form-item label="仓库（可选）" prop="repoId">
       <RepoSelect v-model="formData.repoId" clearable placeholder="全部仓库" />
     </el-form-item>
     <el-form-item label="提前预警天数" prop="daysBefore">

@@ -55,7 +55,7 @@ defineExpose({ getRef });
     :rules="rules"
     label-width="80px"
   >
-    <el-form-item label="轮胎ID" prop="tireId">
+    <el-form-item label="商品" prop="tireId">
       <TireSelect v-model="formData.tireId" placeholder="请选择商品" />
     </el-form-item>
     <el-form-item label="最低库存" prop="minQuantity">
