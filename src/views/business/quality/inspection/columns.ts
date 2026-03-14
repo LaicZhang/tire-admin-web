@@ -9,6 +9,15 @@ function formatInspectionResult(result?: string) {
   return result ? map[result] || result : "-";
 }
 
+function formatDisposalStatus(status?: string) {
+  const map: Record<string, string> = {
+    PENDING: "待处置",
+    RETURN_CREATED: "已生成退货单",
+    COMPLETED: "已完成"
+  };
+  return status ? map[status] || status : "-";
+}
+
 export const columns: TableColumnList = [
   {
     label: "记录ID",
@@ -44,6 +53,17 @@ export const columns: TableColumnList = [
     formatter: ({ inspectedBy }) => inspectedBy?.name || "-"
   },
   {
+    label: "处置状态",
+    prop: "disposalStatus",
+    formatter: ({ disposalStatus }) => formatDisposalStatus(disposalStatus)
+  },
+  {
+    label: "关联退货单",
+    prop: "returnOrder.docNo",
+    formatter: ({ returnOrder }) =>
+      returnOrder?.docNo || returnOrder?.number || "-"
+  },
+  {
     label: "检验时间",
     prop: "inspectedAt",
     formatter: ({ inspectedAt }) =>
@@ -52,5 +72,11 @@ export const columns: TableColumnList = [
   {
     label: "备注",
     prop: "remark"
+  },
+  {
+    label: "操作",
+    minWidth: 140,
+    fixed: "right",
+    slot: "operation"
   }
 ];

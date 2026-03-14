@@ -17,6 +17,10 @@ export interface DefectCategory extends DefectCategoryDto {
 }
 
 export type InspectionResult = "PASS" | "PARTIAL" | "FAIL";
+export type QualityInspectionDisposalStatus =
+  | "PENDING"
+  | "RETURN_CREATED"
+  | "COMPLETED";
 
 export interface CreateQualityInspectionDto {
   purchaseOrderUid: string;
@@ -30,10 +34,21 @@ export interface CreateQualityInspectionDto {
   remark?: string;
 }
 
+export interface ConvertQualityInspectionReturnDto {
+  auditorId: string;
+  desc?: string;
+}
+
 export interface QualityInspectionRecord extends CreateQualityInspectionDto {
   id: number;
   uid?: string;
+  disposalStatus?: QualityInspectionDisposalStatus;
   purchaseOrder?: {
+    uid?: string;
+    docNo?: string | null;
+    number?: string | null;
+  } | null;
+  returnOrder?: {
     uid?: string;
     docNo?: string | null;
     number?: string | null;
@@ -117,6 +132,17 @@ export async function createQualityInspectionApi(
   return await http.request<CommonResult<QualityInspectionRecord>>(
     "post",
     baseUrlApi(inspectionPrefix),
+    { data }
+  );
+}
+
+export async function convertQualityInspectionReturnApi(
+  id: number,
+  data: ConvertQualityInspectionReturnDto
+) {
+  return await http.request<CommonResult<QualityInspectionRecord>>(
+    "post",
+    baseUrlApi(`${inspectionPrefix}/${id}/convert-return`),
     { data }
   );
 }

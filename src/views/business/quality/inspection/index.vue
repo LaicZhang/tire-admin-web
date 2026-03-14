@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { h, reactive, ref } from "vue";
+import { h, onMounted, reactive, ref } from "vue";
 import { deviceDetection } from "@pureadmin/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { addDialog } from "@/components/ReDialog";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
+import { ALL_LIST, localForage } from "@/utils";
 import { message } from "@/utils/message";
 import Add from "~icons/ep/plus";
+import { ElOption, ElSelect } from "element-plus";
 import {
+  convertQualityInspectionReturnApi,
   createQualityInspectionApi,
   getQualityInspectionListApi,
+  type ConvertQualityInspectionReturnDto,
   type CreateQualityInspectionDto,
   type QualityInspectionRecord
 } from "@/api/business/quality";
@@ -40,6 +44,11 @@ const form = reactive({
   startDate: undefined as string | undefined,
   endDate: undefined as string | undefined
 });
+const managerList = ref<Array<{ uid: string; name: string }>>([]);
+
+interface ConvertReturnDialogProps extends ConvertQualityInspectionReturnDto {
+  desc: string;
+}
 
 async function fetchData() {
   loading.value = true;
@@ -110,7 +119,106 @@ function openCreateDialog() {
   });
 }
 
-void fetchData();
+function canConvertReturn(row: QualityInspectionRecord) {
+  return (
+    row.detailId !== undefined &&
+    row.result !== "PASS" &&
+    row.disposalStatus === "PENDING"
+  );
+}
+
+async function openConvertReturnDialog(row: QualityInspectionRecord) {
+  if (managerList.value.length === 0) {
+    managerList.value =
+      (await localForage().getItem<Array<{ uid: string; name: string }>>(
+        ALL_LIST.manager
+      )) ?? [];
+  }
+
+  addDialog({
+    title: "生成采购退货单",
+    width: "520px",
+    draggable: true,
+    closeOnClickModal: false,
+    props: {
+      auditorId: "",
+      desc: ""
+    } satisfies ConvertReturnDialogProps,
+    contentRenderer: ({ options }) => {
+      const current = options.props as ConvertReturnDialogProps;
+      return h("div", { class: "space-y-4" }, [
+        h(
+          "div",
+          { class: "text-sm text-gray-500" },
+          `采购单：${row.purchaseOrder?.docNo || row.purchaseOrderUid}，不合格数量：${row.unqualifiedQty}`
+        ),
+        h("el-form", { labelWidth: "88px" }, [
+          h("el-form-item", { label: "审核人" }, [
+            h(
+              ElSelect,
+              {
+                modelValue: current.auditorId,
+                "onUpdate:modelValue": (value: string) => {
+                  current.auditorId = value;
+                },
+                placeholder: "请选择审核人",
+                filterable: true,
+                class: "w-full"
+              },
+              () =>
+                managerList.value.map(item =>
+                  h(ElOption, {
+                    key: item.uid,
+                    label: item.name,
+                    value: item.uid
+                  })
+                )
+            )
+          ]),
+          h("el-form-item", { label: "备注" }, [
+            h("el-input", {
+              modelValue: current.desc,
+              "onUpdate:modelValue": (value: string) => {
+                current.desc = value;
+              },
+              type: "textarea",
+              placeholder: "可补充本次退货说明"
+            })
+          ])
+        ])
+      ]);
+    },
+    beforeSure: async (done, { options }) => {
+      const current = options.props as ConvertReturnDialogProps;
+      if (!current.auditorId) {
+        message("请选择审核人", { type: "warning" });
+        return;
+      }
+
+      try {
+        await convertQualityInspectionReturnApi(row.id, {
+          auditorId: current.auditorId,
+          ...(current.desc.trim() ? { desc: current.desc.trim() } : {})
+        });
+        message("采购退货单已生成", { type: "success" });
+        done();
+        await fetchData();
+      } catch (error) {
+        const msg =
+          error instanceof Error ? error.message : "生成采购退货单失败";
+        message(msg, { type: "error" });
+      }
+    }
+  });
+}
+
+onMounted(async () => {
+  managerList.value =
+    (await localForage().getItem<Array<{ uid: string; name: string }>>(
+      ALL_LIST.manager
+    )) ?? [];
+  await fetchData();
+});
 </script>
 
 <template>
@@ -175,7 +283,19 @@ void fetchData();
             color: 'var(--el-text-color-primary)'
           }"
           @page-current-change="handleCurrentChange"
-        />
+        >
+          <template #operation="{ row }">
+            <el-button
+              v-if="canConvertReturn(row)"
+              class="reset-margin"
+              link
+              type="warning"
+              @click="openConvertReturnDialog(row)"
+            >
+              生成采购退货单
+            </el-button>
+          </template>
+        </pure-table>
       </template>
     </PureTableBar>
   </div>
