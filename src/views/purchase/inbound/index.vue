@@ -1,25 +1,16 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { h, onMounted, ref } from "vue";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { addDialog } from "@/components/ReDialog";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
-import { addDialog } from "@/components/ReDialog";
-import { deviceDetection } from "@pureadmin/utils";
-import { v7 as uuid } from "uuid";
-import type { FormInstance } from "element-plus";
 import { useRoute } from "vue-router";
 import {
-  createPurchaseInboundApi,
-  deletePurchaseInboundApi,
   getPurchaseInboundApi,
-  getPurchaseInboundListApi,
-  updatePurchaseInboundApi
+  getPurchaseInboundListApi
 } from "@/api/purchase";
-import { getCompanyConnect, getCompanyId } from "@/api/company";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import { inboundOrderColumns } from "./columns";
 import type { InboundOrder, InboundOrderQueryParams } from "./types";
@@ -33,7 +24,6 @@ const route = useRoute();
 
 const dataList = ref<InboundOrder[]>([]);
 const loading = ref(false);
-const formRef = ref<{ getRef: () => FormInstance } | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const searchForm = ref<InboundOrderQueryParams>({
@@ -109,109 +99,21 @@ function handlePageChange(page: number) {
   getList();
 }
 
-function openDialog(title: string, row?: InboundOrder) {
-  const formData: InboundOrder = row
-    ? { ...row }
-    : {
-        uid: uuid(),
-        providerId: "",
-        count: 0,
-        total: 0,
-        showTotal: 0,
-        paidAmount: 0,
-        status: true,
-        isApproved: false,
-        isLocked: false,
-        details: []
-      };
-
+function openDialog(row: InboundOrder) {
   addDialog({
-    title: `${title}采购入库单`,
+    title: "查看采购到货记录",
     props: {
-      formInline: formData,
-      formTitle: title
+      formInline: { ...row },
+      formTitle: "查看"
     },
     width: "90%",
-    hideFooter: title === "查看",
-    draggable: true,
-    fullscreen: deviceDetection(),
-    fullscreenIcon: true,
-    closeOnClickModal: false,
+    hideFooter: true,
     contentRenderer: () =>
       h(editForm, {
-        ref: formRef,
-        formInline: formData,
-        formTitle: title
-      }),
-    beforeSure: async done => {
-      const FormRef = formRef.value?.getRef();
-      if (!FormRef) return;
-
-      FormRef.validate(async (valid: boolean) => {
-        if (!valid) return;
-
-        try {
-          const companyId = await getCompanyId();
-          const {
-            details,
-            provider,
-            operator,
-            auditor,
-            purchaseOrder,
-            ...orderData
-          } = formData;
-
-          if (title === "新增") {
-            if (details.length === 0) {
-              message("请添加入库明细", { type: "warning" });
-              return;
-            }
-            await createPurchaseInboundApi({
-              order: {
-                ...orderData,
-                company: getCompanyConnect(companyId),
-                provider: { connect: { uid: orderData.providerId } },
-                ...(orderData.auditorId
-                  ? { auditor: { connect: { uid: orderData.auditorId } } }
-                  : {})
-              },
-              details: details.map(d => ({ ...d, companyId }))
-            });
-            message("新增成功", { type: "success" });
-          } else if (title === "修改") {
-            await updatePurchaseInboundApi(formData.uid, {
-              ...orderData,
-              company: getCompanyConnect(companyId)
-            });
-            message("修改成功", { type: "success" });
-          } else if (title === "审核") {
-            await updatePurchaseInboundApi(formData.uid, {
-              isApproved: formData.isApproved,
-              isLocked: formData.isApproved,
-              rejectReason: formData.rejectReason,
-              auditAt: formData.isApproved ? new Date().toISOString() : null,
-              company: getCompanyConnect(companyId)
-            });
-            message("审核完成", { type: "success" });
-          }
-          done();
-          getList();
-        } catch (error) {
-          handleApiError(error, `${title}失败`);
-        }
-      });
-    }
+        formInline: { ...row },
+        formTitle: "查看"
+      })
   });
-}
-
-async function handleDelete(row: InboundOrder) {
-  try {
-    await deletePurchaseInboundApi(row.uid);
-    message("删除成功", { type: "success" });
-    getList();
-  } catch (error) {
-    handleApiError(error, "删除失败");
-  }
 }
 
 async function openFromRouteQuery() {
@@ -224,14 +126,13 @@ async function openFromRouteQuery() {
     edit: "修改",
     audit: "审核"
   };
-  const title = titleMap[action];
-  if (!title) return;
+  if (!titleMap[action]) return;
 
   try {
     loading.value = true;
     const res = await getPurchaseInboundApi(uid);
     if (res.code === 200) {
-      openDialog(title, res.data);
+      openDialog(res.data);
     } else {
       message(res.msg, { type: "error" });
     }
@@ -243,7 +144,9 @@ async function openFromRouteQuery() {
 }
 
 async function handleGenerateReturnOrder(row: InboundOrder) {
-  message(`生成采购退货单功能开发中，入库单: ${row.number}`, { type: "info" });
+  message(`请从采购订单或采购退货流程处理该到货记录，单号: ${row.number}`, {
+    type: "info"
+  });
 }
 
 onMounted(async () => {
@@ -255,6 +158,12 @@ onMounted(async () => {
 
 <template>
   <div class="main">
+    <el-alert
+      class="m-1"
+      type="info"
+      :closable="false"
+      title="采购入库在当前后台中统一视为采购订单的到货确认视图，不单独创建入库单。"
+    />
     <ReSearchForm
       ref="searchFormRef"
       :form="searchForm"
@@ -319,16 +228,7 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar title="采购入库单" @refresh="getList">
-        <template #buttons>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon(AddFill)"
-            @click="openDialog('新增')"
-          >
-            新增入库单
-          </el-button>
-        </template>
+      <PureTableBar title="采购到货确认" @refresh="getList">
         <template v-slot="{ size }">
           <pure-table
             row-key="uid"
@@ -345,22 +245,21 @@ onMounted(async () => {
             <template #operation="{ row }">
               <TableOperations
                 :row="row"
-                show-audit
-                :delete-title="`确认删除编号 ${row.number} 的入库单?`"
+                :delete-title="`确认删除编号 ${row.number} 的到货记录?`"
                 :custom-actions="
                   [
                     {
-                      label: '生成退货单',
+                      label: '退货处理指引',
                       type: 'warning',
                       visible: row.isApproved,
                       onClick: () => handleGenerateReturnOrder(row)
                     }
                   ] as CustomAction[]
                 "
-                @view="openDialog('查看', $event as unknown as InboundOrder)"
-                @edit="openDialog('修改', $event as unknown as InboundOrder)"
-                @audit="openDialog('审核', $event as unknown as InboundOrder)"
-                @delete="handleDelete($event as unknown as InboundOrder)"
+                :show-edit="false"
+                :show-audit="false"
+                :show-delete="false"
+                @view="openDialog($event as unknown as InboundOrder)"
               />
             </template>
           </pure-table>
