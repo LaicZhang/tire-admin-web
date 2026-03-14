@@ -70,7 +70,7 @@ export const columns: TableColumnList = [
   {
     label: "操作",
     fixed: "right",
-    width: 140,
+    width: 200,
     slot: "operation"
   }
 ];

@@ -23,12 +23,14 @@ import { addDialog } from "@/components/ReDialog";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { ElMessageBox, ElOption, ElSelect } from "element-plus";
 import { CUR_FORM_TITLE, localForage, message, ORDER_TYPE } from "@/utils";
+import type { PurchaseInquiryDto } from "@/api/business/purchase-inquiry";
 import { openDialog } from "../table";
 import type { CommonResult } from "@/api/type";
 import ConfirmOrderDetailAction from "../components/ConfirmOrderDetailAction.vue";
 import ClaimDefectCategoryManager from "../components/ClaimDefectCategoryManager.vue";
 import ClaimInspectionDialog from "../components/ClaimInspectionDialog.vue";
 import { openPurchasePlanConvertDialog } from "../../purchase/plan/usePurchasePlanConvertDialog";
+import { openPurchaseQuotationManagerDialog } from "../../purchase/inquiry/usePurchaseQuotationDialogs";
 
 /**
  * 订单行数据接口
@@ -447,6 +449,17 @@ export function useOrderActions(
     );
   };
 
+  const handleManagePurchaseQuotations = async (row: OrderRow) => {
+    if (!row.id) {
+      message("询价单缺少主键，无法加载报价", { type: "warning" });
+      return;
+    }
+    openPurchaseQuotationManagerDialog(
+      row as unknown as PurchaseInquiryDto,
+      onSearch
+    );
+  };
+
   const handleConvertQuotation = async (row: OrderRow) => {
     try {
       const saleOrderUid = await promptSaleOrderUid(row);
@@ -479,6 +492,7 @@ export function useOrderActions(
     handleConfirmTransferArrival,
     handleReverseOrder,
     handleSendInquiry,
+    handleManagePurchaseQuotations,
     handleConvertPurchasePlan,
     handleConvertQuotation
   };

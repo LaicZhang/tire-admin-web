@@ -56,6 +56,7 @@ const {
   handleConfirmTransferArrival,
   handleReverseOrder,
   handleSendInquiry,
+  handleManagePurchaseQuotations,
   handleConvertPurchasePlan,
   handleConvertQuotation
 } = useOrderActions(orderType, onSearch);
@@ -427,6 +428,16 @@ onMounted(async () => {
                 @click="handleSendInquiry(row)"
               >
                 发送询价
+              </el-button>
+
+              <el-button
+                v-if="orderType === ORDER_TYPE.purchaseInquiry"
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleManagePurchaseQuotations(row)"
+              >
+                报价管理
               </el-button>
 
               <!-- 销售报价：转订单 -->

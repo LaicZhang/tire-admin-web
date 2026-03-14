@@ -16,6 +16,7 @@ import {
 } from "@/api/business/purchase-inquiry";
 import { columns } from "./columns";
 import PurchaseInquiryFormDialog from "./components/PurchaseInquiryFormDialog.vue";
+import { openPurchaseQuotationManagerDialog } from "./usePurchaseQuotationDialogs";
 
 defineOptions({
   name: "PurchaseInquiry"
@@ -109,6 +110,10 @@ function canSend(row: PurchaseInquiryDto) {
   return row.status === "DRAFT";
 }
 
+function openQuotationManager(row: PurchaseInquiryDto) {
+  openPurchaseQuotationManagerDialog(row, getData);
+}
+
 onMounted(() => {
   void getData();
 });
@@ -148,6 +153,14 @@ onMounted(() => {
                 @click="handleSend(row)"
               >
                 发送询价
+              </el-button>
+              <el-button
+                class="reset-margin"
+                link
+                type="success"
+                @click="openQuotationManager(row)"
+              >
+                报价管理
               </el-button>
             </template>
           </pure-table>
