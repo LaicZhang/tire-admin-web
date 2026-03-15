@@ -16,6 +16,8 @@ function parseSettingValue(value: string): boolean | number | string {
 export interface UseSettingsFormOptions<T extends object> {
   /** Settings group name, e.g. "sys", "func", "cost" */
   group: string;
+  /** Extra groups to load together. Defaults to [group]. */
+  loadGroups?: readonly string[];
   /** Default form data */
   defaults: () => T;
   /** Custom transform from CompanySettingItem[] to partial form data.
@@ -23,6 +25,8 @@ export interface UseSettingsFormOptions<T extends object> {
   transformLoad?: (settings: CompanySettingItem[], formData: T) => void;
   /** Custom transform before saving. By default saves formData as-is. */
   transformSave?: (formData: T) => Record<string, unknown>;
+  /** Custom transform before saving to multiple groups. */
+  transformSaveMulti?: (formData: T) => Record<string, Record<string, unknown>>;
   /** Whether to auto-load on mount. Defaults to true. */
   immediate?: boolean;
 }
@@ -32,9 +36,11 @@ export function useSettingsForm<T extends object>(
 ) {
   const {
     group,
+    loadGroups,
     defaults,
     transformLoad,
     transformSave,
+    transformSaveMulti,
     immediate = true
   } = options;
 
@@ -45,9 +51,24 @@ export function useSettingsForm<T extends object>(
   const loadSettings = async () => {
     loading.value = true;
     try {
-      const { code, data } = await getCompanySettingGroupApi(group);
-      if (code === 200 && data) {
-        const groupSettings = data;
+      const groupsToLoad = loadGroups?.length ? loadGroups : [group];
+      const results = await Promise.all(
+        groupsToLoad.map(async g => ({
+          group: g,
+          ...(await getCompanySettingGroupApi(g))
+        }))
+      );
+
+      const merged: CompanySettingItem[] = [];
+      for (const r of results) {
+        if (r.code !== 200 || !r.data) {
+          throw new Error(`加载设置失败（${r.group}）`);
+        }
+        merged.push(...r.data);
+      }
+
+      if (merged.length > 0) {
+        const groupSettings = merged;
         if (transformLoad) {
           transformLoad(groupSettings, formData.value);
         } else {
@@ -72,17 +93,33 @@ export function useSettingsForm<T extends object>(
   const handleSave = async () => {
     loading.value = true;
     try {
+      if (transformSaveMulti) {
+        const payload = transformSaveMulti(formData.value);
+        for (const [groupName, settings] of Object.entries(payload)) {
+          const { code, msg } = await patchCompanySettingGroupApi(
+            groupName,
+            settings
+          );
+          if (code !== 200) {
+            message(msg || `保存失败（${groupName}）`, { type: "error" });
+            return;
+          }
+        }
+        message("保存成功", { type: "success" });
+        return;
+      }
+
       const saveData = transformSave
         ? transformSave(formData.value)
         : formData.value;
-      const { code } = await patchCompanySettingGroupApi(
+      const { code, msg } = await patchCompanySettingGroupApi(
         group,
         saveData as Record<string, unknown>
       );
       if (code === 200) {
         message("保存成功", { type: "success" });
       } else {
-        message("保存失败", { type: "error" });
+        message(msg || "保存失败", { type: "error" });
       }
     } catch {
       message("保存失败", { type: "error" });
