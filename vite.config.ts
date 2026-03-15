@@ -20,6 +20,14 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
   } = wrapperEnv(loadEnv(mode, root));
   const proxyTarget =
     VITE_PROXY_TARGET || VITE_SERVER_URL || "http://localhost:3000";
+  const buildInput = {
+    index: pathResolve("./index.html", import.meta.url)
+  };
+  const buildOutput = {
+    chunkFileNames: "static/js/[name]-[hash].js",
+    entryFileNames: "static/js/[name]-[hash].js",
+    assetFileNames: "static/[ext]/[name]-[hash].[ext]"
+  };
   return {
     base: VITE_PUBLIC_PATH,
     root,
@@ -56,15 +64,13 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
       // 降低阈值以便早期发现异常大 chunk
       chunkSizeWarningLimit: 800,
       rollupOptions: {
-        input: {
-          index: pathResolve("./index.html", import.meta.url)
-        },
+        input: buildInput,
         // 静态资源分类打包
-        output: {
-          chunkFileNames: "static/js/[name]-[hash].js",
-          entryFileNames: "static/js/[name]-[hash].js",
-          assetFileNames: "static/[ext]/[name]-[hash].[ext]"
-        }
+        output: buildOutput
+      },
+      rolldownOptions: {
+        input: buildInput,
+        output: buildOutput
       }
     },
     define: {
