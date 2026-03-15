@@ -131,6 +131,7 @@ const loadData = async () => {
 
 const startBackup = async () => {
   try {
+    type PromptResult = { value: string } | string;
     const res = await ElMessageBox.prompt(
       "请输入备份备注（可选）",
       "开始备份",
@@ -140,7 +141,8 @@ const startBackup = async () => {
         inputPlaceholder: "请输入备注"
       }
     );
-    const value = typeof res === "string" ? "" : res.value;
+    const result = res as PromptResult;
+    const value = typeof result === "string" ? result : result.value;
     loading.value = true;
     const payload: Record<string, unknown> = {};
     if (value?.trim()) payload.remark = value.trim();

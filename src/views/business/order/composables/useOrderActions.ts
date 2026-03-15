@@ -401,13 +401,15 @@ export function useOrderActions(
 
   const handleReverseOrder = async (row: OrderRow) => {
     try {
+      type PromptResult = { value: string } | string;
       const res = await ElMessageBox.prompt("请输入作废原因", "订单作废", {
         confirmButtonText: "确认",
         cancelButtonText: "取消",
         inputPattern: /\S+/,
         inputErrorMessage: "作废原因不能为空"
       });
-      const reason = typeof res === "string" ? "" : res.value;
+      const result = res as PromptResult;
+      const reason = typeof result === "string" ? result : result.value;
       if (reason) {
         const api = reverseApiMap[orderType.value];
         if (api) {
