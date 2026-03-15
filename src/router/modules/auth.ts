@@ -290,6 +290,51 @@ export default [
         }
       },
       {
+        id: 62,
+        uid: "6a2b6d8a-4b25-4f6b-9a6f-8b13c3c6c8a1",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "systemSetting",
+        path: "/system/systemSetting",
+        redirect: null,
+        component: () => import("@/views/system/systemSetting/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin"],
+          title: "系统设置",
+          icon: null
+        }
+      },
+      {
+        id: 63,
+        uid: "6f3b8f6c-3a2b-47f2-bdb1-8a5f4b1138df",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "scheduledJobs",
+        path: "/system/scheduledJobs",
+        redirect: null,
+        component: () => import("@/views/system/scheduledJobs/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin"],
+          title: "定时任务",
+          icon: null
+        }
+      },
+      {
+        id: 64,
+        uid: "b6ab3f6f-8b7a-4a61-8b0d-5b074f564cb8",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "print",
+        path: "/system/print",
+        redirect: null,
+        component: () => import("@/views/system/print/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin"],
+          title: "打印模板",
+          icon: null
+        }
+      },
+      {
         id: 60,
         uid: "0f0e0f69-b995-43bf-a18f-dc2599bb4698",
         parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
