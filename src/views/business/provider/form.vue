@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     name: "",
     id: 0,
     desc: "",
-    operatorId: currentUserUid || "",
+    operatorId: "",
     isIndividual: false,
     isPublic: false,
     contactName: "",
