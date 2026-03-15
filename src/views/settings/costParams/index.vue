@@ -5,7 +5,7 @@ import ArrowUp from "~icons/ep/arrow-up";
 import ArrowDown from "~icons/ep/arrow-down";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { useSettingsForm } from "@/composables";
-import type { SettingItem } from "@/api/setting";
+import type { CompanySettingItem } from "@/api/setting";
 import type { CostParams } from "./types";
 
 defineOptions({
@@ -35,8 +35,8 @@ const { loading, formRef, formData, handleSave } = useSettingsForm<CostParams>({
       { id: "3", name: "手工录入成本", order: 3 }
     ]
   }),
-  transformLoad: (settings: SettingItem[], form: CostParams) => {
-    settings.forEach((s: SettingItem) => {
+  transformLoad: (settings: CompanySettingItem[], form: CostParams) => {
+    settings.forEach((s: CompanySettingItem) => {
       const key = s.key;
       if (key === "costMethod") {
         form.costMethod = s.value as CostParams["costMethod"];

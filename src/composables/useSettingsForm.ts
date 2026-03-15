@@ -1,9 +1,9 @@
 import { onMounted, ref, type Ref } from "vue";
 import { message } from "@/utils";
 import {
-  getSettingGroupApi,
-  batchUpdateSettingsApi,
-  type SettingItem
+  getCompanySettingGroupApi,
+  patchCompanySettingGroupApi,
+  type CompanySettingItem
 } from "@/api/setting";
 
 function parseSettingValue(value: string): boolean | number | string {
@@ -18,9 +18,9 @@ export interface UseSettingsFormOptions<T extends object> {
   group: string;
   /** Default form data */
   defaults: () => T;
-  /** Custom transform from SettingItem[] to partial form data.
+  /** Custom transform from CompanySettingItem[] to partial form data.
    *  If not provided, uses default mapping with auto boolean/number conversion. */
-  transformLoad?: (settings: SettingItem[], formData: T) => void;
+  transformLoad?: (settings: CompanySettingItem[], formData: T) => void;
   /** Custom transform before saving. By default saves formData as-is. */
   transformSave?: (formData: T) => Record<string, unknown>;
   /** Whether to auto-load on mount. Defaults to true. */
@@ -45,16 +45,14 @@ export function useSettingsForm<T extends object>(
   const loadSettings = async () => {
     loading.value = true;
     try {
-      const { code, data } = await getSettingGroupApi();
+      const { code, data } = await getCompanySettingGroupApi(group);
       if (code === 200 && data) {
-        const groupSettings = data.filter(
-          (s: SettingItem) => s.group === group
-        );
+        const groupSettings = data;
         if (transformLoad) {
           transformLoad(groupSettings, formData.value);
         } else {
           // Default mapping: auto-convert booleans and numbers
-          groupSettings.forEach((s: SettingItem) => {
+          groupSettings.forEach((s: CompanySettingItem) => {
             const key = s.key as keyof T;
             if (key in formData.value) {
               const val = s.value;
@@ -77,7 +75,7 @@ export function useSettingsForm<T extends object>(
       const saveData = transformSave
         ? transformSave(formData.value)
         : formData.value;
-      const { code } = await batchUpdateSettingsApi(
+      const { code } = await patchCompanySettingGroupApi(
         group,
         saveData as Record<string, unknown>
       );

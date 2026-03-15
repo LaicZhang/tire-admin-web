@@ -1,4 +1,5 @@
 export * from "./setting/settings";
+export * from "./setting/company-setting";
 export * from "./setting/company";
 export * from "./setting/print-template";
 export * from "./setting/free-account";
