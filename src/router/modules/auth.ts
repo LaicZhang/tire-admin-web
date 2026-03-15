@@ -414,6 +414,21 @@ export default [
         }
       },
       {
+        id: 61,
+        uid: "846985fc-dbad-47a9-b426-1bd55f128572",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "orderAudit",
+        path: "/company/order-audit",
+        redirect: null,
+        component: () => import("@/views/company/order-audit/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "订单审核设置",
+          icon: null
+        }
+      },
+      {
         id: 26,
         uid: "d2002795-e50f-40ed-a1bd-f39857c773f6",
         parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
