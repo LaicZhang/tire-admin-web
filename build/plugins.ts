@@ -1,4 +1,4 @@
-import { cdn } from "./cdn";
+import { createCdnPlugin } from "./cdn";
 import vue from "@vitejs/plugin-vue";
 import { viteBuildInfo } from "./info";
 import svgLoader from "vite-svg-loader";
@@ -68,7 +68,7 @@ export function getPluginsList(
       scale: 1,
       autoInstall: true
     }),
-    VITE_CDN ? cdn : null,
+    VITE_CDN ? createCdnPlugin() : null,
     configCompressPlugin(VITE_COMPRESSION),
     // staging/production 构建删除 console（避免泄露敏感信息）
     isProdLikeBuild
