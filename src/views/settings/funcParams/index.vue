@@ -6,8 +6,36 @@ defineOptions({
   name: "FuncParams"
 });
 
+const TAX_RATE_SCALE = 100;
+const TAX_RATE_DECIMAL_DIGITS = 6;
+
+const BOOL_KEYS = [
+  "enableAudit",
+  "enableTax",
+  "enableAutoTaxPrice",
+  "enableAdvancedPrint",
+  "enableAuxAttribute",
+  "enableShelfLife",
+  "enableBatch",
+  "enableSerialNumber",
+  "allowNegativeStock",
+  "enableAutoFillSettlement",
+  "disableSalesDateEdit",
+  "allowExceedSalesOrder",
+  "allowExceedPurchaseOrder",
+  "enableShelfLifeAlert",
+  "allowBelowMinPrice",
+  "allowAboveMaxPrice"
+] as const;
+
+type BoolKey = (typeof BOOL_KEYS)[number];
+
+const isBoolKey = (key: string): key is BoolKey =>
+  (BOOL_KEYS as readonly string[]).includes(key);
+
 const { loading, formRef, formData, handleSave } = useSettingsForm<FuncParams>({
   group: "func",
+  loadGroups: ["func", "tax"],
   defaults: () => ({
     enableAudit: false,
     enableTax: false,
@@ -26,7 +54,52 @@ const { loading, formRef, formData, handleSave } = useSettingsForm<FuncParams>({
     enableShelfLifeAlert: false,
     allowBelowMinPrice: false,
     allowAboveMaxPrice: false
-  })
+  }),
+  transformLoad: (settings, form) => {
+    for (const s of settings) {
+      if (s.group === "tax" && s.key === "defaultTaxRate") {
+        const parsed = Number(s.value);
+        if (Number.isFinite(parsed)) {
+          form.defaultTaxRate = parsed * TAX_RATE_SCALE;
+        }
+        continue;
+      }
+
+      if (s.group !== "func") continue;
+      if (s.key === "defaultTaxRate") continue;
+
+      if (isBoolKey(s.key)) form[s.key] = s.value === "true";
+    }
+  },
+  transformSaveMulti: form => {
+    const taxRateDecimal = Number(
+      (form.defaultTaxRate / TAX_RATE_SCALE).toFixed(TAX_RATE_DECIMAL_DIGITS)
+    );
+    return {
+      func: {
+        enableAudit: form.enableAudit,
+        enableTax: form.enableTax,
+        defaultTaxRate: form.defaultTaxRate,
+        enableAutoTaxPrice: form.enableAutoTaxPrice,
+        enableAdvancedPrint: form.enableAdvancedPrint,
+        enableAuxAttribute: form.enableAuxAttribute,
+        enableShelfLife: form.enableShelfLife,
+        enableBatch: form.enableBatch,
+        enableSerialNumber: form.enableSerialNumber,
+        allowNegativeStock: form.allowNegativeStock,
+        enableAutoFillSettlement: form.enableAutoFillSettlement,
+        disableSalesDateEdit: form.disableSalesDateEdit,
+        allowExceedSalesOrder: form.allowExceedSalesOrder,
+        allowExceedPurchaseOrder: form.allowExceedPurchaseOrder,
+        enableShelfLifeAlert: form.enableShelfLifeAlert,
+        allowBelowMinPrice: form.allowBelowMinPrice,
+        allowAboveMaxPrice: form.allowAboveMaxPrice
+      },
+      tax: {
+        defaultTaxRate: taxRateDecimal
+      }
+    };
+  }
 });
 </script>
 
