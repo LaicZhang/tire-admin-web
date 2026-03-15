@@ -10,10 +10,11 @@ export interface CompanyInfoDto {
   address?: string;
   phone?: string;
   email?: string;
-  logo?: string;
   desc?: string;
   principalName?: string;
   principalPhone?: string;
+  logoUid?: string;
+  logoUrl?: string;
 }
 
 export async function getCompanyInfoApi() {
@@ -23,7 +24,9 @@ export async function getCompanyInfoApi() {
   );
 }
 
-export async function updateCompanyInfoApi(data: CompanyInfoDto) {
+export type UpdateCompanyInfoDto = Omit<CompanyInfoDto, "logoUrl">;
+
+export async function updateCompanyInfoApi(data: UpdateCompanyInfoDto) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(companyPrefix + "info"),
@@ -36,7 +39,7 @@ export async function updateCompanyInfoApi(data: CompanyInfoDto) {
 export async function uploadCompanyLogoApi(file: File) {
   const formData = new FormData();
   formData.append("file", file);
-  return await http.request<CommonResult>(
+  return await http.request<CommonResult<{ uid: string; url: string }>>(
     "post",
     baseUrlApi(companyPrefix + "logo"),
     { data: formData }

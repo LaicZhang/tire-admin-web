@@ -13,6 +13,7 @@ export interface CompanyInfo {
   bankName: string;
   bankAccount: string;
   logo?: string;
+  logoUid?: string;
   remark: string;
 }
 

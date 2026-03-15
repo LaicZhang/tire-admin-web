@@ -5,7 +5,8 @@ import {
   getCompanyInfoApi,
   updateCompanyInfoApi,
   uploadCompanyLogoApi,
-  type CompanyInfoDto
+  type CompanyInfoDto,
+  type UpdateCompanyInfoDto
 } from "@/api/setting";
 import type { CompanyInfo } from "./types";
 
@@ -41,14 +42,15 @@ const loadSettings = async () => {
   try {
     const { code, data } = await getCompanyInfoApi();
     if (code === 200 && data) {
-      // Map API response to form data
-      formData.value.companyName = data.name ?? "";
-      formData.value.phone = data.phone ?? "";
-      formData.value.email = data.email ?? "";
-      formData.value.address = data.address ?? "";
-      formData.value.logo = data.logo ?? "";
-      formData.value.remark = data.desc ?? "";
-      formData.value.contactPerson = data.principalName ?? "";
+      const dto = data as CompanyInfoDto;
+      formData.value.companyName = dto.name ?? "";
+      formData.value.phone = dto.phone ?? "";
+      formData.value.email = dto.email ?? "";
+      formData.value.address = dto.address ?? "";
+      formData.value.logo = dto.logoUrl ?? "";
+      formData.value.logoUid = dto.logoUid;
+      formData.value.remark = dto.desc ?? "";
+      formData.value.contactPerson = dto.principalName ?? "";
     }
   } catch {
     message("加载公司信息失败", { type: "error" });
@@ -63,7 +65,16 @@ const handleSave = async () => {
 
   loading.value = true;
   try {
-    const { code } = await updateCompanyInfoApi(formData.value);
+    const payload: UpdateCompanyInfoDto = {
+      name: formData.value.companyName,
+      address: formData.value.address,
+      phone: formData.value.phone,
+      email: formData.value.email,
+      desc: formData.value.remark,
+      principalName: formData.value.contactPerson,
+      logoUid: formData.value.logoUid
+    };
+    const { code } = await updateCompanyInfoApi(payload);
     if (code === 200) {
       message("保存成功", { type: "success" });
     } else {
@@ -80,7 +91,8 @@ const handleLogoUpload = async (file: File) => {
   try {
     const { code, data } = await uploadCompanyLogoApi(file);
     if (code === 200 && data) {
-      formData.value.logo = (data as { url: string }).url;
+      formData.value.logo = data.url;
+      formData.value.logoUid = data.uid;
       message("Logo上传成功", { type: "success" });
     } else {
       message("Logo上传失败", { type: "error" });
