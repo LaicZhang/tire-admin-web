@@ -1,63 +1,105 @@
-import type { PluginOption } from "vite";
-import { isArray } from "@pureadmin/utils";
-import compressPlugin from "vite-plugin-compression";
+import { readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { brotliCompress, gzip } from "node:zlib";
+import { promisify } from "node:util";
+import type { PluginOption, ResolvedConfig } from "vite";
 
-export const configCompressPlugin = (
-  compress: ViteCompression
-): PluginOption => {
-  if (compress === "none") return null;
+const gzipAsync = promisify(gzip);
+const brotliCompressAsync = promisify(brotliCompress);
 
-  const gz = {
-    // 生成的压缩包后缀
-    ext: ".gz",
-    // 体积大于threshold才会被压缩
-    threshold: 0,
-    // 默认压缩.js|mjs|json|css|html后缀文件，设置成true，压缩全部文件
-    filter: () => true,
-    // 压缩后是否删除原始文件
-    deleteOriginFile: false
-  };
-  const br = {
-    ext: ".br",
-    algorithm: "brotliCompress",
-    threshold: 0,
-    filter: () => true,
-    deleteOriginFile: false
-  };
+const COMPRESSED_SUFFIXES = [".gz", ".br"] as const;
 
-  const codeList = [
-    { k: "gzip", v: gz },
-    { k: "brotli", v: br },
-    { k: "both", v: [gz, br] }
-  ];
+interface CompressMode {
+  readonly needGzip: boolean;
+  readonly needBrotli: boolean;
+  readonly clearOrigin: boolean;
+}
 
-  const plugins: PluginOption[] = [];
+function parseCompressMode(compress: ViteCompression): CompressMode {
+  const clearOrigin = compress.includes("clear");
+  if (compress === "none") {
+    return { needGzip: false, needBrotli: false, clearOrigin };
+  }
+  if (compress.includes("both")) {
+    return { needGzip: true, needBrotli: true, clearOrigin };
+  }
+  if (compress.includes("gzip")) {
+    return { needGzip: true, needBrotli: false, clearOrigin };
+  }
+  if (compress.includes("brotli")) {
+    return { needGzip: false, needBrotli: true, clearOrigin };
+  }
+  throw new Error(`Unknown VITE_COMPRESSION mode: ${compress}`);
+}
 
-  codeList.forEach(item => {
-    if (compress.includes(item.k)) {
-      if (compress.includes("clear")) {
-        if (isArray(item.v)) {
-          item.v.forEach(vItem => {
-            plugins.push(
-              compressPlugin(Object.assign(vItem, { deleteOriginFile: true }))
-            );
-          });
-        } else {
-          plugins.push(
-            compressPlugin(Object.assign(item.v, { deleteOriginFile: true }))
-          );
-        }
-      } else {
-        if (isArray(item.v)) {
-          item.v.forEach(vItem => {
-            plugins.push(compressPlugin(vItem));
-          });
-        } else {
-          plugins.push(compressPlugin(item.v));
-        }
-      }
+function isCompressedOutput(filePath: string): boolean {
+  return COMPRESSED_SUFFIXES.some(suffix => filePath.endsWith(suffix));
+}
+
+async function listFilesRecursively(dirPath: string): Promise<string[]> {
+  const entries = await readdir(dirPath, { withFileTypes: true });
+  const files: string[] = [];
+
+  for (const entry of entries) {
+    const fullPath = resolve(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await listFilesRecursively(fullPath)));
+      continue;
     }
-  });
+    if (entry.isFile()) {
+      files.push(fullPath);
+    }
+  }
 
-  return plugins;
-};
+  return files;
+}
+
+async function compressOneFile(
+  filePath: string,
+  mode: CompressMode
+): Promise<void> {
+  if (isCompressedOutput(filePath)) return;
+
+  const fileStat = await stat(filePath);
+  if (!fileStat.isFile()) return;
+
+  const source = await readFile(filePath);
+
+  if (mode.needGzip) {
+    const gz = await gzipAsync(source);
+    await writeFile(`${filePath}.gz`, gz);
+  }
+
+  if (mode.needBrotli) {
+    const br = await brotliCompressAsync(source);
+    await writeFile(`${filePath}.br`, br);
+  }
+
+  if (mode.clearOrigin) {
+    await rm(filePath);
+  }
+}
+
+function createCompressionPlugin(
+  compress: ViteCompression
+): PluginOption | null {
+  const mode = parseCompressMode(compress);
+  if (!mode.needGzip && !mode.needBrotli) return null;
+
+  let resolved: ResolvedConfig;
+  return {
+    name: "vite:static-compress",
+    apply: "build",
+    configResolved(config) {
+      resolved = config;
+    },
+    async closeBundle() {
+      const outDir = resolve(resolved.root, resolved.build.outDir);
+      const files = await listFilesRecursively(outDir);
+      await Promise.all(files.map(file => compressOneFile(file, mode)));
+    }
+  };
+}
+
+export const configCompressPlugin = (compress: ViteCompression): PluginOption =>
+  createCompressionPlugin(compress);
