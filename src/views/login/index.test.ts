@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
       username: "admin",
       password: "123456",
       captchaCode: "abcd",
-      isRemember: false
+      isRemember: true
     }
   }
 }));
@@ -182,7 +182,9 @@ describe("Login.vue", () => {
 
     await loginButton?.trigger("click");
 
-    expect(mocks.loginByUsername).toHaveBeenCalled();
+    expect(mocks.loginByUsername).toHaveBeenCalledWith(
+      expect.objectContaining({ isRemember: false })
+    );
     expect(completeLogin).toHaveBeenCalledWith();
     expect(message).toHaveBeenCalledWith("登录成功", { type: "success" });
   });

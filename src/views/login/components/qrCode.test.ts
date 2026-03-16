@@ -32,7 +32,8 @@ vi.mock("@/utils", async () => {
 
 vi.mock("@/store/modules/user", () => ({
   useUserStoreHook: vi.fn(() => ({
-    setCurrentPage: mocks.setCurrentPage
+    setCurrentPage: mocks.setCurrentPage,
+    isRemember: false
   }))
 }));
 
@@ -151,7 +152,7 @@ describe("qrCode login", () => {
     expect(wxQrCallbackApi).toHaveBeenCalledWith({
       code: "wx-code",
       state: "wx-state",
-      isRemember: true
+      isRemember: false
     });
     expect(completeLogin).toHaveBeenCalledWith({
       accessToken: "token",
