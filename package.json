@@ -39,7 +39,7 @@
     "test:e2e:real:debug": "playwright test -c playwright.config.ts --debug",
     "test:e2e:report": "playwright show-report",
     "test:e2e:codegen": "playwright codegen http://localhost:8848",
-    "preinstall": "node scripts/only-allow-pnpm.mjs"
+    "preinstall": "node scripts/check-node-version.mjs && node scripts/only-allow-pnpm.mjs"
   },
   "keywords": [
     "vue-pure-admin",
@@ -163,7 +163,7 @@
     "vue-tsc": "^3.2.5"
   },
   "engines": {
-    "node": ">=22.13.0 || >=24.12.0",
+    "node": ">=24.12.0",
     "pnpm": ">=10"
   },
   "pnpm": {

@@ -35,7 +35,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 - Technology stack:
   - Frontend: Vue 3, TypeScript, Vite, Pinia, Vue Router, Element Plus, Tailwind CSS, ECharts, Axios
   - Toolchain: ESLint 9 (Antfu configuration为主), Stylelint, Prettier, Husky + lint-staged, Commitlint, SVGO, Rollup visualization, Vite plugin system
-- Runtime environment: Node 20.19+ / 22.13+ / 24+, pnpm ≥ 10 (enforced by only-allow)
+- Runtime environment: Node 24.12+, pnpm ≥ 10 (enforced by only-allow)
 - Package management: `pnpm` (required)
 - Production deployment: Static site (can be deployed via Docker + Nginx, Vercel, object storage/cloud hosting, etc.), HTML5 History rewritten to `index.html` via `vercel.json`
 
