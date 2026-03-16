@@ -61,16 +61,19 @@ export type setType = {
 };
 
 export type userType = {
-  username?: string;
-  roles?: Array<string>;
-  isRemember?: boolean;
-  captchaCode?: string;
-  loginDay?: number;
-  currentPage?: number;
-  uid?: string;
-  nickname?: string; // Add other missing fields if needed matching state
-  avatar?: string;
-  permissions?: Array<string>;
+  avatar: string;
+  username: string;
+  nickname: string;
+  uid: string;
+  roles: Array<string>;
+  permissions: Array<string>;
+
+  /** 是否勾选登录页免登录 */
+  isRemember: boolean;
+  captchaCode: string;
+  currentPage: number;
+  /** 免登录天数 */
+  loginDay: number;
 };
 
 export type currentCompanyType = {

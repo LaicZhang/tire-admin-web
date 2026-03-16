@@ -32,7 +32,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
 
     const res = await useUserStoreHook().loginByUsername({
       username: ruleForm.phone,
-      isRemember: true,
+      isRemember: useUserStoreHook().isRemember,
       code: ruleForm.captchaCode
     });
     const { code, msg } = res;

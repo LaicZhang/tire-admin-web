@@ -69,7 +69,7 @@ async function checkUrlCallback() {
       } = await wxQrCallbackApi({
         code,
         state: urlState,
-        isRemember: true
+        isRemember: useUserStoreHook().isRemember
       });
 
       if (resCode === 200 && data) {

@@ -16,6 +16,7 @@ import { usePermissionStoreHook } from "@/store/modules/permission";
 import ExitFullscreen from "~icons/ri/fullscreen-exit-fill";
 import Fullscreen from "~icons/ri/fullscreen-fill";
 import { logger } from "@/utils/logger";
+import { message } from "@/utils/message";
 
 const errorInfo = "当前路由配置不正确，请检查配置";
 
@@ -73,7 +74,12 @@ export function useNav() {
 
   /** 退出登录 */
   function logout() {
-    useUserStoreHook().logOut();
+    void useUserStoreHook()
+      .logout()
+      .catch(error => {
+        const msg = error instanceof Error ? error.message : "退出登录失败";
+        message(`${msg}（已清理本地登录态）`, { type: "error" });
+      });
   }
 
   function backTopMenu() {

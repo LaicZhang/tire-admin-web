@@ -42,9 +42,6 @@ const { checked, loginDay } = useRememberLogin();
 const { loading, disabled, ruleForm, githubLoading, handleGithubLogin } =
   useLoginForm();
 
-// 同步 isRemember 到 ruleForm
-ruleForm.isRemember = checked.value;
-
 const { initStorage } = useLayout();
 initStorage();
 
@@ -60,6 +57,8 @@ const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
 
   try {
+    // 登录前同步最新的“记住我”选项到请求参数
+    ruleForm.isRemember = checked.value;
     const valid = await formEl.validate();
     if (!valid) {
       loading.value = false;

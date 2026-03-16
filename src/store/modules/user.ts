@@ -14,7 +14,8 @@ import {
   type LoginDto,
   type RefreshTokenDto,
   getLogin,
-  refreshTokenApi
+  refreshTokenApi,
+  logoutApi
 } from "@/api";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
@@ -116,6 +117,17 @@ export const useUserStore = defineStore("pure-user", {
           silent: true
         }
       );
+    },
+    /**
+     * 用户退出登录（调用后端接口清理会话/HttpOnly Cookie）
+     * 注意：无论后端请求是否成功，都会清理本地登录态
+     */
+    async logout(): Promise<void> {
+      try {
+        await logoutApi();
+      } finally {
+        this.logOut();
+      }
     },
     /**
      * 刷新 Token

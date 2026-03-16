@@ -27,6 +27,9 @@ const router = useRouter();
 const isRouteLoading = ref(false);
 let loadingTimer: ReturnType<typeof setTimeout> | null = null;
 let routeLoadingSafetyTimer: ReturnType<typeof setTimeout> | null = null;
+let removeBeforeEach: (() => void) | null = null;
+let removeAfterEach: (() => void) | null = null;
+let removeOnError: (() => void) | null = null;
 
 function clearLoadingTimers() {
   if (loadingTimer) {
@@ -45,7 +48,7 @@ function getTopLevelPath(path: string): string {
   return segments.length > 0 ? `/${segments[0]}` : "/";
 }
 
-router.beforeEach((to, from) => {
+removeBeforeEach = router.beforeEach((to, from) => {
   clearLoadingTimers();
   // 只在跨一级菜单切换时显示骨架屏，二级菜单内部切换不触发
   const toTop = getTopLevelPath(to.path);
@@ -58,7 +61,7 @@ router.beforeEach((to, from) => {
   }
 });
 
-router.afterEach(() => {
+removeAfterEach = router.afterEach(() => {
   if (routeLoadingSafetyTimer) {
     clearTimeout(routeLoadingSafetyTimer);
     routeLoadingSafetyTimer = null;
@@ -70,13 +73,16 @@ router.afterEach(() => {
   }, 200);
 });
 
-router.onError(() => {
+removeOnError = router.onError(() => {
   clearLoadingTimers();
   isRouteLoading.value = false;
 });
 
 onBeforeUnmount(() => {
   clearLoadingTimers();
+  removeBeforeEach?.();
+  removeAfterEach?.();
+  removeOnError?.();
 });
 
 const isKeepAlive = computed(() => {

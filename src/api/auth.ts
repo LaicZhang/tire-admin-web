@@ -14,12 +14,12 @@ export type LoginDto =
       password: string;
       /** 图形验证码（密码登录时必填） */
       captchaCode?: string;
-      isRemember?: boolean;
+      isRemember: boolean;
     }
   | {
       username: string;
       code: string;
-      isRemember?: boolean;
+      isRemember: boolean;
     };
 
 /** 刷新 Token 请求参数 */
@@ -90,6 +90,17 @@ export const refreshTokenApi = (data?: RefreshTokenDto) => {
     baseUrlApi("/auth/refresh-token"),
     data ? { data } : {},
     { skipAuth: true }
+  );
+};
+
+/**
+ * 退出登录
+ * @returns 后端退出结果（通常为受影响会话数等）
+ */
+export const logoutApi = () => {
+  return http.request<CommonResult<number[]>>(
+    "delete",
+    baseUrlApi("/auth/logout")
   );
 };
 
