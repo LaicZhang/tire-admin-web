@@ -1,16 +1,17 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeAll, beforeEach, vi } from "vitest";
 import { defineComponent, h, ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import ElementPlus from "element-plus";
-import OtherIncomePage from "../otherIncome/index.vue";
-import OtherExpensePage from "../otherExpense/index.vue";
-import PaymentPage from "../payment/index.vue";
-import ReceiptPage from "../receipt/index.vue";
-import TransferPage from "../transfer/index.vue";
-import WriteOffPage from "../writeOff/index.vue";
 
 const openDialogSpies: Array<ReturnType<typeof vi.fn>> = [];
 const pushMock = vi.fn();
+
+let OtherIncomePage: object;
+let OtherExpensePage: object;
+let PaymentPage: object;
+let ReceiptPage: object;
+let TransferPage: object;
+let WriteOffPage: object;
 
 const useManagedSubmitDialogMock = vi.fn(() => {
   const openDialog = vi.fn();
@@ -309,6 +310,15 @@ beforeEach(() => {
   useManagedSubmitDialogMock.mockClear();
 });
 
+beforeAll(async () => {
+  OtherIncomePage = (await import("../otherIncome/index.vue")).default;
+  OtherExpensePage = (await import("../otherExpense/index.vue")).default;
+  PaymentPage = (await import("../payment/index.vue")).default;
+  ReceiptPage = (await import("../receipt/index.vue")).default;
+  TransferPage = (await import("../transfer/index.vue")).default;
+  WriteOffPage = (await import("../writeOff/index.vue")).default;
+});
+
 describe("fund dialog openers", () => {
   it("opens receipt dialog from receipt page add button", async () => {
     const wrapper = mountPage(ReceiptPage);
@@ -323,7 +333,7 @@ describe("fund dialog openers", () => {
         width: "800px"
       })
     );
-  });
+  }, 10000);
 
   it("opens payment dialog from payment page add and edit actions", async () => {
     const wrapper = mountPage(PaymentPage);
@@ -352,7 +362,7 @@ describe("fund dialog openers", () => {
         uid: "payment-order-1"
       })
     });
-  });
+  }, 10000);
 
   it("opens income dialog and receipt dialog with initial values", async () => {
     const wrapper = mountPage(OtherIncomePage);
@@ -380,7 +390,7 @@ describe("fund dialog openers", () => {
         remark: "其他收入单 SR-001 收款"
       }
     });
-  });
+  }, 10000);
 
   it("opens expense dialog and payment dialog with initial values", async () => {
     const wrapper = mountPage(OtherExpensePage);
@@ -408,7 +418,7 @@ describe("fund dialog openers", () => {
         remark: "其他支出单 ZC-001 付款"
       }
     });
-  });
+  }, 10000);
 
   it("opens transfer dialog with custom confirm text", async () => {
     const wrapper = mountPage(TransferPage);

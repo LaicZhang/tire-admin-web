@@ -2,21 +2,24 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
 const mocks = vi.hoisted(() => ({
-  logoutApi: vi.fn()
+  logoutApi: vi.fn(),
+  getLogin: vi.fn(),
+  refreshTokenApi: vi.fn()
 }));
 
-vi.mock("@/api", async () => {
-  const actual = await vi.importActual<object>("@/api");
-  return {
-    ...actual,
-    logoutApi: (...args: unknown[]) => mocks.logoutApi(...args)
-  };
-});
+vi.mock("@/api", () => ({
+  getLogin: (...args: unknown[]) => mocks.getLogin(...args),
+  refreshTokenApi: (...args: unknown[]) => mocks.refreshTokenApi(...args),
+  logoutApi: (...args: unknown[]) => mocks.logoutApi(...args)
+}));
 
 describe("user store logout", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     mocks.logoutApi.mockReset();
+    mocks.getLogin.mockReset();
+    mocks.refreshTokenApi.mockReset();
+    vi.resetModules();
   });
 
   it("calls backend logoutApi then always clears local state", async () => {
