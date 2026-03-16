@@ -383,6 +383,52 @@ export default [
         }
       },
       {
+        id: 62,
+        uid: "cb7d91a6-59d6-481d-8a3b-d7bc3146fe0d",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "settlementDefaults",
+        path: "/company/settlement-defaults",
+        redirect: null,
+        component: () =>
+          import("@/views/company/settlement-defaults/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "结算默认值",
+          icon: null
+        }
+      },
+      {
+        id: 63,
+        uid: "f3a5a68f-9f69-44d8-a19d-2bb4d54705f7",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "inventoryDefaults",
+        path: "/company/inventory-defaults",
+        redirect: null,
+        component: () => import("@/views/company/inventory-defaults/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "库存默认值",
+          icon: null
+        }
+      },
+      {
+        id: 64,
+        uid: "5e3b4a8a-3df4-4a1b-9df2-3dd3f2d7b1b0",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "barcodeSettings",
+        path: "/company/barcode-settings",
+        redirect: null,
+        component: () => import("@/views/company/barcode-settings/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "条码设置",
+          icon: null
+        }
+      },
+      {
         id: 21,
         uid: "3dce3577-8d89-4647-aefa-b48dbfb9b603",
         parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
