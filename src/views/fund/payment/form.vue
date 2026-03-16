@@ -16,6 +16,8 @@ import {
   createPaymentOrderApi,
   updatePaymentOrderApi
 } from "@/api/fund/payment-order";
+import { loadSettlementDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = defineProps<{
   editData?: PaymentOrder | null;
@@ -86,6 +88,22 @@ function resetForm() {
     remark: props.initialValues?.remark || "",
     details: []
   });
+  void applySettlementDefaults();
+}
+
+async function applySettlementDefaults() {
+  if (props.editData) return;
+  try {
+    const defaults = await loadSettlementDefaults();
+    if (!formData.paymentId && defaults.defaultPayableAccount) {
+      formData.paymentId = defaults.defaultPayableAccount;
+    }
+    if (defaults.defaultPaymentMethod) {
+      formData.paymentMethod = defaults.defaultPaymentMethod as PaymentMethod;
+    }
+  } catch (error) {
+    logger.error("[SettlementDefaults] load failed", error);
+  }
 }
 
 function applyEditData() {

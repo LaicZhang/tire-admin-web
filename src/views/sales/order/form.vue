@@ -9,6 +9,8 @@ import AddFill from "~icons/ri/add-circle-line";
 import { ALL_LIST, localForage, message } from "@/utils";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
+import { loadInventoryDefaults, loadSettlementDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = withDefaults(
   defineProps<{
@@ -73,13 +75,24 @@ async function loadBaseData() {
   }
 }
 
+const defaultWarehouseId = ref<string | undefined>(undefined);
+
+async function loadDefaultWarehouseId() {
+  try {
+    const defaults = await loadInventoryDefaults();
+    defaultWarehouseId.value = defaults.defaultWarehouseId;
+  } catch (error) {
+    logger.error("[InventoryDefaults] load failed", error);
+  }
+}
+
 function onAddDetail() {
   formData.value.details.push({
     tireId: "",
     count: 1,
     unitPrice: 0,
     total: 0,
-    repoId: "",
+    repoId: defaultWarehouseId.value || "",
     discountRate: 0,
     isShipped: false,
     isDelivered: false,
@@ -127,12 +140,35 @@ defineExpose({ getRef, getReceiveFee });
 
 onMounted(() => {
   loadBaseData();
+  void loadDefaultWarehouseId();
 });
+
+async function applyDefaultReceivableAccount() {
+  if (props.formTitle !== "收款") return;
+  if (formData.value.paymentId) return;
+  try {
+    const defaults = await loadSettlementDefaults();
+    if (defaults.defaultReceivableAccount) {
+      formData.value.paymentId = defaults.defaultReceivableAccount;
+    }
+  } catch (error) {
+    logger.error("[SettlementDefaults] load failed", error);
+  }
+}
+
+watch(
+  () => props.formTitle,
+  () => {
+    void applyDefaultReceivableAccount();
+  },
+  { immediate: true }
+);
 
 watch(
   () => props.formInline,
   val => {
     formData.value = val;
+    void applyDefaultReceivableAccount();
   },
   {}
 );

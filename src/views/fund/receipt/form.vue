@@ -16,6 +16,8 @@ import {
   type ReceiptOrder
 } from "./types";
 import { useFundForm } from "../composables/useFundForm";
+import { loadSettlementDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = defineProps<{
   editData?: ReceiptOrder | null;
@@ -71,6 +73,22 @@ function resetForm() {
     details: []
   });
   formRef.value?.resetFields?.();
+  void applySettlementDefaults();
+}
+
+async function applySettlementDefaults() {
+  if (props.editData) return;
+  try {
+    const defaults = await loadSettlementDefaults();
+    if (!formData.paymentId && defaults.defaultReceivableAccount) {
+      formData.paymentId = defaults.defaultReceivableAccount;
+    }
+    if (defaults.defaultPaymentMethod) {
+      formData.paymentMethod = defaults.defaultPaymentMethod as PaymentMethod;
+    }
+  } catch (error) {
+    logger.error("[SettlementDefaults] load failed", error);
+  }
 }
 
 function applyEditData() {

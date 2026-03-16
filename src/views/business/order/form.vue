@@ -25,6 +25,8 @@ import AddFill from "~icons/ri/add-circle-line";
 import SearchLine from "~icons/ri/search-line";
 import { getColumns, getFormRules } from "./handleData";
 import { getFormTileInLocal } from "./table";
+import { loadInventoryDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 const orderType = ref<ORDER_TYPE>(ORDER_TYPE.default);
 
 const formRules = ref<FormRules>(getFormRules(orderType.value));
@@ -261,6 +263,17 @@ async function getFormTitle() {
   if (formTitle.value) return formTitle.value;
 }
 
+const defaultWarehouseId = ref<string | undefined>(undefined);
+
+async function loadDefaultWarehouseId() {
+  try {
+    const defaults = await loadInventoryDefaults();
+    defaultWarehouseId.value = defaults.defaultWarehouseId;
+  } catch (error) {
+    logger.error("[InventoryDefaults] load failed", error);
+  }
+}
+
 function onAdd(item?: ListItem) {
   const details = getDetails();
   const defaultCount = item || orderType.value === ORDER_TYPE.claim ? 1 : 0;
@@ -269,6 +282,7 @@ function onAdd(item?: ListItem) {
     count: defaultCount,
     total: 0,
     tireId: item?.uid,
+    repoId: defaultWarehouseId.value,
     isArrival: false
   });
   if (defaultCount > 0) newFormInline.value.count += defaultCount;
@@ -361,7 +375,7 @@ onMounted(async () => {
   await getOrderType();
   await getFormTitle(); // Move up to ensure title is ready before setting columns if we logic depends on it
   setDetailsColumnsAndFormRules();
-  await getALlList();
+  await Promise.all([getALlList(), loadDefaultWarehouseId()]);
   syncSummaryFromDetails();
 });
 

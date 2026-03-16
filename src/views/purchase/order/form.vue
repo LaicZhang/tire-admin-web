@@ -9,6 +9,8 @@ import AddFill from "~icons/ri/add-circle-line";
 import { ALL_LIST, localForage, message } from "@/utils";
 import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
+import { loadInventoryDefaults, loadSettlementDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = withDefaults(
   defineProps<{
@@ -73,13 +75,24 @@ async function loadBaseData() {
   }
 }
 
+const defaultWarehouseId = ref<string | undefined>(undefined);
+
+async function loadDefaultWarehouseId() {
+  try {
+    const defaults = await loadInventoryDefaults();
+    defaultWarehouseId.value = defaults.defaultWarehouseId;
+  } catch (error) {
+    logger.error("[InventoryDefaults] load failed", error);
+  }
+}
+
 function onAddDetail() {
   formData.value.details.push({
     tireId: "",
     count: 1,
     unitPrice: 0,
     total: 0,
-    repoId: "",
+    repoId: defaultWarehouseId.value || "",
     isArrival: false,
     desc: ""
   });
@@ -122,12 +135,35 @@ defineExpose({ getRef, getPayFee });
 
 onMounted(() => {
   loadBaseData();
+  void loadDefaultWarehouseId();
 });
+
+async function applyDefaultPayableAccount() {
+  if (props.formTitle !== "付款") return;
+  if (formData.value.paymentId) return;
+  try {
+    const defaults = await loadSettlementDefaults();
+    if (defaults.defaultPayableAccount) {
+      formData.value.paymentId = defaults.defaultPayableAccount;
+    }
+  } catch (error) {
+    logger.error("[SettlementDefaults] load failed", error);
+  }
+}
+
+watch(
+  () => props.formTitle,
+  () => {
+    void applyDefaultPayableAccount();
+  },
+  { immediate: true }
+);
 
 watch(
   () => props.formInline,
   val => {
     formData.value = val;
+    void applyDefaultPayableAccount();
   },
   {}
 );
