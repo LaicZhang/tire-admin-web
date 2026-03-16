@@ -21,6 +21,7 @@ import {
   restoreBackupApi,
   downloadBackupApi,
   deleteBackupApi,
+  getBackupSettingsApi,
   updateBackupSettingsApi
 } from "@/api/setting";
 import type { BackupItem, BackupSettings } from "./types";
@@ -37,8 +38,26 @@ const backupSettings = ref<BackupSettings>({
   autoBackupEnabled: false,
   autoBackupTime: "02:00",
   autoBackupFrequency: "daily",
+  autoBackupWeekDay: 7,
+  autoBackupMonthDay: 1,
   keepDays: 30
 });
+
+const loadSettings = async () => {
+  try {
+    const { code, data, msg } = await getBackupSettingsApi();
+    if (code === 200 && data) {
+      backupSettings.value = {
+        ...backupSettings.value,
+        ...data
+      };
+    } else {
+      message(msg || "加载备份设置失败", { type: "error" });
+    }
+  } catch {
+    message("加载备份设置失败", { type: "error" });
+  }
+};
 
 const backupTaskStatusMap = {
   success: { label: "成功", type: "success" },
@@ -288,6 +307,7 @@ const saveSettings = async () => {
 };
 
 onMounted(() => {
+  loadSettings();
   loadData();
 });
 </script>
@@ -306,7 +326,7 @@ onMounted(() => {
       </div>
       <div
         v-if="backupSettings.autoBackupEnabled"
-        class="grid grid-cols-3 gap-4"
+        class="grid grid-cols-4 gap-4"
       >
         <div>
           <span class="text-sm text-gray-500 mr-2">备份时间:</span>
@@ -329,6 +349,31 @@ onMounted(() => {
             <el-option label="每周" value="weekly" />
             <el-option label="每月" value="monthly" />
           </el-select>
+        </div>
+        <div v-if="backupSettings.autoBackupFrequency === 'weekly'">
+          <span class="text-sm text-gray-500 mr-2">星期:</span>
+          <el-select
+            v-model="backupSettings.autoBackupWeekDay"
+            @change="saveSettings"
+          >
+            <el-option label="周一" :value="1" />
+            <el-option label="周二" :value="2" />
+            <el-option label="周三" :value="3" />
+            <el-option label="周四" :value="4" />
+            <el-option label="周五" :value="5" />
+            <el-option label="周六" :value="6" />
+            <el-option label="周日" :value="7" />
+          </el-select>
+        </div>
+        <div v-if="backupSettings.autoBackupFrequency === 'monthly'">
+          <span class="text-sm text-gray-500 mr-2">日期:</span>
+          <el-input-number
+            v-model="backupSettings.autoBackupMonthDay"
+            :min="1"
+            :max="28"
+            @change="saveSettings"
+          />
+          <span class="text-sm text-gray-400 ml-2">号</span>
         </div>
         <div>
           <span class="text-sm text-gray-500 mr-2">保留天数:</span>

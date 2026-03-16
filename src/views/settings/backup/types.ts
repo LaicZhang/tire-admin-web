@@ -16,5 +16,7 @@ export interface BackupSettings {
   autoBackupEnabled: boolean;
   autoBackupTime: string;
   autoBackupFrequency: "daily" | "weekly" | "monthly";
+  autoBackupWeekDay: number;
+  autoBackupMonthDay: number;
   keepDays: number;
 }

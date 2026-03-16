@@ -24,10 +24,12 @@ export interface BackupRecord {
 
 /** 备份设置 */
 export interface BackupSettings {
-  autoBackup?: boolean;
-  backupInterval?: number;
-  keepDays?: number;
-  backupTime?: string;
+  autoBackupEnabled: boolean;
+  autoBackupTime: string;
+  autoBackupFrequency: "daily" | "weekly" | "monthly";
+  autoBackupWeekDay: number;
+  autoBackupMonthDay: number;
+  keepDays: number;
 }
 
 export async function getBackupListApi(params?: BackupQuery) {
@@ -74,7 +76,14 @@ export async function deleteBackupApi(backupId: string) {
   );
 }
 
-export async function updateBackupSettingsApi(data: BackupSettings) {
+export async function getBackupSettingsApi() {
+  return await http.request<CommonResult<BackupSettings>>(
+    "get",
+    baseUrlApi("/backup/settings")
+  );
+}
+
+export async function updateBackupSettingsApi(data: Partial<BackupSettings>) {
   return await http.request<CommonResult<BackupSettings>>(
     "patch",
     baseUrlApi("/backup/settings"),

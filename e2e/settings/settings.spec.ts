@@ -5,11 +5,46 @@ import {
   closeDialog,
   selectors
 } from "../fixtures";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseCompanySettingsCsv } from "../../test-utils/companySettingsCsv";
+
+const specDir = path.dirname(fileURLToPath(import.meta.url));
+const tireAdminWebRoot = path.resolve(specDir, "..", "..");
+const repoRoot = path.resolve(tireAdminWebRoot, "..");
+const companySettingsCsvPath = path.join(
+  repoRoot,
+  "docs",
+  "company-settings.csv"
+);
+const companySettingsCsvText = fs.readFileSync(companySettingsCsvPath, "utf-8");
+const companySettingsCsvRows = parseCompanySettingsCsv(companySettingsCsvText);
+const companySettingsUiEntries = Array.from(
+  new Set(
+    companySettingsCsvRows
+      .filter(
+        r =>
+          (r.frontendExists ?? "").trim() === "yes" &&
+          (r.uiEntry ?? "").trim().length > 0
+      )
+      .map(r => (r.uiEntry ?? "").trim())
+  )
+).sort();
 
 /**
  * 系统设置 E2E 测试
  */
 test.describe("系统设置", () => {
+  test.describe("CSV 设置页可达性", () => {
+    for (const entry of companySettingsUiEntries) {
+      test(`路由应可访问: ${entry}`, async ({ authenticatedPage: page }) => {
+        await page.goto(entry);
+        await expect(page.locator(".main-content, .app-main")).toBeVisible();
+      });
+    }
+  });
+
   test.describe("公司信息", () => {
     test.beforeEach(async ({ authenticatedPage: page }) => {
       await page.goto("/settings/companyInfo");
@@ -251,7 +286,15 @@ test.describe("系统设置", () => {
 
   test.describe("推送设置", () => {
     test.beforeEach(async ({ authenticatedPage: page }) => {
+      const waitConfig = page.waitForResponse(
+        r =>
+          r.url().includes("/push/config") &&
+          r.request().method() === "GET" &&
+          r.status() >= 200 &&
+          r.status() < 300
+      );
       await page.goto("/settings/push");
+      await waitConfig;
       await page.waitForLoadState("networkidle");
     });
 
