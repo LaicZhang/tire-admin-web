@@ -14,7 +14,9 @@ import {
   userKey,
   removeToken,
   multipleTabsKey,
-  ensureSessionValidated
+  ensureSessionValidated,
+  getCsrfToken,
+  useHttpOnlyCookie
 } from "@/utils/auth";
 
 /** 路由白名单 */
@@ -170,6 +172,18 @@ export function handleUnauthenticated(
 export async function handleSessionValidation(
   next: (to?: unknown) => void
 ): Promise<boolean> {
+  if (useHttpOnlyCookie) {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+      routerLogger.error(
+        "[Auth] 已启用 HttpOnly Cookie 模式，但未检测到 `_csrf` Cookie：请确认后端 `AUTH_COOKIE_ENABLED=true`，且浏览器已正确携带认证 Cookie（withCredentials/同域配置）。"
+      );
+      removeToken();
+      next({ path: "/login", replace: true });
+      return true;
+    }
+  }
+
   const valid = await ensureSessionValidated();
   if (valid) return false;
 

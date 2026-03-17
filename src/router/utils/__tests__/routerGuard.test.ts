@@ -5,7 +5,9 @@ const mocks = vi.hoisted(() => ({
   cookieGet: vi.fn(),
   storageGetItem: vi.fn(),
   ensureSessionValidated: vi.fn(),
-  removeToken: vi.fn()
+  getCsrfToken: vi.fn(),
+  removeToken: vi.fn(),
+  useHttpOnlyCookie: false
 }));
 
 vi.mock("js-cookie", () => ({
@@ -41,7 +43,11 @@ vi.mock("@/utils/auth", () => ({
   userKey: "user-info",
   multipleTabsKey: "multiple-tabs",
   removeToken: mocks.removeToken,
-  ensureSessionValidated: mocks.ensureSessionValidated
+  ensureSessionValidated: mocks.ensureSessionValidated,
+  getCsrfToken: mocks.getCsrfToken,
+  get useHttpOnlyCookie() {
+    return mocks.useHttpOnlyCookie;
+  }
 }));
 
 vi.mock("@/utils/progress", () => ({
@@ -62,7 +68,9 @@ describe("routerGuard session checks", () => {
     mocks.cookieGet.mockReset();
     mocks.storageGetItem.mockReset();
     mocks.ensureSessionValidated.mockReset();
+    mocks.getCsrfToken.mockReset();
     mocks.removeToken.mockReset();
+    mocks.useHttpOnlyCookie = false;
   });
 
   it("treats a user as authenticated only when cookie and local user info both exist", () => {
@@ -92,6 +100,18 @@ describe("routerGuard session checks", () => {
     const next = vi.fn();
 
     await expect(handleSessionValidation(next)).resolves.toBe(true);
+    expect(mocks.removeToken).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({ path: "/login", replace: true });
+  });
+
+  it("forces logout early when HttpOnly Cookie mode is enabled but csrf cookie is missing", async () => {
+    mocks.useHttpOnlyCookie = true;
+    mocks.getCsrfToken.mockReturnValue(undefined);
+    mocks.ensureSessionValidated.mockResolvedValue(true);
+    const next = vi.fn();
+
+    await expect(handleSessionValidation(next)).resolves.toBe(true);
+    expect(mocks.ensureSessionValidated).not.toHaveBeenCalled();
     expect(mocks.removeToken).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith({ path: "/login", replace: true });
   });
