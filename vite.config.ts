@@ -20,6 +20,7 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
   } = wrapperEnv(loadEnv(mode, root));
   const proxyTarget =
     VITE_PROXY_TARGET || VITE_SERVER_URL || "http://localhost:3000";
+  const isVitest = mode === "test" || process.env.VITEST === "true";
   const buildInput = {
     index: pathResolve("./index.html", import.meta.url)
   };
@@ -35,22 +36,24 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
       alias
     },
     // 服务端渲染
-    server: {
-      // 端口号
-      port: VITE_PORT,
-      host: "0.0.0.0",
-      // 本地跨域代理 https://cn.vitejs.dev/config/server-options.html#server-proxy
-      proxy: {
-        "/api/v1": {
-          target: proxyTarget,
-          changeOrigin: true
-        }
-      },
-      // 预热文件以提前转换和缓存结果，降低启动期间的初始页面加载时长并防止转换瀑布
-      warmup: {
-        clientFiles: ["./index.html", "./src/{views,components}/*"]
-      }
-    },
+    server: isVitest
+      ? {}
+      : {
+          // 端口号
+          port: VITE_PORT,
+          host: "0.0.0.0",
+          // 本地跨域代理 https://cn.vitejs.dev/config/server-options.html#server-proxy
+          proxy: {
+            "/api/v1": {
+              target: proxyTarget,
+              changeOrigin: true
+            }
+          },
+          // 预热文件以提前转换和缓存结果，降低启动期间的初始页面加载时长并防止转换瀑布
+          warmup: {
+            clientFiles: ["./index.html", "./src/{views,components}/*"]
+          }
+        },
     plugins: getPluginsList(VITE_CDN, VITE_COMPRESSION, command, mode),
     // https://cn.vitejs.dev/config/dep-optimization-options.html#dep-optimization-options
     optimizeDeps: {
