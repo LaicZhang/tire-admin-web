@@ -8,21 +8,17 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseCompanySettingsCsv } from "../../test-utils/companySettingsCsv";
+import { parseSettingsCsv } from "../../test-utils/settingsCsv";
 
 const specDir = path.dirname(fileURLToPath(import.meta.url));
 const tireAdminWebRoot = path.resolve(specDir, "..", "..");
 const repoRoot = path.resolve(tireAdminWebRoot, "..");
-const companySettingsCsvPath = path.join(
-  repoRoot,
-  "docs",
-  "company-settings.csv"
-);
-const companySettingsCsvText = fs.readFileSync(companySettingsCsvPath, "utf-8");
-const companySettingsCsvRows = parseCompanySettingsCsv(companySettingsCsvText);
+const settingsCsvPath = path.join(repoRoot, "docs", "settings.csv");
+const settingsCsvText = fs.readFileSync(settingsCsvPath, "utf-8");
+const settingsCsvRows = parseSettingsCsv(settingsCsvText);
 const companySettingsUiEntries = Array.from(
   new Set(
-    companySettingsCsvRows
+    settingsCsvRows
       .filter(
         r =>
           (r.frontendExists ?? "").trim() === "yes" &&

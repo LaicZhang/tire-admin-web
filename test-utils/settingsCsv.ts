@@ -1,4 +1,4 @@
-export type CompanySettingsCsvRow = Readonly<Record<string, string>>;
+export type SettingsCsvRow = Readonly<Record<string, string>>;
 
 function parseCsvToRows(csvText: string): string[][] {
   const rows: string[][] = [];
@@ -11,17 +11,15 @@ function parseCsvToRows(csvText: string): string[][] {
 
     if (inQuotes) {
       if (ch === '"') {
-        const next = csvText[i + 1];
-        if (next === '"') {
+        if (csvText[i + 1] === '"') {
           field += '"';
           i++;
-          continue;
+        } else {
+          inQuotes = false;
         }
-        inQuotes = false;
-        continue;
+      } else {
+        field += ch;
       }
-
-      field += ch;
       continue;
     }
 
@@ -29,13 +27,11 @@ function parseCsvToRows(csvText: string): string[][] {
       inQuotes = true;
       continue;
     }
-
     if (ch === ",") {
       row.push(field);
       field = "";
       continue;
     }
-
     if (ch === "\n") {
       row.push(field);
       rows.push(row);
@@ -43,15 +39,10 @@ function parseCsvToRows(csvText: string): string[][] {
       field = "";
       continue;
     }
-
-    if (ch === "\r") continue;
-
-    field += ch;
+    if (ch !== "\r") field += ch;
   }
 
-  if (inQuotes) {
-    throw new Error("CSV parse error: unterminated quote");
-  }
+  if (inQuotes) throw new Error("CSV parse error: unterminated quote");
 
   if (field.length > 0 || row.length > 0) {
     row.push(field);
@@ -61,12 +52,24 @@ function parseCsvToRows(csvText: string): string[][] {
   return rows.filter(r => r.some(cell => cell.trim().length > 0));
 }
 
-function toRecords(rows: string[][]): CompanySettingsCsvRow[] {
+function requireHeaders(
+  header: readonly string[],
+  required: readonly string[]
+): void {
+  for (const k of required) {
+    if (!header.includes(k)) {
+      throw new Error(`CSV parse error: missing required header "${k}"`);
+    }
+  }
+}
+
+function toRecords(rows: string[][]): SettingsCsvRow[] {
   const header = rows[0]?.map(h => h.trim()) ?? [];
   if (header.length === 0) throw new Error("CSV parse error: empty header row");
 
-  const required = [
+  requireHeaders(header, [
     "scope",
+    "uiScope",
     "group",
     "key",
     "displayName",
@@ -77,16 +80,13 @@ function toRecords(rows: string[][]): CompanySettingsCsvRow[] {
     "api",
     "frontendExists",
     "backendExists",
-    "status"
-  ] as const;
+    "exposureStatus",
+    "lifecycle",
+    "source",
+    "notes"
+  ]);
 
-  for (const k of required) {
-    if (!header.includes(k)) {
-      throw new Error(`CSV parse error: missing required header "${k}"`);
-    }
-  }
-
-  const records: CompanySettingsCsvRow[] = [];
+  const records: SettingsCsvRow[] = [];
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     if (r.length !== header.length) {
@@ -95,17 +95,13 @@ function toRecords(rows: string[][]): CompanySettingsCsvRow[] {
       );
     }
     const obj: Record<string, string> = {};
-    for (let j = 0; j < header.length; j++) {
-      obj[header[j]] = r[j] ?? "";
-    }
+    for (let j = 0; j < header.length; j++) obj[header[j]] = r[j] ?? "";
     records.push(obj);
   }
   return records;
 }
 
-export function parseCompanySettingsCsv(
-  csvText: string
-): CompanySettingsCsvRow[] {
+export function parseSettingsCsv(csvText: string): SettingsCsvRow[] {
   const rows = parseCsvToRows(csvText);
   if (rows.length < 2) {
     throw new Error("CSV parse error: expected header + at least one row");

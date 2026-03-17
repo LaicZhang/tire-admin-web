@@ -3,9 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  parseCompanySettingsCsv,
-  type CompanySettingsCsvRow
-} from "../../test-utils/companySettingsCsv";
+  parseSettingsCsv,
+  type SettingsCsvRow
+} from "../../test-utils/settingsCsv";
 
 type RegistryDefinition = Readonly<{
   group: string;
@@ -24,7 +24,7 @@ function resolveRepoRoot(): string {
 }
 
 function resolveCompanySettingsCsvPath(): string {
-  return path.join(resolveRepoRoot(), "docs", "company-settings.csv");
+  return path.join(resolveRepoRoot(), "docs", "settings.csv");
 }
 
 function resolveBackendRegistryPath(): string {
@@ -70,9 +70,9 @@ function parseRegistryDefinitions(registryText: string): RegistryDefinition[] {
 }
 
 function buildCompanyScopeRowMap(
-  rows: readonly CompanySettingsCsvRow[]
-): Map<string, CompanySettingsCsvRow> {
-  const map = new Map<string, CompanySettingsCsvRow>();
+  rows: readonly SettingsCsvRow[]
+): Map<string, SettingsCsvRow> {
+  const map = new Map<string, SettingsCsvRow>();
   for (const r of rows) {
     if (normalizeCell(r.scope) !== "company") continue;
     const id = `${normalizeCell(r.group)}:${normalizeCell(r.key)}`;
@@ -84,10 +84,10 @@ function buildCompanyScopeRowMap(
   return map;
 }
 
-describe("company-setting registry ↔ docs/company-settings.csv contract", () => {
+describe("company-setting registry ↔ docs/settings.csv contract", () => {
   it("keeps backend registry definitions aligned with CSV (scope=company)", () => {
     const csvText = fs.readFileSync(resolveCompanySettingsCsvPath(), "utf-8");
-    const csvRows = parseCompanySettingsCsv(csvText);
+    const csvRows = parseSettingsCsv(csvText);
     const companyRowMap = buildCompanyScopeRowMap(csvRows);
 
     const registryText = fs.readFileSync(resolveBackendRegistryPath(), "utf-8");
@@ -112,7 +112,7 @@ describe("company-setting registry ↔ docs/company-settings.csv contract", () =
 
   it('requires rows using "/company-setting/group/*" API to exist in backend registry', () => {
     const csvText = fs.readFileSync(resolveCompanySettingsCsvPath(), "utf-8");
-    const csvRows = parseCompanySettingsCsv(csvText);
+    const csvRows = parseSettingsCsv(csvText);
     const companyRowMap = buildCompanyScopeRowMap(csvRows);
 
     const registryText = fs.readFileSync(resolveBackendRegistryPath(), "utf-8");

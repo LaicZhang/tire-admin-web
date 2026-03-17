@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseCompanySettingsCsv } from "../../test-utils/companySettingsCsv";
+import { parseSettingsCsv } from "../../test-utils/settingsCsv";
 
-function resolveCompanySettingsCsvPath(): string {
+function resolveSettingsCsvPath(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const tireAdminWebRoot = path.resolve(here, "..", "..");
   const repoRoot = path.resolve(tireAdminWebRoot, "..");
-  return path.join(repoRoot, "docs", "company-settings.csv");
+  return path.join(repoRoot, "docs", "settings.csv");
 }
 
 type ExistenceFlag = "yes" | "no";
@@ -83,11 +83,21 @@ function validateUiEntry(input: UiEntryCheckInput): void {
   ).toBe(false);
 }
 
-describe("docs/company-settings.csv contract", () => {
+function computeUiScope(
+  uiEntry: string | undefined
+): "system_ui" | "company_ui" | "none" {
+  const v = (uiEntry ?? "").trim();
+  if (!v) return "none";
+  if (v.startsWith("/settings/")) return "system_ui";
+  if (v.startsWith("/company/")) return "company_ui";
+  return "none";
+}
+
+describe("docs/settings.csv contract", () => {
   it("is well-formed and keeps implemented rows consistent", () => {
-    const csvPath = resolveCompanySettingsCsvPath();
+    const csvPath = resolveSettingsCsvPath();
     const csvText = fs.readFileSync(csvPath, "utf-8");
-    const rows = parseCompanySettingsCsv(csvText);
+    const rows = parseSettingsCsv(csvText);
 
     const allowedTypes = new Set([
       "string",
@@ -98,18 +108,25 @@ describe("docs/company-settings.csv contract", () => {
       "list",
       "object"
     ]);
-    const allowedStatus = new Set([
+    const allowedUiScope = new Set(["system_ui", "company_ui", "none"]);
+    const allowedExposureStatus = new Set([
       "frontend_only",
       "backend_only",
       "suggested",
       "implemented",
-      "storage_only"
+      "storage_only",
+      "internal_only"
     ]);
+    const allowedLifecycle = new Set(["", "planned", "implemented"]);
 
     const seen = new Set<string>();
     for (const r of rows) {
       expect(allowedTypes.has((r.settingType ?? "").trim())).toBe(true);
-      expect(allowedStatus.has((r.status ?? "").trim())).toBe(true);
+      expect(allowedUiScope.has((r.uiScope ?? "").trim())).toBe(true);
+      expect(allowedExposureStatus.has((r.exposureStatus ?? "").trim())).toBe(
+        true
+      );
+      expect(allowedLifecycle.has((r.lifecycle ?? "").trim())).toBe(true);
 
       const k = `${r.scope}:${r.group}:${r.key}`;
       expect(seen.has(k)).toBe(false);
@@ -127,31 +144,38 @@ describe("docs/company-settings.csv contract", () => {
       if (frontendExists === "yes") {
         expectNonEmptyField(r.uiEntry, "uiEntry");
         validateUiEntry({ id: k, uiEntry: r.uiEntry ?? "" });
+        expect((r.uiScope ?? "").trim()).toBe(computeUiScope(r.uiEntry));
       }
       if (backendExists === "yes") {
         expectNonEmptyField(r.api, "api");
       }
 
-      const status = (r.status ?? "").trim();
-      if (status === "backend_only") {
+      const exposureStatus = (r.exposureStatus ?? "").trim();
+      if (exposureStatus === "backend_only") {
         expect(frontendExists).toBe("no");
         expect(backendExists).toBe("yes");
         expect((r.uiEntry ?? "").trim().length).toBe(0);
       }
-      if (status === "frontend_only") {
+      if (exposureStatus === "frontend_only") {
         expect(frontendExists).toBe("yes");
         expect(backendExists).toBe("no");
       }
-      if (status === "storage_only") {
+      if (exposureStatus === "storage_only") {
         expect(frontendExists).toBe("yes");
         expect(backendExists).toBe("yes");
         expectNonEmptyField(r.uiEntry, "uiEntry");
         expectNonEmptyField(r.api, "api");
       }
+      if (exposureStatus === "internal_only") {
+        expect(frontendExists).toBe("no");
+        expect(backendExists).toBe("no");
+        expect((r.uiEntry ?? "").trim().length).toBe(0);
+        expect((r.api ?? "").trim().length).toBe(0);
+      }
     }
 
     const implemented = rows.filter(
-      r => (r.status ?? "").trim() === "implemented"
+      r => (r.exposureStatus ?? "").trim() === "implemented"
     );
     for (const r of implemented) {
       expect((r.frontendExists ?? "").trim()).toBe("yes");
