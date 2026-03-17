@@ -3,6 +3,7 @@ import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
 
 const prefix = "/setting/";
+const GLOBAL_SYSTEM_ID = "global";
 
 /** 系统设置项 */
 export interface SettingItem {
@@ -24,6 +25,14 @@ export async function getSettingGroupApi() {
   return await http.request<CommonResult<SettingItem[]>>(
     "get",
     baseUrlApi(prefix + "list")
+  );
+}
+
+export async function getSystemSettingGroupApi(group: string) {
+  return await http.request<CommonResult<SettingItem[]>>(
+    "get",
+    baseUrlApi(prefix + "list"),
+    { params: { systemId: GLOBAL_SYSTEM_ID, group } }
   );
 }
 
@@ -67,6 +76,19 @@ export async function batchUpdateSettingsApi(
     baseUrlApi(prefix + "batch"),
     {
       data: { group, settings: data }
+    }
+  );
+}
+
+export async function batchUpdateSystemSettingsApi(
+  group: string,
+  data: Record<string, unknown>
+) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(prefix + "batch"),
+    {
+      data: { scope: "system", group, settings: data }
     }
   );
 }

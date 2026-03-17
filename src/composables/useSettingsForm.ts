@@ -5,6 +5,7 @@ import {
   patchCompanySettingGroupApi,
   type CompanySettingItem
 } from "@/api/setting";
+import type { CommonResult } from "@/api/type";
 
 function parseSettingValue(value: string): boolean | number | string {
   if (value === "true") return true;
@@ -18,6 +19,13 @@ export interface UseSettingsFormOptions<T extends object> {
   group: string;
   /** Extra groups to load together. Defaults to [group]. */
   loadGroups?: readonly string[];
+  /** Load settings by group. Defaults to company setting API. */
+  loadGroup?: (group: string) => Promise<CommonResult<CompanySettingItem[]>>;
+  /** Save settings by group. Defaults to company setting API. */
+  saveGroup?: (
+    group: string,
+    settings: Record<string, unknown>
+  ) => Promise<CommonResult>;
   /** Default form data */
   defaults: () => T;
   /** Custom transform from CompanySettingItem[] to partial form data.
@@ -37,12 +45,17 @@ export function useSettingsForm<T extends object>(
   const {
     group,
     loadGroups,
+    loadGroup,
+    saveGroup,
     defaults,
     transformLoad,
     transformSave,
     transformSaveMulti,
     immediate = true
   } = options;
+
+  const loadByGroup = loadGroup ?? getCompanySettingGroupApi;
+  const saveByGroup = saveGroup ?? patchCompanySettingGroupApi;
 
   const loading = ref(false);
   const formRef = ref();
@@ -55,7 +68,7 @@ export function useSettingsForm<T extends object>(
       const results = await Promise.all(
         groupsToLoad.map(async g => ({
           group: g,
-          ...(await getCompanySettingGroupApi(g))
+          ...(await loadByGroup(g))
         }))
       );
 
@@ -96,10 +109,7 @@ export function useSettingsForm<T extends object>(
       if (transformSaveMulti) {
         const payload = transformSaveMulti(formData.value);
         for (const [groupName, settings] of Object.entries(payload)) {
-          const { code, msg } = await patchCompanySettingGroupApi(
-            groupName,
-            settings
-          );
+          const { code, msg } = await saveByGroup(groupName, settings);
           if (code !== 200) {
             message(msg || `保存失败（${groupName}）`, { type: "error" });
             return;
@@ -112,7 +122,7 @@ export function useSettingsForm<T extends object>(
       const saveData = transformSave
         ? transformSave(formData.value)
         : formData.value;
-      const { code, msg } = await patchCompanySettingGroupApi(
+      const { code, msg } = await saveByGroup(
         group,
         saveData as Record<string, unknown>
       );

@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { useSettingsForm } from "@/composables";
+import {
+  getSystemSettingGroupApi,
+  batchUpdateSystemSettingsApi
+} from "@/api/setting";
+import type { CommonResult } from "@/api/type";
+import type { CompanySettingItem } from "@/api/setting";
 import type { SysParams } from "./types";
 
 defineOptions({
@@ -18,6 +24,11 @@ const decimalOptions = [
 
 const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
   group: "sys",
+  loadGroup: async (g: string): Promise<CommonResult<CompanySettingItem[]>> =>
+    (await getSystemSettingGroupApi(g)) as unknown as CommonResult<
+      CompanySettingItem[]
+    >,
+  saveGroup: batchUpdateSystemSettingsApi,
   defaults: () => ({
     companyName: "",
     enableDate: "",
