@@ -177,10 +177,12 @@ class PureHttp {
   /** 响应拦截 */
   private httpInterceptorsResponse(): void {
     const instance = PureHttp.axiosInstance;
-    const cookieAuthInterceptor = createCookieAuthInterceptor({
-      pendingQueue: PureHttp.cookiePendingQueue,
-      onLogout: () => useUserStoreHook().logOut()
-    });
+    const cookieAuthInterceptor = useHttpOnlyCookie
+      ? createCookieAuthInterceptor({
+          pendingQueue: PureHttp.cookiePendingQueue,
+          onLogout: () => useUserStoreHook().logOut()
+        })
+      : null;
     const retryInterceptor = createRetryInterceptor({
       excludeErrorCodes: [fatalApiConfigErrorCode]
     });
@@ -203,13 +205,15 @@ class PureHttp {
         let $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
 
-        try {
-          return await cookieAuthInterceptor.responseErrorInterceptor(
-            $error,
-            instance
-          );
-        } catch (cookieError) {
-          $error = cookieError as PureHttpError;
+        if (cookieAuthInterceptor) {
+          try {
+            return await cookieAuthInterceptor.responseErrorInterceptor(
+              $error,
+              instance
+            );
+          } catch (cookieError) {
+            $error = cookieError as PureHttpError;
+          }
         }
 
         try {

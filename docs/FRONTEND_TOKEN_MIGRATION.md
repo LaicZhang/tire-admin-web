@@ -15,7 +15,7 @@ Reduce XSS impact by moving long-lived tokens out of browser persistent storage 
 - `accessToken` and `refreshToken` set by backend as **HttpOnly cookies**.
 - Frontend stops attaching `Authorization` header; requests rely on cookies.
 - Add CSRF protection for state-changing requests:
-  - Double-submit cookie (`csrf_token` cookie + `X-CSRF-Token` header), or
+  - Double-submit cookie (`_csrf` cookie + `x-csrf-token` header), or
   - Backend-issued CSRF token endpoint.
 - Cookie attributes:
   - `Secure` in production

@@ -18,8 +18,36 @@ import {
   logoutApi
 } from "@/api";
 import { useMultiTagsStoreHook } from "./multiTags";
-import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
+import {
+  type DataInfo,
+  ensureSessionValidated,
+  getCsrfToken,
+  removeToken,
+  setToken,
+  useHttpOnlyCookie,
+  userKey
+} from "@/utils/auth";
 import { safeNavigate } from "@/router/utils";
+
+async function assertHttpOnlyCookieAuthReady(options: {
+  onLogout: () => void;
+}): Promise<void> {
+  const csrfToken = getCsrfToken();
+  if (!csrfToken) {
+    options.onLogout();
+    throw new Error(
+      "已启用 HttpOnly Cookie 模式，但未检测到后端下发的 `_csrf` Cookie。请确认后端已设置 `AUTH_COOKIE_ENABLED=true`，或关闭前端 `VITE_USE_HTTPONLY_COOKIE`。"
+    );
+  }
+
+  const ok = await ensureSessionValidated();
+  if (!ok) {
+    options.onLogout();
+    throw new Error(
+      "已启用 HttpOnly Cookie 模式，但 Cookie 会话校验失败。请确认后端 `AUTH_COOKIE_ENABLED=true` 且浏览器已携带认证 Cookie（withCredentials/同域配置）。"
+    );
+  }
+}
 
 export const useUserStore = defineStore("pure-user", {
   state: (): userType => {
@@ -96,6 +124,11 @@ export const useUserStore = defineStore("pure-user", {
       const result = await getLogin(data);
       if (result?.data) {
         setToken(result.data);
+        if (useHttpOnlyCookie) {
+          await assertHttpOnlyCookieAuthReady({
+            onLogout: () => this.logOut()
+          });
+        }
       }
       return result;
     },
