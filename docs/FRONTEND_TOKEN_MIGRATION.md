@@ -22,6 +22,15 @@ Reduce XSS impact by moving long-lived tokens out of browser persistent storage 
   - `SameSite=Strict` (same-site only) or `Lax` (if needed); document any cross-site requirements
   - Narrow `Path`/`Domain` as appropriate
 
+## Switches (must match)
+
+Cookie-based auth requires both switches enabled:
+
+- Backend: `AUTH_COOKIE_ENABLED=true` (be-core)
+- Frontend: `VITE_USE_HTTPONLY_COOKIE=true` (tire-admin-web)
+
+They must be enabled together; otherwise login/refresh may not set/send the expected cookies and requests may loop on `401`.
+
 ## Migration Steps
 
 1. Backend: introduce cookie-based auth for admin web (access + refresh), keep existing Bearer token flow temporarily.
