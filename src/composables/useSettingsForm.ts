@@ -6,6 +6,7 @@ import {
   type CompanySettingItem
 } from "@/api/setting";
 import type { CommonResult } from "@/api/type";
+import { analyzeSettingsPresence } from "@/utils/settingsPresence";
 
 function parseSettingValue(value: string): boolean | number | string {
   if (value === "true") return true;
@@ -28,6 +29,8 @@ export interface UseSettingsFormOptions<T extends object> {
   ) => Promise<CommonResult>;
   /** Default form data */
   defaults: () => T;
+  /** Expected setting keys (for missing/unset UI state). Defaults to keys of `defaults()` result. */
+  expectedKeys?: readonly string[];
   /** Custom transform from CompanySettingItem[] to partial form data.
    *  If not provided, uses default mapping with auto boolean/number conversion. */
   transformLoad?: (settings: CompanySettingItem[], formData: T) => void;
@@ -48,6 +51,7 @@ export function useSettingsForm<T extends object>(
     loadGroup,
     saveGroup,
     defaults,
+    expectedKeys,
     transformLoad,
     transformSave,
     transformSaveMulti,
@@ -59,7 +63,15 @@ export function useSettingsForm<T extends object>(
 
   const loading = ref(false);
   const formRef = ref();
-  const formData = ref(defaults()) as Ref<T>;
+  const initialDefaults = defaults();
+  const formData = ref(initialDefaults) as Ref<T>;
+  const expectedSettingKeys = Object.freeze(
+    (expectedKeys?.length ? expectedKeys : Object.keys(initialDefaults)).map(
+      k => String(k)
+    )
+  );
+  const missingSettingKeys = ref<readonly string[]>([]);
+  const unsetSettingKeys = ref<readonly string[]>([]);
 
   const loadSettings = async () => {
     loading.value = true;
@@ -79,6 +91,13 @@ export function useSettingsForm<T extends object>(
         }
         merged.push(...r.data);
       }
+
+      const presence = analyzeSettingsPresence({
+        expectedKeys: expectedSettingKeys,
+        items: merged
+      });
+      missingSettingKeys.value = presence.missingKeys;
+      unsetSettingKeys.value = presence.unsetKeys;
 
       if (merged.length > 0) {
         const groupSettings = merged;
@@ -149,6 +168,8 @@ export function useSettingsForm<T extends object>(
     formRef,
     formData,
     loadSettings,
-    handleSave
+    handleSave,
+    missingSettingKeys,
+    unsetSettingKeys
   };
 }

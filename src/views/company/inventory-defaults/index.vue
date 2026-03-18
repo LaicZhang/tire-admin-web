@@ -6,14 +6,21 @@ import {
   patchCompanySettingGroupApi,
   type CompanySettingItem
 } from "@/api/setting/company-setting";
+import SettingsPresenceBadge from "@/components/SettingsPresence/SettingsPresenceBadge.vue";
+import SettingsPresenceAlert from "@/components/SettingsPresence/SettingsPresenceAlert.vue";
 import RepoSelect from "@/components/EntitySelect/RepoSelect.vue";
 import { invalidateInventoryDefaultsCache } from "@/composables";
+import { analyzeSettingsPresence } from "@/utils/settingsPresence";
 
 defineOptions({
   name: "CompanyInventoryDefaults"
 });
 
 const loading = ref(false);
+const missingSettingKeys = ref<readonly string[]>([]);
+const unsetSettingKeys = ref<readonly string[]>([]);
+
+const EXPECTED_KEYS = ["defaultWarehouseId"] as const;
 
 type FormModel = {
   defaultWarehouseId?: string;
@@ -39,6 +46,12 @@ async function load() {
       message(res.msg || "加载库存默认设置失败", { type: "error" });
       return;
     }
+    const presence = analyzeSettingsPresence({
+      expectedKeys: EXPECTED_KEYS,
+      items: res.data ?? []
+    });
+    missingSettingKeys.value = presence.missingKeys;
+    unsetSettingKeys.value = presence.unsetKeys;
     form.defaultWarehouseId =
       pickValue(res.data, "defaultWarehouseId") || undefined;
   } catch (error) {
@@ -77,14 +90,25 @@ onMounted(() => {
   <div class="main p-4">
     <div class="bg-white p-6 rounded-md">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-medium">库存默认值</h3>
+        <h3 class="text-lg font-medium">
+          库存默认值
+          <SettingsPresenceBadge
+            :missing-keys="missingSettingKeys"
+            :unset-keys="unsetSettingKeys"
+          />
+        </h3>
         <el-button type="primary" :loading="loading" @click="save">
           保存设置
         </el-button>
       </div>
 
+      <SettingsPresenceAlert
+        :missing-keys="missingSettingKeys"
+        :unset-keys="unsetSettingKeys"
+      />
+
       <el-form :model="form" label-width="180px" label-position="left">
-        <el-form-item label="默认仓库">
+        <el-form-item label="默认仓库" data-setting-key="defaultWarehouseId">
           <RepoSelect
             v-model="form.defaultWarehouseId"
             placeholder="不设置则新建单据不默认带出"

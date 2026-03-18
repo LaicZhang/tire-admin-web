@@ -6,18 +6,30 @@ import {
   patchCompanySettingGroupApi,
   type CompanySettingItem
 } from "@/api/setting/company-setting";
+import SettingsPresenceBadge from "@/components/SettingsPresence/SettingsPresenceBadge.vue";
+import SettingsPresenceAlert from "@/components/SettingsPresence/SettingsPresenceAlert.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 import {
   PAYMENT_METHOD_OPTIONS,
   type PaymentMethod
 } from "@/views/fund/payment/types";
 import { invalidateSettlementDefaultsCache } from "@/composables";
+import { analyzeSettingsPresence } from "@/utils/settingsPresence";
 
 defineOptions({
   name: "CompanySettlementDefaults"
 });
 
 const loading = ref(false);
+const missingSettingKeys = ref<readonly string[]>([]);
+const unsetSettingKeys = ref<readonly string[]>([]);
+
+const EXPECTED_KEYS = [
+  "settlement.defaultPaymentMethod",
+  "settlement.defaultReceivableAccount",
+  "settlement.defaultPayableAccount",
+  "document.allowBackdateDays"
+] as const;
 
 type FormModel = {
   defaultPaymentMethod: PaymentMethod | "";
@@ -50,6 +62,17 @@ function pickNumber(
   return Number.isFinite(num) ? num : 0;
 }
 
+function toPresenceItems(
+  group: "settlement" | "document",
+  list: CompanySettingItem[] | undefined
+): { key: string; value: string }[] {
+  if (!Array.isArray(list)) return [];
+  return list.map(i => ({
+    key: `${group}.${i.key}`,
+    value: String(i.value ?? "")
+  }));
+}
+
 async function load() {
   loading.value = true;
   try {
@@ -59,6 +82,16 @@ async function load() {
     ]);
     const settlementList = settlement.code === 200 ? settlement.data : [];
     const documentList = document.code === 200 ? document.data : [];
+
+    const presence = analyzeSettingsPresence({
+      expectedKeys: EXPECTED_KEYS,
+      items: [
+        ...toPresenceItems("settlement", settlementList),
+        ...toPresenceItems("document", documentList)
+      ]
+    });
+    missingSettingKeys.value = presence.missingKeys;
+    unsetSettingKeys.value = presence.unsetKeys;
 
     form.defaultPaymentMethod =
       (pickValue(settlementList, "defaultPaymentMethod") as PaymentMethod) ||
@@ -119,16 +152,30 @@ onMounted(() => {
   <div class="main p-4">
     <div class="bg-white p-6 rounded-md">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-medium">结算默认值</h3>
+        <h3 class="text-lg font-medium">
+          结算默认值
+          <SettingsPresenceBadge
+            :missing-keys="missingSettingKeys"
+            :unset-keys="unsetSettingKeys"
+          />
+        </h3>
         <el-button type="primary" :loading="loading" @click="save">
           保存设置
         </el-button>
       </div>
 
+      <SettingsPresenceAlert
+        :missing-keys="missingSettingKeys"
+        :unset-keys="unsetSettingKeys"
+      />
+
       <el-form :model="form" label-width="180px" label-position="left">
         <el-divider content-position="left">结算默认值</el-divider>
 
-        <el-form-item label="默认结算方式">
+        <el-form-item
+          label="默认结算方式"
+          data-setting-key="settlement.defaultPaymentMethod"
+        >
           <el-select
             v-model="form.defaultPaymentMethod"
             placeholder="不设置则不默认带出"
@@ -144,14 +191,20 @@ onMounted(() => {
           </el-select>
         </el-form-item>
 
-        <el-form-item label="默认收款账户">
+        <el-form-item
+          label="默认收款账户"
+          data-setting-key="settlement.defaultReceivableAccount"
+        >
           <PaymentSelect
             v-model="form.defaultReceivableAccount"
             placeholder="不设置则创建收款单时必须手动选择"
           />
         </el-form-item>
 
-        <el-form-item label="默认付款账户">
+        <el-form-item
+          label="默认付款账户"
+          data-setting-key="settlement.defaultPayableAccount"
+        >
           <PaymentSelect
             v-model="form.defaultPayableAccount"
             placeholder="不设置则创建付款单时必须手动选择"
@@ -160,7 +213,10 @@ onMounted(() => {
 
         <el-divider content-position="left">单据日期</el-divider>
 
-        <el-form-item label="允许回填天数">
+        <el-form-item
+          label="允许回填天数"
+          data-setting-key="document.allowBackdateDays"
+        >
           <el-input-number
             v-model="form.allowBackdateDays"
             :min="0"

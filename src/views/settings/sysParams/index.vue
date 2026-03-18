@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useSettingsForm } from "@/composables";
+import SettingsPresenceBadge from "@/components/SettingsPresence/SettingsPresenceBadge.vue";
+import SettingsPresenceAlert from "@/components/SettingsPresence/SettingsPresenceAlert.vue";
 import {
   getSystemSettingGroupApi,
   batchUpdateSystemSettingsApi
@@ -22,13 +24,30 @@ const decimalOptions = [
   { label: "4位", value: 4 }
 ];
 
-const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
+const EXPECTED_SETTING_KEYS = [
+  "companyName",
+  "enableDate",
+  "currency",
+  "quantityDecimals",
+  "priceDecimals",
+  "amountDecimals"
+] as const;
+
+const {
+  loading,
+  formRef,
+  formData,
+  handleSave,
+  missingSettingKeys,
+  unsetSettingKeys
+} = useSettingsForm<SysParams>({
   group: "sys",
   loadGroup: async (g: string): Promise<CommonResult<CompanySettingItem[]>> =>
     (await getSystemSettingGroupApi(g)) as unknown as CommonResult<
       CompanySettingItem[]
     >,
   saveGroup: batchUpdateSystemSettingsApi,
+  expectedKeys: EXPECTED_SETTING_KEYS,
   defaults: () => ({
     companyName: "",
     enableDate: "",
@@ -44,11 +63,22 @@ const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
   <div class="main">
     <div class="bg-white p-6 rounded-md">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-medium">系统参数设置</h3>
+        <h3 class="text-lg font-medium">
+          系统参数设置
+          <SettingsPresenceBadge
+            :missing-keys="missingSettingKeys"
+            :unset-keys="unsetSettingKeys"
+          />
+        </h3>
         <el-button type="primary" :loading="loading" @click="handleSave">
           保存设置
         </el-button>
       </div>
+
+      <SettingsPresenceAlert
+        :missing-keys="missingSettingKeys"
+        :unset-keys="unsetSettingKeys"
+      />
 
       <el-form
         ref="formRef"
@@ -59,13 +89,21 @@ const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
       >
         <!-- 基本信息 -->
         <el-divider content-position="left">基本信息</el-divider>
-        <el-form-item label="公司名称" prop="companyName">
+        <el-form-item
+          label="公司名称"
+          prop="companyName"
+          data-setting-key="companyName"
+        >
           <el-input
             v-model="formData.companyName"
             placeholder="请输入公司名称"
           />
         </el-form-item>
-        <el-form-item label="启用时间" prop="enableDate">
+        <el-form-item
+          label="启用时间"
+          prop="enableDate"
+          data-setting-key="enableDate"
+        >
           <el-date-picker
             v-model="formData.enableDate"
             type="date"
@@ -77,7 +115,11 @@ const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
             账套一旦使用，不能修改启用时间
           </span>
         </el-form-item>
-        <el-form-item label="本位币" prop="currency">
+        <el-form-item
+          label="本位币"
+          prop="currency"
+          data-setting-key="currency"
+        >
           <el-select
             v-model="formData.currency"
             placeholder="请选择本位币"
@@ -103,7 +145,11 @@ const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
           :closable="false"
           class="mb-4"
         />
-        <el-form-item label="数量小数位" prop="quantityDecimals">
+        <el-form-item
+          label="数量小数位"
+          prop="quantityDecimals"
+          data-setting-key="quantityDecimals"
+        >
           <el-select v-model="formData.quantityDecimals" placeholder="请选择">
             <el-option
               v-for="item in decimalOptions"
@@ -113,7 +159,11 @@ const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="单价小数位" prop="priceDecimals">
+        <el-form-item
+          label="单价小数位"
+          prop="priceDecimals"
+          data-setting-key="priceDecimals"
+        >
           <el-select v-model="formData.priceDecimals" placeholder="请选择">
             <el-option
               v-for="item in decimalOptions"
@@ -123,7 +173,11 @@ const { loading, formRef, formData, handleSave } = useSettingsForm<SysParams>({
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="金额小数位" prop="amountDecimals">
+        <el-form-item
+          label="金额小数位"
+          prop="amountDecimals"
+          data-setting-key="amountDecimals"
+        >
           <el-select v-model="formData.amountDecimals" placeholder="请选择">
             <el-option
               v-for="item in decimalOptions"

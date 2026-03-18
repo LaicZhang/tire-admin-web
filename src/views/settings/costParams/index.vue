@@ -5,6 +5,8 @@ import ArrowUp from "~icons/ep/arrow-up";
 import ArrowDown from "~icons/ep/arrow-down";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { useSettingsForm } from "@/composables";
+import SettingsPresenceBadge from "@/components/SettingsPresence/SettingsPresenceBadge.vue";
+import SettingsPresenceAlert from "@/components/SettingsPresence/SettingsPresenceAlert.vue";
 import type { CompanySettingItem } from "@/api/setting";
 import type { CostParams } from "./types";
 
@@ -24,8 +26,16 @@ const costCalcTypeOptions = [
   { label: "分仓核算", value: "sub_warehouse" }
 ];
 
-const { loading, formRef, formData, handleSave } = useSettingsForm<CostParams>({
+const {
+  loading,
+  formRef,
+  formData,
+  handleSave,
+  missingSettingKeys,
+  unsetSettingKeys
+} = useSettingsForm<CostParams>({
   group: "cost",
+  expectedKeys: ["costMethod", "costCalcType", "abnormalCostOrder"],
   defaults: () => ({
     costMethod: "moving_average",
     costCalcType: "total_warehouse",
@@ -115,11 +125,22 @@ const updateOrder = () => {
   <div class="main">
     <div class="bg-white p-6 rounded-md">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-medium">成本参数设置</h3>
+        <h3 class="text-lg font-medium">
+          成本参数设置
+          <SettingsPresenceBadge
+            :missing-keys="missingSettingKeys"
+            :unset-keys="unsetSettingKeys"
+          />
+        </h3>
         <el-button type="primary" :loading="loading" @click="handleSave">
           保存设置
         </el-button>
       </div>
+
+      <SettingsPresenceAlert
+        :missing-keys="missingSettingKeys"
+        :unset-keys="unsetSettingKeys"
+      />
 
       <el-form
         ref="formRef"
@@ -136,7 +157,11 @@ const updateOrder = () => {
           :closable="false"
           class="mb-4"
         />
-        <el-form-item label="成本核算方法" prop="costMethod">
+        <el-form-item
+          label="成本核算方法"
+          prop="costMethod"
+          data-setting-key="costMethod"
+        >
           <el-radio-group
             v-model="formData.costMethod"
             @change="(val: unknown) => handleCostMethodChange(val as string)"
@@ -150,7 +175,11 @@ const updateOrder = () => {
             </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="成本核算方式" prop="costCalcType">
+        <el-form-item
+          label="成本核算方式"
+          prop="costCalcType"
+          data-setting-key="costCalcType"
+        >
           <el-radio-group
             v-model="formData.costCalcType"
             @change="(val: unknown) => handleCostCalcTypeChange(val as string)"
@@ -168,6 +197,7 @@ const updateOrder = () => {
         <!-- 异常成本处理 -->
         <el-divider content-position="left">异常成本处理取值顺序</el-divider>
         <pure-table
+          data-setting-key="abnormalCostOrder"
           border
           align-whole="center"
           :data="formData.abnormalCostOrder"
