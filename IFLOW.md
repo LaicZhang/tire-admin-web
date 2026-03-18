@@ -33,7 +33,7 @@
 - **样式检查**：StyleLint 16.26.1
 - **Git Hooks**：Husky 9.1.7
 - **提交规范**：Commitlint
-- **测试**：Jest
+- **测试**：Vitest
 
 ### 项目架构
 
