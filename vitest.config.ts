@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [vue(), vueJsx(), Icons({ compiler: "vue3", autoInstall: true })],
   test: {
     globals: true,
+    reporters: [["default", { summary: false }]],
     environment: "happy-dom",
     env: {
       VITE_ROUTER_HISTORY: "hash"
