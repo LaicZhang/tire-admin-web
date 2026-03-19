@@ -11,7 +11,7 @@ import DeleteButton from "@/components/DeleteButton/index.vue";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { InitialStock, InitialStockForm, InitialStockItem } from "./types";
@@ -79,7 +79,7 @@ const getList = async () => {
         createdAt: item.createdAt
       };
     });
-    pagination.value.total = stockRes.data?.total ?? stockRes.data?.count ?? 0;
+    pagination.value.total = stockRes.data?.total ?? 0;
   } finally {
     loading.value = false;
   }
@@ -111,7 +111,7 @@ const handleSelectionChange = (rows: InitialStock[]) => {
 };
 
 const dialogFormRef = ref<{
-  getRef: () => FormInstance;
+  formRef?: FormInstance;
   getStockItems: () => Array<InitialStockItem & { _uid: string }>;
 } | null>(null);
 
@@ -144,7 +144,7 @@ const openDialog = (title = "新增", row?: InitialStock) => {
         isEdit: (options.props as { isEdit: boolean }).isEdit
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = dialogFormRef.value?.getRef();
+      const FormRef = dialogFormRef.value?.formRef;
       if (!FormRef) return;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {

@@ -9,7 +9,7 @@ import { columns } from "./columns";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { handleApiError } from "@/utils";
 import View from "~icons/ep/view";

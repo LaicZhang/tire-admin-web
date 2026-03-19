@@ -119,7 +119,7 @@ export function useOrderList() {
       const { data, code, msg } = res;
       if (code === 200) {
         dataList.value = data.list;
-        pagination.value.total = data.count;
+        pagination.value.total = data.total;
       } else {
         message(msg, { type: "error" });
       }

@@ -17,7 +17,7 @@ import {
   restoreDictApi
 } from "@/api/system/dict";
 import { message, handleApiError } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 
 defineOptions({
@@ -52,7 +52,7 @@ const getData = async () => {
     );
     if (code === 200) {
       dataList.value = data.list || [];
-      pagination.total = data.count || data.total || 0;
+      pagination.total = data.total || 0;
     } else {
       message(msg, { type: "error" });
     }
@@ -91,18 +91,12 @@ const handleRestore = async (row: DictItem) => {
 };
 
 function openDialog(title = "新增", row?: DictItem) {
-  const resolvedKey =
-    typeof row?.key === "number"
-      ? row.key
-      : typeof row?.group === "string"
-        ? Number(row.group)
-        : 0;
   addDialog({
     title: `${title}字典`,
     props: {
       formInline: {
         name: row?.name ?? "",
-        key: Number.isFinite(resolvedKey) ? resolvedKey : 0,
+        key: row?.key ?? 0,
         cn: row?.cn ?? "",
         en: row?.en ?? ""
       }

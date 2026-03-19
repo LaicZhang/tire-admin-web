@@ -19,7 +19,7 @@ import {
   convertSaleQuotationApi,
   getOrderListApi
 } from "@/api";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { ElMessageBox, ElOption, ElSelect } from "element-plus";
 import { CUR_FORM_TITLE, localForage, message, ORDER_TYPE } from "@/utils";

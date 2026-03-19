@@ -9,7 +9,7 @@ import type { Reserve } from "@/api/business/reserve";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
@@ -20,7 +20,7 @@ defineOptions({
 
 const dataList = ref<Reserve[]>([]);
 const loading = ref(false);
-const formRef = ref<{ getRef: () => FormInstance } | null>(null);
+const formRef = ref<{ formRef?: FormInstance } | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   keyword: ""
@@ -43,7 +43,7 @@ const getList = async () => {
     );
     if (code === 200) {
       dataList.value = data.list;
-      pagination.value.total = data.count;
+      pagination.value.total = data.total ?? 0;
     } else {
       message(msg, { type: "error" });
     }
@@ -104,7 +104,7 @@ function openDialog(row: Reserve) {
           .formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value?.getRef();
+      const FormRef = formRef.value?.formRef;
       if (!FormRef) return;
       const curData = (
         options.props as { formInline: { uid: number; actualCount: number } }

@@ -57,8 +57,6 @@ export type PaginatedResponseDto<T = unknown> = {
   total: number;
   page?: number;
   pageSize?: number;
-  /** 兼容旧字段（部分接口返回 count/list） */
-  count: number;
 };
 
 export type CountResponseDto = {

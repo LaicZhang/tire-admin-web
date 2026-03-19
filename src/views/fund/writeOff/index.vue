@@ -82,7 +82,7 @@ async function onSearch() {
     const { data } = await getWriteOffListApi(pagination.currentPage, params);
 
     dataList.value = (data.list || []).map(toViewWriteOffOrder);
-    pagination.total = data.total ?? data.count ?? 0;
+    pagination.total = data.total ?? 0;
   } catch (e) {
     handleApiError(e, "查询失败");
     dataList.value = [];

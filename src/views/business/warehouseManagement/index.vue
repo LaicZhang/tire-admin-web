@@ -43,7 +43,7 @@ const { loading, dataList, pagination, fetchData, handleDelete } = useCrud<
   params: form,
   transform: res => ({
     list: res.data?.list ?? [],
-    total: res.data?.count ?? 0
+    total: res.data?.total ?? 0
   })
 });
 

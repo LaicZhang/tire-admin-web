@@ -12,7 +12,7 @@ import {
   type Zone
 } from "@/api/business/stock";
 import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
@@ -51,7 +51,7 @@ const {
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? 0
+      total: res.data?.total ?? 0
     };
   },
   immediate: true

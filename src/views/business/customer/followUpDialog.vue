@@ -2,7 +2,7 @@
 import { h, ref, watch } from "vue";
 import { message } from "@/utils";
 import { getCustomerFollowUpListApi, createCustomerFollowUpApi } from "@/api";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import dayjs from "dayjs";
 import FollowUpAddForm from "./FollowUpAddForm.vue";
 

@@ -10,7 +10,7 @@ import Search from "~icons/ep/search";
 import Add from "~icons/ep/plus";
 import View from "~icons/ep/view";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import BatchCreateForm from "./BatchCreateForm.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";

@@ -77,11 +77,7 @@ onMounted(async () => {
   }
 });
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

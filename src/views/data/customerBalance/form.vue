@@ -45,11 +45,7 @@ const customerList = ref([
   { uid: "c3", name: "客户C", code: "CUS-003", phone: "13800138003" }
 ]);
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

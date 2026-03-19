@@ -12,7 +12,7 @@ import {
   scanStockAlertApi
 } from "@/api/business/stock-alert";
 import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
@@ -62,7 +62,7 @@ const handleScan = async () => {
 };
 
 function openDialog(title = "新增") {
-  const dialogFormRef = ref<{ getRef: () => FormInstance | undefined }>();
+  const dialogFormRef = ref<{ formRef?: FormInstance }>();
   addDialog({
     title: `${title}库存预警配置`,
     props: {
@@ -82,8 +82,7 @@ function openDialog(title = "新增") {
         formInline: (options.props as { formInline: StockAlertDto }).formInline
       }),
     beforeSure: async (done, { options }) => {
-      const valid = await dialogFormRef.value
-        ?.getRef()
+      const valid = await dialogFormRef.value?.formRef
         ?.validate()
         .catch(() => false);
       if (!valid) return;

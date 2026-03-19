@@ -38,11 +38,7 @@ const newFormInline = ref(props.formInline);
 const { options: provinceOptions } = useSysDictOptions("province");
 const { options: cityOptions } = useSysDictOptions("city");
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

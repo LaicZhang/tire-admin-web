@@ -7,7 +7,7 @@ import AddFill from "~icons/ri/add-circle-line";
 import Setting from "~icons/ep/setting";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { userColumns } from "./columns";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
 import { ElMessageBox } from "element-plus";
@@ -148,7 +148,7 @@ const openUserDialog = (title = "新增", row?: PermissionUser) => {
         formInline: (options.props as UserFormProps).formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value.formRef;
       FormRef.validate((valid: boolean) => {
         if (valid) {
           const curData = (options.props as UserFormProps).formInline;

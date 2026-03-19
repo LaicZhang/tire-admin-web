@@ -14,7 +14,7 @@ import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { getCompanyId } from "@/api/company";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
@@ -30,7 +30,7 @@ const dataList = ref<PaymentAccount[]>([]);
 const loading = ref(false);
 const formRef = ref();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
-const editFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const editFormRef = ref<{ formRef?: FormInstance } | null>(null);
 const form = ref({
   keyword: "",
   status: undefined as boolean | undefined
@@ -69,7 +69,7 @@ const getPaymentListInfo = async () => {
     );
     if (code === 200) {
       dataList.value = data?.list ?? [];
-      pagination.value.total = data?.total ?? data?.count ?? 0;
+      pagination.value.total = data?.total ?? 0;
     } else {
       message(msg, { type: "error" });
     }
@@ -121,7 +121,7 @@ async function handleCreate() {
     closeOnClickModal: false,
     contentRenderer: () => h(editForm, { ref: editFormRef }),
     beforeSure: (done, { options }) => {
-      const FormRef = editFormRef.value?.getRef();
+      const FormRef = editFormRef.value?.formRef;
       if (!FormRef) return;
       const curData = (
         options.props as {

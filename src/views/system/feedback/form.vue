@@ -32,9 +32,7 @@ const formRules = reactive<FormRules>({
 
 const formData = ref(props.formInline);
 
-const getRef = () => formRef.value;
-
-defineExpose({ getRef });
+defineExpose({ formRef: formRef });
 </script>
 
 <template>

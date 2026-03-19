@@ -12,7 +12,7 @@ import {
   createManualBalanceAdjustmentApi,
   type BalanceAdjustment
 } from "@/api/business/balanceAdjustment";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { message } from "@/utils/message";
 import { formatMoneyFromFen, yuanToFen } from "@/utils/formatMoney";
 import { useUserStoreHook } from "@/store/modules/user";
@@ -135,7 +135,7 @@ function openManualAdjustmentDialog() {
         ref: formRef
       }),
     beforeSure: async done => {
-      const formInstance = formRef.value?.getRef();
+      const formInstance = formRef.value?.formRef;
       if (!formInstance) return;
 
       const valid = await formInstance.validate().catch(() => false);

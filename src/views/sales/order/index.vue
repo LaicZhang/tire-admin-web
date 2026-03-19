@@ -31,7 +31,7 @@ defineOptions({
 });
 
 type SalesOrderFormRef = {
-  getRef: () => FormInstance;
+  formRef?: FormInstance;
   getReceiveFee?: () => number;
 };
 const formRef = ref<SalesOrderFormRef | null>(null);

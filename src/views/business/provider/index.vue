@@ -8,7 +8,7 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import {
   getProviderListApi,
   deleteProviderApi,
@@ -62,7 +62,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? 0
+      total: res.data?.total ?? 0
     };
   },
   immediate: true

@@ -48,11 +48,7 @@ const treeSelectData = computed(() => {
   return [{ uid: "", name: "顶级类别", children: formatTree(props.treeData) }];
 });
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

@@ -17,7 +17,7 @@ import {
 import { getCompanyId } from "@/api/company";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { h } from "vue";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
@@ -135,7 +135,7 @@ function openDialog(title = "新增", row?: AssetItem) {
         formInline: (options.props as { formInline: AssetFormItem }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value.formRef;
       const curData = (options.props as { formInline: AssetFormItem })
         .formInline;
       FormRef.validate(async (valid: boolean) => {

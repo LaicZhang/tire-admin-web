@@ -1,6 +1,7 @@
-import { ref, provide, inject, type InjectionKey, type Ref } from "vue";
+import { provide, inject, type InjectionKey, type Ref } from "vue";
 import type { DialogOptions } from "./type";
 import { logger } from "@/utils/logger";
+import { getGlobalDialogStore } from "./dialog-service";
 
 /** Dialog Store 注入键 */
 export const DIALOG_STORE_KEY: InjectionKey<Ref<Array<DialogOptions>>> =
@@ -20,7 +21,7 @@ export const DIALOG_STORE_KEY: InjectionKey<Ref<Array<DialogOptions>>> =
  * ```
  */
 export function provideDialogStore(): Ref<Array<DialogOptions>> {
-  const store = ref<Array<DialogOptions>>([]);
+  const store = getGlobalDialogStore();
   provide(DIALOG_STORE_KEY, store);
   return store;
 }
@@ -44,9 +45,6 @@ export function useDialogStore(
     return fallbackStore;
   }
 
-  // 最后回退：创建新的 ref（不推荐，仅用于独立使用场景）
-  logger.warn(
-    "[ReDialog] 未找到 dialog store，建议在根组件调用 provideDialogStore()"
-  );
-  return ref<Array<DialogOptions>>([]);
+  logger.warn("[ReDialog] 未找到注入的 dialog store，回退到全局 store");
+  return getGlobalDialogStore();
 }

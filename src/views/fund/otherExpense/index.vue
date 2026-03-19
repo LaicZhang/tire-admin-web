@@ -118,7 +118,7 @@ async function onSearch() {
     );
 
     dataList.value = (data.list || []) as OtherExpense[];
-    pagination.total = data.total ?? data.count ?? 0;
+    pagination.total = data.total ?? 0;
   } catch (e) {
     handleApiError(e, "查询失败");
     dataList.value = [];

@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import {
-  closeDialog,
-  dialogStore,
-  type EventType,
-  type ButtonProps,
-  type DialogOptions
-} from "./index";
+import { closeDialog } from "./dialog-service";
 import { ref, computed } from "vue";
 import { isFunction } from "@pureadmin/utils";
 import Fullscreen from "~icons/ri/fullscreen-fill";
 import ExitFullscreen from "~icons/ri/fullscreen-exit-fill";
+import { useDialogStore } from "./useDialogStore";
+import type { EventType, ButtonProps, DialogOptions } from "./type";
 
 const fullscreen = ref(false);
+const dialogStore = useDialogStore();
 
 const footerButtons = computed(() => {
   return (options: DialogOptions) => {
@@ -80,7 +77,7 @@ function handleClose(
   index: number,
   args: { command: "close" | "cancel" | "sure" } = { command: "close" }
 ) {
-  closeDialog(options, index, args);
+  closeDialog(options, index, args, dialogStore);
   eventsCallBack("close", options, index);
 }
 </script>

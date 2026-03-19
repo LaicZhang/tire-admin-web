@@ -42,11 +42,7 @@ const tireList = ref([
   { uid: "t3", name: "轮胎C" }
 ]);
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

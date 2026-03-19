@@ -55,11 +55,7 @@ if (!newFormInline.value.uid && !newFormInline.value.operatorId) {
 const { options: employeeOptions } = useOptionsByType("employees");
 const { options: provinceOptions } = useSysDictOptions("province");
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

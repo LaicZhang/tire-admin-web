@@ -39,11 +39,7 @@ const repoList = ref([
   { uid: "r2", name: "分仓库" }
 ]);
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

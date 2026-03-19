@@ -32,6 +32,7 @@ import {
   useRuntimeErrorState
 } from "@/utils/runtimeError";
 import { resolveSafeHomeRoute, safeNavigate } from "@/router/utils";
+import { provideDialogStore } from "@/components/ReDialog";
 
 export default defineComponent({
   name: "app",
@@ -44,6 +45,7 @@ export default defineComponent({
     const router = useRouter();
     const runtimeError = useRuntimeErrorState();
     const canGoBack = computed(() => window.history.length > 1);
+    provideDialogStore();
 
     function handleReload() {
       clearRuntimeError();

@@ -114,9 +114,6 @@ const formTitle = ref("新增");
 const showSettlementFields = computed(
   () => ![ORDER_TYPE.surplus, ORDER_TYPE.waste].includes(orderType.value)
 );
-function getRef() {
-  return ruleFormRef.value;
-}
 
 async function getOrderType() {
   const curOrderType = await localForage().getItem<ORDER_TYPE>(CUR_ORDER_TYPE);
@@ -370,7 +367,7 @@ async function handleScan() {
   }
 }
 
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 onMounted(async () => {
   await getOrderType();
   await getFormTitle(); // Move up to ensure title is ready before setting columns if we logic depends on it

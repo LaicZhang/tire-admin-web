@@ -8,7 +8,7 @@ import "plus-pro-components/es/components/search/style/css";
 import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { columns } from "./columns";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import SupplierForm from "./form.vue";
 import { message } from "@/utils";
@@ -51,7 +51,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
     }),
   transform: (res: CommonResult<PaginatedResponseDto<Provider>>) => ({
     list: (res.data?.list ?? []) as FormItemProps[],
-    total: res.data?.count ?? 0
+    total: res.data?.total ?? 0
   }),
   immediate: true
 });
@@ -145,7 +145,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormItemProps })
         .formInline;
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value.formRef;
       FormRef.validate((valid: boolean) => {
         if (valid) {
           const promise =

@@ -1,6 +1,6 @@
 import { h, ref } from "vue";
 import { message } from "../../../utils/message";
-import { addDialog } from "../../../components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addEmployeeApi, updateEmployeeApi } from "@/api";
 import editForm from "./form.vue";
@@ -31,7 +31,7 @@ export interface FormProps {
   formInline: FormItemProps;
 }
 
-const formRef = ref<{ getRef: () => FormInstance } | null>(null);
+const formRef = ref<{ formRef?: FormInstance } | null>(null);
 
 export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
@@ -72,7 +72,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value?.getRef();
+      const FormRef = formRef.value?.formRef;
       if (!FormRef) return;
       const curData = (options.props as { formInline: FormItemProps })
         .formInline;

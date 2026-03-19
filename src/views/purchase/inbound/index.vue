@@ -2,7 +2,7 @@
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { h, onMounted, ref } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
@@ -72,7 +72,7 @@ async function getList() {
     );
     if (res.code === 200) {
       dataList.value = res.data.list;
-      pagination.value.total = res.data.count;
+      pagination.value.total = res.data.total ?? res.data.count ?? 0;
     } else {
       message(res.msg, { type: "error" });
     }

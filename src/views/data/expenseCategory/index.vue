@@ -19,7 +19,7 @@ import {
   batchDeleteExpenseCategoryApi
 } from "@/api/data/category";
 import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import Form from "./form.vue";
@@ -31,7 +31,7 @@ defineOptions({
 
 const searchFormRef = ref();
 const selectedRows = ref<FlatCategoryItem[]>([]);
-const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const dialogFormRef = ref<{ formRef?: FormInstance } | null>(null);
 
 const form = reactive<CategoryListParams>({
   name: "",
@@ -67,7 +67,7 @@ const {
   params: form,
   transform: res => ({
     list: res.data?.list ?? [],
-    total: res.data?.count ?? res.data?.total ?? 0
+    total: res.data?.total ?? 0
   }),
   immediate: false
 });
@@ -153,7 +153,7 @@ function openDialog(title = "新增", row?: FlatCategoryItem) {
         isEdit: (options.props as { isEdit?: boolean }).isEdit
       }),
     beforeSure: async (done, { options }) => {
-      const elForm = dialogFormRef.value?.getRef();
+      const elForm = dialogFormRef.value?.formRef;
       if (!elForm) return;
       const valid = await elForm.validate();
       if (!valid) return;

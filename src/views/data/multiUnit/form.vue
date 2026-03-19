@@ -120,11 +120,7 @@ function getUnitName(uid: string): string {
   return unit?.name || "";
 }
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

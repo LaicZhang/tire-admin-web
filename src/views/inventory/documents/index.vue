@@ -87,7 +87,7 @@ const fetchData = async () => {
     );
     if (code === 200) {
       dataList.value = data.list;
-      pagination.value.total = data.count;
+      pagination.value.total = data.total ?? 0;
     }
   } catch (error) {
     logger.error("获取库存单据列表失败", error);

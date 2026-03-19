@@ -17,7 +17,7 @@ import {
 } from "@/api/business/writeOff";
 import { message } from "@/utils/message";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import WriteOffForm from "./WriteOffForm.vue";
 import { getWriteOffStatusKey, type WriteOffStatusKey } from "./writeOffStatus";
 

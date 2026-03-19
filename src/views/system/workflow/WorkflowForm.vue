@@ -68,8 +68,6 @@ const removeStep = (index: number) => {
   formData.steps.splice(index, 1);
 };
 
-const getRef = () => formRef.value;
-
 const getFormData = () => formData;
 
 const handleSubmit = async () => {
@@ -96,7 +94,7 @@ const handleSubmit = async () => {
   }
 };
 
-defineExpose({ getRef, getFormData, handleSubmit });
+defineExpose({ formRef: formRef, getFormData, handleSubmit });
 </script>
 
 <template>

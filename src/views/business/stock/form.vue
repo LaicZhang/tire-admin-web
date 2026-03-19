@@ -22,11 +22,7 @@ const diff = computed(() => {
   return newFormInline.value.actualCount - newFormInline.value.systemCount;
 });
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

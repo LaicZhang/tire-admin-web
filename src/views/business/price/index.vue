@@ -13,7 +13,7 @@ import {
   deletePriceListApi
 } from "@/api/business/price";
 import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
@@ -54,7 +54,7 @@ const {
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? res.data?.total ?? 0
+      total: res.data?.total ?? 0
     };
   },
   immediate: true

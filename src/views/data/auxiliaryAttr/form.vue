@@ -72,11 +72,7 @@ function removeValue(index: number) {
   newFormInline.value.values.splice(index, 1);
 }
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

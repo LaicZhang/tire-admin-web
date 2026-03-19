@@ -1,5 +1,5 @@
 import { h } from "vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { ElOption, ElSelect } from "element-plus";
 import { ALL_LIST, localForage, message } from "@/utils";
 import { convertPurchasePlanApi, type PurchasePlanRecord } from "@/api";

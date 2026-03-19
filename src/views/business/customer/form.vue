@@ -99,10 +99,6 @@ async function loadInitialBalance(uid?: string) {
   }
 }
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
 onMounted(() => {
   loadOptions();
   loadInitialBalance(newFormInline.value.uid);
@@ -115,7 +111,7 @@ watch(
   }
 );
 
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

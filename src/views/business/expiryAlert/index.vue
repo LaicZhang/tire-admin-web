@@ -10,7 +10,7 @@ import {
   createExpiryAlertApi
 } from "@/api/business/stock-alert";
 import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
@@ -56,14 +56,14 @@ const {
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? 0
+      total: res.data?.total ?? 0
     };
   },
   immediate: true
 });
 
 function openDialog(title = "新增") {
-  const dialogFormRef = ref<{ getRef: () => FormInstance | undefined }>();
+  const dialogFormRef = ref<{ formRef?: FormInstance }>();
   addDialog({
     title: `${title}效期预警配置`,
     props: {
@@ -87,8 +87,7 @@ function openDialog(title = "新增") {
         ).formInline
       }),
     beforeSure: async (done, { options }) => {
-      const valid = await dialogFormRef.value
-        ?.getRef()
+      const valid = await dialogFormRef.value?.formRef
         ?.validate()
         .catch(() => false);
       if (!valid) return;

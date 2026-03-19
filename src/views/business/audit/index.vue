@@ -48,7 +48,7 @@ async function loadData() {
     if (code === 200) {
       const typedData = data as PaginatedResponseDto<AuditOrder>;
       tableData.value = typedData.list || [];
-      total.value = typedData.total ?? typedData.count ?? 0;
+      total.value = typedData.total ?? 0;
       pagination.total = total.value;
       pagination.currentPage = currentPage.value;
       pagination.pageSize = pageSize.value;

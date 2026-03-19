@@ -17,7 +17,7 @@ import {
   type CompanyRoleItem
 } from "@/api/system/role";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import RoleForm from "./form.vue";
 import RolePermissionForm from "./permissionForm.vue";
@@ -91,7 +91,7 @@ const handleSearch = async () => {
     });
     if (code === 200) {
       dataList.value = data.list;
-      pagination.total = data.count;
+      pagination.total = data.total ?? 0;
     }
   } catch (error) {
     handleApiError(error, "获取角色列表失败");
@@ -130,7 +130,7 @@ const openDialog = (title = "新增", row?: CompanyRoleItem) => {
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormItemProps })
         .formInline;
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value.formRef;
       FormRef.validate((valid: boolean) => {
         if (valid) {
           const payload = {

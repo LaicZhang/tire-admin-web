@@ -128,15 +128,11 @@ function recalcOrderTotal() {
   formData.value.showTotal = totalAmount;
 }
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
 function getReceiveFee() {
   return receiveFee.value;
 }
 
-defineExpose({ getRef, getReceiveFee });
+defineExpose({ formRef: ruleFormRef, getReceiveFee });
 
 onMounted(() => {
   loadBaseData();

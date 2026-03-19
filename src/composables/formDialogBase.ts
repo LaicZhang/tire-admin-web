@@ -1,6 +1,6 @@
 import { deviceDetection } from "@pureadmin/utils";
-import { addDialog } from "@/components/ReDialog";
-import type { DialogOptions } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
+import type { DialogOptions } from "@/composables/useDialogService";
 
 type ManagedFormDialogOptions = DialogOptions & {
   title: NonNullable<DialogOptions["title"]>;

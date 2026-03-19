@@ -2,7 +2,7 @@
 import { h, ref, watch } from "vue";
 import { message } from "@/utils";
 import { PureTable } from "@pureadmin/table";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import {
   getCustomerLevelListApi,
   createCustomerLevelApi,

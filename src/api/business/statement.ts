@@ -127,8 +127,7 @@ async function getReceivableStatementList(params?: {
     ...response,
     data: {
       list: (response.data?.list ?? []).map(mapReceivableStatement),
-      total,
-      count: total
+      total
     }
   } satisfies CommonResult<PaginatedResponseDto<Statement>>;
 }
@@ -159,8 +158,7 @@ async function getPayableStatementList(params?: {
     ...response,
     data: {
       list: (response.data?.list ?? []).map(mapPayableStatement),
-      total,
-      count: total
+      total
     }
   } satisfies CommonResult<PaginatedResponseDto<Statement>>;
 }
@@ -195,8 +193,7 @@ export async function getStatementList(params?: {
   if (payableResponse.code !== 200) return payableResponse;
 
   const total =
-    (receivableResponse.data?.total ?? receivableResponse.data?.count ?? 0) +
-    (payableResponse.data?.total ?? payableResponse.data?.count ?? 0);
+    (receivableResponse.data?.total ?? 0) + (payableResponse.data?.total ?? 0);
   const offset = (page - 1) * pageSize;
   const list = [
     ...(receivableResponse.data?.list ?? []),
@@ -214,8 +211,7 @@ export async function getStatementList(params?: {
     msg: "success",
     data: {
       list,
-      total,
-      count: total
+      total
     }
   } satisfies CommonResult<PaginatedResponseDto<Statement>>;
 }

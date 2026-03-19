@@ -2,7 +2,7 @@
 import { h, onMounted, ref } from "vue";
 import { deviceDetection } from "@pureadmin/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { message } from "@/utils";
@@ -48,7 +48,7 @@ async function getData() {
       return;
     }
     dataList.value = data.list ?? [];
-    pagination.value.total = data.total ?? data.count ?? 0;
+    pagination.value.total = data.total ?? 0;
   } catch (error) {
     const msg = error instanceof Error ? error.message : "获取采购询价失败";
     message(msg, { type: "error" });

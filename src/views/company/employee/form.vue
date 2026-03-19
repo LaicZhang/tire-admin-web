@@ -37,10 +37,6 @@ const formRules: FormRules = reactive({
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
 const employeeStatus = ref<
   Array<{ id: number; key: string | number; cn: string }>
 >([]);
@@ -62,7 +58,7 @@ async function getPositionList() {
   allPositionList.value = Array.isArray(cached) ? cached : cached?.list || [];
 }
 
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 onMounted(async () => {
   await Promise.all([getPositionList(), getEmployeeStatus()]);
 });

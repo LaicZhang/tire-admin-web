@@ -181,7 +181,7 @@ export function useOrderListPage<T, Q>(
 
       if (res.code === 200) {
         dataList.value = res.data?.list ?? [];
-        pagination.value.total = res.data?.count ?? res.data?.total ?? 0;
+        pagination.value.total = res.data?.total ?? 0;
       } else {
         message(res.msg || listErrorMessage, { type: "error" });
       }

@@ -25,7 +25,7 @@ vi.mock("@/components/ReIcon/src/hooks", () => ({
   useRenderIcon: () => "icon"
 }));
 
-vi.mock("@/components/ReDialog", () => ({
+vi.mock("@/composables/useDialogService", () => ({
   addDialog: vi.fn()
 }));
 

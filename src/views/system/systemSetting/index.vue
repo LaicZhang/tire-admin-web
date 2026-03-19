@@ -7,7 +7,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Plus from "~icons/ep/plus";
 import Save from "~icons/ep/check";
 import Delete from "~icons/ep/delete";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import { message, confirmBox, handleApiError } from "@/utils";
 import {
   createSystemSettingApi,

@@ -36,10 +36,6 @@ const allTireList = ref<Tire[]>([]);
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
 const getAllTires = async () => {
   const { data, code, msg } = await getTireListApi(0);
   if (code === 200) {
@@ -52,7 +48,7 @@ const getAllTires = async () => {
   } else message(msg, { type: "error" });
 };
 
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 
 onMounted(async () => {
   await getAllTires();

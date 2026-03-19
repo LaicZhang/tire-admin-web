@@ -123,15 +123,11 @@ function recalcOrderTotal() {
   formData.value.showTotal = totalAmount;
 }
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
 function getPayFee() {
   return payFee.value;
 }
 
-defineExpose({ getRef, getPayFee });
+defineExpose({ formRef: ruleFormRef, getPayFee });
 
 onMounted(() => {
   loadBaseData();

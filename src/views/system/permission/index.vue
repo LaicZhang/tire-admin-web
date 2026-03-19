@@ -5,7 +5,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useColumns } from "./columns";
 import { FormItemProps } from "./utils/types";
 import PermissionForm from "./form.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { message, handleApiError } from "@/utils";
 import {
@@ -139,7 +139,7 @@ const openDialog = (title = "新增", row?: PermissionDto) => {
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormItemProps })
         .formInline;
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value.formRef;
       FormRef.validate((valid: boolean) => {
         if (!valid) return;
 

@@ -43,10 +43,9 @@ const loadRepos = async () => {
   }
 };
 
-const getRef = () => formRef.value;
 const getFormData = () => formData;
 
-defineExpose({ getRef, getFormData });
+defineExpose({ formRef: formRef, getFormData });
 
 onMounted(() => {
   loadRepos();

@@ -45,11 +45,7 @@ const supplierList = ref([
   { uid: "s3", name: "供应商C", code: "SUP-003", phone: "13900139003" }
 ]);
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

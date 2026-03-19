@@ -1,6 +1,6 @@
 import { Fragment, h, ref, type Component } from "vue";
 import { ElButton } from "element-plus";
-import { closeDialog } from "@/components/ReDialog";
+import { closeDialog } from "@/composables/useDialogService";
 import { openManagedFormDialog } from "./formDialogBase";
 
 export interface ManagedSubmitDialogRef {

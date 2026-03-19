@@ -4,7 +4,7 @@ import { deviceDetection } from "@pureadmin/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { ALL_LIST, localForage } from "@/utils";
 import { message } from "@/utils/message";
@@ -62,7 +62,7 @@ async function fetchData() {
       return;
     }
     dataList.value = data.list ?? [];
-    pagination.value.total = data.total ?? data.count ?? 0;
+    pagination.value.total = data.total ?? 0;
   } catch (error) {
     const msg = error instanceof Error ? error.message : "加载质检记录失败";
     message(msg, { type: "error" });

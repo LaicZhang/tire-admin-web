@@ -192,7 +192,7 @@ export function usePageState<
           list = transform(list);
         }
         dataList.value = list;
-        pagination.value.total = data.count || data.total || 0;
+        pagination.value.total = data.total || 0;
         pagination.value.currentPage = page;
       } else {
         message(msg || "获取数据失败", { type: "error" });

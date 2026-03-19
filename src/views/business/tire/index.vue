@@ -51,7 +51,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? 0
+      total: res.data?.total ?? 0
     };
   },
   immediate: false // Will be triggered manually after caching logic

@@ -50,7 +50,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
     }),
   transform: (res: CommonResult<PaginatedResponseDto<Employee>>) => ({
     list: res.data?.list ?? [],
-    total: res.data?.count ?? 0
+    total: res.data?.total ?? 0
   }),
   immediate: true
 });

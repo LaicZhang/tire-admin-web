@@ -13,7 +13,7 @@ import {
 } from "@/api/finance";
 import type { IncomeExpenseItem } from "@/api/finance";
 import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
@@ -54,7 +54,7 @@ const {
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? 0
+      total: res.data?.total ?? 0
     };
   },
   immediate: true
@@ -72,7 +72,7 @@ const handleDelete = async (row: IncomeExpenseItem) => {
 };
 
 function openDialog() {
-  const dialogFormRef = ref<{ getRef: () => FormInstance | undefined }>();
+  const dialogFormRef = ref<{ formRef?: FormInstance }>();
   addDialog({
     title: "新增收支项目",
     props: {
@@ -101,8 +101,7 @@ function openDialog() {
         ).formInline
       }),
     beforeSure: async (done, { options }) => {
-      const valid = await dialogFormRef.value
-        ?.getRef()
+      const valid = await dialogFormRef.value?.formRef
         ?.validate()
         .catch(() => false);
       if (!valid) return;

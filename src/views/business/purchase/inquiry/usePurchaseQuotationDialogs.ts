@@ -1,5 +1,5 @@
 import { h } from "vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import type { PurchaseInquiryDto } from "@/api/business/purchase-inquiry";
 import PurchaseQuotationManagerDialog from "./components/PurchaseQuotationManagerDialog.vue";
 

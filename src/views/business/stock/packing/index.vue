@@ -11,7 +11,7 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Add from "~icons/ep/plus";
 import { message } from "@/utils/message";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import editForm from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";

@@ -8,7 +8,7 @@ import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
@@ -40,7 +40,7 @@ const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const { confirm } = useConfirmDialog();
 const editFormRef = ref<{
-  getRef: () => FormInstance | undefined;
+  formRef?: FormInstance;
   getFormData: () => CreateStocktakingDto;
 } | null>(null);
 const detailFormRef = ref<{
@@ -139,7 +139,7 @@ const openCreateDialog = () => {
     beforeSure: async done => {
       const formRef = editFormRef.value;
       if (!formRef) return;
-      const formInstance = formRef.getRef();
+      const formInstance = formRef.formRef;
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {

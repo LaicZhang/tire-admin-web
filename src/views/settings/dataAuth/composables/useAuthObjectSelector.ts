@@ -64,7 +64,7 @@ export function useAuthObjectSelector() {
           return;
         }
         selectList.value = (data?.list ?? []) as SelectRow[];
-        selectPagination.value.total = data?.count ?? data?.total ?? 0;
+        selectPagination.value.total = data?.total ?? 0;
         return;
       }
 
@@ -77,7 +77,7 @@ export function useAuthObjectSelector() {
           return;
         }
         selectList.value = (data?.list ?? []) as SelectRow[];
-        selectPagination.value.total = data?.count ?? data?.total ?? 0;
+        selectPagination.value.total = data?.total ?? 0;
         return;
       }
 
@@ -89,7 +89,7 @@ export function useAuthObjectSelector() {
         return;
       }
       selectList.value = (data?.list ?? []) as SelectRow[];
-      selectPagination.value.total = data?.count ?? data?.total ?? 0;
+      selectPagination.value.total = data?.total ?? 0;
     } catch {
       message("加载选择列表失败", { type: "error" });
     } finally {

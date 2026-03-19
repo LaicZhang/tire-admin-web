@@ -9,7 +9,7 @@ import { message, handleApiError } from "@/utils";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { PriceInfo, PriceInfoForm } from "./types";
@@ -71,7 +71,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
         uid: t.uid,
         tireId: t.uid,
         tireName: t.name,
-        tireCode: t.barcode ?? t.barCode ?? t.number,
+        tireCode: t.barcode ?? t.number,
         group: t.group,
         retailPrice: t.salePrice ?? t.price,
         maxPurchasePrice: t.purchasePrice ?? t.cost,
@@ -84,7 +84,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
         updatedAt: t.updateAt ?? t.updatedAt
       } as PriceInfo;
     });
-    return { list, total: res.data?.count ?? 0 };
+    return { list, total: res.data?.total ?? 0 };
   },
   immediate: true
 });
@@ -125,7 +125,7 @@ const handleSelectionChange = (rows: PriceInfo[]) => {
   selectedRows.value = rows;
 };
 
-const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const dialogFormRef = ref<{ formRef?: FormInstance } | null>(null);
 
 const openDialog = (row: PriceInfo) => {
   addDialog({
@@ -154,7 +154,7 @@ const openDialog = (row: PriceInfo) => {
         tireName: (options.props as { tireName: string }).tireName
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = dialogFormRef.value?.getRef();
+      const FormRef = dialogFormRef.value?.formRef;
       if (!FormRef) return;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {

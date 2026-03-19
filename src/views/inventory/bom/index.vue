@@ -8,7 +8,7 @@ import EditPen from "~icons/ep/edit-pen";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useCrud } from "@/composables/useCrud";
 import { deviceDetection } from "@pureadmin/utils";
@@ -41,7 +41,7 @@ defineOptions({
 const { confirm } = useConfirmDialog();
 
 const editFormRef = ref<{
-  getRef: () => FormInstance | undefined;
+  formRef?: FormInstance;
   getFormData: () => CreateBomDto;
 } | null>(null);
 const queryParams = reactive<BomQuery>({
@@ -124,7 +124,7 @@ const openDialog = (title: string, row?: Bom, isView: boolean = false) => {
       }
       const formRef = editFormRef.value;
       if (!formRef) return;
-      const formInstance = formRef.getRef();
+      const formInstance = formRef.formRef;
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {

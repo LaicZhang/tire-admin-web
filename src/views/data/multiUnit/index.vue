@@ -17,7 +17,7 @@ import {
 } from "@/api/data/category";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { message, handleApiError } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import Form from "./form.vue";
@@ -29,7 +29,7 @@ defineOptions({
 
 const unitOptions = ref<UnitOption[]>([]);
 const searchFormRef = ref();
-const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const dialogFormRef = ref<{ formRef?: FormInstance } | null>(null);
 
 const form = ref({
   name: ""
@@ -46,7 +46,7 @@ const { loading, dataList, pagination, fetchData } = useCrud<
     }),
   transform: res => ({
     list: res.data?.list ?? [],
-    total: res.data?.count ?? 0
+    total: res.data?.total ?? 0
   }),
   immediate: false // 等待 unitOptions 加载完成后再加载数据
 });
@@ -120,7 +120,7 @@ function openDialog(title = "新增", row?: MultiUnitItem) {
         isEdit: (options.props as { isEdit?: boolean }).isEdit
       }),
     beforeSure: async (done, { options }) => {
-      const elForm = dialogFormRef.value?.getRef();
+      const elForm = dialogFormRef.value?.formRef;
       if (!elForm) return;
       const valid = await elForm.validate();
       if (!valid) return;

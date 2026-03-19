@@ -1,5 +1,5 @@
 import { h, ref } from "vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { message } from "@/utils";
 import { addFeedbackApi, updateFeedbackApi } from "@/api";
 import Form from "./form.vue";
@@ -20,7 +20,7 @@ export function openDialog(
   row?: FeedbackRow,
   onSuccess?: () => void
 ) {
-  const formRef = ref<{ getRef: () => FormInstance } | null>(null);
+  const formRef = ref<{ formRef?: FormInstance } | null>(null);
   addDialog({
     title: `${title}反馈`,
     props: {
@@ -50,7 +50,7 @@ export function openDialog(
           .formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value?.getRef();
+      const FormRef = formRef.value?.formRef;
       if (!FormRef) return;
       const curData = (options.props as { formInline: FeedbackFormInline })
         .formInline;

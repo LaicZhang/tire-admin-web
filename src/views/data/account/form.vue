@@ -40,11 +40,7 @@ const accountTypes = [
   { label: "其他", value: "other" }
 ];
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

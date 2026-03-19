@@ -173,7 +173,7 @@ async function fetchFundFlow() {
     >(`/statement/${flowPagination.currentPage}`, { params });
 
     fundFlowList.value = data.list || [];
-    flowPagination.total = data.total ?? data.count ?? 0;
+    flowPagination.total = data.total ?? 0;
 
     // 计算统计数据
     let income = 0;
@@ -238,7 +238,7 @@ async function fetchContactDebt() {
     >(`/statement/contact-debt/${debtPagination.currentPage}`, { params });
 
     contactDebtList.value = data.list || [];
-    debtPagination.total = data.total ?? data.count ?? 0;
+    debtPagination.total = data.total ?? 0;
 
     // 计算统计
     let receivable = 0;

@@ -34,7 +34,7 @@ defineOptions({
 const route = useRoute();
 
 type PurchaseOrderFormRef = {
-  getRef: () => FormInstance;
+  formRef?: FormInstance;
   getPayFee?: () => number;
 };
 const formRef = ref<PurchaseOrderFormRef | null>(null);

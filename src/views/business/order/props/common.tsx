@@ -1,4 +1,4 @@
-import { closeDialog, type ButtonProps } from "@/components/ReDialog";
+import { closeDialog, type ButtonProps } from "@/composables/useDialogService";
 import {
   delay,
   isArray,

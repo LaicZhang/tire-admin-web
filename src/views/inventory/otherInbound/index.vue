@@ -10,7 +10,7 @@ import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";
@@ -43,7 +43,7 @@ const loading = ref(false);
 const { confirm } = useConfirmDialog();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{
-  getRef: () => FormInstance | undefined;
+  formRef?: FormInstance;
   getFormData: () => CreateOtherInboundDto;
 } | null>(null);
 
@@ -87,7 +87,7 @@ const fetchData = async () => {
     );
     if (code === 200) {
       dataList.value = data.list;
-      pagination.value.total = data.count;
+      pagination.value.total = data.total ?? 0;
     }
   } catch (error) {
     handleApiError(error, "获取其他入库单列表失败");
@@ -145,7 +145,7 @@ const openDialog = (
       }
       const formRef = editFormRef.value;
       if (!formRef) return;
-      const formInstance = formRef.getRef();
+      const formInstance = formRef.formRef;
       if (!formInstance) return;
 
       await formInstance.validate(async (valid: boolean) => {

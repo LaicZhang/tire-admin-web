@@ -20,8 +20,7 @@ const formRules = reactive({
   type: [{ required: true, message: "类型为必填项", trigger: "change" }]
 });
 
-// Expose ref for validation
-defineExpose({ getRef: () => ruleFormRef.value });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

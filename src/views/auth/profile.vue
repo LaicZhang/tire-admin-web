@@ -123,7 +123,7 @@ import type { ComponentSize } from "element-plus";
 import { userInfoTemplate, type UserInfoType } from "./info";
 import { User, Connection } from "@element-plus/icons-vue";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import WxBindForm from "./WxBindForm.vue";
 import ProfileEditForm from "./ProfileEditForm.vue";
 

@@ -15,7 +15,7 @@ vi.mock("@/views/business/tire/store", () => ({
   getUploadedImages: vi.fn().mockResolvedValue([])
 }));
 
-vi.mock("../../../../components/ReDialog", () => ({
+vi.mock("@/composables/useDialogService", () => ({
   addDialog: vi.fn()
 }));
 
@@ -23,8 +23,8 @@ vi.mock("../form.vue", () => ({
   default: { template: "<div />" }
 }));
 
-import { addDialog } from "../../../../components/ReDialog";
-import type { DialogOptions } from "../../../../components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
+import type { DialogOptions } from "@/composables/useDialogService";
 import { openDialog } from "../table";
 import type { FormItemProps } from "../table";
 

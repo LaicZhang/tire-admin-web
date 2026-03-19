@@ -17,7 +17,7 @@ import {
   deleteSupplierCategoryApi
 } from "@/api/data/category";
 import { message, handleApiError } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import type { FormInstance } from "element-plus";
@@ -30,7 +30,7 @@ const treeData = ref<TreeCategoryItem[]>([]);
 const dataList = ref<TreeCategoryItem[]>([]);
 const loading = ref(false);
 const expandRowKeys = ref<string[]>([]);
-const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const dialogFormRef = ref<{ formRef?: FormInstance } | null>(null);
 
 const form = ref({
   name: ""
@@ -152,7 +152,7 @@ function openDialog(
         isEdit: (options.props as { isEdit?: boolean }).isEdit
       }),
     beforeSure: async (done, { options }) => {
-      const elForm = dialogFormRef.value?.getRef();
+      const elForm = dialogFormRef.value?.formRef;
       if (!elForm) return;
       const valid = await elForm.validate();
       if (!valid) return;

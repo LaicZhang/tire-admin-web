@@ -71,11 +71,7 @@ const handleAutoCalculate = () => {
     Math.round(basePrice.value * 0.8 * 100) / 100;
 };
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

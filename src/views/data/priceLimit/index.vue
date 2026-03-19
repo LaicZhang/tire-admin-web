@@ -7,7 +7,7 @@ import SettingIcon from "~icons/ep/setting";
 import { message } from "@/utils";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import type { PriceLimit, PriceLimitForm, PriceLimitConfig } from "./types";
 import {
@@ -100,7 +100,7 @@ const {
 
     return {
       list: filtered,
-      total: res.data?.total ?? res.data?.count ?? filtered.length
+      total: res.data?.total ?? filtered.length
     };
   },
   immediate: true

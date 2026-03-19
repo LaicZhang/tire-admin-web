@@ -5,7 +5,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useColumns, type MenuItem } from "./columns";
 import { FormItemProps } from "./utils/types";
 import MenuForm from "./form.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { message, handleApiError } from "@/utils";
 import { resolveTrustedFrameSrc } from "@/utils/frame";
@@ -109,7 +109,7 @@ const openDialog = (title = "新增", row?: MenuItem) => {
     beforeSure: (done, { options }) => {
       const curData = (options.props as { formInline: FormItemProps })
         .formInline;
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value.formRef;
       FormRef.validate((valid: boolean) => {
         if (valid) {
           if (curData.code === 1 || curData.code === 2) {

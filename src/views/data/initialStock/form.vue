@@ -134,15 +134,11 @@ const totalAmount = computed(() => {
   }, 0);
 });
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
 function getStockItems() {
   return stockItems.value;
 }
 
-defineExpose({ getRef, getStockItems });
+defineExpose({ formRef: ruleFormRef, getStockItems });
 </script>
 
 <template>

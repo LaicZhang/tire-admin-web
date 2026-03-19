@@ -43,8 +43,7 @@ const options = ref<OptionItem[]>([]);
 let requestSeq = 0;
 
 function formatLabel(tire: Tire) {
-  const barcode = (tire.barcode ||
-    (tire as Tire & { barCode?: string }).barCode) as string | undefined;
+  const barcode = tire.barcode;
   return barcode ? `${tire.name} (${barcode})` : tire.name;
 }
 

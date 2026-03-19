@@ -33,11 +33,7 @@ const formRules = reactive({
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 onMounted(async () => {
   await getAllEmployeeList();
 });

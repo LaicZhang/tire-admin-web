@@ -11,7 +11,7 @@ import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Edit from "~icons/ep/edit";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import DocumentNumberRuleForm from "./DocumentNumberRuleForm.vue";
 
 defineOptions({

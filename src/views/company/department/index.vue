@@ -6,7 +6,7 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import {
   getDepartmentListApi,
   deleteDepartmentApi,

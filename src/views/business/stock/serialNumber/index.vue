@@ -11,7 +11,7 @@ import {
   type SerialNumber
 } from "@/api/business/serialNumber";
 import { message } from "@/utils/message";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import SerialNumberAddForm from "./SerialNumberAddForm.vue";
 import SerialNumberLogsForm from "./SerialNumberLogsForm.vue";
@@ -69,7 +69,7 @@ const {
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? 0
+      total: res.data?.total ?? 0
     };
   },
   immediate: true

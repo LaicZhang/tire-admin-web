@@ -62,6 +62,38 @@ const resolveBaseURL = (): string => {
   return resolved.baseURL;
 };
 
+type ApiEnvelopeWithData = {
+  data?: unknown;
+};
+
+function isPaginatedEnvelopeData(
+  value: unknown
+): value is { list: unknown[]; total?: unknown; count?: unknown } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "list" in value &&
+    Array.isArray((value as { list?: unknown }).list)
+  );
+}
+
+export function normalizePaginatedApiEnvelope<T extends ApiEnvelopeWithData>(
+  value: T
+): T {
+  const data = value.data;
+  if (!isPaginatedEnvelopeData(data)) return value;
+  if (typeof data.total === "number") return value;
+  if (typeof data.count !== "number") return value;
+
+  return {
+    ...value,
+    data: {
+      ...data,
+      total: data.count
+    }
+  };
+}
+
 /**
  * 判断是否应该重试请求
  * 仅对网络错误和幂等请求进行重试
@@ -190,16 +222,17 @@ class PureHttp {
     instance.interceptors.response.use(
       (response: PureHttpResponse) => {
         const $config = response.config;
+        const normalizedData = normalizePaginatedApiEnvelope(response.data);
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
         if (typeof $config.beforeResponseCallback === "function") {
           $config.beforeResponseCallback(response);
-          return response.data;
+          return normalizedData;
         }
         if (PureHttp.initConfig.beforeResponseCallback) {
           PureHttp.initConfig.beforeResponseCallback(response);
-          return response.data;
+          return normalizedData;
         }
-        return response.data;
+        return normalizedData;
       },
       async (error: PureHttpError) => {
         let $error = error;
@@ -247,8 +280,12 @@ class PureHttp {
           $error.code !== fatalApiConfigErrorCode
         ) {
           if (isApiEnvelope(responseData)) {
-            ElMessage.error(responseData.msg || "请求失败，请稍后重试");
-            return Promise.resolve(responseData);
+            const normalizedResponseData =
+              normalizePaginatedApiEnvelope(responseData);
+            ElMessage.error(
+              normalizedResponseData.msg || "请求失败，请稍后重试"
+            );
+            return Promise.resolve(normalizedResponseData);
           }
 
           const response = $error.response as { data?: { msg?: string } };
@@ -257,7 +294,9 @@ class PureHttp {
           ElMessage.error(message);
         }
 
-        if (isApiEnvelope(responseData)) return Promise.resolve(responseData);
+        if (isApiEnvelope(responseData)) {
+          return Promise.resolve(normalizePaginatedApiEnvelope(responseData));
+        }
         return Promise.reject($error);
       }
     );

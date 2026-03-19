@@ -30,15 +30,11 @@ const props = withDefaults(defineProps<FormProps>(), {
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
 const showType = computed(() => {
   return newFormInline.value.code;
 });
 
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

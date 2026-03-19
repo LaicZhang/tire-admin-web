@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import { columns } from "./columns";
 import { PureTable } from "@pureadmin/table";
 import type { PaginationProps } from "@pureadmin/table";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import IncomeForm from "./IncomeForm.vue";
 import { getOtherIncomeListApi } from "@/api/fund/other-income";
 

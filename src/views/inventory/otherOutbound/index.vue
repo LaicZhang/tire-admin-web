@@ -41,7 +41,7 @@ defineOptions({
 const { confirm } = useConfirmDialog();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{
-  getRef: () => FormInstance | undefined;
+  formRef?: FormInstance;
   getFormData: () => CreateOtherOutboundDto;
 } | null>(null);
 
@@ -76,7 +76,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? res.data?.total ?? 0
+      total: res.data?.total ?? 0
     };
   }
 });
@@ -111,7 +111,7 @@ const onReset = () => {
 const { openDialog } = useActionFormDialog<
   Partial<OtherOutboundOrder>,
   {
-    getRef: () => FormInstance | undefined;
+    formRef?: FormInstance;
     getFormData: () => CreateOtherOutboundDto;
   }
 >({

@@ -10,7 +10,7 @@ import {
 } from "vue";
 import Add from "~icons/ep/plus";
 import Delete from "~icons/ep/delete";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import {
   getImageWH,
   message,
@@ -162,10 +162,6 @@ const coverPreviewList = computed(() => {
     item => BaseImagePath + item.hash + "." + item.ext
   );
 });
-
-function getRef() {
-  return ruleFormRef.value;
-}
 
 const imageConfig: FileTypeConfig = {
   mimeTypes: [
@@ -359,7 +355,7 @@ const availableUnits = computed(() => {
   );
 });
 
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 
 onMounted(() => {
   loadUnits();

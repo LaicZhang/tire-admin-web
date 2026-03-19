@@ -7,8 +7,7 @@ const prefix = "/dict/";
 export interface DictItem {
   id: number;
   name: string; // 字典类型名称
-  key?: number; // 字典项键值（后端由 group 映射得到）
-  group?: string | null; // 后端原始字段（兼容）
+  key?: number; // 字典项键值
   cn: string | null; // 中文标签
   en: string | null; // 英文标签
   isPublic?: boolean;

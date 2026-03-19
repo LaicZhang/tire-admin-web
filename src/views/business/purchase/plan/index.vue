@@ -6,7 +6,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import DeleteButton from "@/components/DeleteButton/index.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { ALL_LIST, handleApiError, localForage, message } from "@/utils";
 import {
   createPurchasePlanApi,
@@ -72,7 +72,7 @@ async function getData() {
       return;
     }
     dataList.value = data.list;
-    pagination.value.total = data.count;
+    pagination.value.total = data.total ?? 0;
   } catch (error) {
     handleApiError(error, "获取采购计划失败");
   } finally {

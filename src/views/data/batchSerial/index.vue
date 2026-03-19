@@ -8,7 +8,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import { batchColumns, serialColumns, expiryColumns } from "./columns";
@@ -113,7 +113,7 @@ const {
       message(res.msg || "获取序列号列表失败", { type: "error" });
       return { list: [], total: 0 };
     }
-    return { list: res.data?.list ?? [], total: res.data?.count ?? 0 };
+    return { list: res.data?.list ?? [], total: res.data?.total ?? 0 };
   },
   immediate: true
 });
@@ -166,7 +166,7 @@ const handleBatchPageChange = (val: number) => onBatchPageChange(val);
 
 const handleSerialPageChange = (val: number) => onSerialPageChange(val);
 
-const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const dialogFormRef = ref<{ formRef?: FormInstance } | null>(null);
 
 const openBatchDialog = (title = "新增", row?: Batch) => {
   addDialog({
@@ -194,7 +194,7 @@ const openBatchDialog = (title = "新增", row?: Batch) => {
         formInline: (options.props as { formInline: BatchForm }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = dialogFormRef.value?.getRef();
+      const FormRef = dialogFormRef.value?.formRef;
       if (!FormRef) return;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {

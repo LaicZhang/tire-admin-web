@@ -2,7 +2,7 @@
 import { h, onMounted, ref } from "vue";
 import dayjs from "dayjs";
 import { ElOption, ElSelect } from "element-plus";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { ALL_LIST, localForage, message } from "@/utils";
 import { fenToYuan } from "@/utils/formatMoney";
 import {

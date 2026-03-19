@@ -16,7 +16,7 @@ import {
   type SaleQuotationStatus
 } from "@/api/business/sale-quotation";
 import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { ElOption, ElSelect } from "element-plus";
 import SaleQuotationFormDialog from "./components/SaleQuotationFormDialog.vue";
@@ -53,7 +53,7 @@ const getData = async () => {
     });
     if (code === 200) {
       dataList.value = data.list || [];
-      pagination.value.total = data.total ?? data.count ?? 0;
+      pagination.value.total = data.total ?? 0;
       return;
     }
     message(msg || "加载失败", { type: "error" });

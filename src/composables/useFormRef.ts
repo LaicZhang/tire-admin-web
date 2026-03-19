@@ -1,10 +1,14 @@
 import { type Ref, unref } from "vue";
 import type { FormInstance } from "element-plus";
 
+export interface FormComponentExpose<T extends FormInstance = FormInstance> {
+  formRef?: T;
+}
+
 /**
  * Element Plus 表单引用封装
  *
- * @description 简化 formRef.value.getRef().validate() 调用模式
+ * @description 简化 formRef.value.formRef.validate() 调用模式
  *
  * @example
  * ```vue
@@ -24,12 +28,13 @@ import type { FormInstance } from "element-plus";
  * ```
  */
 export function useFormRef<T extends FormInstance = FormInstance>(
-  formRef: Ref<T | undefined>
+  formRef: Ref<T | FormComponentExpose<T> | undefined>
 ) {
   const getInstance = (): T | undefined => {
     const ref = unref(formRef);
-    // 兼容 getRef 模式
-    return (ref as unknown as { getRef?: () => T })?.getRef?.() ?? ref;
+    if (!ref) return undefined;
+    if ("validate" in ref) return ref as T;
+    return (ref as FormComponentExpose<T>).formRef;
   };
 
   /**

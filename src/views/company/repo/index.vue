@@ -52,7 +52,7 @@ const {
     }),
   transform: (res: CommonResult<PaginatedResponseDto<Repo>>) => ({
     list: res.data?.list ?? [],
-    total: res.data?.count ?? 0
+    total: res.data?.total ?? 0
   }),
   immediate: true
 });

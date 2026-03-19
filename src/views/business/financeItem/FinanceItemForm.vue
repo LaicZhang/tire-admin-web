@@ -45,11 +45,7 @@ const rules: FormRules = {
   desc: [elementRules.maxLen(200, "备注最多 200 个字符")]
 };
 
-function getRef() {
-  return ruleFormRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: ruleFormRef });
 </script>
 
 <template>

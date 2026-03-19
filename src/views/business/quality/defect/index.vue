@@ -13,7 +13,7 @@ import Add from "~icons/ep/plus";
 import Edit from "~icons/ep/edit";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { message } from "@/utils/message";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import DefectCategoryForm from "./DefectCategoryForm.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";

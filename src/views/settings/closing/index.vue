@@ -6,7 +6,7 @@ import Check from "~icons/ep/check";
 import Close from "~icons/ep/close";
 import { handleApiError, message } from "@/utils";
 import { getClosingRecordsApi } from "@/api/setting";
-import { addDialog, closeAllDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import type { ClosingRecord } from "./types";
 import ClosingCheckForm from "./ClosingCheckForm.vue";
 import { parseListData } from "./utils";

@@ -20,7 +20,7 @@ import {
   deleteAuxiliaryAttrValueApi
 } from "@/api/data/category";
 import { message } from "@/utils";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
@@ -33,7 +33,7 @@ defineOptions({
 });
 
 const searchFormRef = ref();
-const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const dialogFormRef = ref<{ formRef?: FormInstance } | null>(null);
 
 const form = reactive({
   name: undefined as string | undefined
@@ -78,7 +78,7 @@ const {
     }
     return {
       list: res.data?.list ?? [],
-      total: res.data?.count ?? res.data?.total ?? 0
+      total: res.data?.total ?? 0
     };
   },
   immediate: true
@@ -130,7 +130,7 @@ function openDialog(title = "新增", row?: AuxiliaryAttrItem) {
         isEdit: (options.props as { isEdit?: boolean }).isEdit
       }),
     beforeSure: async (done, { options }) => {
-      const elForm = dialogFormRef.value?.getRef();
+      const elForm = dialogFormRef.value?.formRef;
       if (!elForm) return;
       const valid = await elForm.validate();
       if (!valid) return;

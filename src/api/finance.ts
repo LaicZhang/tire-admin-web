@@ -151,8 +151,7 @@ function buildMergedResult(
     msg: "success",
     data: {
       list,
-      total,
-      count: total
+      total
     }
   };
 }
@@ -181,7 +180,7 @@ export async function getOtherTransactionListApi(
     });
     return buildMergedResult(
       (result.data.list ?? []).map(mapIncomeOrderToTransaction),
-      result.data.total ?? result.data.count ?? 0
+      result.data.total ?? 0
     );
   }
 
@@ -197,7 +196,7 @@ export async function getOtherTransactionListApi(
     });
     return buildMergedResult(
       (result.data.list ?? []).map(mapExpenseOrderToTransaction),
-      result.data.total ?? result.data.count ?? 0
+      result.data.total ?? 0
     );
   }
 
@@ -228,8 +227,7 @@ export async function getOtherTransactionListApi(
   ]);
 
   const total =
-    (incomeResult.data.total ?? incomeResult.data.count ?? 0) +
-    (expenseResult.data.total ?? expenseResult.data.count ?? 0);
+    (incomeResult.data.total ?? 0) + (expenseResult.data.total ?? 0);
   const merged = [
     ...(incomeResult.data.list ?? []).map(mapIncomeOrderToTransaction),
     ...(expenseResult.data.list ?? []).map(mapExpenseOrderToTransaction)

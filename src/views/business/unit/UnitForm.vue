@@ -39,11 +39,7 @@ const rules: FormRules = {
   ]
 };
 
-function getRef() {
-  return formRef.value;
-}
-
-defineExpose({ getRef });
+defineExpose({ formRef: formRef });
 </script>
 
 <template>

@@ -12,7 +12,7 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { MoneyDisplay } from "@/components";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { SupplierBalance, SupplierBalanceForm } from "./types";
@@ -181,7 +181,7 @@ const handleSelectionChange = (rows: SupplierBalance[]) => {
   selectedRows.value = rows;
 };
 
-const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const dialogFormRef = ref<{ formRef?: FormInstance } | null>(null);
 
 const openDialog = (title = "新增", row?: SupplierBalance) => {
   addDialog({
@@ -211,7 +211,7 @@ const openDialog = (title = "新增", row?: SupplierBalance) => {
         isEdit: (options.props as { isEdit: boolean }).isEdit
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = dialogFormRef.value?.getRef();
+      const FormRef = dialogFormRef.value?.formRef;
       if (!FormRef) return;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {

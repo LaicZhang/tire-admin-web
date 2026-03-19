@@ -29,7 +29,11 @@ vi.mock("@/utils/auth", () => ({
 }));
 
 // Import after mocks are set up
-import { shouldRetry, getRetryDelay } from "../index";
+import {
+  shouldRetry,
+  getRetryDelay,
+  normalizePaginatedApiEnvelope
+} from "../index";
 
 describe("HTTP utility functions", () => {
   describe("shouldRetry", () => {
@@ -163,6 +167,43 @@ describe("HTTP utility functions", () => {
       expect(getRetryDelay(4)).toBe(10000);
       expect(getRetryDelay(5)).toBe(10000);
       expect(getRetryDelay(10)).toBe(10000);
+    });
+  });
+
+  describe("normalizePaginatedApiEnvelope", () => {
+    it("should map paginated count to total when total is missing", () => {
+      const response = {
+        code: 200,
+        msg: "ok",
+        data: {
+          list: [{ id: 1 }],
+          count: 12
+        }
+      };
+
+      expect(normalizePaginatedApiEnvelope(response)).toEqual({
+        code: 200,
+        msg: "ok",
+        data: {
+          list: [{ id: 1 }],
+          count: 12,
+          total: 12
+        }
+      });
+    });
+
+    it("should keep existing total unchanged", () => {
+      const response = {
+        code: 200,
+        msg: "ok",
+        data: {
+          list: [{ id: 1 }],
+          count: 12,
+          total: 8
+        }
+      };
+
+      expect(normalizePaginatedApiEnvelope(response)).toBe(response);
     });
   });
 });

@@ -35,7 +35,6 @@ describe("useFundForm", () => {
       msg: "ok",
       data: {
         list: [{ id: 1, uid: "provider-1", name: "供应商A" }],
-        count: 1,
         total: 1
       }
     });
@@ -44,7 +43,6 @@ describe("useFundForm", () => {
       msg: "ok",
       data: {
         list: [{ id: 1, uid: "customer-1", name: "客户A" }],
-        count: 1,
         total: 1
       }
     });

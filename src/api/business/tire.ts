@@ -14,9 +14,7 @@ export interface TireQueryDto {
 export interface TireDto {
   name: string;
   number?: string;
-  /** 后端字段有历史兼容：barcode/barCode */
   barcode?: string;
-  barCode?: string;
   group?: string;
   brand?: string;
   pattern?: string;

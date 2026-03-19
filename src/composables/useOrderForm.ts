@@ -189,12 +189,9 @@ export function useOrderForm<T extends OrderDetailBase>(
     formData.showTotal = totalAmount;
   }
 
-  function getRef() {
-    return ruleFormRef.value;
-  }
-
   return {
     ruleFormRef,
+    formRef: ruleFormRef,
     formData,
     mainList,
     allTireList,
@@ -209,7 +206,6 @@ export function useOrderForm<T extends OrderDetailBase>(
     onAddDetail,
     onDeleteDetail,
     calcDetailTotal,
-    recalcOrderTotal,
-    getRef
+    recalcOrderTotal
   };
 }

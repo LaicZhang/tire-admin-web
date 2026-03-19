@@ -1,6 +1,6 @@
 import { h, ref } from "vue";
 import { message } from "@/utils/message";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyConnect } from "@/api/company";
 import { addRepoApi, updateRepoApi, type Repo } from "@/api/company/repo";
@@ -9,7 +9,7 @@ import type { FormInstance } from "element-plus";
 
 import type { FormItemProps } from "./types";
 
-const formRef = ref<{ getRef: () => FormInstance } | null>(null);
+const formRef = ref<{ formRef?: FormInstance } | null>(null);
 
 type RepoRow = Repo & { manager?: { uid?: string } | null };
 
@@ -43,7 +43,7 @@ export function openDialog(
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value?.getRef();
+      const FormRef = formRef.value?.formRef;
       if (!FormRef) return;
       const curData = (options.props as { formInline: FormItemProps })
         .formInline;

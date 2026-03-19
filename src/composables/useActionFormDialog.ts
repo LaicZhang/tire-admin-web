@@ -13,7 +13,7 @@ export type ActionFormDialogAction =
   | "付款";
 
 export interface ActionFormDialogFormRef {
-  getRef: () => FormInstance | undefined;
+  formRef?: FormInstance;
 }
 
 export type ActionFormDialogHandlers<TData> = Partial<
@@ -89,7 +89,7 @@ export function useActionFormDialog<
           return;
         }
 
-        const formInstance = formRef.value?.getRef();
+        const formInstance = formRef.value?.formRef;
         if (!formInstance) return;
 
         formInstance.validate(async (valid: boolean) => {

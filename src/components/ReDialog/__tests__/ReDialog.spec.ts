@@ -1,6 +1,6 @@
 import { describe, it } from "vitest";
 import { h } from "vue";
-import { addDialog, closeDialog, closeAllDialog } from "../index";
+import { addDialog, closeDialog, closeAllDialog } from "../dialog-service";
 import type { DialogOptions, ArgsType } from "../type";
 
 describe("ReDialog", () => {

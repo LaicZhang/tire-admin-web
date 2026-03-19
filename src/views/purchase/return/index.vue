@@ -7,7 +7,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
@@ -35,7 +35,7 @@ const route = useRoute();
 
 const dataList = ref<ReturnOrder[]>([]);
 const loading = ref(false);
-const formRef = ref<{ getRef: () => FormInstance } | null>(null);
+const formRef = ref<{ formRef?: FormInstance } | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const searchForm = ref<ReturnOrderQueryParams>({
@@ -84,7 +84,7 @@ async function getList() {
     );
     if (res.code === 200) {
       dataList.value = res.data.list as ReturnOrder[];
-      pagination.value.total = res.data.count;
+      pagination.value.total = res.data.total ?? res.data.count ?? 0;
     } else {
       message(res.msg, { type: "error" });
     }
@@ -147,7 +147,7 @@ function openDialog(title: string, row?: ReturnOrder) {
         formTitle: title
       }),
     beforeSure: async done => {
-      const FormRef = formRef.value?.getRef();
+      const FormRef = formRef.value?.formRef;
       if (!FormRef) return;
 
       FormRef.validate(async (valid: boolean) => {

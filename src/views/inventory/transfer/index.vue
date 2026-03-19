@@ -41,7 +41,7 @@ const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const { confirm } = useConfirmDialog();
 type TransferOrderFormRef = {
-  getRef: () => FormInstance;
+  formRef?: FormInstance;
   getFormData: () => {
     fromRepositoryId: string;
     toRepositoryId: string;

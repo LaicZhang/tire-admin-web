@@ -207,7 +207,7 @@ const {
     }
     return {
       list,
-      total: res.data?.total ?? res.data?.count ?? list.length
+      total: res.data?.total ?? list.length
     };
   },
   immediate: true

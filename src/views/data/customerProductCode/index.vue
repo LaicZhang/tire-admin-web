@@ -8,7 +8,7 @@ import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { CustomerProductCode, CustomerProductCodeForm } from "./types";
@@ -106,7 +106,7 @@ const handleCurrentChange = (val: number) => {
   getList();
 };
 
-const dialogFormRef = ref<{ getRef: () => FormInstance } | null>(null);
+const dialogFormRef = ref<{ formRef?: FormInstance } | null>(null);
 
 const openDialog = (title = "新增", row?: CustomerProductCode) => {
   addDialog({
@@ -134,7 +134,7 @@ const openDialog = (title = "新增", row?: CustomerProductCode) => {
           .formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = dialogFormRef.value?.getRef();
+      const FormRef = dialogFormRef.value?.formRef;
       if (!FormRef) return;
       FormRef.validate(async (valid: boolean) => {
         if (valid) {

@@ -1,7 +1,7 @@
 import { h, ref } from "vue";
 import type { FormInstance } from "element-plus";
 import { message } from "@/utils/message";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { updateCompanyInfoApi } from "@/api";
 import type { CompanyInfo } from "@/api/type";
@@ -21,7 +21,7 @@ interface FormProps {
 export type { FormItemProps, FormProps };
 
 type CompanyInfoFormInstance = {
-  getRef: () => FormInstance | undefined;
+  formRef?: FormInstance;
 };
 
 const formRef = ref<CompanyInfoFormInstance | null>(null);
@@ -60,7 +60,7 @@ export function openDialog(
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value?.getRef();
+      const FormRef = formRef.value?.formRef;
       const curData = (options.props as { formInline: FormItemProps })
         .formInline;
       function chores() {

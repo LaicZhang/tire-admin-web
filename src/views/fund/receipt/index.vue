@@ -89,7 +89,7 @@ async function onSearch() {
 
     const { data } = await getReceiptListApi(pagination.currentPage, params);
     dataList.value = (data.list || []) as ReceiptOrder[];
-    pagination.total = data.total ?? data.count ?? 0;
+    pagination.total = data.total ?? 0;
   } catch (error) {
     handleApiError(error, "查询失败");
     dataList.value = [];

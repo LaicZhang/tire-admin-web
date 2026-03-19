@@ -9,7 +9,7 @@ import Close from "~icons/ep/close";
 import "plus-pro-components/es/components/search/style/css";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { documentColumns } from "./columns";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
@@ -154,7 +154,7 @@ const openDialog = (title = "新增", row?: CodeRule) => {
           .formInline
       }),
     beforeSure: (done, { options }) => {
-      const FormRef = formRef.value.getRef();
+      const FormRef = formRef.value.formRef;
       FormRef.validate((valid: boolean) => {
         if (!valid) return;
 
