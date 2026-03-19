@@ -69,7 +69,7 @@ let nextTireId = 1;
 let nextProviderId = 1;
 let nextCustomerProductCodeId = 3;
 let nextMenuId = 2;
-let nextAdvancePaymentId = 2;
+let nextReceiptOrderId = 2;
 let nextPaymentOrderId = 2;
 let nextOtherIncomeOrderId = 2;
 let nextOtherExpenseOrderId = 2;
@@ -189,34 +189,26 @@ const paymentAccounts = [
     createAt: nowIso()
   }
 ];
-const advancePayments = [
+const receiptOrders = [
   {
     id: 1,
-    uid: "advance-receipt-1",
-    billNo: "YSK-20260309-001",
-    type: "RECEIPT",
-    targetId: "customer-existing-1",
-    targetName: "存量客户",
-    amount: "128000",
-    remainingAmount: "88000",
+    uid: "receipt-order-1",
+    billNo: "SKD-20260309-001",
+    customerId: "customer-existing-1",
+    customerName: "存量客户",
+    paymentId: "payment-1",
+    paymentName: "工商银行",
+    amount: 128000,
+    actualAmount: 128000,
+    writeOffAmount: 40000,
+    advanceAmount: 88000,
     paymentMethod: "BANK_TRANSFER",
-    remark: "mock 预收款",
-    createTime: nowIso(),
-    status: "ACTIVE"
-  },
-  {
-    id: 2,
-    uid: "advance-payment-1",
-    billNo: "YFK-20260309-001",
-    type: "PAYMENT",
-    targetId: "provider-1",
-    targetName: "示例供应商",
-    amount: "95000",
-    remainingAmount: "95000",
-    paymentMethod: "BANK_TRANSFER",
-    remark: "mock 预付款",
-    createTime: nowIso(),
-    status: "ACTIVE"
+    status: "DRAFT",
+    receiptDate: "2026-03-09",
+    remark: "mock 收款单",
+    details: [],
+    createdAt: nowIso(),
+    updatedAt: nowIso()
   }
 ];
 const paymentOrders = [
@@ -1001,91 +993,115 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, ok(found));
       }
 
-      if (method === "GET" && pathname === "/api/v1/finance/advance-payment") {
-        const page = Number.parseInt(url.searchParams.get("page") || "1", 10);
-        const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "", 10);
-        const type = url.searchParams.get("type") || "";
-        const targetName = url.searchParams.get("targetName") || "";
-
-        let list = advancePayments.slice();
-        if (type) list = list.filter(item => item.type === type);
-        if (targetName) {
-          list = list.filter(item => item.targetName.includes(targetName));
+      const companySettingGroupMatch = matchPath(
+        pathname,
+        "/api/v1/company-setting/group/:group"
+      );
+      if (method === "GET" && companySettingGroupMatch) {
+        if (companySettingGroupMatch.group === "settlement") {
+          return sendJson(
+            res,
+            200,
+            ok([
+              { key: "defaultPaymentMethod", value: "BANK_TRANSFER" },
+              { key: "defaultReceivableAccount", value: "payment-1" },
+              { key: "defaultPayableAccount", value: "payment-1" }
+            ])
+          );
         }
 
-        return sendJson(res, 200, ok(listWithPagination(list, page, pageSize)));
+        if (companySettingGroupMatch.group === "document") {
+          return sendJson(
+            res,
+            200,
+            ok([{ key: "allowBackdateDays", value: "30" }])
+          );
+        }
       }
 
-      if (method === "POST" && pathname === "/api/v1/finance/advance-payment") {
+      const receiptOrderListMatch = matchPath(pathname, "/api/v1/receipt-order/:index");
+      if (method === "GET" && receiptOrderListMatch) {
+        const index = Number.parseInt(receiptOrderListMatch.index || "1", 10);
+        const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "", 10);
+        const billNo = url.searchParams.get("billNo") || "";
+        const customerName = url.searchParams.get("customerName") || "";
+        const status = url.searchParams.get("status") || "";
+
+        let list = receiptOrders.slice();
+        if (billNo) list = list.filter(item => item.billNo.includes(billNo));
+        if (customerName) {
+          list = list.filter(item => (item.customerName || "").includes(customerName));
+        }
+        if (status) list = list.filter(item => item.status === status);
+
+        return sendJson(res, 200, ok(listWithPagination(list, index, pageSize)));
+      }
+
+      if (method === "POST" && pathname === "/api/v1/receipt-order") {
         const body = (await readJsonBody(req)) || {};
-        const type = body.type === "PAYMENT" ? "PAYMENT" : "RECEIPT";
+        const customerId =
+          typeof body.customerId === "string" ? body.customerId : "";
+        const paymentId = typeof body.paymentId === "string" ? body.paymentId : "";
+        const customer = findCustomerByUid(customerId);
+        const payment = findPaymentByUid(paymentId);
         const amount = Math.max(0, Math.round(toSafeNumber(body.amount)));
-        const targetId = typeof body.targetId === "string" ? body.targetId : "";
-        const targetName =
-          type === "PAYMENT"
-            ? findProviderByUid(targetId)?.name || "未知供应商"
-            : findCustomerByUid(targetId)?.name || "未知客户";
+        const writeOffAmount = Array.isArray(body.details)
+          ? body.details.reduce(
+              (sum, item) =>
+                sum + Math.max(0, Math.round(toSafeNumber(item.writeOffAmount))),
+              0
+            )
+          : 0;
+        const advanceAmount = Math.max(amount - writeOffAmount, 0);
         const record = {
-          id: ++nextAdvancePaymentId,
+          id: ++nextReceiptOrderId,
           uid: randomUUID(),
-          billNo: buildBillNo(type === "PAYMENT" ? "YFK" : "YSK"),
-          type,
-          targetId,
-          targetName,
-          amount: String(amount),
-          remainingAmount: String(amount),
+          billNo: buildBillNo("SKD"),
+          customerId,
+          customerName: customer?.name || "",
+          paymentId,
+          paymentName: payment?.name || "",
+          amount,
+          actualAmount: amount,
+          writeOffAmount,
+          advanceAmount,
           paymentMethod:
             typeof body.paymentMethod === "string"
               ? body.paymentMethod
               : "BANK_TRANSFER",
+          status: "DRAFT",
+          receiptDate:
+            typeof body.receiptDate === "string" ? body.receiptDate : "2026-03-10",
           remark: typeof body.remark === "string" ? body.remark : "",
-          createTime: nowIso(),
-          status: "ACTIVE"
+          details: Array.isArray(body.details) ? body.details : [],
+          createdAt: nowIso(),
+          updatedAt: nowIso()
         };
-        advancePayments.unshift(record);
+        receiptOrders.unshift(record);
         return sendJson(res, 200, ok(record));
       }
 
-      if (method === "POST" && pathname === "/api/v1/finance/advance-payment/write-off") {
-        const body = (await readJsonBody(req)) || {};
-        const advanceId = toSafeNumber(body.advanceId);
-        const writeOffAmount = BigInt(Math.max(0, Math.round(toSafeNumber(body.amount))));
-        const found = advancePayments.find(item => item.id === advanceId);
-        if (!found) return notFound(res, method, pathname);
-        const remaining = BigInt(found.remainingAmount || "0");
-        if (writeOffAmount > remaining) {
-          return sendJson(res, 400, {
-            code: 400,
-            msg: "write off amount exceeds remaining amount",
-            data: null
-          });
-        }
-        const nextRemaining = remaining - writeOffAmount;
-        found.remainingAmount = String(nextRemaining);
-        found.status = nextRemaining > 0n ? "ACTIVE" : "COMPLETED";
-        return sendJson(res, 200, ok(true));
-      }
-
-      const advanceApproveMatch = matchPath(
+      const receiptOrderApproveMatch = matchPath(
         pathname,
-        "/api/v1/finance/advance-payment/:id/approve"
+        "/api/v1/receipt-order/:uid/approve"
       );
-      if (method === "POST" && advanceApproveMatch) {
-        const found = advancePayments.find(
-          item => String(item.id) === advanceApproveMatch.id
+      if (method === "POST" && receiptOrderApproveMatch) {
+        const found = receiptOrders.find(
+          item => item.uid === receiptOrderApproveMatch.uid
         );
         if (!found) return notFound(res, method, pathname);
         found.status = "APPROVED";
+        found.updatedAt = nowIso();
         return sendJson(res, 200, ok(true));
       }
 
-      const advanceDeleteMatch = matchPath(pathname, "/api/v1/finance/advance-payment/:id");
-      if (method === "DELETE" && advanceDeleteMatch) {
-        const index = advancePayments.findIndex(
-          item => String(item.id) === advanceDeleteMatch.id
+      const receiptOrderDetailMatch = matchPath(pathname, "/api/v1/receipt-order/:uid");
+      if (method === "DELETE" && receiptOrderDetailMatch) {
+        const index = receiptOrders.findIndex(
+          item => item.uid === receiptOrderDetailMatch.uid
         );
         if (index === -1) return notFound(res, method, pathname);
-        advancePayments.splice(index, 1);
+        receiptOrders.splice(index, 1);
         return sendJson(res, 200, ok(true));
       }
 
