@@ -6,8 +6,6 @@ import {
   waitForPureTable
 } from "./helpers";
 
-const API_ORIGIN = `http://127.0.0.1:${process.env.E2E_API_PORT || "19000"}`;
-
 async function waitForDialog(page: Page, title: string) {
   const dialog = page.locator(".el-dialog").filter({ hasText: title }).last();
   await expect(dialog).toBeVisible({ timeout: 10_000 });
@@ -25,9 +23,14 @@ async function chooseOption(
     .filter({ hasText: label })
     .first();
   await expect(item).toBeVisible({ timeout: 10_000 });
-  await item.locator(".el-select").first().click();
+  await item
+    .locator(".el-select__wrapper, .el-select")
+    .first()
+    .click({ force: true });
   const option = page
-    .locator(".el-select-dropdown:visible .el-select-dropdown__item")
+    .locator(".el-select-dropdown:visible")
+    .last()
+    .locator(".el-select-dropdown__item")
     .filter({ hasText: optionText })
     .first();
   await expect(option).toBeVisible({ timeout: 10_000 });
@@ -54,50 +57,65 @@ async function submitDialog(
     typeof buttonText === "string"
       ? scope.getByRole("button", { name: buttonText })
       : scope.getByRole("button", { name: buttonText });
-  await button.click();
+  await button.click({ force: true });
+}
+
+async function chooseComboboxOption(
+  page: Page,
+  scope: Locator,
+  label: string,
+  keyword: string
+) {
+  const combobox = scope.getByRole("combobox", {
+    name: new RegExp(label)
+  });
+  await expect(combobox).toBeVisible({ timeout: 10_000 });
+  await combobox.click({ force: true });
+  await combobox.fill(keyword);
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
 }
 
 test.describe("fund mock 接口覆盖", () => {
-  test("预收款页覆盖列表/新建/核销/删除接口", async ({ page }) => {
+  test("收款单页覆盖列表/新建/审核/删除接口", async ({ page }) => {
     const listResponse = page.waitForResponse(response =>
-      response.url().includes("/api/v1/finance/advance-payment?")
+      response.url().includes("/api/v1/receipt-order/1")
     );
     await page.goto("/#/fund/receipt");
     await listResponse;
     await waitForPureTable(page);
-    await expect(page.locator(".pure-table")).toContainText("YSK-20260309-001");
+    await expect(page.locator(".pure-table")).toContainText("SKD-20260309-001");
 
     const createResponse = page.waitForResponse(
       response =>
-        response.url().includes("/api/v1/finance/advance-payment") &&
+        response.url().includes("/api/v1/receipt-order") &&
         response.request().method() === "POST"
     );
-    await page.getByRole("button", { name: "新建" }).click();
-    const createDialog = await waitForDialog(page, "新建预收款");
+    await page.getByRole("button", { name: "新建收款单" }).click();
+    const createDialog = await waitForDialog(page, "新建收款单");
     await chooseOption(page, createDialog, "客户", "存量客户");
-    await fillNumber(createDialog, "金额(元)", "123");
+    await chooseOption(page, createDialog, "结算账户", "工商银行");
+    await fillNumber(createDialog, "收款金额", "123");
     await submitDialog(createDialog);
     const createResult = await (await createResponse).json();
     const createdBillNo = String(
       (createResult as { data?: { billNo?: string } }).data?.billNo || ""
     );
-    await expectSuccessMessage(page, "新建成功");
+    await expectSuccessMessage(page, "创建成功");
 
-    const writeOffApiResponse = await page.request.post(
-      `${API_ORIGIN}/api/v1/finance/advance-payment/write-off`,
-      {
-        data: {
-          advanceId: 1,
-          orderUid: "sale-order-1",
-          amount: 5000
-        }
-      }
+    const approveResponse = page.waitForResponse(response =>
+      response.url().includes("/api/v1/receipt-order/receipt-order-1/approve")
     );
-    expect(writeOffApiResponse.ok()).toBeTruthy();
+    await tableRowByText(page, "SKD-20260309-001")
+      .getByRole("button", { name: "审核" })
+      .click();
+    await confirmMessageBox(page, "确定");
+    await approveResponse;
+    await expectSuccessMessage(page, "审核成功");
 
     const deleteResponse = page.waitForResponse(
       response =>
-        response.url().includes("/api/v1/finance/advance-payment/") &&
+        response.url().includes("/api/v1/receipt-order/") &&
         response.request().method() === "DELETE"
     );
     await tableRowByText(page, createdBillNo)
@@ -185,16 +203,17 @@ test.describe("fund mock 接口覆盖", () => {
 
     const receiveResponse = page.waitForResponse(
       response =>
-        response.url().includes("/api/v1/finance/advance-payment") &&
+        response.url().includes("/api/v1/receipt-order") &&
         response.request().method() === "POST"
     );
     await tableRowByText(page, "QTSR-20260309-001")
       .getByRole("button", { name: "收款" })
       .click();
     const receiveDialog = await waitForDialog(page, "登记收款");
+    await chooseOption(page, receiveDialog, "结算账户", "工商银行");
     await submitDialog(receiveDialog);
     await receiveResponse;
-    await expectSuccessMessage(page, "新建成功");
+    await expectSuccessMessage(page, "创建成功");
 
     const incomeDeleteResponse = page.waitForResponse(
       response =>
@@ -276,10 +295,8 @@ test.describe("fund mock 接口覆盖", () => {
     );
     await page.getByRole("button", { name: "新建转账单" }).click();
     const transferDialog = await waitForDialog(page, "新建转账单");
-    await transferDialog.getByRole("combobox", { name: "* 转出账户" }).click();
-    await page.getByRole("option", { name: /工商银行/ }).click();
-    await transferDialog.getByRole("combobox", { name: "* 转入账户" }).click();
-    await page.getByRole("option", { name: /^建设银行$/ }).click();
+    await chooseComboboxOption(page, transferDialog, "转出账户", "工商银行");
+    await chooseComboboxOption(page, transferDialog, "转入账户", "建设银行");
     await fillNumber(transferDialog, "转账金额", "80");
     await submitDialog(transferDialog, "确认转账");
     const transferCreateResult = await (await transferCreateResponse).json();
