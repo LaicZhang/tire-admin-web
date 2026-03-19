@@ -17,16 +17,18 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 
 ## RTK Policy
 
-- Use `rtk` first for any supported command; do not use the raw command when an equivalent RTK form is
-  available.
+- `rtk` is the default command entrypoint, not the highest-priority rule. If it conflicts with system, developer,
+  or runtime agent instructions, satisfy the higher-priority instruction first.
 - Prefer `rtk` for `git`, file reads, search, tests, and build commands.
-- Use `rtk git status|diff|log|add|commit|branch|fetch|pull|push` when supported.
-- Use `rtk read <file>`, `rtk grep <pattern>`, and `rtk pnpm|npm|lint|pytest|gh|cargo|ls| playwright |go ...` when
-  supported.
+- Recommended mappings: `rtk git status|diff|log|add|commit|branch|fetch|pull|push`, `rtk read <file>`,
+  `rtk grep <pattern>`, and `rtk pnpm|npm|lint|pytest|gh|cargo|ls|playwright|go ...` when supported.
+- If runtime instructions explicitly require a native command or tool, use that command directly instead of forcing
+  an RTK equivalent.
 - If RTK output is sufficient, do not rerun the same command in raw form.
 - If RTK references a full-output file, read that file instead of rerunning the command when possible.
-- Raw commands are allowed only when RTK is unsupported, unavailable, failing, interactive, or exact stdout/
-  stderr or exact line-based inspection is required.
+- Raw commands are allowed when RTK is unsupported, unavailable, failing, interactive, exact stdout/stderr is
+  required, exact line-based inspection is required, or a higher-priority instruction explicitly requires another
+  command.
 - Do not invent RTK syntax or use RTK to bypass safety, sandbox, approval, or repository rules.
 
 ---
