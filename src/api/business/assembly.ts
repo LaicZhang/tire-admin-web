@@ -135,35 +135,3 @@ export async function getAssemblyOrderCountApi() {
     baseUrlApi(prefix + "count")
   );
 }
-
-export async function createAssemblyOrderDetailApi(
-  uid: string,
-  data: { tireId: string; quantity: number }
-) {
-  return await http.request<CommonResult<void>>(
-    "post",
-    baseUrlApi(prefix + `detail/${uid}`),
-    { data }
-  );
-}
-
-export async function updateAssemblyOrderDetailApi(
-  uid: string,
-  data: { quantity?: number }
-) {
-  return await http.request<CommonResult<void>>(
-    "patch",
-    baseUrlApi(prefix + `detail/${uid}`),
-    { data }
-  );
-}
-
-export async function deleteAssemblyOrderDetailApi(
-  uid: string,
-  detailId: string
-) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + `detail/${uid}/${detailId}`)
-  );
-}

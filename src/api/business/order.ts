@@ -228,31 +228,6 @@ export async function payPurchaseOrderApi(uid: string, data: PayOrderDto) {
   );
 }
 
-export async function createPurchaseOrderDetailApi(uid: string) {
-  return await http.request<CommonResult>(
-    "post",
-    baseUrlApi(`/purchase-order/detail/${uid}`)
-  );
-}
-
-export async function updatePurchaseOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(`/purchase-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function deletePurchaseOrderDetailApi(uid: string) {
-  return await http.request<CommonResult>(
-    "delete",
-    baseUrlApi(`/purchase-order/detail/${uid}`)
-  );
-}
-
 export async function confirmPurchaseOrderArrivalApi(
   uid: string,
   data: PurchaseOrderConfirmArrivalDto
@@ -277,31 +252,6 @@ export async function paySaleOrderApi(uid: string, data: PayOrderDto) {
     "patch",
     baseUrlApi(`/sale-order/pay/${uid}`),
     { data }
-  );
-}
-
-export async function createSaleOrderDetailApi(uid: string) {
-  return await http.request<CommonResult>(
-    "post",
-    baseUrlApi(`/sale-order/detail/${uid}`)
-  );
-}
-
-export async function updateSaleOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(`/sale-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function deleteSaleOrderDetailApi(uid: string) {
-  return await http.request<CommonResult>(
-    "delete",
-    baseUrlApi(`/sale-order/detail/${uid}`)
   );
 }
 
@@ -333,31 +283,6 @@ export async function getClaimOrderCountApi(params?: OrderQueryDto) {
     "get",
     baseUrlApi("/claim-order/count"),
     { params }
-  );
-}
-
-export async function createClaimOrderDetailApi(uid: string) {
-  return await http.request<CommonResult>(
-    "post",
-    baseUrlApi(`/claim-order/detail/${uid}`)
-  );
-}
-
-export async function updateClaimOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(`/claim-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function deleteClaimOrderDetailApi(uid: string) {
-  return await http.request<CommonResult>(
-    "delete",
-    baseUrlApi(`/claim-order/detail/${uid}`)
   );
 }
 
@@ -508,36 +433,6 @@ export async function confirmTransferOrderArrivalApi(
   );
 }
 
-// 报废订单特定接口
-export async function createWasteOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "post",
-    baseUrlApi(`/waste-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function updateWasteOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(`/waste-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function deleteWasteOrderDetailApi(uid: string, detailId: string) {
-  return await http.request<CommonResult>(
-    "delete",
-    baseUrlApi(`/waste-order/detail/${uid}/${detailId}`)
-  );
-}
-
 // 订单作废相关接口
 export async function reverseSaleOrderApi(uid: string, reason: string) {
   return await http.request<CommonResult>(
@@ -584,72 +479,6 @@ export async function reverseSurplusOrderApi(uid: string, reason: string) {
     "post",
     baseUrlApi(`/surplus-order/reverse/${uid}`),
     { data: { reason } }
-  );
-}
-
-// 调拨订单明细管理
-export async function createTransferOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "post",
-    baseUrlApi(`/transfer-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function updateTransferOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(`/transfer-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function deleteTransferOrderDetailApi(
-  uid: string,
-  detailId: string
-) {
-  return await http.request<CommonResult>(
-    "delete",
-    baseUrlApi(`/transfer-order/detail/${uid}/${detailId}`)
-  );
-}
-
-// 盘盈订单明细管理
-export async function createSurplusOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "post",
-    baseUrlApi(`/surplus-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function updateSurplusOrderDetailApi(
-  uid: string,
-  data: OrderDetailDto
-) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(`/surplus-order/detail/${uid}`),
-    { data }
-  );
-}
-
-export async function deleteSurplusOrderDetailApi(
-  uid: string,
-  detailId: string
-) {
-  return await http.request<CommonResult>(
-    "delete",
-    baseUrlApi(`/surplus-order/detail/${uid}/${detailId}`)
   );
 }
 
