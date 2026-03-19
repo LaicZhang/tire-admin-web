@@ -26,7 +26,7 @@ export function useColumns() {
           <span class="inline-block mr-1">
             {row.icon ? useRenderIcon(row.icon) : null}
           </span>
-          <span>{row.title || row.name}</span>
+          <span>{row.title}</span>
         </>
       )
     },

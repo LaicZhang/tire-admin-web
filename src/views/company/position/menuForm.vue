@@ -12,8 +12,7 @@ import {
 type MenuItem = {
   uid: string;
   parentId: string | null;
-  name: string;
-  title?: string | null;
+  title: string;
   children?: MenuItem[];
   label?: string;
 };
@@ -34,7 +33,7 @@ async function loadMenus() {
   }
   const list = (data as MenuItem[]).map(m => ({
     ...m,
-    label: m.title || m.name
+    label: m.title
   }));
   menuTree.value = handleTree(
     list,

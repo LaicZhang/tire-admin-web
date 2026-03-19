@@ -42,16 +42,24 @@ export interface MenuDto {
   enterTransition?: string;
   /** Leave transition */
   leaveTransition?: string;
+}
 
-  /** 兼容旧字段 */
+interface RawMenuItem extends MenuDto {
+  uid: string;
+  id: number;
+  deleteAt?: string | null;
   name?: string;
-  sort?: number;
+  isShow?: boolean;
+  showLink?: boolean;
+  children?: RawMenuItem[];
 }
 
 export interface MenuItem extends MenuDto {
   uid: string;
   id: number;
   deleteAt?: string | null;
+  title: string;
+  showLink: boolean;
   children?: MenuItem[];
 }
 
@@ -59,7 +67,6 @@ function toBackendMenuDto(input: MenuDto): Record<string, unknown> {
   return {
     code: input.code,
     parentId: input.parentId,
-    name: input.name,
     title: input.title,
     path: input.path,
     icon: input.icon,
@@ -73,16 +80,20 @@ function toBackendMenuDto(input: MenuDto): Record<string, unknown> {
   };
 }
 
-function normalizeMenuItem(item: MenuItem): MenuItem {
+function normalizeMenuItem(item: RawMenuItem): MenuItem {
   const isShow = item.isShow ?? item.showLink;
   return {
     ...item,
-    showLink: typeof isShow === "boolean" ? isShow : item.showLink
+    title: item.title?.trim() || item.name?.trim() || "",
+    showLink: typeof isShow === "boolean" ? isShow : true,
+    children: Array.isArray(item.children)
+      ? item.children.map(normalizeMenuItem)
+      : undefined
   };
 }
 
 export async function getMenuListApi(params?: Record<string, unknown>) {
-  const res = await http.request<CommonResult<MenuItem[]>>(
+  const res = await http.request<CommonResult<RawMenuItem[]>>(
     "get",
     baseUrlApi(`${prefix}/list`),
     {
@@ -96,7 +107,7 @@ export async function getMenuListApi(params?: Record<string, unknown>) {
 }
 
 export async function createMenuApi(data: MenuDto) {
-  const res = await http.request<CommonResult<MenuItem>>(
+  const res = await http.request<CommonResult<RawMenuItem>>(
     "post",
     baseUrlApi(prefix),
     {
@@ -110,7 +121,7 @@ export async function createMenuApi(data: MenuDto) {
 }
 
 export async function updateMenuApi(uid: string, data: Partial<MenuDto>) {
-  const res = await http.request<CommonResult<MenuItem>>(
+  const res = await http.request<CommonResult<RawMenuItem>>(
     "patch",
     baseUrlApi(`${prefix}/${uid}`),
     {
@@ -131,7 +142,7 @@ export async function deleteMenuApi(uid: string) {
 }
 
 export async function restoreMenuApi(uid: string) {
-  const res = await http.request<CommonResult<MenuItem>>(
+  const res = await http.request<CommonResult<RawMenuItem>>(
     "post",
     baseUrlApi(`${prefix}/${uid}/restore`)
   );

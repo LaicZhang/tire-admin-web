@@ -138,7 +138,7 @@ const handleDeleteRow = async (row: EditableSystemSetting) => {
 
 const openCreateDialog = () => {
   const formRef = ref<{
-    getRef?: () => unknown;
+    formRef?: { validate?: (callback: (valid: boolean) => void) => void };
     getData?: () => SystemSettingFormData;
   }>();
   addDialog({
@@ -154,8 +154,7 @@ const openCreateDialog = () => {
         recommendedEnvKeys: RECOMMENDED_ENV_KEYS
       }),
     beforeSure: async done => {
-      const FormRef =
-        (formRef.value?.getRef?.() as { validate?: Function }) ?? null;
+      const FormRef = formRef.value?.formRef ?? null;
       if (!FormRef?.validate) return;
       FormRef.validate(async (valid: boolean) => {
         if (!valid) return;

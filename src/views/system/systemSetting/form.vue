@@ -27,7 +27,7 @@ const rules: FormRules<SystemSettingFormData> = {
 };
 
 defineExpose({
-  getRef: () => formRef.value,
+  formRef,
   getData: () => ({ ...formData })
 });
 </script>

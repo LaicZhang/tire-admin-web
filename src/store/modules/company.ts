@@ -72,10 +72,6 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
       }
       return data;
     },
-    /** 兼容旧调用：获取并设置当前公司信息 */
-    async handleCurrentCompany() {
-      return await this.fetchAvailableCompanies();
-    },
     /** 切换当前公司（同步服务端上下文 + 本地 store） */
     async determineCurrentCompany(companyId: string) {
       if (!companyId) throw new Error("companyId is required");
