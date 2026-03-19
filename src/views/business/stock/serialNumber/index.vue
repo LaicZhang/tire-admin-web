@@ -17,7 +17,7 @@ import SerialNumberAddForm from "./SerialNumberAddForm.vue";
 import SerialNumberLogsForm from "./SerialNumberLogsForm.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "SerialNumberList"
@@ -47,7 +47,7 @@ const {
   onSizeChange
 } = useCrud<
   SerialNumber,
-  CommonResult<{ list: SerialNumber[]; count: number }>,
+  CommonResult<PaginatedResponseDto<SerialNumber>>,
   { page: number; pageSize: number }
 >({
   api: ({ page }) =>
@@ -55,7 +55,7 @@ const {
       index: page,
       keyword: form.value.keyword || undefined,
       status: form.value.status || undefined
-    }) as Promise<CommonResult<{ list: SerialNumber[]; count: number }>>,
+    }) as unknown as Promise<CommonResult<PaginatedResponseDto<SerialNumber>>>,
   pagination: {
     total: 0,
     pageSize: DEFAULT_PAGE_SIZE,

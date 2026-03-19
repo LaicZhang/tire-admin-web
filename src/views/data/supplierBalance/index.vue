@@ -156,7 +156,7 @@ const getList = async () => {
     });
 
     dataList.value = rows.filter(Boolean) as SupplierBalance[];
-    pagination.value.total = data.count || 0;
+    pagination.value.total = data.total || 0;
   } finally {
     loading.value = false;
   }

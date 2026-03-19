@@ -57,7 +57,7 @@ const {
     return res;
   },
   params: form,
-  transform: ({ data }) => ({ list: data.list, total: data.count })
+  transform: ({ data }) => ({ list: data.list, total: data.total })
 });
 
 const onReset = () => {

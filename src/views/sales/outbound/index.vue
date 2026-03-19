@@ -75,9 +75,9 @@ async function getList() {
       searchForm.value
     );
     if (res.code === 200) {
-      const result = res.data as { list: OutboundOrder[]; count: number };
+      const result = res.data as { list: OutboundOrder[]; total: number };
       dataList.value = result.list;
-      pagination.value.total = result.count;
+      pagination.value.total = result.total;
     } else {
       message(res.msg, { type: "error" });
     }

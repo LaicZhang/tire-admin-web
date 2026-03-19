@@ -21,7 +21,7 @@ import { ImportDialog, ExportDialog } from "@/components/ImportExport";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import BalanceHistoryPanel from "@/components/BalanceAdjustment/BalanceHistoryPanel.vue";
 
 defineOptions({
@@ -40,7 +40,7 @@ const showExportDialog = ref(false);
 
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   Provider,
-  CommonResult<{ list: Provider[]; count: number }>,
+  CommonResult<PaginatedResponseDto<Provider>>,
   { page: number; pageSize: number }
 >({
   api: ({ page }) =>
@@ -48,7 +48,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
       name: form.value.name,
       desc: form.value.desc,
       scope: form.value.scope
-    }) as Promise<CommonResult<{ list: Provider[]; count: number }>>,
+    }) as Promise<CommonResult<PaginatedResponseDto<Provider>>>,
   pagination: {
     total: 0,
     pageSize: PAGE_SIZE_SMALL,

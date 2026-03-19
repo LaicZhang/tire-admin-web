@@ -128,8 +128,7 @@ async function getList() {
         operatorName: item.operatorName,
         desc: item.remark
       }));
-    pagination.value.total =
-      res.data?.total ?? res.data?.count ?? dataList.value.length;
+    pagination.value.total = res.data?.total ?? dataList.value.length;
   } catch (error) {
     handleApiError(error, "获取采购单据列表失败");
   } finally {

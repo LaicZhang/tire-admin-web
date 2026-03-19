@@ -26,7 +26,7 @@ import {
 } from "@/api/business/serialNumber";
 import type { FormInstance, TabPaneName } from "element-plus";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { useOptionsByType } from "@/composables/useOptions";
 
 defineOptions({
@@ -92,7 +92,7 @@ const {
   onCurrentChange: onSerialPageChange
 } = useCrud<
   SerialNumber,
-  CommonResult<{ count: number; list: SerialNumber[] }>,
+  CommonResult<PaginatedResponseDto<SerialNumber>>,
   { page: number; pageSize: number }
 >({
   api: () =>
@@ -101,14 +101,14 @@ const {
       repoId: serialForm.value.repoId,
       status: serialForm.value.status,
       keyword: serialForm.value.keyword
-    }),
+    }) as unknown as Promise<CommonResult<PaginatedResponseDto<SerialNumber>>>,
   pagination: {
     total: 0,
     pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   },
-  transform: (res: CommonResult<{ count: number; list: SerialNumber[] }>) => {
+  transform: (res: CommonResult<PaginatedResponseDto<SerialNumber>>) => {
     if (res.code !== 0) {
       message(res.msg || "获取序列号列表失败", { type: "error" });
       return { list: [], total: 0 };

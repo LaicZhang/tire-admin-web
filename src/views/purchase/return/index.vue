@@ -84,7 +84,7 @@ async function getList() {
     );
     if (res.code === 200) {
       dataList.value = res.data.list as ReturnOrder[];
-      pagination.value.total = res.data.total ?? res.data.count ?? 0;
+      pagination.value.total = res.data.total ?? 0;
     } else {
       message(res.msg, { type: "error" });
     }

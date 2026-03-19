@@ -15,7 +15,7 @@ import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import UnitForm from "./UnitForm.vue";
 import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
@@ -32,13 +32,11 @@ const {
   onCurrentChange
 } = useCrud<
   Unit,
-  CommonResult<{ list: Unit[]; count: number }>,
+  CommonResult<PaginatedResponseDto<Unit>>,
   { page: number; pageSize: number }
 >({
   api: ({ page }) =>
-    getUnitListApi(page) as Promise<
-      CommonResult<{ list: Unit[]; count: number }>
-    >,
+    getUnitListApi(page) as Promise<CommonResult<PaginatedResponseDto<Unit>>>,
   pagination: {
     total: 0,
     pageSize: PAGE_SIZE_SMALL,

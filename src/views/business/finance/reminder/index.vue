@@ -36,7 +36,7 @@ async function onSearch() {
       { status: form.status }
     );
     dataList.value = data.list;
-    pagination.total = data.total ?? data.count;
+    pagination.total = data.total;
   } catch (e) {
     handleApiError(e, "获取催收提醒列表失败");
   } finally {

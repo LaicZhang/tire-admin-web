@@ -128,7 +128,7 @@ async function fetchData() {
     }
 
     dataList.value = list;
-    pagination.total = res.data?.count ?? 0;
+    pagination.total = res.data?.total ?? 0;
   } catch (error) {
     handleApiError(error, "获取调拨单列表失败");
   } finally {

@@ -83,7 +83,7 @@ const {
   transform: res => {
     return {
       list: res.data.list,
-      total: res.data.count
+      total: res.data.total
     };
   }
 });

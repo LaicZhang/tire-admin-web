@@ -19,7 +19,7 @@ import {
 } from "@/api/setting";
 import type { RecycleItem } from "./types";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 
 defineOptions({
   name: "Recycle"
@@ -42,12 +42,12 @@ const {
   onSizeChange
 } = useCrud<
   RecycleItem,
-  CommonResult<{ list: RecycleItem[]; count: number }>,
+  CommonResult<PaginatedResponseDto<RecycleItem>>,
   { page: number; pageSize: number }
 >({
   api: ({ page }) =>
     getRecycleListApi(page, state.value) as Promise<
-      CommonResult<{ list: RecycleItem[]; count: number }>
+      CommonResult<PaginatedResponseDto<RecycleItem>>
     >,
   pagination: {
     pageSize: DEFAULT_PAGE_SIZE,

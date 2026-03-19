@@ -56,7 +56,7 @@ const getAssetListInfo = async () => {
     );
     if (code === 200) {
       dataList.value = (data.list ?? []) as AssetItem[];
-      pagination.value.total = data.count ?? data.total ?? 0;
+      pagination.value.total = data.total ?? 0;
     } else {
       message(msg, { type: "error" });
     }

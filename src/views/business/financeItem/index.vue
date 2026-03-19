@@ -16,7 +16,7 @@ import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import FinanceItemForm from "./FinanceItemForm.vue";
 import { columns } from "./columns";
 
@@ -34,12 +34,12 @@ const {
   onCurrentChange
 } = useCrud<
   IncomeExpenseItem,
-  CommonResult<{ list: IncomeExpenseItem[]; count: number }>,
+  CommonResult<PaginatedResponseDto<IncomeExpenseItem>>,
   { page: number; pageSize: number }
 >({
   api: ({ page }) =>
     getIncomeExpenseItemListApi(page, form.value) as Promise<
-      CommonResult<{ list: IncomeExpenseItem[]; count: number }>
+      CommonResult<PaginatedResponseDto<IncomeExpenseItem>>
     >,
   pagination: {
     total: 0,

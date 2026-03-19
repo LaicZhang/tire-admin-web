@@ -87,7 +87,7 @@ async function onSearch() {
       ...form.value
     });
     dataList.value = data.list;
-    pagination.value.total = data.total ?? data.count;
+    pagination.value.total = data.total;
   } catch (e) {
     const msg = e instanceof Error ? e.message : "查询失败";
     message(msg, { type: "error" });

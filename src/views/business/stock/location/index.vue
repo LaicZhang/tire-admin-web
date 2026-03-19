@@ -15,7 +15,7 @@ import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { columns } from "./columns";
 import RepoSelect from "@/components/EntitySelect/RepoSelect.vue";
 
@@ -31,12 +31,12 @@ const {
   onCurrentChange
 } = useCrud<
   Zone,
-  CommonResult<{ list: Zone[]; count: number }>,
+  CommonResult<PaginatedResponseDto<Zone>>,
   { page: number; pageSize: number }
 >({
   api: ({ page }) =>
     getRepoZoneListApi(page) as Promise<
-      CommonResult<{ list: Zone[]; count: number }>
+      CommonResult<PaginatedResponseDto<Zone>>
     >,
   pagination: {
     total: 0,

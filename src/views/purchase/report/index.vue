@@ -122,7 +122,7 @@ async function loadReportData() {
       const list = res.data.list || [];
       orders.push(...list);
 
-      const total = toNumber(res.data.count);
+      const total = toNumber(res.data.total);
       if (list.length < pageSize) break;
       if (total > 0 && orders.length >= total) break;
       pageIndex += 1;

@@ -78,7 +78,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
       email: item.user?.email || "",
       jobs: item.jobs
     })) as FormItemProps[];
-    return { list, total: res.data?.count || 0 };
+    return { list, total: res.data?.total || 0 };
   },
   immediate: true
 });

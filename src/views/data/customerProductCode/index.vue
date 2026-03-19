@@ -85,7 +85,7 @@ const getList = async () => {
       customerName: customerMap.get(row.customerId) ?? row.customerName,
       tireName: tireMap.get(row.tireId) ?? row.tireName
     }));
-    pagination.value.total = data.count || 0;
+    pagination.value.total = data.total || 0;
   } finally {
     loading.value = false;
   }

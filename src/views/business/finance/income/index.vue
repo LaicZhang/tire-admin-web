@@ -51,7 +51,7 @@ const fetchData = async () => {
       pageSize: queryParams.size
     });
     tableData.value = data.list;
-    pagination.total = data.total ?? data.count;
+    pagination.total = data.total;
     pagination.currentPage = queryParams.index;
     pagination.pageSize = queryParams.size;
   } catch (error) {

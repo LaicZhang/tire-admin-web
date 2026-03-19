@@ -25,7 +25,7 @@ import UserForm from "./form.vue";
 import { message, handleApiError } from "@/utils";
 import { FormItemProps } from "./utils/types";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 
 defineOptions({
@@ -89,7 +89,7 @@ const {
   onSizeChange
 } = useCrud<
   UserDto,
-  CommonResult<{ list: UserDto[]; count: number }>,
+  CommonResult<PaginatedResponseDto<UserDto>>,
   { page: number }
 >({
   api: (params: { page: number }) =>
@@ -97,8 +97,8 @@ const {
       scope: state.value.scope,
       username: state.value.username || undefined,
       status: state.value.status === "" ? undefined : state.value.status === "1"
-    }),
-  transform: (res: CommonResult<{ list: UserDto[]; count: number }>) => ({
+    }) as unknown as Promise<CommonResult<PaginatedResponseDto<UserDto>>>,
+  transform: (res: CommonResult<PaginatedResponseDto<UserDto>>) => ({
     list: res.data?.list ?? [],
     total: res.data?.total ?? 0
   }),

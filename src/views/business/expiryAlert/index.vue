@@ -13,7 +13,7 @@ import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
-import type { CommonResult } from "@/api/type";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import ExpiryAlertForm from "./ExpiryAlertForm.vue";
 import { columns } from "./columns";
 
@@ -36,12 +36,12 @@ const {
   onCurrentChange
 } = useCrud<
   ExpiryAlertItem,
-  CommonResult<{ list: ExpiryAlertItem[]; count: number }>,
+  CommonResult<PaginatedResponseDto<ExpiryAlertItem>>,
   { page: number; pageSize: number }
 >({
   api: ({ page }) =>
     getExpiryAlertListApi({ index: page }) as Promise<
-      CommonResult<{ list: ExpiryAlertItem[]; count: number }>
+      CommonResult<PaginatedResponseDto<ExpiryAlertItem>>
     >,
   pagination: {
     total: 0,
