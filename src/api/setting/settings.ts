@@ -75,7 +75,7 @@ export async function batchUpdateSettingsApi(
     "patch",
     baseUrlApi(prefix + "batch"),
     {
-      data: { group, settings: data }
+      data: { scope: "company", group, settings: data }
     }
   );
 }
