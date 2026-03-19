@@ -37,15 +37,23 @@ export interface CustomerInputData {
   initialBalance?: number;
   /** Prisma 关联 - 公司 */
   company?: PrismaConnect<{ uid: string }>;
+  /** Prisma 关联 - 操作人 */
+  operator?: PrismaConnect<{ uid: string }>;
   /** Prisma 关联 - 等级 */
   level?: PrismaConnect<{ id: number }>;
   /** Prisma 关联 - 标签 */
   tags?: PrismaConnect<{ id: number }> | { set: Array<{ id: number }> };
 }
 
+export interface CustomerInfoInputData {
+  phone?: string;
+  address?: string;
+}
+
 /** 客户创建/更新 DTO - 支持嵌套 customer 形式 */
 export interface CustomerDto {
   customer?: CustomerInputData;
+  info?: CustomerInfoInputData;
   // 兼容直接传递字段的形式
   name?: string;
   phone?: string;

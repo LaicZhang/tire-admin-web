@@ -2,9 +2,10 @@ import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
-import { getCompanyId, addCustomerApi, updateCustomerApi } from "@/api";
+import { addCustomerApi, getCompanyConnect, updateCustomerApi } from "@/api";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
+import { useUserStoreHook } from "@/store/modules/user";
 
 interface FormItemProps {
   uid: string;
@@ -102,7 +103,13 @@ export function openDialog(
       }
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
-          const companyId = await getCompanyId();
+          const operatorId = curData.operatorId || useUserStoreHook().uid;
+          if (!operatorId) {
+            message("缺少操作人，无法创建客户", {
+              type: "error"
+            });
+            return;
+          }
 
           // 构建基础数据
 
@@ -111,11 +118,15 @@ export function openDialog(
             desc: curData.desc,
             from: curData.from,
             isIndividual: curData.isIndividual,
-            creditLimit: curData.creditLimit,
+            ...(curData.creditLimit !== undefined
+              ? { limit: curData.creditLimit }
+              : {}),
             // 关联公司
-            company: {
-              connect: { uid: companyId }
-            }
+            company: getCompanyConnect()
+          };
+
+          baseData.operator = {
+            connect: { uid: operatorId }
           };
 
           // 处理关联关系
@@ -133,7 +144,8 @@ export function openDialog(
 
           if (title === "新增") {
             await addCustomerApi({
-              customer: baseData
+              customer: baseData,
+              info: {}
             });
             chores();
           } else {

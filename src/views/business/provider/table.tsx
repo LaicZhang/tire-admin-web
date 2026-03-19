@@ -90,7 +90,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                   ? { operator: { connect: { uid: _operatorId } } }
                   : {}),
                 company: getCompanyConnect()
-              }
+              },
+              info: {}
             });
             chores();
           } else {
@@ -101,7 +102,8 @@ export function openDialog(title = "新增", row?: FormItemProps) {
                   ? { operator: { connect: { uid: _operatorId } } }
                   : {}),
                 company: getCompanyConnect()
-              }
+              },
+              info: {}
             });
             chores();
           }

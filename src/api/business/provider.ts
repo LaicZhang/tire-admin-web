@@ -23,9 +23,6 @@ interface PrismaConnect<T> {
 /** 供应商创建/更新输入数据 */
 export interface ProviderInputData {
   name?: string;
-  phone?: string;
-  address?: string;
-  bankInfo?: string;
   desc?: string;
   status?: boolean;
   isIndividual?: boolean;
@@ -39,9 +36,15 @@ export interface ProviderInputData {
   operator?: PrismaConnect<{ uid: string }>;
 }
 
+export interface ProviderInfoInputData {
+  phone?: string;
+  address?: string;
+}
+
 /** 供应商创建/更新 DTO - 支持嵌套 provider 形式 */
 export interface ProviderDto {
   provider?: ProviderInputData;
+  info?: ProviderInfoInputData;
   // 兼容直接传递字段的形式
   name?: string;
   phone?: string;

@@ -5,10 +5,12 @@ import {
   addProviderApi,
   addTireApi,
   createPurchaseInquiryApi,
-  createSaleQuotationApi
+  createSaleQuotationApi,
+  getCompanyConnect
 } from "@/api";
 import type { OrderFormData, HistoryRecord, UploadMethod } from "../types";
 import { DocumentType } from "../types";
+import { useUserStoreHook } from "@/store/modules/user";
 
 type DocumentTypeConfig = {
   label: string;
@@ -98,15 +100,38 @@ export function useAiEntryOrderSubmit(
       const partyType = currentDocConfig.value.partyType;
       let partyUid = orderForm.value.partyUid;
       const partyName = (orderForm.value.partyName || "").trim();
+      const operatorUid = useUserStoreHook().uid;
+
+      if (!operatorUid && !partyUid && partyName && enableAutoCreate.value) {
+        throw new Error("当前用户缺少 uid，无法自动创建往来单位");
+      }
 
       if (!partyUid && partyName && enableAutoCreate.value) {
         if (partyType === "customer") {
-          const res = await addCustomerApi({ name: partyName });
+          const res = await addCustomerApi({
+            customer: {
+              name: partyName,
+              company: getCompanyConnect(),
+              operator: {
+                connect: { uid: operatorUid }
+              }
+            },
+            info: {}
+          });
           if (res.code === 200 && res.data?.uid) {
             partyUid = res.data.uid;
           }
         } else {
-          const res = await addProviderApi({ name: partyName });
+          const res = await addProviderApi({
+            provider: {
+              name: partyName,
+              company: getCompanyConnect(),
+              operator: {
+                connect: { uid: operatorUid }
+              }
+            },
+            info: {}
+          });
           if (res.code === 200 && res.data?.uid) {
             partyUid = res.data.uid;
           }
