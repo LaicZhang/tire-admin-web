@@ -2,14 +2,14 @@ import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
 
-const prefix = "/finance/advance-payment";
+const ADVANCE_RECEIPT_PREFIX = "/advance-receipt";
+const PAYMENT_ORDER_PREFIX = "/payment-order";
 
 export type AdvancePaymentType = "RECEIPT" | "PAYMENT";
 
 export interface AdvancePaymentDto {
   type: AdvancePaymentType;
   targetId: string;
-  /** 金额（分） */
   amount: number;
   paymentId?: string;
   paymentMethod?: string;
@@ -22,10 +22,9 @@ export interface AdvancePaymentListItem {
   uid?: string;
   billNo: string;
   type: AdvancePaymentType;
+  targetId?: string;
   targetName: string;
-  /** 金额（分），后端返回为字符串（bigint 序列化） */
   amount: string;
-  /** 剩余金额（分），后端返回为字符串（bigint 序列化） */
   remainingAmount: string;
   paymentMethod: string;
   remark?: string;
@@ -36,54 +35,258 @@ export interface AdvancePaymentListItem {
 export interface AdvancePaymentListResponse {
   list: AdvancePaymentListItem[];
   total: number;
-  /** 兼容部分接口返回字段 */
   count?: number;
 }
 
-/** 获取预收/预付款列表 */
-export function getAdvancePaymentList(params?: {
+type AdvanceReceiptRow = {
+  id: number;
+  uid?: string | null;
+  customerId: string;
+  amount?: string | number | bigint | null;
+  balance?: string | number | bigint | null;
+  remark?: string | null;
+  status?: string | null;
+  createdAt?: string | null;
+};
+
+type PaymentOrderRow = {
+  id: number;
+  uid: string;
+  providerId: string;
+  providerName?: string;
+  billNo?: string | null;
+  amount?: string | number | null;
+  advanceAmount?: string | number | null;
+  paymentMethod?: string | null;
+  remark?: string | null;
+  status?: string | null;
+  createdAt?: string | null;
+};
+
+function toMoneyString(
+  value: string | number | bigint | null | undefined
+): string {
+  if (value === null || value === undefined) return "0";
+  return String(value);
+}
+
+function mapReceiptRow(row: AdvanceReceiptRow): AdvancePaymentListItem {
+  return {
+    id: row.id,
+    uid: row.uid ?? undefined,
+    billNo: row.uid || String(row.id),
+    type: "RECEIPT",
+    targetId: row.customerId,
+    targetName: "",
+    amount: toMoneyString(row.amount),
+    remainingAmount: toMoneyString(row.balance),
+    paymentMethod: "",
+    remark: row.remark ?? "",
+    createTime: row.createdAt ?? "",
+    status: row.status ?? undefined
+  };
+}
+
+function mapPaymentRow(row: PaymentOrderRow): AdvancePaymentListItem {
+  return {
+    id: row.id,
+    uid: row.uid,
+    billNo: row.billNo || row.uid,
+    type: "PAYMENT",
+    targetId: row.providerId,
+    targetName: row.providerName || "",
+    amount: toMoneyString(row.amount),
+    remainingAmount: toMoneyString(row.advanceAmount),
+    paymentMethod: row.paymentMethod ?? "",
+    remark: row.remark ?? "",
+    createTime: row.createdAt ?? "",
+    status: row.status ?? undefined
+  };
+}
+
+async function getAdvanceReceiptList(params?: {
+  page?: number;
+  pageSize?: number;
+  targetName?: string;
+}) {
+  const response = await http.request<
+    CommonResult<{ list: AdvanceReceiptRow[]; count: number }>
+  >("get", baseUrlApi(ADVANCE_RECEIPT_PREFIX), {
+    params: {
+      index: params?.page,
+      pageSize: params?.pageSize,
+      customerName: params?.targetName
+    }
+  });
+
+  if (response.code !== 200) {
+    return response as unknown as CommonResult<AdvancePaymentListResponse>;
+  }
+
+  const total = response.data?.count ?? 0;
+  return {
+    ...response,
+    data: {
+      list: (response.data?.list ?? []).map(mapReceiptRow),
+      total,
+      count: total
+    }
+  } satisfies CommonResult<AdvancePaymentListResponse>;
+}
+
+async function getPaymentOrderList(params?: {
+  page?: number;
+  pageSize?: number;
+  targetName?: string;
+}) {
+  const page = params?.page ?? 1;
+  const response = await http.request<
+    CommonResult<{ list: PaymentOrderRow[]; count: number }>
+  >("get", baseUrlApi(`${PAYMENT_ORDER_PREFIX}/${page}`), {
+    params: {
+      pageSize: params?.pageSize,
+      providerName: params?.targetName,
+      advanceOnly: true
+    }
+  });
+
+  if (response.code !== 200) {
+    return response as unknown as CommonResult<AdvancePaymentListResponse>;
+  }
+
+  const total = response.data?.count ?? 0;
+  return {
+    ...response,
+    data: {
+      list: (response.data?.list ?? []).map(mapPaymentRow),
+      total,
+      count: total
+    }
+  } satisfies CommonResult<AdvancePaymentListResponse>;
+}
+
+export async function getAdvancePaymentList(params?: {
   page?: number;
   pageSize?: number;
   type?: string;
   targetName?: string;
 }) {
-  return http.request<CommonResult<AdvancePaymentListResponse>>(
-    "get",
-    baseUrlApi(prefix),
-    { params }
+  const page = params?.page ?? 1;
+  const pageSize = params?.pageSize ?? 10;
+  const targetName = params?.targetName;
+
+  if (params?.type === "RECEIPT") {
+    return getAdvanceReceiptList({ page, pageSize, targetName });
+  }
+
+  if (params?.type === "PAYMENT") {
+    return getPaymentOrderList({ page, pageSize, targetName });
+  }
+
+  const take = page * pageSize;
+  const [receiptResponse, paymentResponse] = await Promise.all([
+    getAdvanceReceiptList({ page: 1, pageSize: take, targetName }),
+    getPaymentOrderList({ page: 1, pageSize: take, targetName })
+  ]);
+
+  if (receiptResponse.code !== 200) return receiptResponse;
+  if (paymentResponse.code !== 200) return paymentResponse;
+
+  const total =
+    (receiptResponse.data?.total ?? receiptResponse.data?.count ?? 0) +
+    (paymentResponse.data?.total ?? paymentResponse.data?.count ?? 0);
+  const offset = (page - 1) * pageSize;
+  const list = [
+    ...(receiptResponse.data?.list ?? []),
+    ...(paymentResponse.data?.list ?? [])
+  ]
+    .sort(
+      (a, b) =>
+        new Date(b.createTime || 0).getTime() -
+        new Date(a.createTime || 0).getTime()
+    )
+    .slice(offset, offset + pageSize);
+
+  return {
+    code: 200,
+    msg: "success",
+    data: {
+      list,
+      total,
+      count: total
+    }
+  } satisfies CommonResult<AdvancePaymentListResponse>;
+}
+
+export function createAdvancePayment(data: AdvancePaymentDto) {
+  if (data.type === "PAYMENT") {
+    return http.request<CommonResult<unknown>>(
+      "post",
+      baseUrlApi(PAYMENT_ORDER_PREFIX),
+      {
+        data: {
+          providerId: data.targetId,
+          amount: data.amount,
+          paymentId: data.paymentId,
+          paymentMethod: data.paymentMethod,
+          paymentDate: data.paymentDate,
+          remark: data.remark,
+          details: []
+        }
+      }
+    );
+  }
+
+  return http.request<CommonResult<unknown>>(
+    "post",
+    baseUrlApi(ADVANCE_RECEIPT_PREFIX),
+    {
+      data: {
+        customerId: data.targetId,
+        amount: data.amount,
+        remark: data.remark
+      }
+    }
   );
 }
 
-/** 创建预收/预付款 */
-export function createAdvancePayment(data: AdvancePaymentDto) {
-  return http.request<CommonResult<unknown>>("post", baseUrlApi(prefix), {
-    data
-  });
-}
+export function deleteAdvancePayment(
+  id: string,
+  type?: AdvancePaymentType,
+  uid?: string
+) {
+  if (type === "PAYMENT") {
+    if (!uid) throw new Error("payment order uid is required");
+    return http.request<CommonResult<void>>(
+      "delete",
+      baseUrlApi(`${PAYMENT_ORDER_PREFIX}/${uid}`)
+    );
+  }
 
-/** 删除预收/预付款 */
-export function deleteAdvancePayment(id: string, type?: AdvancePaymentType) {
   return http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(`${prefix}/${id}`),
-    {
-      params: type ? { type } : undefined
-    }
+    baseUrlApi(`${ADVANCE_RECEIPT_PREFIX}/${id}`)
   );
 }
 
-/** 审核预付款 */
-export function approveAdvancePayment(id: string, type?: AdvancePaymentType) {
+export function approveAdvancePayment(
+  id: string,
+  type?: AdvancePaymentType,
+  uid?: string
+) {
+  if (type !== "PAYMENT") {
+    throw new Error(
+      `approve advance payment only supports PAYMENT, got ${type ?? "UNKNOWN"}`
+    );
+  }
+  if (!uid) throw new Error("payment order uid is required");
+
   return http.request<CommonResult<void>>(
     "post",
-    baseUrlApi(`${prefix}/${id}/approve`),
-    {
-      params: type ? { type } : undefined
-    }
+    baseUrlApi(`${PAYMENT_ORDER_PREFIX}/${uid}/approve`)
   );
 }
 
-/** 核销预收/预付款 */
 export function writeOffAdvancePayment(data: {
   advanceId: number;
   orderUid: string;
@@ -91,9 +294,12 @@ export function writeOffAdvancePayment(data: {
 }) {
   return http.request<CommonResult<void>>(
     "post",
-    baseUrlApi(`${prefix}/write-off`),
+    baseUrlApi(`${ADVANCE_RECEIPT_PREFIX}/${data.advanceId}/use`),
     {
-      data
+      data: {
+        saleOrderUid: data.orderUid,
+        amount: data.amount
+      }
     }
   );
 }

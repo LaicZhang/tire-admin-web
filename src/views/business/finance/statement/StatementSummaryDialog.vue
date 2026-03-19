@@ -35,7 +35,7 @@ async function handleConfirm() {
   if (!props.row) return;
   loading.value = true;
   try {
-    await confirmStatement(String(props.row.id));
+    await confirmStatement(String(props.row.id), props.row.type);
     message("对账单已确认", { type: "success" });
     dialogVisible.value = false;
     emit("success");
@@ -50,7 +50,7 @@ async function handleVoid() {
   if (!props.row) return;
   loading.value = true;
   try {
-    await voidStatement(String(props.row.id));
+    await voidStatement(String(props.row.id), props.row.type);
     message("对账单已作废", { type: "success" });
     dialogVisible.value = false;
     emit("success");

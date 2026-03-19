@@ -47,6 +47,12 @@ const RECEIPT_STATUS_MAP: Record<string, StatusConfig> = {
   EXHAUSTED: { label: "已用完", type: "info" }
 };
 const PAYMENT_STATUS_MAP: Record<string, StatusConfig> = paymentStatusMap;
+const customerNameMap = computed(
+  () => new Map(customers.value.map(item => [item.uid, item.name]))
+);
+const providerNameMap = computed(
+  () => new Map(providers.value.map(item => [item.uid, item.name]))
+);
 
 const targetNameOptions = computed(() => {
   const type = form.value.type;
@@ -114,6 +120,18 @@ const {
   immediate: true
 });
 
+const tableData = computed(() =>
+  dataList.value.map(row => ({
+    ...row,
+    targetName:
+      row.targetName ||
+      (row.type === "RECEIPT"
+        ? customerNameMap.value.get(row.targetId || "")
+        : providerNameMap.value.get(row.targetId || "")) ||
+      ""
+  }))
+);
+
 const onSearch = () => {
   pagination.value = { ...pagination.value, currentPage: 1 };
   fetchData();
@@ -161,7 +179,7 @@ async function handleDelete(row: AdvancePaymentListItem) {
   if (!ok) return;
 
   try {
-    await deleteAdvancePayment(String(row.id), row.type);
+    await deleteAdvancePayment(String(row.id), row.type, row.uid);
     message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
@@ -183,7 +201,7 @@ async function handleApprove(row: AdvancePaymentListItem) {
   if (!ok) return;
 
   try {
-    await approveAdvancePayment(String(row.id), row.type);
+    await approveAdvancePayment(String(row.id), row.type, row.uid);
     message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
@@ -256,7 +274,7 @@ async function handleApprove(row: AdvancePaymentListItem) {
           table-layout="auto"
           :loading="loading"
           :size="size"
-          :data="dataList"
+          :data="tableData"
           :columns="dynamicColumns"
           :pagination="pagination"
           :paginationSmall="size === 'small'"

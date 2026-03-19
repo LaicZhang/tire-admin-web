@@ -32,6 +32,12 @@ const { customers, providers } = useOptions();
 const createDialogVisible = ref(false);
 const summaryDialogVisible = ref(false);
 const currentRow = ref<Statement | null>(null);
+const customerNameMap = computed(
+  () => new Map(customers.value.map(item => [item.uid, item.name]))
+);
+const providerNameMap = computed(
+  () => new Map(providers.value.map(item => [item.uid, item.name]))
+);
 
 const targetNameOptions = computed(() => {
   const type = form.value.type;
@@ -53,6 +59,17 @@ const targetNameOptions = computed(() => {
 });
 
 const dataList = ref<Statement[]>([]);
+const tableData = computed(() =>
+  dataList.value.map(row => ({
+    ...row,
+    targetName:
+      row.targetName ||
+      (row.type === "CUSTOMER"
+        ? customerNameMap.value.get(row.targetId || "")
+        : providerNameMap.value.get(row.targetId || "")) ||
+      ""
+  }))
+);
 const loading = ref(true);
 const pagination = ref({
   total: 0,
@@ -156,7 +173,7 @@ onSearch();
           table-layout="auto"
           :loading="loading"
           :size="size"
-          :data="dataList"
+          :data="tableData"
           :columns="dynamicColumns"
           :pagination="pagination"
           :paginationSmall="size === 'small'"
