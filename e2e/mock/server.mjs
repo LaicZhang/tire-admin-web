@@ -1260,7 +1260,7 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, ok(true));
       }
 
-      const otherExpenseListMatch = matchPath(pathname, "/api/v1/expense-order/:index");
+      const otherExpenseListMatch = matchPath(pathname, "/api/v1/other-expense-order/:index");
       if (method === "GET" && otherExpenseListMatch) {
         const index = Number.parseInt(otherExpenseListMatch.index || "1", 10);
         const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "", 10);
@@ -1278,7 +1278,7 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, ok(listWithPagination(list, index, pageSize)));
       }
 
-      if (method === "POST" && pathname === "/api/v1/expense-order") {
+      if (method === "POST" && pathname === "/api/v1/other-expense-order") {
         const body = (await readJsonBody(req)) || {};
         const provider = findProviderByUid(body.providerId);
         const payment = findPaymentByUid(body.paymentId);
@@ -1314,7 +1314,41 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, ok(record));
       }
 
-      const otherExpenseDetailMatch = matchPath(pathname, "/api/v1/expense-order/:uid");
+      const otherExpenseDetailMatch = matchPath(pathname, "/api/v1/other-expense-order/:uid");
+      if (method === "PATCH" && otherExpenseDetailMatch) {
+        const body = (await readJsonBody(req)) || {};
+        const record = otherExpenseOrders.find(
+          item => item.uid === otherExpenseDetailMatch.uid
+        );
+        if (!record) return notFound(res, method, pathname);
+        if (typeof body.providerId === "string") record.providerId = body.providerId;
+        if (typeof body.expenseType === "string") record.expenseType = body.expenseType;
+        if (typeof body.category === "string") record.category = body.category;
+        if (typeof body.relatedOrderId === "string") {
+          record.relatedOrderId = body.relatedOrderId;
+          record.relatedOrderNo = body.relatedOrderId
+            ? `ORDER-${body.relatedOrderId}`
+            : "";
+        }
+        if (typeof body.remark === "string") record.remark = body.remark;
+        if (typeof body.paymentId === "string") {
+          record.paymentId = body.paymentId;
+          record.paymentName = findPaymentByUid(body.paymentId)?.name || "";
+        }
+        if (typeof body.expenseDate === "string") record.expenseDate = body.expenseDate;
+        if (body.amount !== undefined) {
+          const amount = Math.max(0, Math.round(toSafeNumber(body.amount)));
+          record.amount = amount;
+          record.unpaidAmount = Math.max(amount - record.paidAmount, 0);
+        }
+        if (body.paidAmount !== undefined) {
+          const paidAmount = Math.max(0, Math.round(toSafeNumber(body.paidAmount)));
+          record.paidAmount = paidAmount;
+          record.unpaidAmount = Math.max(record.amount - paidAmount, 0);
+        }
+        if (typeof body.status === "string") record.status = body.status;
+        return sendJson(res, 200, ok(record));
+      }
       if (method === "DELETE" && otherExpenseDetailMatch) {
         const index = otherExpenseOrders.findIndex(
           item => item.uid === otherExpenseDetailMatch.uid
@@ -1322,6 +1356,18 @@ const server = http.createServer(async (req, res) => {
         if (index === -1) return notFound(res, method, pathname);
         otherExpenseOrders.splice(index, 1);
         return sendJson(res, 200, ok(true));
+      }
+      const otherExpenseRestoreMatch = matchPath(
+        pathname,
+        "/api/v1/other-expense-order/:uid/restore"
+      );
+      if (method === "POST" && otherExpenseRestoreMatch) {
+        const record = otherExpenseOrders.find(
+          item => item.uid === otherExpenseRestoreMatch.uid
+        );
+        if (!record) return notFound(res, method, pathname);
+        record.status = "DRAFT";
+        return sendJson(res, 200, ok(record));
       }
 
       const transferListMatch = matchPath(

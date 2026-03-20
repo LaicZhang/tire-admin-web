@@ -187,7 +187,7 @@ export async function getOtherTransactionListApi(
   if (params?.type === "expense") {
     const result = await http.request<
       CommonResult<PaginatedResponseDto<OtherExpenseOrder>>
-    >("get", baseUrlApi(`/expense-order/${index}`), {
+    >("get", baseUrlApi(`/other-expense-order/${index}`), {
       params: {
         startDate: params.startDate,
         endDate: params.endDate,
@@ -215,7 +215,7 @@ export async function getOtherTransactionListApi(
     ),
     http.request<CommonResult<PaginatedResponseDto<OtherExpenseOrder>>>(
       "get",
-      baseUrlApi("/expense-order/1"),
+      baseUrlApi("/other-expense-order/1"),
       {
         params: {
           startDate: params?.startDate,

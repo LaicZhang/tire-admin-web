@@ -153,7 +153,7 @@ function handleAdd() {
 }
 
 function handleEdit(row: OtherExpense) {
-  message(`单据 ${row.billNo || row.uid} 的编辑能力暂未接入`, {
+  message(`单据 ${row.billNo || row.uid} 的编辑流程暂未接入前端`, {
     type: "warning"
   });
 }

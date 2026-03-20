@@ -42,7 +42,7 @@ export async function getOtherExpenseListApi(
 ) {
   return await http.request<CommonResult<PaginatedResponseDto<OtherExpense>>>(
     "get",
-    baseUrlApi(`/expense-order/${index}`),
+    baseUrlApi(`/other-expense-order/${index}`),
     { params }
   );
 }
@@ -50,7 +50,7 @@ export async function getOtherExpenseListApi(
 export async function createOtherExpenseApi(data: CreateOtherExpenseDto) {
   return await http.request<CommonResult<OtherExpense>>(
     "post",
-    baseUrlApi("/expense-order"),
+    baseUrlApi("/other-expense-order"),
     { data }
   );
 }
@@ -58,6 +58,24 @@ export async function createOtherExpenseApi(data: CreateOtherExpenseDto) {
 export async function deleteOtherExpenseApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(`/expense-order/${uid}`)
+    baseUrlApi(`/other-expense-order/${uid}`)
+  );
+}
+
+export async function updateOtherExpenseApi(
+  uid: string,
+  data: Partial<CreateOtherExpenseDto> & { status?: string }
+) {
+  return await http.request<CommonResult<OtherExpense>>(
+    "patch",
+    baseUrlApi(`/other-expense-order/${uid}`),
+    { data }
+  );
+}
+
+export async function restoreOtherExpenseApi(uid: string) {
+  return await http.request<CommonResult<OtherExpense>>(
+    "post",
+    baseUrlApi(`/other-expense-order/${uid}/restore`)
   );
 }

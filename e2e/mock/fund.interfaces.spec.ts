@@ -228,7 +228,7 @@ test.describe("fund mock 接口覆盖", () => {
     await expectSuccessMessage(page, "删除成功");
 
     const expenseListResponse = page.waitForResponse(response =>
-      response.url().includes("/api/v1/expense-order/1")
+      response.url().includes("/api/v1/other-expense-order/1")
     );
     await page.goto("/#/fund/otherExpense");
     await expenseListResponse;
@@ -239,7 +239,7 @@ test.describe("fund mock 接口覆盖", () => {
 
     const expenseCreateResponse = page.waitForResponse(
       response =>
-        response.url().includes("/api/v1/expense-order") &&
+        response.url().includes("/api/v1/other-expense-order") &&
         response.request().method() === "POST"
     );
     await page.getByRole("button", { name: "新增支出单" }).click();
@@ -268,7 +268,7 @@ test.describe("fund mock 接口覆盖", () => {
 
     const expenseDeleteResponse = page.waitForResponse(
       response =>
-        response.url().includes("/api/v1/expense-order/") &&
+        response.url().includes("/api/v1/other-expense-order/") &&
         response.request().method() === "DELETE"
     );
     await tableRowByText(page, createdExpenseBillNo)

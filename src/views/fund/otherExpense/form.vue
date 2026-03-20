@@ -120,7 +120,7 @@ async function submit() {
   if (!valid) return false;
 
   if (props.editData) {
-    message("当前仅支持新建，编辑能力待后端补齐更新接口", {
+    message("当前仅支持新建，编辑流程暂未接入前端", {
       type: "warning"
     });
     return false;
