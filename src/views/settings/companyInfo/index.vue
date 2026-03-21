@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { message } from "@/utils";
+import { useSettingsForm } from "@/composables";
 import {
   getCompanyInfoApi,
   updateCompanyInfoApi,
@@ -14,10 +15,7 @@ defineOptions({
   name: "CompanyInfo"
 });
 
-const loading = ref(false);
-const formRef = ref();
-
-const formData = ref<CompanyInfo>({
+const createDefaultCompanyInfo = (): CompanyInfo => ({
   companyName: "",
   taxNumber: "",
   legalPerson: "",
@@ -33,58 +31,55 @@ const formData = ref<CompanyInfo>({
   remark: ""
 });
 
+const formRef = ref();
+
 const rules = {
   companyName: [{ required: true, message: "请输入公司名称", trigger: "blur" }]
 };
 
-const loadSettings = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getCompanyInfoApi();
-    if (code === 200 && data) {
-      const dto = data as CompanyInfoDto;
-      formData.value.companyName = dto.name ?? "";
-      formData.value.phone = dto.phone ?? "";
-      formData.value.email = dto.email ?? "";
-      formData.value.address = dto.address ?? "";
-      formData.value.logo = dto.logoUrl ?? "";
-      formData.value.logoUid = dto.logoUid;
-      formData.value.remark = dto.desc ?? "";
-      formData.value.contactPerson = dto.principalName ?? "";
-    }
-  } catch {
-    message("加载公司信息失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
+const {
+  loading,
+  formData,
+  handleSave: saveCompanyInfo
+} = useSettingsForm<CompanyInfo, CompanyInfoDto>({
+  group: "company-info",
+  loadGroup: async () => {
+    const res = await getCompanyInfoApi();
+    return {
+      ...res,
+      data: res.data ? [res.data] : []
+    };
+  },
+  saveGroup: async (_group, settings) =>
+    updateCompanyInfoApi(settings as UpdateCompanyInfoDto),
+  defaults: createDefaultCompanyInfo,
+  transformLoad: (settings, form) => {
+    const dto = settings[0];
+    if (!dto) return;
+    form.companyName = dto.name ?? "";
+    form.phone = dto.phone ?? "";
+    form.email = dto.email ?? "";
+    form.address = dto.address ?? "";
+    form.logo = dto.logoUrl ?? "";
+    form.logoUid = dto.logoUid;
+    form.remark = dto.desc ?? "";
+    form.contactPerson = dto.principalName ?? "";
+  },
+  transformSave: form => ({
+    name: form.companyName,
+    address: form.address,
+    phone: form.phone,
+    email: form.email,
+    desc: form.remark,
+    principalName: form.contactPerson,
+    logoUid: form.logoUid
+  })
+});
 
 const handleSave = async () => {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
-
-  loading.value = true;
-  try {
-    const payload: UpdateCompanyInfoDto = {
-      name: formData.value.companyName,
-      address: formData.value.address,
-      phone: formData.value.phone,
-      email: formData.value.email,
-      desc: formData.value.remark,
-      principalName: formData.value.contactPerson,
-      logoUid: formData.value.logoUid
-    };
-    const { code } = await updateCompanyInfoApi(payload);
-    if (code === 200) {
-      message("保存成功", { type: "success" });
-    } else {
-      message("保存失败", { type: "error" });
-    }
-  } catch {
-    message("保存失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
+  await saveCompanyInfo();
 };
 
 const handleLogoUpload = async (file: File) => {
@@ -102,10 +97,6 @@ const handleLogoUpload = async (file: File) => {
   }
   return false;
 };
-
-onMounted(() => {
-  loadSettings();
-});
 </script>
 
 <template>

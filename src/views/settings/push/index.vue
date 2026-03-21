@@ -1,38 +1,53 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { message } from "@/utils";
+import { ref } from "vue";
+import { useSettingsForm } from "@/composables";
 import { getPushConfigApi, updatePushConfigApi } from "@/api/push";
 import { testPushDeerApi, testEmailApi, testSmsApi } from "@/api/push";
 import { usePushTest } from "./usePushTest";
+import type { PushSettingsForm, PushTestForm } from "./types";
 
 defineOptions({
   name: "PushSettings"
 });
 
-const loading = ref(false);
 const formRef = ref();
 const activeTab = ref("pushDeer");
 
-const formData = ref({
-  // PushDeer 配置
+const createDefaultPushSettings = (): PushSettingsForm => ({
   pushDeerEnabled: false,
   pushDeerKey: "",
-
-  // 邮件配置
   emailEnabled: false,
   emailHost: "smtp.qq.com",
   emailPort: 465,
   emailAuthUser: "",
   emailAuthPass: "",
-
-  // 短信配置
   smsEnabled: false,
   smsAppId: "",
   smsSignName: "",
   smsTemplateId: ""
 });
 
-const testFormData = ref({
+const { loading, formData, handleSave } = useSettingsForm<
+  PushSettingsForm,
+  PushSettingsForm
+>({
+  group: "push",
+  loadGroup: async () => {
+    const res = await getPushConfigApi();
+    return {
+      ...res,
+      data: res.data ? [res.data as PushSettingsForm] : []
+    };
+  },
+  saveGroup: async (_group, settings) =>
+    updatePushConfigApi(settings as unknown as PushSettingsForm),
+  defaults: createDefaultPushSettings,
+  transformLoad: (settings, form) => {
+    Object.assign(form, settings[0] ?? {});
+  }
+});
+
+const testFormData = ref<PushTestForm>({
   pushDeer: {
     text: "测试消息",
     desp: "这是一条测试推送消息",
@@ -51,36 +66,6 @@ const testFormData = ref({
 });
 
 const { testing, createTestHandler } = usePushTest();
-
-const loadConfig = async () => {
-  loading.value = true;
-  try {
-    const { code, data } = await getPushConfigApi();
-    if (code === 200 && data) {
-      Object.assign(formData.value, data);
-    }
-  } catch {
-    message("加载推送配置失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
-
-const handleSave = async () => {
-  loading.value = true;
-  try {
-    const { code } = await updatePushConfigApi(formData.value);
-    if (code === 200) {
-      message("保存成功", { type: "success" });
-    } else {
-      message("保存失败", { type: "error" });
-    }
-  } catch {
-    message("保存失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
 
 const handleTestPushDeer = createTestHandler({
   validate: () =>
@@ -131,10 +116,6 @@ const handleTestSms = createTestHandler({
   loadingKey: "sms",
   successMsg: "测试短信发送成功，请检查手机",
   failMsg: "测试短信发送失败"
-});
-
-onMounted(() => {
-  loadConfig();
 });
 </script>
 

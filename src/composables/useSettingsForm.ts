@@ -42,9 +42,39 @@ export interface UseSettingsFormOptions<T extends object> {
   immediate?: boolean;
 }
 
-export function useSettingsForm<T extends object>(
-  options: UseSettingsFormOptions<T>
-) {
+export interface UseSettingsFormOptionsWithLoadItem<
+  T extends object,
+  LoadItem = CompanySettingItem
+> {
+  /** Settings group name, e.g. "sys", "func", "cost" */
+  group: string;
+  /** Extra groups to load together. Defaults to [group]. */
+  loadGroups?: readonly string[];
+  /** Load settings by group. Defaults to company setting API. */
+  loadGroup?: (group: string) => Promise<CommonResult<LoadItem[]>>;
+  /** Save settings by group. Defaults to company setting API. */
+  saveGroup?: (
+    group: string,
+    settings: Record<string, unknown>
+  ) => Promise<CommonResult>;
+  /** Default form data */
+  defaults: () => T;
+  /** Expected setting keys (for missing/unset UI state). Defaults to keys of `defaults()` result. */
+  expectedKeys?: readonly string[];
+  /** Custom transform from loaded items to partial form data. */
+  transformLoad?: (settings: LoadItem[], formData: T) => void;
+  /** Custom transform before saving. By default saves formData as-is. */
+  transformSave?: (formData: T) => Record<string, unknown>;
+  /** Custom transform before saving to multiple groups. */
+  transformSaveMulti?: (formData: T) => Record<string, Record<string, unknown>>;
+  /** Whether to auto-load on mount. Defaults to true. */
+  immediate?: boolean;
+}
+
+export function useSettingsForm<
+  T extends object,
+  LoadItem = CompanySettingItem
+>(options: UseSettingsFormOptionsWithLoadItem<T, LoadItem>) {
   const {
     group,
     loadGroups,
@@ -58,7 +88,11 @@ export function useSettingsForm<T extends object>(
     immediate = true
   } = options;
 
-  const loadByGroup = loadGroup ?? getCompanySettingGroupApi;
+  const loadByGroup =
+    loadGroup ??
+    (getCompanySettingGroupApi as (
+      group: string
+    ) => Promise<CommonResult<LoadItem[]>>);
   const saveByGroup = saveGroup ?? patchCompanySettingGroupApi;
 
   const loading = ref(false);
@@ -84,7 +118,7 @@ export function useSettingsForm<T extends object>(
         }))
       );
 
-      const merged: CompanySettingItem[] = [];
+      const merged: LoadItem[] = [];
       for (const r of results) {
         if (r.code !== 200 || !r.data) {
           throw new Error(`加载设置失败（${r.group}）`);
@@ -94,16 +128,19 @@ export function useSettingsForm<T extends object>(
 
       const presence = analyzeSettingsPresence({
         expectedKeys: expectedSettingKeys,
-        items: merged
+        items: merged as unknown as readonly Readonly<{
+          key: string;
+          value?: string | null;
+        }>[]
       });
       missingSettingKeys.value = presence.missingKeys;
       unsetSettingKeys.value = presence.unsetKeys;
 
       if (merged.length > 0) {
-        const groupSettings = merged;
         if (transformLoad) {
-          transformLoad(groupSettings, formData.value);
+          transformLoad(merged, formData.value);
         } else {
+          const groupSettings = merged as unknown as CompanySettingItem[];
           // Default mapping: auto-convert booleans and numbers
           groupSettings.forEach((s: CompanySettingItem) => {
             const key = s.key as keyof T;
