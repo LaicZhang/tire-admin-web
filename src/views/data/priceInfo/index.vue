@@ -15,6 +15,12 @@ import editForm from "./form.vue";
 import type { PriceInfo, PriceInfoForm } from "./types";
 import type { FormInstance } from "element-plus";
 import { getTireListApi, updateTireApi } from "@/api/business/tire";
+import {
+  deletePriceLimitApi,
+  getPriceLimitListApi,
+  upsertPriceLimitApi,
+  type PriceLimitRecord
+} from "@/api/data/price-limit";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import type { Tire } from "@/api/business/tire";
@@ -41,75 +47,105 @@ type TireLike = Tire & {
   updatedAt?: string;
 };
 
+interface PriceInfoPageResponse {
+  tires: CommonResult<PaginatedResponseDto<Tire>>;
+  limits: CommonResult<PaginatedResponseDto<PriceLimitRecord>>;
+}
+
+const toYuan = (value?: number | string | bigint | null) =>
+  value === undefined || value === null ? undefined : Number(value) / 100;
+
+const toFen = (value?: number) =>
+  value === undefined ? undefined : Math.round(value * 100);
+
+const buildPriceLimitMap = (records?: PriceLimitRecord[]) => {
+  return Object.fromEntries((records ?? []).map(item => [item.tireId, item]));
+};
+
+const buildPriceLimitPayload = (row: PriceInfo, formInline: PriceInfoForm) => ({
+  uid: row.priceLimitUid,
+  tireId: row.tireId,
+  enablePurchaseLimit:
+    formInline.maxPurchasePrice !== undefined
+      ? true
+      : Boolean(row.enablePurchaseLimit),
+  enableSaleLimit:
+    formInline.minSalePrice !== undefined ? true : Boolean(row.enableSaleLimit),
+  maxPurchasePrice: toFen(formInline.maxPurchasePrice),
+  minSalePrice: toFen(formInline.minSalePrice),
+  wholesalePrice: toFen(formInline.wholesalePrice),
+  vipPrice: toFen(formInline.vipPrice),
+  memberPrice: toFen(formInline.memberPrice)
+});
+
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   PriceInfo,
-  CommonResult<PaginatedResponseDto<Tire>>,
+  PriceInfoPageResponse,
   { page: number; pageSize: number }
 >({
-  api: ({ page }) =>
-    getTireListApi(page, {
+  api: async ({ page, pageSize }) => {
+    const tires = await getTireListApi(page, {
       keyword: form.value.keyword || undefined,
       group: form.value.group || undefined
-    }),
+    });
+    const tireIds = (tires.data?.list ?? []).map(item => item.uid);
+    const limits =
+      tireIds.length > 0
+        ? await getPriceLimitListApi(1, {
+            tireIds,
+            pageSize: Math.max(pageSize, tireIds.length)
+          })
+        : ({
+            code: 200,
+            msg: "",
+            data: { list: [], total: 0 }
+          } as unknown as CommonResult<PaginatedResponseDto<PriceLimitRecord>>);
+    return { tires, limits };
+  },
   pagination: {
     total: 0,
     pageSize: PAGE_SIZE_SMALL,
     currentPage: 1,
     background: true
   },
-  transform: (res: CommonResult<PaginatedResponseDto<Tire>>) => {
-    if (res.code !== 200) {
-      message(res.msg || "获取列表失败", { type: "error" });
+  transform: ({ tires, limits }) => {
+    if (tires.code !== 200) {
+      message(tires.msg || "获取列表失败", { type: "error" });
       return { list: [], total: 0 };
     }
-    const extras = readExtra();
-    const list = (res.data?.list ?? []).map(tire => {
+    if (limits.code !== 200) {
+      message(limits.msg || "获取价格配置失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    const limitMap = buildPriceLimitMap(limits.data?.list);
+    const list = (tires.data?.list ?? []).map(tire => {
       const t = tire as TireLike;
-      const extra = extras[t.uid] || {};
+      const limit = limitMap[t.uid];
       return {
         id: t.id,
         uid: t.uid,
+        priceLimitUid: limit?.uid,
         tireId: t.uid,
         tireName: t.name,
         tireCode: t.barcode ?? t.number,
         group: t.group,
         retailPrice: t.salePrice ?? t.price,
         maxPurchasePrice: t.purchasePrice ?? t.cost,
-        wholesalePrice: extra.wholesalePrice,
-        vipPrice: extra.vipPrice,
-        memberPrice: extra.memberPrice,
-        minSalePrice: extra.minSalePrice,
+        wholesalePrice: toYuan(limit?.wholesalePrice),
+        vipPrice: toYuan(limit?.vipPrice),
+        memberPrice: toYuan(limit?.memberPrice),
+        minSalePrice: toYuan(limit?.minSalePrice),
+        enablePurchaseLimit: limit?.enablePurchaseLimit,
+        enableSaleLimit: limit?.enableSaleLimit,
         lastPurchasePrice: undefined,
         lastSalePrice: undefined,
         updatedAt: t.updateAt ?? t.updatedAt
       } as PriceInfo;
     });
-    return { list, total: res.data?.total ?? 0 };
+    return { list, total: tires.data?.total ?? 0 };
   },
   immediate: true
 });
-
-type PriceInfoExtra = Pick<
-  PriceInfo,
-  "wholesalePrice" | "vipPrice" | "memberPrice" | "minSalePrice"
->;
-
-const EXTRA_STORAGE_KEY = "data:price-info:extra";
-
-const readExtra = (): Record<string, PriceInfoExtra> => {
-  try {
-    const raw = localStorage.getItem(EXTRA_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, PriceInfoExtra>;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-};
-
-const writeExtra = (map: Record<string, PriceInfoExtra>) => {
-  localStorage.setItem(EXTRA_STORAGE_KEY, JSON.stringify(map));
-};
 
 const onSearch = () => {
   pagination.value = { ...pagination.value, currentPage: 1 };
@@ -160,24 +196,20 @@ const openDialog = (row: PriceInfo) => {
         if (valid) {
           const cur = (options.props as { formInline: PriceInfoForm })
             .formInline;
-
-          const extras = readExtra();
-          extras[row.tireId] = {
-            wholesalePrice: cur.wholesalePrice,
-            vipPrice: cur.vipPrice,
-            memberPrice: cur.memberPrice,
-            minSalePrice: cur.minSalePrice
-          };
-          writeExtra(extras);
-
-          await updateTireApi(row.tireId, {
-            salePrice: cur.retailPrice,
-            purchasePrice: cur.maxPurchasePrice
-          });
-
-          message("保存成功", { type: "success" });
-          done();
-          fetchData();
+          try {
+            await Promise.all([
+              upsertPriceLimitApi(buildPriceLimitPayload(row, cur)),
+              updateTireApi(row.tireId, {
+                salePrice: cur.retailPrice,
+                purchasePrice: cur.maxPurchasePrice
+              })
+            ]);
+            message("保存成功", { type: "success" });
+            done();
+            fetchData();
+          } catch (error) {
+            handleApiError(error);
+          }
         }
       });
     }
@@ -265,7 +297,7 @@ const handleBatchEdit = () => {
         ])
       ]);
     },
-    beforeSure: (done, { options }) => {
+    beforeSure: async (done, { options }) => {
       const batch = (
         options.props as {
           formInline: {
@@ -289,36 +321,59 @@ const handleBatchEdit = () => {
           return;
         }
       }
-      const extras = readExtra();
-      for (const row of selectedRows.value) {
-        const existing = extras[row.tireId] || {};
-        if (batch.wholesalePrice !== undefined)
-          existing.wholesalePrice = batch.wholesalePrice;
-        if (batch.vipPrice !== undefined) existing.vipPrice = batch.vipPrice;
-        if (batch.memberPrice !== undefined)
-          existing.memberPrice = batch.memberPrice;
-        if (batch.minSalePrice !== undefined)
-          existing.minSalePrice = batch.minSalePrice;
-        extras[row.tireId] = existing;
+      try {
+        await Promise.all(
+          selectedRows.value.map(row =>
+            upsertPriceLimitApi({
+              uid: row.priceLimitUid,
+              tireId: row.tireId,
+              enablePurchaseLimit: Boolean(row.enablePurchaseLimit),
+              enableSaleLimit:
+                batch.minSalePrice !== undefined
+                  ? true
+                  : Boolean(row.enableSaleLimit),
+              maxPurchasePrice: toFen(row.maxPurchasePrice),
+              minSalePrice:
+                batch.minSalePrice !== undefined
+                  ? toFen(batch.minSalePrice)
+                  : toFen(row.minSalePrice),
+              wholesalePrice:
+                batch.wholesalePrice !== undefined
+                  ? toFen(batch.wholesalePrice)
+                  : toFen(row.wholesalePrice),
+              vipPrice:
+                batch.vipPrice !== undefined
+                  ? toFen(batch.vipPrice)
+                  : toFen(row.vipPrice),
+              memberPrice:
+                batch.memberPrice !== undefined
+                  ? toFen(batch.memberPrice)
+                  : toFen(row.memberPrice)
+            })
+          )
+        );
+        message("批量编辑成功", { type: "success" });
+        done();
+        fetchData();
+      } catch (error) {
+        handleApiError(error);
       }
-      writeExtra(extras);
-      message("批量编辑成功", { type: "success" });
-      done();
-      fetchData();
     }
   });
 };
 
 // 清空价格
 const handleClear = async (row: PriceInfo) => {
-  const extras = readExtra();
-  delete extras[row.tireId];
-  writeExtra(extras);
   try {
-    await updateTireApi(row.tireId, {
-      salePrice: undefined,
-      purchasePrice: undefined
-    });
+    await Promise.all([
+      row.priceLimitUid
+        ? deletePriceLimitApi(row.priceLimitUid)
+        : Promise.resolve(),
+      updateTireApi(row.tireId, {
+        salePrice: undefined,
+        purchasePrice: undefined
+      })
+    ]);
     message(`已清空${row.tireName}的价格设置`, { type: "success" });
   } catch (e) {
     handleApiError(e);
@@ -332,20 +387,22 @@ const handleBatchClear = async () => {
     message("请选择要清空的商品", { type: "warning" });
     return;
   }
-  const extras = readExtra();
   const errors: string[] = [];
   for (const row of selectedRows.value) {
-    delete extras[row.tireId];
     try {
-      await updateTireApi(row.tireId, {
-        salePrice: undefined,
-        purchasePrice: undefined
-      });
+      await Promise.all([
+        row.priceLimitUid
+          ? deletePriceLimitApi(row.priceLimitUid)
+          : Promise.resolve(),
+        updateTireApi(row.tireId, {
+          salePrice: undefined,
+          purchasePrice: undefined
+        })
+      ]);
     } catch {
       errors.push(row.tireName ?? row.tireId);
     }
   }
-  writeExtra(extras);
   if (errors.length > 0) {
     message(`${errors.length}个商品清空失败: ${errors.join(", ")}`, {
       type: "warning"

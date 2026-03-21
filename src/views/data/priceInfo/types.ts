@@ -2,6 +2,7 @@
 export interface PriceInfo {
   id: number;
   uid: string;
+  priceLimitUid?: string;
   /** 商品ID */
   tireId: string;
   /** 商品名称 */
@@ -22,6 +23,10 @@ export interface PriceInfo {
   minSalePrice?: number;
   /** 最高采购价 */
   maxPurchasePrice?: number;
+  /** 是否启用采购限价 */
+  enablePurchaseLimit?: boolean;
+  /** 是否启用销售限价 */
+  enableSaleLimit?: boolean;
   /** 最近采购价 */
   lastPurchasePrice?: number;
   /** 最近销售价 */

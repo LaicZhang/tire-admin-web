@@ -33,6 +33,7 @@ export interface PriceLimitUpsertDto {
 
 export interface PriceLimitQuery {
   tireId?: string;
+  tireIds?: string[];
   keyword?: string;
   pageSize?: number;
 }
@@ -43,9 +44,13 @@ export async function getPriceLimitListApi(
   index: number,
   params?: PriceLimitQuery
 ) {
+  const query = {
+    ...params,
+    tireIds: params?.tireIds?.length ? params.tireIds.join(",") : undefined
+  };
   return await http.request<
     CommonResult<PaginatedResponseDto<PriceLimitRecord>>
-  >("get", baseUrlApi(`${prefix}/page/${index}`), { params });
+  >("get", baseUrlApi(`${prefix}/page/${index}`), { params: query });
 }
 
 export async function upsertPriceLimitApi(data: PriceLimitUpsertDto) {
