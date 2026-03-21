@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -10,59 +10,59 @@ import DeleteButton from "@/components/DeleteButton/index.vue";
 import { openDialog } from "./table";
 import { getTireNumberListApi, deleteTireNumberApi } from "@/api";
 import type { TireNumberRow } from "@/api/business/tire-number";
+import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { useCrud } from "@/composables";
 
 defineOptions({
   name: "tireNumber"
 });
-const dataList = ref<TireNumberRow[]>([]);
-const loading = ref(false);
 const formRef = ref();
 const form = ref({
   number: undefined as string | undefined,
   desc: undefined
 });
-const pagination = ref({
-  total: 0,
-  pageSize: PAGE_SIZE_SMALL,
-  currentPage: 1,
-  background: true
-});
-const fetchData = async (page?: number) => {
-  if (page !== undefined) pagination.value.currentPage = page;
-  loading.value = true;
-  try {
-    const filter =
-      form.value.number || form.value.desc !== undefined
-        ? { number: form.value.number, desc: form.value.desc }
-        : undefined;
-    const { data, code, msg } = await getTireNumberListApi(
-      pagination.value.currentPage,
-      filter
-    );
-    if (code === 200) {
-      dataList.value = data.list || [];
-      pagination.value.total = data.total ?? 0;
-    } else {
-      message(msg, { type: "error" });
-    }
-  } catch {
-    message("加载胎号列表失败", { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
 
-const onSearch = () => fetchData(1);
+const { dataList, loading, pagination, fetchData, onCurrentChange } = useCrud<
+  TireNumberRow,
+  CommonResult<PaginatedResponseDto<TireNumberRow>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page }) =>
+    getTireNumberListApi(page, {
+      number: form.value.number || undefined,
+      desc: form.value.desc || undefined
+    }) as Promise<CommonResult<PaginatedResponseDto<TireNumberRow>>>,
+  pagination: {
+    total: 0,
+    pageSize: PAGE_SIZE_SMALL,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "加载胎号列表失败", { type: "error" });
+      return { list: [], total: 0 };
+    }
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? 0
+    };
+  },
+  immediate: true
+});
+
+const onSearch = () => {
+  pagination.value = { ...pagination.value, currentPage: 1 };
+  fetchData();
+};
 
 const resetForm = (formEl: { resetFields: () => void } | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
-  fetchData(1);
+  onSearch();
 };
-
-const handleCurrentChange = (val: number) => fetchData(val);
 
 const openImportDialog = () => {
   message("暂未开放", { type: "warning" });
@@ -77,12 +77,8 @@ async function handleDelete(row: {
   message(`您删除了${row.number ?? row.name ?? ""}这条数据`, {
     type: "success"
   });
-  onSearch();
+  fetchData();
 }
-
-onMounted(() => {
-  onSearch();
-});
 </script>
 
 <template>
@@ -124,7 +120,7 @@ onMounted(() => {
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog()"
+            @click="openDialog('新增', undefined, fetchData)"
           >
             新增胎号
           </el-button>
@@ -139,7 +135,7 @@ onMounted(() => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-current-change="handleCurrentChange"
+            @page-current-change="onCurrentChange"
           >
             <template #tireName="{ row }">
               <div>{{ row.tire.group }}-{{ row.tire.name }}</div>
@@ -149,7 +145,7 @@ onMounted(() => {
                 class="reset-margin"
                 link
                 type="primary"
-                @click="openDialog('查看', row)"
+                @click="openDialog('查看', row, fetchData)"
               >
                 查看
               </el-button>
@@ -158,7 +154,7 @@ onMounted(() => {
                 link
                 type="primary"
                 :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
+                @click="openDialog('修改', row, fetchData)"
               >
                 修改
               </el-button>

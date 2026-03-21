@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { h, ref } from "vue";
-import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -10,12 +7,10 @@ import {
   createExpiryAlertApi
 } from "@/api/business/stock-alert";
 import { message } from "@/utils";
-import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
-import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import ExpiryAlertForm from "./ExpiryAlertForm.vue";
 import { columns } from "./columns";
+import { useAlertCrud } from "../alert/useAlertCrud";
 
 defineOptions({
   name: "ExpiryAlert"
@@ -33,22 +28,25 @@ const {
   dataList,
   pagination,
   fetchData: getData,
-  onCurrentChange
-} = useCrud<
+  onCurrentChange,
+  openDialog
+} = useAlertCrud<
   ExpiryAlertItem,
   CommonResult<PaginatedResponseDto<ExpiryAlertItem>>,
-  { page: number; pageSize: number }
+  { repoId: string; daysBefore: number },
+  { repoId?: string; daysBefore: number }
 >({
-  api: ({ page }) =>
+  title: "效期预警配置",
+  formComponent: ExpiryAlertForm,
+  defaultForm: () => ({
+    repoId: "",
+    daysBefore: 30
+  }),
+  listApi: page =>
     getExpiryAlertListApi({ index: page }) as Promise<
       CommonResult<PaginatedResponseDto<ExpiryAlertItem>>
     >,
-  pagination: {
-    total: 0,
-    pageSize: PAGE_SIZE_SMALL,
-    currentPage: 1,
-    background: true
-  },
+  createApi: createExpiryAlertApi,
   transform: res => {
     if (res.code !== 200) {
       message(res.msg || "加载失败", { type: "error" });
@@ -59,53 +57,11 @@ const {
       total: res.data?.total ?? 0
     };
   },
-  immediate: true
+  normalizeSubmit: form => ({
+    repoId: form.repoId || undefined,
+    daysBefore: form.daysBefore
+  })
 });
-
-function openDialog(title = "新增") {
-  const dialogFormRef = ref<{ formRef?: FormInstance }>();
-  addDialog({
-    title: `${title}效期预警配置`,
-    props: {
-      formInline: {
-        repoId: "",
-        daysBefore: 30
-      }
-    },
-    width: "40%",
-    draggable: true,
-    fullscreen: deviceDetection(),
-    fullscreenIcon: true,
-    closeOnClickModal: false,
-    contentRenderer: ({ options }) =>
-      h(ExpiryAlertForm, {
-        ref: dialogFormRef,
-        formInline: (
-          options.props as {
-            formInline: { repoId: string; daysBefore: number };
-          }
-        ).formInline
-      }),
-    beforeSure: async (done, { options }) => {
-      const valid = await dialogFormRef.value?.formRef
-        ?.validate()
-        .catch(() => false);
-      if (!valid) return;
-
-      const data = (
-        options.props as { formInline: { repoId: string; daysBefore: number } }
-      ).formInline;
-      createExpiryAlertApi({
-        repoId: data.repoId || undefined,
-        daysBefore: data.daysBefore
-      }).then(() => {
-        message("操作成功", { type: "success" });
-        done();
-        getData();
-      });
-    }
-  });
-}
 </script>
 
 <template>

@@ -31,7 +31,11 @@ export function handleSelectionChange(_val: unknown) {
   // 选择变化处理
 }
 
-export function openDialog(title = "新增", row?: FormItemProps) {
+export function openDialog(
+  title = "新增",
+  row?: FormItemProps,
+  onSuccess?: () => void
+) {
   addDialog({
     title: `${title}胎号`,
     props: {
@@ -64,6 +68,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
         message(`您${title}了id为${curData.id}的这条数据`, {
           type: "success"
         });
+        onSuccess?.();
         done(); // 关闭弹框
       }
       FormRef.validate(async (valid: boolean) => {

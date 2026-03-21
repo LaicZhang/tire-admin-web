@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { onMounted, ref, h } from "vue";
+import { ref, h } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import {
@@ -9,7 +9,11 @@ import {
   checkPaymentBalanceApi,
   deletePaymentApi
 } from "@/api";
-import type { PaymentAccount } from "@/api/type";
+import type {
+  CommonResult,
+  PaginatedResponseDto,
+  PaymentAccount
+} from "@/api/type";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -21,25 +25,17 @@ import editForm from "./form.vue";
 import AccountOperationDialog from "./accountOperationDialog.vue";
 import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
+import { useCrud } from "@/composables";
 
 defineOptions({
   name: "Payment"
 });
 
-const dataList = ref<PaymentAccount[]>([]);
-const loading = ref(false);
-const formRef = ref();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const editFormRef = ref<{ formRef?: FormInstance } | null>(null);
 const form = ref({
   keyword: "",
   status: undefined as boolean | undefined
-});
-const pagination = ref({
-  total: 0,
-  pageSize: PAGE_SIZE_SMALL,
-  currentPage: 1,
-  background: true
 });
 
 // Operation Dialog State
@@ -56,33 +52,45 @@ function handleOperation(
   showOperationDialog.value = true;
 }
 
-const getPaymentListInfo = async () => {
-  loading.value = true;
-  try {
-    const { data, code, msg } = await getPaymentPageApi(
-      pagination.value.currentPage,
-      {
-        pageSize: pagination.value.pageSize,
-        keyword: form.value.keyword || undefined,
-        status: form.value.status
-      }
-    );
-    if (code === 200) {
-      dataList.value = data?.list ?? [];
-      pagination.value.total = data?.total ?? 0;
-    } else {
-      message(msg, { type: "error" });
+const {
+  dataList,
+  loading,
+  pagination,
+  fetchData: getPaymentListInfo,
+  onCurrentChange,
+  onSizeChange
+} = useCrud<
+  PaymentAccount,
+  CommonResult<PaginatedResponseDto<PaymentAccount>>,
+  { page: number; pageSize: number }
+>({
+  api: ({ page, pageSize }) =>
+    getPaymentPageApi(page, {
+      pageSize,
+      keyword: form.value.keyword || undefined,
+      status: form.value.status
+    }),
+  pagination: {
+    total: 0,
+    pageSize: PAGE_SIZE_SMALL,
+    currentPage: 1,
+    background: true
+  },
+  transform: res => {
+    if (res.code !== 200) {
+      message(res.msg || "获取支付账户列表失败", { type: "error" });
+      return { list: [], total: 0 };
     }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "获取支付账户列表失败";
-    message(msg, { type: "error" });
-  } finally {
-    loading.value = false;
-  }
-};
+    return {
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? 0
+    };
+  },
+  immediate: true
+});
 
 const onSearch = async () => {
-  pagination.value.currentPage = 1;
+  pagination.value = { ...pagination.value, currentPage: 1 };
   await getPaymentListInfo();
 };
 
@@ -92,14 +100,11 @@ const resetForm = () => {
 };
 
 async function handleCurrentChange(val: number) {
-  pagination.value.currentPage = val;
-  await getPaymentListInfo();
+  onCurrentChange(val);
 }
 
 async function handleSizeChange(val: number) {
-  pagination.value.pageSize = val;
-  pagination.value.currentPage = 1;
-  await getPaymentListInfo();
+  onSizeChange(val);
 }
 
 async function handleCreate() {
@@ -221,8 +226,8 @@ onMounted(async () => {
             :data="dataList"
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
-            @page-size-change="handleSizeChange"
-            @page-current-change="handleCurrentChange"
+            @page-size-change="val => handleSizeChange(val)"
+            @page-current-change="val => handleCurrentChange(val)"
           >
             <template #operation="{ row }">
               <el-button

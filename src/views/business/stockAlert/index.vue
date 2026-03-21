@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { h, ref } from "vue";
-import type { FormInstance } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import Refresh from "~icons/ep/refresh";
@@ -12,13 +9,11 @@ import {
   scanStockAlertApi
 } from "@/api/business/stock-alert";
 import { message } from "@/utils";
-import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
-import { useCrud } from "@/composables";
 import type { CommonResult } from "@/api/type";
 import type { StockAlert, StockAlertDto } from "@/api/business/stock-alert";
 import StockAlertForm from "./StockAlertForm.vue";
 import { columns } from "./columns";
+import { useAlertCrud } from "../alert/useAlertCrud";
 
 defineOptions({
   name: "StockAlert"
@@ -29,15 +24,17 @@ const {
   dataList,
   pagination,
   fetchData: getData,
-  onCurrentChange
-} = useCrud<StockAlert, CommonResult<StockAlert[]>, { page: number }>({
-  api: () => getStockAlertListApi(),
-  pagination: {
-    total: 0,
-    pageSize: PAGE_SIZE_SMALL,
-    currentPage: 1,
-    background: true
-  },
+  onCurrentChange,
+  openDialog
+} = useAlertCrud<StockAlert, CommonResult<StockAlert[]>, StockAlertDto>({
+  title: "库存预警配置",
+  formComponent: StockAlertForm,
+  defaultForm: () => ({
+    tireId: "",
+    minQuantity: 0
+  }),
+  listApi: async () => getStockAlertListApi(),
+  createApi: createStockAlertApi,
   transform: res => {
     if (res.code !== 200) {
       message(res.msg || "加载失败", { type: "error" });
@@ -49,7 +46,10 @@ const {
       total: list.length
     };
   },
-  immediate: true
+  normalizeSubmit: form => ({
+    ...form,
+    tireId: String(form.tireId || "").trim()
+  })
 });
 
 const handleScan = async () => {
@@ -60,43 +60,6 @@ const handleScan = async () => {
     message(msg, { type: "error" });
   }
 };
-
-function openDialog(title = "新增") {
-  const dialogFormRef = ref<{ formRef?: FormInstance }>();
-  addDialog({
-    title: `${title}库存预警配置`,
-    props: {
-      formInline: {
-        tireId: "",
-        minQuantity: 0
-      } as StockAlertDto
-    },
-    width: "40%",
-    draggable: true,
-    fullscreen: deviceDetection(),
-    fullscreenIcon: true,
-    closeOnClickModal: false,
-    contentRenderer: ({ options }) =>
-      h(StockAlertForm, {
-        ref: dialogFormRef,
-        formInline: (options.props as { formInline: StockAlertDto }).formInline
-      }),
-    beforeSure: async (done, { options }) => {
-      const valid = await dialogFormRef.value?.formRef
-        ?.validate()
-        .catch(() => false);
-      if (!valid) return;
-
-      const data = (options.props as { formInline: StockAlertDto }).formInline;
-      data.tireId = String(data.tireId || "").trim();
-      createStockAlertApi(data).then(() => {
-        message("操作成功", { type: "success" });
-        done();
-        getData();
-      });
-    }
-  });
-}
 </script>
 
 <template>
