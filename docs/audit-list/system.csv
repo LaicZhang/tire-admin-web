@@ -1,6 +1,6 @@
-文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/settings/printTemplate+advancedPrint,MAINT,P1,两个打印模板页面有70%代码重复,提取共享printTemplateBase composable或合并为统一模块,大
-views/settings/push/index.vue,MAINT,P1,437行大型组件包含3个推送渠道配置和测试功能,考虑拆分PushDeerTab/EmailTab/SmsTab子组件,中
-views/settings/push/index.vue,MAINT,P2,loadConfig/handleSave模式与sysParams/funcParams/costParams/companyInfo重复(共5处),考虑泛化useSettingsForm或创建独立composable,中
-views/settings/companyInfo/index.vue,MAINT,P2,loadSettings/handleSave模式与其他设置页面重复,考虑泛化useSettingsForm或创建独立composable,中
-views/settings/permissions/index.vue,MAINT,P3,permissionModules硬编码在组件内,考虑迁移到配置文件或从后端获取,中
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算,处理状态,处理说明
+views/settings/printTemplate+advancedPrint,MAINT,P1,两个打印模板页面有70%代码重复,提取共享printTemplateBase composable或合并为统一模块,大,待后续,本轮未触达打印模板模块
+views/settings/push/index.vue,MAINT,P1,437行大型组件包含3个推送渠道配置和测试功能,考虑拆分PushDeerTab/EmailTab/SmsTab子组件,中,部分处理,已先收敛加载保存逻辑到 useSettingsForm，但 3 个渠道子组件拆分未做
+views/settings/push/index.vue,MAINT,P2,loadConfig/handleSave模式与sysParams/funcParams/costParams/companyInfo重复(共5处),考虑泛化useSettingsForm或创建独立composable,中,已处理,已接入 useSettingsForm 统一加载与保存骨架
+views/settings/companyInfo/index.vue,MAINT,P2,loadSettings/handleSave模式与其他设置页面重复,考虑泛化useSettingsForm或创建独立composable,中,已处理,已改为使用 useSettingsForm 承载加载与保存
+views/settings/permissions/index.vue,MAINT,P3,permissionModules硬编码在组件内,考虑迁移到配置文件或从后端获取,中,待后续,P3 且当前无明确后端下发契约

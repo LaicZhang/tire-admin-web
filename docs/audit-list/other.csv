@@ -1,7 +1,6 @@
-文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/login/components/phone.vue,MAINT,P2,使用initRouter与主登录不同的路由初始化流程,统一登录成功后的路由处理逻辑到单一函数,中
-views/login/components/register.vue,MAINT,P3,注册功能使用setTimeout模拟请求,接入真实注册API,中
-views/login/components/update.vue,MAINT,P3,密码修改功能使用setTimeout模拟请求,接入真实密码修改API,中
-views/login/components/qrCode.vue,MAINT,P3,轮询状态检查接口未实现(注释中标注),与后端协调实现状态检查API,中
-views/other/aiEntry/index.vue,MAINT,P1,663行最大的单页面组件已使用composable拆分但仍然较大,考虑将上传区域/识别结果/订单表单拆分为独立子组件,中
-
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算,处理状态,处理说明
+views/login/components/phone.vue,MAINT,P2,使用initRouter与主登录不同的路由初始化流程,统一登录成功后的路由处理逻辑到单一函数,中,已过期,当前登录成功已统一走 completeLogin 而非独立 initRouter 流程
+views/login/components/register.vue,MAINT,P3,注册功能使用setTimeout模拟请求,接入真实注册API,中,已过期,当前仓库中已无该组件文件
+views/login/components/update.vue,MAINT,P3,密码修改功能使用setTimeout模拟请求,接入真实密码修改API,中,已过期,当前组件已调用 forgetPasswordApi 真实接口
+views/login/components/qrCode.vue,MAINT,P3,轮询状态检查接口未实现(注释中标注),与后端协调实现状态检查API,中,已过期,当前实现为二维码授权 URL + 回调登录流程，审计所述注释已不存在
+views/other/aiEntry/index.vue,MAINT,P1,663行最大的单页面组件已使用composable拆分但仍然较大,考虑将上传区域/识别结果/订单表单拆分为独立子组件,中,待后续,本轮优先处理真实功能缺陷与共性基建

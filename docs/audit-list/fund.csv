@@ -1,2 +1,2 @@
-文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/fund/receipt/index.vue,MAINT,P2,332行与payment/index.vue(339行)高度相似,考虑提取共享的useFundOrder composable,中
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算,处理状态,处理说明
+views/fund/receipt/index.vue,MAINT,P2,332行与payment/index.vue(339行)高度相似,考虑提取共享的useFundOrder composable,中,待后续,本轮已先将 payment 收敛到 useCrud，但 receipt 与 payment 的共享抽象未继续下沉

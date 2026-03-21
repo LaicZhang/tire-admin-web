@@ -1,2 +1,2 @@
-文件路径,问题类型,优先级,问题描述,建议方案,工作量估算
-views/data/priceInfo/index.vue,MAINT,P0,批发价/VIP价/会员价/最低销售价存储在localStorage而非后端API,必须将额外价格字段持久化到后端数据库,大
+文件路径,问题类型,优先级,问题描述,建议方案,工作量估算,处理状态,处理说明
+views/data/priceInfo/index.vue,MAINT,P0,批发价/VIP价/会员价/最低销售价存储在localStorage而非后端API,必须将额外价格字段持久化到后端数据库,大,已处理,已改为通过 data-config/price-limit 真源读取与写入并补充按 tireIds 查询能力
