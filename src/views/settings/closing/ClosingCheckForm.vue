@@ -45,7 +45,10 @@ const runCheck = async () => {
   }
   checkLoading.value = true;
   try {
-    const res = await runClosingChecksApi(closingDate.value);
+    const res = await runClosingChecksApi(
+      closingDate.value,
+      props.isClosing ? "close" : "unclose"
+    );
     if (res.code !== 200) {
       message(res.msg || "运行结账检查失败", { type: "error" });
       checkItems.value = [];
@@ -103,7 +106,10 @@ const doClosing = async () => {
   try {
     actionLoading.value = true;
     const action = props.isClosing ? "close" : "unclose";
-    const res = await executeClosingApi(closingDate.value, action);
+    const reason = props.isClosing
+      ? `结账到 ${closingDate.value}`
+      : `反结账 ${closingDate.value}`;
+    const res = await executeClosingApi(closingDate.value, action, reason);
     if (res.code !== 200) {
       message(res.msg || (props.isClosing ? "结账失败" : "反结账失败"), {
         type: "error"

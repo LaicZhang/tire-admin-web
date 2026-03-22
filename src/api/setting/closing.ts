@@ -3,30 +3,36 @@ import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
 
 export async function getClosingRecordsApi(params?: Record<string, unknown>) {
-  return await http.request<CommonResult>("get", baseUrlApi("/closing/"), {
-    params
-  });
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi("/setting/closing/records"),
+    { params }
+  );
 }
 
-export async function runClosingChecksApi(period: string) {
+export async function runClosingChecksApi(
+  closingDate: string,
+  action: "close" | "unclose"
+) {
   return await http.request<CommonResult>(
     "post",
-    baseUrlApi("/closing/check"),
+    baseUrlApi("/setting/closing/check"),
     {
-      data: { period }
+      data: { closingDate, action }
     }
   );
 }
 
 export async function executeClosingApi(
-  period: string,
-  action: "close" | "unclose"
+  closingDate: string,
+  action: "close" | "unclose",
+  reason: string
 ) {
   return await http.request<CommonResult>(
     "post",
-    baseUrlApi("/closing/execute"),
+    baseUrlApi("/setting/closing/execute"),
     {
-      data: { period, action }
+      data: { closingDate, action, confirm: true, reason }
     }
   );
 }
