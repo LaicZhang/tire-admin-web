@@ -27,17 +27,12 @@ const tireList = ref<{ uid: string; name: string; barcode?: string }[]>([]);
 const customerList = ref<{ uid: string; name: string }[]>([]);
 const loading = ref(false);
 
-const typeOptions = Object.entries(otherOutboundTypeMap).map(
-  ([value, config]) => ({
-    value,
-    label: config.label
-  })
-);
+const typeOptions = Object.entries(otherOutboundTypeMap)
+  .map(([value, config]) => ({ value, label: config.label }))
+  .filter(item => item.value === OtherOutboundType.WASTE);
 
 const formData = reactive<CreateOtherOutboundDto>({
-  type:
-    (props.formInline.type as OtherOutboundType) ||
-    OtherOutboundType.OTHER_OUTBOUND,
+  type: (props.formInline.type as OtherOutboundType) || OtherOutboundType.WASTE,
   customerId: props.formInline.customerId || "",
   orderDate: props.formInline.orderDate || new Date().toISOString(),
   operatorId: props.formInline.operatorId || currentUserUid || "",

@@ -60,7 +60,8 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
     getOtherOutboundOrderListApi(page, {
       ...queryParams,
       type: queryParams.type || undefined,
-      status: queryParams.status || undefined
+      status: queryParams.status || undefined,
+      keyword: queryParams.keyword || undefined
     }),
   pagination: {
     total: 0,
@@ -88,12 +89,9 @@ const statusOptions = Object.entries(otherOutboundStatusMap).map(
   })
 );
 
-const typeOptions = Object.entries(otherOutboundTypeMap).map(
-  ([value, config]) => ({
-    value,
-    label: config.label
-  })
-);
+const typeOptions = Object.entries(otherOutboundTypeMap)
+  .map(([value, config]) => ({ value, label: config.label }))
+  .filter(item => item.value === OtherOutboundType.WASTE);
 
 const handleSearch = () => {
   pagination.value.currentPage = 1;
@@ -123,7 +121,7 @@ const { openDialog } = useActionFormDialog<
     row
       ? { ...row }
       : {
-          type: OtherOutboundType.OTHER_OUTBOUND,
+          type: OtherOutboundType.WASTE,
           status: OtherOutboundStatus.DRAFT,
           details: []
         },

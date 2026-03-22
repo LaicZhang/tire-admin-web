@@ -71,7 +71,8 @@ const fetchData = async () => {
     const { data, code } = await getDisassemblyOrderListApi(
       pagination.value.currentPage,
       {
-        status: queryParams.status || undefined
+        status: queryParams.status || undefined,
+        keyword: queryParams.keyword || undefined
       }
     );
     if (code === 200) {

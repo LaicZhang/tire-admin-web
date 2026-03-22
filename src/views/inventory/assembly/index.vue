@@ -28,7 +28,8 @@ import {
   updateAssemblyOrderApi,
   deleteAssemblyOrderApi
 } from "@/api/business/assembly";
-import { http } from "@/utils/http";
+import { auditOrderApi } from "@/api";
+import { createBomFromOrderApi } from "@/api/inventory";
 import { handleApiError, message } from "@/utils";
 
 defineOptions({
@@ -69,7 +70,8 @@ const fetchData = async () => {
     const { data, code } = await getAssemblyOrderListApi(
       pagination.value.currentPage,
       {
-        status: queryParams.status || undefined
+        status: queryParams.status || undefined,
+        keyword: queryParams.keyword || undefined
       }
     );
     if (code === 200) {
@@ -184,7 +186,10 @@ const handleApprove = async (row: AssemblyOrder) => {
   if (!ok) return;
 
   try {
-    await http.request("post", `/api/v1/assembly-order/${row.uid}/approve`);
+    await auditOrderApi(row.uid, {
+      type: "assembly-order",
+      isApproved: true
+    });
     message("审核成功", { type: "success" });
     fetchData();
   } catch (error) {
@@ -202,8 +207,10 @@ const handleReject = async (row: AssemblyOrder) => {
     });
     if (typeof res === "string") return;
     const { value } = res;
-    await http.request("post", `/api/v1/assembly-order/${row.uid}/reject`, {
-      data: { reason: value }
+    await auditOrderApi(row.uid, {
+      type: "assembly-order",
+      isApproved: false,
+      desc: value
     });
     message("已拒绝", { type: "success" });
     fetchData();
@@ -221,7 +228,7 @@ const handleSaveAsBom = async (row: AssemblyOrder) => {
   if (!ok) return;
 
   try {
-    await http.request("post", `/api/v1/assembly-order/${row.uid}/save-as-bom`);
+    await createBomFromOrderApi(row.uid);
     message("已保存为BOM模板", { type: "success" });
   } catch (error) {
     handleApiError(error, "操作失败");

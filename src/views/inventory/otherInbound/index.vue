@@ -67,12 +67,9 @@ const statusOptions = Object.entries(otherInboundStatusMap).map(
   })
 );
 
-const typeOptions = Object.entries(otherInboundTypeMap).map(
-  ([value, config]) => ({
-    value,
-    label: config.label
-  })
-);
+const typeOptions = Object.entries(otherInboundTypeMap)
+  .map(([value, config]) => ({ value, label: config.label }))
+  .filter(item => item.value === OtherInboundType.SURPLUS);
 
 const fetchData = async () => {
   loading.value = true;
@@ -82,7 +79,8 @@ const fetchData = async () => {
       {
         ...queryParams,
         type: queryParams.type || undefined,
-        status: queryParams.status || undefined
+        status: queryParams.status || undefined,
+        keyword: queryParams.keyword || undefined
       }
     );
     if (code === 200) {

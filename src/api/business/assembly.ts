@@ -1,124 +1,87 @@
+import { createUid } from "@/utils/uid";
+import { useUserStoreHook } from "@/store/modules/user";
 import { http } from "../../utils/http";
+import { getCompanyId } from "../company";
 import { baseUrlApi } from "../utils";
 import type {
   CommonResult,
   PaginatedResponseDto,
   CountResponseDto
 } from "../type";
+import type {
+  AssemblyOrder,
+  AssemblyOrderQuery,
+  CreateAssemblyOrderDto,
+  UpdateAssemblyOrderDto
+} from "@/views/inventory/assembly/types";
+import {
+  buildAssemblyCreatePayload,
+  buildAssemblyUpdatePayload,
+  mapAssemblyOrderRecord,
+  type RawAssemblyOrder
+} from "../inventory-adapters";
 
 const prefix = "/assembly-order/";
-
-export enum AssemblyOrderStatus {
-  DRAFT = "draft",
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  COMPLETED = "completed"
-}
-
-export interface AssemblyComponent {
-  id?: number;
-  tireId: string;
-  tireName?: string;
-  tireBarcode?: string;
-  repoId?: string;
-  repoName?: string;
-  quantity: number;
-  unitCost?: number;
-  totalCost?: number;
-  remark?: string;
-  _uid?: string;
-}
-
-export interface CreateAssemblyOrderDto {
-  targetTireId: string;
-  targetRepoId: string;
-  quantity: number;
-  assemblyFee?: number;
-  orderDate?: string;
-  bomId?: string;
-  remark?: string;
-  components: (Omit<
-    AssemblyComponent,
-    "id" | "tireName" | "tireBarcode" | "repoName" | "totalCost"
-  > & { _uid?: string })[];
-}
-
-export type UpdateAssemblyOrderDto = Partial<CreateAssemblyOrderDto>;
-
-export interface AssemblyOrder {
-  id: number;
-  uid: string;
-  orderNumber?: string;
-  targetTireId: string;
-  targetTireName?: string;
-  targetTireBarcode?: string;
-  targetRepoId?: string;
-  targetRepoName?: string;
-  quantity: number;
-  assemblyFee: number;
-  totalCost?: number;
-  status: AssemblyOrderStatus;
-  isApproved: boolean;
-  isLocked: boolean;
-  operatorId?: string;
-  operatorName?: string;
-  auditorId?: string;
-  auditorName?: string;
-  orderDate?: string;
-  bomId?: string;
-  remark?: string;
-  components: AssemblyComponent[];
-  createdAt: string;
-  updatedAt?: string;
-}
-
-/** 组装订单查询参数 */
-export interface AssemblyOrderQuery {
-  status?: AssemblyOrderStatus;
-  startDate?: string;
-  endDate?: string;
-  keyword?: string;
-}
 
 export async function getAssemblyOrderListApi(
   index: number,
   params?: AssemblyOrderQuery
 ) {
-  return await http.request<CommonResult<PaginatedResponseDto<AssemblyOrder>>>(
-    "get",
-    baseUrlApi(prefix + "page/" + index),
-    { params }
-  );
+  const response = await http.request<
+    CommonResult<{ count: number; list: RawAssemblyOrder[] }>
+  >("get", baseUrlApi(prefix + "page/" + index), {
+    params: { ...params, type: "ASSEMBLY" }
+  });
+
+  return {
+    ...response,
+    data: {
+      total: response.data.count,
+      list: response.data.list.map(mapAssemblyOrderRecord)
+    }
+  } satisfies CommonResult<PaginatedResponseDto<AssemblyOrder>>;
 }
 
 export async function addAssemblyOrderApi(data: CreateAssemblyOrderDto) {
+  const payload = buildAssemblyCreatePayload(
+    data,
+    requireCompanyId(),
+    requireUserId(),
+    createUid()
+  );
   return await http.request<CommonResult<AssemblyOrder>>(
     "post",
     baseUrlApi(prefix),
-    {
-      data
-    }
+    { data: payload }
   );
 }
 
 export async function getAssemblyOrderApi(uid: string) {
-  return await http.request<CommonResult<AssemblyOrder>>(
+  const response = await http.request<CommonResult<RawAssemblyOrder>>(
     "get",
     baseUrlApi(prefix + uid)
   );
+
+  return {
+    ...response,
+    data: mapAssemblyOrderRecord(response.data)
+  } satisfies CommonResult<AssemblyOrder>;
 }
 
 export async function updateAssemblyOrderApi(
   uid: string,
   data: UpdateAssemblyOrderDto
 ) {
+  const payload = buildAssemblyUpdatePayload(
+    data as CreateAssemblyOrderDto,
+    requireCompanyId(),
+    requireUserId()
+  );
+
   return await http.request<CommonResult<AssemblyOrder>>(
     "patch",
     baseUrlApi(prefix + uid),
-    {
-      data
-    }
+    { data: payload }
   );
 }
 
@@ -134,4 +97,20 @@ export async function getAssemblyOrderCountApi() {
     "get",
     baseUrlApi(prefix + "count")
   );
+}
+
+function requireCompanyId() {
+  const companyId = getCompanyId();
+  if (!companyId) {
+    throw new Error("当前账套不存在，无法提交组装单");
+  }
+  return companyId;
+}
+
+function requireUserId() {
+  const userId = useUserStoreHook().uid;
+  if (!userId) {
+    throw new Error("当前登录用户不存在，无法提交组装单");
+  }
+  return userId;
 }
