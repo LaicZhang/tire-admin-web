@@ -29,7 +29,11 @@ vi.mock("./form.vue", () => ({
 }));
 
 import { ORDER_TYPE } from "@/utils";
-import { buildAuditOrderPayload, buildCreateOrderPayload } from "./table";
+import {
+  buildAuditOrderPayload,
+  buildCreateOrderPayload,
+  buildRefundPayload
+} from "./table";
 
 describe("business/order/table", () => {
   it("builds surplus order payload with repo-based details", () => {
@@ -135,6 +139,30 @@ describe("business/order/table", () => {
       type: ORDER_TYPE.sale,
       isApproved: false,
       desc: "库存不足"
+    });
+  });
+
+  it("builds refund payload with optional paymentId and desc", () => {
+    expect(
+      buildRefundPayload({
+        fee: 1200,
+        paymentId: " pay-1 ",
+        desc: " 退款备注 "
+      })
+    ).toEqual({
+      fee: 1200,
+      paymentId: "pay-1",
+      desc: "退款备注"
+    });
+
+    expect(
+      buildRefundPayload({
+        fee: 0,
+        paymentId: " ",
+        desc: ""
+      })
+    ).toEqual({
+      fee: 0
     });
   });
 });

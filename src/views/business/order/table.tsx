@@ -156,6 +156,19 @@ function toOptionalNumber(value: unknown) {
   return Number.isFinite(next) ? next : undefined;
 }
 
+export function buildRefundPayload(
+  submitData: Pick<OrderRow, "fee" | "paymentId" | "desc">
+) {
+  const payload: { fee: number; paymentId?: string; desc?: string } = {
+    fee: submitData.fee || 0
+  };
+  const paymentId = toOptionalString(submitData.paymentId);
+  if (paymentId) payload.paymentId = paymentId;
+  const desc = toOptionalString(submitData.desc);
+  if (desc) payload.desc = desc;
+  return payload;
+}
+
 function normalizeAttachments(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value
@@ -428,9 +441,7 @@ async function submitClaimPayment({ submitData }: SubmitContext) {
 }
 
 async function submitRefund({ submitData }: SubmitContext) {
-  await refundReturnOrderApi(submitData.uid, {
-    fee: submitData.fee || 0
-  });
+  await refundReturnOrderApi(submitData.uid, buildRefundPayload(submitData));
   return true;
 }
 

@@ -391,7 +391,10 @@ export async function confirmReturnOrderDeliveryApi(
   );
 }
 
-export async function refundReturnOrderApi(uid: string, data: { fee: number }) {
+export async function refundReturnOrderApi(
+  uid: string,
+  data: { fee: number; paymentId?: string; desc?: string }
+) {
   return await http.request<CommonResult>(
     "patch",
     baseUrlApi(`/return-order/refund/${uid}`),
