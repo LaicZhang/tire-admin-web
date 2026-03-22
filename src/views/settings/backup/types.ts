@@ -6,9 +6,9 @@ export interface BackupItem {
   fileSizeText: string;
   backupType: "manual" | "auto";
   backupTypeName: string;
-  status: "success" | "failed" | "processing";
+  status: "pending" | "success" | "failed" | "processing";
   statusName: string;
-  remark: string;
+  operatorName: string;
   createTime: string;
 }
 

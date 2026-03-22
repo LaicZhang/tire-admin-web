@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
-import type { CommonResult, PaginatedResponseDto } from "../type";
+import type { CommonResult } from "../type";
 
 /** 备份查询参数 */
 export interface BackupQuery {
@@ -12,14 +12,21 @@ export interface BackupQuery {
 }
 
 /** 备份记录 */
-export interface BackupRecord {
+export interface BackupTaskRecord {
   uid: string;
   id: number;
-  name: string;
-  size: number;
+  issuerId: string;
+  issuerName?: string | null;
+  action: "backup" | "restore";
+  sourceUid?: string | null;
+  fileName: string;
+  filePath: string;
+  fileSize?: number | null;
+  durationMs?: number | null;
+  completedAt?: string | null;
   createdAt: string;
-  status: "pending" | "completed" | "failed";
-  type: "manual" | "auto";
+  status: "PENDING" | "SUCCESS" | "FAILED" | "RESTORING";
+  error?: string | null;
 }
 
 /** 备份设置 */
@@ -32,30 +39,45 @@ export interface BackupSettings {
   keepDays: number;
 }
 
-export async function getBackupListApi(params?: BackupQuery) {
-  return await http.request<CommonResult<PaginatedResponseDto<BackupRecord>>>(
-    "get",
-    baseUrlApi("/backup/"),
+export interface RestoreBackupPayload {
+  confirm: true;
+  reason: string;
+}
+
+export async function getBackupListApi(index = 1, params?: BackupQuery) {
+  return await http.request<
+    CommonResult<{ count: number; list: BackupTaskRecord[] }>
+  >("get", baseUrlApi(`/backup/page/${index}`), {
+    params
+  });
+}
+
+export async function createBackupApi() {
+  return await http.request<CommonResult<BackupTaskRecord>>(
+    "post",
+    baseUrlApi("/backup")
+  );
+}
+
+export async function uploadBackupApi(data: FormData) {
+  return await http.request<CommonResult<BackupTaskRecord>>(
+    "post",
+    baseUrlApi("/backup/upload"),
     {
-      params
+      data,
+      headers: { "Content-Type": "multipart/form-data" }
     }
   );
 }
 
-export async function createBackupApi(data: { name?: string }) {
-  return await http.request<CommonResult<BackupRecord>>(
+export async function restoreBackupApi(
+  backupId: string,
+  data: RestoreBackupPayload
+) {
+  return await http.request<CommonResult<BackupTaskRecord>>(
     "post",
-    baseUrlApi("/backup/"),
-    {
-      data
-    }
-  );
-}
-
-export async function restoreBackupApi(backupId: string) {
-  return await http.request<CommonResult<void>>(
-    "post",
-    baseUrlApi("/backup/" + backupId + "/restore")
+    baseUrlApi("/backup/" + backupId + "/restore"),
+    { data }
   );
 }
 
@@ -70,7 +92,7 @@ export async function downloadBackupApi(backupId: string) {
 }
 
 export async function deleteBackupApi(backupId: string) {
-  return await http.request<CommonResult<void>>(
+  return await http.request<CommonResult<{ deleted: number }>>(
     "delete",
     baseUrlApi("/backup/" + backupId)
   );

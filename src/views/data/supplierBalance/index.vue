@@ -13,10 +13,19 @@ import { MoneyDisplay } from "@/components";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
+import {
+  validateFile as validateFileUtil,
+  FileTypePresets
+} from "@/composables/useFileValidation";
 import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { SupplierBalance, SupplierBalanceForm } from "./types";
-import type { FormInstance } from "element-plus";
+import type {
+  FormInstance,
+  UploadProgressEvent,
+  UploadRequestOptions
+} from "element-plus";
+import type { UploadAjaxError } from "element-plus/es/components/upload/src/ajax";
 import {
   createInitialBalanceApi,
   getInitialBalanceBatchApi,
@@ -27,6 +36,8 @@ import {
   getProviderBatchApi,
   type Provider
 } from "@/api/business/provider";
+import { exportDataApi, getExportSchemaApi, importDataApi } from "@/api/tools";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { columns } from "./columns";
 
 defineOptions({
@@ -47,6 +58,8 @@ const pagination = ref({
   currentPage: 1,
   background: true
 });
+const importLoading = ref(false);
+const exportLoading = ref(false);
 
 const PROVIDER_PAYABLE_TYPE = "provider-payable";
 const PROVIDER_PREPAID_TYPE = "provider-prepaid";
@@ -308,6 +321,90 @@ const handleBatchDelete = () => {
   });
 };
 
+const beforeUpload = (file: File) => {
+  const result = validateFileUtil(file, FileTypePresets.excel, true);
+  return result.valid;
+};
+
+const handleImportRequest = async (options: UploadRequestOptions) => {
+  const toUploadAjaxError = (err: unknown): UploadAjaxError => {
+    const base = err instanceof Error ? err : new Error(String(err));
+    const e = base as UploadAjaxError;
+    e.name = "UploadAjaxError";
+    e.status = e.status ?? 0;
+    e.method = e.method ?? options.method;
+    e.url = e.url ?? options.action;
+    return e;
+  };
+
+  try {
+    importLoading.value = true;
+    const formData = new FormData();
+    formData.append("file", options.file);
+    const { code, msg } = await importDataApi("supplier-balance", formData, p =>
+      options.onProgress?.({ percent: p } as UploadProgressEvent)
+    );
+    if (code !== 200) {
+      options.onError?.(toUploadAjaxError(msg || "导入失败"));
+      message(msg || "导入失败", { type: "error" });
+      return;
+    }
+    options.onSuccess?.({ code });
+    message("导入成功", { type: "success" });
+    getList();
+  } catch (error) {
+    options.onError?.(toUploadAjaxError(error));
+    message("导入失败", { type: "error" });
+  } finally {
+    importLoading.value = false;
+  }
+};
+
+const handleExport = async () => {
+  try {
+    exportLoading.value = true;
+    const fields = await getDefaultExportFields("supplier-balance");
+    const blob = await exportDataApi("supplier-balance", {
+      ids: getExportIds(),
+      fields,
+      filters: {
+        keyword: form.value.keyword || undefined
+      }
+    });
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp("supplier-balance", "xlsx"),
+      {
+        showMessage: true
+      }
+    );
+  } catch {
+    message("导出失败", { type: "error" });
+  } finally {
+    exportLoading.value = false;
+  }
+};
+
+const getExportIds = () => {
+  if (selectedRows.value.length) {
+    return selectedRows.value.map(row => row.uid);
+  }
+  if (form.value.hasBalance !== undefined) {
+    return dataList.value.map(row => row.uid);
+  }
+  return undefined;
+};
+
+async function getDefaultExportFields(type: string) {
+  const { code, data, msg } = await getExportSchemaApi(type);
+  if (code !== 200 || !data) {
+    throw new Error(msg || "获取导出字段失败");
+  }
+  return (data.fields || [])
+    .filter(field => field.required || field.defaultSelected)
+    .map(field => field.key);
+}
+
 onMounted(() => {
   getList();
 });
@@ -400,8 +497,26 @@ onMounted(() => {
           >
             批量删除
           </el-button>
-          <el-button :icon="useRenderIcon(ImportIcon)"> 导入 </el-button>
-          <el-button :icon="useRenderIcon(ExportIcon)"> 导出 </el-button>
+          <el-upload
+            :show-file-list="false"
+            :before-upload="beforeUpload"
+            :http-request="handleImportRequest"
+            accept=".xlsx,.csv"
+          >
+            <el-button
+              :icon="useRenderIcon(ImportIcon)"
+              :loading="importLoading"
+            >
+              导入
+            </el-button>
+          </el-upload>
+          <el-button
+            :icon="useRenderIcon(ExportIcon)"
+            :loading="exportLoading"
+            @click="handleExport"
+          >
+            导出
+          </el-button>
         </template>
         <template v-slot="{ size }">
           <pure-table

@@ -24,8 +24,13 @@ defineOptions({
   name: "SystemBackup"
 });
 
+type BackupTaskView = Omit<BackupTask, "status"> & {
+  status: "pending" | "success" | "failed" | "restoring";
+  finishAt?: string | null;
+};
+
 const loading = ref(false);
-const backupList = ref<BackupTask[]>([]);
+const backupList = ref<BackupTaskView[]>([]);
 const pagination = reactive({
   total: 0,
   pageSize: PAGE_SIZE_SMALL,
@@ -36,7 +41,7 @@ const pagination = reactive({
 const backupStatusMap = {
   success: { label: "成功", type: "success" },
   failed: { label: "失败", type: "danger" },
-  running: { label: "进行中", type: "warning" },
+  restoring: { label: "恢复中", type: "warning" },
   pending: { label: "等待中", type: "info" }
 } as const;
 
@@ -46,7 +51,11 @@ const loadData = async () => {
   try {
     const { data, code } = await getBackupListApi(pagination.currentPage);
     if (code === 200) {
-      backupList.value = data.list || [];
+      backupList.value = (data.list || []).map(item => ({
+        ...item,
+        status: normalizeStatus(item.status),
+        finishAt: item.completedAt
+      }));
       pagination.total = data.count || 0;
     }
   } catch (error) {
@@ -73,7 +82,7 @@ const handleCreateBackup = async () => {
 };
 
 // 下载备份
-const handleDownload = async (row: BackupTask) => {
+const handleDownload = async (row: BackupTaskView) => {
   if (row.status !== "success") {
     message("只能下载成功的备份", { type: "warning" });
     return;
@@ -93,7 +102,7 @@ const handleDownload = async (row: BackupTask) => {
 };
 
 // 删除备份
-const handleDelete = async (row: BackupTask) => {
+const handleDelete = async (row: BackupTaskView) => {
   try {
     await confirmBox("确定要删除此备份吗？删除后无法恢复。");
     loading.value = true;
@@ -119,6 +128,20 @@ const handleCurrentChange = (val: number) => {
 onMounted(() => {
   loadData();
 });
+
+function normalizeStatus(status: BackupTask["status"]) {
+  switch (status) {
+    case "SUCCESS":
+      return "success";
+    case "FAILED":
+      return "failed";
+    case "RESTORING":
+      return "restoring";
+    case "PENDING":
+    default:
+      return "pending";
+  }
+}
 </script>
 
 <template>

@@ -9,6 +9,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { message } from "@/utils";
 import { downloadBlob } from "@/utils/download";
+import { formatFileSize } from "@/utils/format";
 import {
   ElMessageBox,
   type UploadInstance,
@@ -18,11 +19,13 @@ import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   getBackupListApi,
   createBackupApi,
+  uploadBackupApi,
   restoreBackupApi,
   downloadBackupApi,
   deleteBackupApi,
   getBackupSettingsApi,
-  updateBackupSettingsApi
+  updateBackupSettingsApi,
+  type BackupTaskRecord
 } from "@/api/setting";
 import type { BackupItem, BackupSettings } from "./types";
 
@@ -60,6 +63,7 @@ const loadSettings = async () => {
 };
 
 const backupTaskStatusMap = {
+  pending: { label: "等待中", type: "info" },
   success: { label: "成功", type: "success" },
   failed: { label: "失败", type: "danger" },
   processing: { label: "处理中", type: "warning" }
@@ -108,8 +112,8 @@ const columns: TableColumnList = [
     minWidth: 160
   },
   {
-    label: "备注",
-    prop: "remark",
+    label: "操作人",
+    prop: "operatorName",
     minWidth: 150
   },
   {
@@ -123,21 +127,11 @@ const columns: TableColumnList = [
 const loadData = async () => {
   loading.value = true;
   try {
-    const { code, data } = await getBackupListApi();
+    const { code, data } = await getBackupListApi(1);
     if (code === 200 && data) {
-      const maybeList = data as unknown;
-      if (Array.isArray(maybeList)) {
-        backupList.value = maybeList as BackupItem[];
-      } else if (
-        typeof maybeList === "object" &&
-        maybeList &&
-        "list" in maybeList
-      ) {
-        const list = (maybeList as { list?: BackupItem[] }).list;
-        backupList.value = Array.isArray(list) ? list : [];
-      } else {
-        backupList.value = [];
-      }
+      backupList.value = (data.list || [])
+        .filter(item => item.action === "backup")
+        .map(normalizeBackupItem);
     } else {
       message("加载备份列表失败", { type: "error" });
     }
@@ -150,22 +144,8 @@ const loadData = async () => {
 
 const startBackup = async () => {
   try {
-    type PromptResult = { value: string } | string;
-    const res = await ElMessageBox.prompt(
-      "请输入备份备注（可选）",
-      "开始备份",
-      {
-        confirmButtonText: "开始备份",
-        cancelButtonText: "取消",
-        inputPlaceholder: "请输入备注"
-      }
-    );
-    const result = res as PromptResult;
-    const value = typeof result === "string" ? result : result.value;
     loading.value = true;
-    const payload: Record<string, unknown> = {};
-    if (value?.trim()) payload.remark = value.trim();
-    const { code } = await createBackupApi(payload);
+    const { code } = await createBackupApi();
     if (code === 200) {
       message("备份任务已启动", { type: "success" });
       loadData();
@@ -198,7 +178,7 @@ const handleUploadRequest = async (options: UploadRequestOptions) => {
     loading.value = true;
     const formData = new FormData();
     formData.append("file", options.file);
-    const { code } = await createBackupApi(formData as unknown as object);
+    const { code } = await uploadBackupApi(formData);
     if (code === 200) {
       options.onSuccess?.({ code });
       message("上传成功", { type: "success" });
@@ -220,28 +200,37 @@ const restoreBackup = async (row: BackupItem) => {
     message("只能恢复成功的备份", { type: "warning" });
     return;
   }
-  const ok = await confirm(
-    `确定要恢复到备份 "${row.fileName}" 吗？恢复后当前数据将被覆盖，此操作不可撤销！`,
-    "恢复确认",
-    {
-      confirmButtonText: "确定恢复",
-      cancelButtonText: "取消",
-      type: "warning"
-    }
-  );
-  if (!ok) return;
 
   try {
+    type PromptResult = { value: string } | string;
+    const result = (await ElMessageBox.prompt(
+      `确定要恢复到备份 "${row.fileName}" 吗？恢复后当前数据将被覆盖，请填写恢复原因。`,
+      "恢复确认",
+      {
+        confirmButtonText: "确定恢复",
+        cancelButtonText: "取消",
+        inputPlaceholder: "请输入至少5个字符的恢复原因",
+        inputValidator: value =>
+          value.trim().length >= 5 ? true : "请输入至少5个字符的恢复原因",
+        type: "warning"
+      }
+    )) as PromptResult;
+    const reason = (typeof result === "string" ? result : result.value).trim();
     loading.value = true;
-    const { code } = await restoreBackupApi(row.uid);
+    const { code } = await restoreBackupApi(row.uid, {
+      confirm: true,
+      reason
+    });
     if (code === 200) {
       message("恢复任务已启动", { type: "success" });
       loadData();
     } else {
       message("恢复失败", { type: "error" });
     }
-  } catch {
-    message("恢复失败", { type: "error" });
+  } catch (error) {
+    if (error !== "cancel" && error !== "close") {
+      message("恢复失败", { type: "error" });
+    }
   } finally {
     loading.value = false;
   }
@@ -310,6 +299,39 @@ onMounted(() => {
   loadSettings();
   loadData();
 });
+
+function normalizeBackupItem(item: BackupTaskRecord): BackupItem {
+  const status = normalizeStatus(item.status);
+  const backupType = item.issuerId === "system" ? "auto" : "manual";
+  return {
+    uid: item.uid,
+    fileName: item.fileName,
+    fileSize: Number(item.fileSize || 0),
+    fileSizeText: formatFileSize(Number(item.fileSize || 0)),
+    backupType,
+    backupTypeName: backupType === "auto" ? "自动备份" : "手动备份",
+    status,
+    statusName: backupTaskStatusMap[status].label,
+    operatorName: item.issuerName || item.issuerId || "-",
+    createTime: item.createdAt
+  };
+}
+
+function normalizeStatus(
+  status: BackupTaskRecord["status"]
+): BackupItem["status"] {
+  switch (status) {
+    case "SUCCESS":
+      return "success";
+    case "FAILED":
+      return "failed";
+    case "PENDING":
+      return "pending";
+    case "RESTORING":
+    default:
+      return "processing";
+  }
+}
 </script>
 
 <template>
@@ -404,7 +426,7 @@ onMounted(() => {
             ref="uploadRef"
             :show-file-list="false"
             :http-request="handleUploadRequest"
-            accept=".zip,.sql,.gz,.tar,.tgz"
+            accept=".sql,.enc"
           >
             <el-button :icon="useRenderIcon(Upload)" :loading="loading">
               上传备份
