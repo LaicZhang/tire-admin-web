@@ -4,6 +4,7 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import dayjs from "dayjs";
 import { getPurchaseOrderListApi } from "@/api/purchase";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
+import { exportSectionedCsv } from "@/utils/tablePresentation";
 import type {
   PurchaseStatistics,
   ProviderRanking,
@@ -221,7 +222,83 @@ function onReset() {
 }
 
 async function handleExport() {
-  message("导出功能开发中", { type: "info" });
+  exportSectionedCsv(
+    [
+      {
+        title: "采购汇总",
+        rows: [
+          {
+            totalOrders: statistics.value.totalOrders,
+            totalAmount: statistics.value.totalAmount,
+            totalPaid: statistics.value.totalPaid,
+            totalUnpaid: statistics.value.totalUnpaid,
+            totalQuantity: statistics.value.totalQuantity,
+            averageOrderAmount: statistics.value.averageOrderAmount
+          }
+        ],
+        columns: [
+          {
+            label: "采购订单总数",
+            value: (row: PurchaseStatistics) => row.totalOrders
+          },
+          {
+            label: "采购总金额",
+            value: (row: PurchaseStatistics) => row.totalAmount
+          },
+          {
+            label: "已付款金额",
+            value: (row: PurchaseStatistics) => row.totalPaid
+          },
+          {
+            label: "待付款金额",
+            value: (row: PurchaseStatistics) => row.totalUnpaid
+          },
+          {
+            label: "采购商品总数",
+            value: (row: PurchaseStatistics) => row.totalQuantity
+          },
+          {
+            label: "平均订单金额",
+            value: (row: PurchaseStatistics) => row.averageOrderAmount
+          }
+        ]
+      },
+      {
+        title: "供应商采购排名",
+        rows: providerRanking.value,
+        columns: [
+          {
+            label: "供应商",
+            value: (row: ProviderRanking) => row.providerName
+          },
+          { label: "订单数", value: (row: ProviderRanking) => row.orderCount },
+          {
+            label: "采购数量",
+            value: (row: ProviderRanking) => row.totalQuantity
+          },
+          {
+            label: "采购金额",
+            value: (row: ProviderRanking) => row.totalAmount
+          },
+          {
+            label: "占比",
+            value: (row: ProviderRanking) => `${row.percentage.toFixed(1)}%`
+          }
+        ]
+      },
+      {
+        title: "采购趋势",
+        rows: trendData.value,
+        columns: [
+          { label: "日期", value: (row: TrendData) => row.date },
+          { label: "订单数", value: (row: TrendData) => row.orderCount },
+          { label: "采购数量", value: (row: TrendData) => row.quantity },
+          { label: "采购金额", value: (row: TrendData) => row.amount }
+        ]
+      }
+    ],
+    "purchase-report"
+  );
 }
 
 onMounted(async () => {

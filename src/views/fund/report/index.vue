@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, reactive, onMounted, computed } from "vue";
-import { ElMessage } from "element-plus";
 import type { TabPaneName } from "element-plus";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { http } from "@/utils/http";
-import { handleApiError } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { getPaymentListApi } from "@/api/payment";
+import { fenToYuanOrDash } from "@/utils/formatMoney";
+import {
+  exportRowsAsCsv,
+  printRows,
+  type PresentationColumn
+} from "@/utils/tablePresentation";
 import {
   type FundFlow,
   type AccountBalance,
@@ -55,6 +60,50 @@ const debtTargetNameOptions = computed(() => {
   }
   return names;
 });
+
+const fundFlowExportColumns: PresentationColumn<FundFlow>[] = [
+  { label: "流水号", value: row => row.serialNo },
+  { label: "账户", value: row => row.paymentName || "-" },
+  { label: "交易类型", value: row => row.transactionType },
+  {
+    label: "收支方向",
+    value: row => (row.direction === "IN" ? "收入" : "支出")
+  },
+  {
+    label: "金额",
+    value: row =>
+      `${row.direction === "IN" ? "+" : "-"}${fenToYuanOrDash(row.amount)}`
+  },
+  { label: "交易前余额", value: row => fenToYuanOrDash(row.beforeBalance) },
+  { label: "交易后余额", value: row => fenToYuanOrDash(row.afterBalance) },
+  { label: "往来单位", value: row => row.targetName || "-" },
+  { label: "摘要", value: row => row.summary || "-" },
+  { label: "关联单据", value: row => row.billNo || "-" },
+  { label: "交易时间", value: row => row.transactionTime || "-" },
+  { label: "经办人", value: row => row.operatorName || "-" }
+];
+
+const accountBalanceExportColumns: PresentationColumn<AccountBalance>[] = [
+  { label: "账户名称", value: row => row.paymentName },
+  { label: "账户类型", value: row => row.accountType || "-" },
+  { label: "期初余额", value: row => fenToYuanOrDash(row.openingBalance) },
+  { label: "本期收入", value: row => fenToYuanOrDash(row.periodIncome) },
+  { label: "本期支出", value: row => fenToYuanOrDash(row.periodExpense) },
+  { label: "期末余额", value: row => fenToYuanOrDash(row.closingBalance) }
+];
+
+const contactDebtExportColumns: PresentationColumn<ContactDebt>[] = [
+  { label: "单位名称", value: row => row.targetName },
+  {
+    label: "单位类型",
+    value: row => (row.targetType === "CUSTOMER" ? "客户" : "供应商")
+  },
+  { label: "应收金额", value: row => fenToYuanOrDash(row.receivableAmount) },
+  { label: "应付金额", value: row => fenToYuanOrDash(row.payableAmount) },
+  { label: "净欠款", value: row => fenToYuanOrDash(row.netDebt) },
+  { label: "预收金额", value: row => fenToYuanOrDash(row.advanceReceived) },
+  { label: "预付金额", value: row => fenToYuanOrDash(row.advancePaid) }
+];
 
 // 当前激活的标签页
 const activeTab = ref("flow");
@@ -287,11 +336,47 @@ function handleTabChange(tab: TabPaneName) {
 }
 
 function handleExport() {
-  ElMessage.info("导出功能开发中");
+  if (activeTab.value === "flow") {
+    exportRowsAsCsv(
+      fundFlowList.value,
+      fundFlowExportColumns,
+      "fund-flow-report"
+    );
+    return;
+  }
+  if (activeTab.value === "balance") {
+    exportRowsAsCsv(
+      accountBalanceList.value,
+      accountBalanceExportColumns,
+      "account-balance-report"
+    );
+    return;
+  }
+  exportRowsAsCsv(
+    contactDebtList.value,
+    contactDebtExportColumns,
+    "contact-debt-report"
+  );
 }
 
 function handlePrint() {
-  ElMessage.info("打印功能开发中");
+  try {
+    if (activeTab.value === "flow") {
+      printRows(fundFlowList.value, fundFlowExportColumns, "资金流水明细");
+      return;
+    }
+    if (activeTab.value === "debt") {
+      printRows(
+        contactDebtList.value,
+        contactDebtExportColumns,
+        "往来单位欠款表"
+      );
+      return;
+    }
+    message("当前标签页不支持打印", { type: "warning" });
+  } catch (error) {
+    handleApiError(error, "打印失败");
+  }
 }
 
 onMounted(() => {

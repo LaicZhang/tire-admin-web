@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, reactive, onMounted, computed } from "vue";
-import { ElMessage } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Download from "~icons/ep/download";
 import Printer from "~icons/ep/printer";
-import Setting from "~icons/ep/setting";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { balanceColumns, detailColumns, summaryColumns } from "./columns";
@@ -20,6 +18,12 @@ import {
 import { http } from "@/utils/http";
 import { logger } from "@/utils/logger";
 import RepoSelect from "@/components/EntitySelect/RepoSelect.vue";
+import { fenToYuan } from "@/utils/formatMoney";
+import {
+  exportRowsAsCsv,
+  printRows,
+  type PresentationColumn
+} from "@/utils/tablePresentation";
 
 defineOptions({
   name: "InventoryReport"
@@ -79,6 +83,69 @@ const currentData = computed(() => {
       return balanceList.value;
   }
 });
+
+const balanceExportColumns: PresentationColumn<InventoryBalance>[] = [
+  { label: "商品名称", value: row => row.tireName },
+  { label: "商品编码", value: row => row.tireBarcode || "-" },
+  { label: "仓库", value: row => row.repoName },
+  { label: "库存数量", value: row => row.quantity },
+  {
+    label: "单位成本",
+    value: row => (row.unitCost ? `¥${fenToYuan(row.unitCost)}` : "-")
+  },
+  {
+    label: "库存金额",
+    value: row => (row.totalCost ? `¥${fenToYuan(row.totalCost)}` : "-")
+  },
+  { label: "最近入库", value: row => row.lastInboundDate || "-" },
+  { label: "最近出库", value: row => row.lastOutboundDate || "-" }
+];
+
+const detailExportColumns: PresentationColumn<InventoryDetail>[] = [
+  { label: "单据编号", value: row => row.orderNumber },
+  { label: "单据类型", value: row => row.orderType },
+  { label: "商品名称", value: row => row.tireName },
+  { label: "仓库", value: row => row.repoName },
+  { label: "方向", value: row => (row.direction === "in" ? "入库" : "出库") },
+  { label: "数量", value: row => row.quantity },
+  {
+    label: "单位成本",
+    value: row => (row.unitCost ? `¥${fenToYuan(row.unitCost)}` : "-")
+  },
+  {
+    label: "金额",
+    value: row => (row.totalCost ? `¥${fenToYuan(row.totalCost)}` : "-")
+  },
+  { label: "操作人", value: row => row.operatorName || "-" },
+  { label: "日期", value: row => row.orderDate || "-" },
+  { label: "备注", value: row => row.remark || "-" }
+];
+
+const summaryExportColumns: PresentationColumn<InventorySummary>[] = [
+  { label: "商品名称", value: row => row.tireName },
+  { label: "商品编码", value: row => row.tireBarcode || "-" },
+  { label: "仓库", value: row => row.repoName || "-" },
+  { label: "期初数量", value: row => row.openingQuantity },
+  {
+    label: "期初金额",
+    value: row => (row.openingCost ? `¥${fenToYuan(row.openingCost)}` : "-")
+  },
+  { label: "入库数量", value: row => row.inboundQuantity },
+  {
+    label: "入库金额",
+    value: row => (row.inboundCost ? `¥${fenToYuan(row.inboundCost)}` : "-")
+  },
+  { label: "出库数量", value: row => row.outboundQuantity },
+  {
+    label: "出库金额",
+    value: row => (row.outboundCost ? `¥${fenToYuan(row.outboundCost)}` : "-")
+  },
+  { label: "期末数量", value: row => row.closingQuantity },
+  {
+    label: "期末金额",
+    value: row => (row.closingCost ? `¥${fenToYuan(row.closingCost)}` : "-")
+  }
+];
 
 const fetchData = async () => {
   loading.value = true;
@@ -164,15 +231,43 @@ const handleViewDetail = (row: InventoryBalance) => {
 };
 
 const handleExport = () => {
-  ElMessage.info("导出功能开发中");
+  if (currentReportType.value === ReportType.DETAIL) {
+    exportRowsAsCsv(
+      detailList.value,
+      detailExportColumns,
+      "inventory-detail-report"
+    );
+    return;
+  }
+  if (currentReportType.value === ReportType.SUMMARY) {
+    exportRowsAsCsv(
+      summaryList.value,
+      summaryExportColumns,
+      "inventory-summary-report"
+    );
+    return;
+  }
+  exportRowsAsCsv(
+    balanceList.value,
+    balanceExportColumns,
+    "inventory-balance-report"
+  );
 };
 
 const handlePrint = () => {
-  ElMessage.info("打印功能开发中");
-};
-
-const handleColumnSetting = () => {
-  ElMessage.info("列设置功能开发中");
+  try {
+    if (currentReportType.value === ReportType.DETAIL) {
+      printRows(detailList.value, detailExportColumns, "商品收发明细表");
+      return;
+    }
+    if (currentReportType.value === ReportType.SUMMARY) {
+      printRows(summaryList.value, summaryExportColumns, "商品收发汇总表");
+      return;
+    }
+    printRows(balanceList.value, balanceExportColumns, "商品库存余额表");
+  } catch (error) {
+    logger.error("打印库存报表失败", error);
+  }
 };
 
 onMounted(() => {
@@ -248,6 +343,7 @@ onMounted(() => {
     <el-card>
       <PureTableBar
         :title="reportTypeMap[currentReportType]?.label || '库存报表'"
+        :columns="currentColumns"
         @refresh="fetchData"
       >
         <template #buttons>
@@ -257,19 +353,13 @@ onMounted(() => {
           <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
             打印
           </el-button>
-          <el-button
-            :icon="useRenderIcon(Setting)"
-            @click="handleColumnSetting"
-          >
-            列设置
-          </el-button>
         </template>
-        <template v-slot="{ size }">
+        <template v-slot="{ size, dynamicColumns }">
           <pure-table
             row-key="id"
             adaptive
             :size="size"
-            :columns="currentColumns"
+            :columns="dynamicColumns"
             border
             :data="currentData"
             :loading="loading"

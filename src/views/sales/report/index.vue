@@ -9,6 +9,7 @@ import {
   handleApiError,
   formatDate
 } from "@/utils";
+import { exportSectionedCsv } from "@/utils/tablePresentation";
 import { MAX_FETCH_PAGE_SIZE } from "@/utils/constants";
 import type {
   SalesStatistics,
@@ -182,7 +183,80 @@ function onReset() {
 }
 
 async function handleExport() {
-  message("导出功能开发中", { type: "info" });
+  exportSectionedCsv(
+    [
+      {
+        title: "销售汇总",
+        rows: [
+          {
+            totalOrders: statistics.value.totalOrders,
+            totalAmount: statistics.value.totalAmount,
+            totalReceived: statistics.value.totalReceived,
+            totalUnreceived: statistics.value.totalUnreceived,
+            totalQuantity: statistics.value.totalQuantity,
+            averageOrderAmount: statistics.value.averageOrderAmount
+          }
+        ],
+        columns: [
+          {
+            label: "销售订单总数",
+            value: (row: SalesStatistics) => row.totalOrders
+          },
+          {
+            label: "销售总金额",
+            value: (row: SalesStatistics) => row.totalAmount
+          },
+          {
+            label: "已收款金额",
+            value: (row: SalesStatistics) => row.totalReceived
+          },
+          {
+            label: "待收款金额",
+            value: (row: SalesStatistics) => row.totalUnreceived
+          },
+          {
+            label: "销售商品总数",
+            value: (row: SalesStatistics) => row.totalQuantity
+          },
+          {
+            label: "平均订单金额",
+            value: (row: SalesStatistics) => row.averageOrderAmount
+          }
+        ]
+      },
+      {
+        title: "客户销售排名",
+        rows: customerRanking.value,
+        columns: [
+          { label: "客户", value: (row: CustomerRanking) => row.customerName },
+          { label: "订单数", value: (row: CustomerRanking) => row.orderCount },
+          {
+            label: "销售数量",
+            value: (row: CustomerRanking) => row.totalQuantity
+          },
+          {
+            label: "销售金额",
+            value: (row: CustomerRanking) => row.totalAmount
+          },
+          {
+            label: "占比",
+            value: (row: CustomerRanking) => `${row.percentage.toFixed(1)}%`
+          }
+        ]
+      },
+      {
+        title: "销售趋势",
+        rows: trendData.value,
+        columns: [
+          { label: "日期", value: (row: TrendData) => row.date },
+          { label: "订单数", value: (row: TrendData) => row.orderCount },
+          { label: "销售数量", value: (row: TrendData) => row.quantity },
+          { label: "销售金额", value: (row: TrendData) => row.amount }
+        ]
+      }
+    ],
+    "sales-report"
+  );
 }
 
 onMounted(async () => {
