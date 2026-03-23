@@ -137,12 +137,16 @@ export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
         currentTask.value.id
       );
       if (code === 200) {
-        message(
-          "盘点完成！" +
-            (data.surplusOrderId ? " 已生成盘盈单" : "") +
-            (data.wasteOrderId ? " 已生成盘亏单" : ""),
-          { type: "success" }
-        );
+        const generated = [
+          data.surplusOrderId ? "已生成盘盈单" : "",
+          data.wasteOrderId ? "已生成盘亏单" : ""
+        ]
+          .filter(Boolean)
+          .join("，");
+        const suffix = generated
+          ? `，${generated}，库存以后续单据审核为准`
+          : "";
+        message(`盘点完成${suffix}`, { type: "success" });
         currentTask.value = data.task;
         loadTaskList();
       }

@@ -186,7 +186,7 @@ describe("useStockTakingTasks", () => {
     expect(completeInventoryCheckTaskApi).toHaveBeenCalledWith(9);
     expect(composable.currentTask.value).toMatchObject({ status: "COMPLETED" });
     expect(message).toHaveBeenCalledWith(
-      "盘点完成！ 已生成盘盈单 已生成盘亏单",
+      "盘点完成，已生成盘盈单，已生成盘亏单，库存以后续单据审核为准",
       {
         type: "success"
       }
