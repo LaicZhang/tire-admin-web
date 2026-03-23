@@ -59,6 +59,11 @@ interface OrderDetail {
   tireId?: string;
   repoId?: string;
   serialNo?: string;
+  dotCodeMin?: string;
+  dotCodeMax?: string;
+  dotRequirementRemark?: string;
+  oldTireDisposition?: string;
+  oldTireRemark?: string;
   desc?: string;
   number?: string;
   isArrival?: boolean;
@@ -229,6 +234,15 @@ function makeDetailsRule() {
             if (serialNo.length > 100) {
               return callback(
                 new Error(`明细第 ${rowNo} 行：胎号最多 100 个字符`)
+              );
+            }
+            const oldTireDisposition =
+              typeof row.oldTireDisposition === "string"
+                ? row.oldTireDisposition.trim()
+                : "";
+            if (!oldTireDisposition) {
+              return callback(
+                new Error(`明细第 ${rowNo} 行：退胎扣库必须填写旧胎去向`)
               );
             }
           }

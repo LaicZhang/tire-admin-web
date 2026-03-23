@@ -845,6 +845,21 @@ export default [
           title: "轮胎序列号管理",
           icon: null
         }
+      },
+      {
+        id: 58,
+        uid: "4dd4bf61-a0bf-449f-b4d4-cf8254745b42",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "installationRecord",
+        path: "/business/installationRecord",
+        component: () =>
+          import("@/views/business/installationRecord/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "seller", "warehouseManager"],
+          title: "安装登记",
+          icon: null
+        }
       }
     ]
   },

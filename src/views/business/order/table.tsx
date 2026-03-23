@@ -52,6 +52,11 @@ interface _OrderDetail {
   tireId?: string;
   repoId?: string;
   serialNo?: string | null;
+  dotCodeMin?: string | null;
+  dotCodeMax?: string | null;
+  dotRequirementRemark?: string | null;
+  oldTireDisposition?: string | null;
+  oldTireRemark?: string | null;
   serialTrace?: {
     serialNo?: string;
     status?: string;
@@ -67,6 +72,20 @@ interface _OrderDetail {
       defectCategory?: {
         name?: string;
       };
+    };
+    installation?: {
+      vehiclePlateNo?: string;
+      vehicleModel?: string;
+      installPosition?: string;
+      installedAt?: string;
+      mileageKm?: number;
+      technicianName?: string;
+      storeRepoId?: string;
+      storeRepoName?: string;
+    };
+    warranty?: {
+      startAt?: string;
+      endAt?: string;
     };
   };
   desc?: string;
@@ -300,6 +319,8 @@ export function buildCreateOrderPayload(
         remainingPattern: toOptionalNumber(detail.remainingPattern) ?? 0,
         isProviderClaim: Boolean(detail.isProviderClaim),
         claimType: toOptionalNumber(detail.claimType) ?? 0,
+        oldTireDisposition: toOptionalString(detail.oldTireDisposition) ?? null,
+        oldTireRemark: toOptionalString(detail.oldTireRemark) ?? null,
         identificationResult:
           toOptionalString(detail.identificationResult) ?? null
       }))

@@ -52,6 +52,9 @@ function prepareDetail(detail: SalesOrderDetail): SalesOrderDetail {
   return {
     ...detail,
     serialNumbers: detail.serialNumbers || [],
+    dotCodeMin: detail.dotCodeMin || "",
+    dotCodeMax: detail.dotCodeMax || "",
+    dotRequirementRemark: detail.dotRequirementRemark || "",
     serialNosText:
       detail.serialNosText || formatSerialNumbersText(detail.serialNumbers)
   };
@@ -117,6 +120,9 @@ function onAddDetail() {
     isShipped: false,
     isDelivered: false,
     serialNumbers: [],
+    dotCodeMin: "",
+    dotCodeMax: "",
+    dotRequirementRemark: "",
     serialNosText: "",
     desc: ""
   });
@@ -410,14 +416,34 @@ watch(
       </template>
 
       <template #serialNosInput="{ row }">
-        <el-input
-          v-model="row.serialNosText"
-          type="textarea"
-          :rows="3"
-          placeholder="每行一个胎号；也可按 serialNo,dotCode,dotYear,dotWeek,remark 录入"
-          :disabled="isReadOnly"
-          @change="syncDetailSerialNumbers(row)"
-        />
+        <div class="w-full">
+          <el-input
+            v-model="row.serialNosText"
+            type="textarea"
+            :rows="3"
+            placeholder="每行一个胎号；也可按 serialNo,dotCode,dotYear,dotWeek,remark 录入"
+            :disabled="isReadOnly"
+            @change="syncDetailSerialNumbers(row)"
+          />
+          <div class="mt-2 grid grid-cols-2 gap-2">
+            <el-input
+              v-model="row.dotCodeMin"
+              placeholder="DOT 最小值"
+              :disabled="isReadOnly"
+            />
+            <el-input
+              v-model="row.dotCodeMax"
+              placeholder="DOT 最大值"
+              :disabled="isReadOnly"
+            />
+          </div>
+          <el-input
+            v-model="row.dotRequirementRemark"
+            class="mt-2"
+            placeholder="DOT 要求备注"
+            :disabled="isReadOnly"
+          />
+        </div>
       </template>
 
       <template #isShippedSwitch="{ row }">

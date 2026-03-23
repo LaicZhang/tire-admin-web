@@ -38,6 +38,8 @@ export interface ClaimFormItemProps {
     isProviderClaim?: boolean;
     claimType?: number;
     identificationResult?: string;
+    oldTireDisposition?: string;
+    oldTireRemark?: string;
     serialTrace?: {
       serialNo?: string;
       status?: string;
@@ -53,6 +55,20 @@ export interface ClaimFormItemProps {
         defectCategory?: {
           name?: string;
         };
+      };
+      installation?: {
+        vehiclePlateNo?: string;
+        vehicleModel?: string;
+        installPosition?: string;
+        installedAt?: string;
+        mileageKm?: number;
+        technicianName?: string;
+        storeRepoId?: string;
+        storeRepoName?: string;
+      };
+      warranty?: {
+        startAt?: string;
+        endAt?: string;
       };
     };
   }>;
@@ -182,6 +198,27 @@ export const claimOrderDetailsColumns: TableColumnList = [
     minWidth: 140
   },
   {
+    label: "旧胎去向",
+    prop: "oldTireDisposition",
+    minWidth: 150,
+    cellRenderer: ({ row }) => (
+      <el-select v-model={row.oldTireDisposition} placeholder="请选择">
+        <el-option label="客户带走" value="CUSTOMER_KEEP" />
+        <el-option label="门店待处理" value="STORE_PENDING" />
+        <el-option label="返供应商" value="RETURN_SUPPLIER" />
+        <el-option label="报废" value="SCRAPPED" />
+      </el-select>
+    )
+  },
+  {
+    label: "去向备注",
+    prop: "oldTireRemark",
+    minWidth: 150,
+    cellRenderer: ({ row }) => (
+      <el-input v-model={row.oldTireRemark} placeholder="可选" />
+    )
+  },
+  {
     label: "向供应商索赔",
     prop: "isProviderClaim",
     cellRenderer: ({ row }) => <el-switch v-model={row.isProviderClaim} />
@@ -216,6 +253,21 @@ export const claimOrderDetailsColumns: TableColumnList = [
           : "",
         trace.latestReturnInspection?.remark
           ? `质检备注：${trace.latestReturnInspection.remark}`
+          : "",
+        trace.installation?.vehiclePlateNo
+          ? `安装车辆：${trace.installation.vehiclePlateNo}${trace.installation.vehicleModel ? ` · ${trace.installation.vehicleModel}` : ""}`
+          : "",
+        trace.installation?.installPosition
+          ? `安装位置：${trace.installation.installPosition}`
+          : "",
+        trace.installation?.technicianName
+          ? `技师：${trace.installation.technicianName}${trace.installation.storeRepoName ? ` · ${trace.installation.storeRepoName}` : ""}`
+          : "",
+        trace.installation?.mileageKm != null
+          ? `安装里程：${trace.installation.mileageKm} km`
+          : "",
+        trace.warranty?.startAt
+          ? `质保：${trace.warranty.startAt}${trace.warranty.endAt ? ` ~ ${trace.warranty.endAt}` : ""}`
           : ""
       ].filter(Boolean);
       return (

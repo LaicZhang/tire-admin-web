@@ -135,6 +135,59 @@ export interface StockoutData {
   items?: unknown[];
 }
 
+export interface DotAgingItem {
+  repoId: string;
+  repoName: string;
+  tireId: string;
+  tireName: string;
+  dotYear: number;
+  dotWeek: number;
+  dotCode?: string | null;
+  count: number;
+}
+
+export interface SerialTraceData {
+  summary?: {
+    serialNo?: string | null;
+    status?: string | null;
+    repoId?: string | null;
+    sourceType?: string | null;
+    sourceOrderId?: string | null;
+    targetType?: string | null;
+    targetOrderId?: string | null;
+    installation?: {
+      vehiclePlateNo?: string | null;
+      vehicleModel?: string | null;
+      installPosition?: string | null;
+      installedAt?: string | null;
+      mileageKm?: number | null;
+      technicianName?: string | null;
+      storeRepoId?: string | null;
+      storeRepoName?: string | null;
+    } | null;
+    warranty?: {
+      startAt?: string | null;
+      endAt?: string | null;
+    } | null;
+  } | null;
+  logs?: Array<{
+    action?: string;
+    fromRepoId?: string | null;
+    toRepoId?: string | null;
+    orderType?: string | null;
+    orderId?: string | null;
+    createdAt?: string | null;
+  }>;
+  claims?: Array<{
+    orderId?: string;
+    claimType?: number | null;
+    oldTireDisposition?: string | null;
+    oldTireRemark?: string | null;
+    identificationResult?: string | null;
+    createAt?: string | null;
+  }>;
+}
+
 // 销售汇总
 export async function getSalesSummaryApi(params?: {
   startDate?: string;
@@ -446,6 +499,26 @@ export async function getStockoutApi() {
   return await http.request<CommonResult<StockoutData>>(
     "get",
     baseUrlApi(prefix + "stockout")
+  );
+}
+
+export async function getDotAgingApi(params?: {
+  repoId?: string;
+  tireId?: string;
+}) {
+  return await http.request<CommonResult<{ list: DotAgingItem[] }>>(
+    "get",
+    baseUrlApi(prefix + "inventory/dot-aging"),
+    { params }
+  );
+}
+
+export async function getSerialTraceApi(serialNo: string) {
+  return await http.request<CommonResult<SerialTraceData>>(
+    "get",
+    baseUrlApi(
+      prefix + `inventory/serial-trace/${encodeURIComponent(serialNo)}`
+    )
   );
 }
 

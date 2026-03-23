@@ -26,6 +26,12 @@ export interface SaleFormItemProps {
     companyId?: string;
     count: number;
     total: number;
+    unitPrice?: number;
+    repoId?: string;
+    serialNumbers?: unknown[];
+    dotCodeMin?: string | null;
+    dotCodeMax?: string | null;
+    dotRequirementRemark?: string | null;
     desc?: string;
     isArrival: boolean;
     tireId: string;
@@ -83,6 +89,27 @@ export const saleOrderDeatailsColumns: TableColumnList = [
     label: "仓库",
     prop: "repoId",
     slot: "repoIdSelect"
+  },
+  {
+    label: "DOT 最小值",
+    prop: "dotCodeMin",
+    cellRenderer: ({ row }) => (
+      <el-input v-model={row.dotCodeMin} placeholder="可选" />
+    )
+  },
+  {
+    label: "DOT 最大值",
+    prop: "dotCodeMax",
+    cellRenderer: ({ row }) => (
+      <el-input v-model={row.dotCodeMax} placeholder="可选" />
+    )
+  },
+  {
+    label: "DOT 备注",
+    prop: "dotRequirementRemark",
+    cellRenderer: ({ row }) => (
+      <el-input v-model={row.dotRequirementRemark} placeholder="可选" />
+    )
   },
   {
     label: "备注",

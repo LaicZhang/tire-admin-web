@@ -22,6 +22,11 @@ export interface OrderDetailDto {
   batchNo?: string;
   expiryDate?: string;
   serialNo?: string | null;
+  dotCodeMin?: string | null;
+  dotCodeMax?: string | null;
+  dotRequirementRemark?: string | null;
+  oldTireDisposition?: string | null;
+  oldTireRemark?: string | null;
 }
 
 /** 订单基础信息 DTO */

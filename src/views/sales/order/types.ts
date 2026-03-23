@@ -17,6 +17,9 @@ export interface SalesOrderDetail {
   isDelivered: boolean;
   serialNumbers?: SerialNumberPayload[];
   serialNosText?: string;
+  dotCodeMin?: string | null;
+  dotCodeMax?: string | null;
+  dotRequirementRemark?: string | null;
   desc?: string;
 }
 

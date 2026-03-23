@@ -5,7 +5,8 @@ import {
   getSlowMovingApi,
   getStockoutApi,
   getInventoryTurnoverApi,
-  getExpiryDistributionApi
+  getExpiryDistributionApi,
+  getDotAgingApi
 } from "@/api/analysis";
 import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -78,6 +79,15 @@ const turnoverData = ref<TurnoverData>({
 });
 // 临期分布
 const expiryData = ref<ExpiryDataItem[]>([]);
+const dotAgingList = ref<
+  Array<{
+    repoName?: string;
+    tireName?: string;
+    dotYear?: number;
+    dotWeek?: number;
+    count?: number;
+  }>
+>([]);
 
 // 图表引用
 const turnoverChartRef = ref<HTMLElement | null>(null);
@@ -167,6 +177,17 @@ const getExpiry = async () => {
   }
 };
 
+const getDotAging = async () => {
+  try {
+    const { data, code } = await getDotAgingApi();
+    if (code === 200) {
+      dotAgingList.value = data?.list || [];
+    }
+  } catch (error) {
+    handleApiError(error, "获取 DOT 库龄分布失败");
+  }
+};
+
 const updateTurnoverChart = async () => {
   if (!turnoverChartRef.value) return;
   if (!turnoverChart) {
@@ -227,7 +248,8 @@ const loadData = async () => {
       getSlowMoving(),
       getStockout(),
       getTurnover(),
-      getExpiry()
+      getExpiry(),
+      getDotAging()
     ]);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载数据失败";
@@ -353,6 +375,30 @@ onUnmounted(() => {
             </div>
           </template>
           <div ref="expiryChartRef" class="h-64" />
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16" class="mt-4">
+      <el-col :span="24">
+        <el-card>
+          <template #header>
+            <div class="flex justify-between items-center">
+              <span class="font-bold">DOT 库龄分布</span>
+            </div>
+          </template>
+          <pure-table
+            :data="dotAgingList"
+            stripe
+            height="360"
+            :columns="[
+              { label: '门店/仓库', prop: 'repoName', minWidth: 140 },
+              { label: '轮胎', prop: 'tireName', minWidth: 180 },
+              { label: 'DOT 年', prop: 'dotYear', width: 100 },
+              { label: 'DOT 周', prop: 'dotWeek', width: 100 },
+              { label: '数量', prop: 'count', width: 100 }
+            ]"
+          />
         </el-card>
       </el-col>
     </el-row>
