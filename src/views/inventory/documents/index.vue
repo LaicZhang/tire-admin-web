@@ -1,57 +1,69 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "@/utils/constants";
-import { ref, reactive, onMounted } from "vue";
-import type { FormInstance } from "element-plus";
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessageBox } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { PureTableBar } from "@/components/RePureTableBar";
+import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import Download from "~icons/ep/download";
 import Printer from "~icons/ep/printer";
-import { PureTableBar } from "@/components/RePureTableBar";
-import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import Select from "~icons/ep/select";
+import RefreshLeft from "~icons/ep/refresh-left";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import {
-  type InventoryDocument,
-  type DocumentQuery,
-  DocumentType,
-  documentTypeMap,
-  documentStatusMap
-} from "./types";
-import { useRouter } from "vue-router";
+  approveDocumentCenterApi,
+  exportDocumentCenterApi,
+  getDocumentCenterListApi,
+  getDocumentCenterPrintApi,
+  reverseAuditDocumentCenterApi,
+  type DocumentCenterType
+} from "@/api/document-center";
 import { deleteOrderApi } from "@/api";
 import { deleteInventoryCheckTaskApi } from "@/api/business/inventory-check";
 import { deleteAssemblyOrderApi } from "@/api/business/assembly";
 import { deleteCostAdjustOrder } from "@/api/business/costAdjust";
 import {
-  getInventoryDocumentListApi,
   deleteDisassemblyOrderApi,
   deleteOtherInboundOrderApi,
   deleteOtherOutboundOrderApi
 } from "@/api/inventory";
-import { logger } from "@/utils/logger";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { handleApiError, message } from "@/utils";
+import {
+  approvableDocumentTypes,
+  documentStatusMap,
+  documentStatusOptions,
+  documentTypeMap,
+  documentTypeOptions,
+  reversibleDocumentTypes,
+  reverseReasonRequiredTypes,
+  type DocumentQuery,
+  type InventoryDocument,
+  type InventoryDocumentType
+} from "./types";
 
 defineOptions({
   name: "InventoryDocuments"
 });
 
 const router = useRouter();
-const dataList = ref<InventoryDocument[]>([]);
-const loading = ref(false);
 const { confirm } = useConfirmDialog();
-const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const loading = ref(false);
+const dataList = ref<InventoryDocument[]>([]);
 const selectedRows = ref<InventoryDocument[]>([]);
+const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
 const queryParams = reactive<DocumentQuery>({
-  type: undefined,
+  documentType: undefined,
   status: undefined,
   startDate: undefined,
   endDate: undefined,
   keyword: undefined
 });
-
-const dateRange = ref<[string, string] | null>(null);
 
 const pagination = ref({
   total: 0,
@@ -60,37 +72,72 @@ const pagination = ref({
   background: true
 });
 
-const typeOptions = Object.entries(documentTypeMap).map(([value, config]) => ({
-  value,
-  label: config.label
-}));
+const typeRouteMap: Record<InventoryDocumentType, string> = {
+  INVENTORY_TRANSFER: "/inventory/transfer",
+  STOCKTAKING: "/inventory/stocktaking",
+  OTHER_INBOUND: "/inventory/otherInbound",
+  OTHER_OUTBOUND: "/inventory/otherOutbound",
+  ASSEMBLY: "/inventory/assembly",
+  DISASSEMBLY: "/inventory/disassembly",
+  COST_ADJUST: "/inventory/costAdjust"
+};
 
-const statusOptions = Object.entries(documentStatusMap).map(
-  ([value, config]) => ({
-    value,
-    label: config.label
-  })
-);
+const hasSelection = computed(() => selectedRows.value.length > 0);
+const hasDocumentType = (
+  row: InventoryDocument
+): row is InventoryDocument & { documentType: InventoryDocumentType } =>
+  Boolean(row.documentType);
+
+const getTypeColor = (
+  row: InventoryDocument
+): "primary" | "success" | "warning" | "danger" | "info" =>
+  row.documentType
+    ? documentTypeMap[row.documentType]?.color || "info"
+    : "info";
+
+const getTypeLabel = (row: InventoryDocument) =>
+  row.documentType
+    ? documentTypeMap[row.documentType]?.label || row.documentType
+    : "-";
+
+const buildParams = () => ({
+  documentType: queryParams.documentType || undefined,
+  status: queryParams.status || undefined,
+  keyword: queryParams.keyword || undefined,
+  startDate: queryParams.startDate || undefined,
+  endDate: queryParams.endDate || undefined,
+  pageSize: pagination.value.pageSize
+});
 
 const fetchData = async () => {
   loading.value = true;
   try {
-    const { data, code } = await getInventoryDocumentListApi(
+    const res = await getDocumentCenterListApi(
       pagination.value.currentPage,
-      {
-        ...queryParams,
-        type: queryParams.type || undefined,
-        status: queryParams.status || undefined,
-        startDate: dateRange.value?.[0] || undefined,
-        endDate: dateRange.value?.[1] || undefined
-      }
+      buildParams()
     );
-    if (code === 200) {
-      dataList.value = data.list;
-      pagination.value.total = data.total ?? 0;
+    if (res.code !== 200) {
+      message(res.msg || "获取库存单据列表失败", { type: "error" });
+      return;
     }
+    dataList.value = (res.data?.list ?? []).map(item => ({
+      id: item.id,
+      uid: item.uid,
+      billNo: item.billNo,
+      documentType: item.documentType as InventoryDocumentType,
+      targetName: item.targetName,
+      amount:
+        item.amount === undefined || item.amount === ""
+          ? undefined
+          : Number(item.amount),
+      count: item.count,
+      status: item.status,
+      operatorName: item.operatorName,
+      remark: item.remark,
+      createdAt: item.createdAt
+    }));
+    pagination.value.total = res.data?.total ?? dataList.value.length;
   } catch (error) {
-    logger.error("获取库存单据列表失败", error);
     handleApiError(error, "获取库存单据列表失败");
   } finally {
     loading.value = false;
@@ -104,10 +151,11 @@ const handleSearch = () => {
 
 const handleReset = () => {
   searchFormRef.value?.resetFields();
-  queryParams.type = undefined;
+  queryParams.documentType = undefined;
   queryParams.status = undefined;
-  queryParams.keyword = "";
-  dateRange.value = null;
+  queryParams.startDate = undefined;
+  queryParams.endDate = undefined;
+  queryParams.keyword = undefined;
   handleSearch();
 };
 
@@ -120,62 +168,89 @@ const handleSelectionChange = (rows: InventoryDocument[]) => {
   selectedRows.value = rows;
 };
 
-const getDocumentRoute = (type: DocumentType): string => {
-  const routeMap: Record<DocumentType, string> = {
-    [DocumentType.TRANSFER]: "/inventory/transfer",
-    [DocumentType.STOCKTAKING]: "/inventory/stocktaking",
-    [DocumentType.OTHER_INBOUND]: "/inventory/otherInbound",
-    [DocumentType.OTHER_OUTBOUND]: "/inventory/otherOutbound",
-    [DocumentType.ASSEMBLY]: "/inventory/assembly",
-    [DocumentType.DISASSEMBLY]: "/inventory/disassembly",
-    [DocumentType.COST_ADJUST]: "/inventory/costAdjust"
-  };
-  return routeMap[type] || "/inventory/documents";
-};
-
 const handleView = (row: InventoryDocument) => {
+  if (!hasDocumentType(row)) return;
   router.push({
-    path: getDocumentRoute(row.type),
+    path: typeRouteMap[row.documentType],
     query: { uid: row.uid }
   });
 };
 
+const openPrintPreview = (data: {
+  billNo: string;
+  documentType: string;
+  status: string;
+  targetName?: string;
+  detail: Record<string, string>;
+}) => {
+  const popup = window.open(
+    "",
+    "_blank",
+    "noopener,noreferrer,width=960,height=720"
+  );
+  if (!popup) {
+    message("打印窗口打开失败，请检查浏览器弹窗设置", { type: "warning" });
+    return;
+  }
+  const rows = Object.entries(data.detail)
+    .map(
+      ([key, value]) =>
+        `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
+    )
+    .join("");
+  popup.document.write(`<!doctype html>
+<html>
+  <head><title>${data.billNo}</title></head>
+  <body style="font-family: sans-serif; padding: 24px;">
+    <h2>${data.documentType} - ${data.billNo}</h2>
+    <p>状态：${data.status}</p>
+    <p>仓库/对象：${data.targetName ?? "-"}</p>
+    <table style="border-collapse: collapse; width: 100%; margin-top: 16px;">${rows}</table>
+  </body>
+</html>`);
+  popup.document.close();
+  popup.focus();
+  popup.print();
+};
+
+const deleteByType = async (row: InventoryDocument) => {
+  switch (row.documentType) {
+    case "INVENTORY_TRANSFER":
+      await deleteOrderApi("transfer-order", row.uid);
+      return;
+    case "STOCKTAKING":
+      await deleteInventoryCheckTaskApi(row.id);
+      return;
+    case "OTHER_INBOUND":
+      await deleteOtherInboundOrderApi(row.uid);
+      return;
+    case "OTHER_OUTBOUND":
+      await deleteOtherOutboundOrderApi(row.uid);
+      return;
+    case "ASSEMBLY":
+      await deleteAssemblyOrderApi(row.uid);
+      return;
+    case "DISASSEMBLY":
+      await deleteDisassemblyOrderApi(row.uid);
+      return;
+    case "COST_ADJUST":
+      await deleteCostAdjustOrder(row.id);
+      return;
+  }
+};
+
 const handleDelete = async (row: InventoryDocument) => {
-  if (row.isApproved) {
+  if (row.status === "APPROVED") {
     message("已审核的单据需要先反审核后才能删除", { type: "warning" });
     return;
   }
-  const ok = await confirm("确认删除该单据?", "确认删除", {
+  const ok = await confirm(`确认删除单据 ${row.billNo} 吗？`, "删除确认", {
     type: "warning"
   });
   if (!ok) return;
 
   try {
-    switch (row.type) {
-      case DocumentType.TRANSFER:
-        await deleteOrderApi("transfer-order", row.uid);
-        break;
-      case DocumentType.STOCKTAKING:
-        await deleteInventoryCheckTaskApi(row.id);
-        break;
-      case DocumentType.OTHER_INBOUND:
-        await deleteOtherInboundOrderApi(row.uid);
-        break;
-      case DocumentType.OTHER_OUTBOUND:
-        await deleteOtherOutboundOrderApi(row.uid);
-        break;
-      case DocumentType.ASSEMBLY:
-        await deleteAssemblyOrderApi(row.uid);
-        break;
-      case DocumentType.DISASSEMBLY:
-        await deleteDisassemblyOrderApi(row.uid);
-        break;
-      case DocumentType.COST_ADJUST:
-        await deleteCostAdjustOrder(row.id);
-        break;
-      default:
-        throw new Error(`未知单据类型: ${String(row.type)}`);
-    }
+    await deleteByType(row);
     message("删除成功", { type: "success" });
     fetchData();
   } catch (error) {
@@ -183,86 +258,187 @@ const handleDelete = async (row: InventoryDocument) => {
   }
 };
 
-const deleteByType = async (row: InventoryDocument): Promise<void> => {
-  switch (row.type) {
-    case DocumentType.TRANSFER:
-      await deleteOrderApi("transfer-order", row.uid);
-      break;
-    case DocumentType.STOCKTAKING:
-      await deleteInventoryCheckTaskApi(row.id);
-      break;
-    case DocumentType.OTHER_INBOUND:
-      await deleteOtherInboundOrderApi(row.uid);
-      break;
-    case DocumentType.OTHER_OUTBOUND:
-      await deleteOtherOutboundOrderApi(row.uid);
-      break;
-    case DocumentType.ASSEMBLY:
-      await deleteAssemblyOrderApi(row.uid);
-      break;
-    case DocumentType.DISASSEMBLY:
-      await deleteDisassemblyOrderApi(row.uid);
-      break;
-    case DocumentType.COST_ADJUST:
-      await deleteCostAdjustOrder(row.id);
-      break;
-    default:
-      throw new Error(`未知单据类型: ${String(row.type)}`);
-  }
-};
-
 const handleBatchDelete = async () => {
-  if (selectedRows.value.length === 0) {
+  if (!hasSelection.value) {
     message("请先选择要删除的单据", { type: "warning" });
     return;
   }
-  const approvedCount = selectedRows.value.filter(r => r.isApproved).length;
-  if (approvedCount > 0) {
-    message(`选中的${approvedCount}条已审核单据无法删除,请先反审核`, {
-      type: "warning"
-    });
+  if (selectedRows.value.some(row => row.status === "APPROVED")) {
+    message("已审核的单据需要先反审核后才能删除", { type: "warning" });
     return;
   }
   const ok = await confirm(
-    `确认删除选中的${selectedRows.value.length}条单据?`,
+    `确认删除选中的 ${selectedRows.value.length} 条单据吗？`,
     "批量删除",
     { type: "warning" }
   );
   if (!ok) return;
 
   try {
-    let successCount = 0;
-    let failCount = 0;
-    const deletePromises = selectedRows.value.map(async row => {
-      try {
-        await deleteByType(row);
-        successCount++;
-      } catch {
-        failCount++;
-      }
-    });
-    await Promise.all(deletePromises);
-
-    if (failCount === 0) {
-      message(`成功删除${successCount}条单据`, { type: "success" });
-    } else {
-      message(`成功${successCount}条,失败${failCount}条`, { type: "warning" });
-    }
+    await Promise.all(selectedRows.value.map(deleteByType));
+    message("批量删除成功", { type: "success" });
     selectedRows.value = [];
     fetchData();
   } catch (error) {
-    handleApiError(error, "删除失败");
+    handleApiError(error, "批量删除失败");
   }
 };
 
-const handleExport = () => {
-  const count = selectedRows.value.length || dataList.value.length;
-  message(`导出${count}条记录(功能开发中)`);
+const handleExport = async () => {
+  try {
+    const blob = await exportDocumentCenterApi(buildParams());
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp("inventory-document-center", "xlsx"),
+      { showMessage: true }
+    );
+  } catch (error) {
+    handleApiError(error, "导出失败");
+  }
 };
 
-const handlePrint = () => {
-  const count = selectedRows.value.length || dataList.value.length;
-  message(`打印${count}条记录(功能开发中)`);
+const handlePrint = async () => {
+  if (!hasSelection.value) {
+    message("请先选择要打印的单据", { type: "warning" });
+    return;
+  }
+  try {
+    const results = await Promise.all(
+      selectedRows.value.map(row =>
+        getDocumentCenterPrintApi(
+          (row.documentType || "STOCKTAKING") as DocumentCenterType,
+          row.uid
+        )
+      )
+    );
+    results.forEach(result => {
+      if (result.code === 200 && result.data) {
+        openPrintPreview(result.data);
+      }
+    });
+  } catch (error) {
+    handleApiError(error, "获取打印数据失败");
+  }
+};
+
+const handleBatchApprove = async () => {
+  const items = selectedRows.value.filter(
+    row =>
+      hasDocumentType(row) &&
+      approvableDocumentTypes.has(row.documentType) &&
+      row.status !== "APPROVED" &&
+      row.status !== "VOID"
+  );
+  if (items.length === 0) {
+    message("所选单据不支持批量审核", { type: "warning" });
+    return;
+  }
+  try {
+    const res = await approveDocumentCenterApi(
+      items.map(row => ({
+        documentType: row.documentType as DocumentCenterType,
+        uid: row.uid
+      }))
+    );
+    const failed = (res.data ?? []).filter(item => !item.success);
+    message(
+      failed.length > 0
+        ? `批量审核完成，失败 ${failed.length} 条`
+        : "批量审核成功",
+      { type: failed.length > 0 ? "warning" : "success" }
+    );
+    fetchData();
+  } catch (error) {
+    handleApiError(error, "批量审核失败");
+  }
+};
+
+const requestReverseReason = async (items: InventoryDocument[]) => {
+  const requiresReason = items.some(
+    row =>
+      hasDocumentType(row) && reverseReasonRequiredTypes.has(row.documentType)
+  );
+  if (!requiresReason) return undefined;
+  const res = await ElMessageBox.prompt("请输入反审核原因", "反审核", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    inputPattern: /.+/,
+    inputErrorMessage: "请输入反审核原因"
+  });
+  if (typeof res === "string") return undefined;
+  return (res as { value: string }).value;
+};
+
+const handleBatchReverseAudit = async () => {
+  const items = selectedRows.value.filter(
+    row =>
+      hasDocumentType(row) &&
+      reversibleDocumentTypes.has(row.documentType) &&
+      row.status === "APPROVED"
+  );
+  if (items.length === 0) {
+    message("所选单据不支持批量反审核", { type: "warning" });
+    return;
+  }
+  try {
+    const reason = await requestReverseReason(items);
+    const res = await reverseAuditDocumentCenterApi(
+      items.map(row => ({
+        documentType: row.documentType as DocumentCenterType,
+        uid: row.uid
+      })),
+      reason
+    );
+    const failed = (res.data ?? []).filter(item => !item.success);
+    message(
+      failed.length > 0
+        ? `批量反审核完成，失败 ${failed.length} 条`
+        : "批量反审核成功",
+      { type: failed.length > 0 ? "warning" : "success" }
+    );
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") {
+      handleApiError(error, "批量反审核失败");
+    }
+  }
+};
+
+const handleApprove = async (row: InventoryDocument) => {
+  try {
+    await approveDocumentCenterApi([
+      {
+        documentType: (row.documentType || "STOCKTAKING") as DocumentCenterType,
+        uid: row.uid
+      }
+    ]);
+    message("审核成功", { type: "success" });
+    fetchData();
+  } catch (error) {
+    handleApiError(error, "审核失败");
+  }
+};
+
+const handleReverseAudit = async (row: InventoryDocument) => {
+  try {
+    const reason = await requestReverseReason([row]);
+    await reverseAuditDocumentCenterApi(
+      [
+        {
+          documentType: (row.documentType ||
+            "STOCKTAKING") as DocumentCenterType,
+          uid: row.uid
+        }
+      ],
+      reason
+    );
+    message("反审核成功", { type: "success" });
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") {
+      handleApiError(error, "反审核失败");
+    }
+  }
 };
 
 onMounted(() => {
@@ -279,15 +455,15 @@ onMounted(() => {
       @search="handleSearch"
       @reset="handleReset"
     >
-      <el-form-item label="单据类型" prop="type">
+      <el-form-item label="单据类型" prop="documentType">
         <el-select
-          v-model="queryParams.type"
+          v-model="queryParams.documentType"
           placeholder="请选择类型"
           clearable
-          class="w-[130px]"
+          class="w-[140px]"
         >
           <el-option
-            v-for="item in typeOptions"
+            v-for="item in documentTypeOptions"
             :key="item.value"
             :label="item.label"
             :value="item.value"
@@ -299,10 +475,10 @@ onMounted(() => {
           v-model="queryParams.status"
           placeholder="请选择状态"
           clearable
-          class="w-[120px]"
+          class="w-[130px]"
         >
           <el-option
-            v-for="item in statusOptions"
+            v-for="item in documentStatusOptions"
             :key="item.value"
             :label="item.label"
             :value="item.value"
@@ -311,13 +487,19 @@ onMounted(() => {
       </el-form-item>
       <el-form-item label="日期范围">
         <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
+          v-model="queryParams.startDate"
+          type="date"
+          placeholder="开始日期"
           value-format="YYYY-MM-DD"
-          class="w-[220px]"
+          class="w-[140px]"
+        />
+        <span class="mx-2">-</span>
+        <el-date-picker
+          v-model="queryParams.endDate"
+          type="date"
+          placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          class="w-[140px]"
         />
       </el-form-item>
       <el-form-item label="关键字" prop="keyword">
@@ -325,40 +507,59 @@ onMounted(() => {
           v-model="queryParams.keyword"
           placeholder="单据编号/备注"
           clearable
-          class="w-[160px]"
+          class="w-[180px]"
         />
       </el-form-item>
     </ReSearchForm>
 
     <el-card>
-      <PureTableBar title="库存单据列表" @refresh="fetchData">
+      <PureTableBar
+        title="库存单据列表"
+        :columns="columns"
+        @refresh="fetchData"
+      >
         <template #buttons>
           <el-button
             type="primary"
-            :icon="useRenderIcon(Download)"
-            @click="handleExport"
+            :disabled="!hasSelection"
+            :icon="useRenderIcon(Select)"
+            @click="handleBatchApprove"
           >
+            批量审核
+          </el-button>
+          <el-button
+            :disabled="!hasSelection"
+            :icon="useRenderIcon(RefreshLeft)"
+            @click="handleBatchReverseAudit"
+          >
+            批量反审核
+          </el-button>
+          <el-button :icon="useRenderIcon(Download)" @click="handleExport">
             导出
           </el-button>
-          <el-button :icon="useRenderIcon(Printer)" @click="handlePrint">
+          <el-button
+            :disabled="!hasSelection"
+            :icon="useRenderIcon(Printer)"
+            @click="handlePrint"
+          >
             打印
           </el-button>
           <el-button
             type="danger"
+            :disabled="!hasSelection"
             :icon="useRenderIcon(Delete)"
-            :disabled="selectedRows.length === 0"
             @click="handleBatchDelete"
           >
             批量删除
           </el-button>
         </template>
-        <template v-slot="{ size }">
+        <template v-slot="{ size, dynamicColumns }">
           <pure-table
             row-key="id"
             adaptive
-            :size="size"
-            :columns="columns"
             border
+            :size="size"
+            :columns="dynamicColumns"
             :data="dataList"
             :loading="loading"
             showOverflowTooltip
@@ -366,6 +567,22 @@ onMounted(() => {
             @page-current-change="handleCurrentChange"
             @selection-change="handleSelectionChange"
           >
+            <template #documentType="{ row }">
+              <el-tag :type="getTypeColor(row)" size="small">
+                {{ getTypeLabel(row) }}
+              </el-tag>
+            </template>
+            <template #amount="{ row }">
+              <span>{{ row.amount === undefined ? "-" : row.amount }}</span>
+            </template>
+            <template #status="{ row }">
+              <el-tag
+                :type="documentStatusMap[row.status]?.type || 'info'"
+                size="small"
+              >
+                {{ documentStatusMap[row.status]?.label || row.status }}
+              </el-tag>
+            </template>
             <template #operation="{ row }">
               <el-button
                 link
@@ -376,7 +593,30 @@ onMounted(() => {
                 查看
               </el-button>
               <el-button
-                v-if="!row.isApproved"
+                v-if="
+                  approvableDocumentTypes.has(row.documentType) &&
+                  row.status !== 'APPROVED' &&
+                  row.status !== 'VOID'
+                "
+                link
+                type="success"
+                @click="handleApprove(row)"
+              >
+                审核
+              </el-button>
+              <el-button
+                v-if="
+                  reversibleDocumentTypes.has(row.documentType) &&
+                  row.status === 'APPROVED'
+                "
+                link
+                type="warning"
+                @click="handleReverseAudit(row)"
+              >
+                反审核
+              </el-button>
+              <el-button
+                v-if="row.status !== 'APPROVED'"
                 link
                 type="danger"
                 :icon="useRenderIcon(Delete)"
@@ -395,21 +635,5 @@ onMounted(() => {
 <style scoped lang="scss">
 .main {
   padding: 16px;
-}
-
-.mb-4 {
-  margin-bottom: 16px;
-}
-
-.text-primary {
-  color: var(--el-color-primary);
-}
-
-.cursor-pointer {
-  cursor: pointer;
-}
-
-.font-medium {
-  font-weight: 500;
 }
 </style>

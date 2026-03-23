@@ -8,6 +8,13 @@ export type DocumentCenterType =
   | "OTHER_INCOME"
   | "OTHER_EXPENSE"
   | "TRANSFER"
+  | "INVENTORY_TRANSFER"
+  | "STOCKTAKING"
+  | "OTHER_INBOUND"
+  | "OTHER_OUTBOUND"
+  | "ASSEMBLY"
+  | "DISASSEMBLY"
+  | "COST_ADJUST"
   | "PAYMENT"
   | "PURCHASE_ORDER"
   | "PURCHASE_INBOUND"
@@ -80,6 +87,24 @@ export function approveDocumentCenterApi(items: ApproveDocumentCenterItem[]) {
     >
   >("post", baseUrlApi(`${prefix}/approve`), {
     data: { items }
+  });
+}
+
+export function reverseAuditDocumentCenterApi(
+  items: ApproveDocumentCenterItem[],
+  reason?: string
+) {
+  return http.request<
+    CommonResult<
+      Array<{
+        documentType: DocumentCenterType;
+        uid: string;
+        success: boolean;
+        message: string;
+      }>
+    >
+  >("post", baseUrlApi(`${prefix}/reverse-audit`), {
+    data: { items, reason }
   });
 }
 

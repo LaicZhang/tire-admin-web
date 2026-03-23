@@ -395,7 +395,7 @@ async function fetchInventoryDocuments(params?: InventoryOrderQueryDto) {
   const sources = resolveDocumentSources(params?.type);
   const loaders = sources.map(loadInventoryDocumentSource);
   const results = await Promise.all(loaders);
-  return results.flat();
+  return results.flat().filter(Boolean);
 }
 
 function resolveDocumentSources(type?: string) {
