@@ -629,32 +629,53 @@ export async function createAuxiliaryApi(data: CreateAuxiliaryDto) {
   return await http.request<CommonResult<AuxiliaryItem>>(
     "post",
     baseUrlApi(auxiliaryPrefix),
-    { data }
+    {
+      params: { type: data.type },
+      data: {
+        code: data.code,
+        name: data.name,
+        sort: data.sort,
+        remark: data.remark
+      }
+    }
   );
 }
 
 export async function updateAuxiliaryApi(
   uid: string,
+  type: string,
   data: Partial<CreateAuxiliaryDto>
 ) {
   return await http.request<CommonResult<AuxiliaryItem>>(
     "patch",
     baseUrlApi(auxiliaryPrefix + uid),
-    { data }
+    {
+      params: { type },
+      data: {
+        code: data.code,
+        name: data.name,
+        sort: data.sort,
+        remark: data.remark
+      }
+    }
   );
 }
 
-export async function deleteAuxiliaryApi(uid: string) {
+export async function deleteAuxiliaryApi(uid: string, type: string) {
   return await http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(auxiliaryPrefix + uid)
+    baseUrlApi(auxiliaryPrefix + uid),
+    { params: { type } }
   );
 }
 
-export async function batchDeleteAuxiliaryApi(uids: string[]) {
+export async function batchDeleteAuxiliaryApi(type: string, uids: string[]) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(auxiliaryPrefix + "batch"),
-    { data: { uids } }
+    {
+      params: { type },
+      data: { uids }
+    }
   );
 }

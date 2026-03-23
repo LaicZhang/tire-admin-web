@@ -98,7 +98,7 @@ const resetForm = () => {
 
 const handleDelete = async (row: AuxiliaryItem) => {
   try {
-    const { code, msg } = await deleteAuxiliaryApi(row.uid);
+    const { code, msg } = await deleteAuxiliaryApi(row.uid, activeTab.value);
     if (code === 200) {
       message("删除成功", { type: "success" });
       getData();
@@ -118,7 +118,7 @@ const handleBatchDelete = async () => {
   }
   try {
     const uids = selectedRows.value.map(row => row.uid);
-    const { code, msg } = await batchDeleteAuxiliaryApi(uids);
+    const { code, msg } = await batchDeleteAuxiliaryApi(activeTab.value, uids);
     if (code === 200) {
       message("批量删除成功", { type: "success" });
       selectedRows.value = [];
@@ -179,7 +179,7 @@ function openDialog(title = "新增", row?: AuxiliaryItem) {
                 remark: formData.remark
               })
             : row?.uid
-              ? updateAuxiliaryApi(row.uid, {
+              ? updateAuxiliaryApi(row.uid, activeTab.value, {
                   name: formData.name,
                   sort: formData.sort,
                   remark: formData.remark

@@ -69,12 +69,13 @@ const handleSelectionChange = (rows: FreeAccountItem[]) => {
 };
 
 const handleBatchImport = async () => {
-  if (selectedRows.value.length === 0) {
+  const importableRows = selectedRows.value.filter(row => row.canImport);
+  if (importableRows.length === 0) {
     message("请先选择要导入的账套", { type: "warning" });
     return;
   }
   const ok = await confirm(
-    `确定要批量导入选中的 ${selectedRows.value.length} 个账套吗？`,
+    `确定要批量导入选中的 ${importableRows.length} 个账套吗？`,
     "批量导入确认",
     {
       confirmButtonText: "确定导入",
@@ -85,7 +86,7 @@ const handleBatchImport = async () => {
   if (!ok) return;
 
   try {
-    const uids = selectedRows.value.map(r => r.uid);
+    const uids = importableRows.map(r => r.uid);
     const { code } = await batchImportFreeAccountsApi(uids);
     if (code === 200) {
       message("批量导入成功", { type: "success" });
@@ -99,8 +100,16 @@ const handleBatchImport = async () => {
 };
 
 const handleImport = async (row: FreeAccountItem) => {
-  if (row.role !== "admin" && row.role !== "manager") {
-    message("您没有该账套的管理权限，请申请授权", { type: "warning" });
+  if (!row.canImport) {
+    message("请先完成授权验证", { type: "warning" });
+    return;
+  }
+  if (row.status === "locked") {
+    message("该账套已锁定，无法导入", { type: "warning" });
+    return;
+  }
+  if (row.status === "imported") {
+    message("该账套已导入", { type: "warning" });
     return;
   }
   const ok = await confirm(
@@ -199,7 +208,7 @@ onMounted(() => {
           >
             <template #operation="{ row }">
               <el-button
-                v-if="row.role === 'admin' || row.role === 'manager'"
+                v-if="row.canImport"
                 class="reset-margin"
                 link
                 type="primary"
@@ -213,11 +222,24 @@ onMounted(() => {
                 v-else
                 class="reset-margin"
                 link
-                type="warning"
+                :type="
+                  row.status === 'locked'
+                    ? 'danger'
+                    : row.status === 'imported'
+                      ? 'info'
+                      : 'warning'
+                "
                 :size="size"
+                :disabled="row.status !== 'available'"
                 @click="handleRequestAuth(row)"
               >
-                申请授权
+                {{
+                  row.status === "locked"
+                    ? "已锁定"
+                    : row.status === "imported"
+                      ? "已导入"
+                      : "申请授权"
+                }}
               </el-button>
             </template>
           </pure-table>

@@ -61,6 +61,29 @@ export const columns: TableColumnList = [
     minWidth: 160
   },
   {
+    label: "状态",
+    prop: "status",
+    minWidth: 100,
+    cellRenderer: (data: TableColumnRenderer) => (
+      <el-tag
+        type={
+          data.row?.status === "available"
+            ? "success"
+            : data.row?.status === "locked"
+              ? "danger"
+              : "info"
+        }
+        effect="plain"
+      >
+        {data.row?.status === "available"
+          ? "可导入"
+          : data.row?.status === "locked"
+            ? "已锁定"
+            : "已导入"}
+      </el-tag>
+    )
+  },
+  {
     label: "操作",
     width: 200,
     fixed: "right",

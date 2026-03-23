@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import UploadIcon from "~icons/ri/upload-cloud-2-line";
 import DownloadIcon from "~icons/ri/download-cloud-2-line";
-import DeleteIcon from "~icons/ep/delete";
 import { message } from "@/utils";
 import { createUid } from "@/utils/uid";
 import {
@@ -44,7 +42,7 @@ const exportModule = ref("tire");
 const { taskList, pushTask, deleteTask, loadTasks, nowText } =
   useImportExportTask();
 
-const toToolType = (module: string): string | null => {
+const resolveToolType = (module: string): string => {
   const map: Record<string, string> = {
     tire: "tire",
     customer: "customer",
@@ -55,7 +53,11 @@ const toToolType = (module: string): string | null => {
     customerBalance: "customer-balance",
     supplierBalance: "supplier-balance"
   };
-  return map[module] ?? null;
+  const type = map[module];
+  if (!type) {
+    throw new Error("无效的导入导出模块");
+  }
+  return type;
 };
 
 const allModuleOptions: ModuleOption[] = [
@@ -85,9 +87,7 @@ const allModuleOptions: ModuleOption[] = [
   }
 ];
 
-const moduleOptions = computed(() =>
-  allModuleOptions.filter(item => toToolType(item.value) !== null)
-);
+const moduleOptions = computed(() => allModuleOptions);
 
 // 导出字段配置
 type ExportField = {
@@ -115,12 +115,9 @@ const getTaskList = async () => {
 };
 
 const loadExportSchema = async (module: string) => {
-  const toolType = toToolType(module);
-  if (!toolType) {
-    exportFields.value = [];
-    return;
-  }
+  if (!module) return;
   try {
+    const toolType = resolveToolType(module);
     const { code, data, msg } = await getExportSchemaApi(toolType);
     if (code !== 200) {
       message(msg || "获取导出字段失败", { type: "error" });
@@ -141,12 +138,8 @@ const loadExportSchema = async (module: string) => {
 
 // 下载模板
 const handleDownloadTemplate = async () => {
-  const toolType = toToolType(selectedModule.value);
-  if (!toolType) {
-    message("当前模块暂不支持模板下载", { type: "warning" });
-    return;
-  }
   try {
+    const toolType = resolveToolType(selectedModule.value);
     const blob = await downloadImportTemplateApi(toolType);
     downloadBlob(blob, `${toolType}_import_template.xlsx`, {
       showMessage: true
@@ -173,14 +166,9 @@ const handleUpload = async (options: UploadRequestOptions) => {
     e.url = e.url ?? options.action;
     return e;
   };
-  const toolType = toToolType(selectedModule.value);
-  if (!toolType) {
-    message("当前模块暂不支持导入", { type: "warning" });
-    options.onError?.(toUploadAjaxError("unsupported"));
-    return;
-  }
   const file = options.file as File;
   try {
+    const toolType = resolveToolType(selectedModule.value);
     const formData = new FormData();
     formData.append("file", file);
     const { data, code, msg } = await importDataApi(toolType, formData, p =>
@@ -223,11 +211,7 @@ const handleUpload = async (options: UploadRequestOptions) => {
 
 // 导出数据
 const handleExport = () => {
-  const toolType = toToolType(exportModule.value);
-  if (!toolType) {
-    message("当前模块暂不支持导出", { type: "warning" });
-    return;
-  }
+  const toolType = resolveToolType(exportModule.value);
   const selectedFieldNames = exportFields.value
     .filter(f => f.selected)
     .map(f => f.key);
@@ -238,7 +222,9 @@ const handleExport = () => {
   }
 
   loading.value = true;
-  exportDataApi(toolType, { fields: selectedFieldNames })
+  exportDataApi(toolType, {
+    fields: selectedFieldNames
+  })
     .then(blob => {
       const filename = generateFilenameWithTimestamp(
         `${toolType}_export`,

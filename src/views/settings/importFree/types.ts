@@ -7,9 +7,10 @@ export interface FreeAccountItem {
   ownerPhone: string;
   userCount: number;
   role: "admin" | "manager" | "user";
+  canImport: boolean;
   createTime: string;
   lastLoginTime: string;
-  status: "available" | "locked";
+  status: "available" | "locked" | "imported";
 }
 
 export interface ImportFreeFormProps {
