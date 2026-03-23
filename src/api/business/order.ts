@@ -127,6 +127,7 @@ export interface AuditOrderDto {
 /** 确认物流状态请求 DTO */
 export type ConfirmDetailUidDto = {
   detailUid: string;
+  serialNos?: string[];
 };
 
 export type PurchaseOrderConfirmArrivalDto = {
@@ -139,6 +140,7 @@ export type PurchaseOrderConfirmArrivalDto = {
 export type SaleOrderConfirmShipmentDto = {
   detailUid: string;
   shipCount?: number;
+  serialNos?: string[];
 };
 
 /** 订单查询参数 DTO */

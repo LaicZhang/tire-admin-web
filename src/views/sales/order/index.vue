@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { h, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
+import { addDialog } from "@/composables/useDialogService";
 import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
 import { getCompanyConnect, getCompanyId } from "@/api";
@@ -21,10 +22,10 @@ import {
 import { message, handleApiError } from "@/utils";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { useOrderListPage } from "@/composables/useOrderListPage";
-import { useOrderConfirmActions } from "@/composables/useOrderConfirmActions";
 import { salesOrderColumns } from "./columns";
 import type { SalesOrder, SalesOrderQueryParams } from "./types";
 import editForm from "./form.vue";
+import ConfirmOrderDetailAction from "@/views/business/order/components/ConfirmOrderDetailAction.vue";
 
 defineOptions({
   name: "SalesOrder"
@@ -62,13 +63,6 @@ const {
   listErrorMessage: "获取销售订单列表失败",
   searchFormRef
 });
-
-// 使用订单确认操作 composable
-const { handleConfirmShipment, handleConfirmDelivery } = useOrderConfirmActions(
-  {
-    onSuccess: getList
-  }
-);
 
 // 获取下拉数据的别名引用
 const employeeList = selectData.employee;
@@ -181,14 +175,69 @@ async function handleDelete(row: SalesOrder) {
   }
 }
 
-// 发货确认 - 使用 composable 封装的方法
 async function onConfirmShipment(row: SalesOrder) {
-  await handleConfirmShipment(row, confirmSaleOrderShipmentApi);
+  await openConfirmActionDialog("确认发货", row, async payload => {
+    return confirmSaleOrderShipmentApi(row.uid, payload);
+  });
 }
 
-// 送达确认 - 使用 composable 封装的方法
 async function onConfirmDelivery(row: SalesOrder) {
-  await handleConfirmDelivery(row, confirmSaleOrderDeliveryApi);
+  await openConfirmActionDialog(
+    "确认送达",
+    row,
+    async payload => {
+      return confirmSaleOrderDeliveryApi(row.uid, payload);
+    },
+    "sale-delivery"
+  );
+}
+
+async function openConfirmActionDialog(
+  title: string,
+  row: SalesOrder,
+  submit: (payload: {
+    detailUid: string;
+    shipCount?: number;
+    serialNos?: string[];
+  }) => Promise<unknown>,
+  action: "sale-shipment" | "sale-delivery" = "sale-shipment"
+) {
+  const formRef = ref<{
+    getPayload: () => {
+      detailUid: string;
+      shipCount?: number;
+      serialNos?: string[];
+    };
+    validate: () => Promise<boolean>;
+  } | null>(null);
+
+  addDialog({
+    title,
+    width: "520px",
+    draggable: true,
+    closeOnClickModal: false,
+    contentRenderer: () =>
+      h(ConfirmOrderDetailAction, {
+        ref: formRef,
+        orderType: "sale-order",
+        action,
+        orderUid: row.uid
+      }),
+    beforeSure: async done => {
+      try {
+        const ok = await formRef.value?.validate();
+        if (!ok) return;
+        const payload = formRef.value?.getPayload();
+        if (!payload?.detailUid) return;
+        await submit(payload);
+        message(`${title}成功`, { type: "success" });
+        done();
+        await getList();
+      } catch (error) {
+        handleApiError(error, `${title}失败`);
+      }
+    }
+  });
 }
 </script>
 
@@ -303,7 +352,8 @@ async function onConfirmDelivery(row: SalesOrder) {
                       type: 'success',
                       visible:
                         (row as SalesOrder).isApproved &&
-                        (row as SalesOrder).details?.some(d => !d.isShipped),
+                        (row as SalesOrder).logisticsStatus !== 3 &&
+                        (row as SalesOrder).logisticsStatus !== 4,
                       onClick: () => onConfirmShipment(row as SalesOrder)
                     },
                     {

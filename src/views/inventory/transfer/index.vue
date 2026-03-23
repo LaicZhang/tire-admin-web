@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "@/utils/constants";
-import { onMounted, reactive, ref } from "vue";
+import { h, onMounted, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import type { FormInstance } from "element-plus";
 import { v7 as uuid } from "uuid";
@@ -29,6 +29,8 @@ import { ALL_LIST, handleApiError, localForage, message } from "@/utils";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
+import { addDialog } from "@/composables/useDialogService";
+import ConfirmOrderDetailAction from "@/views/business/order/components/ConfirmOrderDetailAction.vue";
 
 defineOptions({
   name: "InventoryTransfer"
@@ -310,51 +312,71 @@ async function handleReject(row: TransferOrder) {
 }
 
 async function handleConfirmShipment(row: TransferOrder) {
-  const pending = (row.details || []).filter(d => !d.isShipped);
-  if (pending.length === 0) {
-    message("已全部发货", { type: "info" });
-    return;
-  }
-  const ok = await confirm("确认发货后将变更库存状态，是否继续?", "确认发货");
-  if (!ok) return;
-
-  try {
-    for (const detail of pending) {
-      if (detail.uid) {
-        await confirmTransferOrderShipmentApi(row.uid, {
-          detailUid: detail.uid
-        });
-      }
-    }
-    message("确认发货成功", { type: "success" });
-    fetchData();
-  } catch (error) {
-    handleApiError(error, "确认发货失败");
-  }
+  await openConfirmActionDialog(
+    "确认发货",
+    row,
+    async payload => {
+      return confirmTransferOrderShipmentApi(row.uid, payload);
+    },
+    "transfer-shipment"
+  );
 }
 
 async function handleConfirmArrival(row: TransferOrder) {
-  const pending = (row.details || []).filter(d => d.isShipped && !d.isArrival);
-  if (pending.length === 0) {
-    message("已全部到货", { type: "info" });
-    return;
-  }
-  const ok = await confirm("确认到货后将入库，是否继续?", "确认到货");
-  if (!ok) return;
+  await openConfirmActionDialog(
+    "确认到货",
+    row,
+    async payload => {
+      return confirmTransferOrderArrivalApi(row.uid, payload);
+    },
+    "transfer-arrival"
+  );
+}
 
-  try {
-    for (const detail of pending) {
-      if (detail.uid) {
-        await confirmTransferOrderArrivalApi(row.uid, {
-          detailUid: detail.uid
-        });
+async function openConfirmActionDialog(
+  title: string,
+  row: TransferOrder,
+  submit: (payload: {
+    detailUid: string;
+    serialNos?: string[];
+  }) => Promise<unknown>,
+  action: "transfer-shipment" | "transfer-arrival"
+) {
+  const formRef = ref<{
+    getPayload: () => {
+      detailUid: string;
+      serialNos?: string[];
+    };
+    validate: () => Promise<boolean>;
+  } | null>(null);
+
+  addDialog({
+    title,
+    width: "520px",
+    draggable: true,
+    closeOnClickModal: false,
+    contentRenderer: () =>
+      h(ConfirmOrderDetailAction, {
+        ref: formRef,
+        orderType: ORDER_TYPE,
+        action,
+        orderUid: row.uid
+      }),
+    beforeSure: async done => {
+      try {
+        const ok = await formRef.value?.validate();
+        if (!ok) return;
+        const payload = formRef.value?.getPayload();
+        if (!payload?.detailUid) return;
+        await submit(payload);
+        message(`${title}成功`, { type: "success" });
+        done();
+        await fetchData();
+      } catch (error) {
+        handleApiError(error, `${title}失败`);
       }
     }
-    message("确认到货成功", { type: "success" });
-    fetchData();
-  } catch (error) {
-    handleApiError(error, "确认到货失败");
-  }
+  });
 }
 
 onMounted(async () => {
@@ -501,9 +523,7 @@ onMounted(async () => {
                 拒绝
               </el-button>
               <el-button
-                v-if="
-                  row.isApproved && getLogisticsStatus(row) === 'PENDING_SHIP'
-                "
+                v-if="row.isApproved && getLogisticsStatus(row) !== 'ARRIVED'"
                 link
                 type="success"
                 @click="handleConfirmShipment(row)"
@@ -511,7 +531,9 @@ onMounted(async () => {
                 确认发货
               </el-button>
               <el-button
-                v-if="row.isApproved && getLogisticsStatus(row) === 'SHIPPED'"
+                v-if="
+                  row.isApproved && getLogisticsStatus(row) !== 'PENDING_SHIP'
+                "
                 link
                 type="success"
                 @click="handleConfirmArrival(row)"

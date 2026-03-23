@@ -3,6 +3,10 @@ import { computed, onMounted, ref, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { getOrderApi } from "@/api/business/order";
 import { message } from "@/utils/message";
+import {
+  formatSerialNoListText,
+  parseSerialNoListText
+} from "@/utils/serialNumber";
 import { elementRules } from "@/utils/validation/elementRules";
 
 type Action =
@@ -18,6 +22,7 @@ type Action =
 type ConfirmPayload = {
   detailUid: string;
   shipCount?: number;
+  serialNos?: string[];
   batchNo?: string;
   productionDate?: string;
   expiryDate?: string;
@@ -26,15 +31,25 @@ type ConfirmPayload = {
 type ConfirmFormState = {
   detailUid: string;
   shipCount: number;
+  serialNosText: string;
   batchNo: string;
   productionDate: string;
   expiryDate: string;
+};
+
+type SerialProgress = {
+  total: number;
+  shippedCount: number;
+  arrivedCount?: number;
+  pendingShipmentSerialNos: string[];
+  pendingArrivalSerialNos?: string[];
 };
 
 type OrderDetail = {
   uid: string;
   tireId?: string;
   count?: number;
+  serialProgress?: SerialProgress;
 };
 
 const props = defineProps<{
@@ -50,16 +65,14 @@ const formRef = ref<FormInstance>();
 const form = ref<ConfirmFormState>({
   detailUid: "",
   shipCount: 1,
+  serialNosText: "",
   batchNo: "",
   productionDate: "",
   expiryDate: ""
 });
 
 const rules: FormRules = {
-  detailUid: [
-    elementRules.requiredSelect("请选择明细", "change"),
-    elementRules.uuidV4("明细不合法", "change")
-  ],
+  detailUid: [elementRules.requiredSelect("请选择明细", "change")],
   shipCount: [elementRules.positiveInt("请输入有效的发货数量")],
   batchNo: [elementRules.maxLen(50, "批次号最多 50 个字符")],
   productionDate: [
@@ -98,11 +111,35 @@ const selectedDetail = computed(() => {
   return details.value.find(d => d.uid === form.value.detailUid);
 });
 
+const needsSerialSelection = computed(() => {
+  if (!selectedDetail.value?.serialProgress?.total) return false;
+  return (
+    props.action === "sale-shipment" ||
+    props.action === "transfer-shipment" ||
+    props.action === "transfer-arrival"
+  );
+});
+
+const currentPendingSerialNos = computed(() => {
+  const progress = selectedDetail.value?.serialProgress;
+  if (!progress) return [];
+  if (props.action === "transfer-arrival")
+    return progress.pendingArrivalSerialNos || [];
+  return progress.pendingShipmentSerialNos || [];
+});
+
 function makeDetailLabel(detail: OrderDetail) {
   const uid = detail.uid ?? "-";
   const tire = detail.tireId ? ` ${detail.tireId}` : "";
   const count = detail.count != null ? ` ×${detail.count}` : "";
-  return `${uid}${tire}${count}`;
+  const pending = detail.serialProgress
+    ? ` 待处理:${
+        props.action === "transfer-arrival"
+          ? detail.serialProgress.pendingArrivalSerialNos?.length || 0
+          : detail.serialProgress.pendingShipmentSerialNos.length
+      }`
+    : "";
+  return `${uid}${tire}${count}${pending}`;
 }
 
 async function load() {
@@ -127,7 +164,12 @@ async function load() {
       .map(item => ({
         uid: typeof item.uid === "string" ? item.uid : "",
         tireId: typeof item.tireId === "string" ? item.tireId : undefined,
-        count: typeof item.count === "number" ? item.count : undefined
+        count: typeof item.count === "number" ? item.count : undefined,
+        serialProgress:
+          typeof item.serialProgress === "object" &&
+          item.serialProgress !== null
+            ? (item.serialProgress as SerialProgress)
+            : undefined
       }))
       .filter(item => Boolean(item.uid));
 
@@ -145,7 +187,12 @@ async function load() {
 watch(
   () => form.value.detailUid,
   () => {
-    if (props.action === "sale-shipment") {
+    if (needsSerialSelection.value) {
+      form.value.serialNosText = formatSerialNoListText(
+        currentPendingSerialNos.value
+      );
+    }
+    if (props.action === "sale-shipment" && !needsSerialSelection.value) {
       const count = selectedDetail.value?.count;
       if (count && (!form.value.shipCount || form.value.shipCount <= 0)) {
         form.value.shipCount = count;
@@ -155,9 +202,18 @@ watch(
 );
 
 function getPayload(): ConfirmPayload {
+  const serialNos = needsSerialSelection.value
+    ? parseSerialNoListText(form.value.serialNosText)
+    : [];
   return {
     detailUid: form.value.detailUid,
-    shipCount: form.value.shipCount > 0 ? form.value.shipCount : undefined,
+    shipCount:
+      props.action === "sale-shipment" &&
+      !needsSerialSelection.value &&
+      form.value.shipCount > 0
+        ? form.value.shipCount
+        : undefined,
+    serialNos: serialNos.length > 0 ? serialNos : undefined,
     batchNo: form.value.batchNo.trim() ? form.value.batchNo.trim() : undefined,
     productionDate: form.value.productionDate || undefined,
     expiryDate: form.value.expiryDate || undefined
@@ -165,6 +221,13 @@ function getPayload(): ConfirmPayload {
 }
 
 async function validate(): Promise<boolean> {
+  if (
+    needsSerialSelection.value &&
+    parseSerialNoListText(form.value.serialNosText).length === 0
+  ) {
+    message("请录入本次确认的胎号", { type: "warning" });
+    return false;
+  }
   const ok = await formRef.value?.validate().catch(() => false);
   if (!ok) message("请检查表单填写", { type: "warning" });
   return !!ok;
@@ -198,9 +261,28 @@ onMounted(load);
       </el-select>
     </el-form-item>
 
-    <template v-if="props.action === 'sale-shipment'">
+    <template v-if="props.action === 'sale-shipment' && !needsSerialSelection">
       <el-form-item label="发货数量" prop="shipCount">
         <el-input-number v-model="form.shipCount" :min="1" />
+      </el-form-item>
+    </template>
+
+    <template v-if="needsSerialSelection">
+      <el-form-item label="待处理胎号">
+        <el-input
+          :model-value="formatSerialNoListText(currentPendingSerialNos)"
+          type="textarea"
+          :rows="4"
+          readonly
+        />
+      </el-form-item>
+      <el-form-item label="本次胎号">
+        <el-input
+          v-model="form.serialNosText"
+          type="textarea"
+          :rows="5"
+          placeholder="每行一个胎号"
+        />
       </el-form-item>
     </template>
 
