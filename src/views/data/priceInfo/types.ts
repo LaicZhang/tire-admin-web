@@ -11,6 +11,8 @@ export interface PriceInfo {
   tireCode?: string;
   /** 分组 */
   group?: string;
+  /** 基础单位 */
+  unit?: string;
   /** 零售价 */
   retailPrice?: number;
   /** 批发价 */
@@ -45,6 +47,7 @@ export interface PriceInfoQuery {
 /** 价格资料表单 */
 export interface PriceInfoForm {
   tireId: string;
+  unit?: string;
   retailPrice?: number;
   wholesalePrice?: number;
   vipPrice?: number;
@@ -56,6 +59,7 @@ export interface PriceInfoForm {
 /** 批量编辑价格表单 */
 export interface BatchPriceForm {
   tireIds: string[];
+  unit?: string;
   priceType: "retail" | "wholesale" | "vip" | "member";
   adjustType: "fixed" | "percent" | "amount";
   adjustValue: number;

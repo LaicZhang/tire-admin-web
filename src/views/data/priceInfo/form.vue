@@ -7,11 +7,13 @@ import { fieldRules } from "@/utils/validation/fieldRules";
 interface FormProps {
   formInline?: PriceInfoForm;
   tireName?: string;
+  baseUnit?: string;
 }
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     tireId: "",
+    unit: undefined,
     retailPrice: undefined,
     wholesalePrice: undefined,
     vipPrice: undefined,
@@ -19,7 +21,8 @@ const props = withDefaults(defineProps<FormProps>(), {
     minSalePrice: undefined,
     maxPurchasePrice: undefined
   }),
-  tireName: ""
+  tireName: "",
+  baseUnit: ""
 });
 
 const formRules = reactive<FormRules>({
@@ -84,6 +87,17 @@ defineExpose({ formRef: ruleFormRef });
     <el-form-item label="商品">
       <span class="font-bold">{{ tireName || "-" }}</span>
     </el-form-item>
+
+    <el-form-item label="录入单位" prop="unit">
+      <el-input
+        v-model="newFormInline.unit"
+        :placeholder="baseUnit ? `未填默认按 ${baseUnit}` : '未填按基础单位'"
+        clearable
+      />
+    </el-form-item>
+    <div v-if="baseUnit" class="mb-4 text-xs text-gray-500">
+      当前基础单位：{{ baseUnit }}
+    </div>
 
     <el-divider content-position="left">价格设置</el-divider>
 

@@ -16,6 +16,7 @@ import editForm from "./form.vue";
 import type { PriceInfo, PriceInfoForm } from "./types";
 import type { FormInstance } from "element-plus";
 import { getTireListApi, updateTireApi } from "@/api/business/tire";
+import { upsertPriceInfoApi } from "@/api/data/price-info";
 import {
   deletePriceLimitApi,
   getPriceLimitListApi,
@@ -67,6 +68,7 @@ const buildPriceLimitMap = (records?: PriceLimitRecord[]) => {
 const buildPriceLimitPayload = (row: PriceInfo, formInline: PriceInfoForm) => ({
   uid: row.priceLimitUid,
   tireId: row.tireId,
+  unit: formInline.unit?.trim() || undefined,
   enablePurchaseLimit:
     formInline.maxPurchasePrice !== undefined
       ? true
@@ -131,8 +133,10 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
         tireName: t.name,
         tireCode: t.barcode ?? t.number,
         group: t.group,
+        unit: t.unit,
         retailPrice: t.salePrice ?? t.price,
-        maxPurchasePrice: t.purchasePrice ?? t.cost,
+        maxPurchasePrice:
+          toYuan(limit?.maxPurchasePrice) ?? toYuan(t.purchasePrice ?? t.cost),
         wholesalePrice: toYuan(limit?.wholesalePrice),
         vipPrice: toYuan(limit?.vipPrice),
         memberPrice: toYuan(limit?.memberPrice),
@@ -176,9 +180,11 @@ const openDialog = (row: PriceInfo) => {
         vipPrice: row.vipPrice,
         memberPrice: row.memberPrice,
         minSalePrice: row.minSalePrice,
-        maxPurchasePrice: row.maxPurchasePrice
+        maxPurchasePrice: row.maxPurchasePrice,
+        unit: row.unit
       },
-      tireName: row.tireName
+      tireName: row.tireName,
+      baseUnit: row.unit
     },
     width: "600px",
     draggable: true,
@@ -189,7 +195,8 @@ const openDialog = (row: PriceInfo) => {
       h(editForm, {
         ref: dialogFormRef,
         formInline: (options.props as { formInline: PriceInfoForm }).formInline,
-        tireName: (options.props as { tireName: string }).tireName
+        tireName: (options.props as { tireName: string }).tireName,
+        baseUnit: (options.props as { baseUnit?: string }).baseUnit
       }),
     beforeSure: (done, { options }) => {
       const FormRef = dialogFormRef.value?.formRef;
@@ -199,13 +206,26 @@ const openDialog = (row: PriceInfo) => {
           const cur = (options.props as { formInline: PriceInfoForm })
             .formInline;
           try {
-            await Promise.all([
-              upsertPriceLimitApi(buildPriceLimitPayload(row, cur)),
-              updateTireApi(row.tireId, {
-                salePrice: cur.retailPrice,
-                purchasePrice: cur.maxPurchasePrice
-              })
-            ]);
+            await upsertPriceInfoApi({
+              tireId: row.tireId,
+              priceLimitUid: row.priceLimitUid,
+              unit: cur.unit?.trim() || undefined,
+              retailPrice: toFen(cur.retailPrice),
+              purchasePrice: toFen(cur.maxPurchasePrice),
+              wholesalePrice: toFen(cur.wholesalePrice),
+              vipPrice: toFen(cur.vipPrice),
+              memberPrice: toFen(cur.memberPrice),
+              minSalePrice: toFen(cur.minSalePrice),
+              maxPurchasePrice: toFen(cur.maxPurchasePrice),
+              enablePurchaseLimit:
+                cur.maxPurchasePrice !== undefined
+                  ? true
+                  : Boolean(row.enablePurchaseLimit),
+              enableSaleLimit:
+                cur.minSalePrice !== undefined
+                  ? true
+                  : Boolean(row.enableSaleLimit)
+            });
             message("保存成功", { type: "success" });
             done();
             fetchData();
@@ -229,6 +249,7 @@ const handleBatchEdit = () => {
     title: `批量编辑价格 (${selectedRows.value.length}个商品)`,
     props: {
       formInline: {
+        unit: undefined as string | undefined,
         wholesalePrice: undefined as number | undefined,
         vipPrice: undefined as number | undefined,
         memberPrice: undefined as number | undefined,
@@ -241,6 +262,7 @@ const handleBatchEdit = () => {
     contentRenderer: ({ options }) => {
       const { formInline } = options.props as {
         formInline: {
+          unit?: string;
           wholesalePrice?: number;
           vipPrice?: number;
           memberPrice?: number;
@@ -257,6 +279,13 @@ const handleBatchEdit = () => {
           class: "mb-4"
         }),
         h("el-form", { model: formInline, labelWidth: "100px" }, [
+          h("el-form-item", { label: "录入单位" }, [
+            h("el-input", {
+              modelValue: formInline.unit,
+              "onUpdate:modelValue": (v: string) => (formInline.unit = v),
+              placeholder: "未填按基础单位"
+            })
+          ]),
           h("el-form-item", { label: "批发价" }, [
             h("el-input-number", {
               modelValue: formInline.wholesalePrice,
@@ -303,6 +332,7 @@ const handleBatchEdit = () => {
       const batch = (
         options.props as {
           formInline: {
+            unit?: string;
             wholesalePrice?: number;
             vipPrice?: number;
             memberPrice?: number;
@@ -350,7 +380,8 @@ const handleBatchEdit = () => {
               memberPrice:
                 batch.memberPrice !== undefined
                   ? toFen(batch.memberPrice)
-                  : toFen(row.memberPrice)
+                  : toFen(row.memberPrice),
+              unit: batch.unit?.trim() || undefined
             })
           )
         );

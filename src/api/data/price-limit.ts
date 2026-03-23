@@ -29,6 +29,7 @@ export interface PriceLimitUpsertDto {
   vipPrice?: number;
   memberPrice?: number;
   remark?: string;
+  unit?: string;
 }
 
 export interface PriceLimitQuery {
