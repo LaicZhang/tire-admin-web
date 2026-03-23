@@ -323,6 +323,19 @@ export interface ClaimInspectionDto {
   responsibilityRatio?: number;
 }
 
+export interface ReturnInspectionItemDto {
+  serialNo: string;
+  result: "GOOD_RETURN" | "DEFECTIVE" | "SCRAPPED";
+  inspectedBy?: string;
+  photos?: string[];
+  remark?: string;
+  defectCategoryId?: number;
+}
+
+export interface ReturnInspectionDto {
+  items: ReturnInspectionItemDto[];
+}
+
 export async function getClaimDefectCategoryListApi() {
   return await http.request<CommonResult>(
     "get",
@@ -354,6 +367,28 @@ export async function createClaimInspectionApi(
   return await http.request<CommonResult>(
     "post",
     baseUrlApi(`/claim-order/${uid}/inspection`),
+    { data }
+  );
+}
+
+export async function getReturnInspectionListApi(
+  uid: string,
+  detailUid: string
+) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi(`/return-order/${uid}/details/${detailUid}/inspection`)
+  );
+}
+
+export async function createReturnInspectionApi(
+  uid: string,
+  detailUid: string,
+  data: ReturnInspectionDto
+) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/return-order/${uid}/details/${detailUid}/inspection`),
     { data }
   );
 }

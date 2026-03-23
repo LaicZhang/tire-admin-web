@@ -14,6 +14,16 @@ export interface SalesReturnDetail {
   returnReason?: string;
   serialNumbers?: SerialNumberPayload[];
   serialNosText?: string;
+  qcStatus?: "PENDING" | "PARTIAL" | "COMPLETED";
+  qcCompletedAt?: string;
+  inspectionSummary?: {
+    totalCount: number;
+    inspectedCount: number;
+    pendingCount: number;
+    goodReturnCount: number;
+    defectiveCount: number;
+    scrappedCount: number;
+  };
   desc?: string;
 }
 

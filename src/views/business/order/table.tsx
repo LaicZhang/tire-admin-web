@@ -60,6 +60,14 @@ interface _OrderDetail {
     sourceOrderId?: string;
     targetType?: string;
     targetOrderId?: string;
+    latestReturnInspection?: {
+      result?: string;
+      remark?: string;
+      createdAt?: string;
+      defectCategory?: {
+        name?: string;
+      };
+    };
   };
   desc?: string;
   number?: string;

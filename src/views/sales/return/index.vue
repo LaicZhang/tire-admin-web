@@ -24,6 +24,7 @@ import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import { salesReturnColumns } from "./columns";
 import type { SalesReturnOrder, SalesReturnQueryParams } from "./types";
 import editForm from "./form.vue";
+import ReturnInspectionDialog from "./ReturnInspectionDialog.vue";
 
 defineOptions({
   name: "SalesReturn"
@@ -231,11 +232,39 @@ async function handleConfirmArrival(row: SalesReturnOrder) {
   }
 }
 
+function handleManageReturnInspection(row: SalesReturnOrder) {
+  addDialog({
+    title: "退货质检",
+    width: "1080px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(ReturnInspectionDialog, {
+        orderUid: row.uid,
+        details: row.details || []
+      })
+  });
+}
+
 /** 获取自定义操作按钮配置 */
 function getCustomActions(
   row: SalesReturnOrder
 ): CustomAction<SalesReturnOrder>[] {
   return [
+    {
+      label: "退货质检",
+      type: "primary",
+      visible:
+        row.isApproved &&
+        (row.details || []).some(
+          detail =>
+            Boolean(detail.uid) &&
+            Array.isArray(detail.serialNumbers) &&
+            detail.serialNumbers.length > 0
+        ),
+      onClick: (r: SalesReturnOrder) => handleManageReturnInspection(r)
+    },
     {
       label: "确认收货",
       type: "success",

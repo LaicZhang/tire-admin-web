@@ -46,6 +46,14 @@ export interface ClaimFormItemProps {
       sourceOrderId?: string;
       targetType?: string;
       targetOrderId?: string;
+      latestReturnInspection?: {
+        result?: string;
+        remark?: string;
+        createdAt?: string;
+        defectCategory?: {
+          name?: string;
+        };
+      };
     };
   }>;
 }
@@ -202,6 +210,12 @@ export const claimOrderDetailsColumns: TableColumnList = [
           : "",
         trace.targetType || trace.targetOrderId
           ? `去向：${trace.targetType || "-"} ${trace.targetOrderId || ""}`.trim()
+          : "",
+        trace.latestReturnInspection?.result
+          ? `最近退货质检：${trace.latestReturnInspection.result}${trace.latestReturnInspection.defectCategory?.name ? ` · ${trace.latestReturnInspection.defectCategory.name}` : ""}`
+          : "",
+        trace.latestReturnInspection?.remark
+          ? `质检备注：${trace.latestReturnInspection.remark}`
           : ""
       ].filter(Boolean);
       return (
