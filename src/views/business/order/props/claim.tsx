@@ -25,6 +25,7 @@ export interface ClaimFormItemProps {
     tireId?: string;
     repoId?: string;
     count?: number;
+    serialNo?: string;
     number?: string;
     name?: string;
     cause?: string;
@@ -37,6 +38,15 @@ export interface ClaimFormItemProps {
     isProviderClaim?: boolean;
     claimType?: number;
     identificationResult?: string;
+    serialTrace?: {
+      serialNo?: string;
+      status?: string;
+      repoId?: string;
+      sourceType?: string;
+      sourceOrderId?: string;
+      targetType?: string;
+      targetOrderId?: string;
+    };
   }>;
 }
 
@@ -71,6 +81,17 @@ export const claimOrderDetailsColumns: TableColumnList = [
     prop: "count",
     slot: "countInput",
     width: 90
+  },
+  {
+    label: "胎号",
+    prop: "serialNo",
+    minWidth: 180,
+    cellRenderer: ({ row }) => (
+      <el-input
+        v-model={row.serialNo}
+        placeholder="退胎扣库且启用序列号时必填"
+      />
+    )
   },
   {
     label: "理赔编号",
@@ -163,6 +184,34 @@ export const claimOrderDetailsColumns: TableColumnList = [
     cellRenderer: ({ row }) => (
       <el-input v-model={row.identificationResult} placeholder="可选" />
     )
+  },
+  {
+    label: "追溯摘要",
+    prop: "serialTrace",
+    minWidth: 260,
+    cellRenderer: ({ row }) => {
+      const trace = row.serialTrace as
+        | ClaimFormItemProps["details"][number]["serialTrace"]
+        | undefined;
+      if (!trace?.serialNo) return <span class="text-gray-400">-</span>;
+      const parts = [
+        trace.status ? `状态：${trace.status}` : "",
+        trace.repoId ? `仓库：${trace.repoId}` : "",
+        trace.sourceType || trace.sourceOrderId
+          ? `来源：${trace.sourceType || "-"} ${trace.sourceOrderId || ""}`.trim()
+          : "",
+        trace.targetType || trace.targetOrderId
+          ? `去向：${trace.targetType || "-"} ${trace.targetOrderId || ""}`.trim()
+          : ""
+      ].filter(Boolean);
+      return (
+        <div class="text-xs leading-5 text-gray-600">
+          {parts.map((part, index) => (
+            <div key={`${trace.serialNo}-${index}`}>{part}</div>
+          ))}
+        </div>
+      );
+    }
   },
   {
     label: "操作",

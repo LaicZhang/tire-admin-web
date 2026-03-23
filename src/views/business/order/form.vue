@@ -4,6 +4,7 @@ import type { FormRules } from "element-plus";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
+import { getCompanySettingGroupApi } from "@/api/setting/company-setting";
 import ClaimAttachmentUpload from "./components/ClaimAttachmentUpload.vue";
 import {
   PurchaseFormItemProps,
@@ -57,6 +58,7 @@ interface OrderDetail {
   total: number;
   tireId?: string;
   repoId?: string;
+  serialNo?: string;
   desc?: string;
   number?: string;
   isArrival?: boolean;
@@ -124,6 +126,7 @@ async function getOrderType() {
 const managerList = ref<ListItem[]>([]);
 
 const detailsColumns = ref<TableColumnList>([]);
+const serialFeatureEnabled = ref(false);
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object"
@@ -207,6 +210,27 @@ function makeDetailsRule() {
 
           if (requiresRepo && !row.repoId) {
             return callback(new Error(`明细第 ${rowNo} 行：请选择仓库`));
+          }
+
+          if (
+            orderType.value === ORDER_TYPE.claim &&
+            serialFeatureEnabled.value &&
+            Number(row.claimType ?? 0) === 2
+          ) {
+            const serialNo =
+              typeof row.serialNo === "string" ? row.serialNo.trim() : "";
+            if (!serialNo) {
+              return callback(
+                new Error(
+                  `明细第 ${rowNo} 行：启用序列号后，退胎扣库必须填写胎号`
+                )
+              );
+            }
+            if (serialNo.length > 100) {
+              return callback(
+                new Error(`明细第 ${rowNo} 行：胎号最多 100 个字符`)
+              );
+            }
           }
 
           if (formTitle.value === "确认到货") {
@@ -314,6 +338,17 @@ async function getALlList() {
   }
 }
 
+async function loadFuncSettings() {
+  try {
+    const { data, code } = await getCompanySettingGroupApi("func");
+    if (code !== 200) return;
+    const serialSetting = data.find(item => item.key === "enableSerialNumber");
+    serialFeatureEnabled.value = serialSetting?.value === "true";
+  } catch {
+    serialFeatureEnabled.value = false;
+  }
+}
+
 // 条码扫描
 const barcodeInput = ref("");
 const barcodeLoading = ref(false);
@@ -372,7 +407,11 @@ onMounted(async () => {
   await getOrderType();
   await getFormTitle(); // Move up to ensure title is ready before setting columns if we logic depends on it
   setDetailsColumnsAndFormRules();
-  await Promise.all([getALlList(), loadDefaultWarehouseId()]);
+  await Promise.all([
+    getALlList(),
+    loadDefaultWarehouseId(),
+    loadFuncSettings()
+  ]);
   syncSummaryFromDetails();
 });
 

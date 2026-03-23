@@ -21,6 +21,7 @@ export interface OrderDetailDto {
   repoId?: string;
   batchNo?: string;
   expiryDate?: string;
+  serialNo?: string | null;
 }
 
 /** 订单基础信息 DTO */

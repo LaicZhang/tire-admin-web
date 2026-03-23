@@ -51,6 +51,16 @@ interface _OrderDetail {
   expiryDate?: string;
   tireId?: string;
   repoId?: string;
+  serialNo?: string | null;
+  serialTrace?: {
+    serialNo?: string;
+    status?: string;
+    repoId?: string;
+    sourceType?: string;
+    sourceOrderId?: string;
+    targetType?: string;
+    targetOrderId?: string;
+  };
   desc?: string;
   number?: string;
   name?: string;
@@ -270,6 +280,7 @@ export function buildCreateOrderPayload(
         companyId,
         tireId: String(detail.tireId ?? ""),
         repositoryId: toOptionalString(detail.repoId) ?? null,
+        serialNo: toOptionalString(detail.serialNo) ?? null,
         number: toOptionalString(detail.number) ?? `CL-${uid}-${index + 1}`,
         name: toOptionalString(detail.name) ?? "三包理赔",
         cause: toOptionalString(detail.cause) ?? "待判定",
