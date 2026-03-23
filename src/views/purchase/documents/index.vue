@@ -6,6 +6,7 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRouter } from "vue-router";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import {
+  approveDocumentCenterApi,
   exportDocumentCenterApi,
   getDocumentCenterListApi,
   getDocumentCenterPrintApi,
@@ -23,6 +24,7 @@ defineOptions({
 const router = useRouter();
 
 const dataList = ref<DocumentItem[]>([]);
+const selectedRows = ref<DocumentItem[]>([]);
 const loading = ref(false);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
@@ -178,19 +180,45 @@ function editDocument(row: DocumentItem) {
 }
 
 function auditDocument(row: DocumentItem) {
-  const routeMap: Record<DocumentType, string> = {
-    order: "/purchase/order",
-    inbound: "/purchase/inbound",
-    return: "/purchase/return"
-  };
-  router.push({
-    path: routeMap[row.type],
-    query: { uid: row.uid, action: "audit" }
-  });
+  handleApproveRows([row]);
+}
+
+function handleSelectionChange(rows: DocumentItem[]) {
+  selectedRows.value = rows;
+}
+
+async function handleApproveRows(rows: DocumentItem[]) {
+  const items = rows
+    .filter(row => !row.isApproved)
+    .map(row => ({
+      documentType: documentTypeMap[row.type],
+      uid: row.uid
+    }));
+  if (items.length === 0) {
+    message("请选择待审核单据", { type: "warning" });
+    return;
+  }
+  try {
+    const { code, data, msg } = await approveDocumentCenterApi(items);
+    if (code !== 200) {
+      message(msg || "批量审核失败", { type: "error" });
+      return;
+    }
+    const failed = (data ?? []).filter(item => !item.success);
+    if (failed.length > 0) {
+      message(`审核完成，失败 ${failed.length} 条`, { type: "warning" });
+    } else {
+      message("审核成功", { type: "success" });
+    }
+    selectedRows.value = [];
+    getList();
+  } catch {
+    message("批量审核失败", { type: "error" });
+  }
 }
 
 function handleBatchApprove() {
-  message("采购单据暂不支持统一批量审核", { type: "info" });
+  handleApproveRows(selectedRows.value);
 }
 
 async function handleExport() {
@@ -355,6 +383,7 @@ onMounted(async () => {
             :loading="loading"
             show-overflow-tooltip
             :pagination="{ ...pagination, size }"
+            @selection-change="handleSelectionChange"
             @page-current-change="handlePageChange"
           >
             <template #operation="{ row }">

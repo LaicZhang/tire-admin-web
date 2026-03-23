@@ -2,6 +2,7 @@ import type { DocumentItem } from "./types";
 
 type TableColumn = {
   label: string;
+  type?: string;
   prop?: string;
   slot?: string;
   fixed?: string | boolean;
@@ -16,6 +17,11 @@ type TableColumn = {
 
 /** Document List Table Columns */
 export const documentColumns: TableColumn[] = [
+  {
+    label: "选择",
+    type: "selection",
+    width: 55
+  },
   {
     label: "单据类型",
     prop: "typeName",

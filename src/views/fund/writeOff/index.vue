@@ -11,6 +11,7 @@ import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { handleApiError, message } from "@/utils";
+import { getDocumentCenterPrintApi } from "@/api/document-center";
 import {
   type WriteOffOrder,
   type WriteOffQueryParams,
@@ -188,7 +189,47 @@ function handlePrint() {
     message("请选择要打印的记录", { type: "warning" });
     return;
   }
-  message("打印功能开发中");
+  Promise.all(
+    selectedRows.value.map(row =>
+      getDocumentCenterPrintApi("WRITE_OFF", row.uid)
+    )
+  )
+    .then(results => {
+      const printable = results.filter(
+        result => result.code === 200 && result.data
+      );
+      if (printable.length === 0) {
+        message("获取打印数据失败", { type: "error" });
+        return;
+      }
+      printable.forEach(result => {
+        if (!result.data) return;
+        const rows = Object.entries(result.data.detail)
+          .map(
+            ([key, value]) =>
+              `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
+          )
+          .join("");
+        const popup = window.open(
+          "",
+          "_blank",
+          "noopener,noreferrer,width=960,height=720"
+        );
+        if (!popup) {
+          message("打印窗口打开失败", { type: "warning" });
+          return;
+        }
+        popup.document.write(
+          `<!doctype html><html><head><title>${result.data.billNo}</title></head><body style="font-family:sans-serif;padding:24px;"><h2>${result.data.billNo}</h2><p>状态：${result.data.status}</p><p>往来单位：${result.data.targetName ?? "-"}</p><table style="border-collapse:collapse;width:100%;margin-top:16px;">${rows}</table></body></html>`
+        );
+        popup.document.close();
+        popup.focus();
+        popup.print();
+      });
+    })
+    .catch(() => {
+      message("获取打印数据失败", { type: "error" });
+    });
 }
 
 function handleSelectionChange(rows: WriteOffOrder[]) {
