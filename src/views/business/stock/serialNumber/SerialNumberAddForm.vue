@@ -26,6 +26,7 @@ const formLoading = ref(false);
 const formData = reactive({
   serialNo: "",
   serialNos: "",
+  remark: "",
   tireId: "",
   repoId: "",
   batchNo: "",
@@ -38,6 +39,7 @@ const resetForm = () => {
   Object.assign(formData, {
     serialNo: "",
     serialNos: "",
+    remark: "",
     tireId: "",
     repoId: "",
     batchNo: "",
@@ -52,6 +54,7 @@ const validate = (): boolean => {
   formData.repoId = String(formData.repoId || "").trim();
   formData.serialNo = String(formData.serialNo || "").trim();
   formData.serialNos = String(formData.serialNos || "");
+  formData.remark = String(formData.remark || "").trim();
   formData.batchNo = String(formData.batchNo || "").trim();
 
   const isUuid =
@@ -109,6 +112,10 @@ const validate = (): boolean => {
     message("批次号最多 50 个字符", { type: "warning" });
     return false;
   }
+  if (formData.remark.length > 255) {
+    message("备注最多 255 个字符", { type: "warning" });
+    return false;
+  }
   return true;
 };
 
@@ -121,6 +128,7 @@ const handleSubmit = async () => {
     if (props.formInline.type === "single") {
       await createSerialNumber({
         serialNo: formData.serialNo,
+        remark: formData.remark || undefined,
         tireId: formData.tireId,
         repoId: formData.repoId,
         batchNo: formData.batchNo || undefined,
@@ -140,6 +148,7 @@ const handleSubmit = async () => {
       }
       const { data } = await createSerialNumberBatch({
         serialNos,
+        remark: formData.remark || undefined,
         tireId: formData.tireId,
         repoId: formData.repoId
       });
@@ -217,6 +226,16 @@ defineExpose({
       <div class="text-xs text-gray-400 mt-1">
         提示：商品数据需从商品管理模块获取
       </div>
+    </el-form-item>
+    <el-form-item label="备注">
+      <el-input
+        v-model="formData.remark"
+        type="textarea"
+        :rows="3"
+        maxlength="255"
+        show-word-limit
+        placeholder="可选，用于承接历史胎号备注"
+      />
     </el-form-item>
     <el-form-item label="仓库" required>
       <el-select

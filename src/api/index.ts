@@ -12,7 +12,6 @@ export * from "./company/salary";
 export * from "./company/position";
 export * from "./company/orderAudit";
 export * from "./business/tire";
-export * from "./business/tire-number";
 export * from "./business/customer";
 export * from "./business/provider";
 export * from "./business/order";

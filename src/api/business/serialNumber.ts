@@ -12,6 +12,7 @@ export interface SerialNumber {
   id: number;
   uid: string;
   serialNo: string;
+  remark?: string;
   tireId: string;
   repoId: string;
   status: SerialNumberStatus;
@@ -23,6 +24,7 @@ export interface SerialNumber {
   productionDate?: string;
   expiryDate?: string;
   createdAt: string;
+  deleteAt?: string;
   tire?: { name: string };
   repo?: { name: string };
 }
@@ -74,6 +76,7 @@ export function getSerialNumberLogs(serialNo: string) {
 /** 创建序列号 */
 export function createSerialNumber(data: {
   serialNo: string;
+  remark?: string;
   tireId: string;
   repoId: string;
   sourceType?: string;
@@ -90,6 +93,7 @@ export function createSerialNumber(data: {
 /** 批量创建序列号 */
 export function createSerialNumberBatch(data: {
   serialNos: string[];
+  remark?: string;
   tireId: string;
   repoId: string;
   sourceType?: string;

@@ -32,6 +32,11 @@ export const columns: TableColumnList = [
     minWidth: 120
   },
   {
+    label: "备注",
+    prop: "remark",
+    minWidth: 160
+  },
+  {
     label: "创建时间",
     prop: "createdAt",
     minWidth: 160

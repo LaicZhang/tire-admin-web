@@ -18,12 +18,15 @@ import SerialNumberLogsForm from "./SerialNumberLogsForm.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import { useOptionsByType } from "@/composables/useOptions";
 
 defineOptions({
   name: "SerialNumberList"
 });
 
 const form = ref({
+  tireId: undefined as string | undefined,
+  repoId: undefined as string | undefined,
   keyword: undefined as string | undefined,
   status: undefined as string | undefined
 });
@@ -34,9 +37,8 @@ type SerialNumberAddFormExpose = {
 };
 const addFormRef = ref<SerialNumberAddFormExpose | null>(null);
 
-// Mock 商品和仓库数据（实际接口获取）
-const tireOptions = ref<Array<{ uid: string; name: string }>>([]);
-const repoOptions = ref<Array<{ uid: string; name: string }>>([]);
+const { options: tireOptions } = useOptionsByType("tires");
+const { options: repoOptions } = useOptionsByType("repos");
 
 const {
   loading,
@@ -53,6 +55,8 @@ const {
   api: ({ page }) =>
     getSerialNumberList({
       index: page,
+      tireId: form.value.tireId || undefined,
+      repoId: form.value.repoId || undefined,
       keyword: form.value.keyword || undefined,
       status: form.value.status || undefined
     }) as unknown as Promise<CommonResult<PaginatedResponseDto<SerialNumber>>>,
@@ -139,7 +143,11 @@ function handleViewLogs(row: SerialNumber) {
     fullscreenIcon: true,
     closeOnClickModal: true,
     hideFooter: true,
-    contentRenderer: () => h(SerialNumberLogsForm)
+    contentRenderer: ({ options }) =>
+      h(SerialNumberLogsForm, {
+        formInline: (options.props as { formInline: { serialNo: string } })
+          .formInline
+      })
   });
 }
 </script>
@@ -153,6 +161,38 @@ function handleViewLogs(row: SerialNumber) {
       @search="onSearch"
       @reset="onReset"
     >
+      <el-form-item label="商品" prop="tireId">
+        <el-select
+          v-model="form.tireId"
+          placeholder="请选择商品"
+          clearable
+          filterable
+          class="w-[200px]"
+        >
+          <el-option
+            v-for="item in tireOptions"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="仓库" prop="repoId">
+        <el-select
+          v-model="form.repoId"
+          placeholder="请选择仓库"
+          clearable
+          filterable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in repoOptions"
+            :key="item.uid"
+            :label="item.name"
+            :value="item.uid"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="序列号" prop="keyword">
         <el-input
           v-model="form.keyword"
@@ -176,7 +216,7 @@ function handleViewLogs(row: SerialNumber) {
       </el-form-item>
     </ReSearchForm>
 
-    <PureTableBar title="序列号管理" :columns="columns" @refresh="onSearch">
+    <PureTableBar title="轮胎序列号管理" :columns="columns" @refresh="onSearch">
       <template #buttons>
         <el-button
           type="primary"
