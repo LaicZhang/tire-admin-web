@@ -7,6 +7,7 @@ import ClearIcon from "~icons/ep/delete";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import { message, handleApiError } from "@/utils";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import { ImportDialog } from "@/components/ImportExport";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
@@ -32,6 +33,7 @@ defineOptions({
 });
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const showImportDialog = ref(false);
 const selectedRows = ref<PriceInfo[]>([]);
 const form = ref({
   keyword: undefined,
@@ -472,7 +474,12 @@ const handleBatchClear = async () => {
           >
             批量清空
           </el-button>
-          <el-button :icon="useRenderIcon(ImportIcon)"> 导入价格 </el-button>
+          <el-button
+            :icon="useRenderIcon(ImportIcon)"
+            @click="showImportDialog = true"
+          >
+            导入价格
+          </el-button>
         </template>
         <template v-slot="{ size }">
           <pure-table
@@ -503,5 +510,12 @@ const handleBatchClear = async () => {
         </template>
       </PureTableBar>
     </el-card>
+
+    <ImportDialog
+      v-model:visible="showImportDialog"
+      type="price-info"
+      title="批量导入商品价格资料"
+      @success="fetchData"
+    />
   </div>
 </template>

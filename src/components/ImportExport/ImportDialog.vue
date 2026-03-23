@@ -106,11 +106,14 @@ async function handleImport() {
 
       importResult.value = result;
 
+      if (result.success > 0) {
+        emit("success");
+      }
+
       if (result.failed === 0) {
         message(`成功导入 ${result.success} 条数据`, {
           type: "success"
         });
-        emit("success");
       } else {
         message(
           `导入完成：成功 ${result.success} 条，失败 ${result.failed} 条`,

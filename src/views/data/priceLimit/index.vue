@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref, h } from "vue";
+import { ref, h, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
 import SettingIcon from "~icons/ep/setting";
-import { message } from "@/utils";
+import { handleApiError, message } from "@/utils";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
+import {
+  getCompanySettingGroupApi,
+  patchCompanySettingGroupApi
+} from "@/api/setting";
 import type { PriceLimit, PriceLimitForm, PriceLimitConfig } from "./types";
 import {
   getPriceLimitListApi,
@@ -36,6 +40,30 @@ const config = ref<PriceLimitConfig>({
   purchaseOverPriceAction: "warn",
   saleBelowPriceAction: "warn"
 });
+
+const mapFuncSettingsToConfig = (
+  settings: Array<{ key: string; value: string }>
+) => {
+  const allowAboveMaxPrice =
+    settings.find(item => item.key === "allowAboveMaxPrice")?.value === "true";
+  const allowBelowMinPrice =
+    settings.find(item => item.key === "allowBelowMinPrice")?.value === "true";
+  config.value = {
+    purchaseOverPriceAction: allowAboveMaxPrice ? "warn" : "block",
+    saleBelowPriceAction: allowBelowMinPrice ? "warn" : "block"
+  };
+};
+
+const loadConfig = async () => {
+  try {
+    const res = await getCompanySettingGroupApi("func");
+    if (res.code === 200 && res.data) {
+      mapFuncSettingsToConfig(res.data);
+    }
+  } catch (error) {
+    handleApiError(error, "获取限价控制设置失败");
+  }
+};
 
 const {
   loading,
@@ -237,6 +265,7 @@ const openDialog = (row: PriceLimit) => {
 
 // 系统参数设置
 const openConfigDialog = () => {
+  const draft = ref<PriceLimitConfig>({ ...config.value });
   addDialog({
     title: "限价控制设置",
     width: "500px",
@@ -261,9 +290,9 @@ const openConfigDialog = () => {
             h(
               "el-radio-group",
               {
-                modelValue: config.value.purchaseOverPriceAction,
+                modelValue: draft.value.purchaseOverPriceAction,
                 "onUpdate:modelValue": (val: "warn" | "block") => {
-                  config.value.purchaseOverPriceAction = val;
+                  draft.value.purchaseOverPriceAction = val;
                 }
               },
               [
@@ -276,9 +305,9 @@ const openConfigDialog = () => {
             h(
               "el-radio-group",
               {
-                modelValue: config.value.saleBelowPriceAction,
+                modelValue: draft.value.saleBelowPriceAction,
                 "onUpdate:modelValue": (val: "warn" | "block") => {
-                  config.value.saleBelowPriceAction = val;
+                  draft.value.saleBelowPriceAction = val;
                 }
               },
               [
@@ -289,9 +318,22 @@ const openConfigDialog = () => {
           ])
         ])
       ]),
-    beforeSure: done => {
-      message("设置保存成功", { type: "success" });
-      done();
+    beforeSure: async done => {
+      try {
+        const res = await patchCompanySettingGroupApi("func", {
+          allowAboveMaxPrice: draft.value.purchaseOverPriceAction === "warn",
+          allowBelowMinPrice: draft.value.saleBelowPriceAction === "warn"
+        });
+        if (res.code !== 200) {
+          message(res.msg || "设置保存失败", { type: "error" });
+          return;
+        }
+        config.value = { ...draft.value };
+        message("设置保存成功", { type: "success" });
+        done();
+      } catch (error) {
+        handleApiError(error, "设置保存失败");
+      }
     }
   });
 };
@@ -303,28 +345,134 @@ const handleBatchEdit = () => {
     return;
   }
 
+  const batchForm = ref<{
+    enablePurchaseLimit?: boolean;
+    maxPurchasePrice?: number;
+    enableSaleLimit?: boolean;
+    minSalePrice?: number;
+  }>({});
+
   addDialog({
     title: `批量设置限价 (${selectedRows.value.length}个商品)`,
     width: "500px",
     draggable: true,
     closeOnClickModal: false,
-    contentRenderer: () =>
-      h("div", { class: "p-4" }, [
+    contentRenderer: () => {
+      return h("div", { class: "p-4" }, [
         h("el-alert", {
           title: "批量设置说明",
           type: "warning",
-          description: "将对选中的所有商品统一设置限价",
+          description: "留空字段保持不变；填写价格时会同步启用对应限价",
           showIcon: true,
-          closable: false
-        })
-      ]),
-    beforeSure: done => {
-      message("批量设置成功", { type: "success" });
-      done();
-      getList();
+          closable: false,
+          class: "mb-4"
+        }),
+        h("el-form", { model: batchForm.value, labelWidth: "120px" }, [
+          h("el-form-item", { label: "采购限价" }, [
+            h(
+              "el-select",
+              {
+                modelValue: batchForm.value.enablePurchaseLimit,
+                "onUpdate:modelValue": (val?: boolean) => {
+                  batchForm.value.enablePurchaseLimit = val;
+                },
+                clearable: true,
+                placeholder: "保持不变"
+              },
+              [
+                h("el-option", { label: "启用", value: true }),
+                h("el-option", { label: "禁用", value: false })
+              ]
+            )
+          ]),
+          h("el-form-item", { label: "最高采购价" }, [
+            h("el-input-number", {
+              modelValue: batchForm.value.maxPurchasePrice,
+              "onUpdate:modelValue": (val?: number) => {
+                batchForm.value.maxPurchasePrice = val;
+              },
+              min: 0,
+              precision: 2
+            })
+          ]),
+          h("el-form-item", { label: "销售限价" }, [
+            h(
+              "el-select",
+              {
+                modelValue: batchForm.value.enableSaleLimit,
+                "onUpdate:modelValue": (val?: boolean) => {
+                  batchForm.value.enableSaleLimit = val;
+                },
+                clearable: true,
+                placeholder: "保持不变"
+              },
+              [
+                h("el-option", { label: "启用", value: true }),
+                h("el-option", { label: "禁用", value: false })
+              ]
+            )
+          ]),
+          h("el-form-item", { label: "最低销售价" }, [
+            h("el-input-number", {
+              modelValue: batchForm.value.minSalePrice,
+              "onUpdate:modelValue": (val?: number) => {
+                batchForm.value.minSalePrice = val;
+              },
+              min: 0,
+              precision: 2
+            })
+          ])
+        ])
+      ]);
+    },
+    beforeSure: async done => {
+      const formValue = batchForm.value;
+      try {
+        await Promise.all(
+          selectedRows.value.map(row => {
+            const maxPurchasePrice =
+              formValue.maxPurchasePrice !== undefined
+                ? Math.round(formValue.maxPurchasePrice * 100)
+                : row.maxPurchasePrice === undefined
+                  ? undefined
+                  : Math.round(row.maxPurchasePrice * 100);
+            const minSalePrice =
+              formValue.minSalePrice !== undefined
+                ? Math.round(formValue.minSalePrice * 100)
+                : row.minSalePrice === undefined
+                  ? undefined
+                  : Math.round(row.minSalePrice * 100);
+            return upsertPriceLimitApi({
+              uid: row.uid,
+              tireId: row.tireId,
+              enablePurchaseLimit:
+                formValue.enablePurchaseLimit ??
+                (formValue.maxPurchasePrice !== undefined
+                  ? true
+                  : row.enablePurchaseLimit),
+              enableSaleLimit:
+                formValue.enableSaleLimit ??
+                (formValue.minSalePrice !== undefined
+                  ? true
+                  : row.enableSaleLimit),
+              maxPurchasePrice,
+              minSalePrice
+            });
+          })
+        );
+        message("批量设置成功", { type: "success" });
+        done();
+        getList();
+      } catch (error) {
+        handleApiError(error, "批量设置失败");
+      }
     }
   });
 };
+
+onMounted(() => {
+  loadConfig();
+});
 </script>
 
 <template>
