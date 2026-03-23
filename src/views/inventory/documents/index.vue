@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { PAGE_SIZE_MEDIUM } from "@/utils/constants";
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, h, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessageBox } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
+import { addDialog } from "@/composables/useDialogService";
+import { deviceDetection } from "@pureadmin/utils";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import Download from "~icons/ep/download";
 import Printer from "~icons/ep/printer";
 import Select from "~icons/ep/select";
 import RefreshLeft from "~icons/ep/refresh-left";
+import Upload from "~icons/ri/upload-cloud-2-line";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
+import StocktakingDetailForm from "@/views/inventory/stocktaking/StocktakingDetailForm.vue";
+import type { StocktakingTask } from "@/views/inventory/stocktaking/types";
 import { columns } from "./columns";
 import {
   approveDocumentCenterApi,
@@ -56,6 +61,9 @@ const loading = ref(false);
 const dataList = ref<InventoryDocument[]>([]);
 const selectedRows = ref<InventoryDocument[]>([]);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const stocktakingDetailFormRef = ref<{
+  loadDetails: () => void;
+} | null>(null);
 
 const queryParams = reactive<DocumentQuery>({
   documentType: undefined,
@@ -166,6 +174,65 @@ const handleCurrentChange = (page: number) => {
 
 const handleSelectionChange = (rows: InventoryDocument[]) => {
   selectedRows.value = rows;
+};
+
+const openStocktakingImportDialog = (row: InventoryDocument) => {
+  addDialog({
+    title: `盘点单导入 - ${row.billNo || row.uid}`,
+    props: {
+      formInline: {
+        task: {
+          id: row.id,
+          uid: row.uid,
+          companyId: "",
+          repoId: row.targetName || "",
+          name: row.billNo,
+          status: row.status as StocktakingTask["status"],
+          startedAt: row.createdAt || "",
+          createdBy: row.operatorName || "",
+          createdAt: row.createdAt || ""
+        } as StocktakingTask
+      }
+    },
+    width: "80%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: true,
+    hideFooter: true,
+    contentRenderer: ({ options }) =>
+      h(StocktakingDetailForm, {
+        ref: stocktakingDetailFormRef,
+        formInline: (
+          options.props as {
+            formInline: {
+              task: StocktakingTask;
+            };
+          }
+        ).formInline
+      })
+  });
+};
+
+const handleUnifiedImport = () => {
+  const selectedStocktaking = selectedRows.value.filter(
+    row => row.documentType === "STOCKTAKING"
+  );
+
+  if (selectedStocktaking.length === 1) {
+    const target = selectedStocktaking[0];
+    if (target.status !== "IN_PROGRESS") {
+      message("仅进行中的盘点单支持直接导入", { type: "warning" });
+      return;
+    }
+    openStocktakingImportDialog(target);
+    return;
+  }
+
+  router.push("/inventory/stocktaking");
+  message("统一导入当前接入盘点单导入，请在盘点单页面选择任务后继续导入", {
+    type: "info"
+  });
 };
 
 const handleView = (row: InventoryDocument) => {
@@ -519,6 +586,9 @@ onMounted(() => {
         @refresh="fetchData"
       >
         <template #buttons>
+          <el-button :icon="useRenderIcon(Upload)" @click="handleUnifiedImport">
+            统一导入
+          </el-button>
           <el-button
             type="primary"
             :disabled="!hasSelection"
