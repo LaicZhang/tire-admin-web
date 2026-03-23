@@ -1,3 +1,5 @@
+import type { SerialNumberPayload } from "@/utils/serialNumber";
+
 /** Purchase Inbound (采购入库) Module Types */
 
 export interface InboundOrderDetail {
@@ -12,6 +14,8 @@ export interface InboundOrderDetail {
   batchNo?: string;
   productionDate?: string;
   expiryDate?: string;
+  serialNumbers?: SerialNumberPayload[];
+  serialNosText?: string;
   desc?: string;
 }
 

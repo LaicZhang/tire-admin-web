@@ -1,3 +1,5 @@
+import type { SerialNumberPayload } from "@/utils/serialNumber";
+
 /** Sales Outbound (销售出库) Module Types */
 
 export interface OutboundOrderDetail {
@@ -12,6 +14,8 @@ export interface OutboundOrderDetail {
   batchNo?: string;
   isShipped: boolean;
   shipCount?: number;
+  serialNumbers?: SerialNumberPayload[];
+  serialNosText?: string;
   desc?: string;
 }
 

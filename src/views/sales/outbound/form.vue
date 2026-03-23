@@ -7,6 +7,10 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
 import { ALL_LIST, localForage, message } from "@/utils";
+import {
+  formatSerialNumbersText,
+  parseSerialNumbersText
+} from "@/utils/serialNumber";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 
@@ -41,6 +45,22 @@ const isReadOnly = computed(() => ["查看", "审核"].includes(props.formTitle)
 
 const isEditable = computed(() => ["新增", "修改"].includes(props.formTitle));
 
+function prepareDetail(detail: OutboundOrderDetail): OutboundOrderDetail {
+  return {
+    ...detail,
+    serialNumbers: detail.serialNumbers || [],
+    serialNosText:
+      detail.serialNosText || formatSerialNumbersText(detail.serialNumbers)
+  };
+}
+
+function prepareFormData(order: OutboundOrder): OutboundOrder {
+  return {
+    ...order,
+    details: (order.details || []).map(prepareDetail)
+  };
+}
+
 async function loadBaseData() {
   try {
     const [tireData, repoData, managerData] = await Promise.all([
@@ -65,6 +85,8 @@ function onAddDetail() {
     repoId: "",
     batchNo: "",
     isShipped: false,
+    serialNumbers: [],
+    serialNosText: "",
     desc: ""
   });
 }
@@ -80,6 +102,15 @@ function onDeleteDetail(index: number) {
 function calcDetailTotal(row: OutboundOrderDetail) {
   row.total = (row.count || 0) * (row.unitPrice || 0);
   recalcOrderTotal();
+}
+
+function syncDetailSerialNumbers(row: OutboundOrderDetail) {
+  const serialNumbers = parseSerialNumbersText(row.serialNosText);
+  row.serialNumbers = serialNumbers;
+  if (serialNumbers.length > 0) {
+    row.count = serialNumbers.length;
+  }
+  calcDetailTotal(row);
 }
 
 function recalcOrderTotal() {
@@ -103,9 +134,9 @@ onMounted(() => {
 watch(
   () => props.formInline,
   val => {
-    formData.value = val;
+    formData.value = prepareFormData(val);
   },
-  {}
+  { immediate: true }
 );
 </script>
 
@@ -242,7 +273,7 @@ watch(
           v-model="row.count"
           :min="1"
           :max="9999"
-          :disabled="isReadOnly"
+          :disabled="isReadOnly || Boolean(row.serialNumbers?.length)"
           controls-position="right"
           @change="calcDetailTotal(row)"
         />
@@ -290,6 +321,17 @@ watch(
           v-model="row.batchNo"
           placeholder="批次号"
           :disabled="isReadOnly"
+        />
+      </template>
+
+      <template #serialNosInput="{ row }">
+        <el-input
+          v-model="row.serialNosText"
+          type="textarea"
+          :rows="3"
+          placeholder="每行一个胎号；也可按 serialNo,dotCode,dotYear,dotWeek,remark 录入"
+          :disabled="isReadOnly"
+          @change="syncDetailSerialNumbers(row)"
         />
       </template>
 

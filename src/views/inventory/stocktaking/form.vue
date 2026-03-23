@@ -22,6 +22,7 @@ const loading = ref(false);
 const formData = reactive<CreateStocktakingDto>({
   repoId: props.formInline.repoId || "",
   name: props.formInline.name || "",
+  mode: props.formInline.mode || "quantity",
   includeZeroStock: false,
   remark: props.formInline.remark || ""
 });
@@ -84,6 +85,13 @@ onMounted(() => {
           :value="repo.uid"
         />
       </el-select>
+    </el-form-item>
+
+    <el-form-item label="盘点模式" prop="mode">
+      <el-radio-group v-model="formData.mode" :disabled="isEdit">
+        <el-radio value="quantity">按数量</el-radio>
+        <el-radio value="serial">按条</el-radio>
+      </el-radio-group>
     </el-form-item>
 
     <el-form-item label="包含零库存">

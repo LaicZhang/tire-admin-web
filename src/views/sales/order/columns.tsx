@@ -148,6 +148,12 @@ export const salesOrderDetailColumns: TableColumnList = [
     width: 150
   },
   {
+    label: "胎号",
+    prop: "serialNumbers",
+    slot: "serialNosInput",
+    minWidth: 220
+  },
+  {
     label: "已发货",
     prop: "isShipped",
     slot: "isShippedSwitch",

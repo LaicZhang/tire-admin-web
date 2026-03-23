@@ -1,3 +1,5 @@
+import type { SerialNumberPayload } from "@/utils/serialNumber";
+
 export interface TransferOrderDetail {
   id?: number;
   uid?: string;
@@ -6,6 +8,8 @@ export interface TransferOrderDetail {
   count: number;
   isShipped?: boolean;
   isArrival?: boolean;
+  serialNumbers?: SerialNumberPayload[];
+  serialNosText?: string;
 }
 
 export interface TransferOrder {

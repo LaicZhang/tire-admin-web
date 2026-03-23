@@ -1,3 +1,5 @@
+import type { SerialNumberPayload } from "@/utils/serialNumber";
+
 /** Sales Order Module Types */
 
 export interface SalesOrderDetail {
@@ -13,6 +15,8 @@ export interface SalesOrderDetail {
   discountAmount?: number;
   isShipped: boolean;
   isDelivered: boolean;
+  serialNumbers?: SerialNumberPayload[];
+  serialNosText?: string;
   desc?: string;
 }
 

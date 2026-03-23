@@ -6,6 +6,10 @@ import type { TransferOrder, TransferOrderDetail } from "./types";
 import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
 import { ALL_LIST, handleApiError, localForage } from "@/utils";
+import {
+  formatSerialNumbersText,
+  parseSerialNumbersText
+} from "@/utils/serialNumber";
 
 interface Props {
   formInline: Partial<TransferOrder>;
@@ -32,6 +36,8 @@ interface DetailItem {
   count: number;
   isShipped?: boolean;
   isArrival?: boolean;
+  serialNumbers?: TransferOrderDetail["serialNumbers"];
+  serialNosText?: string;
 }
 
 const formData = reactive<{
@@ -51,7 +57,9 @@ const formData = reactive<{
     tireName: d.tireName,
     count: d.count ?? 1,
     isShipped: d.isShipped,
-    isArrival: d.isArrival
+    isArrival: d.isArrival,
+    serialNumbers: d.serialNumbers || [],
+    serialNosText: formatSerialNumbersText(d.serialNumbers)
   })) || [{ tireId: "", count: 1 }]
 });
 
@@ -74,12 +82,25 @@ const filteredFromRepoList = computed(() =>
 );
 
 const addDetail = () => {
-  formData.details.push({ tireId: "", count: 1 });
+  formData.details.push({
+    tireId: "",
+    count: 1,
+    serialNumbers: [],
+    serialNosText: ""
+  });
 };
 
 const removeDetail = (index: number) => {
   if (formData.details.length > 1) {
     formData.details.splice(index, 1);
+  }
+};
+
+const syncDetailSerialNumbers = (detail: DetailItem) => {
+  const serialNumbers = parseSerialNumbersText(detail.serialNosText);
+  detail.serialNumbers = serialNumbers;
+  if (serialNumbers.length > 0) {
+    detail.count = serialNumbers.length;
   }
 };
 
@@ -228,7 +249,7 @@ onMounted(() => {
                 :min="1"
                 placeholder="数量"
                 class="w-full"
-                :disabled="!isCreate"
+                :disabled="!isCreate || Boolean(detail.serialNumbers?.length)"
               />
             </el-form-item>
           </el-col>
@@ -239,6 +260,18 @@ onMounted(() => {
               :icon="Delete"
               circle
               @click="removeDetail(index)"
+            />
+          </el-col>
+        </el-row>
+        <el-row :gutter="12" class="mt-2">
+          <el-col :span="20">
+            <el-input
+              v-model="detail.serialNosText"
+              type="textarea"
+              :rows="3"
+              placeholder="每行一个胎号；也可按 serialNo,dotCode,dotYear,dotWeek,remark 录入"
+              :disabled="!isCreate"
+              @change="syncDetailSerialNumbers(detail)"
             />
           </el-col>
         </el-row>

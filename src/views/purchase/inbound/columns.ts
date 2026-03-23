@@ -136,6 +136,12 @@ export const inboundOrderDetailColumns: TableColumnList = [
     width: 150
   },
   {
+    label: "胎号",
+    prop: "serialNumbers",
+    slot: "serialNosInput",
+    minWidth: 220
+  },
+  {
     label: "备注",
     prop: "desc",
     slot: "descInput",

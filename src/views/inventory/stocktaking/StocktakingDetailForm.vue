@@ -13,6 +13,10 @@ import {
 } from "@/api/business/inventory-check";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { handleApiError, message } from "@/utils";
+import {
+  formatSerialNoListText,
+  parseSerialNoListText
+} from "@/utils/serialNumber";
 
 interface Props {
   formInline: {
@@ -28,10 +32,16 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 
 // 计算列：在进行中状态显示操作列，否则隐藏
 const displayColumns = computed(() => {
-  if (props.formInline.task?.status === "IN_PROGRESS") {
-    return detailColumns;
+  const task = props.formInline.task;
+  const columns = detailColumns.filter(col =>
+    task?.mode === "serial"
+      ? true
+      : !["bookSerialNos", "actualSerialNos"].includes(String(col.prop))
+  );
+  if (task?.status === "IN_PROGRESS") {
+    return columns;
   }
-  return detailColumns.filter(col => col.slot !== "operation");
+  return columns.filter(col => col.slot !== "operation");
 });
 
 const loadDetails = async () => {
@@ -56,6 +66,40 @@ const handleUpdateDetail = async (detail: StocktakingDetail) => {
   if (!props.formInline.task) return;
 
   try {
+    if (props.formInline.task.mode === "serial") {
+      const res = await ElMessageBox.prompt(
+        `账面胎号：${formatSerialNoListText(detail.bookSerialNos) || "无"}`,
+        "录入实盘胎号",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          inputType: "textarea",
+          inputValue: formatSerialNoListText(
+            detail.actualSerialNos?.length
+              ? detail.actualSerialNos
+              : detail.bookSerialNos
+          ),
+          inputPlaceholder: "每行一个胎号"
+        }
+      );
+      const actualSerialNos = parseSerialNoListText(res.value);
+
+      await updateInventoryCheckDetailsApi(props.formInline.task.id, {
+        details: [
+          {
+            detailId: detail.id,
+            actualCount: actualSerialNos.length,
+            actualSerialNos,
+            remark: detail.remark
+          }
+        ]
+      });
+
+      message("更新成功", { type: "success" });
+      loadDetails();
+      return;
+    }
+
     const res = await ElMessageBox.prompt(
       `当前系统库存: ${detail.bookCount}`,
       "录入实际库存",
@@ -243,6 +287,18 @@ defineExpose({
     >
       <template #actualCount="{ row }">
         <span v-if="row.actualCount !== undefined">{{ row.actualCount }}</span>
+        <span v-else class="text-gray-400">未录入</span>
+      </template>
+      <template #bookSerialNos="{ row }">
+        <span v-if="row.bookSerialNos?.length">
+          {{ formatSerialNoListText(row.bookSerialNos) }}
+        </span>
+        <span v-else>-</span>
+      </template>
+      <template #actualSerialNos="{ row }">
+        <span v-if="row.actualSerialNos?.length">
+          {{ formatSerialNoListText(row.actualSerialNos) }}
+        </span>
         <span v-else class="text-gray-400">未录入</span>
       </template>
       <template #difference="{ row }">

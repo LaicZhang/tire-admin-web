@@ -28,6 +28,12 @@ export const columns: TableColumnList = [
     formatter: row => row.repo?.name || "-"
   },
   {
+    label: "模式",
+    prop: "mode",
+    width: 100,
+    formatter: row => (row.mode === "serial" ? "按条" : "按数量")
+  },
+  {
     label: "商品数量",
     prop: "details",
     width: 100,
@@ -102,9 +108,21 @@ export const detailColumns: TableColumnList = [
     width: 140
   },
   {
+    label: "账面胎号",
+    prop: "bookSerialNos",
+    minWidth: 180,
+    slot: "bookSerialNos"
+  },
+  {
     label: "系统库存",
     prop: "bookCount",
     width: 100
+  },
+  {
+    label: "实盘胎号",
+    prop: "actualSerialNos",
+    minWidth: 180,
+    slot: "actualSerialNos"
   },
   {
     label: "实际库存",

@@ -118,7 +118,10 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
             ? { auditor: { connect: { uid: orderData.auditorId } } }
             : {})
         },
-        details: details.map(d => ({ ...d, companyId }))
+        details: details.map(({ serialNosText, ...detail }) => ({
+          ...detail,
+          companyId
+        }))
       });
       message("新增成功", { type: "success" });
     },

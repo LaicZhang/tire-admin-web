@@ -1,3 +1,5 @@
+import type { SerialNumberPayload } from "@/utils/serialNumber";
+
 /** Sales Return Order (销售退货) Module Types */
 
 export interface SalesReturnDetail {
@@ -10,6 +12,8 @@ export interface SalesReturnDetail {
   repoId?: string;
   repoName?: string;
   returnReason?: string;
+  serialNumbers?: SerialNumberPayload[];
+  serialNosText?: string;
   desc?: string;
 }
 

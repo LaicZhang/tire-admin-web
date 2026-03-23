@@ -54,6 +54,8 @@ type TransferOrderFormRef = {
       count: number;
       isShipped?: boolean;
       isArrival?: boolean;
+      serialNumbers?: TransferOrder["details"][number]["serialNumbers"];
+      serialNosText?: string;
     }>;
   };
 };
@@ -212,13 +214,16 @@ const { openDialog } = useActionFormDialog<
           isApproved: false,
           isLocked: false
         },
-        details: details.map(d => ({
+        details: details.map(({ serialNosText, ...detail }) => ({
           companyId,
           number: uuid(),
-          tireId: d.tireId,
-          count: d.count,
+          tireId: detail.tireId,
+          count: detail.count,
           isShipped: false,
-          isArrival: false
+          isArrival: false,
+          ...(detail.serialNumbers?.length
+            ? { serialNumbers: detail.serialNumbers }
+            : {})
         }))
       });
       message("创建成功", { type: "success" });

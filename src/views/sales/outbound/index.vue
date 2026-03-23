@@ -171,7 +171,10 @@ function openDialog(title: string, row?: OutboundOrder) {
                   ? { auditor: { connect: { uid: orderData.auditorId } } }
                   : {})
               },
-              details: details.map(d => ({ ...d, companyId }))
+              details: details.map(({ serialNosText, ...detail }) => ({
+                ...detail,
+                companyId
+              }))
             });
             message("新增成功", { type: "success" });
           } else if (title === "修改") {

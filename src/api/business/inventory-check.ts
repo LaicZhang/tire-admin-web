@@ -39,12 +39,15 @@ export interface InventoryCheckDetail {
   difference?: number;
   remark?: string;
   repoId?: string;
+  bookSerialNos?: string[];
+  actualSerialNos?: string[];
   tire?: { name: string };
 }
 
 export interface CreateInventoryCheckDto {
   repoId: string;
   name?: string;
+  mode?: "quantity" | "serial";
   tireIds?: string[];
   remark?: string;
 }
@@ -54,6 +57,7 @@ export interface UpdateInventoryCheckDto {
     detailId: number;
     actualCount: number;
     remark?: string;
+    actualSerialNos?: string[];
   }[];
 }
 

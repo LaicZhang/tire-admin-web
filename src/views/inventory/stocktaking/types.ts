@@ -25,6 +25,10 @@ export interface StocktakingDetail {
   actualCount?: number;
   difference?: number;
   remark?: string;
+  bookSerialNos?: string[];
+  actualSerialNos?: string[];
+  bookSerialNosText?: string;
+  actualSerialNosText?: string;
 }
 
 export interface StocktakingTask {
@@ -35,6 +39,7 @@ export interface StocktakingTask {
   repoName?: string;
   name?: string;
   status: StocktakingStatus;
+  mode?: "quantity" | "serial";
   isAudited?: boolean;
   resultSavedAt?: string;
   auditedAt?: string;
@@ -57,6 +62,7 @@ export interface StocktakingTask {
 export interface CreateStocktakingDto {
   repoId: string;
   name?: string;
+  mode?: "quantity" | "serial";
   tireIds?: string[];
   includeZeroStock?: boolean;
   remark?: string;
@@ -67,6 +73,7 @@ export interface UpdateStocktakingDetailDto {
     detailId: number;
     actualCount: number;
     remark?: string;
+    actualSerialNos?: string[];
   }[];
 }
 
