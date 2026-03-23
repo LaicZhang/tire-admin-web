@@ -8,6 +8,12 @@ export interface InventoryCheckTask {
   repoId: string;
   name?: string;
   status: "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  isAudited?: boolean;
+  resultSavedAt?: string;
+  auditedAt?: string;
+  auditedBy?: string;
+  surplusOrderUid?: string;
+  wasteOrderUid?: string;
   startedAt: string;
   completedAt?: string;
   createdBy: string;
@@ -51,6 +57,8 @@ export interface UpdateInventoryCheckDto {
   }[];
 }
 
+export type InventoryCheckImportMode = "replace" | "accumulate";
+
 // 创建盘点任务
 export const createInventoryCheckTaskApi = (data: CreateInventoryCheckDto) => {
   return http.request<{ data: InventoryCheckTask; code: number }>(
@@ -88,6 +96,67 @@ export const updateInventoryCheckDetailsApi = (
     "put",
     `/api/v1/inventory-check/task/${id}/details`,
     { data }
+  );
+};
+
+export const saveInventoryCheckTaskApi = (id: number) => {
+  return http.request<{ data: InventoryCheckTask; code: number }>(
+    "put",
+    `/api/v1/inventory-check/task/${id}/save`
+  );
+};
+
+export const importInventoryCheckDetailsApi = (
+  id: number,
+  file: File,
+  mode: InventoryCheckImportMode = "replace"
+) => {
+  const data = new FormData();
+  data.append("file", file);
+  data.append("mode", mode);
+  return http.request<{ data: InventoryCheckTask; code: number }>(
+    "post",
+    `/api/v1/inventory-check/task/${id}/import`,
+    {
+      data,
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    }
+  );
+};
+
+export const exportInventoryCheckSystemStockApi = (id: number) => {
+  return http.request<Blob>(
+    "get",
+    `/api/v1/inventory-check/task/${id}/export-system-stock`,
+    { responseType: "blob" }
+  );
+};
+
+export const exportInventoryCheckResultApi = (id: number) => {
+  return http.request<Blob>(
+    "get",
+    `/api/v1/inventory-check/task/${id}/export-result`,
+    { responseType: "blob" }
+  );
+};
+
+export const auditInventoryCheckTaskApi = (id: number) => {
+  return http.request<{
+    data: {
+      task: InventoryCheckTask;
+      surplusOrderId?: string;
+      wasteOrderId?: string;
+    };
+    code: number;
+  }>("post", `/api/v1/inventory-check/task/${id}/audit`);
+};
+
+export const reverseAuditInventoryCheckTaskApi = (id: number) => {
+  return http.request<{ data: InventoryCheckTask; code: number }>(
+    "post",
+    `/api/v1/inventory-check/task/${id}/reverse-audit`
   );
 };
 

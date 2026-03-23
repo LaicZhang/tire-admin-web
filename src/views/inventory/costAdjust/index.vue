@@ -22,6 +22,7 @@ import {
   getCostAdjustOrderList,
   createCostAdjustOrder,
   approveCostAdjustOrder,
+  reverseAuditCostAdjustOrder,
   rejectCostAdjustOrder,
   deleteCostAdjustOrder
 } from "@/api/business/costAdjust";
@@ -179,6 +180,23 @@ const handleApprove = async (row: CostAdjustOrder) => {
   }
 };
 
+const handleReverseAudit = async (row: CostAdjustOrder) => {
+  const ok = await confirm(
+    `确认反审核成本调整单 #${row.number}？这会尝试恢复库存成本。`,
+    "确认反审核",
+    { type: "warning" }
+  );
+  if (!ok) return;
+
+  try {
+    await reverseAuditCostAdjustOrder(row.id);
+    message("反审核成功", { type: "success" });
+    fetchData();
+  } catch (error) {
+    handleApiError(error, "反审核失败");
+  }
+};
+
 const handleReject = async (row: CostAdjustOrder) => {
   try {
     const res = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
@@ -270,6 +288,14 @@ onMounted(() => {
                 @click="handleApprove(row)"
               >
                 审核
+              </el-button>
+              <el-button
+                v-if="row.isApproved"
+                link
+                type="warning"
+                @click="handleReverseAudit(row)"
+              >
+                反审核
               </el-button>
               <el-button
                 v-if="!row.isApproved && !row.isLocked"

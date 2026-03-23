@@ -35,6 +35,12 @@ export interface StocktakingTask {
   repoName?: string;
   name?: string;
   status: StocktakingStatus;
+  isAudited?: boolean;
+  resultSavedAt?: string;
+  auditedAt?: string;
+  auditedBy?: string;
+  surplusOrderUid?: string;
+  wasteOrderUid?: string;
   startedAt: string;
   completedAt?: string;
   createdBy: string;

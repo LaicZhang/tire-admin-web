@@ -89,6 +89,12 @@ export const approveCostAdjustOrder = (id: number) => {
   return http.post<void, CostAdjustOrder>(`/cost-adjust-order/${id}/approve`);
 };
 
+export const reverseAuditCostAdjustOrder = (id: number) => {
+  return http.post<void, CostAdjustOrder>(
+    `/cost-adjust-order/${id}/reverse-audit`
+  );
+};
+
 // 拒绝成本调整单
 export const rejectCostAdjustOrder = (id: number, reason: string) => {
   return http.post<{ reason: string }, CostAdjustOrder>(

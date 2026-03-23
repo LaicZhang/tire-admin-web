@@ -6,6 +6,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
+import RefreshLeft from "~icons/ep/refresh-left";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/composables/useDialogService";
@@ -22,11 +23,12 @@ import {
   stocktakingStatusMap
 } from "./types";
 import {
+  auditInventoryCheckTaskApi,
   getInventoryCheckTasksApi,
   createInventoryCheckTaskApi,
-  completeInventoryCheckTaskApi,
   cancelInventoryCheckTaskApi,
-  deleteInventoryCheckTaskApi
+  deleteInventoryCheckTaskApi,
+  reverseAuditInventoryCheckTaskApi
 } from "@/api/business/inventory-check";
 import { getRepoListApi } from "@/api/company/repo";
 import { handleApiError, message } from "@/utils";
@@ -183,24 +185,39 @@ const handleViewDetails = (row: StocktakingTask) => {
   });
 };
 
-const handleComplete = async (row: StocktakingTask) => {
+const handleAudit = async (row: StocktakingTask) => {
   const ok = await confirm(
-    "完成盘点后将根据盘点结果生成盘盈/盘亏单据。确认完成?",
-    "确认完成"
+    "审核盘点后将根据盘点结果生成盘盈/盘亏单据。确认审核？",
+    "确认审核"
   );
   if (!ok) return;
 
   try {
-    const { data, code } = await completeInventoryCheckTaskApi(row.id);
+    const { data, code } = await auditInventoryCheckTaskApi(row.id);
     if (code === 200) {
-      let msg = "盘点完成";
+      let msg = "盘点审核成功";
       if (data.surplusOrderId) msg += `，已生成盘盈单`;
       if (data.wasteOrderId) msg += `，已生成盘亏单`;
       message(msg, { type: "success" });
       fetchData();
     }
   } catch (error) {
-    handleApiError(error, "操作失败");
+    handleApiError(error, "审核失败");
+  }
+};
+
+const handleReverseAudit = async (row: StocktakingTask) => {
+  const ok = await confirm("确认反审核该盘点单？", "确认反审核", {
+    type: "warning"
+  });
+  if (!ok) return;
+
+  try {
+    await reverseAuditInventoryCheckTaskApi(row.id);
+    message("反审核成功", { type: "success" });
+    fetchData();
+  } catch (error) {
+    handleApiError(error, "反审核失败");
   }
 };
 
@@ -310,12 +327,21 @@ onMounted(() => {
                 录入/查看
               </el-button>
               <el-button
-                v-if="row.status === 'IN_PROGRESS'"
+                v-if="row.status === 'IN_PROGRESS' && !row.isAudited"
                 link
                 type="success"
-                @click="handleComplete(row)"
+                @click="handleAudit(row)"
               >
-                完成盘点
+                审核
+              </el-button>
+              <el-button
+                v-if="row.isAudited"
+                link
+                type="warning"
+                :icon="useRenderIcon(RefreshLeft)"
+                @click="handleReverseAudit(row)"
+              >
+                反审核
               </el-button>
               <el-button
                 v-if="row.status === 'IN_PROGRESS'"

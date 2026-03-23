@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import { ElMessageBox } from "element-plus";
 import { detailColumns } from "./columns";
 import type { StocktakingDetail, StocktakingTask } from "./types";
 import {
+  exportInventoryCheckResultApi,
+  exportInventoryCheckSystemStockApi,
   getInventoryCheckTaskApi,
+  importInventoryCheckDetailsApi,
+  saveInventoryCheckTaskApi,
   updateInventoryCheckDetailsApi
 } from "@/api/business/inventory-check";
-import { ElMessageBox } from "element-plus";
+import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { handleApiError, message } from "@/utils";
 
 interface Props {
@@ -19,6 +24,7 @@ const props = defineProps<Props>();
 
 const detailList = ref<StocktakingDetail[]>([]);
 const detailLoading = ref(false);
+const fileInputRef = ref<HTMLInputElement | null>(null);
 
 // 计算列：在进行中状态显示操作列，否则隐藏
 const displayColumns = computed(() => {
@@ -83,6 +89,108 @@ const handleUpdateDetail = async (detail: StocktakingDetail) => {
   }
 };
 
+const handleSave = async () => {
+  if (!props.formInline.task) return;
+  try {
+    await saveInventoryCheckTaskApi(props.formInline.task.id);
+    message("盘点结果已保存", { type: "success" });
+    loadDetails();
+  } catch (error) {
+    handleApiError(error, "保存盘点结果失败");
+  }
+};
+
+const handleExportSystemStock = async () => {
+  if (!props.formInline.task) return;
+  try {
+    const blob = await exportInventoryCheckSystemStockApi(
+      props.formInline.task.id
+    );
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp(
+        `inventory-check-system-${props.formInline.task.id}`,
+        "xlsx"
+      ),
+      { showMessage: true }
+    );
+  } catch (error) {
+    handleApiError(error, "导出系统库存失败");
+  }
+};
+
+const handleExportResult = async () => {
+  if (!props.formInline.task) return;
+  try {
+    const blob = await exportInventoryCheckResultApi(props.formInline.task.id);
+    downloadBlob(
+      blob,
+      generateFilenameWithTimestamp(
+        `inventory-check-result-${props.formInline.task.id}`,
+        "xlsx"
+      ),
+      { showMessage: true }
+    );
+  } catch (error) {
+    handleApiError(error, "导出盘点结果失败");
+  }
+};
+
+const resolveImportMode = async (): Promise<"replace" | "accumulate"> => {
+  try {
+    await ElMessageBox.confirm(
+      "确定以覆盖模式导入？点击“累加导入”会在现有盘点数基础上累加。",
+      "选择导入模式",
+      {
+        confirmButtonText: "覆盖导入",
+        cancelButtonText: "累加导入",
+        distinguishCancelAndClose: true,
+        type: "warning"
+      }
+    );
+    return "replace";
+  } catch (error) {
+    if (error === "cancel") {
+      return "accumulate";
+    }
+    throw error;
+  }
+};
+
+const handleImportClick = async () => {
+  if (!props.formInline.task) return;
+  try {
+    const mode = await resolveImportMode();
+    fileInputRef.value?.click();
+    fileInputRef.value?.setAttribute("data-mode", mode);
+  } catch (error) {
+    if (error !== "close" && error !== "cancel") {
+      handleApiError(error, "选择导入模式失败");
+    }
+  }
+};
+
+const handleFileChange = async (event: Event) => {
+  if (!props.formInline.task) return;
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  const mode =
+    (input.getAttribute("data-mode") as "replace" | "accumulate") || "replace";
+  try {
+    await importInventoryCheckDetailsApi(props.formInline.task.id, file, mode);
+    message(mode === "replace" ? "覆盖导入成功" : "累加导入成功", {
+      type: "success"
+    });
+    await loadDetails();
+  } catch (error) {
+    handleApiError(error, "导入盘点库存失败");
+  } finally {
+    input.value = "";
+    input.removeAttribute("data-mode");
+  }
+};
+
 // 初始加载
 watch(
   () => props.formInline.task,
@@ -100,41 +208,84 @@ defineExpose({
 </script>
 
 <template>
-  <pure-table
-    border
-    :loading="detailLoading"
-    :data="detailList"
-    :columns="displayColumns"
-    max-height="500"
-  >
-    <template #actualCount="{ row }">
-      <span v-if="row.actualCount !== undefined">{{ row.actualCount }}</span>
-      <span v-else class="text-gray-400">未录入</span>
-    </template>
-    <template #difference="{ row }">
-      <span
-        v-if="row.difference !== undefined"
-        :class="
-          row.difference > 0
-            ? 'text-green-600'
-            : row.difference < 0
-              ? 'text-red-600'
-              : ''
-        "
+  <div class="detail-wrapper">
+    <div class="toolbar">
+      <el-button
+        v-if="props.formInline.task?.status === 'IN_PROGRESS'"
+        type="primary"
+        @click="handleSave"
       >
-        {{ row.difference > 0 ? "+" : "" }}{{ row.difference }}
-      </span>
-      <span v-else>-</span>
-    </template>
-    <template #operation="{ row }">
-      <el-button link type="primary" @click="handleUpdateDetail(row)">
-        录入
+        保存盘点结果
       </el-button>
-    </template>
-  </pure-table>
+      <el-button
+        v-if="props.formInline.task?.status === 'IN_PROGRESS'"
+        @click="handleImportClick"
+      >
+        导入盘点库存
+      </el-button>
+      <el-button @click="handleExportSystemStock">导出系统库存</el-button>
+      <el-button @click="handleExportResult">导出盘点结果</el-button>
+      <input
+        ref="fileInputRef"
+        type="file"
+        accept=".xlsx,.xls"
+        class="hidden-input"
+        @change="handleFileChange"
+      />
+    </div>
+
+    <pure-table
+      border
+      :loading="detailLoading"
+      :data="detailList"
+      :columns="displayColumns"
+      max-height="500"
+    >
+      <template #actualCount="{ row }">
+        <span v-if="row.actualCount !== undefined">{{ row.actualCount }}</span>
+        <span v-else class="text-gray-400">未录入</span>
+      </template>
+      <template #difference="{ row }">
+        <span
+          v-if="row.difference !== undefined"
+          :class="
+            row.difference > 0
+              ? 'text-green-600'
+              : row.difference < 0
+                ? 'text-red-600'
+                : ''
+          "
+        >
+          {{ row.difference > 0 ? "+" : "" }}{{ row.difference }}
+        </span>
+        <span v-else>-</span>
+      </template>
+      <template #operation="{ row }">
+        <el-button link type="primary" @click="handleUpdateDetail(row)">
+          录入
+        </el-button>
+      </template>
+    </pure-table>
+  </div>
 </template>
 
 <style scoped>
+.detail-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hidden-input {
+  display: none;
+}
+
 .text-gray-400 {
   color: #9ca3af;
 }
