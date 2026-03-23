@@ -6,6 +6,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import StatusTag from "@/components/StatusTag/index.vue";
+import { ImportDialog } from "@/components/ImportExport";
 import Delete from "~icons/ep/delete";
 import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
@@ -41,8 +42,10 @@ defineOptions({
 const router = useRouter();
 const { confirm } = useConfirmDialog();
 const selectedRows = ref<FundDocument[]>([]);
+const showImportDialog = ref(false);
 const formRef = ref<{ resetFields: () => void }>();
 const { customers, providers } = useOptions();
+const FUND_DOCUMENT_IMPORT_TYPE = "fund-document";
 
 const targetNameOptions = computed(() => {
   const seen = new Set<string>();
@@ -342,11 +345,16 @@ function handleExport() {
 }
 
 function handleImport() {
-  message("导入功能开发中");
+  showImportDialog.value = true;
 }
 
 function handleSelectionChange(rows: FundDocument[]) {
   selectedRows.value = rows;
+}
+
+function handleImportSuccess() {
+  showImportDialog.value = false;
+  onSearch();
 }
 
 async function handleBatchApprove() {
@@ -630,6 +638,13 @@ async function handleBatchApprove() {
         </pure-table>
       </template>
     </PureTableBar>
+
+    <ImportDialog
+      v-model:visible="showImportDialog"
+      :type="FUND_DOCUMENT_IMPORT_TYPE"
+      title="资金单据统一导入"
+      @success="handleImportSuccess"
+    />
   </div>
 </template>
 
