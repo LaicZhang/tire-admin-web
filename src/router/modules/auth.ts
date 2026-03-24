@@ -909,6 +909,21 @@ export default [
     },
     children: [
       {
+        id: 56,
+        uid: "89012345-cc70-4b36-b283-f7a1c7c8d28c",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "dashboardOverview",
+        path: "/analysis/dashboard",
+        redirect: null,
+        component: () => import("@/views/analysis/dashboard/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "经营驾驶舱",
+          icon: null
+        }
+      },
+      {
         id: 36,
         uid: "36e19140-226e-43e5-abf5-051b4121f8c8",
         parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",

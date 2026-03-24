@@ -40,6 +40,102 @@ export interface PurchaseSalesData {
   totalSalesAmount: string;
 }
 
+export interface DashboardOverviewFilters {
+  startDate: string;
+  endDate: string;
+  storeId?: string;
+  repoId?: string;
+}
+
+export interface DashboardTrendItem {
+  label: string;
+  amount?: string;
+  count?: number;
+  value?: number;
+}
+
+export interface DashboardRankingItem {
+  id: string;
+  name: string;
+  rank: number;
+  amount?: string;
+  count?: number;
+  value?: number;
+}
+
+export interface DashboardAlertItem {
+  key: string;
+  label: string;
+  value: string;
+  level: "info" | "warning" | "danger";
+}
+
+export interface StoreMetrics {
+  summary: {
+    salesAmount: string;
+    paidAmount: string;
+    totalOrders: number;
+    averageOrderValue: string;
+    completionRate: number;
+  };
+  trend: DashboardTrendItem[];
+  ranking: DashboardRankingItem[];
+  alerts: DashboardAlertItem[];
+}
+
+export interface WarehouseMetrics {
+  summary: {
+    totalValue: string;
+    totalCount: number;
+    skuCount: number;
+    repoCount: number;
+    toBeStockedCount: number;
+    toBeShippedCount: number;
+    inTransitCount: number;
+    belowAlarmCount: number;
+    expiringBatchCount: number;
+  };
+  trend: DashboardTrendItem[];
+  ranking: DashboardRankingItem[];
+  alerts: DashboardAlertItem[];
+}
+
+export interface PurchaseMetrics {
+  summary: {
+    totalAmount: string;
+    paidAmount: string;
+    unpaidAmount: string;
+    totalOrders: number;
+    averageOrderValue: string;
+    arrivalRate: number;
+  };
+  trend: DashboardTrendItem[];
+  ranking: DashboardRankingItem[];
+  alerts: DashboardAlertItem[];
+}
+
+export interface SalesMetrics {
+  summary: {
+    totalAmount: string;
+    paidAmount: string;
+    unpaidAmount: string;
+    totalOrders: number;
+    averageOrderValue: string;
+    completionRate: number;
+  };
+  trend: DashboardTrendItem[];
+  ranking: DashboardRankingItem[];
+  alerts: DashboardAlertItem[];
+}
+
+export interface DashboardOverviewData {
+  filters: DashboardOverviewFilters;
+  storeMetrics: StoreMetrics;
+  warehouseMetrics: WarehouseMetrics;
+  purchaseMetrics: PurchaseMetrics;
+  salesMetrics: SalesMetrics;
+}
+
 /**
  * 获取仪表盘汇总数据
  * GET /api/v1/dashboard/summary
@@ -61,5 +157,18 @@ export async function getPurchaseSalesApi(days?: number) {
     "get",
     baseUrlApi(dashboardPrefix + "purchase-sales"),
     { params: { days } }
+  );
+}
+
+export async function getDashboardOverviewApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  storeId?: string;
+  repoId?: string;
+}) {
+  return await http.request<CommonResult<DashboardOverviewData>>(
+    "get",
+    baseUrlApi(dashboardPrefix + "overview"),
+    { params }
   );
 }
