@@ -6,9 +6,10 @@ import { DOCUMENT_STATUS_MAP } from "@/components/StatusTag/types";
 
 export interface AuditOrder {
   orderNo: string;
+  subjectName?: string;
   customerName?: string;
   providerName?: string;
-  totalAmount: number;
+  totalAmount?: number | string;
   createdAt: string;
   creatorName: string;
   auditStatus: string;
@@ -22,19 +23,28 @@ export const columns: TableColumnList = [
     minWidth: 150
   },
   {
-    label: "客户/供应商",
+    label: "关联对象",
     minWidth: 120,
     cellRenderer: ({ row }: TableColumnRenderer) =>
-      row?.customerName || row?.providerName || "-"
+      row?.subjectName || row?.customerName || row?.providerName || "-"
   },
   {
     label: "金额",
     minWidth: 100,
-    cellRenderer: ({ row }: TableColumnRenderer) =>
-      h(MoneyDisplay, {
-        value: (row as AuditOrder)?.totalAmount,
+    cellRenderer: ({ row }: TableColumnRenderer) => {
+      const rawValue = (row as AuditOrder)?.totalAmount;
+      if (rawValue === undefined || rawValue === null || rawValue === "") {
+        return "-";
+      }
+      const value =
+        typeof rawValue === "string"
+          ? Number(rawValue)
+          : (rawValue ?? undefined);
+      return h(MoneyDisplay, {
+        value,
         unit: "fen"
-      })
+      });
+    }
   },
   {
     label: "创建时间",

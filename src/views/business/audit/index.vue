@@ -1,14 +1,13 @@
 <script setup lang="ts">
+import { ElMessageBox } from "element-plus";
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
-import { ref, onMounted, h, reactive } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import { columns, AuditOrder } from "./columns";
-import { getPendingAuditOrdersApi } from "@/api/business/order";
-import { message } from "@/utils/message";
+import { getPendingAuditOrdersApi, auditOrderApi } from "@/api/business/order";
+import { confirmBox, message } from "@/utils/message";
 import { useRouter } from "vue-router";
 import type { PaginatedResponseDto } from "@/api/type";
 import { PureTableBar } from "@/components/RePureTableBar";
-import StatusTag from "@/components/StatusTag/index.vue";
-import { DOCUMENT_STATUS_MAP } from "@/components/StatusTag/types";
 
 defineOptions({
   name: "AuditCenter"
@@ -33,8 +32,12 @@ const tableData = ref<AuditOrder[]>([]);
 const tabOptions = [
   { label: "销售订单", value: "sale-order" },
   { label: "采购订单", value: "purchase-order" },
-  { label: "理赔单", value: "claim-order" },
-  { label: "退货单", value: "return-order" }
+  { label: "退货订单", value: "return-order" },
+  { label: "理赔订单", value: "claim-order" },
+  { label: "调拨单", value: "transfer-order" },
+  { label: "报损单", value: "waste-order" },
+  { label: "报溢单", value: "surplus-order" },
+  { label: "组装单", value: "assembly-order" }
 ];
 
 async function loadData() {
@@ -60,6 +63,17 @@ async function loadData() {
   } finally {
     loading.value = false;
   }
+}
+
+function resolveErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+async function reloadAfterAudit() {
+  if (tableData.value.length === 1 && currentPage.value > 1) {
+    currentPage.value -= 1;
+  }
+  await loadData();
 }
 
 function handleTabChange() {
@@ -96,15 +110,51 @@ function viewDetail(row: AuditOrder) {
   });
 }
 
-function formatDate(date: string) {
-  if (!date) return "-";
-  return new Date(date).toLocaleDateString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit"
+async function submitAudit(
+  row: AuditOrder,
+  isApproved: boolean,
+  desc: string | null
+) {
+  await auditOrderApi(row.uid, {
+    type: activeTab.value,
+    isApproved,
+    desc
   });
+}
+
+async function handleApprove(row: AuditOrder) {
+  const ok = await confirmBox("确认审核通过该单据？", "确认审核", {
+    type: "warning"
+  });
+  if (!ok) return;
+
+  try {
+    await submitAudit(row, true, null);
+    message("审核成功", { type: "success" });
+    await reloadAfterAudit();
+  } catch (error) {
+    message(resolveErrorMessage(error, "审核失败"), { type: "error" });
+  }
+}
+
+async function handleReject(row: AuditOrder) {
+  try {
+    const result = await ElMessageBox.prompt("请输入拒绝原因", "拒绝审核", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      inputPattern: /.+/,
+      inputErrorMessage: "请输入拒绝原因"
+    });
+    if (typeof result === "string") return;
+    const { value } = result as { value: string };
+    await submitAudit(row, false, value);
+    message("已拒绝", { type: "success" });
+    await reloadAfterAudit();
+  } catch (error) {
+    if (error !== "cancel") {
+      message(resolveErrorMessage(error, "操作失败"), { type: "error" });
+    }
+  }
 }
 
 onMounted(() => {
@@ -130,7 +180,7 @@ onMounted(() => {
       />
     </el-tabs>
 
-    <PureTableBar title="" class="mt-4" @refresh="loadData">
+    <PureTableBar :columns="columns" title="" class="mt-4" @refresh="loadData">
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
           border
@@ -159,6 +209,22 @@ onMounted(() => {
               @click="viewDetail(row)"
             >
               查看详情
+            </el-button>
+            <el-button
+              type="primary"
+              link
+              size="small"
+              @click="handleApprove(row)"
+            >
+              通过
+            </el-button>
+            <el-button
+              type="danger"
+              link
+              size="small"
+              @click="handleReject(row)"
+            >
+              驳回
             </el-button>
           </template>
         </pure-table>
