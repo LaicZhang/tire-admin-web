@@ -72,6 +72,77 @@ export interface PurchaseSummary {
   arrivalRate: number;
 }
 
+export interface TrackingSummary {
+  pending: number;
+  partial: number;
+  completed: number;
+}
+
+export interface PurchaseOrderTrackingItem {
+  id: number;
+  uid?: string;
+  number: string;
+  providerName: string;
+  operatorName: string;
+  total: string;
+  totalOrdered: number;
+  logisticsStatus?: unknown;
+  trackingStatus: "pending" | "partial" | "completed";
+  isApproved: boolean;
+  createAt?: string;
+}
+
+export interface PurchaseOrderTrackingData {
+  count: number;
+  list: PurchaseOrderTrackingItem[];
+  summary: TrackingSummary;
+}
+
+export interface ProviderEvaluationItem {
+  providerId: string;
+  providerName: string;
+  totalOrders: number;
+  completedOrders: number;
+  onTimeOrders: number;
+  totalAmount: number;
+  totalQuantity: number;
+  completionRate: number;
+  onTimeRate: number;
+  avgDeliveryDays: number;
+  score: number;
+}
+
+export interface ProviderEvaluationData {
+  count: number;
+  list: ProviderEvaluationItem[];
+  summary: {
+    totalProviders: number;
+    avgCompletionRate: number;
+    avgOnTimeRate: number;
+  };
+}
+
+export interface SalesOrderTrackingItem {
+  id: number;
+  uid?: string;
+  number: string;
+  customerName: string;
+  operatorName: string;
+  total: string;
+  paidAmount: string;
+  totalOrdered: number;
+  logisticsStatus?: unknown;
+  trackingStatus: "pending" | "partial" | "completed";
+  isApproved: boolean;
+  createAt?: string;
+}
+
+export interface SalesOrderTrackingData {
+  count: number;
+  list: SalesOrderTrackingItem[];
+  summary: TrackingSummary;
+}
+
 export interface TrendData {
   data?: Array<{ period: string; amount: string; count: number }>;
   trend?: unknown[];
@@ -127,12 +198,23 @@ export interface SlowMovingData {
 
 export interface ExpiryDistributionData {
   list?: Array<{ range: string; count: number; percentage: number }>;
-  buckets?: unknown[];
+  buckets?: Array<{
+    label?: string;
+    bucket?: string;
+    count?: number;
+    quantity?: number;
+    percentage?: number;
+  }>;
 }
 
 export interface StockoutData {
   list?: Array<{ name: string; currentStock: number; minStock: number }>;
-  items?: unknown[];
+  items?: Array<{
+    tireName?: string;
+    currentQuantity?: number;
+    safetyStock?: number;
+    suggestPurchase?: number;
+  }>;
 }
 
 export interface DotAgingItem {
@@ -144,6 +226,32 @@ export interface DotAgingItem {
   dotWeek: number;
   dotCode?: string | null;
   count: number;
+}
+
+export interface InventoryMovementItem {
+  tireId: string;
+  tireName: string;
+  spec?: string;
+  beginQty: number;
+  beginAmount: string;
+  inQty: number;
+  inAmount: string;
+  outQty: number;
+  outAmount: string;
+  endQty: number;
+  endAmount: string;
+}
+
+export interface InventoryMovementData {
+  items: InventoryMovementItem[];
+  totalBeginQty: number;
+  totalBeginAmount: string;
+  totalInQty: number;
+  totalInAmount: string;
+  totalOutQty: number;
+  totalOutAmount: string;
+  totalEndQty: number;
+  totalEndAmount: string;
 }
 
 export interface SerialTraceData {
@@ -228,6 +336,19 @@ export async function getPurchaseSummaryApi(params?: {
   );
 }
 
+export async function getPurchaseTrendApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  storeId?: string;
+  groupBy?: "day" | "week" | "month";
+}) {
+  return await http.request<CommonResult<TrendData>>(
+    "get",
+    baseUrlApi(prefix + "purchase/trend"),
+    { params }
+  );
+}
+
 // 库存汇总
 export async function getInventorySummaryApi(params?: { repoId?: string }) {
   return await http.request<CommonResult<InventorySummary>>(
@@ -287,6 +408,33 @@ export async function getProviderRankingApi(params?: {
   return await http.request<CommonResult<RankingData>>(
     "get",
     baseUrlApi(prefix + "ranking/providers"),
+    { params }
+  );
+}
+
+export async function getPurchaseOrderTrackingApi(params?: {
+  index?: number;
+  pageSize?: number;
+  startDate?: string;
+  endDate?: string;
+  status?: "pending" | "partial" | "completed";
+  providerId?: string;
+}) {
+  return await http.request<CommonResult<PurchaseOrderTrackingData>>(
+    "get",
+    baseUrlApi(prefix + "purchase/order-tracking"),
+    { params }
+  );
+}
+
+export async function getProviderEvaluationApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  providerId?: string;
+}) {
+  return await http.request<CommonResult<ProviderEvaluationData>>(
+    "get",
+    baseUrlApi(prefix + "purchase/provider-evaluation"),
     { params }
   );
 }
@@ -447,6 +595,21 @@ export async function getSaleDetailApi(params?: {
   >("get", baseUrlApi(prefix + "sale/detail"), { params });
 }
 
+export async function getSalesOrderTrackingApi(params?: {
+  index?: number;
+  pageSize?: number;
+  startDate?: string;
+  endDate?: string;
+  status?: "pending" | "partial" | "completed";
+  customerId?: string;
+}) {
+  return await http.request<CommonResult<SalesOrderTrackingData>>(
+    "get",
+    baseUrlApi(prefix + "sales/order-tracking"),
+    { params }
+  );
+}
+
 // 退货率分析
 export async function getReturnRateApi(params?: {
   startDate?: string;
@@ -521,6 +684,20 @@ export async function getDotAgingApi(params?: {
   return await http.request<CommonResult<{ list: DotAgingItem[] }>>(
     "get",
     baseUrlApi(prefix + "inventory/dot-aging"),
+    { params }
+  );
+}
+
+export async function getInventoryMovementApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  repoId?: string;
+  storeId?: string;
+  tireId?: string;
+}) {
+  return await http.request<CommonResult<InventoryMovementData>>(
+    "get",
+    baseUrlApi(prefix + "inventory/movement"),
     { params }
   );
 }
