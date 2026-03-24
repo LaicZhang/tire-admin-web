@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   getSalesSummaryApi,
   getSalesTrendApi,
@@ -7,6 +8,7 @@ import {
   getProductRankingApi,
   getOperatorRankingApi
 } from "@/api";
+import { getStoreListApi, type Store } from "@/api/company/store";
 import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
@@ -14,19 +16,28 @@ import dayjs from "dayjs";
 import type { EChartsCoreOption, EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
 import { useColumns } from "./columns";
+import {
+  buildAnalysisQuery,
+  parseAnalysisFilters,
+  toDateParams
+} from "../shared";
 
 defineOptions({
   name: "AnalysisSales"
 });
 
 const { customerColumns, productColumns, operatorColumns } = useColumns();
+const route = useRoute();
+const router = useRouter();
 
 const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
 let chartInstance: EChartsType | null = null;
+const stores = ref<Store[]>([]);
 
 // 日期范围筛选
 const dateRange = ref<[Date, Date] | null>(null);
+const selectedStoreId = ref("");
 const shortcuts = [
   {
     text: "最近一周",
@@ -79,16 +90,15 @@ const operatorRanking = ref<unknown[]>([]);
 const activeRankingTab = ref("customer");
 
 const dateParams = computed(() => {
-  if (!dateRange.value) return {};
   return {
-    startDate: dayjs(dateRange.value[0]).format("YYYY-MM-DD"),
-    endDate: dayjs(dateRange.value[1]).format("YYYY-MM-DD")
+    ...toDateParams(dateRange.value),
+    storeId: selectedStoreId.value || undefined
   };
 });
 
 // 格式化金额
 const formatAmount = (val: string | number) => {
-  const num = Number(val) / 100;
+  const num = Number(val);
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 };
 
@@ -229,8 +239,28 @@ const loadData = async () => {
   }
 };
 
-const handleDateChange = () => {
-  loadData();
+async function loadStores() {
+  const response = await getStoreListApi(1, { pageSize: 100 });
+  stores.value = response.data?.list ?? [];
+}
+
+function applyRouteFilters() {
+  const parsed = parseAnalysisFilters(route.query);
+  dateRange.value = parsed.dateRange;
+  selectedStoreId.value = parsed.storeId;
+}
+
+async function syncQuery() {
+  await router.replace({
+    query: buildAnalysisQuery({
+      dateRange: dateRange.value,
+      storeId: selectedStoreId.value || undefined
+    })
+  });
+}
+
+const handleDateChange = async () => {
+  await syncQuery();
 };
 
 const handleResize = () => {
@@ -238,9 +268,18 @@ const handleResize = () => {
 };
 
 onMounted(() => {
-  loadData();
+  void loadStores();
   window.addEventListener("resize", handleResize);
 });
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteFilters();
+    void loadData();
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
@@ -254,15 +293,32 @@ onUnmounted(() => {
     <!-- 筛选栏 -->
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          :shortcuts="shortcuts"
-          @change="handleDateChange"
-        />
+        <div class="flex flex-wrap items-center gap-3">
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            :shortcuts="shortcuts"
+            @change="handleDateChange"
+          />
+          <el-select
+            v-model="selectedStoreId"
+            clearable
+            filterable
+            placeholder="选择门店"
+            class="w-[180px]"
+            @change="handleDateChange"
+          >
+            <el-option
+              v-for="item in stores"
+              :key="item.uid"
+              :label="item.name"
+              :value="item.uid"
+            />
+          </el-select>
+        </div>
         <el-button :icon="useRenderIcon(Refresh)" circle @click="loadData" />
       </div>
     </el-card>

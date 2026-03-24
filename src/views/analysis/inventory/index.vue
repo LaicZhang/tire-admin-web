@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, h } from "vue";
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   getInventorySummaryApi,
   getSlowMovingApi,
@@ -8,18 +9,28 @@ import {
   getExpiryDistributionApi,
   getDotAgingApi
 } from "@/api/analysis";
+import { getStoreListApi, type Store } from "@/api/company/store";
+import { getRepoListApi, type Repo } from "@/api/company/repo";
 import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { slowMovingColumns, stockoutColumns } from "./columns";
 import Refresh from "~icons/ep/refresh";
 import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
+import { buildAnalysisQuery, parseAnalysisFilters } from "../shared";
 
 defineOptions({
   name: "AnalysisInventory"
 });
 
+const route = useRoute();
+const router = useRouter();
 const loading = ref(false);
+const stores = ref<Store[]>([]);
+const repos = ref<Repo[]>([]);
+const dateRange = ref<[Date, Date] | null>(null);
+const selectedStoreId = ref("");
+const selectedRepoId = ref("");
 
 // 库存汇总数据
 const summaryData = ref({
@@ -95,15 +106,27 @@ const expiryChartRef = ref<HTMLElement | null>(null);
 let turnoverChart: EChartsType | null = null;
 let expiryChart: EChartsType | null = null;
 
+const currentStore = computed(() =>
+  stores.value.find(item => item.uid === selectedStoreId.value)
+);
+
+const repoOptions = computed(() => {
+  const defaultRepoId = currentStore.value?.defaultRepositoryId;
+  if (!defaultRepoId) return repos.value;
+  return repos.value.filter(item => item.uid === defaultRepoId);
+});
+
 // 格式化金额
 const formatAmount = (val: string | number) => {
-  const num = Number(val) / 100;
+  const num = Number(val);
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 };
 
 const getSummary = async () => {
   try {
-    const { data, code } = await getInventorySummaryApi();
+    const { data, code } = await getInventorySummaryApi({
+      repoId: selectedRepoId.value || undefined
+    });
     if (code === 200 && data) {
       summaryData.value = {
         totalCount: data.totalCount || 0,
@@ -123,7 +146,10 @@ const getSummary = async () => {
 
 const getSlowMoving = async () => {
   try {
-    const { data, code } = await getSlowMovingApi({ days: 90 });
+    const { data, code } = await getSlowMovingApi({
+      days: 90,
+      repoId: selectedRepoId.value || undefined
+    });
     if (code === 200) {
       slowMovingList.value = (
         Array.isArray(data) ? data : data.items || []
@@ -136,7 +162,9 @@ const getSlowMoving = async () => {
 
 const getStockout = async () => {
   try {
-    const { data, code } = await getStockoutApi();
+    const { data, code } = await getStockoutApi({
+      repoId: selectedRepoId.value || undefined
+    });
     if (code === 200) {
       stockoutList.value = (
         Array.isArray(data) ? data : data.items || []
@@ -149,7 +177,9 @@ const getStockout = async () => {
 
 const getTurnover = async () => {
   try {
-    const { data, code } = await getInventoryTurnoverApi();
+    const { data, code } = await getInventoryTurnoverApi({
+      repoId: selectedRepoId.value || undefined
+    });
     if (code === 200 && data) {
       turnoverData.value = {
         turnoverRate: data.turnoverRate || 0,
@@ -165,7 +195,9 @@ const getTurnover = async () => {
 
 const getExpiry = async () => {
   try {
-    const { data, code } = await getExpiryDistributionApi({});
+    const { data, code } = await getExpiryDistributionApi({
+      repoId: selectedRepoId.value || undefined
+    });
     if (code === 200) {
       expiryData.value = (
         Array.isArray(data) ? data : data.buckets || []
@@ -179,7 +211,9 @@ const getExpiry = async () => {
 
 const getDotAging = async () => {
   try {
-    const { data, code } = await getDotAgingApi();
+    const { data, code } = await getDotAgingApi({
+      repoId: selectedRepoId.value || undefined
+    });
     if (code === 200) {
       dotAgingList.value = data?.list || [];
     }
@@ -259,10 +293,53 @@ const loadData = async () => {
   }
 };
 
+async function loadOptions() {
+  const [storeRes, repoRes] = await Promise.all([
+    getStoreListApi(1, { pageSize: 100 }),
+    getRepoListApi(1, { pageSize: 100 })
+  ]);
+  stores.value = storeRes.data?.list ?? [];
+  repos.value = repoRes.data?.list ?? [];
+}
+
+function applyRouteFilters() {
+  const parsed = parseAnalysisFilters(route.query);
+  dateRange.value = parsed.dateRange;
+  selectedStoreId.value = parsed.storeId;
+  selectedRepoId.value = parsed.repoId;
+}
+
+async function syncQuery() {
+  await router.replace({
+    query: buildAnalysisQuery({
+      dateRange: dateRange.value,
+      storeId: selectedStoreId.value || undefined,
+      repoId: selectedRepoId.value || undefined
+    })
+  });
+}
+
+async function handleFiltersChange() {
+  const defaultRepoId = currentStore.value?.defaultRepositoryId ?? "";
+  if (selectedStoreId.value && defaultRepoId) {
+    selectedRepoId.value = defaultRepoId;
+  }
+  await syncQuery();
+}
+
 onMounted(() => {
-  loadData();
+  void loadOptions();
   window.addEventListener("resize", handleResize);
 });
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteFilters();
+    void loadData();
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
@@ -276,7 +353,39 @@ onUnmounted(() => {
     <!-- 顶部操作栏 -->
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
-        <span class="font-bold text-lg">库存数据总览</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="font-bold text-lg">库存数据总览</span>
+          <el-select
+            v-model="selectedStoreId"
+            clearable
+            filterable
+            placeholder="选择门店"
+            class="w-[180px]"
+            @change="handleFiltersChange"
+          >
+            <el-option
+              v-for="item in stores"
+              :key="item.uid"
+              :label="item.name"
+              :value="item.uid"
+            />
+          </el-select>
+          <el-select
+            v-model="selectedRepoId"
+            clearable
+            filterable
+            placeholder="选择仓库"
+            class="w-[180px]"
+            @change="handleFiltersChange"
+          >
+            <el-option
+              v-for="item in repoOptions"
+              :key="item.uid"
+              :label="item.name"
+              :value="item.uid"
+            />
+          </el-select>
+        </div>
         <el-button :icon="useRenderIcon(Refresh)" circle @click="loadData" />
       </div>
     </el-card>

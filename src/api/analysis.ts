@@ -192,6 +192,7 @@ export interface SerialTraceData {
 export async function getSalesSummaryApi(params?: {
   startDate?: string;
   endDate?: string;
+  storeId?: string;
 }) {
   return await http.request<CommonResult<SalesSummary>>(
     "get",
@@ -204,6 +205,7 @@ export async function getSalesSummaryApi(params?: {
 export async function getSalesTrendApi(params?: {
   startDate?: string;
   endDate?: string;
+  storeId?: string;
   groupBy?: "day" | "week" | "month";
 }) {
   return await http.request<CommonResult<TrendData>>(
@@ -217,6 +219,7 @@ export async function getSalesTrendApi(params?: {
 export async function getPurchaseSummaryApi(params?: {
   startDate?: string;
   endDate?: string;
+  storeId?: string;
 }) {
   return await http.request<CommonResult<PurchaseSummary>>(
     "get",
@@ -226,10 +229,11 @@ export async function getPurchaseSummaryApi(params?: {
 }
 
 // 库存汇总
-export async function getInventorySummaryApi() {
+export async function getInventorySummaryApi(params?: { repoId?: string }) {
   return await http.request<CommonResult<InventorySummary>>(
     "get",
-    baseUrlApi(prefix + "inventory/summary")
+    baseUrlApi(prefix + "inventory/summary"),
+    { params }
   );
 }
 
@@ -263,6 +267,7 @@ export async function getPayableAgingApi(params?: {
 export async function getCustomerRankingApi(params?: {
   startDate?: string;
   endDate?: string;
+  storeId?: string;
   limit?: number;
 }) {
   return await http.request<CommonResult<RankingData>>(
@@ -276,6 +281,7 @@ export async function getCustomerRankingApi(params?: {
 export async function getProviderRankingApi(params?: {
   startDate?: string;
   endDate?: string;
+  storeId?: string;
   limit?: number;
 }) {
   return await http.request<CommonResult<RankingData>>(
@@ -289,6 +295,7 @@ export async function getProviderRankingApi(params?: {
 export async function getProductRankingApi(params?: {
   startDate?: string;
   endDate?: string;
+  storeId?: string;
   limit?: number;
   orderBy?: "quantity" | "amount" | "profit";
 }) {
@@ -303,6 +310,7 @@ export async function getProductRankingApi(params?: {
 export async function getOperatorRankingApi(params?: {
   startDate?: string;
   endDate?: string;
+  storeId?: string;
   limit?: number;
   orderBy?: "amount" | "count" | "collectionRate";
 }) {
@@ -465,7 +473,10 @@ export async function getClaimLossApi(params?: {
 }
 
 // 滞销商品分析
-export async function getSlowMovingApi(params?: { days?: number }) {
+export async function getSlowMovingApi(params?: {
+  days?: number;
+  repoId?: string;
+}) {
   return await http.request<CommonResult<SlowMovingData>>(
     "get",
     baseUrlApi(prefix + "slow-moving"),
@@ -495,10 +506,11 @@ export async function getExpiryDistributionApi(params?: {
 }
 
 // 缺货分析
-export async function getStockoutApi() {
+export async function getStockoutApi(params?: { repoId?: string }) {
   return await http.request<CommonResult<StockoutData>>(
     "get",
-    baseUrlApi(prefix + "stockout")
+    baseUrlApi(prefix + "stockout"),
+    { params }
   );
 }
 

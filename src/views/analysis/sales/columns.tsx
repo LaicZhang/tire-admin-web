@@ -1,5 +1,5 @@
 const formatAmount = (val: string | number) => {
-  const num = Number(val) / 100;
+  const num = Number(val);
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 };
 

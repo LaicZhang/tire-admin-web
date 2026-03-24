@@ -20,7 +20,7 @@ export const providerColumns: TableColumnList = [
     width: 150,
     cellRenderer: (data: TableColumnRenderer) => {
       const formatAmount = (val: string | number) => {
-        const num = Number(val) / 100;
+        const num = Number(val);
         return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
       };
       return <span>¥{formatAmount(data.row?.amount)}</span>;
@@ -48,7 +48,7 @@ export const productColumns: TableColumnList = [
     width: 150,
     cellRenderer: (data: TableColumnRenderer) => {
       const formatAmount = (val: string | number) => {
-        const num = Number(val) / 100;
+        const num = Number(val);
         return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
       };
       return <span>¥{formatAmount(data.row?.amount)}</span>;
