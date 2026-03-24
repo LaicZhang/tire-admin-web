@@ -51,7 +51,13 @@ export const columns: TableColumnList = [
 
 export const statusMap: Record<string, StatusConfig> = {
   IN_STOCK: { label: "在库", type: "success" },
+  RESERVED: { label: "已占用", type: "warning" },
+  IN_TRANSIT: { label: "在途", type: "primary" },
+  OUTBOUND: { label: "已出库", type: "info" },
+  INSTALLED: { label: "已安装", type: "success" },
   SOLD: { label: "已售", type: "info" },
-  RETURNED: { label: "已退", type: "warning" },
+  RETURNED_PENDING_QC: { label: "退回待检", type: "warning" },
+  GOOD_RETURN: { label: "良品退回", type: "success" },
+  DEFECTIVE: { label: "不良", type: "danger" },
   SCRAPPED: { label: "已报废", type: "danger" }
 };

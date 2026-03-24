@@ -5,7 +5,17 @@ import type { CommonResult } from "../type";
 const prefix = "/serial-number";
 
 /** 序列号状态 */
-export type SerialNumberStatus = "IN_STOCK" | "SOLD" | "RETURNED" | "SCRAPPED";
+export type SerialNumberStatus =
+  | "IN_STOCK"
+  | "RESERVED"
+  | "IN_TRANSIT"
+  | "OUTBOUND"
+  | "INSTALLED"
+  | "SOLD"
+  | "RETURNED_PENDING_QC"
+  | "GOOD_RETURN"
+  | "DEFECTIVE"
+  | "SCRAPPED";
 
 /** 序列号 */
 export interface SerialNumber {

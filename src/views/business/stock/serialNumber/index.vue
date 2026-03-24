@@ -209,8 +209,14 @@ function handleViewLogs(row: SerialNumber) {
           class="w-[140px]"
         >
           <el-option label="在库" value="IN_STOCK" />
+          <el-option label="已占用" value="RESERVED" />
+          <el-option label="在途" value="IN_TRANSIT" />
+          <el-option label="已出库" value="OUTBOUND" />
+          <el-option label="已安装" value="INSTALLED" />
           <el-option label="已售" value="SOLD" />
-          <el-option label="已退" value="RETURNED" />
+          <el-option label="退回待检" value="RETURNED_PENDING_QC" />
+          <el-option label="良品退回" value="GOOD_RETURN" />
+          <el-option label="不良" value="DEFECTIVE" />
           <el-option label="已报废" value="SCRAPPED" />
         </el-select>
       </el-form-item>

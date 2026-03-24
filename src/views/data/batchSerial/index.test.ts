@@ -75,8 +75,11 @@ describe("Batch Serial", () => {
           ElForm: { template: "<form><slot /></form>" },
           ElFormItem: { template: "<div><slot /></div>" },
           ElInput: true,
-          ElSelect: true,
-          ElOption: true,
+          ElSelect: { template: "<div><slot /></div>" },
+          ElOption: {
+            props: ["label"],
+            template: "<span>{{ label }}</span>"
+          },
           ElButton: true,
           ElEmpty: true,
           ElTag: true,
@@ -85,5 +88,8 @@ describe("Batch Serial", () => {
       }
     });
     expect(wrapper.exists()).toBe(true);
+    expect(wrapper.text()).toContain("在途");
+    expect(wrapper.text()).toContain("退回待检");
+    expect(wrapper.text()).not.toContain("退货");
   });
 });

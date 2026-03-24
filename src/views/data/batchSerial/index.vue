@@ -122,15 +122,27 @@ const loading = computed(() => batchLoading.value || serialLoading.value);
 
 const statusOptions = [
   { label: "在库", value: "IN_STOCK" },
+  { label: "已占用", value: "RESERVED" },
+  { label: "在途", value: "IN_TRANSIT" },
+  { label: "已出库", value: "OUTBOUND" },
+  { label: "已安装", value: "INSTALLED" },
   { label: "已售", value: "SOLD" },
-  { label: "退货", value: "RETURNED" },
+  { label: "退回待检", value: "RETURNED_PENDING_QC" },
+  { label: "良品退回", value: "GOOD_RETURN" },
+  { label: "不良", value: "DEFECTIVE" },
   { label: "报废", value: "SCRAPPED" }
 ];
 
 const serialStatusMap = {
   IN_STOCK: { label: "在库", type: "success" },
+  RESERVED: { label: "已占用", type: "warning" },
+  IN_TRANSIT: { label: "在途", type: "primary" },
+  OUTBOUND: { label: "已出库", type: "info" },
+  INSTALLED: { label: "已安装", type: "success" },
   SOLD: { label: "已售", type: "info" },
-  RETURNED: { label: "退货", type: "warning" },
+  RETURNED_PENDING_QC: { label: "退回待检", type: "warning" },
+  GOOD_RETURN: { label: "良品退回", type: "success" },
+  DEFECTIVE: { label: "不良", type: "danger" },
   SCRAPPED: { label: "报废", type: "danger" }
 } as const;
 
