@@ -3,12 +3,14 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { EChartsCoreOption, EChartsType } from "echarts/core";
 import {
+  getAnalysisMembersApi,
   getCustomerRankingApi,
   getOperatorRankingApi,
   getProductRankingApi,
   getSalesOrderTrackingApi,
   getSalesSummaryApi,
   getSalesTrendApi,
+  type AnalysisMember,
   type SalesOrderTrackingData
 } from "@/api";
 import { getStoreListApi, type Store } from "@/api/company/store";
@@ -25,6 +27,7 @@ import {
 import { buildTrackingSummaryCards } from "../transformers";
 import { useUserStoreHook } from "@/store/modules/user";
 import {
+  canSelectAnalysisMember,
   getAnalysisSectionOrder,
   resolveAnalysisRoleView
 } from "@/utils/analysisRole";
@@ -42,9 +45,11 @@ const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
 let chartInstance: EChartsType | null = null;
 const stores = ref<Store[]>([]);
+const analysisMembers = ref<AnalysisMember[]>([]);
 
 const dateRange = ref<[Date, Date] | null>(null);
 const selectedStoreId = ref("");
+const selectedOperatorId = ref("");
 const activeRankingTab = ref("customer");
 
 const summaryData = ref({
@@ -100,17 +105,34 @@ const shortcuts = [
 
 const dateParams = computed(() => ({
   ...toDateParams(dateRange.value),
-  storeId: selectedStoreId.value || undefined
+  storeId: selectedStoreId.value || undefined,
+  operatorId: canSelectMember.value
+    ? selectedOperatorId.value || undefined
+    : undefined
 }));
 
 const trackingCards = computed(() =>
   buildTrackingSummaryCards(trackingSummary.value)
 );
 const userStore = useUserStoreHook();
+const canSelectMember = computed(() =>
+  canSelectAnalysisMember(userStore.roles ?? [])
+);
 const roleView = computed(() => resolveAnalysisRoleView(userStore.roles ?? []));
 const visibleSections = computed(
   () => new Set(getAnalysisSectionOrder("sales", roleView.value))
 );
+const selectedAnalysisMember = computed(() =>
+  analysisMembers.value.find(item => item.uid === selectedOperatorId.value)
+);
+const currentViewLabel = computed(() => {
+  if (!selectedOperatorId.value) return "公司视角";
+  return (
+    selectedAnalysisMember.value?.nickname ||
+    selectedAnalysisMember.value?.name ||
+    "成员视角"
+  );
+});
 
 const exceptionTrackingList = computed(() =>
   trackingList.value.filter(item => item.trackingStatus !== "completed")
@@ -248,22 +270,43 @@ async function loadStores() {
   stores.value = response.data?.list ?? [];
 }
 
+async function loadAnalysisMembers() {
+  if (!canSelectMember.value) {
+    analysisMembers.value = [];
+    return;
+  }
+  const { data, code } = await getAnalysisMembersApi({ module: "sales" });
+  if (code !== 200) return;
+  analysisMembers.value = data ?? [];
+}
+
 function applyRouteFilters() {
   const parsed = parseAnalysisFilters(route.query);
   dateRange.value = parsed.dateRange;
   selectedStoreId.value = parsed.storeId;
+  selectedOperatorId.value = parsed.operatorId;
 }
 
 async function syncQuery() {
   await router.replace({
     query: buildAnalysisQuery({
       dateRange: dateRange.value,
-      storeId: selectedStoreId.value || undefined
+      storeId: selectedStoreId.value || undefined,
+      extras: {
+        operatorId: canSelectMember.value
+          ? selectedOperatorId.value || undefined
+          : undefined
+      }
     })
   });
 }
 
 async function handleFilterChange() {
+  await syncQuery();
+}
+
+async function clearMemberFilter() {
+  selectedOperatorId.value = "";
   await syncQuery();
 }
 
@@ -285,6 +328,7 @@ onMounted(() => {
     activeRankingTab.value = "operator";
   }
   void loadStores();
+  void loadAnalysisMembers();
   window.addEventListener("resize", handleResize);
 });
 
@@ -302,6 +346,12 @@ onUnmounted(() => {
         <div class="flex flex-wrap items-center gap-3">
           <el-tag effect="plain" type="info">
             {{ roleView === "sales" ? "销售作战视角" : "经营分析视角" }}
+          </el-tag>
+          <el-tag
+            :type="selectedOperatorId ? 'success' : 'info'"
+            effect="plain"
+          >
+            {{ currentViewLabel }}
           </el-tag>
           <el-date-picker
             v-model="dateRange"
@@ -327,6 +377,25 @@ onUnmounted(() => {
               :value="item.uid"
             />
           </el-select>
+          <el-select
+            v-if="canSelectMember"
+            v-model="selectedOperatorId"
+            clearable
+            filterable
+            placeholder="查看成员图表"
+            class="w-[180px]"
+            @change="handleFilterChange"
+          >
+            <el-option
+              v-for="item in analysisMembers"
+              :key="item.uid"
+              :label="item.nickname || item.name || item.uid"
+              :value="item.uid"
+            />
+          </el-select>
+          <el-button v-if="selectedOperatorId" text @click="clearMemberFilter">
+            返回公司图表
+          </el-button>
         </div>
         <el-button :icon="useRenderIcon(Refresh)" circle @click="loadData" />
       </div>

@@ -91,6 +91,10 @@ const FINANCE_ROLES = new Set([
   "accountant"
 ]);
 
+export function canSelectAnalysisMember(roles: string[]): boolean {
+  return roles.some(role => EXECUTIVE_ROLES.has(role));
+}
+
 export function resolveAnalysisRoleView(roles: string[]): AnalysisRoleView {
   if (roles.some(role => ANALYST_ROLES.has(role))) return "analyst";
   if (roles.some(role => EXECUTIVE_ROLES.has(role))) return "executive";

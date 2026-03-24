@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
+  getAnalysisMembersApi,
   getInventoryMovementApi,
+  getSalesSummaryApi,
   getProviderEvaluationApi,
   getPurchaseOrderTrackingApi,
   getPurchaseTrendApi,
@@ -100,6 +102,33 @@ describe("analysis api", () => {
       "get",
       "/api/v1/analysis/inventory/movement",
       { params }
+    );
+  });
+
+  it("requests sales summary with operator filter", async () => {
+    const params = {
+      startDate: "2026-03-01",
+      endDate: "2026-03-24",
+      storeId: "store-1",
+      operatorId: "member-1"
+    };
+
+    await getSalesSummaryApi(params);
+
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/sales/summary",
+      { params }
+    );
+  });
+
+  it("requests analysis members by module", async () => {
+    await getAnalysisMembersApi({ module: "purchase" });
+
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/members",
+      { params: { module: "purchase" } }
     );
   });
 });

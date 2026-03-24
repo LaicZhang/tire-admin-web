@@ -52,6 +52,7 @@ export function parseAnalysisFilters(query: LocationQuery) {
   return {
     dateRange: parseDateRangeQuery(query),
     storeId: getQueryString(query, "storeId") ?? "",
-    repoId: getQueryString(query, "repoId") ?? ""
+    repoId: getQueryString(query, "repoId") ?? "",
+    operatorId: getQueryString(query, "operatorId") ?? ""
   };
 }

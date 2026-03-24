@@ -3,13 +3,15 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { EChartsType } from "echarts/core";
 import {
+  getAnalysisMembersApi,
   getDotAgingApi,
   getExpiryDistributionApi,
   getInventoryMovementApi,
   getInventorySummaryApi,
   getInventoryTurnoverApi,
   getSlowMovingApi,
-  getStockoutApi
+  getStockoutApi,
+  type AnalysisMember
 } from "@/api/analysis";
 import { getRepoListApi, type Repo } from "@/api/company/repo";
 import { getStoreListApi, type Store } from "@/api/company/store";
@@ -22,6 +24,7 @@ import { buildAnalysisQuery, parseAnalysisFilters } from "../shared";
 import { buildInventoryMovementRows } from "../transformers";
 import { useUserStoreHook } from "@/store/modules/user";
 import {
+  canSelectAnalysisMember,
   getAnalysisSectionOrder,
   resolveAnalysisRoleView
 } from "@/utils/analysisRole";
@@ -35,10 +38,12 @@ const router = useRouter();
 const loading = ref(false);
 const stores = ref<Store[]>([]);
 const repos = ref<Repo[]>([]);
+const analysisMembers = ref<AnalysisMember[]>([]);
 
 const dateRange = ref<[Date, Date] | null>(null);
 const selectedStoreId = ref("");
 const selectedRepoId = ref("");
+const selectedOperatorId = ref("");
 
 const summaryData = ref({
   totalCount: 0,
@@ -113,19 +118,37 @@ const repoOptions = computed(() => {
   return repos.value.filter(item => item.uid === defaultRepoId);
 });
 const userStore = useUserStoreHook();
+const canSelectMember = computed(() =>
+  canSelectAnalysisMember(userStore.roles ?? [])
+);
 const roleView = computed(() => resolveAnalysisRoleView(userStore.roles ?? []));
 const visibleSections = computed(
   () => new Set(getAnalysisSectionOrder("inventory", roleView.value))
 );
+const selectedAnalysisMember = computed(() =>
+  analysisMembers.value.find(item => item.uid === selectedOperatorId.value)
+);
+const currentViewLabel = computed(() => {
+  if (!selectedOperatorId.value) return "公司视角";
+  return (
+    selectedAnalysisMember.value?.nickname ||
+    selectedAnalysisMember.value?.name ||
+    "成员视角"
+  );
+});
+const inventoryParams = computed(() => ({
+  repoId: selectedRepoId.value || undefined,
+  operatorId: canSelectMember.value
+    ? selectedOperatorId.value || undefined
+    : undefined
+}));
 
 function formatAmount(val: string | number) {
   return Number(val).toLocaleString("zh-CN", { minimumFractionDigits: 2 });
 }
 
 async function getSummary() {
-  const { data, code } = await getInventorySummaryApi({
-    repoId: selectedRepoId.value || undefined
-  });
+  const { data, code } = await getInventorySummaryApi(inventoryParams.value);
   if (code !== 200 || !data) return;
   summaryData.value = {
     totalCount: data.totalCount || 0,
@@ -142,24 +165,20 @@ async function getSummary() {
 async function getSlowMoving() {
   const { data, code } = await getSlowMovingApi({
     days: 90,
-    repoId: selectedRepoId.value || undefined
+    ...inventoryParams.value
   });
   if (code !== 200) return;
   slowMovingList.value = (Array.isArray(data) ? data : data?.items) || [];
 }
 
 async function getStockout() {
-  const { data, code } = await getStockoutApi({
-    repoId: selectedRepoId.value || undefined
-  });
+  const { data, code } = await getStockoutApi(inventoryParams.value);
   if (code !== 200) return;
   stockoutList.value = (Array.isArray(data) ? data : data?.items) || [];
 }
 
 async function getTurnover() {
-  const { data, code } = await getInventoryTurnoverApi({
-    repoId: selectedRepoId.value || undefined
-  });
+  const { data, code } = await getInventoryTurnoverApi(inventoryParams.value);
   if (code !== 200 || !data) return;
   turnoverData.value = {
     turnoverRate: data.turnoverRate || 0,
@@ -170,25 +189,21 @@ async function getTurnover() {
 }
 
 async function getExpiry() {
-  const { data, code } = await getExpiryDistributionApi({
-    repoId: selectedRepoId.value || undefined
-  });
+  const { data, code } = await getExpiryDistributionApi(inventoryParams.value);
   if (code !== 200) return;
   expiryData.value = (Array.isArray(data) ? data : data?.buckets) || [];
   await updateExpiryChart();
 }
 
 async function getDotAging() {
-  const { data, code } = await getDotAgingApi({
-    repoId: selectedRepoId.value || undefined
-  });
+  const { data, code } = await getDotAgingApi(inventoryParams.value);
   if (code !== 200) return;
   dotAgingList.value = data?.list || [];
 }
 
 async function getMovement() {
   const { data, code } = await getInventoryMovementApi({
-    repoId: selectedRepoId.value || undefined,
+    ...inventoryParams.value,
     tireId: undefined,
     startDate: undefined,
     endDate: undefined
@@ -311,11 +326,22 @@ async function loadOptions() {
   repos.value = repoRes.data?.list ?? [];
 }
 
+async function loadAnalysisMembers() {
+  if (!canSelectMember.value) {
+    analysisMembers.value = [];
+    return;
+  }
+  const { data, code } = await getAnalysisMembersApi({ module: "inventory" });
+  if (code !== 200) return;
+  analysisMembers.value = data ?? [];
+}
+
 function applyRouteFilters() {
   const parsed = parseAnalysisFilters(route.query);
   dateRange.value = parsed.dateRange;
   selectedStoreId.value = parsed.storeId;
   selectedRepoId.value = parsed.repoId;
+  selectedOperatorId.value = parsed.operatorId;
 }
 
 async function syncQuery() {
@@ -323,7 +349,12 @@ async function syncQuery() {
     query: buildAnalysisQuery({
       dateRange: dateRange.value,
       storeId: selectedStoreId.value || undefined,
-      repoId: selectedRepoId.value || undefined
+      repoId: selectedRepoId.value || undefined,
+      extras: {
+        operatorId: canSelectMember.value
+          ? selectedOperatorId.value || undefined
+          : undefined
+      }
     })
   });
 }
@@ -333,6 +364,11 @@ async function handleFiltersChange() {
   if (selectedStoreId.value && defaultRepoId) {
     selectedRepoId.value = defaultRepoId;
   }
+  await syncQuery();
+}
+
+async function clearMemberFilter() {
+  selectedOperatorId.value = "";
   await syncQuery();
 }
 
@@ -353,6 +389,7 @@ watch(
 
 onMounted(() => {
   void loadOptions();
+  void loadAnalysisMembers();
   window.addEventListener("resize", handleResize);
 });
 
@@ -372,6 +409,12 @@ onUnmounted(() => {
           <span class="text-lg font-bold">库存数据总览</span>
           <el-tag effect="plain" type="info">
             {{ roleView === "warehouse" ? "库存作战视角" : "经营分析视角" }}
+          </el-tag>
+          <el-tag
+            :type="selectedOperatorId ? 'success' : 'info'"
+            effect="plain"
+          >
+            {{ currentViewLabel }}
           </el-tag>
           <el-select
             v-model="selectedStoreId"
@@ -403,6 +446,25 @@ onUnmounted(() => {
               :value="item.uid"
             />
           </el-select>
+          <el-select
+            v-if="canSelectMember"
+            v-model="selectedOperatorId"
+            clearable
+            filterable
+            placeholder="查看成员图表"
+            class="w-[180px]"
+            @change="handleFiltersChange"
+          >
+            <el-option
+              v-for="item in analysisMembers"
+              :key="item.uid"
+              :label="item.nickname || item.name || item.uid"
+              :value="item.uid"
+            />
+          </el-select>
+          <el-button v-if="selectedOperatorId" text @click="clearMemberFilter">
+            返回公司图表
+          </el-button>
         </div>
         <el-button :icon="useRenderIcon(Refresh)" circle @click="loadData" />
       </div>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canSelectAnalysisMember,
   getAnalysisSectionOrder,
   resolveAnalysisRoleView
 } from "@/utils/analysisRole";
@@ -13,6 +14,12 @@ describe("analysis role helpers", () => {
   it("maps warehouse aliases to warehouse view", () => {
     expect(resolveAnalysisRoleView(["warehouseManager"])).toBe("warehouse");
     expect(resolveAnalysisRoleView(["warehouseEmployee"])).toBe("warehouse");
+  });
+
+  it("allows only boss/admin to select analysis members", () => {
+    expect(canSelectAnalysisMember(["boss"])).toBe(true);
+    expect(canSelectAnalysisMember(["admin"])).toBe(true);
+    expect(canSelectAnalysisMember(["seller"])).toBe(false);
   });
 
   it("returns sales-focused section order", () => {

@@ -158,6 +158,15 @@ export interface RankingData {
   }>;
 }
 
+export type AnalysisModule = "sales" | "purchase" | "inventory";
+
+export interface AnalysisMember {
+  uid: string;
+  name?: string | null;
+  nickname?: string | null;
+  roleKeys: string[];
+}
+
 export interface ReturnRateData {
   rate: number;
   totalOrders: number;
@@ -301,6 +310,7 @@ export async function getSalesSummaryApi(params?: {
   startDate?: string;
   endDate?: string;
   storeId?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<SalesSummary>>(
     "get",
@@ -315,6 +325,7 @@ export async function getSalesTrendApi(params?: {
   endDate?: string;
   storeId?: string;
   groupBy?: "day" | "week" | "month";
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<TrendData>>(
     "get",
@@ -328,6 +339,7 @@ export async function getPurchaseSummaryApi(params?: {
   startDate?: string;
   endDate?: string;
   storeId?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<PurchaseSummary>>(
     "get",
@@ -341,6 +353,7 @@ export async function getPurchaseTrendApi(params?: {
   endDate?: string;
   storeId?: string;
   groupBy?: "day" | "week" | "month";
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<TrendData>>(
     "get",
@@ -350,7 +363,10 @@ export async function getPurchaseTrendApi(params?: {
 }
 
 // 库存汇总
-export async function getInventorySummaryApi(params?: { repoId?: string }) {
+export async function getInventorySummaryApi(params?: {
+  repoId?: string;
+  operatorId?: string;
+}) {
   return await http.request<CommonResult<InventorySummary>>(
     "get",
     baseUrlApi(prefix + "inventory/summary"),
@@ -390,6 +406,7 @@ export async function getCustomerRankingApi(params?: {
   endDate?: string;
   storeId?: string;
   limit?: number;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<RankingData>>(
     "get",
@@ -404,6 +421,7 @@ export async function getProviderRankingApi(params?: {
   endDate?: string;
   storeId?: string;
   limit?: number;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<RankingData>>(
     "get",
@@ -419,6 +437,7 @@ export async function getPurchaseOrderTrackingApi(params?: {
   endDate?: string;
   status?: "pending" | "partial" | "completed";
   providerId?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<PurchaseOrderTrackingData>>(
     "get",
@@ -431,6 +450,7 @@ export async function getProviderEvaluationApi(params?: {
   startDate?: string;
   endDate?: string;
   providerId?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<ProviderEvaluationData>>(
     "get",
@@ -446,6 +466,7 @@ export async function getProductRankingApi(params?: {
   storeId?: string;
   limit?: number;
   orderBy?: "quantity" | "amount" | "profit";
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<RankingData>>(
     "get",
@@ -461,10 +482,21 @@ export async function getOperatorRankingApi(params?: {
   storeId?: string;
   limit?: number;
   orderBy?: "amount" | "count" | "collectionRate";
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<RankingData>>(
     "get",
     baseUrlApi(prefix + "ranking/operators"),
+    { params }
+  );
+}
+
+export async function getAnalysisMembersApi(params: {
+  module: AnalysisModule;
+}) {
+  return await http.request<CommonResult<AnalysisMember[]>>(
+    "get",
+    baseUrlApi(prefix + "members"),
     { params }
   );
 }
@@ -500,6 +532,7 @@ export async function getPurchaseDetailApi(params?: {
   endDate?: string;
   providerId?: string;
   tireId?: string;
+  operatorId?: string;
 }) {
   return await http.request<
     CommonResult<{ count: number; list: PurchaseDetailItem[] }>
@@ -602,6 +635,7 @@ export async function getSalesOrderTrackingApi(params?: {
   endDate?: string;
   status?: "pending" | "partial" | "completed";
   customerId?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<SalesOrderTrackingData>>(
     "get",
@@ -639,6 +673,7 @@ export async function getClaimLossApi(params?: {
 export async function getSlowMovingApi(params?: {
   days?: number;
   repoId?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<SlowMovingData>>(
     "get",
@@ -648,7 +683,10 @@ export async function getSlowMovingApi(params?: {
 }
 
 // 库存周转率
-export async function getInventoryTurnoverApi(params?: { repoId?: string }) {
+export async function getInventoryTurnoverApi(params?: {
+  repoId?: string;
+  operatorId?: string;
+}) {
   return await http.request<CommonResult<TurnoverData>>(
     "get",
     baseUrlApi(prefix + "inventory-turnover"),
@@ -660,6 +698,7 @@ export async function getInventoryTurnoverApi(params?: { repoId?: string }) {
 export async function getExpiryDistributionApi(params?: {
   repoId?: string;
   days?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<ExpiryDistributionData>>(
     "get",
@@ -669,7 +708,10 @@ export async function getExpiryDistributionApi(params?: {
 }
 
 // 缺货分析
-export async function getStockoutApi(params?: { repoId?: string }) {
+export async function getStockoutApi(params?: {
+  repoId?: string;
+  operatorId?: string;
+}) {
   return await http.request<CommonResult<StockoutData>>(
     "get",
     baseUrlApi(prefix + "stockout"),
@@ -680,6 +722,7 @@ export async function getStockoutApi(params?: { repoId?: string }) {
 export async function getDotAgingApi(params?: {
   repoId?: string;
   tireId?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<{ list: DotAgingItem[] }>>(
     "get",
@@ -694,6 +737,7 @@ export async function getInventoryMovementApi(params?: {
   repoId?: string;
   storeId?: string;
   tireId?: string;
+  operatorId?: string;
 }) {
   return await http.request<CommonResult<InventoryMovementData>>(
     "get",
