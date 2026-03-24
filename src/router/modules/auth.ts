@@ -1,3 +1,10 @@
+import {
+  ANALYSIS_ROUTE_ROLES,
+  INVENTORY_ANALYSIS_ROLES,
+  PURCHASE_ANALYSIS_ROLES,
+  SALES_ANALYSIS_ROLES
+} from "@/utils/analysisRole";
+
 export default [
   {
     id: 1,
@@ -902,7 +909,7 @@ export default [
     redirect: null,
     isShow: true,
     meta: {
-      roles: ["admin", "boss"],
+      roles: [...ANALYSIS_ROUTE_ROLES],
       title: "统计管理",
       icon: "ep:data-analysis",
       rank: 10
@@ -918,7 +925,7 @@ export default [
         component: () => import("@/views/analysis/dashboard/index.vue"),
         isShow: true,
         meta: {
-          roles: ["admin", "boss", "dataAnalyst"],
+          roles: [...ANALYSIS_ROUTE_ROLES],
           title: "经营驾驶舱",
           icon: null
         }
@@ -948,7 +955,7 @@ export default [
         component: () => import("@/views/analysis/sales/index.vue"),
         isShow: true,
         meta: {
-          roles: ["admin", "boss", "dataAnalyst"],
+          roles: [...SALES_ANALYSIS_ROLES],
           title: "销售数据",
           icon: null
         }
@@ -993,7 +1000,7 @@ export default [
         component: () => import("@/views/analysis/purchase/index.vue"),
         isShow: true,
         meta: {
-          roles: ["admin", "boss", "dataAnalyst"],
+          roles: [...PURCHASE_ANALYSIS_ROLES],
           title: "采购分析",
           icon: null
         }
@@ -1008,7 +1015,7 @@ export default [
         component: () => import("@/views/analysis/inventory/index.vue"),
         isShow: true,
         meta: {
-          roles: ["admin", "boss", "dataAnalyst"],
+          roles: [...INVENTORY_ANALYSIS_ROLES],
           title: "库存分析",
           icon: null
         }

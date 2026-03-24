@@ -29,6 +29,11 @@ import {
   toDateParams
 } from "../shared";
 import { buildTrackingSummaryCards } from "../transformers";
+import { useUserStoreHook } from "@/store/modules/user";
+import {
+  getAnalysisSectionOrder,
+  resolveAnalysisRoleView
+} from "@/utils/analysisRole";
 
 defineOptions({
   name: "AnalysisPurchase"
@@ -108,6 +113,11 @@ const dateParams = computed(() => ({
 
 const trackingCards = computed(() =>
   buildTrackingSummaryCards(trackingSummary.value)
+);
+const userStore = useUserStoreHook();
+const roleView = computed(() => resolveAnalysisRoleView(userStore.roles ?? []));
+const visibleSections = computed(
+  () => new Set(getAnalysisSectionOrder("purchase", roleView.value))
 );
 
 const exceptionTrackingList = computed(() =>
@@ -285,6 +295,9 @@ watch(
 );
 
 onMounted(() => {
+  if (roleView.value === "purchase") {
+    activeRankingTab.value = "provider";
+  }
   void loadStores();
   window.addEventListener("resize", handleResize);
 });
@@ -301,6 +314,9 @@ onUnmounted(() => {
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
         <div class="flex flex-wrap items-center gap-3">
+          <el-tag effect="plain" type="info">
+            {{ roleView === "purchase" ? "采购作战视角" : "经营分析视角" }}
+          </el-tag>
           <el-date-picker
             v-model="dateRange"
             type="daterange"
@@ -381,7 +397,11 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="mb-4">
+    <el-row
+      v-if="visibleSections.has('trend') || visibleSections.has('tracking')"
+      :gutter="16"
+      class="mb-4"
+    >
       <el-col :span="16">
         <el-card>
           <template #header>
@@ -390,7 +410,7 @@ onUnmounted(() => {
           <div ref="chartRef" v-loading="loading" class="h-80" />
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col v-if="visibleSections.has('tracking')" :span="8">
         <el-card class="h-full">
           <template #header>
             <span class="font-bold">到货履约概览</span>
@@ -430,8 +450,12 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="mb-4">
-      <el-col :span="12">
+    <el-row
+      v-if="visibleSections.has('ranking') || visibleSections.has('tracking')"
+      :gutter="16"
+      class="mb-4"
+    >
+      <el-col v-if="visibleSections.has('ranking')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">采购排行</span>
@@ -456,7 +480,7 @@ onUnmounted(() => {
           </el-tabs>
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col v-if="visibleSections.has('tracking')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">待处理采购单</span>
@@ -471,7 +495,7 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <el-card>
+    <el-card v-if="visibleSections.has('evaluation')">
       <template #header>
         <span class="font-bold">供应商履约评估</span>
       </template>

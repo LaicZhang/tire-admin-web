@@ -136,6 +136,50 @@ export interface DashboardOverviewData {
   salesMetrics: SalesMetrics;
 }
 
+export interface RoleDashboardProfile {
+  key: string;
+  label: string;
+  description: string;
+  homeTitle: string;
+  roles: string[];
+}
+
+export interface RoleDashboardCard {
+  key: string;
+  title: string;
+  value: string;
+  tone?: "primary" | "info" | "success" | "warning" | "danger";
+  targetPath?: string;
+}
+
+export interface RoleDashboardTodoItem {
+  key: string;
+  label: string;
+  value: string;
+  level: "info" | "warning" | "danger";
+  module: "store" | "sales" | "purchase" | "inventory";
+  targetPath: string;
+}
+
+export interface RoleDashboardSection {
+  key: "store" | "sales" | "purchase" | "inventory";
+  title: string;
+  targetPath: string;
+  summaryCards: RoleDashboardCard[];
+  trend: DashboardTrendItem[];
+  ranking: DashboardRankingItem[];
+  alerts: DashboardAlertItem[];
+}
+
+export interface RoleDashboardData {
+  roleProfile: RoleDashboardProfile;
+  filters: DashboardOverviewFilters;
+  visibleModuleKeys: string[];
+  focusCards: RoleDashboardCard[];
+  todoItems: RoleDashboardTodoItem[];
+  sections: RoleDashboardSection[];
+}
+
 /**
  * 获取仪表盘汇总数据
  * GET /api/v1/dashboard/summary
@@ -169,6 +213,32 @@ export async function getDashboardOverviewApi(params?: {
   return await http.request<CommonResult<DashboardOverviewData>>(
     "get",
     baseUrlApi(dashboardPrefix + "overview"),
+    { params }
+  );
+}
+
+export async function getRoleHomeApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  storeId?: string;
+  repoId?: string;
+}) {
+  return await http.request<CommonResult<RoleDashboardData>>(
+    "get",
+    baseUrlApi(dashboardPrefix + "role-home"),
+    { params }
+  );
+}
+
+export async function getRoleOverviewApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  storeId?: string;
+  repoId?: string;
+}) {
+  return await http.request<CommonResult<RoleDashboardData>>(
+    "get",
+    baseUrlApi(dashboardPrefix + "role-overview"),
     { params }
   );
 }

@@ -23,6 +23,11 @@ import {
   toDateParams
 } from "../shared";
 import { buildTrackingSummaryCards } from "../transformers";
+import { useUserStoreHook } from "@/store/modules/user";
+import {
+  getAnalysisSectionOrder,
+  resolveAnalysisRoleView
+} from "@/utils/analysisRole";
 
 defineOptions({
   name: "AnalysisSales"
@@ -100,6 +105,11 @@ const dateParams = computed(() => ({
 
 const trackingCards = computed(() =>
   buildTrackingSummaryCards(trackingSummary.value)
+);
+const userStore = useUserStoreHook();
+const roleView = computed(() => resolveAnalysisRoleView(userStore.roles ?? []));
+const visibleSections = computed(
+  () => new Set(getAnalysisSectionOrder("sales", roleView.value))
 );
 
 const exceptionTrackingList = computed(() =>
@@ -271,6 +281,9 @@ watch(
 );
 
 onMounted(() => {
+  if (roleView.value === "sales") {
+    activeRankingTab.value = "operator";
+  }
   void loadStores();
   window.addEventListener("resize", handleResize);
 });
@@ -287,6 +300,9 @@ onUnmounted(() => {
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
         <div class="flex flex-wrap items-center gap-3">
+          <el-tag effect="plain" type="info">
+            {{ roleView === "sales" ? "销售作战视角" : "经营分析视角" }}
+          </el-tag>
           <el-date-picker
             v-model="dateRange"
             type="daterange"
@@ -367,7 +383,7 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="mb-4">
+    <el-row v-if="visibleSections.has('trend')" :gutter="16" class="mb-4">
       <el-col :span="16">
         <el-card>
           <template #header>
@@ -376,7 +392,7 @@ onUnmounted(() => {
           <div ref="chartRef" v-loading="loading" class="h-80" />
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col v-if="visibleSections.has('tracking')" :span="8">
         <el-card class="h-full">
           <template #header>
             <span class="font-bold">交付履约概览</span>
@@ -397,8 +413,12 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="mb-4">
-      <el-col :span="12">
+    <el-row
+      v-if="visibleSections.has('ranking') || visibleSections.has('tracking')"
+      :gutter="16"
+      class="mb-4"
+    >
+      <el-col v-if="visibleSections.has('ranking')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">销售排行</span>
@@ -434,7 +454,7 @@ onUnmounted(() => {
           </el-tabs>
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col v-if="visibleSections.has('tracking')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">待处理销售单</span>

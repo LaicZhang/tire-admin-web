@@ -20,6 +20,11 @@ import Refresh from "~icons/ep/refresh";
 import { movementColumns, slowMovingColumns, stockoutColumns } from "./columns";
 import { buildAnalysisQuery, parseAnalysisFilters } from "../shared";
 import { buildInventoryMovementRows } from "../transformers";
+import { useUserStoreHook } from "@/store/modules/user";
+import {
+  getAnalysisSectionOrder,
+  resolveAnalysisRoleView
+} from "@/utils/analysisRole";
 
 defineOptions({
   name: "AnalysisInventory"
@@ -107,6 +112,11 @@ const repoOptions = computed(() => {
   if (!defaultRepoId) return repos.value;
   return repos.value.filter(item => item.uid === defaultRepoId);
 });
+const userStore = useUserStoreHook();
+const roleView = computed(() => resolveAnalysisRoleView(userStore.roles ?? []));
+const visibleSections = computed(
+  () => new Set(getAnalysisSectionOrder("inventory", roleView.value))
+);
 
 function formatAmount(val: string | number) {
   return Number(val).toLocaleString("zh-CN", { minimumFractionDigits: 2 });
@@ -360,6 +370,9 @@ onUnmounted(() => {
       <div class="flex items-center justify-between">
         <div class="flex flex-wrap items-center gap-3">
           <span class="text-lg font-bold">库存数据总览</span>
+          <el-tag effect="plain" type="info">
+            {{ roleView === "warehouse" ? "库存作战视角" : "经营分析视角" }}
+          </el-tag>
           <el-select
             v-model="selectedStoreId"
             clearable
@@ -431,8 +444,12 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="mb-4">
-      <el-col :span="12">
+    <el-row
+      v-if="visibleSections.has('turnover') || visibleSections.has('movement')"
+      :gutter="16"
+      class="mb-4"
+    >
+      <el-col v-if="visibleSections.has('turnover')" :span="12">
         <el-card>
           <template #header>
             <div class="flex items-center justify-between">
@@ -445,7 +462,7 @@ onUnmounted(() => {
           <div ref="turnoverChartRef" v-loading="loading" class="h-72" />
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col v-if="visibleSections.has('movement')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">进销存汇总</span>
@@ -463,8 +480,14 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="mb-4">
-      <el-col :span="12">
+    <el-row
+      v-if="
+        visibleSections.has('slowMoving') || visibleSections.has('stockout')
+      "
+      :gutter="16"
+      class="mb-4"
+    >
+      <el-col v-if="visibleSections.has('slowMoving')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">滞销商品</span>
@@ -477,7 +500,7 @@ onUnmounted(() => {
           />
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col v-if="visibleSections.has('stockout')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">缺货预警</span>
@@ -492,8 +515,12 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="mb-4">
-      <el-col :span="12">
+    <el-row
+      v-if="visibleSections.has('expiry') || visibleSections.has('dotAging')"
+      :gutter="16"
+      class="mb-4"
+    >
+      <el-col v-if="visibleSections.has('expiry')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">临期分布</span>
@@ -501,7 +528,7 @@ onUnmounted(() => {
           <div ref="expiryChartRef" v-loading="loading" class="h-72" />
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col v-if="visibleSections.has('dotAging')" :span="12">
         <el-card>
           <template #header>
             <span class="font-bold">DOT 库龄分布</span>
