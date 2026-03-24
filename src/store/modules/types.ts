@@ -79,4 +79,6 @@ export type userType = {
 export type currentCompanyType = {
   companyName: string;
   companyId: string;
+  storeName: string;
+  storeId: string;
 };

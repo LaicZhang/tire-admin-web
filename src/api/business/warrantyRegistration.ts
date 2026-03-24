@@ -13,8 +13,8 @@ export interface WarrantyRegistrationItem {
   warrantyStartAt: string;
   warrantyEndAt?: string | null;
   remark?: string | null;
-  storeRepoId: string;
-  storeRepo?: { uid?: string; name?: string | null } | null;
+  storeId: string;
+  store?: { uid?: string; name?: string | null } | null;
   tireId: string;
   tire?: { uid?: string; name?: string | null } | null;
   installationRecord?: { uid?: string | null } | null;
@@ -27,7 +27,7 @@ export function getWarrantyRegistrationListApi(
   params?: {
     serialNo?: string;
     vehiclePlateNo?: string;
-    storeRepoId?: string;
+    storeId?: string;
     warrantyStartFrom?: string;
     warrantyStartTo?: string;
     warrantyEndFrom?: string;

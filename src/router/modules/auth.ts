@@ -505,6 +505,21 @@ export default [
         }
       },
       {
+        id: 2501,
+        uid: "5aa906f5-b9ce-4c3c-a0b2-6d6d6751b1d0",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "store",
+        path: "/company/store",
+        redirect: null,
+        component: () => import("@/views/business/storeManagement/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "门店管理",
+          icon: null
+        }
+      },
+      {
         id: 61,
         uid: "846985fc-dbad-47a9-b426-1bd55f128572",
         parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",

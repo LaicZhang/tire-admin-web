@@ -3,21 +3,34 @@ import { store } from "@/store";
 import type { currentCompanyType } from "./types";
 import { storageLocal } from "@pureadmin/utils";
 import type { CurrentCompanyInfo } from "@/utils";
-import { determineCurrentCompanyApi, getCurrentCompanyApi } from "@/api";
+import {
+  determineCurrentCompanyApi,
+  determineCurrentStoreApi,
+  getCurrentCompanyApi,
+  getCurrentStoreApi,
+  type CurrentStoreOption
+} from "@/api";
 import { isObject } from "@/utils/type-guards";
 
 export const currentCompanyKey = "current-company";
 
 export type CompanyOption = { uid: string; name: string };
+export type StoreOption = CurrentStoreOption;
 
 export const useCurrentCompanyStore = defineStore("pure-company", {
-  state: (): currentCompanyType & { availableCompanies: CompanyOption[] } => {
+  state: (): currentCompanyType & {
+    availableCompanies: CompanyOption[];
+    availableStores: StoreOption[];
+  } => {
     const stored =
       storageLocal().getItem<CurrentCompanyInfo>(currentCompanyKey);
     return {
       companyName: stored?.companyName ?? "",
       companyId: stored?.companyId ?? "",
-      availableCompanies: []
+      storeName: stored?.storeName ?? "",
+      storeId: stored?.storeId ?? "",
+      availableCompanies: [],
+      availableStores: []
     };
   },
   actions: {
@@ -29,13 +42,24 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
     setId(id: string) {
       this.companyId = id;
     },
+    setStoreName(name: string) {
+      this.storeName = name;
+    },
+    setStoreId(id: string) {
+      this.storeId = id;
+    },
     setAvailableCompanies(companies: CompanyOption[]) {
       this.availableCompanies = companies;
+    },
+    setAvailableStores(stores: StoreOption[]) {
+      this.availableStores = stores;
     },
     /** 设置当前公司信息 */
     setCurrentCompany(company: CurrentCompanyInfo) {
       this.setName(company?.companyName ?? "");
       this.setId(company?.companyId ?? "");
+      this.setStoreName(company?.storeName ?? "");
+      this.setStoreId(company?.storeId ?? "");
       storageLocal().setItem(currentCompanyKey, {
         ...company
       });
@@ -43,10 +67,13 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
     clearCurrentCompany() {
       this.setCurrentCompany({
         companyName: "",
-        companyId: ""
+        companyId: "",
+        storeName: "",
+        storeId: ""
       });
       storageLocal().removeItem(currentCompanyKey);
       this.setAvailableCompanies([]);
+      this.setAvailableStores([]);
     },
     /** 获取公司列表；单公司则自动写入当前公司 */
     async fetchAvailableCompanies() {
@@ -72,6 +99,32 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
       }
       return data;
     },
+    async fetchAvailableStores() {
+      const res = await getCurrentStoreApi();
+      const data = Array.isArray(res.data)
+        ? res.data.filter(
+            (item): item is StoreOption =>
+              isObject(item) &&
+              typeof item.uid === "string" &&
+              typeof item.name === "string" &&
+              typeof item.defaultRepositoryId === "string"
+          )
+        : [];
+
+      this.setAvailableStores(data);
+      if (data.length === 0) {
+        throw new Error("当前公司没有门店信息");
+      }
+      if (data.length === 1) {
+        this.setCurrentCompany({
+          companyName: this.companyName,
+          companyId: this.companyId,
+          storeName: data[0].name,
+          storeId: data[0].uid
+        });
+      }
+      return data;
+    },
     /** 切换当前公司（同步服务端上下文 + 本地 store） */
     async determineCurrentCompany(companyId: string) {
       if (!companyId) throw new Error("companyId is required");
@@ -83,7 +136,25 @@ export const useCurrentCompanyStore = defineStore("pure-company", {
       const hit = companies.find(c => c.uid === companyId);
       this.setCurrentCompany({
         companyId,
-        companyName: hit?.name ?? ""
+        companyName: hit?.name ?? "",
+        storeId: "",
+        storeName: ""
+      });
+      this.setAvailableStores([]);
+    },
+    async determineCurrentStore(storeId: string) {
+      if (!storeId) throw new Error("storeId is required");
+      await determineCurrentStoreApi({ storeId });
+      const stores =
+        this.availableStores.length > 0
+          ? this.availableStores
+          : await this.fetchAvailableStores();
+      const hit = stores.find(item => item.uid === storeId);
+      this.setCurrentCompany({
+        companyId: this.companyId,
+        companyName: this.companyName,
+        storeId,
+        storeName: hit?.name ?? ""
       });
     }
   }

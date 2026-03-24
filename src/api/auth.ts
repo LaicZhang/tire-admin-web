@@ -32,6 +32,16 @@ interface DetermineCurrentCompanyDto {
   companyId: string;
 }
 
+interface DetermineCurrentStoreDto {
+  storeId: string;
+}
+
+export interface CurrentStoreOption {
+  uid: string;
+  name: string;
+  defaultRepositoryId: string;
+}
+
 /** 发送验证码参数 */
 interface SendVerifyCodeDto {
   email?: string;
@@ -136,6 +146,19 @@ export const determineCurrentCompanyApi = (
     baseUrlApi("/auth/current-company"),
     { data }
   );
+};
+
+export const getCurrentStoreApi = async () => {
+  return await http.request<CommonResult<CurrentStoreOption[]>>(
+    "get",
+    baseUrlApi("/auth/current-store")
+  );
+};
+
+export const determineCurrentStoreApi = (data?: DetermineCurrentStoreDto) => {
+  return http.request<CommonResult>("post", baseUrlApi("/auth/current-store"), {
+    data
+  });
 };
 
 /**

@@ -45,6 +45,7 @@ export interface AuthSessionUser {
   uid: string;
   username: string;
   currentCompanyId: string;
+  currentStoreId: string;
 }
 
 export type AuthSessionResult = CommonResult<{

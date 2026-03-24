@@ -14,15 +14,15 @@ export interface InstallationRecordItem {
   warrantyStartAt: string;
   warrantyEndAt?: string | null;
   remark?: string | null;
-  storeRepoId: string;
-  storeRepo?: { uid?: string; name?: string | null } | null;
+  storeId: string;
+  store?: { uid?: string; name?: string | null } | null;
   tireId: string;
   tire?: { uid?: string; name?: string | null } | null;
 }
 
 export interface CreateInstallationRecordPayload {
   serialNo: string;
-  storeRepoId: string;
+  storeId: string;
   vehiclePlateNo: string;
   vehicleModel?: string | null;
   mileageKm?: number | null;
@@ -40,7 +40,7 @@ export function getInstallationRecordListApi(
   params?: {
     serialNo?: string;
     vehiclePlateNo?: string;
-    storeRepoId?: string;
+    storeId?: string;
   }
 ) {
   return http.request<

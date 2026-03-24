@@ -10,7 +10,8 @@ import {
 } from "@/router/utils";
 import {
   useCurrentCompanyStoreHook,
-  type CompanyOption
+  type CompanyOption,
+  type StoreOption
 } from "@/store/modules/company";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { routerArrays, toMultiTypeArray } from "@/store/utils";
@@ -65,6 +66,53 @@ async function promptSelectCompany(
   return selectedCompanyId.value;
 }
 
+async function promptSelectStore(
+  stores: StoreOption[],
+  initialStoreId?: string
+): Promise<string> {
+  const selectedStoreId = ref<string>(
+    initialStoreId && stores.some(s => s.uid === initialStoreId)
+      ? initialStoreId
+      : (stores[0]?.uid ?? "")
+  );
+
+  await ElMessageBox({
+    title: "请选择门店",
+    message: () =>
+      h(
+        "div",
+        { style: "min-width: 320px; margin-top: 8px;" },
+        h(
+          ElSelect,
+          {
+            modelValue: selectedStoreId.value,
+            "onUpdate:modelValue": (val: unknown) => {
+              if (typeof val === "string") selectedStoreId.value = val;
+            },
+            placeholder: "请选择门店",
+            filterable: true,
+            class: "w-full"
+          },
+          () =>
+            stores.map(store =>
+              h(ElOption, {
+                key: store.uid,
+                label: store.name,
+                value: store.uid
+              })
+            )
+        )
+      ),
+    showCancelButton: false,
+    confirmButtonText: "确定",
+    closeOnClickModal: false,
+    closeOnPressEscape: false,
+    showClose: false
+  });
+
+  return selectedStoreId.value;
+}
+
 async function ensureCompanyContextReady() {
   const companyStore = useCurrentCompanyStoreHook();
   const companies = await companyStore.fetchAvailableCompanies();
@@ -79,6 +127,22 @@ async function ensureCompanyContextReady() {
 
   const picked = await promptSelectCompany(companies, storedCompanyId);
   await companyStore.determineCurrentCompany(picked);
+}
+
+async function ensureStoreContextReady() {
+  const companyStore = useCurrentCompanyStoreHook();
+  const stores = await companyStore.fetchAvailableStores();
+
+  if (stores.length === 1) return;
+
+  const storedStoreId = companyStore.storeId;
+  if (storedStoreId && stores.some(s => s.uid === storedStoreId)) {
+    await companyStore.determineCurrentStore(storedStoreId);
+    return;
+  }
+
+  const picked = await promptSelectStore(stores, storedStoreId);
+  await companyStore.determineCurrentStore(picked);
 }
 
 function resetUiForContextChange() {
@@ -109,6 +173,7 @@ export async function completeLogin(tokenPayload?: SetTokenPayload) {
     if (tokenPayload) setToken(tokenPayload);
 
     await ensureCompanyContextReady();
+    await ensureStoreContextReady();
     await initRouter();
     addPathMatch();
     await redirectToTopMenu();
@@ -133,6 +198,7 @@ export async function switchCompany(companyId: string) {
 
   try {
     await companyStore.determineCurrentCompany(companyId);
+    await ensureStoreContextReady();
     resetUiForContextChange();
     await initRouter();
     addPathMatch();

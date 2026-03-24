@@ -11,17 +11,14 @@ import {
   getInstallationRecordListApi,
   type InstallationRecordItem
 } from "@/api/business/installationRecord";
+import { getStoreListApi, type Store } from "@/api/company/store";
 import { ALL_LIST, localForage, message, handleApiError } from "@/utils";
 import { fieldRules } from "@/utils/validation/fieldRules";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 
 defineOptions({
   name: "InstallationRecord"
 });
-
-type RepoOption = {
-  uid: string;
-  name: string;
-};
 
 const loading = ref(false);
 const saving = ref(false);
@@ -30,19 +27,20 @@ const list = ref<InstallationRecordItem[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = 20;
-const repoOptions = ref<RepoOption[]>([]);
+const storeOptions = ref<Store[]>([]);
 const formRef = ref<FormInstance>();
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const companyStore = useCurrentCompanyStoreHook();
 
 const searchForm = reactive({
   serialNo: "",
   vehiclePlateNo: "",
-  storeRepoId: ""
+  storeId: ""
 });
 
 const form = reactive({
   serialNo: "",
-  storeRepoId: "",
+  storeId: "",
   vehiclePlateNo: "",
   vehicleModel: "",
   mileageKm: undefined as number | undefined,
@@ -55,7 +53,7 @@ const form = reactive({
 
 const rules: FormRules = {
   serialNo: [fieldRules.name({ label: "胎号", required: true, max: 100 })],
-  storeRepoId: [fieldRules.uidSelect({ label: "门店/仓库" })],
+  storeId: [fieldRules.uidSelect({ label: "门店" })],
   vehiclePlateNo: [
     fieldRules.name({ label: "车牌号", required: true, max: 64 })
   ],
@@ -78,7 +76,7 @@ const columns: TableColumnList = [
   },
   {
     label: "安装门店",
-    prop: "storeRepo.name",
+    prop: "store.name",
     minWidth: 140
   },
   {
@@ -120,9 +118,19 @@ const pagination = computed(() => ({
   background: true
 }));
 
-async function loadRepos() {
-  const cached = await localForage().getItem<RepoOption[]>(ALL_LIST.repo);
-  repoOptions.value = cached ?? [];
+async function loadStores() {
+  const cached = await localForage().getItem<Store[]>(ALL_LIST.store);
+  if (cached?.length) {
+    storeOptions.value = cached;
+    return;
+  }
+  const { code, data, msg } = await getStoreListApi(0);
+  if (code !== 200) {
+    message(msg || "加载门店列表失败", { type: "error" });
+    return;
+  }
+  storeOptions.value = data.list || [];
+  await localForage().setItem(ALL_LIST.store, storeOptions.value, 30);
 }
 
 async function loadList() {
@@ -131,7 +139,7 @@ async function loadList() {
     const { code, data, msg } = await getInstallationRecordListApi(page.value, {
       serialNo: searchForm.serialNo || undefined,
       vehiclePlateNo: searchForm.vehiclePlateNo || undefined,
-      storeRepoId: searchForm.storeRepoId || undefined
+      storeId: searchForm.storeId || undefined
     });
     if (code !== 200) {
       message(msg || "加载安装登记失败", { type: "error" });
@@ -148,7 +156,7 @@ async function loadList() {
 
 function resetForm() {
   form.serialNo = "";
-  form.storeRepoId = "";
+  form.storeId = companyStore.storeId;
   form.vehiclePlateNo = "";
   form.vehicleModel = "";
   form.mileageKm = undefined;
@@ -171,7 +179,7 @@ async function submit() {
   try {
     await createInstallationRecordApi({
       serialNo: form.serialNo.trim(),
-      storeRepoId: form.storeRepoId,
+      storeId: form.storeId,
       vehiclePlateNo: form.vehiclePlateNo.trim(),
       vehicleModel: form.vehicleModel.trim() || null,
       mileageKm: form.mileageKm ?? null,
@@ -208,7 +216,8 @@ function handlePageChange(current: number) {
 }
 
 onMounted(async () => {
-  await loadRepos();
+  searchForm.storeId = companyStore.storeId;
+  await loadStores();
   await loadList();
 });
 </script>
@@ -241,13 +250,13 @@ onMounted(async () => {
       </el-form-item>
       <el-form-item label="安装门店">
         <el-select
-          v-model="searchForm.storeRepoId"
+          v-model="searchForm.storeId"
           placeholder="请选择门店"
           clearable
           class="w-[180px]"
         >
           <el-option
-            v-for="item in repoOptions"
+            v-for="item in storeOptions"
             :key="item.uid"
             :label="item.name"
             :value="item.uid"
@@ -296,14 +305,14 @@ onMounted(async () => {
         <el-form-item label="胎号" prop="serialNo">
           <el-input v-model="form.serialNo" placeholder="请输入胎号" />
         </el-form-item>
-        <el-form-item label="安装门店" prop="storeRepoId">
+        <el-form-item label="安装门店" prop="storeId">
           <el-select
-            v-model="form.storeRepoId"
-            placeholder="请选择门店/仓库"
+            v-model="form.storeId"
+            placeholder="请选择门店"
             class="w-full"
           >
             <el-option
-              v-for="item in repoOptions"
+              v-for="item in storeOptions"
               :key="item.uid"
               :label="item.name"
               :value="item.uid"

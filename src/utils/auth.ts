@@ -36,6 +36,8 @@ export type SetTokenPayload = Pick<DataInfo<Date>, "accessToken"> &
 export interface CurrentCompanyInfo {
   companyName?: string;
   companyId?: string;
+  storeName?: string;
+  storeId?: string;
 }
 
 type SessionSummary = {
@@ -44,6 +46,7 @@ type SessionSummary = {
     uid?: string;
     username?: string;
     currentCompanyId?: string;
+    currentStoreId?: string;
   };
 };
 

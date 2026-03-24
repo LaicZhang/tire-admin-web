@@ -13,6 +13,7 @@ export enum SYS {
 
 export enum ALL_LIST {
   repo = "all_repos",
+  store = "all_stores",
   provider = "all_providers",
   customer = "all_customers",
   tire = "all_tires",

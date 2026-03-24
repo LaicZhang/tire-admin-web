@@ -9,34 +9,32 @@ import {
   getWarrantyRegistrationListApi,
   type WarrantyRegistrationItem
 } from "@/api/business/warrantyRegistration";
+import { getStoreListApi, type Store } from "@/api/company/store";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 
 defineOptions({
   name: "WarrantyRegistration"
 });
-
-type RepoOption = {
-  uid: string;
-  name: string;
-};
 
 const loading = ref(false);
 const list = ref<WarrantyRegistrationItem[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = 20;
-const repoOptions = ref<RepoOption[]>([]);
+const storeOptions = ref<Store[]>([]);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
+const companyStore = useCurrentCompanyStoreHook();
 
 const searchForm = reactive({
   serialNo: "",
   vehiclePlateNo: "",
-  storeRepoId: ""
+  storeId: ""
 });
 
 const columns: TableColumnList = [
   { label: "胎号", prop: "serialNo", minWidth: 160 },
   { label: "轮胎", prop: "tire.name", minWidth: 180 },
-  { label: "门店", prop: "storeRepo.name", minWidth: 140 },
+  { label: "门店", prop: "store.name", minWidth: 140 },
   { label: "车牌号", prop: "vehiclePlateNo", minWidth: 120 },
   { label: "安装位置", prop: "installPosition", minWidth: 100 },
   { label: "技师", prop: "technicianName", minWidth: 100 },
@@ -52,9 +50,19 @@ const pagination = computed(() => ({
   background: true
 }));
 
-async function loadRepos() {
-  const cached = await localForage().getItem<RepoOption[]>(ALL_LIST.repo);
-  repoOptions.value = cached ?? [];
+async function loadStores() {
+  const cached = await localForage().getItem<Store[]>(ALL_LIST.store);
+  if (cached?.length) {
+    storeOptions.value = cached;
+    return;
+  }
+  const { code, data, msg } = await getStoreListApi(0);
+  if (code !== 200) {
+    message(msg || "加载门店列表失败", { type: "error" });
+    return;
+  }
+  storeOptions.value = data.list || [];
+  await localForage().setItem(ALL_LIST.store, storeOptions.value, 30);
 }
 
 async function loadList() {
@@ -65,7 +73,7 @@ async function loadList() {
       {
         serialNo: searchForm.serialNo || undefined,
         vehiclePlateNo: searchForm.vehiclePlateNo || undefined,
-        storeRepoId: searchForm.storeRepoId || undefined
+        storeId: searchForm.storeId || undefined
       }
     );
     if (code !== 200) {
@@ -98,7 +106,8 @@ function handlePageChange(current: number) {
 }
 
 onMounted(async () => {
-  await loadRepos();
+  searchForm.storeId = companyStore.storeId;
+  await loadStores();
   await loadList();
 });
 </script>
@@ -130,14 +139,14 @@ onMounted(async () => {
         </el-form-item>
         <el-form-item label="门店">
           <el-select
-            v-model="searchForm.storeRepoId"
+            v-model="searchForm.storeId"
             clearable
             filterable
             placeholder="请选择门店"
             style="width: 220px"
           >
             <el-option
-              v-for="item in repoOptions"
+              v-for="item in storeOptions"
               :key="item.uid"
               :label="item.name"
               :value="item.uid"

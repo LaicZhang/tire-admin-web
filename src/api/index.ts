@@ -8,6 +8,7 @@ export * from "./company";
 export * from "./company/department";
 export * from "./company/employee";
 export * from "./company/repo";
+export * from "./company/store";
 export * from "./company/salary";
 export * from "./company/position";
 export * from "./company/orderAudit";
