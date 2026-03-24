@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
-import { ElMessageBox } from "element-plus";
+import { computed, h, ref, watch } from "vue";
+import { ElMessageBox, type FormInstance } from "element-plus";
 import { detailColumns } from "./columns";
+import { addDialog } from "@/composables/useDialogService";
 import type { StocktakingDetail, StocktakingTask } from "./types";
 import {
   exportInventoryCheckResultApi,
@@ -17,6 +18,7 @@ import {
   formatSerialNoListText,
   parseSerialNoListText
 } from "@/utils/serialNumber";
+import StocktakingDetailEditor from "./StocktakingDetailEditor.vue";
 
 interface Props {
   formInline: {
@@ -29,6 +31,16 @@ const props = defineProps<Props>();
 const detailList = ref<StocktakingDetail[]>([]);
 const detailLoading = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const detailEditorRef = ref<{
+  formRef?: FormInstance;
+  getPayload: () => {
+    detailId: number;
+    actualCount: number;
+    actualSerialNos?: string[];
+    reasonCode?: string;
+    remark?: string;
+  };
+} | null>(null);
 
 // 计算列：在进行中状态显示操作列，否则隐藏
 const displayColumns = computed(() => {
@@ -65,72 +77,38 @@ const loadDetails = async () => {
 const handleUpdateDetail = async (detail: StocktakingDetail) => {
   if (!props.formInline.task) return;
 
-  try {
-    if (props.formInline.task.mode === "serial") {
-      const res = await ElMessageBox.prompt(
-        `账面胎号：${formatSerialNoListText(detail.bookSerialNos) || "无"}`,
-        "录入实盘胎号",
-        {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          inputType: "textarea",
-          inputValue: formatSerialNoListText(
-            detail.actualSerialNos?.length
-              ? detail.actualSerialNos
-              : detail.bookSerialNos
-          ),
-          inputPlaceholder: "每行一个胎号"
-        }
-      );
-      const actualSerialNos = parseSerialNoListText(res.value);
-
-      await updateInventoryCheckDetailsApi(props.formInline.task.id, {
-        details: [
-          {
-            detailId: detail.id,
-            actualCount: actualSerialNos.length,
-            actualSerialNos,
-            remark: detail.remark
-          }
-        ]
-      });
-
-      message("更新成功", { type: "success" });
-      loadDetails();
-      return;
-    }
-
-    const res = await ElMessageBox.prompt(
-      `当前系统库存: ${detail.bookCount}`,
-      "录入实际库存",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue: String(detail.actualCount || detail.bookCount),
-        inputPattern: /^\d+$/,
-        inputErrorMessage: "请输入有效数量"
+  addDialog({
+    title: "更新盘点明细",
+    width: "640px",
+    closeOnClickModal: false,
+    props: {
+      detail,
+      mode: props.formInline.task.mode
+    },
+    contentRenderer: ({ options }) =>
+      h(StocktakingDetailEditor, {
+        ref: detailEditorRef,
+        detail: (options.props as { detail: StocktakingDetail }).detail,
+        mode: (options.props as { mode?: "quantity" | "serial" }).mode
+      }),
+    beforeSure: async done => {
+      const editor = detailEditorRef.value;
+      const form = editor?.formRef;
+      if (!editor || !form) return;
+      const valid = await form.validate().catch(() => false);
+      if (!valid) return;
+      try {
+        await updateInventoryCheckDetailsApi(props.formInline.task!.id, {
+          details: [editor.getPayload()]
+        });
+        message("更新成功", { type: "success" });
+        done();
+        await loadDetails();
+      } catch (error) {
+        handleApiError(error, "更新失败");
       }
-    );
-    if (typeof res === "string") return;
-    const { value } = res;
-
-    await updateInventoryCheckDetailsApi(props.formInline.task.id, {
-      details: [
-        {
-          detailId: detail.id,
-          actualCount: parseInt(value),
-          remark: detail.remark
-        }
-      ]
-    });
-
-    message("更新成功", { type: "success" });
-    loadDetails();
-  } catch (error) {
-    if (error !== "cancel") {
-      handleApiError(error, "更新失败");
     }
-  }
+  });
 };
 
 const handleSave = async () => {

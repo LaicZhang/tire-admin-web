@@ -24,6 +24,7 @@ export interface StocktakingDetail {
   bookCount: number;
   actualCount?: number;
   difference?: number;
+  reasonCode?: string | null;
   remark?: string;
   bookSerialNos?: string[];
   actualSerialNos?: string[];
@@ -72,9 +73,27 @@ export interface UpdateStocktakingDetailDto {
   details: {
     detailId: number;
     actualCount: number;
+    reasonCode?: string;
     remark?: string;
     actualSerialNos?: string[];
   }[];
+}
+
+export const stocktakingReasonCodeOptions = [
+  { label: "未记入入库", value: "UNRECORDED_INBOUND" },
+  { label: "未记入出库", value: "UNRECORDED_OUTBOUND" },
+  { label: "库存错放", value: "MISPLACED_STOCK" },
+  { label: "盘点误差", value: "COUNTING_ERROR" },
+  { label: "丢失/损坏", value: "LOSS_DAMAGE" },
+  { label: "其他", value: "OTHER" }
+] as const;
+
+export function getStocktakingReasonCodeLabel(value?: string | null): string {
+  if (!value) return "-";
+  return (
+    stocktakingReasonCodeOptions.find(item => item.value === value)?.label ||
+    value
+  );
 }
 
 export interface StocktakingQuery {

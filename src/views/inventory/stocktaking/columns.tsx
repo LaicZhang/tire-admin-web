@@ -1,5 +1,9 @@
 import dayjs from "dayjs";
-import { stocktakingStatusMap, type StocktakingStatus } from "./types";
+import {
+  getStocktakingReasonCodeLabel,
+  stocktakingStatusMap,
+  type StocktakingStatus
+} from "./types";
 
 export const columns: TableColumnList = [
   {
@@ -135,6 +139,12 @@ export const detailColumns: TableColumnList = [
     prop: "difference",
     width: 100,
     slot: "difference"
+  },
+  {
+    label: "原因码",
+    prop: "reasonCode",
+    minWidth: 140,
+    formatter: row => getStocktakingReasonCodeLabel(row.reasonCode)
   },
   {
     label: "备注",

@@ -37,6 +37,7 @@ export interface InventoryCheckDetail {
   bookCount: number;
   actualCount?: number;
   difference?: number;
+  reasonCode?: string | null;
   remark?: string;
   repoId?: string;
   bookSerialNos?: string[];
@@ -56,6 +57,7 @@ export interface UpdateInventoryCheckDto {
   details: {
     detailId: number;
     actualCount: number;
+    reasonCode?: string;
     remark?: string;
     actualSerialNos?: string[];
   }[];

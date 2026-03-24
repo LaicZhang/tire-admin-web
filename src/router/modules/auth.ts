@@ -860,6 +860,21 @@ export default [
           title: "安装登记",
           icon: null
         }
+      },
+      {
+        id: 59,
+        uid: "5dd4bf61-a0bf-449f-b4d4-cf8254745b43",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "warrantyRegistration",
+        path: "/business/warrantyRegistration",
+        component: () =>
+          import("@/views/business/warrantyRegistration/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "seller", "warehouseManager"],
+          title: "质保登记",
+          icon: null
+        }
       }
     ]
   },
