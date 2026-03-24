@@ -1,21 +1,34 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import type { EChartsCoreOption, EChartsType } from "echarts/core";
 import {
-  getPurchaseSummaryApi,
+  getProductRankingApi,
+  getProviderEvaluationApi,
   getProviderRankingApi,
-  getProductRankingApi
+  getPurchaseOrderTrackingApi,
+  getPurchaseSummaryApi,
+  getPurchaseTrendApi,
+  type ProviderEvaluationData,
+  type PurchaseOrderTrackingData
 } from "@/api/analysis";
 import { getStoreListApi, type Store } from "@/api/company/store";
-import { message } from "@/utils/message";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import { providerColumns, productColumns } from "./columns";
+import { getEcharts } from "@/utils/echarts";
+import { handleApiError } from "@/utils";
 import Refresh from "~icons/ep/refresh";
+import {
+  evaluationColumns,
+  productColumns,
+  providerColumns,
+  trackingColumns
+} from "./columns";
 import {
   buildAnalysisQuery,
   parseAnalysisFilters,
   toDateParams
 } from "../shared";
+import { buildTrackingSummaryCards } from "../transformers";
 
 defineOptions({
   name: "AnalysisPurchase"
@@ -25,10 +38,39 @@ const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
 const stores = ref<Store[]>([]);
+const chartRef = ref<HTMLElement | null>(null);
+let chartInstance: EChartsType | null = null;
 
-// 日期范围筛选
 const dateRange = ref<[Date, Date] | null>(null);
 const selectedStoreId = ref("");
+const activeRankingTab = ref("provider");
+
+const summaryData = ref({
+  totalAmount: "0",
+  totalOrders: 0,
+  paidAmount: "0",
+  unpaidAmount: "0",
+  averageOrderValue: "0",
+  arrivalRate: 0
+});
+const trendData = ref<Array<{ period: string; amount: string; count: number }>>(
+  []
+);
+const providerRanking = ref<unknown[]>([]);
+const productRanking = ref<unknown[]>([]);
+const trackingList = ref<PurchaseOrderTrackingData["list"]>([]);
+const trackingSummary = ref<PurchaseOrderTrackingData["summary"]>({
+  pending: 0,
+  partial: 0,
+  completed: 0
+});
+const providerEvaluationList = ref<ProviderEvaluationData["list"]>([]);
+const providerEvaluationSummary = ref<ProviderEvaluationData["summary"]>({
+  totalProviders: 0,
+  avgCompletionRate: 0,
+  avgOnTimeRate: 0
+});
+
 const shortcuts = [
   {
     text: "最近一周",
@@ -59,92 +101,151 @@ const shortcuts = [
   }
 ];
 
-// 采购汇总数据
-const summaryData = ref({
-  totalAmount: "0",
-  totalOrders: 0,
-  paidAmount: "0",
-  unpaidAmount: "0",
-  averageOrderValue: "0",
-  arrivalRate: 0
-});
+const dateParams = computed(() => ({
+  ...toDateParams(dateRange.value),
+  storeId: selectedStoreId.value || undefined
+}));
 
-// 排行榜数据
-const providerRanking = ref<unknown[]>([]);
-const productRanking = ref<unknown[]>([]);
+const trackingCards = computed(() =>
+  buildTrackingSummaryCards(trackingSummary.value)
+);
 
-// 当前选中的排行榜类型
-const activeRankingTab = ref("provider");
+const exceptionTrackingList = computed(() =>
+  trackingList.value.filter(item => item.trackingStatus !== "completed")
+);
 
-const dateParams = computed(() => {
+function formatAmount(val: string | number) {
+  return Number(val).toLocaleString("zh-CN", { minimumFractionDigits: 2 });
+}
+
+function buildTrendOption(): EChartsCoreOption {
   return {
-    ...toDateParams(dateRange.value),
-    storeId: selectedStoreId.value || undefined
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    legend: { data: ["采购金额", "订单数"] },
+    grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
+    xAxis: {
+      type: "category",
+      data: trendData.value.map(item => item.period)
+    },
+    yAxis: [
+      {
+        type: "value",
+        name: "金额(元)",
+        axisLabel: {
+          formatter: (val: number) => (val / 100).toLocaleString()
+        }
+      },
+      {
+        type: "value",
+        name: "订单数"
+      }
+    ],
+    series: [
+      {
+        name: "采购金额",
+        type: "bar",
+        data: trendData.value.map(item => Number(item.amount)),
+        itemStyle: { color: "#0f766e" }
+      },
+      {
+        name: "订单数",
+        type: "line",
+        yAxisIndex: 1,
+        smooth: true,
+        data: trendData.value.map(item => item.count),
+        itemStyle: { color: "#ea580c" }
+      }
+    ]
   };
-});
+}
 
-// 格式化金额
-const formatAmount = (val: string | number) => {
-  const num = Number(val);
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
-
-const getSummary = async () => {
-  try {
-    const { data, code } = await getPurchaseSummaryApi(dateParams.value);
-    if (code === 200 && data) {
-      summaryData.value = {
-        totalAmount: data.totalAmount || "0",
-        totalOrders: data.totalOrders || 0,
-        paidAmount: data.paidAmount || "0",
-        unpaidAmount: data.unpaidAmount || "0",
-        averageOrderValue: data.averageOrderValue || "0",
-        arrivalRate: data.arrivalRate || 0
-      };
-    }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "获取采购汇总失败";
-    message(msg, { type: "error" });
+async function updateChart() {
+  if (!chartRef.value) return;
+  if (!chartInstance) {
+    const echarts = await getEcharts();
+    chartInstance = echarts.init(chartRef.value);
   }
-};
+  chartInstance.setOption(buildTrendOption());
+}
 
-const getRankings = async () => {
-  try {
-    const [providerRes, productRes] = await Promise.all([
-      getProviderRankingApi({ ...dateParams.value, limit: 10 }),
-      getProductRankingApi({
-        ...dateParams.value,
-        limit: 10,
-        orderBy: "amount"
-      })
-    ]);
+async function getSummary() {
+  const { data, code } = await getPurchaseSummaryApi(dateParams.value);
+  if (code !== 200 || !data) return;
+  summaryData.value = {
+    totalAmount: data.totalAmount || "0",
+    totalOrders: data.totalOrders || 0,
+    paidAmount: data.paidAmount || "0",
+    unpaidAmount: data.unpaidAmount || "0",
+    averageOrderValue: data.averageOrderValue || "0",
+    arrivalRate: data.arrivalRate || 0
+  };
+}
 
-    if (providerRes.code === 200) {
-      providerRanking.value = providerRes.data?.items || [];
-    }
-    if (productRes.code === 200) {
-      // 注意：这里复用商品排行接口，实际业务可能需要区分"采购商品排行"和"销售商品排行"
-      // 如果后端接口没有区分参数，这里展示的可能是整体商品排行
-      // 假设getProductRankingApi返回的是通用的或有参数区分但目前文档未体现
-      productRanking.value = productRes.data?.items || [];
-    }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "获取排行榜失败";
-    message(msg, { type: "error" });
+async function getTrend() {
+  const { data, code } = await getPurchaseTrendApi({
+    ...dateParams.value,
+    groupBy: "month"
+  });
+  if (code !== 200) return;
+  trendData.value = data?.data ?? [];
+  await updateChart();
+}
+
+async function getRankings() {
+  const [providerRes, productRes] = await Promise.all([
+    getProviderRankingApi({ ...dateParams.value, limit: 10 }),
+    getProductRankingApi({ ...dateParams.value, limit: 10, orderBy: "amount" })
+  ]);
+
+  if (providerRes.code === 200) {
+    providerRanking.value = providerRes.data?.items ?? [];
   }
-};
+  if (productRes.code === 200) {
+    productRanking.value = productRes.data?.items ?? [];
+  }
+}
 
-const loadData = async () => {
+async function getTracking() {
+  const { data, code } = await getPurchaseOrderTrackingApi({
+    ...dateParams.value,
+    pageSize: 10
+  });
+  if (code !== 200 || !data) return;
+  trackingList.value = data.list ?? [];
+  trackingSummary.value = data.summary ?? {
+    pending: 0,
+    partial: 0,
+    completed: 0
+  };
+}
+
+async function getProviderEvaluation() {
+  const { data, code } = await getProviderEvaluationApi(dateParams.value);
+  if (code !== 200 || !data) return;
+  providerEvaluationList.value = data.list ?? [];
+  providerEvaluationSummary.value = data.summary ?? {
+    totalProviders: 0,
+    avgCompletionRate: 0,
+    avgOnTimeRate: 0
+  };
+}
+
+async function loadData() {
   loading.value = true;
   try {
-    await Promise.all([getSummary(), getRankings()]);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "加载数据失败";
-    message(msg, { type: "error" });
+    await Promise.all([
+      getSummary(),
+      getTrend(),
+      getRankings(),
+      getTracking(),
+      getProviderEvaluation()
+    ]);
+  } catch (error) {
+    handleApiError(error, "加载采购分析失败");
   } finally {
     loading.value = false;
   }
-};
+}
 
 async function loadStores() {
   const response = await getStoreListApi(1, { pageSize: 100 });
@@ -166,13 +267,13 @@ async function syncQuery() {
   });
 }
 
-const handleDateChange = async () => {
+async function handleFilterChange() {
   await syncQuery();
-};
+}
 
-onMounted(() => {
-  void loadStores();
-});
+function handleResize() {
+  chartInstance?.resize();
+}
 
 watch(
   () => route.query,
@@ -182,11 +283,21 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(() => {
+  void loadStores();
+  window.addEventListener("resize", handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
+  chartInstance?.dispose();
+  chartInstance = null;
+});
 </script>
 
 <template>
   <div class="main p-4">
-    <!-- 筛选栏 -->
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
         <div class="flex flex-wrap items-center gap-3">
@@ -197,7 +308,7 @@ watch(
             start-placeholder="开始日期"
             end-placeholder="结束日期"
             :shortcuts="shortcuts"
-            @change="handleDateChange"
+            @change="handleFilterChange"
           />
           <el-select
             v-model="selectedStoreId"
@@ -205,7 +316,7 @@ watch(
             filterable
             placeholder="选择门店"
             class="w-[180px]"
-            @change="handleDateChange"
+            @change="handleFilterChange"
           >
             <el-option
               v-for="item in stores"
@@ -219,12 +330,11 @@ watch(
       </div>
     </el-card>
 
-    <!-- 汇总卡片 -->
     <el-row :gutter="16" class="mb-4">
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">采购总额</div>
-          <div class="text-xl font-bold text-blue-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-teal-700">
             ¥{{ formatAmount(summaryData.totalAmount) }}
           </div>
         </el-card>
@@ -232,7 +342,7 @@ watch(
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">订单数量</div>
-          <div class="text-xl font-bold text-green-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-slate-900">
             {{ summaryData.totalOrders }}
           </div>
         </el-card>
@@ -240,7 +350,7 @@ watch(
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">已付款</div>
-          <div class="text-xl font-bold text-emerald-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-emerald-600">
             ¥{{ formatAmount(summaryData.paidAmount) }}
           </div>
         </el-card>
@@ -248,7 +358,7 @@ watch(
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">未付款</div>
-          <div class="text-xl font-bold text-orange-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-orange-600">
             ¥{{ formatAmount(summaryData.unpaidAmount) }}
           </div>
         </el-card>
@@ -256,7 +366,7 @@ watch(
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">平均订单金额</div>
-          <div class="text-xl font-bold text-purple-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-indigo-600">
             ¥{{ formatAmount(summaryData.averageOrderValue) }}
           </div>
         </el-card>
@@ -264,36 +374,113 @@ watch(
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">到货完成率</div>
-          <div class="text-xl font-bold text-cyan-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-cyan-600">
             {{ summaryData.arrivalRate }}%
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 排行榜 -->
+    <el-row :gutter="16" class="mb-4">
+      <el-col :span="16">
+        <el-card>
+          <template #header>
+            <span class="font-bold">采购趋势</span>
+          </template>
+          <div ref="chartRef" v-loading="loading" class="h-80" />
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card class="h-full">
+          <template #header>
+            <span class="font-bold">到货履约概览</span>
+          </template>
+          <div class="grid grid-cols-2 gap-3">
+            <div
+              v-for="card in trackingCards"
+              :key="card.key"
+              class="rounded-xl bg-slate-50 p-4"
+            >
+              <div class="text-xs text-slate-500">{{ card.label }}</div>
+              <div class="mt-2 text-2xl font-semibold text-slate-900">
+                {{ card.value }}
+              </div>
+            </div>
+          </div>
+          <div
+            class="mt-4 rounded-xl border border-dashed border-slate-200 p-4"
+          >
+            <div class="text-sm text-slate-500">供应商平均表现</div>
+            <div class="mt-3 flex items-center justify-between text-sm">
+              <span>供应商数</span>
+              <strong>{{ providerEvaluationSummary.totalProviders }}</strong>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-sm">
+              <span>平均完成率</span>
+              <strong
+                >{{ providerEvaluationSummary.avgCompletionRate }}%</strong
+              >
+            </div>
+            <div class="mt-2 flex items-center justify-between text-sm">
+              <span>平均准时率</span>
+              <strong>{{ providerEvaluationSummary.avgOnTimeRate }}%</strong>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16" class="mb-4">
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span class="font-bold">采购排行</span>
+          </template>
+          <el-tabs v-model="activeRankingTab">
+            <el-tab-pane label="供应商排行" name="provider">
+              <pure-table
+                :data="providerRanking"
+                :columns="providerColumns"
+                stripe
+                max-height="360"
+              />
+            </el-tab-pane>
+            <el-tab-pane label="商品排行" name="product">
+              <pure-table
+                :data="productRanking"
+                :columns="productColumns"
+                stripe
+                max-height="360"
+              />
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span class="font-bold">待处理采购单</span>
+          </template>
+          <pure-table
+            :data="exceptionTrackingList"
+            :columns="trackingColumns"
+            stripe
+            max-height="360"
+          />
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-card>
       <template #header>
-        <span class="font-bold">排行榜</span>
+        <span class="font-bold">供应商履约评估</span>
       </template>
-      <el-tabs v-model="activeRankingTab">
-        <el-tab-pane label="供应商排行" name="provider">
-          <pure-table
-            :data="providerRanking"
-            :columns="providerColumns"
-            stripe
-            max-height="400"
-          />
-        </el-tab-pane>
-        <el-tab-pane label="商品排行" name="product">
-          <pure-table
-            :data="productRanking"
-            :columns="productColumns"
-            stripe
-            max-height="400"
-          />
-        </el-tab-pane>
-      </el-tabs>
+      <pure-table
+        :data="providerEvaluationList"
+        :columns="evaluationColumns"
+        stripe
+        max-height="360"
+      />
     </el-card>
   </div>
 </template>

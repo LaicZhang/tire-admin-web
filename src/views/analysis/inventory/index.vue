@@ -1,23 +1,25 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  getInventorySummaryApi,
-  getSlowMovingApi,
-  getStockoutApi,
-  getInventoryTurnoverApi,
-  getExpiryDistributionApi,
-  getDotAgingApi
-} from "@/api/analysis";
-import { getStoreListApi, type Store } from "@/api/company/store";
-import { getRepoListApi, type Repo } from "@/api/company/repo";
-import { message, handleApiError } from "@/utils";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import { slowMovingColumns, stockoutColumns } from "./columns";
-import Refresh from "~icons/ep/refresh";
 import type { EChartsType } from "echarts/core";
+import {
+  getDotAgingApi,
+  getExpiryDistributionApi,
+  getInventoryMovementApi,
+  getInventorySummaryApi,
+  getInventoryTurnoverApi,
+  getSlowMovingApi,
+  getStockoutApi
+} from "@/api/analysis";
+import { getRepoListApi, type Repo } from "@/api/company/repo";
+import { getStoreListApi, type Store } from "@/api/company/store";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { getEcharts } from "@/utils/echarts";
+import { handleApiError } from "@/utils";
+import Refresh from "~icons/ep/refresh";
+import { movementColumns, slowMovingColumns, stockoutColumns } from "./columns";
 import { buildAnalysisQuery, parseAnalysisFilters } from "../shared";
+import { buildInventoryMovementRows } from "../transformers";
 
 defineOptions({
   name: "AnalysisInventory"
@@ -28,11 +30,11 @@ const router = useRouter();
 const loading = ref(false);
 const stores = ref<Store[]>([]);
 const repos = ref<Repo[]>([]);
+
 const dateRange = ref<[Date, Date] | null>(null);
 const selectedStoreId = ref("");
 const selectedRepoId = ref("");
 
-// 库存汇总数据
 const summaryData = ref({
   totalCount: 0,
   toBeStockedCount: 0,
@@ -43,53 +45,34 @@ const summaryData = ref({
   repoCount: 0,
   belowAlarmCount: 0
 });
-
-// Data interfaces
-interface TurnoverDetailItem {
-  repoName?: string;
-  name?: string;
-  turnoverRate?: number;
-}
-
-interface TurnoverData {
-  turnoverRate: number;
-  averageDays: number;
-  details: TurnoverDetailItem[];
-}
-
-interface ExpiryDataItem {
-  label?: string;
-  bucket?: string;
-  count?: number;
-  quantity?: number;
-}
-
-interface SlowMovingItem {
-  tireName?: string;
-  repoName?: string;
-  quantity?: number;
-  lastMoveDate?: string;
-}
-
-interface StockoutItem {
-  tireName?: string;
-  currentQuantity?: number;
-  safetyStock?: number;
-  suggestPurchase?: number;
-}
-
-// 滞销商品
-const slowMovingList = ref<SlowMovingItem[]>([]);
-// 缺货分析
-const stockoutList = ref<StockoutItem[]>([]);
-// 库存周转
-const turnoverData = ref<TurnoverData>({
+const slowMovingList = ref<
+  Array<{
+    tireName?: string;
+    repoName?: string;
+    quantity?: number;
+    lastMoveDate?: string;
+  }>
+>([]);
+const stockoutList = ref<
+  Array<{
+    tireName?: string;
+    currentQuantity?: number;
+    safetyStock?: number;
+    suggestPurchase?: number;
+  }>
+>([]);
+const turnoverData = ref({
   turnoverRate: 0,
   averageDays: 0,
-  details: []
+  details: [] as Array<{
+    repoName?: string;
+    name?: string;
+    turnoverRate?: number;
+  }>
 });
-// 临期分布
-const expiryData = ref<ExpiryDataItem[]>([]);
+const expiryData = ref<
+  Array<{ label?: string; bucket?: string; count?: number; quantity?: number }>
+>([]);
 const dotAgingList = ref<
   Array<{
     repoName?: string;
@@ -99,12 +82,21 @@ const dotAgingList = ref<
     count?: number;
   }>
 >([]);
+const movementRows = ref<
+  Array<{
+    key: "begin" | "in" | "out" | "end";
+    label: string;
+    quantity: number;
+    amount: number;
+  }>
+>([]);
 
-// 图表引用
 const turnoverChartRef = ref<HTMLElement | null>(null);
 const expiryChartRef = ref<HTMLElement | null>(null);
+const movementChartRef = ref<HTMLElement | null>(null);
 let turnoverChart: EChartsType | null = null;
 let expiryChart: EChartsType | null = null;
+let movementChart: EChartsType | null = null;
 
 const currentStore = computed(() =>
   stores.value.find(item => item.uid === selectedStoreId.value)
@@ -116,165 +108,172 @@ const repoOptions = computed(() => {
   return repos.value.filter(item => item.uid === defaultRepoId);
 });
 
-// 格式化金额
-const formatAmount = (val: string | number) => {
-  const num = Number(val);
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
+function formatAmount(val: string | number) {
+  return Number(val).toLocaleString("zh-CN", { minimumFractionDigits: 2 });
+}
 
-const getSummary = async () => {
-  try {
-    const { data, code } = await getInventorySummaryApi({
-      repoId: selectedRepoId.value || undefined
-    });
-    if (code === 200 && data) {
-      summaryData.value = {
-        totalCount: data.totalCount || 0,
-        toBeStockedCount: data.toBeStockedCount || 0,
-        toBeShippedCount: data.toBeShippedCount || 0,
-        inTransitCount: data.inTransitCount || 0,
-        totalValue: data.totalValue || "0",
-        skuCount: data.skuCount || 0,
-        repoCount: data.repoCount || 0,
-        belowAlarmCount: data.belowAlarmCount || 0
-      };
-    }
-  } catch (error) {
-    handleApiError(error, "获取库存汇总失败");
-  }
-};
+async function getSummary() {
+  const { data, code } = await getInventorySummaryApi({
+    repoId: selectedRepoId.value || undefined
+  });
+  if (code !== 200 || !data) return;
+  summaryData.value = {
+    totalCount: data.totalCount || 0,
+    toBeStockedCount: data.toBeStockedCount || 0,
+    toBeShippedCount: data.toBeShippedCount || 0,
+    inTransitCount: data.inTransitCount || 0,
+    totalValue: data.totalValue || "0",
+    skuCount: data.skuCount || 0,
+    repoCount: data.repoCount || 0,
+    belowAlarmCount: data.belowAlarmCount || 0
+  };
+}
 
-const getSlowMoving = async () => {
-  try {
-    const { data, code } = await getSlowMovingApi({
-      days: 90,
-      repoId: selectedRepoId.value || undefined
-    });
-    if (code === 200) {
-      slowMovingList.value = (
-        Array.isArray(data) ? data : data.items || []
-      ) as SlowMovingItem[];
-    }
-  } catch (error) {
-    handleApiError(error, "获取滞销数据失败");
-  }
-};
+async function getSlowMoving() {
+  const { data, code } = await getSlowMovingApi({
+    days: 90,
+    repoId: selectedRepoId.value || undefined
+  });
+  if (code !== 200) return;
+  slowMovingList.value = (Array.isArray(data) ? data : data?.items) || [];
+}
 
-const getStockout = async () => {
-  try {
-    const { data, code } = await getStockoutApi({
-      repoId: selectedRepoId.value || undefined
-    });
-    if (code === 200) {
-      stockoutList.value = (
-        Array.isArray(data) ? data : data.items || []
-      ) as StockoutItem[];
-    }
-  } catch (error) {
-    handleApiError(error, "获取缺货数据失败");
-  }
-};
+async function getStockout() {
+  const { data, code } = await getStockoutApi({
+    repoId: selectedRepoId.value || undefined
+  });
+  if (code !== 200) return;
+  stockoutList.value = (Array.isArray(data) ? data : data?.items) || [];
+}
 
-const getTurnover = async () => {
-  try {
-    const { data, code } = await getInventoryTurnoverApi({
-      repoId: selectedRepoId.value || undefined
-    });
-    if (code === 200 && data) {
-      turnoverData.value = {
-        turnoverRate: data.turnoverRate || 0,
-        averageDays: data.averageDays || 0,
-        details: data.details || []
-      };
-      nextTick(() => void updateTurnoverChart());
-    }
-  } catch (error) {
-    handleApiError(error, "获取周转率失败");
-  }
-};
+async function getTurnover() {
+  const { data, code } = await getInventoryTurnoverApi({
+    repoId: selectedRepoId.value || undefined
+  });
+  if (code !== 200 || !data) return;
+  turnoverData.value = {
+    turnoverRate: data.turnoverRate || 0,
+    averageDays: data.averageDays || 0,
+    details: data.details || []
+  };
+  await updateTurnoverChart();
+}
 
-const getExpiry = async () => {
-  try {
-    const { data, code } = await getExpiryDistributionApi({
-      repoId: selectedRepoId.value || undefined
-    });
-    if (code === 200) {
-      expiryData.value = (
-        Array.isArray(data) ? data : data.buckets || []
-      ) as ExpiryDataItem[];
-      nextTick(() => void updateExpiryChart());
-    }
-  } catch (error) {
-    handleApiError(error, "获取临期分布失败");
-  }
-};
+async function getExpiry() {
+  const { data, code } = await getExpiryDistributionApi({
+    repoId: selectedRepoId.value || undefined
+  });
+  if (code !== 200) return;
+  expiryData.value = (Array.isArray(data) ? data : data?.buckets) || [];
+  await updateExpiryChart();
+}
 
-const getDotAging = async () => {
-  try {
-    const { data, code } = await getDotAgingApi({
-      repoId: selectedRepoId.value || undefined
-    });
-    if (code === 200) {
-      dotAgingList.value = data?.list || [];
-    }
-  } catch (error) {
-    handleApiError(error, "获取 DOT 库龄分布失败");
-  }
-};
+async function getDotAging() {
+  const { data, code } = await getDotAgingApi({
+    repoId: selectedRepoId.value || undefined
+  });
+  if (code !== 200) return;
+  dotAgingList.value = data?.list || [];
+}
 
-const updateTurnoverChart = async () => {
-  if (!turnoverChartRef.value) return;
-  if (!turnoverChart) {
-    const echarts = await getEcharts();
-    turnoverChart = echarts.init(turnoverChartRef.value);
-  }
-  const chart = turnoverChart;
-  const details = turnoverData.value.details || [];
-  chart.setOption({
+async function getMovement() {
+  const { data, code } = await getInventoryMovementApi({
+    repoId: selectedRepoId.value || undefined,
+    tireId: undefined,
+    startDate: undefined,
+    endDate: undefined
+  });
+  if (code !== 200 || !data) return;
+  movementRows.value = buildInventoryMovementRows(data);
+  await updateMovementChart();
+}
+
+async function ensureChart(
+  chart: EChartsType | null,
+  element: HTMLElement | null
+) {
+  if (!element) return null;
+  if (chart) return chart;
+  const echarts = await getEcharts();
+  return echarts.init(element);
+}
+
+async function updateTurnoverChart() {
+  turnoverChart = await ensureChart(turnoverChart, turnoverChartRef.value);
+  if (!turnoverChart) return;
+  turnoverChart.setOption({
     tooltip: { trigger: "axis" },
     xAxis: {
       type: "category",
-      data: details.map((d: TurnoverDetailItem) => d.repoName || d.name)
+      data: turnoverData.value.details.map(
+        detail => detail.repoName || detail.name
+      )
     },
     yAxis: { type: "value", name: "周转次数" },
     series: [
       {
         type: "bar",
-        data: details.map((d: TurnoverDetailItem) => d.turnoverRate || 0),
-        itemStyle: { color: "#409EFF" }
+        data: turnoverData.value.details.map(
+          detail => detail.turnoverRate || 0
+        ),
+        itemStyle: { color: "#2563eb" }
       }
     ]
   });
-};
+}
 
-const updateExpiryChart = async () => {
-  if (!expiryChartRef.value) return;
-  if (!expiryChart) {
-    const echarts = await getEcharts();
-    expiryChart = echarts.init(expiryChartRef.value);
-  }
-  const chart = expiryChart;
-  chart.setOption({
+async function updateExpiryChart() {
+  expiryChart = await ensureChart(expiryChart, expiryChartRef.value);
+  if (!expiryChart) return;
+  expiryChart.setOption({
     tooltip: { trigger: "item" },
     series: [
       {
         type: "pie",
         radius: "60%",
-        data: expiryData.value.map((d: ExpiryDataItem) => ({
-          name: d.label || d.bucket,
-          value: d.count || d.quantity
+        data: expiryData.value.map(item => ({
+          name: item.label || item.bucket,
+          value: item.count || item.quantity
         }))
       }
     ]
   });
-};
+}
 
-const handleResize = () => {
-  turnoverChart?.resize();
-  expiryChart?.resize();
-};
+async function updateMovementChart() {
+  movementChart = await ensureChart(movementChart, movementChartRef.value);
+  if (!movementChart) return;
+  movementChart.setOption({
+    tooltip: { trigger: "axis" },
+    legend: { data: ["数量", "金额"] },
+    xAxis: {
+      type: "category",
+      data: movementRows.value.map(item => item.label)
+    },
+    yAxis: [
+      { type: "value", name: "数量" },
+      { type: "value", name: "金额" }
+    ],
+    series: [
+      {
+        name: "数量",
+        type: "bar",
+        data: movementRows.value.map(item => item.quantity),
+        itemStyle: { color: "#0f766e" }
+      },
+      {
+        name: "金额",
+        type: "line",
+        yAxisIndex: 1,
+        smooth: true,
+        data: movementRows.value.map(item => item.amount),
+        itemStyle: { color: "#f97316" }
+      }
+    ]
+  });
+}
 
-const loadData = async () => {
+async function loadData() {
   loading.value = true;
   try {
     await Promise.all([
@@ -283,15 +282,15 @@ const loadData = async () => {
       getStockout(),
       getTurnover(),
       getExpiry(),
-      getDotAging()
+      getDotAging(),
+      getMovement()
     ]);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "加载数据失败";
-    message(msg, { type: "error" });
+  } catch (error) {
+    handleApiError(error, "加载库存分析失败");
   } finally {
     loading.value = false;
   }
-};
+}
 
 async function loadOptions() {
   const [storeRes, repoRes] = await Promise.all([
@@ -327,10 +326,11 @@ async function handleFiltersChange() {
   await syncQuery();
 }
 
-onMounted(() => {
-  void loadOptions();
-  window.addEventListener("resize", handleResize);
-});
+function handleResize() {
+  turnoverChart?.resize();
+  expiryChart?.resize();
+  movementChart?.resize();
+}
 
 watch(
   () => route.query,
@@ -341,20 +341,25 @@ watch(
   { immediate: true }
 );
 
+onMounted(() => {
+  void loadOptions();
+  window.addEventListener("resize", handleResize);
+});
+
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   turnoverChart?.dispose();
   expiryChart?.dispose();
+  movementChart?.dispose();
 });
 </script>
 
 <template>
   <div class="main p-4">
-    <!-- 顶部操作栏 -->
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
         <div class="flex flex-wrap items-center gap-3">
-          <span class="font-bold text-lg">库存数据总览</span>
+          <span class="text-lg font-bold">库存数据总览</span>
           <el-select
             v-model="selectedStoreId"
             clearable
@@ -390,12 +395,11 @@ onUnmounted(() => {
       </div>
     </el-card>
 
-    <!-- 汇总卡片 -->
     <el-row :gutter="16" class="mb-4">
       <el-col :span="6">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">库存总价值</div>
-          <div class="text-xl font-bold text-blue-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-blue-600">
             ¥{{ formatAmount(summaryData.totalValue) }}
           </div>
         </el-card>
@@ -403,15 +407,15 @@ onUnmounted(() => {
       <el-col :span="6">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">库存商品总数</div>
-          <div class="text-xl font-bold text-green-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-slate-900">
             {{ summaryData.totalCount }}
           </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover" class="text-center">
-          <div class="text-gray-500 text-sm">待入库/待发货</div>
-          <div class="text-xl font-bold text-orange-500 mt-2">
+          <div class="text-gray-500 text-sm">待入库 / 待发货</div>
+          <div class="mt-2 text-xl font-bold text-orange-600">
             {{ summaryData.toBeStockedCount }} /
             {{ summaryData.toBeShippedCount }}
           </div>
@@ -420,88 +424,94 @@ onUnmounted(() => {
       <el-col :span="6">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">库存预警商品数</div>
-          <div class="text-xl font-bold text-red-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-red-600">
             {{ summaryData.belowAlarmCount }}
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 分析表格 -->
-    <el-row :gutter="16">
+    <el-row :gutter="16" class="mb-4">
       <el-col :span="12">
         <el-card>
           <template #header>
-            <div class="flex justify-between items-center">
-              <span class="font-bold">滞销商品 (90天未动)</span>
-            </div>
-          </template>
-          <pure-table
-            :data="slowMovingList"
-            :columns="slowMovingColumns"
-            stripe
-            height="400"
-          />
-        </el-card>
-      </el-col>
-      <el-col :span="12">
-        <el-card>
-          <template #header>
-            <div class="flex justify-between items-center">
-              <span class="font-bold">缺货预警</span>
-            </div>
-          </template>
-          <pure-table
-            :data="stockoutList"
-            :columns="stockoutColumns"
-            stripe
-            height="400"
-          />
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 库存周转率与临期分布 -->
-    <el-row :gutter="16" class="mt-4">
-      <el-col :span="12">
-        <el-card>
-          <template #header>
-            <div class="flex justify-between items-center">
+            <div class="flex items-center justify-between">
               <span class="font-bold">库存周转率</span>
               <el-tag type="info" size="small">
                 平均周转天数: {{ turnoverData.averageDays }} 天
               </el-tag>
             </div>
           </template>
-          <div ref="turnoverChartRef" class="h-64" />
+          <div ref="turnoverChartRef" v-loading="loading" class="h-72" />
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card>
           <template #header>
-            <div class="flex justify-between items-center">
-              <span class="font-bold">临期分布</span>
-            </div>
+            <span class="font-bold">进销存汇总</span>
           </template>
-          <div ref="expiryChartRef" class="h-64" />
+          <div ref="movementChartRef" v-loading="loading" class="h-72" />
+          <div class="mt-4">
+            <pure-table
+              :data="movementRows"
+              :columns="movementColumns"
+              stripe
+              max-height="220"
+            />
+          </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="mt-4">
-      <el-col :span="24">
+    <el-row :gutter="16" class="mb-4">
+      <el-col :span="12">
         <el-card>
           <template #header>
-            <div class="flex justify-between items-center">
-              <span class="font-bold">DOT 库龄分布</span>
-            </div>
+            <span class="font-bold">滞销商品</span>
+          </template>
+          <pure-table
+            :data="slowMovingList"
+            :columns="slowMovingColumns"
+            stripe
+            height="360"
+          />
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span class="font-bold">缺货预警</span>
+          </template>
+          <pure-table
+            :data="stockoutList"
+            :columns="stockoutColumns"
+            stripe
+            height="360"
+          />
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16" class="mb-4">
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span class="font-bold">临期分布</span>
+          </template>
+          <div ref="expiryChartRef" v-loading="loading" class="h-72" />
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span class="font-bold">DOT 库龄分布</span>
           </template>
           <pure-table
             :data="dotAgingList"
             stripe
             height="360"
             :columns="[
-              { label: '门店/仓库', prop: 'repoName', minWidth: 140 },
+              { label: '仓库', prop: 'repoName', minWidth: 120 },
               { label: '轮胎', prop: 'tireName', minWidth: 180 },
               { label: 'DOT 年', prop: 'dotYear', width: 100 },
               { label: 'DOT 周', prop: 'dotWeek', width: 100 },

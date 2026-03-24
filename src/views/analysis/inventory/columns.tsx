@@ -43,3 +43,16 @@ export const stockoutColumns: TableColumnList = [
     prop: "suggestPurchase"
   }
 ];
+
+export const movementColumns: TableColumnList = [
+  { label: "指标", prop: "label", width: 100 },
+  { label: "数量", prop: "quantity", width: 120 },
+  {
+    label: "金额",
+    prop: "amount",
+    minWidth: 140,
+    cellRenderer: (data: TableColumnRenderer) => (
+      <span>¥{Number(data.row?.amount ?? 0).toLocaleString("zh-CN")}</span>
+    )
+  }
+];

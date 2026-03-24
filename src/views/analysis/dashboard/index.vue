@@ -26,6 +26,10 @@ import {
   parseAnalysisFilters,
   toDateParams
 } from "../shared";
+import {
+  buildDashboardAlertRows,
+  type DashboardAlertRow
+} from "../transformers";
 
 defineOptions({
   name: "AnalysisDashboard"
@@ -100,6 +104,10 @@ const filterParams = computed(() => ({
   storeId: filters.storeId || undefined,
   repoId: filters.repoId || undefined
 }));
+
+const alertRows = computed(() =>
+  dashboardData.value ? buildDashboardAlertRows(dashboardData.value) : []
+);
 
 function formatAmount(value?: string | number) {
   const num = Number(value ?? 0);
@@ -309,6 +317,18 @@ function handleRankingClick(
   gotoPage("/analysis/sales");
 }
 
+function handleAlertClick(row: DashboardAlertRow) {
+  if (row.module === "库存") {
+    gotoPage("/analysis/inventory");
+    return;
+  }
+  if (row.module === "采购") {
+    gotoPage("/analysis/purchase");
+    return;
+  }
+  gotoPage("/analysis/sales");
+}
+
 watch(
   () => route.query,
   () => {
@@ -441,6 +461,45 @@ onUnmounted(() => {
         </el-card>
       </el-col>
     </el-row>
+
+    <el-card v-if="alertRows.length" v-loading="loading" class="mb-4">
+      <template #header>
+        <div class="flex items-center justify-between">
+          <span class="font-bold">待处理事项</span>
+          <span class="text-xs text-slate-500">点击可进入专题页处理</span>
+        </div>
+      </template>
+      <el-row :gutter="12">
+        <el-col
+          v-for="row in alertRows"
+          :key="`${row.module}-${row.key}`"
+          :span="8"
+          class="mb-3"
+        >
+          <div
+            class="cursor-pointer rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white"
+            @click="handleAlertClick(row)"
+          >
+            <div class="text-xs text-slate-500">{{ row.module }}</div>
+            <div class="mt-2 flex items-center justify-between">
+              <span class="font-medium text-slate-900">{{ row.label }}</span>
+              <el-tag
+                size="small"
+                :type="
+                  row.level === 'danger'
+                    ? 'danger'
+                    : row.level === 'warning'
+                      ? 'warning'
+                      : 'info'
+                "
+              >
+                {{ row.value }}
+              </el-tag>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
+    </el-card>
 
     <el-row :gutter="16">
       <el-col :span="12" class="mb-4">

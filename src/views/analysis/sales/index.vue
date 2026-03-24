@@ -1,32 +1,35 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import type { EChartsCoreOption, EChartsType } from "echarts/core";
 import {
+  getCustomerRankingApi,
+  getOperatorRankingApi,
+  getProductRankingApi,
+  getSalesOrderTrackingApi,
   getSalesSummaryApi,
   getSalesTrendApi,
-  getCustomerRankingApi,
-  getProductRankingApi,
-  getOperatorRankingApi
+  type SalesOrderTrackingData
 } from "@/api";
 import { getStoreListApi, type Store } from "@/api/company/store";
-import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
-import dayjs from "dayjs";
-import type { EChartsCoreOption, EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
+import { handleApiError } from "@/utils";
+import Refresh from "~icons/ep/refresh";
 import { useColumns } from "./columns";
 import {
   buildAnalysisQuery,
   parseAnalysisFilters,
   toDateParams
 } from "../shared";
+import { buildTrackingSummaryCards } from "../transformers";
 
 defineOptions({
   name: "AnalysisSales"
 });
 
-const { customerColumns, productColumns, operatorColumns } = useColumns();
+const { customerColumns, productColumns, operatorColumns, trackingColumns } =
+  useColumns();
 const route = useRoute();
 const router = useRouter();
 
@@ -35,9 +38,31 @@ const chartRef = ref<HTMLElement | null>(null);
 let chartInstance: EChartsType | null = null;
 const stores = ref<Store[]>([]);
 
-// 日期范围筛选
 const dateRange = ref<[Date, Date] | null>(null);
 const selectedStoreId = ref("");
+const activeRankingTab = ref("customer");
+
+const summaryData = ref({
+  totalAmount: "0",
+  totalOrders: 0,
+  paidAmount: "0",
+  unpaidAmount: "0",
+  averageOrderValue: "0",
+  completionRate: 0
+});
+const trendData = ref<Array<{ period: string; amount: string; count: number }>>(
+  []
+);
+const customerRanking = ref<unknown[]>([]);
+const productRanking = ref<unknown[]>([]);
+const operatorRanking = ref<unknown[]>([]);
+const trackingList = ref<SalesOrderTrackingData["list"]>([]);
+const trackingSummary = ref<SalesOrderTrackingData["summary"]>({
+  pending: 0,
+  partial: 0,
+  completed: 0
+});
+
 const shortcuts = [
   {
     text: "最近一周",
@@ -68,126 +93,29 @@ const shortcuts = [
   }
 ];
 
-// 销售汇总数据
-const summaryData = ref({
-  totalAmount: "0",
-  totalOrders: 0,
-  paidAmount: "0",
-  unpaidAmount: "0",
-  averageOrderValue: "0",
-  completionRate: 0
-});
+const dateParams = computed(() => ({
+  ...toDateParams(dateRange.value),
+  storeId: selectedStoreId.value || undefined
+}));
 
-// 趋势数据
-const trendData = ref<{ period: string; amount: string; count: number }[]>([]);
+const trackingCards = computed(() =>
+  buildTrackingSummaryCards(trackingSummary.value)
+);
 
-// 排行榜数据
-const customerRanking = ref<unknown[]>([]);
-const productRanking = ref<unknown[]>([]);
-const operatorRanking = ref<unknown[]>([]);
+const exceptionTrackingList = computed(() =>
+  trackingList.value.filter(item => item.trackingStatus !== "completed")
+);
 
-// 当前选中的排行榜类型
-const activeRankingTab = ref("customer");
-
-const dateParams = computed(() => {
-  return {
-    ...toDateParams(dateRange.value),
-    storeId: selectedStoreId.value || undefined
-  };
-});
-
-// 格式化金额
-const formatAmount = (val: string | number) => {
+function formatAmount(val: string | number) {
   const num = Number(val);
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
+}
 
-const getSummary = async () => {
-  try {
-    const { data, code } = await getSalesSummaryApi(dateParams.value);
-    if (code === 200 && data) {
-      summaryData.value = {
-        totalAmount: data.totalAmount || "0",
-        totalOrders: data.totalOrders || 0,
-        paidAmount: data.paidAmount || "0",
-        unpaidAmount: data.unpaidAmount || "0",
-        averageOrderValue: data.averageOrderValue || "0",
-        completionRate: data.completionRate || 0
-      };
-    }
-  } catch (error) {
-    handleApiError(error, "获取销售汇总失败");
-  }
-};
-
-const getTrend = async () => {
-  try {
-    const { data, code } = await getSalesTrendApi({
-      ...dateParams.value,
-      groupBy: "month"
-    });
-    if (code === 200 && data?.data) {
-      trendData.value = data.data;
-      void updateChart();
-    }
-  } catch (error) {
-    handleApiError(error, "获取销售趋势失败");
-  }
-};
-
-const getRankings = async () => {
-  try {
-    const [customerRes, productRes, operatorRes] = await Promise.all([
-      getCustomerRankingApi({ ...dateParams.value, limit: 10 }),
-      getProductRankingApi({
-        ...dateParams.value,
-        limit: 10,
-        orderBy: "amount"
-      }),
-      getOperatorRankingApi({
-        ...dateParams.value,
-        limit: 10,
-        orderBy: "amount"
-      })
-    ]);
-
-    if (customerRes.code === 200) {
-      customerRanking.value = customerRes.data?.items || [];
-    }
-    if (productRes.code === 200) {
-      productRanking.value = productRes.data?.items || [];
-    }
-    if (operatorRes.code === 200) {
-      operatorRanking.value = operatorRes.data?.items || [];
-    }
-  } catch (error) {
-    handleApiError(error, "获取排行榜失败");
-  }
-};
-
-const updateChart = async () => {
-  if (!chartRef.value || !trendData.value.length) return;
-
-  if (!chartInstance) {
-    const echarts = await getEcharts();
-    chartInstance = echarts.init(chartRef.value);
-  }
-  const chart = chartInstance;
-
-  const option: EChartsCoreOption = {
-    tooltip: {
-      trigger: "axis",
-      axisPointer: { type: "shadow" }
-    },
-    legend: {
-      data: ["销售金额", "订单数"]
-    },
-    grid: {
-      left: "3%",
-      right: "4%",
-      bottom: "3%",
-      containLabel: true
-    },
+function buildTrendOption(): EChartsCoreOption {
+  return {
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    legend: { data: ["销售金额", "订单数"] },
+    grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
     xAxis: {
       type: "category",
       data: trendData.value.map(item => item.period)
@@ -212,32 +140,98 @@ const updateChart = async () => {
         name: "销售金额",
         type: "bar",
         data: trendData.value.map(item => Number(item.amount)),
-        itemStyle: { color: "#409EFF" }
+        itemStyle: { color: "#2563eb" }
       },
       {
         name: "订单数",
         type: "line",
         yAxisIndex: 1,
+        smooth: true,
         data: trendData.value.map(item => item.count),
-        itemStyle: { color: "#67C23A" }
+        itemStyle: { color: "#16a34a" }
       }
     ]
   };
+}
 
-  chart.setOption(option);
-};
+async function updateChart() {
+  if (!chartRef.value) return;
+  if (!chartInstance) {
+    const echarts = await getEcharts();
+    chartInstance = echarts.init(chartRef.value);
+  }
+  chartInstance.setOption(buildTrendOption());
+}
 
-const loadData = async () => {
+async function getSummary() {
+  const { data, code } = await getSalesSummaryApi(dateParams.value);
+  if (code !== 200 || !data) return;
+  summaryData.value = {
+    totalAmount: data.totalAmount || "0",
+    totalOrders: data.totalOrders || 0,
+    paidAmount: data.paidAmount || "0",
+    unpaidAmount: data.unpaidAmount || "0",
+    averageOrderValue: data.averageOrderValue || "0",
+    completionRate: data.completionRate || 0
+  };
+}
+
+async function getTrend() {
+  const { data, code } = await getSalesTrendApi({
+    ...dateParams.value,
+    groupBy: "month"
+  });
+  if (code !== 200) return;
+  trendData.value = data?.data ?? [];
+  await updateChart();
+}
+
+async function getRankings() {
+  const [customerRes, productRes, operatorRes] = await Promise.all([
+    getCustomerRankingApi({ ...dateParams.value, limit: 10 }),
+    getProductRankingApi({ ...dateParams.value, limit: 10, orderBy: "amount" }),
+    getOperatorRankingApi({
+      ...dateParams.value,
+      limit: 10,
+      orderBy: "amount"
+    })
+  ]);
+
+  if (customerRes.code === 200) {
+    customerRanking.value = customerRes.data?.items ?? [];
+  }
+  if (productRes.code === 200) {
+    productRanking.value = productRes.data?.items ?? [];
+  }
+  if (operatorRes.code === 200) {
+    operatorRanking.value = operatorRes.data?.items ?? [];
+  }
+}
+
+async function getTracking() {
+  const { data, code } = await getSalesOrderTrackingApi({
+    ...dateParams.value,
+    pageSize: 10
+  });
+  if (code !== 200 || !data) return;
+  trackingList.value = data.list ?? [];
+  trackingSummary.value = data.summary ?? {
+    pending: 0,
+    partial: 0,
+    completed: 0
+  };
+}
+
+async function loadData() {
   loading.value = true;
   try {
-    await Promise.all([getSummary(), getTrend(), getRankings()]);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "加载数据失败";
-    message(msg, { type: "error" });
+    await Promise.all([getSummary(), getTrend(), getRankings(), getTracking()]);
+  } catch (error) {
+    handleApiError(error, "加载销售分析失败");
   } finally {
     loading.value = false;
   }
-};
+}
 
 async function loadStores() {
   const response = await getStoreListApi(1, { pageSize: 100 });
@@ -259,18 +253,13 @@ async function syncQuery() {
   });
 }
 
-const handleDateChange = async () => {
+async function handleFilterChange() {
   await syncQuery();
-};
+}
 
-const handleResize = () => {
+function handleResize() {
   chartInstance?.resize();
-};
-
-onMounted(() => {
-  void loadStores();
-  window.addEventListener("resize", handleResize);
-});
+}
 
 watch(
   () => route.query,
@@ -281,6 +270,11 @@ watch(
   { immediate: true }
 );
 
+onMounted(() => {
+  void loadStores();
+  window.addEventListener("resize", handleResize);
+});
+
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   chartInstance?.dispose();
@@ -290,7 +284,6 @@ onUnmounted(() => {
 
 <template>
   <div class="main p-4">
-    <!-- 筛选栏 -->
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
         <div class="flex flex-wrap items-center gap-3">
@@ -301,7 +294,7 @@ onUnmounted(() => {
             start-placeholder="开始日期"
             end-placeholder="结束日期"
             :shortcuts="shortcuts"
-            @change="handleDateChange"
+            @change="handleFilterChange"
           />
           <el-select
             v-model="selectedStoreId"
@@ -309,7 +302,7 @@ onUnmounted(() => {
             filterable
             placeholder="选择门店"
             class="w-[180px]"
-            @change="handleDateChange"
+            @change="handleFilterChange"
           >
             <el-option
               v-for="item in stores"
@@ -323,12 +316,11 @@ onUnmounted(() => {
       </div>
     </el-card>
 
-    <!-- 汇总卡片 -->
     <el-row :gutter="16" class="mb-4">
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">销售总额</div>
-          <div class="text-xl font-bold text-blue-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-blue-600">
             ¥{{ formatAmount(summaryData.totalAmount) }}
           </div>
         </el-card>
@@ -336,7 +328,7 @@ onUnmounted(() => {
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">订单数量</div>
-          <div class="text-xl font-bold text-green-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-slate-900">
             {{ summaryData.totalOrders }}
           </div>
         </el-card>
@@ -344,7 +336,7 @@ onUnmounted(() => {
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">已收款</div>
-          <div class="text-xl font-bold text-emerald-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-emerald-600">
             ¥{{ formatAmount(summaryData.paidAmount) }}
           </div>
         </el-card>
@@ -352,7 +344,7 @@ onUnmounted(() => {
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">未收款</div>
-          <div class="text-xl font-bold text-orange-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-orange-600">
             ¥{{ formatAmount(summaryData.unpaidAmount) }}
           </div>
         </el-card>
@@ -360,7 +352,7 @@ onUnmounted(() => {
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">平均订单金额</div>
-          <div class="text-xl font-bold text-purple-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-indigo-600">
             ¥{{ formatAmount(summaryData.averageOrderValue) }}
           </div>
         </el-card>
@@ -368,55 +360,94 @@ onUnmounted(() => {
       <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">完成率</div>
-          <div class="text-xl font-bold text-cyan-500 mt-2">
+          <div class="mt-2 text-xl font-bold text-cyan-600">
             {{ summaryData.completionRate }}%
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 趋势图表 -->
-    <el-card class="mb-4">
-      <template #header>
-        <span class="font-bold">销售趋势</span>
-      </template>
-      <div ref="chartRef" v-loading="loading" class="h-80" />
-    </el-card>
+    <el-row :gutter="16" class="mb-4">
+      <el-col :span="16">
+        <el-card>
+          <template #header>
+            <span class="font-bold">销售趋势</span>
+          </template>
+          <div ref="chartRef" v-loading="loading" class="h-80" />
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card class="h-full">
+          <template #header>
+            <span class="font-bold">交付履约概览</span>
+          </template>
+          <div class="grid grid-cols-2 gap-3">
+            <div
+              v-for="card in trackingCards"
+              :key="card.key"
+              class="rounded-xl bg-slate-50 p-4"
+            >
+              <div class="text-xs text-slate-500">{{ card.label }}</div>
+              <div class="mt-2 text-2xl font-semibold text-slate-900">
+                {{ card.value }}
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-    <!-- 排行榜 -->
-    <el-card>
-      <template #header>
-        <span class="font-bold">排行榜</span>
-      </template>
-      <el-tabs v-model="activeRankingTab">
-        <el-tab-pane label="客户排行" name="customer">
+    <el-row :gutter="16" class="mb-4">
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span class="font-bold">销售排行</span>
+          </template>
+          <el-tabs v-model="activeRankingTab">
+            <el-tab-pane label="客户排行" name="customer">
+              <pure-table
+                stripe
+                max-height="320"
+                :loading="loading"
+                :data="customerRanking"
+                :columns="customerColumns"
+              />
+            </el-tab-pane>
+            <el-tab-pane label="商品排行" name="product">
+              <pure-table
+                stripe
+                max-height="320"
+                :loading="loading"
+                :data="productRanking"
+                :columns="productColumns"
+              />
+            </el-tab-pane>
+            <el-tab-pane label="员工排行" name="operator">
+              <pure-table
+                stripe
+                max-height="320"
+                :loading="loading"
+                :data="operatorRanking"
+                :columns="operatorColumns"
+              />
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <span class="font-bold">待处理销售单</span>
+          </template>
           <pure-table
             stripe
-            max-height="300"
+            max-height="320"
             :loading="loading"
-            :data="customerRanking"
-            :columns="customerColumns"
+            :data="exceptionTrackingList"
+            :columns="trackingColumns"
           />
-        </el-tab-pane>
-        <el-tab-pane label="商品排行" name="product">
-          <pure-table
-            stripe
-            max-height="300"
-            :loading="loading"
-            :data="productRanking"
-            :columns="productColumns"
-          />
-        </el-tab-pane>
-        <el-tab-pane label="员工排行" name="operator">
-          <pure-table
-            stripe
-            max-height="300"
-            :loading="loading"
-            :data="operatorRanking"
-            :columns="operatorColumns"
-          />
-        </el-tab-pane>
-      </el-tabs>
-    </el-card>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
