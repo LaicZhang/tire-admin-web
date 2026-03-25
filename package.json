@@ -14,6 +14,7 @@
     "preview": "vite preview",
     "preview:build": "pnpm build && vite preview",
     "typecheck": "tsc --noEmit && vue-tsc --noEmit --skipLibCheck",
+    "audit:type-safety": "node scripts/check-type-safety-critical.mjs",
     "svgo": "svgo -f . -r",
     "cloc": "NODE_OPTIONS=--max-old-space-size=4096 cloc . --exclude-dir=node_modules --exclude-lang=YAML",
     "audit:drift": "node scripts/audit-drift-check.mjs",
