@@ -34,6 +34,7 @@ const tabOptions = [
   { label: "采购订单", value: "purchase-order" },
   { label: "退货订单", value: "return-order" },
   { label: "理赔订单", value: "claim-order" },
+  { label: "供应商索赔单", value: "supplier-claim-order" },
   { label: "调拨单", value: "transfer-order" },
   { label: "报损单", value: "waste-order" },
   { label: "报溢单", value: "surplus-order" },

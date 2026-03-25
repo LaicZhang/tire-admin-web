@@ -32,12 +32,16 @@ describe("business/order/handleData", () => {
   it("getColumns returns columns for known types and [] for default", () => {
     expect(getColumns(ORDER_TYPE.purchase).length).toBeGreaterThan(0);
     expect(getColumns(ORDER_TYPE.sale).length).toBeGreaterThan(0);
+    expect(getColumns(ORDER_TYPE.supplierClaim).length).toBeGreaterThan(0);
     expect(getColumns(ORDER_TYPE.default)).toEqual([]);
   });
 
   it("getFormRules returns rules for known types and {} for default", () => {
     expect(
       Object.keys(getFormRules(ORDER_TYPE.purchase)).length
+    ).toBeGreaterThan(0);
+    expect(
+      Object.keys(getFormRules(ORDER_TYPE.supplierClaim)).length
     ).toBeGreaterThan(0);
     expect(getFormRules(ORDER_TYPE.default)).toEqual({});
   });

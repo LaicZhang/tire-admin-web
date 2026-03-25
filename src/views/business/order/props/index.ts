@@ -1,6 +1,7 @@
 export * from "./purchase";
 export * from "./sale";
 export * from "./claim";
+export * from "./supplier-claim";
 export * from "./return";
 export * from "./waste";
 export * from "./surplus";

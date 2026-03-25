@@ -16,10 +16,18 @@ export interface ClaimFormItemProps {
   showTotal: number;
   isApproved: boolean;
   isLocked: boolean;
+  isReversed?: boolean;
   rejectReason?: string;
   paymentId?: string;
   fee?: number;
   isReceive?: boolean;
+  supplierClaimOrders?: Array<{
+    uid?: string;
+    docNo?: string | null;
+    isApproved?: boolean;
+    isReversed?: boolean;
+    createAt?: string;
+  }>;
   details: Array<{
     uid?: string;
     tireId?: string;
@@ -48,6 +56,13 @@ export interface ClaimFormItemProps {
       sourceOrderId?: string;
       targetType?: string;
       targetOrderId?: string;
+      latestBusiness?: {
+        type?: string;
+        orderId?: string;
+        occurredAt?: string;
+        docNo?: string | null;
+        status?: string;
+      };
       latestReturnInspection?: {
         result?: string;
         remark?: string;
@@ -76,6 +91,68 @@ export interface ClaimFormItemProps {
 
 export interface ClaimFormProps {
   formInline: ClaimFormItemProps;
+}
+
+export function getSupplierClaimOrderStatusLabel(params: {
+  isApproved?: boolean;
+  isReversed?: boolean;
+}) {
+  if (params.isReversed) return "已作废";
+  return params.isApproved ? "已审核" : "待审核";
+}
+
+export function getClaimTraceSummaryLines(
+  trace?: ClaimFormItemProps["details"][number]["serialTrace"]
+) {
+  if (!trace?.serialNo) return [];
+
+  return [
+    trace.status ? `状态：${trace.status}` : "",
+    trace.repoId ? `仓库：${trace.repoId}` : "",
+    trace.sourceType || trace.sourceOrderId
+      ? `来源：${trace.sourceType || "-"} ${trace.sourceOrderId || ""}`.trim()
+      : "",
+    trace.targetType || trace.targetOrderId
+      ? `去向：${trace.targetType || "-"} ${trace.targetOrderId || ""}`.trim()
+      : "",
+    trace.latestBusiness
+      ? `最近业务：${trace.latestBusiness.type || "-"}${trace.latestBusiness.docNo ? ` · ${trace.latestBusiness.docNo}` : ""}${trace.latestBusiness.status ? ` · ${trace.latestBusiness.status}` : ""}`
+      : "",
+    trace.latestReturnInspection?.result
+      ? `最近退货质检：${trace.latestReturnInspection.result}${trace.latestReturnInspection.defectCategory?.name ? ` · ${trace.latestReturnInspection.defectCategory.name}` : ""}`
+      : "",
+    trace.latestReturnInspection?.remark
+      ? `质检备注：${trace.latestReturnInspection.remark}`
+      : "",
+    trace.installation?.vehiclePlateNo
+      ? `安装车辆：${trace.installation.vehiclePlateNo}${trace.installation.vehicleModel ? ` · ${trace.installation.vehicleModel}` : ""}`
+      : "",
+    trace.installation?.installPosition
+      ? `安装位置：${trace.installation.installPosition}`
+      : "",
+    trace.installation?.technicianName
+      ? `技师：${trace.installation.technicianName}${trace.installation.storeRepoName ? ` · ${trace.installation.storeRepoName}` : ""}`
+      : "",
+    trace.installation?.mileageKm != null
+      ? `安装里程：${trace.installation.mileageKm} km`
+      : "",
+    trace.warranty?.startAt
+      ? `质保：${trace.warranty.startAt}${trace.warranty.endAt ? ` ~ ${trace.warranty.endAt}` : ""}`
+      : ""
+  ].filter(Boolean);
+}
+
+export function getClaimSupplierClaimOrderLines(
+  orders?: ClaimFormItemProps["supplierClaimOrders"]
+) {
+  return (orders ?? []).map(order => {
+    const label = order.docNo || order.uid || "-";
+    const status = getSupplierClaimOrderStatusLabel({
+      isApproved: order.isApproved,
+      isReversed: order.isReversed
+    });
+    return `${label} · ${status}`;
+  });
 }
 
 export const claimOrderFormRules: FormRules = reactive({
@@ -239,41 +316,31 @@ export const claimOrderDetailsColumns: TableColumnList = [
         | ClaimFormItemProps["details"][number]["serialTrace"]
         | undefined;
       if (!trace?.serialNo) return <span class="text-gray-400">-</span>;
-      const parts = [
-        trace.status ? `状态：${trace.status}` : "",
-        trace.repoId ? `仓库：${trace.repoId}` : "",
-        trace.sourceType || trace.sourceOrderId
-          ? `来源：${trace.sourceType || "-"} ${trace.sourceOrderId || ""}`.trim()
-          : "",
-        trace.targetType || trace.targetOrderId
-          ? `去向：${trace.targetType || "-"} ${trace.targetOrderId || ""}`.trim()
-          : "",
-        trace.latestReturnInspection?.result
-          ? `最近退货质检：${trace.latestReturnInspection.result}${trace.latestReturnInspection.defectCategory?.name ? ` · ${trace.latestReturnInspection.defectCategory.name}` : ""}`
-          : "",
-        trace.latestReturnInspection?.remark
-          ? `质检备注：${trace.latestReturnInspection.remark}`
-          : "",
-        trace.installation?.vehiclePlateNo
-          ? `安装车辆：${trace.installation.vehiclePlateNo}${trace.installation.vehicleModel ? ` · ${trace.installation.vehicleModel}` : ""}`
-          : "",
-        trace.installation?.installPosition
-          ? `安装位置：${trace.installation.installPosition}`
-          : "",
-        trace.installation?.technicianName
-          ? `技师：${trace.installation.technicianName}${trace.installation.storeRepoName ? ` · ${trace.installation.storeRepoName}` : ""}`
-          : "",
-        trace.installation?.mileageKm != null
-          ? `安装里程：${trace.installation.mileageKm} km`
-          : "",
-        trace.warranty?.startAt
-          ? `质保：${trace.warranty.startAt}${trace.warranty.endAt ? ` ~ ${trace.warranty.endAt}` : ""}`
-          : ""
-      ].filter(Boolean);
+      const parts = getClaimTraceSummaryLines(trace);
       return (
         <div class="text-xs leading-5 text-gray-600">
           {parts.map((part, index) => (
             <div key={`${trace.serialNo}-${index}`}>{part}</div>
+          ))}
+        </div>
+      );
+    }
+  },
+  {
+    label: "供应商索赔单",
+    prop: "supplierClaimOrders",
+    minWidth: 220,
+    cellRenderer: ({ row }) => {
+      const lines = getClaimSupplierClaimOrderLines(
+        row.supplierClaimOrders as ClaimFormItemProps["supplierClaimOrders"]
+      );
+      if (lines.length === 0) return <span class="text-gray-400">-</span>;
+      return (
+        <div class="text-xs leading-5 text-gray-600">
+          {lines.map((line, index) => (
+            <div key={`${row.uid || row.number || "claim"}-${index}`}>
+              {line}
+            </div>
           ))}
         </div>
       );

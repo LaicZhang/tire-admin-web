@@ -10,7 +10,10 @@ import {
   PurchaseFormItemProps,
   SaleFormItemProps,
   ClaimFormItemProps,
-  ReturnFormItemProps
+  ReturnFormItemProps,
+  SupplierClaimFormItemProps,
+  getClaimSupplierClaimOrderLines,
+  getSupplierClaimOrderStatusLabel
 } from "./props";
 import {
   ALL_LIST,
@@ -20,6 +23,7 @@ import {
   ORDER_TYPE
 } from "@/utils";
 import { scanBarcodeApi } from "@/api";
+import { createSupplierClaimOrderFromClaimApi } from "@/api/business/order";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
@@ -40,7 +44,8 @@ type OrderFormData = Partial<
   PurchaseFormItemProps &
     SaleFormItemProps &
     ClaimFormItemProps &
-    ReturnFormItemProps
+    ReturnFormItemProps &
+    SupplierClaimFormItemProps
 >;
 
 // Common list item type
@@ -59,6 +64,9 @@ interface OrderDetail {
   tireId?: string;
   repoId?: string;
   serialNo?: string;
+  claimAmount?: number;
+  settledAmount?: number;
+  responsibilityRatio?: number;
   dotCodeMin?: string;
   dotCodeMax?: string;
   dotRequirementRemark?: string;
@@ -119,8 +127,12 @@ const props = withDefaults(defineProps<OrderFormProps>(), {
 const newFormInline = ref<OrderFormModel>(props.formInline as OrderFormModel);
 const formTitle = ref("新增");
 const showSettlementFields = computed(
-  () => ![ORDER_TYPE.surplus, ORDER_TYPE.waste].includes(orderType.value)
+  () =>
+    ![ORDER_TYPE.surplus, ORDER_TYPE.waste, ORDER_TYPE.supplierClaim].includes(
+      orderType.value
+    )
 );
+const creatingSupplierClaim = ref(false);
 
 async function getOrderType() {
   const curOrderType = await localForage().getItem<ORDER_TYPE>(CUR_ORDER_TYPE);
@@ -161,20 +173,33 @@ function resolveClaimLineAmount(detail: Record<string, unknown>) {
 
 function syncSummaryFromDetails() {
   const details = getDetails();
-  const count = details.reduce(
-    (sum, detail) => sum + toFiniteNumber(detail.count),
-    0
-  );
+  const count =
+    orderType.value === ORDER_TYPE.supplierClaim
+      ? details.length
+      : details.reduce((sum, detail) => sum + toFiniteNumber(detail.count), 0);
   const total = details.reduce((sum, detail) => {
     const row = asRecord(detail);
     if (orderType.value === ORDER_TYPE.claim)
       return sum + resolveClaimLineAmount(row);
+    if (orderType.value === ORDER_TYPE.supplierClaim)
+      return sum + toFiniteNumber(row.claimAmount);
     if ("total" in row) return sum + toFiniteNumber(row.total);
     return sum + toFiniteNumber(row.count) * toFiniteNumber(row.unitPrice);
   }, 0);
+  const settledTotal =
+    orderType.value === ORDER_TYPE.supplierClaim
+      ? details.reduce(
+          (sum, detail) => sum + toFiniteNumber(asRecord(detail).settledAmount),
+          0
+        )
+      : total;
 
   newFormInline.value.count = count;
   newFormInline.value.showTotal = total;
+  if (orderType.value === ORDER_TYPE.supplierClaim) {
+    newFormInline.value.total = settledTotal;
+    return;
+  }
   if (["新增", "修改"].includes(formTitle.value)) {
     newFormInline.value.total = total;
   }
@@ -204,13 +229,15 @@ function makeDetailsRule() {
           if (!row.tireId)
             return callback(new Error(`明细第 ${rowNo} 行：请选择轮胎`));
 
-          const rawCount = row.count;
-          const count =
-            typeof rawCount === "number" ? rawCount : Number(rawCount);
-          if (!Number.isInteger(count) || count < 1) {
-            return callback(
-              new Error(`明细第 ${rowNo} 行：数量需为不小于 1 的整数`)
-            );
+          if (orderType.value !== ORDER_TYPE.supplierClaim) {
+            const rawCount = row.count;
+            const count =
+              typeof rawCount === "number" ? rawCount : Number(rawCount);
+            if (!Number.isInteger(count) || count < 1) {
+              return callback(
+                new Error(`明细第 ${rowNo} 行：数量需为不小于 1 的整数`)
+              );
+            }
           }
 
           if (requiresRepo && !row.repoId) {
@@ -333,6 +360,48 @@ function onDel(row: OrderDetail) {
   }
 }
 
+function getSupplierClaimOrders() {
+  return Array.isArray(
+    (newFormInline.value as ClaimFormItemProps).supplierClaimOrders
+  )
+    ? ((newFormInline.value as ClaimFormItemProps)
+        .supplierClaimOrders as NonNullable<
+        ClaimFormItemProps["supplierClaimOrders"]
+      >)
+    : [];
+}
+
+async function handleCreateSupplierClaim() {
+  const claimUid = newFormInline.value.uid;
+  if (!claimUid || creatingSupplierClaim.value) return;
+
+  try {
+    creatingSupplierClaim.value = true;
+    const { code, data, msg } =
+      await createSupplierClaimOrderFromClaimApi(claimUid);
+    if (code !== 200) {
+      message(msg || "生成供应商索赔单失败", { type: "error" });
+      return;
+    }
+
+    const current = getSupplierClaimOrders();
+    current.unshift({
+      uid: data?.uid,
+      docNo: data?.docNo,
+      isApproved: data?.isApproved,
+      isReversed: data?.isReversed,
+      createAt: data?.createAt
+    });
+    (newFormInline.value as ClaimFormItemProps).supplierClaimOrders = current;
+    message("已生成供应商索赔单", { type: "success" });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "生成供应商索赔单失败";
+    message(msg, { type: "error" });
+  } finally {
+    creatingSupplierClaim.value = false;
+  }
+}
+
 const allRepoList = ref<ListItem[]>([]);
 const allTireList = ref<ListItem[]>([]);
 async function getALlList() {
@@ -447,7 +516,13 @@ watch(
   >
     <div class="flex">
       <el-form-item
-        v-if="[ORDER_TYPE.purchase, ORDER_TYPE.claim].includes(orderType)"
+        v-if="
+          [
+            ORDER_TYPE.purchase,
+            ORDER_TYPE.claim,
+            ORDER_TYPE.supplierClaim
+          ].includes(orderType)
+        "
         label="供应商"
         prop="providerId"
       >
@@ -506,6 +581,41 @@ watch(
         :disabled="!['新增', '修改'].includes(formTitle)"
       />
     </el-form-item>
+
+    <template v-if="orderType === ORDER_TYPE.claim">
+      <el-form-item label="供应商索赔单">
+        <div class="flex flex-wrap items-center gap-2">
+          <el-tag
+            v-for="line in getClaimSupplierClaimOrderLines(
+              newFormInline.supplierClaimOrders
+            )"
+            :key="line"
+            size="small"
+            type="info"
+          >
+            {{ line }}
+          </el-tag>
+          <span
+            v-if="
+              getClaimSupplierClaimOrderLines(newFormInline.supplierClaimOrders)
+                .length === 0
+            "
+            class="text-gray-400 text-sm"
+          >
+            暂无
+          </span>
+          <el-button
+            v-if="formTitle === '查看' && newFormInline.isApproved"
+            size="small"
+            type="primary"
+            :loading="creatingSupplierClaim"
+            @click="handleCreateSupplierClaim"
+          >
+            生成供应商索赔单
+          </el-button>
+        </div>
+      </el-form-item>
+    </template>
 
     <!-- 审核相关字段 -->
     <template v-if="['审核'].includes(formTitle)">
@@ -577,6 +687,19 @@ watch(
           v-model="(newFormInline as ClaimFormItemProps).paymentId"
           placeholder="请选择支付账户"
           class="w-60!"
+        />
+      </el-form-item>
+    </template>
+
+    <template
+      v-if="formTitle === '结算' && orderType === ORDER_TYPE.supplierClaim"
+    >
+      <el-form-item label="结算金额" prop="fee">
+        <el-input-number
+          v-model="(newFormInline as SupplierClaimFormItemProps).fee"
+          :min="0"
+          :precision="2"
+          class="w-48!"
         />
       </el-form-item>
     </template>
@@ -720,6 +843,37 @@ watch(
       <el-form-item label="总数" prop="count">
         <el-input-number v-model="newFormInline.count" disabled class="w-48!" />
       </el-form-item>
+
+      <template v-if="orderType === ORDER_TYPE.supplierClaim">
+        <el-form-item label="索赔金额" prop="showTotal">
+          <el-input-number
+            v-model="newFormInline.showTotal"
+            disabled
+            class="w-48!"
+          />
+        </el-form-item>
+
+        <el-form-item label="已结算" prop="total">
+          <el-input-number
+            v-model="newFormInline.total"
+            disabled
+            class="w-48!"
+          />
+        </el-form-item>
+
+        <el-form-item label="状态">
+          <el-input
+            :model-value="
+              getSupplierClaimOrderStatusLabel({
+                isApproved: newFormInline.isApproved,
+                isReversed: newFormInline.isReversed
+              })
+            "
+            disabled
+            class="w-48!"
+          />
+        </el-form-item>
+      </template>
 
       <template v-if="showSettlementFields">
         <el-form-item label="应付货款" prop="showTotal">

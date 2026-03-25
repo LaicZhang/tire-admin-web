@@ -36,6 +36,7 @@ export enum ORDER_TYPE {
   sale = "sale-order",
   saleQuotation = "sale-quotation",
   claim = "claim-order",
+  supplierClaim = "supplier-claim-order",
   return = "return-order",
   waste = "waste-order",
   transfer = "transfer-order",
@@ -68,6 +69,10 @@ export const ORDER_TYPE_LIST = [
   {
     value: ORDER_TYPE.claim,
     label: "理赔订单"
+  },
+  {
+    value: ORDER_TYPE.supplierClaim,
+    label: "供应商索赔单"
   },
   {
     value: ORDER_TYPE.return,
@@ -105,6 +110,7 @@ const ORDER_TYPE_MAP: Record<ORDER_TYPE, string> = {
   [ORDER_TYPE.sale]: "销售订单",
   [ORDER_TYPE.saleQuotation]: "销售报价",
   [ORDER_TYPE.claim]: "理赔订单",
+  [ORDER_TYPE.supplierClaim]: "供应商索赔单",
   [ORDER_TYPE.return]: "退货订单",
   [ORDER_TYPE.waste]: "报废订单",
   [ORDER_TYPE.transfer]: "调拨订单",
@@ -144,6 +150,10 @@ export const getOrderTypeList = (userRoles: string[]): OrderTypeItem[] => {
       );
       orderTypeMap.set(ORDER_TYPE.sale, ORDER_TYPE_MAP[ORDER_TYPE.sale]);
       orderTypeMap.set(ORDER_TYPE.claim, ORDER_TYPE_MAP[ORDER_TYPE.claim]);
+      orderTypeMap.set(
+        ORDER_TYPE.supplierClaim,
+        ORDER_TYPE_MAP[ORDER_TYPE.supplierClaim]
+      );
     }
   });
 

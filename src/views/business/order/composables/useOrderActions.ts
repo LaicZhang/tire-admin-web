@@ -17,7 +17,8 @@ import {
   reverseSurplusOrderApi,
   sendPurchaseInquiryApi,
   convertSaleQuotationApi,
-  getOrderListApi
+  getOrderListApi,
+  createSupplierClaimOrderFromClaimApi
 } from "@/api";
 import { addDialog } from "@/composables/useDialogService";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
@@ -321,6 +322,18 @@ export function useOrderActions(
     });
   };
 
+  const handleCreateSupplierClaim = async (row: OrderRow) => {
+    try {
+      await createSupplierClaimOrderFromClaimApi(row.uid);
+      message("已生成供应商索赔单", { type: "success" });
+      await onSearch();
+    } catch (error: unknown) {
+      const msg =
+        error instanceof Error ? error.message : "生成供应商索赔单失败";
+      message(msg, { type: "error" });
+    }
+  };
+
   // 退货订单：确认客户退货到货
   const handleConfirmReturnCustomerArrival = async (row: OrderRow) => {
     await openConfirmDetailActionDialog(
@@ -486,6 +499,7 @@ export function useOrderActions(
     handleProcessClaimPayment,
     handleManageClaimDefectCategories,
     handleManageClaimInspections,
+    handleCreateSupplierClaim,
     handleConfirmReturnCustomerArrival,
     handleConfirmReturnProviderShipment,
     handleConfirmReturnProviderDelivery,
