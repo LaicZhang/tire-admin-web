@@ -1,2 +1,0 @@
-文件路径,问题类型,优先级,问题描述,建议方案,工作量估算,处理状态,处理说明
-views/inventory/assembly/index.vue,REUSE,P2,openDialog函数封装良好可作为弹框操作参考,提取为通用useFormDialog增强版,中,已复核,该条为复用建议而非缺陷；本轮未新增通用对话框层
