@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -16,10 +16,11 @@ import {
   restoreEmployeeApi,
   type Employee
 } from "@/api/company/employee";
-import { localForage, message, SYS, handleApiError } from "@/utils";
+import { message, handleApiError } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
+import { useDictItems } from "@/composables/useSysDict";
 
 defineOptions({
   name: "Employee"
@@ -125,24 +126,15 @@ async function handleRestore(row: Employee) {
   }
 }
 
-const getSysDict = async () => {
-  const dict = (await localForage().getItem(SYS.dict)) as Record<
-    string,
-    unknown
-  >;
-  const status = dict.employeeStatus;
-  employeeStatus.value = Array.isArray(status)
-    ? (status as typeof employeeStatus.value)
-    : [];
-};
-
-const employeeStatus = ref<
-  Array<{ id: number; key: string | number; cn: string }>
->([]);
-
-onMounted(async () => {
-  await getSysDict();
-});
+const { dictItems: employeeStatusItems } = useDictItems("employeeStatus");
+const employeeStatus = computed(
+  () =>
+    employeeStatusItems.value as Array<{
+      id: number;
+      key: string | number;
+      cn: string;
+    }>
+);
 </script>
 
 <template>

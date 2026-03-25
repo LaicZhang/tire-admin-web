@@ -12,6 +12,7 @@
       @reload="handleReload"
     />
     <template v-else>
+      <AppDictBootstrap />
       <router-view />
       <ReDialog />
     </template>
@@ -24,6 +25,7 @@ import { ElConfigProvider } from "element-plus";
 // import zhCn from "element-plus/dist/locale/zh-cn.mjs";
 import { useRouter } from "vue-router";
 import { ReDialog } from "@/components/ReDialog";
+import AppDictBootstrap from "@/components/AppDictBootstrap.vue";
 import AppErrorFallback from "@/components/AppErrorFallback.vue";
 import {
   clearRuntimeError,
@@ -38,6 +40,7 @@ export default defineComponent({
   name: "app",
   components: {
     ElConfigProvider,
+    AppDictBootstrap,
     ReDialog,
     AppErrorFallback
   },

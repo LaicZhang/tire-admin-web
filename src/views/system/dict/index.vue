@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref, reactive, onMounted, h } from "vue";
-import type { DictItem } from "@/api/system/dict";
+import { ref, reactive, onMounted, h, computed } from "vue";
+import type { DictDataSource, DictItem } from "@/api/system/dict";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -19,11 +19,14 @@ import {
 import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
+import { invalidateDictCache, preloadDicts } from "@/composables/useSysDict";
 
 defineOptions({
   name: "DictManagement"
 });
 
+const companyStore = useCurrentCompanyStoreHook();
 const dataList = ref<DictItem[]>([]);
 const loading = ref(false);
 const searchFormRef = ref();
@@ -35,6 +38,7 @@ const pagination = reactive({
 });
 
 const form = reactive({
+  type: "system" as DictDataSource,
   scope: "nonDeleted" as "nonDeleted" | "deleted" | "all",
   name: undefined,
   key: undefined,
@@ -43,13 +47,32 @@ const form = reactive({
   isPublic: undefined
 });
 
+const activeSourceTitle = computed(() =>
+  form.type === "company" ? "公司字典管理" : "系统字典管理"
+);
+
+function getActiveCompanyId() {
+  return form.type === "company" ? companyStore.companyId : undefined;
+}
+
+async function refreshActiveDictCache() {
+  await invalidateDictCache({
+    source: form.type,
+    companyId: getActiveCompanyId()
+  });
+  await preloadDicts({
+    source: form.type,
+    companyId: getActiveCompanyId(),
+    force: true
+  });
+}
+
 const getData = async () => {
   loading.value = true;
   try {
-    const { data, code, msg } = await getDictListApi(
-      pagination.currentPage,
-      form
-    );
+    const { data, code, msg } = await getDictListApi(pagination.currentPage, {
+      ...form
+    });
     if (code === 200) {
       dataList.value = data.list || [];
       pagination.total = data.total || 0;
@@ -71,7 +94,8 @@ const resetForm = (formEl: { resetFields: () => void } | undefined) => {
 
 const handleDelete = async (row: DictItem) => {
   try {
-    await deleteDictApi(row.id);
+    await deleteDictApi(row.id, { type: form.type });
+    await refreshActiveDictCache();
     message("删除成功", { type: "success" });
     getData();
   } catch (e: unknown) {
@@ -82,7 +106,8 @@ const handleDelete = async (row: DictItem) => {
 
 const handleRestore = async (row: DictItem) => {
   try {
-    await restoreDictApi(row.id);
+    await restoreDictApi(row.id, { type: form.type });
+    await refreshActiveDictCache();
     message("恢复成功", { type: "success" });
     getData();
   } catch (e) {
@@ -98,7 +123,8 @@ function openDialog(title = "新增", row?: DictItem) {
         name: row?.name ?? "",
         key: row?.key ?? 0,
         cn: row?.cn ?? "",
-        en: row?.en ?? ""
+        en: row?.en ?? "",
+        type: form.type
       }
     },
     width: "46%",
@@ -108,10 +134,23 @@ function openDialog(title = "新增", row?: DictItem) {
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {
       const { formInline } = options.props as {
-        formInline: { name: string; key: number; cn: string; en: string };
+        formInline: {
+          name: string;
+          key: number;
+          cn: string;
+          en: string;
+          type: DictDataSource;
+        };
       };
       return h("div", [
         h("el-form", { model: formInline, labelWidth: "90px" }, [
+          h("el-form-item", { label: "数据源" }, [
+            h(
+              "el-tag",
+              { type: formInline.type === "company" ? "success" : "info" },
+              formInline.type === "company" ? "公司字典" : "系统字典"
+            )
+          ]),
           h("el-form-item", { label: "字典类型", required: true }, [
             h("el-input", {
               modelValue: formInline.name,
@@ -152,6 +191,7 @@ function openDialog(title = "新增", row?: DictItem) {
             key: number;
             cn: string;
             en: string;
+            type: DictDataSource;
           };
         }
       ).formInline;
@@ -184,7 +224,8 @@ function openDialog(title = "新增", row?: DictItem) {
           ? createDictApi(data)
           : updateDictApi(row.id, data);
 
-      promise.then(() => {
+      promise.then(async () => {
+        await refreshActiveDictCache();
         message("操作成功", { type: "success" });
         done();
         getData();
@@ -207,6 +248,17 @@ onMounted(() => {
       @search="getData"
       @reset="resetForm(searchFormRef)"
     >
+      <el-form-item label="数据源" prop="type">
+        <el-select
+          v-model="form.type"
+          placeholder="请选择数据源"
+          class="w-[200px]!"
+          @change="getData"
+        >
+          <el-option label="系统字典" value="system" />
+          <el-option label="公司字典" value="company" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="范围" prop="scope">
         <el-select
           v-model="form.scope"
@@ -228,7 +280,7 @@ onMounted(() => {
       </el-form-item>
     </ReSearchForm>
 
-    <PureTableBar title="字典管理" @refresh="getData">
+    <PureTableBar :title="activeSourceTitle" @refresh="getData">
       <template #buttons>
         <el-button
           type="primary"

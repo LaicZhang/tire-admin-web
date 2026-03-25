@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted } from "vue";
 import { reactive } from "vue";
+import { computed, ref } from "vue";
 import type { FormRules } from "element-plus";
-import { ALL_LIST, localForage, message, SYS } from "@/utils";
+import { ALL_LIST, localForage } from "@/utils";
 import { FormProps } from "./table";
 import type { PositionItem } from "./types";
 import { fieldRules } from "@/utils/validation/fieldRules";
+import { useDictItems } from "@/composables/useSysDict";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -37,19 +39,15 @@ const formRules: FormRules = reactive({
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 
-const employeeStatus = ref<
-  Array<{ id: number; key: string | number; cn: string }>
->([]);
-const getEmployeeStatus = async () => {
-  const dict = (await localForage().getItem(SYS.dict)) as Record<
-    string,
-    unknown
-  >;
-  const status = dict.employeeStatus;
-  employeeStatus.value = Array.isArray(status)
-    ? (status as typeof employeeStatus.value)
-    : [];
-};
+const { dictItems: employeeStatusItems } = useDictItems("employeeStatus");
+const employeeStatus = computed(
+  () =>
+    employeeStatusItems.value as Array<{
+      id: number;
+      key: string | number;
+      cn: string;
+    }>
+);
 
 async function getPositionList() {
   const cached = (await localForage().getItem(ALL_LIST.position)) as
@@ -60,7 +58,7 @@ async function getPositionList() {
 
 defineExpose({ formRef: ruleFormRef });
 onMounted(async () => {
-  await Promise.all([getPositionList(), getEmployeeStatus()]);
+  await getPositionList();
 });
 </script>
 

@@ -186,7 +186,7 @@ export default [
         component: () => import("@/views/system/dict/index.vue"),
         isShow: true,
         meta: {
-          roles: ["admin"],
+          roles: ["admin", "boss"],
           title: "字典管理",
           icon: null
         }

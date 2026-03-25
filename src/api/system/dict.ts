@@ -4,6 +4,8 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const prefix = "/dict/";
 
+export type DictDataSource = "system" | "company";
+
 export interface DictItem {
   id: number;
   name: string; // 字典类型名称
@@ -22,11 +24,11 @@ export interface DictDto {
 }
 
 export type DictScope = "nonDeleted" | "deleted" | "all";
+export type DictListParams = Record<string, unknown> & {
+  type?: DictDataSource;
+};
 
-export async function getDictListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+export async function getDictListApi(index: number, params?: DictListParams) {
   return await http.request<CommonResult<PaginatedResponseDto<DictItem>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),
@@ -34,7 +36,15 @@ export async function getDictListApi(
   );
 }
 
-export async function createDictApi(data: DictDto) {
+export async function getDictItemsApi(params?: DictListParams) {
+  return await http.request<CommonResult<DictItem[]>>(
+    "get",
+    baseUrlApi(prefix + "list"),
+    { params }
+  );
+}
+
+export async function createDictApi(data: DictDto & { type?: DictDataSource }) {
   return await http.request<CommonResult<DictItem>>(
     "post",
     baseUrlApi(prefix),
@@ -42,7 +52,10 @@ export async function createDictApi(data: DictDto) {
   );
 }
 
-export async function updateDictApi(id: number, data: Partial<DictDto>) {
+export async function updateDictApi(
+  id: number,
+  data: Partial<DictDto> & { type?: DictDataSource }
+) {
   return await http.request<CommonResult<DictItem>>(
     "patch",
     baseUrlApi(prefix + id),
@@ -50,16 +63,24 @@ export async function updateDictApi(id: number, data: Partial<DictDto>) {
   );
 }
 
-export async function deleteDictApi(id: number) {
+export async function deleteDictApi(
+  id: number,
+  params?: { type?: DictDataSource }
+) {
   return await http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(prefix + id)
+    baseUrlApi(prefix + id),
+    { params }
   );
 }
 
-export async function restoreDictApi(id: number) {
+export async function restoreDictApi(
+  id: number,
+  params?: { type?: DictDataSource }
+) {
   return await http.request<CommonResult<DictItem>>(
     "post",
-    baseUrlApi(prefix + id + "/restore")
+    baseUrlApi(prefix + id + "/restore"),
+    { params }
   );
 }
