@@ -12,6 +12,9 @@ import {
   updateOrderApi,
   type OrderQueryDto
 } from "./business/order";
+import type { CommonResult } from "./type";
+import { http } from "@/utils/http";
+import { baseUrlApi } from "./utils";
 import type { PurchaseOrder } from "@/views/purchase/order/types";
 import type { InboundOrder } from "@/views/purchase/inbound/types";
 import type { ReturnOrder } from "@/views/purchase/return/types";
@@ -79,6 +82,22 @@ export function updatePurchaseInboundApi(
 
 export function deletePurchaseInboundApi(uid: string) {
   return deleteOrderApi(PURCHASE_INBOUND_ORDER_TYPE, uid);
+}
+
+export function createPurchaseInboundFromPurchaseOrderApi(
+  purchaseOrderUid: string
+) {
+  return http.request<CommonResult<InboundOrder>>(
+    "post",
+    baseUrlApi(`/purchase-inbound/from-po/${purchaseOrderUid}`)
+  );
+}
+
+export function approvePurchaseInboundApi(uid: string) {
+  return http.request<CommonResult<InboundOrder>>(
+    "post",
+    baseUrlApi(`/purchase-inbound/${uid}/approve`)
+  );
 }
 
 export function getPurchaseReturnOrderListApi(

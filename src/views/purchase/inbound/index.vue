@@ -1,119 +1,303 @@
 <script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { v7 as uuid } from "uuid";
+import type { FormInstance } from "element-plus";
+import { useRoute } from "vue-router";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import AddFill from "~icons/ri/add-circle-line";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { h, onMounted, ref } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { addDialog } from "@/composables/useDialogService";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
-import { useRoute } from "vue-router";
 import {
+  approvePurchaseInboundApi,
+  createPurchaseInboundApi,
+  deletePurchaseInboundApi,
   getPurchaseInboundApi,
-  getPurchaseInboundListApi
+  getPurchaseInboundListApi,
+  updatePurchaseInboundApi
 } from "@/api/purchase";
-import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
+import { getCompanyConnect, getCompanyId } from "@/api/company";
+import { message, handleApiError } from "@/utils";
+import { useActionFormDialog } from "@/composables/useActionFormDialog";
+import { useOrderListPage } from "@/composables/useOrderListPage";
+import { useUserStoreHook } from "@/store/modules/user";
 import { inboundOrderColumns } from "./columns";
-import type { InboundOrder, InboundOrderQueryParams } from "./types";
+import {
+  INBOUND_SOURCE_MODE_LABELS,
+  type InboundOrder,
+  type InboundOrderDetail,
+  type InboundOrderQueryParams
+} from "./types";
 import editForm from "./form.vue";
 
 defineOptions({
   name: "PurchaseInbound"
 });
 
-const route = useRoute();
+type InboundOrderFormRef = {
+  formRef?: FormInstance;
+};
 
-const dataList = ref<InboundOrder[]>([]);
-const loading = ref(false);
+const route = useRoute();
+const userStore = useUserStoreHook();
+const formRef = ref<InboundOrderFormRef | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 
-const searchForm = ref<InboundOrderQueryParams>({
-  operatorId: undefined,
-  auditorId: undefined,
-  providerId: undefined,
-  desc: undefined
-});
+const sourceModeOptions = Object.entries(INBOUND_SOURCE_MODE_LABELS).map(
+  ([value, label]) => ({ value, label })
+);
 
-const pagination = ref({
-  total: 0,
-  pageSize: PAGE_SIZE_SMALL,
-  currentPage: 1,
-  background: true
-});
-
-interface SelectItem {
-  uid: string;
-  name: string;
+function toNumber(value: unknown) {
+  const resolved = Number(value ?? 0);
+  return Number.isFinite(resolved) ? resolved : 0;
 }
-const employeeList = ref<SelectItem[]>([]);
-const managerList = ref<SelectItem[]>([]);
-const providerList = ref<SelectItem[]>([]);
 
-async function loadSelectData() {
-  try {
-    const [employees, managers, providers] = await Promise.all([
-      localForage().getItem(ALL_LIST.employee),
-      localForage().getItem(ALL_LIST.manager),
-      localForage().getItem(ALL_LIST.provider)
-    ]);
-    employeeList.value = (employees as SelectItem[]) || [];
-    managerList.value = (managers as SelectItem[]) || [];
-    providerList.value = (providers as SelectItem[]) || [];
-  } catch (error) {
-    handleApiError(error, "加载下拉数据失败");
+function normalizeInboundDetail(
+  detail?: Partial<InboundOrderDetail>
+): InboundOrderDetail {
+  return {
+    uid: detail?.uid,
+    tireId: detail?.tireId || "",
+    tireName: detail?.tireName,
+    count: toNumber(detail?.count || 1),
+    unitPrice: toNumber(detail?.unitPrice),
+    total: toNumber(detail?.total),
+    repoId: detail?.repoId || "",
+    repoName: detail?.repoName,
+    batchNo: detail?.batchNo || "",
+    productionDate: detail?.productionDate || "",
+    expiryDate: detail?.expiryDate || "",
+    serialNumbers: detail?.serialNumbers || [],
+    serialNosText: detail?.serialNosText || "",
+    sourcePurchaseOrderDetailId: detail?.sourcePurchaseOrderDetailId,
+    desc: detail?.desc || ""
+  };
+}
+
+function createEmptyInboundOrder(): InboundOrder {
+  return {
+    uid: uuid(),
+    docNo: "",
+    providerId: "",
+    count: 0,
+    total: 0,
+    showTotal: 0,
+    paidAmount: 0,
+    status: true,
+    isApproved: false,
+    isLocked: false,
+    sourceMode: "MANUAL",
+    desc: "",
+    details: []
+  };
+}
+
+function normalizeInboundOrder(order?: Partial<InboundOrder>): InboundOrder {
+  if (!order) return createEmptyInboundOrder();
+
+  const details = (order.details || []).map(normalizeInboundDetail);
+  const total = toNumber(order.total);
+  return {
+    ...createEmptyInboundOrder(),
+    ...order,
+    total,
+    showTotal: toNumber(order.showTotal ?? total),
+    paidAmount: toNumber(order.paidAmount),
+    count: toNumber(
+      order.count ??
+        details.reduce((sum, detail) => sum + toNumber(detail.count), 0)
+    ),
+    sourceMode: order.sourceMode || "MANUAL",
+    desc: order.desc || "",
+    details
+  };
+}
+
+function validateCreateDetails(details: InboundOrderDetail[]) {
+  if (details.length === 0) {
+    message("请至少添加一条入库明细", { type: "warning" });
+    return false;
   }
-}
 
-async function getList() {
-  try {
-    loading.value = true;
-    const res = await getPurchaseInboundListApi(
-      pagination.value.currentPage,
-      searchForm.value
-    );
-    if (res.code === 200) {
-      dataList.value = res.data.list;
-      pagination.value.total = res.data.total ?? 0;
-    } else {
-      message(res.msg, { type: "error" });
-    }
-  } catch (error) {
-    handleApiError(error, "获取采购入库单列表失败");
-  } finally {
-    loading.value = false;
+  const invalidDetail = details.find(
+    detail => !detail.tireId || !detail.repoId
+  );
+  if (invalidDetail) {
+    message("请为每条明细补全商品和仓库", { type: "warning" });
+    return false;
   }
+
+  return true;
 }
 
-function onSearch() {
-  pagination.value.currentPage = 1;
-  getList();
+function buildDetailsPayload(details: InboundOrderDetail[], companyId: string) {
+  return details.map(detail => ({
+    uid: detail.uid,
+    companyId,
+    tireId: detail.tireId,
+    repoId: detail.repoId,
+    count: toNumber(detail.count),
+    unitPrice: toNumber(detail.unitPrice),
+    total: toNumber(detail.total),
+    batchNo: detail.batchNo || undefined,
+    productionDate: detail.productionDate || undefined,
+    expiryDate: detail.expiryDate || undefined,
+    serialNumbers: detail.serialNumbers || [],
+    sourcePurchaseOrderDetailId: detail.sourcePurchaseOrderDetailId,
+    desc: detail.desc || undefined
+  }));
 }
 
-function onReset() {
-  searchFormRef.value?.resetFields();
-  pagination.value.currentPage = 1;
-  getList();
-}
+function buildCreatePayload(formData: InboundOrder, companyId: string) {
+  const userId = userStore.uid;
+  if (!userId) {
+    throw new Error("当前登录用户信息缺失，无法创建采购入库单");
+  }
 
-function handlePageChange(page: number) {
-  pagination.value.currentPage = page;
-  getList();
-}
-
-function openDialog(row: InboundOrder) {
-  addDialog({
-    title: "查看采购到货记录",
-    props: {
-      formInline: { ...row },
-      formTitle: "查看"
+  return {
+    order: {
+      uid: formData.uid,
+      count: toNumber(formData.count),
+      total: toNumber(formData.total),
+      paidAmount: toNumber(formData.paidAmount),
+      desc: formData.desc || null,
+      status: formData.status,
+      isApproved: false,
+      isLocked: false,
+      sourceMode: formData.sourceMode || "MANUAL",
+      company: getCompanyConnect(companyId),
+      operator: { connect: { uid: userId } },
+      provider: { connect: { uid: formData.providerId } },
+      ...(formData.auditorId
+        ? { auditor: { connect: { uid: formData.auditorId } } }
+        : {}),
+      ...(formData.sourcePurchaseOrderId
+        ? { sourcePurchaseOrderId: formData.sourcePurchaseOrderId }
+        : {})
     },
-    width: "90%",
-    hideFooter: true,
-    contentRenderer: () =>
-      h(editForm, {
-        formInline: { ...row },
-        formTitle: "查看"
-      })
+    details: buildDetailsPayload(formData.details, companyId)
+  };
+}
+
+function buildUpdatePayload(formData: InboundOrder, companyId: string) {
+  return {
+    count: toNumber(formData.count),
+    total: toNumber(formData.total),
+    paidAmount: toNumber(formData.paidAmount),
+    desc: formData.desc || null,
+    status: formData.status,
+    sourceMode: formData.sourceMode || "MANUAL",
+    company: getCompanyConnect(companyId),
+    provider: { connect: { uid: formData.providerId } },
+    ...(formData.auditorId
+      ? { auditor: { connect: { uid: formData.auditorId } } }
+      : {}),
+    ...(formData.sourcePurchaseOrderId
+      ? {
+          sourcePurchaseOrder: {
+            connect: { uid: formData.sourcePurchaseOrderId }
+          }
+        }
+      : {})
+  };
+}
+
+const {
+  dataList,
+  loading,
+  pagination,
+  searchForm,
+  selectData,
+  getList,
+  onSearch,
+  onReset,
+  handlePageChange,
+  handleSizeChange
+} = useOrderListPage<InboundOrder, InboundOrderQueryParams>({
+  listApi: (page, pageSize, query) =>
+    getPurchaseInboundListApi(page, { ...query, pageSize }),
+  selectDataKeys: ["employee", "manager", "provider"],
+  initialQuery: {
+    operatorId: undefined,
+    auditorId: undefined,
+    providerId: undefined,
+    sourceMode: undefined,
+    desc: undefined
+  },
+  pageSize: PAGE_SIZE_SMALL,
+  listErrorMessage: "获取采购入库单列表失败",
+  searchFormRef
+});
+
+const employeeList = selectData.employee;
+const managerList = selectData.manager;
+const providerList = selectData.provider;
+
+const { openDialog } = useActionFormDialog<InboundOrder, InboundOrderFormRef>({
+  entityName: "采购入库单",
+  formComponent: editForm,
+  formRef,
+  buildFormData: row => normalizeInboundOrder(row),
+  buildFormProps: (formInline, formTitle) => ({
+    formInline,
+    formTitle
+  }),
+  handlers: {
+    新增: async formData => {
+      if (!validateCreateDetails(formData.details)) return false;
+      const companyId = getCompanyId();
+      await createPurchaseInboundApi(buildCreatePayload(formData, companyId));
+      message("新增成功", { type: "success" });
+    },
+    修改: async formData => {
+      const companyId = getCompanyId();
+      await updatePurchaseInboundApi(
+        formData.uid,
+        buildUpdatePayload(formData, companyId)
+      );
+      message("修改成功", { type: "success" });
+    },
+    审核: async formData => {
+      if (!formData.isApproved) {
+        message("采购入库单当前仅支持审核通过，请勿在此弹窗内选择驳回", {
+          type: "warning"
+        });
+        return false;
+      }
+      await approvePurchaseInboundApi(formData.uid);
+      message("审核完成", { type: "success" });
+    }
+  },
+  afterSuccess: getList
+});
+
+function openAuditDialog(row: InboundOrder) {
+  openDialog("审核", {
+    ...normalizeInboundOrder(row),
+    isApproved: true,
+    rejectReason: ""
   });
+}
+
+async function handleDelete(row: InboundOrder) {
+  try {
+    await deletePurchaseInboundApi(row.uid);
+    message("删除成功", { type: "success" });
+    getList();
+  } catch (error) {
+    handleApiError(error, "删除采购入库单失败");
+  }
+}
+
+function handleGenerateReturnGuide(row: InboundOrder) {
+  message(
+    `采购入库单 ${row.docNo || row.number || row.uid} 的后续退货请走采购退货流程`,
+    {
+      type: "info"
+    }
+  );
 }
 
 async function openFromRouteQuery() {
@@ -121,21 +305,27 @@ async function openFromRouteQuery() {
   const action = route.query.action;
   if (typeof uid !== "string" || typeof action !== "string") return;
 
-  const titleMap: Record<string, string> = {
+  const titleMap = {
     view: "查看",
     edit: "修改",
     audit: "审核"
-  };
-  if (!titleMap[action]) return;
+  } as const;
+  if (!(action in titleMap)) return;
 
   try {
     loading.value = true;
     const res = await getPurchaseInboundApi(uid);
-    if (res.code === 200) {
-      openDialog(res.data);
-    } else {
+    if (res.code !== 200) {
       message(res.msg, { type: "error" });
+      return;
     }
+
+    const normalized = normalizeInboundOrder(res.data);
+    if (action === "audit") {
+      openAuditDialog(normalized);
+      return;
+    }
+    openDialog(titleMap[action as keyof typeof titleMap], normalized);
   } catch (error) {
     handleApiError(error, "获取采购入库单失败");
   } finally {
@@ -143,27 +333,13 @@ async function openFromRouteQuery() {
   }
 }
 
-async function handleGenerateReturnOrder(row: InboundOrder) {
-  message(`请从采购订单或采购退货流程处理该到货记录，单号: ${row.number}`, {
-    type: "info"
-  });
-}
-
 onMounted(async () => {
-  await loadSelectData();
-  await getList();
   await openFromRouteQuery();
 });
 </script>
 
 <template>
   <div class="main">
-    <el-alert
-      class="m-1"
-      type="info"
-      :closable="false"
-      title="采购入库在当前后台中统一视为采购订单的到货确认视图，不单独创建入库单。"
-    />
     <ReSearchForm
       ref="searchFormRef"
       :form="searchForm"
@@ -217,6 +393,21 @@ onMounted(async () => {
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="来源方式">
+        <el-select
+          v-model="searchForm.sourceMode"
+          placeholder="请选择来源方式"
+          clearable
+          class="w-[180px]"
+        >
+          <el-option
+            v-for="item in sourceModeOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="备注">
         <el-input
           v-model="searchForm.desc"
@@ -228,7 +419,16 @@ onMounted(async () => {
     </ReSearchForm>
 
     <el-card class="m-1">
-      <PureTableBar title="采购到货确认" @refresh="getList">
+      <PureTableBar title="采购入库单" @refresh="getList">
+        <template #buttons>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon(AddFill)"
+            @click="openDialog('新增')"
+          >
+            新增入库单
+          </el-button>
+        </template>
         <template v-slot="{ size }">
           <pure-table
             row-key="uid"
@@ -241,25 +441,27 @@ onMounted(async () => {
             show-overflow-tooltip
             :pagination="{ ...pagination, size }"
             @page-current-change="handlePageChange"
+            @page-size-change="handleSizeChange"
           >
             <template #operation="{ row }">
               <TableOperations
                 :row="row"
-                :delete-title="`确认删除编号 ${row.number} 的到货记录?`"
+                show-audit
+                :delete-title="`确认删除编号 ${row.docNo || row.number} 的采购入库单?`"
                 :custom-actions="
                   [
                     {
-                      label: '退货处理指引',
+                      label: '退货指引',
                       type: 'warning',
                       visible: row.isApproved,
-                      onClick: () => handleGenerateReturnOrder(row)
+                      onClick: () => handleGenerateReturnGuide(row)
                     }
                   ] as CustomAction[]
                 "
-                :show-edit="false"
-                :show-audit="false"
-                :show-delete="false"
-                @view="openDialog($event as unknown as InboundOrder)"
+                @view="openDialog('查看', $event as unknown as InboundOrder)"
+                @edit="openDialog('修改', $event as unknown as InboundOrder)"
+                @audit="openAuditDialog($event as unknown as InboundOrder)"
+                @delete="handleDelete($event as unknown as InboundOrder)"
               />
             </template>
           </pure-table>

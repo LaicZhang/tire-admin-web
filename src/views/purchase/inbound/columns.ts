@@ -1,4 +1,8 @@
-import type { InboundOrder } from "./types";
+import {
+  INBOUND_SOURCE_MODE_LABELS,
+  type InboundOrder,
+  type InboundSourceMode
+} from "./types";
 
 type TableColumn = {
   label: string;
@@ -17,14 +21,24 @@ type TableColumn = {
 /** Inbound Order Table Columns */
 export const inboundOrderColumns: TableColumn[] = [
   {
-    label: "入库单号",
-    prop: "number",
-    minWidth: 140
+    label: "单据编号",
+    minWidth: 140,
+    formatter: row => String(row.docNo || row.number || "-")
   },
   {
-    label: "关联采购单",
-    prop: "purchaseOrder.number",
-    minWidth: 140
+    label: "来源方式",
+    prop: "sourceMode",
+    minWidth: 120,
+    formatter: (_row, _column, cellValue) =>
+      INBOUND_SOURCE_MODE_LABELS[(cellValue as InboundSourceMode) || "MANUAL"]
+  },
+  {
+    label: "来源采购单",
+    minWidth: 150,
+    formatter: row =>
+      String(
+        row.sourcePurchaseOrder?.docNo || row.sourcePurchaseOrder?.number || "-"
+      )
   },
   {
     label: "供应商",
@@ -42,7 +56,7 @@ export const inboundOrderColumns: TableColumn[] = [
     width: 120
   },
   {
-    label: "本次付款",
+    label: "已付金额",
     prop: "paidAmount",
     width: 120
   },
@@ -81,7 +95,7 @@ export const inboundOrderColumns: TableColumn[] = [
     label: "操作",
     fixed: "right",
     slot: "operation",
-    minWidth: 250
+    minWidth: 280
   }
 ];
 
