@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import type { InboundOrder, InboundOrderDetail } from "./types";
+import {
+  INBOUND_SOURCE_MODE_LABELS,
+  type InboundOrder,
+  type InboundOrderDetail
+} from "./types";
 import { inboundOrderDetailColumns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
@@ -13,6 +17,8 @@ import {
 } from "@/utils/serialNumber";
 import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
+import { loadInventoryDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = withDefaults(
   defineProps<{
@@ -43,7 +49,29 @@ const managerList = ref<SelectItem[]>([]);
 
 const isReadOnly = computed(() => ["查看", "审核"].includes(props.formTitle));
 
-const isEditable = computed(() => ["新增", "修改"].includes(props.formTitle));
+const canEditHeader = computed(() =>
+  ["新增", "修改"].includes(props.formTitle)
+);
+
+const canEditDetails = computed(() => props.formTitle === "新增");
+
+const sourceModeLabel = computed(
+  () =>
+    INBOUND_SOURCE_MODE_LABELS[formData.value.sourceMode || "MANUAL"] ||
+    INBOUND_SOURCE_MODE_LABELS.MANUAL
+);
+
+const orderNumberText = computed(() =>
+  String(formData.value.docNo || formData.value.number || "")
+);
+
+const sourcePurchaseOrderText = computed(() =>
+  String(
+    formData.value.sourcePurchaseOrder?.docNo ||
+      formData.value.sourcePurchaseOrder?.number ||
+      "-"
+  )
+);
 
 function prepareDetail(detail: InboundOrderDetail): InboundOrderDetail {
   return {
@@ -76,13 +104,24 @@ async function loadBaseData() {
   }
 }
 
+const defaultWarehouseId = ref<string | undefined>(undefined);
+
+async function loadDefaultWarehouseId() {
+  try {
+    const defaults = await loadInventoryDefaults();
+    defaultWarehouseId.value = defaults.defaultWarehouseId;
+  } catch (error) {
+    logger.error("[InventoryDefaults] load failed", error);
+  }
+}
+
 function onAddDetail() {
   formData.value.details.push({
     tireId: "",
     count: 1,
     unitPrice: 0,
     total: 0,
-    repoId: "",
+    repoId: defaultWarehouseId.value || "",
     batchNo: "",
     serialNumbers: [],
     serialNosText: "",
@@ -128,6 +167,7 @@ defineExpose({ formRef: ruleFormRef });
 
 onMounted(() => {
   loadBaseData();
+  void loadDefaultWarehouseId();
 });
 
 watch(
@@ -153,7 +193,7 @@ watch(
           <ProviderSelect
             v-model="formData.providerId"
             placeholder="请选择供应商"
-            :disabled="isReadOnly || !!formData.purchaseOrderId"
+            :disabled="isReadOnly || formData.sourceMode === 'PO_LINKED'"
             class="w-full"
           />
         </el-form-item>
@@ -177,13 +217,21 @@ watch(
         </el-form-item>
       </el-col>
       <el-col :span="6">
-        <el-form-item label="入库单号">
-          <el-input v-model="formData.number" disabled />
+        <el-form-item label="单据编号">
+          <el-input :model-value="orderNumberText" disabled />
         </el-form-item>
       </el-col>
       <el-col :span="6">
-        <el-form-item label="关联采购单">
-          <el-input v-model="formData.purchaseOrderNumber" disabled />
+        <el-form-item label="来源方式">
+          <el-input :model-value="sourceModeLabel" disabled />
+        </el-form-item>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <el-form-item label="来源采购单">
+          <el-input :model-value="sourcePurchaseOrderText" disabled />
         </el-form-item>
       </el-col>
     </el-row>
@@ -194,7 +242,7 @@ watch(
         type="textarea"
         :rows="2"
         placeholder="请输入备注信息"
-        :disabled="isReadOnly"
+        :disabled="!canEditHeader"
       />
     </el-form-item>
 
@@ -256,7 +304,7 @@ watch(
           placeholder="选择商品"
           clearable
           filterable
-          :disabled="isReadOnly"
+          :disabled="!canEditDetails"
         >
           <el-option
             v-for="item in allTireList"
@@ -272,7 +320,7 @@ watch(
           v-model="row.count"
           :min="1"
           :max="9999"
-          :disabled="isReadOnly || Boolean(row.serialNumbers?.length)"
+          :disabled="!canEditDetails || Boolean(row.serialNumbers?.length)"
           controls-position="right"
           @change="calcDetailTotal(row)"
         />
@@ -283,7 +331,7 @@ watch(
           v-model="row.unitPrice"
           :min="0"
           :precision="2"
-          :disabled="isReadOnly"
+          :disabled="!canEditDetails"
           controls-position="right"
           @change="calcDetailTotal(row)"
         />
@@ -304,7 +352,7 @@ watch(
           v-model="row.repoId"
           placeholder="选择仓库"
           clearable
-          :disabled="isReadOnly"
+          :disabled="!canEditDetails"
         >
           <el-option
             v-for="item in allRepoList"
@@ -319,7 +367,7 @@ watch(
         <el-input
           v-model="row.batchNo"
           placeholder="批次号"
-          :disabled="isReadOnly"
+          :disabled="!canEditDetails"
         />
       </template>
 
@@ -329,7 +377,7 @@ watch(
           type="date"
           placeholder="生产日期"
           value-format="YYYY-MM-DD"
-          :disabled="isReadOnly"
+          :disabled="!canEditDetails"
           class="w-full"
         />
       </template>
@@ -340,7 +388,7 @@ watch(
           type="date"
           placeholder="过期日期"
           value-format="YYYY-MM-DD"
-          :disabled="isReadOnly"
+          :disabled="!canEditDetails"
           class="w-full"
         />
       </template>
@@ -351,7 +399,7 @@ watch(
           type="textarea"
           :rows="3"
           placeholder="每行一个胎号；也可按 serialNo,dotCode,dotYear,dotWeek,remark 录入"
-          :disabled="isReadOnly"
+          :disabled="!canEditDetails"
           @change="syncDetailSerialNumbers(row)"
         />
       </template>
@@ -360,7 +408,7 @@ watch(
         <el-input
           v-model="row.desc"
           placeholder="备注"
-          :disabled="isReadOnly"
+          :disabled="!canEditDetails"
         />
       </template>
 
@@ -368,7 +416,7 @@ watch(
         <el-popconfirm title="确认删除此行?" @confirm="onDeleteDetail($index)">
           <template #reference>
             <el-button
-              v-if="isEditable"
+              v-if="canEditDetails"
               link
               type="danger"
               :icon="useRenderIcon(Delete)"
@@ -379,7 +427,7 @@ watch(
         </el-popconfirm>
       </template>
 
-      <template v-if="isEditable" #append>
+      <template v-if="canEditDetails" #append>
         <el-button
           plain
           class="w-full my-2"
@@ -410,21 +458,21 @@ watch(
         </el-form-item>
       </el-col>
       <el-col :span="6">
-        <el-form-item label="实付金额">
+        <el-form-item label="单据金额">
           <el-input-number
             v-model="formData.total"
             :precision="2"
-            :disabled="isReadOnly"
+            :disabled="!canEditHeader"
             class="w-full"
           />
         </el-form-item>
       </el-col>
       <el-col :span="6">
-        <el-form-item label="本次付款">
+        <el-form-item label="已付金额">
           <el-input-number
             v-model="formData.paidAmount"
             :precision="2"
-            :disabled="isReadOnly"
+            :disabled="!canEditHeader"
             class="w-full"
           />
         </el-form-item>

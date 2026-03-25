@@ -11,6 +11,7 @@ import type { FormInstance } from "element-plus";
 import { useRoute } from "vue-router";
 import {
   confirmPurchaseOrderArrivalApi,
+  createPurchaseInboundFromPurchaseOrderApi,
   createPurchaseOrderApi,
   deletePurchaseOrderApi,
   getPurchaseOrderApi,
@@ -215,6 +216,23 @@ async function onConfirmArrival(row: PurchaseOrder) {
   await handleConfirmArrival(row, confirmPurchaseOrderArrivalApi);
 }
 
+async function onCreateInboundDraft(row: PurchaseOrder) {
+  try {
+    const res = await createPurchaseInboundFromPurchaseOrderApi(row.uid);
+    if (res.code !== 200) {
+      message(res.msg, { type: "error" });
+      return;
+    }
+    const created = res.data;
+    message(
+      `已生成采购入库草稿 ${created.docNo || created.number || created.uid}`,
+      { type: "success" }
+    );
+  } catch (error) {
+    handleApiError(error, "生成采购入库草稿失败");
+  }
+}
+
 // 只处理路由参数，composable 已处理 loadSelectData 和 getList
 onMounted(async () => {
   await openFromRouteQuery();
@@ -333,6 +351,14 @@ onMounted(async () => {
                         (row as PurchaseOrder).isApproved &&
                         (row as PurchaseOrder).details?.some(d => !d.isArrival),
                       onClick: () => onConfirmArrival(row as PurchaseOrder)
+                    },
+                    {
+                      label: '生成入库草稿',
+                      type: 'primary',
+                      visible:
+                        (row as PurchaseOrder).isApproved &&
+                        Boolean((row as PurchaseOrder).uid),
+                      onClick: () => onCreateInboundDraft(row as PurchaseOrder)
                     }
                   ] as CustomAction[]
                 "
