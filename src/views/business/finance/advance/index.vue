@@ -94,13 +94,7 @@ const {
       page,
       pageSize,
       ...form.value
-    }) as unknown as Promise<
-      CommonResult<{
-        list: AdvancePaymentListItem[];
-        total?: number;
-        count?: number;
-      }>
-    >,
+    }),
   pagination: {
     total: 0,
     pageSize: PAGE_SIZE_SMALL,

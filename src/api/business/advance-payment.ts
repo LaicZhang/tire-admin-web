@@ -104,11 +104,21 @@ function mapPaymentRow(row: PaymentOrderRow): AdvancePaymentListItem {
   };
 }
 
+type AdvancePaymentListResult = CommonResult<AdvancePaymentListResponse>;
+
+function assertAdvancePaymentListResponse<
+  T extends { code: number; msg: string }
+>(response: T) {
+  if (response.code !== 200) {
+    throw new Error(response.msg || "预收预付列表加载失败");
+  }
+}
+
 async function getAdvanceReceiptList(params?: {
   page?: number;
   pageSize?: number;
   targetName?: string;
-}) {
+}): Promise<AdvancePaymentListResult> {
   const response = await http.request<
     CommonResult<{ list: AdvanceReceiptRow[]; count: number }>
   >("get", baseUrlApi(ADVANCE_RECEIPT_PREFIX), {
@@ -118,10 +128,7 @@ async function getAdvanceReceiptList(params?: {
       customerName: params?.targetName
     }
   });
-
-  if (response.code !== 200) {
-    return response as unknown as CommonResult<AdvancePaymentListResponse>;
-  }
+  assertAdvancePaymentListResponse(response);
 
   const total = response.data?.count ?? 0;
   return {
@@ -138,7 +145,7 @@ async function getPaymentOrderList(params?: {
   page?: number;
   pageSize?: number;
   targetName?: string;
-}) {
+}): Promise<AdvancePaymentListResult> {
   const page = params?.page ?? 1;
   const response = await http.request<
     CommonResult<{ list: PaymentOrderRow[]; count: number }>
@@ -149,10 +156,7 @@ async function getPaymentOrderList(params?: {
       advanceOnly: true
     }
   });
-
-  if (response.code !== 200) {
-    return response as unknown as CommonResult<AdvancePaymentListResponse>;
-  }
+  assertAdvancePaymentListResponse(response);
 
   const total = response.data?.count ?? 0;
   return {
@@ -170,7 +174,7 @@ export async function getAdvancePaymentList(params?: {
   pageSize?: number;
   type?: string;
   targetName?: string;
-}) {
+}): Promise<AdvancePaymentListResult> {
   const page = params?.page ?? 1;
   const pageSize = params?.pageSize ?? 10;
   const targetName = params?.targetName;
@@ -188,9 +192,6 @@ export async function getAdvancePaymentList(params?: {
     getAdvanceReceiptList({ page: 1, pageSize: take, targetName }),
     getPaymentOrderList({ page: 1, pageSize: take, targetName })
   ]);
-
-  if (receiptResponse.code !== 200) return receiptResponse;
-  if (paymentResponse.code !== 200) return paymentResponse;
 
   const total =
     (receiptResponse.data?.total ?? receiptResponse.data?.count ?? 0) +

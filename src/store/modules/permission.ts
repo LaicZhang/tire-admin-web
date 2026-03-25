@@ -21,7 +21,7 @@ export const usePermissionStore = defineStore("pure-permission", {
     cachePageList: string[];
   } => ({
     // 静态路由生成的菜单
-    constantMenus: constantMenus as unknown as RouteRecordRaw[],
+    constantMenus,
     // 整体路由生成的菜单（静态、动态）
     wholeMenus: [],
     // 整体路由（一维数组格式）
@@ -32,15 +32,11 @@ export const usePermissionStore = defineStore("pure-permission", {
   actions: {
     /** 组装整体路由生成的菜单 */
     handleWholeMenus(routes: RouteRecordRaw[]) {
-      const merged = (this.constantMenus as unknown[]).concat(
-        routes as unknown[]
-      );
+      const merged = this.constantMenus.concat(routes);
       this.wholeMenus = filterNoPermissionTree(
-        filterTree(ascending(merged as RouteRecordRaw[]))
-      ) as unknown as RouteRecordRaw[];
-      this.flatteningRoutes = formatFlatteningRoutes(
-        merged as unknown as RouteRecordRaw[]
-      ) as unknown as RouteRecordRaw[];
+        filterTree(ascending(merged))
+      ) as RouteRecordRaw[];
+      this.flatteningRoutes = formatFlatteningRoutes(merged);
     },
     cacheOperate({ mode, name }: cacheType) {
       if (!name) return;

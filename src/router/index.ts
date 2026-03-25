@@ -1,6 +1,6 @@
 import NProgress from "@/utils/progress";
 import { message } from "@/utils/message";
-import { buildHierarchyTree } from "@/utils/tree";
+import { buildHierarchyTree, type TreeNode } from "@/utils/tree";
 import remainingRouter from "./modules/remaining";
 import { routerLogger } from "@/utils/logger";
 import { formatRuntimeError, showRuntimeError } from "@/utils/runtimeError";
@@ -16,12 +16,7 @@ import {
   resolveSafeErrorRoute,
   safeNavigate
 } from "./utils";
-import {
-  type Router,
-  createRouter,
-  type RouteRecordRaw,
-  type RouteComponent
-} from "vue-router";
+import { type Router, createRouter, type RouteRecordRaw } from "vue-router";
 import type { ExtendedRouteRecord } from "./types";
 
 /** 自动导入全部静态路由，无需再手动引入！匹配 src/router/modules 目录（任何嵌套级别）中具有 .ts 扩展名的所有文件，除了 remaining.ts 文件
@@ -42,25 +37,36 @@ Object.keys(modules).forEach(key => {
   routes.push(modules[key].default as ExtendedRouteRecord);
 });
 
+function flattenStaticRoutes(
+  routeList: ExtendedRouteRecord[]
+): ExtendedRouteRecord[] {
+  return routeList.flat(Infinity) as ExtendedRouteRecord[];
+}
+
+function asTreeNodes<T>(routeList: T[]): Array<T & TreeNode> {
+  return routeList as Array<T & TreeNode>;
+}
+
+function buildStaticRouteTree(
+  routeList: ExtendedRouteRecord[]
+): ExtendedRouteRecord[] {
+  return buildHierarchyTree(
+    asTreeNodes(ascending(routeList))
+  ) as ExtendedRouteRecord[];
+}
+
 /** 导出处理后的静态路由（三级及以上的路由全部拍成二级） */
 export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(
-  formatFlatteningRoutes(
-    buildHierarchyTree(
-      ascending(
-        // flat(Infinity) returns unknown[], need type assertion for ascending()
-        routes.flat(Infinity) as ExtendedRouteRecord[]
-      ) as unknown as import("@/utils/tree").TreeNode[]
-    ) as unknown as ExtendedRouteRecord[]
-  )
+  formatFlatteningRoutes(buildStaticRouteTree(flattenStaticRoutes(routes)))
 );
 
 /** 用于渲染菜单，保持原始层级 */
 
-export const constantMenus: Array<RouteComponent> = (
-  ascending(
-    routes.flat(Infinity) as ExtendedRouteRecord[]
-  ) as unknown as RouteComponent[]
-).concat(remainingRouter as unknown as RouteComponent[]);
+export const constantMenus: Array<RouteRecordRaw> = ascending(
+  flattenStaticRoutes(routes)
+)
+  .map(route => route as RouteRecordRaw)
+  .concat(remainingRouter as RouteRecordRaw[]);
 
 /** 不参与菜单的路由 */
 export const remainingPaths = (remainingRouter as RouteRecordRaw[]).map(
@@ -103,12 +109,7 @@ export function resetRouter() {
       router.removeRoute(name);
       router.options.routes = formatTwoStageRoutes(
         formatFlatteningRoutes(
-          buildHierarchyTree(
-            ascending(
-              // flat(Infinity) returns unknown[], need type assertion
-              routes.flat(Infinity) as ExtendedRouteRecord[]
-            ) as unknown as import("@/utils/tree").TreeNode[]
-          ) as unknown as RouteRecordRaw[]
+          buildStaticRouteTree(flattenStaticRoutes(routes))
         )
       );
     }
