@@ -4,11 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getInvoicePage: vi.fn(),
+  redFlushInvoice: vi.fn(),
   push: vi.fn()
 }));
 
 vi.mock("@/api/business/invoice", () => ({
-  getInvoicePage: mocks.getInvoicePage
+  getInvoicePage: mocks.getInvoicePage,
+  redFlushInvoice: mocks.redFlushInvoice
 }));
 
 vi.mock("vue-router", async importOriginal => {
@@ -142,6 +144,7 @@ function mountPage() {
 describe("business/finance/invoice/index", () => {
   beforeEach(() => {
     mocks.getInvoicePage.mockReset();
+    mocks.redFlushInvoice.mockReset();
     mocks.push.mockReset();
     mocks.getInvoicePage.mockResolvedValue({
       data: {
@@ -150,6 +153,8 @@ describe("business/finance/invoice/index", () => {
           {
             uid: "invoice-1",
             invoiceNumber: "INV-001",
+            invoiceRole: "BLUE",
+            redFlushStatus: "NONE",
             businessType: "SALE",
             partyName: "客户甲",
             statementNo: "RS-001",
@@ -213,5 +218,52 @@ describe("business/finance/invoice/index", () => {
     expect(wrapper.get("[data-test='invoice-form-dialog']").text()).toContain(
       "open"
     );
+  });
+
+  it("应对已签发蓝票展示红冲按钮并调用接口", async () => {
+    mocks.getInvoicePage.mockResolvedValueOnce({
+      data: {
+        total: 1,
+        list: [
+          {
+            uid: "invoice-issued-1",
+            invoiceNumber: "INV-ISSUED-001",
+            invoiceRole: "BLUE",
+            redFlushStatus: "NONE",
+            businessType: "SALE",
+            partyName: "客户甲",
+            statementNo: "RS-002",
+            status: "issued",
+            amount: 10000,
+            taxAmount: 1300,
+            totalAmount: 11300,
+            invoiceDate: "2026-03-25T00:00:00.000Z"
+          }
+        ]
+      }
+    });
+    mocks.redFlushInvoice.mockResolvedValue({ data: null });
+
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    const redFlushButton = wrapper
+      .findAll("[data-row-uid='invoice-issued-1'] button")
+      .find(button => button.text() === "红冲");
+
+    expect(redFlushButton).toBeDefined();
+    await redFlushButton!.trigger("click");
+    await flushPromises();
+
+    expect(mocks.redFlushInvoice).toHaveBeenCalledWith("invoice-issued-1", {
+      invoiceNumber: "INV-ISSUED-001-R",
+      invoiceType: "vat_normal",
+      invoiceDate: expect.any(String),
+      amount: 10000,
+      taxAmount: 1300,
+      totalAmount: 11300,
+      redFlushReason: "后台红冲"
+    });
   });
 });

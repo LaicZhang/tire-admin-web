@@ -2,9 +2,9 @@
 import { onMounted, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import {
-  cancelInvoice,
   getInvoiceDetail,
   issueInvoice,
+  redFlushInvoice,
   type InvoiceRow
 } from "@/api/business/invoice";
 import { handleApiError } from "@/utils/error";
@@ -19,9 +19,15 @@ const route = useRoute();
 const loading = ref(false);
 const row = ref<InvoiceRow | null>(null);
 
-const canIssue = computed(() => row.value?.status === "draft");
-const canCancel = computed(
-  () => !!row.value && row.value.status !== "cancelled"
+const canIssue = computed(
+  () => row.value?.invoiceRole === "BLUE" && row.value?.status === "draft"
+);
+const canRedFlush = computed(
+  () =>
+    !!row.value &&
+    row.value.invoiceRole === "BLUE" &&
+    row.value.status === "issued" &&
+    row.value.redFlushStatus !== "FULL"
 );
 
 async function loadDetail() {
@@ -49,14 +55,26 @@ async function handleIssue() {
   }
 }
 
-async function handleCancel() {
+function buildRedFlushPayload(detail: InvoiceRow) {
+  return {
+    invoiceNumber: `${detail.invoiceNumber}-R`,
+    invoiceType: detail.invoiceType || "vat_normal",
+    invoiceDate: new Date().toISOString().slice(0, 10),
+    amount: Math.abs(Number(detail.amount || 0)),
+    taxAmount: Math.abs(Number(detail.taxAmount || 0)),
+    totalAmount: Math.abs(Number(detail.totalAmount || 0)),
+    redFlushReason: "后台红冲"
+  };
+}
+
+async function handleRedFlush() {
   if (!row.value) return;
   try {
-    await cancelInvoice(row.value.uid, "后台作废");
-    message("发票已作废", { type: "success" });
+    await redFlushInvoice(row.value.uid, buildRedFlushPayload(row.value));
+    message("红字发票已创建", { type: "success" });
     await loadDetail();
   } catch (error) {
-    handleApiError(error, "作废失败");
+    handleApiError(error, "红冲失败");
   }
 }
 
@@ -69,6 +87,9 @@ onMounted(loadDetail);
       <el-descriptions :column="2" border>
         <el-descriptions-item label="发票号">
           {{ row.invoiceNumber }}
+        </el-descriptions-item>
+        <el-descriptions-item label="票据角色">
+          {{ row.invoiceRole === "RED" ? "红字票" : "蓝票" }}
         </el-descriptions-item>
         <el-descriptions-item label="业务类型">
           {{ row.businessType === "PURCHASE" ? "采购进项" : "销售销项" }}
@@ -91,11 +112,22 @@ onMounted(loadDetail);
         <el-descriptions-item label="状态">
           {{ row.status }}
         </el-descriptions-item>
+        <el-descriptions-item label="红冲状态">
+          {{ row.redFlushStatus || "-" }}
+        </el-descriptions-item>
         <el-descriptions-item label="开票日期">
           {{ row.invoiceDate.slice(0, 10) }}
         </el-descriptions-item>
         <el-descriptions-item label="备注">
           {{ row.remark || "-" }}
+        </el-descriptions-item>
+        <el-descriptions-item label="原票">
+          {{
+            row.sourceInvoice?.invoiceNumber || row.sourceInvoiceNumber || "-"
+          }}
+        </el-descriptions-item>
+        <el-descriptions-item label="红冲原因">
+          {{ row.redFlushReason || "-" }}
         </el-descriptions-item>
       </el-descriptions>
 
@@ -112,12 +144,22 @@ onMounted(loadDetail);
         </el-descriptions-item>
       </el-descriptions>
 
+      <el-divider content-position="left"> 红字关联 </el-divider>
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="红字票">
+          {{
+            row.redFlushInvoices?.map(item => item.invoiceNumber).join("、") ||
+            "-"
+          }}
+        </el-descriptions-item>
+      </el-descriptions>
+
       <div class="mt-4 flex gap-3">
         <el-button v-if="canIssue" type="primary" @click="handleIssue">
           签发发票
         </el-button>
-        <el-button v-if="canCancel" type="danger" @click="handleCancel">
-          作废发票
+        <el-button v-if="canRedFlush" type="danger" @click="handleRedFlush">
+          红冲发票
         </el-button>
       </div>
     </el-card>

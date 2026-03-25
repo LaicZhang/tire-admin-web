@@ -4,13 +4,27 @@ import type { CommonResult } from "../type";
 
 export type InvoiceBusinessType = "SALE" | "PURCHASE";
 export type InvoiceStatus = "draft" | "issued" | "cancelled";
+export type InvoiceRole = "BLUE" | "RED";
+export type InvoiceRedFlushStatus = "NONE" | "PARTIAL" | "FULL";
+
+export interface InvoiceRelationSummary {
+  uid: string;
+  invoiceNumber: string;
+  invoiceRole?: InvoiceRole;
+  status?: InvoiceStatus;
+  totalAmount?: number;
+  invoiceDate?: string;
+  redFlushedAt?: string;
+}
 
 export interface InvoiceRow {
   uid: string;
   businessType: InvoiceBusinessType;
   partyType: "CUSTOMER" | "PROVIDER";
   statementType: "RECEIVABLE" | "PAYABLE";
+  invoiceRole: InvoiceRole;
   status: InvoiceStatus;
+  redFlushStatus?: InvoiceRedFlushStatus;
   invoiceNumber: string;
   invoiceType: string;
   invoiceDate: string;
@@ -27,6 +41,12 @@ export interface InvoiceRow {
   issuedAt?: string;
   cancelledAt?: string;
   cancelReason?: string;
+  redFlushedAt?: string;
+  redFlushReason?: string;
+  sourceInvoiceId?: string;
+  sourceInvoiceNumber?: string;
+  sourceInvoice?: InvoiceRelationSummary;
+  redFlushInvoices?: InvoiceRelationSummary[];
   createdAt: string;
   trace?: {
     orders: Array<{
@@ -68,6 +88,17 @@ export interface CreateInvoicePayload {
   amount: number;
   taxAmount: number;
   totalAmount: number;
+  remark?: string;
+}
+
+export interface RedFlushInvoicePayload {
+  invoiceNumber: string;
+  invoiceType: string;
+  invoiceDate: string;
+  amount: number;
+  taxAmount: number;
+  totalAmount: number;
+  redFlushReason: string;
   remark?: string;
 }
 
@@ -114,6 +145,16 @@ export function cancelInvoice(uid: string, cancelReason: string) {
     baseUrlApi(`/invoice/${uid}/cancel`),
     {
       data: { cancelReason }
+    }
+  );
+}
+
+export function redFlushInvoice(uid: string, data: RedFlushInvoicePayload) {
+  return http.request<CommonResult<InvoiceRow>>(
+    "post",
+    baseUrlApi(`/invoice/${uid}/red-flush`),
+    {
+      data
     }
   );
 }

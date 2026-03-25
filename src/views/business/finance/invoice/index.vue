@@ -7,9 +7,9 @@ import type { StatusConfig } from "@/components/StatusTag/types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import {
-  cancelInvoice,
   getInvoicePage,
   issueInvoice,
+  redFlushInvoice,
   type InvoiceBusinessType,
   type InvoiceRow
 } from "@/api/business/invoice";
@@ -88,13 +88,33 @@ async function handleIssue(row: InvoiceRow) {
   }
 }
 
-async function handleCancel(row: InvoiceRow) {
+function buildRedFlushPayload(row: InvoiceRow) {
+  return {
+    invoiceNumber: `${row.invoiceNumber}-R`,
+    invoiceType: row.invoiceType || "vat_normal",
+    invoiceDate: new Date().toISOString().slice(0, 10),
+    amount: Math.abs(Number(row.amount || 0)),
+    taxAmount: Math.abs(Number(row.taxAmount || 0)),
+    totalAmount: Math.abs(Number(row.totalAmount || 0)),
+    redFlushReason: "后台红冲"
+  };
+}
+
+function canRedFlush(row: InvoiceRow) {
+  return (
+    row.invoiceRole === "BLUE" &&
+    row.status === "issued" &&
+    row.redFlushStatus !== "FULL"
+  );
+}
+
+async function handleRedFlush(row: InvoiceRow) {
   try {
-    await cancelInvoice(row.uid, "后台作废");
-    message("发票已作废", { type: "success" });
+    await redFlushInvoice(row.uid, buildRedFlushPayload(row));
+    message("红字发票已创建", { type: "success" });
     await loadList();
   } catch (error) {
-    handleApiError(error, "作废失败");
+    handleApiError(error, "红冲失败");
   }
 }
 
@@ -195,13 +215,13 @@ loadList();
               签发
             </el-button>
             <el-button
-              v-if="row.status !== 'cancelled'"
+              v-if="canRedFlush(row)"
               link
               type="danger"
               :size="size"
-              @click="handleCancel(row)"
+              @click="handleRedFlush(row)"
             >
-              作废
+              红冲
             </el-button>
           </template>
         </pure-table>

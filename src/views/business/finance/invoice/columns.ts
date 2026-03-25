@@ -7,6 +7,13 @@ export const columns: TableColumnList = [
     minWidth: 160
   },
   {
+    label: "票据角色",
+    prop: "invoiceRole",
+    minWidth: 100,
+    formatter: ({ invoiceRole }: { invoiceRole?: string }) =>
+      invoiceRole === "RED" ? "红字票" : "蓝票"
+  },
+  {
     label: "业务类型",
     prop: "businessType",
     minWidth: 100,
@@ -36,6 +43,16 @@ export const columns: TableColumnList = [
     minWidth: 140,
     formatter: ({ invoiceDate }: { invoiceDate?: string }) =>
       invoiceDate?.slice(0, 10) || "-"
+  },
+  {
+    label: "红冲状态",
+    prop: "redFlushStatus",
+    minWidth: 120,
+    formatter: ({ redFlushStatus }: { redFlushStatus?: string }) => {
+      if (redFlushStatus === "FULL") return "已全额红冲";
+      if (redFlushStatus === "PARTIAL") return "部分红冲";
+      return "未红冲";
+    }
   },
   {
     label: "状态",
