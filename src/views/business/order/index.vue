@@ -10,6 +10,7 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useOrderList, useOrderData, useOrderActions } from "./composables";
+import { resolveRouteOrderType } from "./routeOrderType";
 
 defineOptions({
   name: "Order"
@@ -74,11 +75,16 @@ const supportsWorkflowActions = computed(
     orderType.value !== ORDER_TYPE.saleQuotation
 );
 
-const resolveRouteOrderType = () => {
+const getRouteOrderType = () => {
   const queryOrderType =
     typeof route.query.orderType === "string" ? route.query.orderType : "";
-  return orderTypeList.value.some(item => item.value === queryOrderType)
-    ? queryOrderType
+  const preferredType = resolveRouteOrderType({
+    path: route.path,
+    queryOrderType
+  });
+
+  return orderTypeList.value.some(item => item.value === preferredType)
+    ? preferredType
     : "";
 };
 
@@ -92,11 +98,22 @@ watch(
   }
 );
 
+watch(
+  () => [route.path, route.query.orderType],
+  async () => {
+    const routeOrderType = getRouteOrderType();
+    if (!routeOrderType || routeOrderType === orderType.value) return;
+
+    orderType.value = routeOrderType;
+    await setOrderType();
+  }
+);
+
 onMounted(async () => {
   applyKeyword(
     typeof route.query.keyword === "string" ? route.query.keyword : undefined
   );
-  const routeOrderType = resolveRouteOrderType();
+  const routeOrderType = getRouteOrderType();
   let listLoaded = false;
   if (routeOrderType) {
     orderType.value = routeOrderType;

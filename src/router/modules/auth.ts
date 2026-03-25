@@ -650,6 +650,21 @@ export default [
         }
       },
       {
+        id: 3201,
+        uid: "6cd4bf61-a0bf-449f-b4d4-cf8254745b2801",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "supplierClaim",
+        path: "/business/supplierClaim",
+        redirect: null,
+        component: () => import("@/views/business/order/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "finance", "financeManager"],
+          title: "供应商索赔",
+          icon: null
+        }
+      },
+      {
         id: 41,
         uid: "7cd4bf61-a0bf-449f-b4d4-cf8254745b29",
         parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
