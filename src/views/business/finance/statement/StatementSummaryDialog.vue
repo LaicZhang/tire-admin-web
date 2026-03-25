@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import {
   confirmStatement,
   voidStatement,
@@ -18,6 +19,7 @@ const emit = defineEmits<{
   (e: "success"): void;
 }>();
 
+const router = useRouter();
 const dialogVisible = computed({
   get: () => props.modelValue,
   set: value => emit("update:modelValue", value)
@@ -60,6 +62,19 @@ async function handleVoid() {
     loading.value = false;
   }
 }
+
+function handleCreateInvoice() {
+  if (!props.row?.uid) return;
+  router.push({
+    path: "/finance/invoice",
+    query: {
+      autoCreate: "1",
+      statementId: props.row.uid,
+      businessType: props.row.type === "PROVIDER" ? "PURCHASE" : "SALE"
+    }
+  });
+  dialogVisible.value = false;
+}
 </script>
 
 <template>
@@ -97,6 +112,15 @@ async function handleVoid() {
     <template #footer>
       <el-button :disabled="loading" @click="dialogVisible = false">
         关闭
+      </el-button>
+      <el-button
+        v-if="row?.uid"
+        type="primary"
+        plain
+        :disabled="loading"
+        @click="handleCreateInvoice"
+      >
+        创建发票
       </el-button>
       <el-button
         v-if="canVoid"

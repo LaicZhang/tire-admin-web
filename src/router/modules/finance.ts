@@ -23,6 +23,23 @@ export default {
       }
     },
     {
+      path: "/finance/invoice",
+      name: "FinanceInvoice",
+      component: () => import("@/views/business/finance/invoice/index.vue"),
+      meta: {
+        title: "发票管理"
+      }
+    },
+    {
+      path: "/finance/invoice/detail/:uid",
+      name: "FinanceInvoiceDetail",
+      component: () => import("@/views/business/finance/invoice/detail.vue"),
+      meta: {
+        title: "发票详情",
+        showLink: false
+      }
+    },
+    {
       path: "/finance/advance",
       name: "FinanceAdvance",
       component: () => import("@/views/business/finance/advance/index.vue"),
