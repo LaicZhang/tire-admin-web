@@ -152,8 +152,12 @@ export function useSettingsForm<
           });
         }
       }
-    } catch {
-      message("加载设置失败", { type: "error" });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error && error.message
+          ? error.message
+          : "加载设置失败";
+      message(errorMessage, { type: "error" });
     } finally {
       loading.value = false;
     }
