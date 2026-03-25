@@ -1,4 +1,5 @@
 import type { StatusConfig } from "@/components/StatusTag/types";
+import { formatMoneyFromFen } from "@/utils/formatMoney";
 
 export const columns: TableColumnList = [
   {
@@ -30,6 +31,13 @@ export const columns: TableColumnList = [
     label: "批次号",
     prop: "batchNo",
     minWidth: 120
+  },
+  {
+    label: "成本",
+    prop: "costPrice",
+    minWidth: 120,
+    formatter: ({ costPrice }: { costPrice?: number | string | null }) =>
+      costPrice == null ? "-" : formatMoneyFromFen(Number(costPrice))
   },
   {
     label: "备注",
