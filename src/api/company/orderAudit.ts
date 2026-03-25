@@ -9,6 +9,7 @@ export type OrderAuditOrderType =
   | "purchase-order"
   | "return-order"
   | "claim-order"
+  | "supplier-claim-order"
   | "transfer-order"
   | "waste-order"
   | "surplus-order"

@@ -294,6 +294,39 @@ export async function getClaimOrderCountApi(params?: OrderQueryDto) {
   );
 }
 
+export async function getSupplierClaimOrderCountApi(params?: OrderQueryDto) {
+  return await http.request<CommonResult>(
+    "get",
+    baseUrlApi("/supplier-claim-order/count"),
+    { params }
+  );
+}
+
+export async function createSupplierClaimOrderFromClaimApi(
+  claimOrderUid: string
+) {
+  return await http.request<
+    CommonResult<{
+      uid?: string;
+      docNo?: string | null;
+      isApproved?: boolean;
+      isReversed?: boolean;
+      createAt?: string;
+    }>
+  >("post", baseUrlApi(`/supplier-claim-order/from-claim/${claimOrderUid}`));
+}
+
+export async function settleSupplierClaimOrderApi(
+  uid: string,
+  data: { amount: number; remark?: string }
+) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(`/supplier-claim-order/${uid}/settle`),
+    { data }
+  );
+}
+
 export async function processClaimOrderPaymentApi(
   uid: string,
   data: { fee: number; paymentId: string; isReceive: boolean; desc?: string }

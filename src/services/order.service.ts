@@ -14,6 +14,7 @@ export const ORDER_TYPE_LABELS: Record<string, string> = {
   [ORDER_TYPE.return]: "退货订单",
   [ORDER_TYPE.waste]: "报损订单",
   [ORDER_TYPE.claim]: "理赔订单",
+  [ORDER_TYPE.supplierClaim]: "供应商索赔单",
   [ORDER_TYPE.surplus]: "报溢订单",
   [ORDER_TYPE.transfer]: "调拨订单",
   [ORDER_TYPE.assembly]: "组装订单",

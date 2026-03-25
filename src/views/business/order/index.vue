@@ -48,6 +48,7 @@ const {
   handleProcessClaimPayment,
   handleManageClaimDefectCategories,
   handleManageClaimInspections,
+  handleCreateSupplierClaim,
   handleConfirmReturnCustomerArrival,
   handleConfirmReturnProviderShipment,
   handleConfirmReturnProviderDelivery,
@@ -64,7 +65,8 @@ const {
 const supportsManualCreate = computed(
   () =>
     orderType.value !== ORDER_TYPE.surplus &&
-    orderType.value !== ORDER_TYPE.saleQuotation
+    orderType.value !== ORDER_TYPE.saleQuotation &&
+    orderType.value !== ORDER_TYPE.supplierClaim
 );
 const supportsWorkflowActions = computed(
   () =>
@@ -254,6 +256,7 @@ onMounted(async () => {
 
               <el-button
                 v-if="supportsWorkflowActions"
+                v-show="orderType !== ORDER_TYPE.supplierClaim"
                 class="reset-margin"
                 link
                 type="primary"
@@ -263,6 +266,7 @@ onMounted(async () => {
               </el-button>
 
               <el-button
+                v-if="orderType !== ORDER_TYPE.supplierClaim"
                 class="reset-margin"
                 link
                 type="primary"
@@ -344,6 +348,20 @@ onMounted(async () => {
                 @click="handleManageClaimInspections(row)"
               >
                 检测记录
+              </el-button>
+
+              <el-button
+                v-if="
+                  orderType === ORDER_TYPE.claim &&
+                  row.isApproved === true &&
+                  row.providerId
+                "
+                class="reset-margin"
+                link
+                type="success"
+                @click="handleCreateSupplierClaim(row)"
+              >
+                生成供应商索赔单
               </el-button>
 
               <el-button
@@ -502,8 +520,23 @@ onMounted(async () => {
               <!-- 订单作废 -->
               <el-button
                 v-if="
+                  orderType === ORDER_TYPE.supplierClaim &&
+                  row.isApproved === true &&
+                  !row.isReversed
+                "
+                class="reset-margin"
+                link
+                type="warning"
+                @click="handleOpenDialog('结算', orderType, row)"
+              >
+                结算
+              </el-button>
+
+              <el-button
+                v-if="
                   row.isApproved === true &&
                   !row.isReversed &&
+                  orderType !== ORDER_TYPE.supplierClaim &&
                   orderType !== ORDER_TYPE.assembly &&
                   orderType !== ORDER_TYPE.transfer
                 "
@@ -516,7 +549,11 @@ onMounted(async () => {
               </el-button>
 
               <el-button
-                v-if="row.isLocked === false && supportsWorkflowActions"
+                v-if="
+                  row.isLocked === false &&
+                  supportsWorkflowActions &&
+                  orderType !== ORDER_TYPE.supplierClaim
+                "
                 class="reset-margin"
                 link
                 type="primary"
@@ -526,7 +563,11 @@ onMounted(async () => {
               </el-button>
 
               <DeleteButton
-                v-if="row.isLocked === false && supportsWorkflowActions"
+                v-if="
+                  row.isLocked === false &&
+                  supportsWorkflowActions &&
+                  orderType !== ORDER_TYPE.supplierClaim
+                "
                 :show-icon="false"
                 :title="`是否确认删除${row.name}这条数据`"
                 @confirm="handleDelete(row)"

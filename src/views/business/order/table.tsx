@@ -11,6 +11,7 @@ import {
   payPurchaseOrderApi,
   paySaleOrderApi,
   processClaimOrderPaymentApi,
+  settleSupplierClaimOrderApi,
   refundReturnOrderApi,
   confirmPurchaseOrderArrivalApi,
   type OrderDetailDto
@@ -65,6 +66,13 @@ interface _OrderDetail {
     sourceOrderId?: string;
     targetType?: string;
     targetOrderId?: string;
+    latestBusiness?: {
+      type?: string;
+      orderId?: string;
+      occurredAt?: string;
+      docNo?: string | null;
+      status?: string;
+    };
     latestReturnInspection?: {
       result?: string;
       remark?: string;
@@ -123,6 +131,14 @@ interface OrderRow {
   paymentId?: string;
   fee?: number;
   isReceive?: boolean;
+  sourceClaimOrderId?: string;
+  supplierClaimOrders?: Array<{
+    uid?: string;
+    docNo?: string | null;
+    isApproved?: boolean;
+    isReversed?: boolean;
+    createAt?: string;
+  }>;
   details?: _OrderDetail[];
   name?: string;
 }
@@ -377,6 +393,7 @@ type OrderDialogTitle =
   | "修改"
   | "付款"
   | "收款"
+  | "结算"
   | "更新物流"
   | "更新状态"
   | "确认到货"
@@ -480,6 +497,17 @@ async function submitClaimPayment({ submitData }: SubmitContext) {
   return true;
 }
 
+async function submitSupplierClaimSettlement({ submitData }: SubmitContext) {
+  await settleSupplierClaimOrderApi(submitData.uid, {
+    amount: submitData.fee || 0,
+    remark:
+      typeof submitData.desc === "string" && submitData.desc.trim().length > 0
+        ? submitData.desc.trim()
+        : undefined
+  });
+  return true;
+}
+
 async function submitRefund({ submitData }: SubmitContext) {
   await refundReturnOrderApi(submitData.uid, buildRefundPayload(submitData));
   return true;
@@ -531,6 +559,8 @@ async function submitDialogAction(context: SubmitContext) {
       if (handled) return true;
       return submitGenericUpdate(context);
     }
+    case "结算":
+      return submitSupplierClaimSettlement(context);
     case "处理理赔费用":
       return submitClaimPayment(context);
     case "退款":
@@ -559,6 +589,7 @@ export async function openDialog(
         uid: row?.uid ?? uuid(),
         providerId: row?.providerId ?? undefined,
         customerId: row?.customerId ?? undefined,
+        sourceClaimOrderId: row?.sourceClaimOrderId ?? undefined,
         auditorId: row?.auditorId ?? undefined,
         isApproved: row?.isApproved ?? false,
         isLocked: row?.isLocked ?? false,
@@ -573,6 +604,7 @@ export async function openDialog(
         paymentId: row?.paymentId ?? undefined,
         fee: row?.fee ?? 0,
         isReceive: row?.isReceive ?? false,
+        supplierClaimOrders: row?.supplierClaimOrders ?? [],
         details: row?.details ?? []
       }
     },
