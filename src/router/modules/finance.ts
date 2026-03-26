@@ -31,6 +31,31 @@ export default {
       }
     },
     {
+      path: "/finance/ar-temp",
+      name: "FinanceArTemp",
+      component: () => import("@/views/business/finance/arTemp/index.vue"),
+      meta: {
+        title: "发货暂估应收"
+      }
+    },
+    {
+      path: "/finance/sale-allocation",
+      name: "FinanceSaleAllocation",
+      component: () =>
+        import("@/views/business/finance/saleAllocation/index.vue"),
+      meta: {
+        title: "分配单工作台"
+      }
+    },
+    {
+      path: "/finance/sale-picking",
+      name: "FinanceSalePicking",
+      component: () => import("@/views/business/finance/salePicking/index.vue"),
+      meta: {
+        title: "拣货单工作台"
+      }
+    },
+    {
       path: "/finance/invoice/detail/:uid",
       name: "FinanceInvoiceDetail",
       component: () => import("@/views/business/finance/invoice/detail.vue"),

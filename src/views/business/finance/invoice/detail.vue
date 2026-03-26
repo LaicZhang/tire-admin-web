@@ -144,6 +144,26 @@ onMounted(loadDetail);
         </el-descriptions-item>
       </el-descriptions>
 
+      <el-divider content-position="left"> 开票映射 </el-divider>
+      <el-table :data="row.deliveryLineLinks || []" border>
+        <el-table-column
+          prop="saleDeliveryNoteLineUid"
+          label="发货行 UID"
+          min-width="180"
+        />
+        <el-table-column
+          prop="saleOrderDetailId"
+          label="销售行 UID"
+          min-width="180"
+        />
+        <el-table-column prop="quantity" label="数量" min-width="100" />
+        <el-table-column label="金额" min-width="120">
+          <template #default="{ row: link }">
+            {{ formatMoneyFromFen(link.totalAmount) }}
+          </template>
+        </el-table-column>
+      </el-table>
+
       <el-divider content-position="left"> 红字关联 </el-divider>
       <el-descriptions :column="1" border>
         <el-descriptions-item label="红字票">

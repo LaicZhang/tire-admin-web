@@ -3,7 +3,8 @@ import { computed, reactive, ref, watch } from "vue";
 import type {
   InvoiceBusinessType,
   PurchaseInboundSource,
-  SaleDeliverySource
+  SaleDeliverySource,
+  SaleDeliverySourceLine
 } from "@/api/business/invoice";
 import {
   createInvoice,
@@ -35,6 +36,7 @@ const dialogVisible = computed({
 const loading = ref(false);
 const saleDeliveryOptions = ref<SaleDeliverySource[]>([]);
 const purchaseInboundOptions = ref<PurchaseInboundSource[]>([]);
+const selectedDeliveryLineIds = ref<string[]>([]);
 
 const form = reactive({
   businessType: "SALE" as InvoiceBusinessType,
@@ -58,6 +60,21 @@ const sourcePlaceholder = computed(() =>
   form.businessType === "PURCHASE" ? "请选择待收票入库单" : "请选择待开票发货单"
 );
 
+const currentSaleDelivery = computed(
+  () =>
+    saleDeliveryOptions.value.find(item => item.uid === form.deliveryNoteId) ||
+    null
+);
+
+const selectedDeliveryLines = computed(() => {
+  const lineMap = new Map(
+    (currentSaleDelivery.value?.lines || []).map(line => [line.uid, line])
+  );
+  return selectedDeliveryLineIds.value
+    .map(uid => lineMap.get(uid))
+    .filter((line): line is SaleDeliverySourceLine => !!line);
+});
+
 async function loadSaleDeliveries() {
   const { data } = await getSaleDeliverySources();
   saleDeliveryOptions.value = data || [];
@@ -78,6 +95,7 @@ function resetForm() {
   form.taxAmount = 0;
   form.totalAmount = 0;
   form.remark = "";
+  selectedDeliveryLineIds.value = [];
 }
 
 async function prepareDialog() {
@@ -91,6 +109,24 @@ async function prepareDialog() {
   await loadSaleDeliveries();
   form.deliveryNoteId = props.preset?.deliveryNoteId || "";
   form.purchaseInboundId = "";
+  syncSelectedDeliveryLines();
+}
+
+function syncSelectedDeliveryLines() {
+  selectedDeliveryLineIds.value = (currentSaleDelivery.value?.lines || [])
+    .filter(line => line.remainingAmount > 0)
+    .map(line => line.uid);
+}
+
+function syncAmountsFromSelectedLines() {
+  if (form.businessType !== "SALE") return;
+  const totalAmount = selectedDeliveryLines.value.reduce(
+    (sum, line) => sum + Number(line.remainingAmount || 0),
+    0
+  );
+  form.totalAmount = totalAmount;
+  form.amount = totalAmount;
+  form.taxAmount = 0;
 }
 
 watch(
@@ -113,7 +149,24 @@ watch(
       return;
     }
     await loadSaleDeliveries();
+    syncSelectedDeliveryLines();
   }
+);
+
+watch(
+  () => form.deliveryNoteId,
+  () => {
+    if (form.businessType !== "SALE") return;
+    syncSelectedDeliveryLines();
+  }
+);
+
+watch(
+  [currentSaleDelivery, selectedDeliveryLineIds],
+  () => {
+    syncAmountsFromSelectedLines();
+  },
+  { deep: true }
 );
 
 async function handleSubmit() {
@@ -123,7 +176,16 @@ async function handleSubmit() {
       businessType: form.businessType,
       ...(form.businessType === "PURCHASE"
         ? { purchaseInboundId: form.purchaseInboundId }
-        : { deliveryNoteId: form.deliveryNoteId }),
+        : {
+            deliveryNoteId: form.deliveryNoteId,
+            deliveryLineLinks: selectedDeliveryLines.value.map(line => ({
+              saleDeliveryNoteLineUid: line.uid,
+              quantity: line.remainingQuantity,
+              amount: Number(line.remainingAmount || 0),
+              taxAmount: 0,
+              totalAmount: Number(line.remainingAmount || 0)
+            }))
+          }),
       invoiceNumber: form.invoiceNumber,
       invoiceType: form.invoiceType,
       invoiceDate: form.invoiceDate,
@@ -187,6 +249,23 @@ async function handleSubmit() {
           />
         </el-select>
       </el-form-item>
+      <el-form-item v-if="form.businessType === 'SALE'" label="发货行">
+        <el-checkbox-group
+          v-model="selectedDeliveryLineIds"
+          class="grid w-full grid-cols-1 gap-2"
+        >
+          <el-checkbox
+            v-for="line in currentSaleDelivery?.lines || []"
+            :key="line.uid"
+            :label="line.uid"
+            :disabled="line.remainingAmount <= 0"
+          >
+            {{ line.uid.slice(0, 8) }} / 余量 {{ line.remainingQuantity }} /
+            余额
+            {{ line.remainingAmount }}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
       <el-form-item label="发票号">
         <el-input v-model="form.invoiceNumber" />
       </el-form-item>
@@ -200,13 +279,22 @@ async function handleSubmit() {
         <el-input v-model="form.invoiceDate" />
       </el-form-item>
       <el-form-item label="金额">
-        <el-input v-model="form.amount" />
+        <el-input
+          v-model="form.amount"
+          :disabled="form.businessType === 'SALE'"
+        />
       </el-form-item>
       <el-form-item label="税额">
-        <el-input v-model="form.taxAmount" />
+        <el-input
+          v-model="form.taxAmount"
+          :disabled="form.businessType === 'SALE'"
+        />
       </el-form-item>
       <el-form-item label="价税合计">
-        <el-input v-model="form.totalAmount" />
+        <el-input
+          v-model="form.totalAmount"
+          :disabled="form.businessType === 'SALE'"
+        />
       </el-form-item>
       <el-form-item label="备注">
         <el-input v-model="form.remark" type="textarea" />

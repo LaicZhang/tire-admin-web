@@ -17,6 +17,18 @@ export interface InvoiceRelationSummary {
   redFlushedAt?: string;
 }
 
+export interface DeliveryLineLinkRow {
+  uid: string;
+  saleDeliveryNoteUid: string;
+  saleDeliveryNoteLineUid: string;
+  saleOrderId: string;
+  saleOrderDetailId: string;
+  quantity: number;
+  amount: number;
+  taxAmount: number;
+  totalAmount: number;
+}
+
 export interface InvoiceRow {
   uid: string;
   businessType: InvoiceBusinessType;
@@ -49,6 +61,7 @@ export interface InvoiceRow {
   sourceInvoiceNumber?: string;
   sourceInvoice?: InvoiceRelationSummary;
   redFlushInvoices?: InvoiceRelationSummary[];
+  deliveryLineLinks?: DeliveryLineLinkRow[];
   createdAt: string;
   trace?: {
     orders: Array<{
@@ -86,6 +99,13 @@ export interface CreateInvoicePayload {
   businessType: InvoiceBusinessType;
   deliveryNoteId?: string;
   purchaseInboundId?: string;
+  deliveryLineLinks?: Array<{
+    saleDeliveryNoteLineUid: string;
+    quantity: number;
+    amount: number;
+    taxAmount: number;
+    totalAmount: number;
+  }>;
   invoiceNumber: string;
   invoiceType: string;
   invoiceDate: string;
@@ -93,6 +113,18 @@ export interface CreateInvoicePayload {
   taxAmount: number;
   totalAmount: number;
   remark?: string;
+}
+
+export interface SaleDeliverySourceLine {
+  uid: string;
+  saleOrderDetailId: string;
+  tireId: string;
+  quantity: number;
+  totalAmount: number;
+  invoicedQuantity: number;
+  invoicedAmount: number;
+  remainingQuantity: number;
+  remainingAmount: number;
 }
 
 export interface SaleDeliverySource {
@@ -104,6 +136,7 @@ export interface SaleDeliverySource {
   invoicedAmount: number;
   remainingAmount: number;
   shippedAt: string;
+  lines: SaleDeliverySourceLine[];
 }
 
 export interface PurchaseInboundSource {
@@ -141,7 +174,7 @@ export function getInvoicePage(index = 1, params?: InvoiceQuery) {
 export function getSaleDeliverySources() {
   return http.request<CommonResult<SaleDeliverySource[]>>(
     "get",
-    baseUrlApi("/invoice/sale-delivery-sources")
+    baseUrlApi("/ar-temp")
   );
 }
 

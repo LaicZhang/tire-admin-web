@@ -159,10 +159,23 @@ export type SaleAllocationApi = {
   allocationNo: string;
   status: string;
   totalQuantity: number;
+  reservationLines?: Array<{
+    uid: string;
+    saleAllocationLineUid: string;
+    batchId: number;
+    batchNo: string;
+    productionDate?: string;
+    expiryDate?: string;
+    reservedQuantity: number;
+    consumedQuantity: number;
+    status: string;
+  }>;
   lines: Array<{
     uid: string;
     saleOrderDetailUid: string;
     allocatedQuantity: number;
+    batchNo?: string;
+    expiryDate?: string;
   }>;
 };
 
@@ -184,6 +197,7 @@ export type SalePickingApi = {
     uid: string;
     saleOrderDetailUid: string;
     pickedQuantity: number;
+    serialNos?: string[];
   }>;
 };
 
@@ -349,6 +363,19 @@ export async function confirmSaleAllocationApi(uid: string) {
   );
 }
 
+export async function getSaleAllocationPageApi(index = 1) {
+  return await http.request<
+    CommonResult<PaginatedResponseDto<SaleAllocationApi>>
+  >("get", baseUrlApi(`/sale-allocation/page/${index}`));
+}
+
+export async function getSaleAllocationDetailApi(uid: string) {
+  return await http.request<CommonResult<SaleAllocationApi>>(
+    "get",
+    baseUrlApi(`/sale-allocation/${uid}`)
+  );
+}
+
 export async function createSalePickingFromAllocationApi(
   saleAllocationUid: string
 ) {
@@ -373,6 +400,20 @@ export async function postSalePickingApi(uid: string) {
   return await http.request<CommonResult<SalePickingApi>>(
     "patch",
     baseUrlApi(`/sale-picking/post/${uid}`)
+  );
+}
+
+export async function getSalePickingPageApi(index = 1) {
+  return await http.request<CommonResult<PaginatedResponseDto<SalePickingApi>>>(
+    "get",
+    baseUrlApi(`/sale-picking/page/${index}`)
+  );
+}
+
+export async function getSalePickingDetailApi(uid: string) {
+  return await http.request<CommonResult<SalePickingApi>>(
+    "get",
+    baseUrlApi(`/sale-picking/${uid}`)
   );
 }
 
