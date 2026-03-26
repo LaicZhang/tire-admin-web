@@ -139,7 +139,8 @@ function buildLedgerLabel(item: OpenReceivableLedger) {
   const date = item.invoiceDate
     ? dayjs(item.invoiceDate).format("YYYY-MM-DD")
     : "-";
-  return `${item.invoiceNumber || item.invoiceUid} / 未结 ${fenToYuan(item.openAmount)} / ${date}`;
+  const delivery = item.deliveryNoteNo || item.saleDeliveryNoteUid || "-";
+  return `${item.invoiceNumber || item.invoiceUid} / ${delivery} / 未结 ${fenToYuan(item.openAmount)} / ${date}`;
 }
 
 function handleLedgerChange(row: ReceiptDetailItem, ledgerUid?: string) {
@@ -161,6 +162,7 @@ function handleLedgerChange(row: ReceiptDetailItem, ledgerUid?: string) {
   row.receivableAmount = ledger.openAmount / 100;
   row.writeOffAmount = ledger.openAmount / 100;
   row.invoiceDate = ledger.invoiceDate || "";
+  row.deliveryNoteNo = ledger.deliveryNoteNo || "";
 }
 
 watch(

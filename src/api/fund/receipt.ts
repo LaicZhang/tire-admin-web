@@ -57,9 +57,16 @@ export interface CreateReceiptDto {
 
 export interface OpenReceivableLedger {
   uid: string;
+  customerId: string;
+  customerName: string;
   invoiceUid: string;
   invoiceNumber: string;
   invoiceDate?: string;
+  saleDeliveryNoteUid: string;
+  saleDeliveryNoteLineUid: string;
+  saleOrderDetailId: string;
+  quantity: number;
+  deliveryNoteNo: string;
   totalAmount: number;
   settledAmount: number;
   openAmount: number;
