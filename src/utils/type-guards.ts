@@ -14,6 +14,18 @@ export function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+export function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
+}
+
+export function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
 /**
  * 检查值是否为非空数组
  */
@@ -137,6 +149,23 @@ export function safeCastOrThrow<T>(
     return data;
   }
   throw new Error(errorMessage);
+}
+
+export function parseJsonOrNull(raw: string): unknown {
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+export function parseJsonWithGuard<T>(
+  raw: string,
+  validator: (data: unknown) => data is T,
+  errorMessage: string
+): T {
+  const parsed = parseJsonOrNull(raw);
+  return safeCastOrThrow(parsed, validator, errorMessage);
 }
 
 // ==========================================

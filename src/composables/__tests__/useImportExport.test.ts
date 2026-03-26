@@ -183,6 +183,25 @@ describe("useImportExport", () => {
       const { readTasks } = useImportExportTask();
       expect(readTasks()).toEqual([]);
     });
+
+    it("filters malformed tasks from storage instead of trusting raw arrays", () => {
+      const validTask = createMockTask({ uid: "valid", type: "import" });
+      localStorage.setItem(
+        "data:import-export:tasks",
+        JSON.stringify([
+          validTask,
+          {
+            uid: 123,
+            type: "import",
+            status: "success",
+            createdAt: "2026-01-19T00:00:00.000Z"
+          }
+        ])
+      );
+
+      const { readTasks } = useImportExportTask();
+      expect(readTasks()).toEqual([validTask]);
+    });
   });
 
   describe("useImportFile", () => {

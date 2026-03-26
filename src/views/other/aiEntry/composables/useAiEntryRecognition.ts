@@ -2,6 +2,7 @@ import { ref, type Ref, type ComputedRef } from "vue";
 import { message } from "@/utils/message";
 import { chatApi } from "@/api";
 import { ALL_LIST, localForage } from "@/utils";
+import { isObject, parseJsonOrNull } from "@/utils/type-guards";
 import { UploadMethod, ImageType } from "../types";
 import type {
   AIRecognitionResult,
@@ -62,6 +63,34 @@ export function useAiEntryRecognition(
     return name.trim().replace(/\s+/g, "").toLowerCase();
   }
 
+  function ensureAiPayloadRecord(value: unknown): Record<string, unknown> {
+    if (!isObject(value)) {
+      message("AI 返回 JSON 解析失败", { type: "error" });
+      throw new Error("AI 返回 JSON 解析失败");
+    }
+    return value;
+  }
+
+  function resolveProductsRaw(payload: Record<string, unknown>): unknown[] {
+    if (payload.products !== undefined) {
+      if (!Array.isArray(payload.products)) {
+        message("AI 返回 JSON 结构不合法", { type: "error" });
+        throw new Error("AI 返回 JSON 结构不合法");
+      }
+      return payload.products;
+    }
+
+    if (payload.items !== undefined) {
+      if (!Array.isArray(payload.items)) {
+        message("AI 返回 JSON 结构不合法", { type: "error" });
+        throw new Error("AI 返回 JSON 结构不合法");
+      }
+      return payload.items;
+    }
+
+    return [];
+  }
+
   async function parseAIResponse(response: string) {
     const jsonText = extractJsonText(response);
     if (!jsonText) {
@@ -69,19 +98,8 @@ export function useAiEntryRecognition(
       throw new Error("AI 返回内容未包含可解析的 JSON");
     }
 
-    const parsed: unknown = (() => {
-      try {
-        return JSON.parse(jsonText);
-      } catch {
-        return null;
-      }
-    })();
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      message("AI 返回 JSON 解析失败", { type: "error" });
-      throw new Error("AI 返回 JSON 解析失败");
-    }
-
-    const obj = parsed as Record<string, unknown>;
+    const parsed = parseJsonOrNull(jsonText);
+    const obj = ensureAiPayloadRecord(parsed);
     const partyRaw =
       obj.party && typeof obj.party === "object" && !Array.isArray(obj.party)
         ? (obj.party as Record<string, unknown>)
@@ -95,12 +113,7 @@ export function useAiEntryRecognition(
         ? (partyTypeFromAI as "customer" | "supplier")
         : expectedPartyType;
 
-    const productsRaw: unknown =
-      (Array.isArray(obj.products) && obj.products) ||
-      (Array.isArray(obj.items) && obj.items) ||
-      [];
-
-    const productList = Array.isArray(productsRaw) ? productsRaw : [];
+    const productList = resolveProductsRaw(obj);
 
     const [customerData, providerData, tireData] = await Promise.all([
       localForage().getItem(ALL_LIST.customer),

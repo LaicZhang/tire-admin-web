@@ -101,12 +101,22 @@ function mapPayableStatement(row: PayableStatementRow): Statement {
   };
 }
 
+type StatementListResult = CommonResult<PaginatedResponseDto<Statement>>;
+
+function assertStatementListResponse<T extends { code: number; msg: string }>(
+  response: T
+) {
+  if (response.code !== 200) {
+    throw new Error(response.msg || "对账单列表加载失败");
+  }
+}
+
 async function getReceivableStatementList(params?: {
   page?: number;
   pageSize?: number;
   targetName?: string;
   status?: string;
-}) {
+}): Promise<StatementListResult> {
   const response = await http.request<
     CommonResult<{ list: ReceivableStatementRow[]; count: number }>
   >("get", baseUrlApi(RECEIVABLE_STATEMENT_PREFIX), {
@@ -117,10 +127,7 @@ async function getReceivableStatementList(params?: {
       status: params?.status
     }
   });
-
-  if (response.code !== 200) {
-    return response as unknown as CommonResult<PaginatedResponseDto<Statement>>;
-  }
+  assertStatementListResponse(response);
 
   const total = response.data?.count ?? 0;
   return {
@@ -137,7 +144,7 @@ async function getPayableStatementList(params?: {
   pageSize?: number;
   targetName?: string;
   status?: string;
-}) {
+}): Promise<StatementListResult> {
   const response = await http.request<
     CommonResult<{ list: PayableStatementRow[]; count: number }>
   >("get", baseUrlApi(PAYABLE_STATEMENT_PREFIX), {
@@ -148,10 +155,7 @@ async function getPayableStatementList(params?: {
       status: params?.status
     }
   });
-
-  if (response.code !== 200) {
-    return response as unknown as CommonResult<PaginatedResponseDto<Statement>>;
-  }
+  assertStatementListResponse(response);
 
   const total = response.data?.count ?? 0;
   return {
@@ -169,7 +173,7 @@ export async function getStatementList(params?: {
   type?: string;
   targetName?: string;
   status?: string;
-}) {
+}): Promise<StatementListResult> {
   const page = params?.page ?? 1;
   const pageSize = params?.pageSize ?? 10;
   const targetName = params?.targetName;
@@ -188,9 +192,6 @@ export async function getStatementList(params?: {
     getReceivableStatementList({ page: 1, pageSize: take, targetName, status }),
     getPayableStatementList({ page: 1, pageSize: take, targetName, status })
   ]);
-
-  if (receivableResponse.code !== 200) return receivableResponse;
-  if (payableResponse.code !== 200) return payableResponse;
 
   const total =
     (receivableResponse.data?.total ?? 0) + (payableResponse.data?.total ?? 0);

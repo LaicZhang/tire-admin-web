@@ -2,10 +2,62 @@ import {
   getCompanySettingGroupApi,
   patchCompanySettingGroupApi
 } from "@/api/setting";
+import {
+  isBoolean,
+  isFiniteNumber,
+  isObject,
+  isString,
+  parseJsonOrNull
+} from "@/utils/type-guards";
 
-export type ColumnSettings = unknown[];
+export interface ColumnSettingsItem {
+  id: number;
+  uid: string;
+  module: string;
+  field: string;
+  label: string;
+  alias?: string;
+  visible: boolean;
+  sortOrder: number;
+  width?: number;
+  fixed?: "left" | "right" | false;
+}
+
+export type ColumnSettings = ColumnSettingsItem[];
 
 const GROUP = "dataColumnSettings";
+
+function isColumnFixed(value: unknown): value is ColumnSettingsItem["fixed"] {
+  return (
+    value === undefined ||
+    value === false ||
+    value === "left" ||
+    value === "right"
+  );
+}
+
+function isColumnSettingsItem(value: unknown): value is ColumnSettingsItem {
+  if (!isObject(value)) return false;
+
+  return (
+    isFiniteNumber(value.id) &&
+    isString(value.uid) &&
+    isString(value.module) &&
+    isString(value.field) &&
+    isString(value.label) &&
+    isBoolean(value.visible) &&
+    isFiniteNumber(value.sortOrder) &&
+    (value.alias === undefined || isString(value.alias)) &&
+    (value.width === undefined || isFiniteNumber(value.width)) &&
+    isColumnFixed(value.fixed)
+  );
+}
+
+function parseColumnSettings(raw: string): ColumnSettings | null {
+  const parsed = parseJsonOrNull(raw);
+  if (!Array.isArray(parsed)) return null;
+  return parsed.every(isColumnSettingsItem) ? parsed : null;
+}
 
 export async function getColumnSettingsApi(
   module: string
@@ -16,12 +68,7 @@ export async function getColumnSettingsApi(
   }
   const raw = res.data?.find(item => item.key === module)?.value;
   if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as ColumnSettings;
-    return Array.isArray(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
+  return parseColumnSettings(raw);
 }
 
 export async function saveColumnSettingsApi(

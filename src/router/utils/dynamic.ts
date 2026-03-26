@@ -12,12 +12,11 @@ import { router } from "../index";
 import { routerLogger } from "@/utils/logger";
 import { routerArrays } from "@/layout/types";
 import { toMultiTypeArray } from "@/store/utils";
-import { buildHierarchyTree } from "@/utils/tree";
+import { buildHierarchyTree, type TreeNode } from "@/utils/tree";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 // 导入静态路由配置，用于组件映射
 import staticRoutes from "../modules/auth";
-import type { ExtendedRouteRecord } from "../types";
 
 const IFrame = () => import("@/layout/frameView.vue");
 
@@ -34,7 +33,42 @@ type StaticRouteItem = {
   name?: string;
   component?: RouteRecordRaw["component"];
   children?: StaticRouteItem[];
-} & Partial<ExtendedRouteRecord>;
+};
+
+type HierarchyRouteRecord = RouteRecordRaw & {
+  id?: string | number;
+  parentId?: string | number | null;
+  children?: HierarchyRouteRecord[];
+};
+
+function asTreeNodes<T>(routeList: T[]): Array<T & TreeNode> {
+  return routeList as Array<T & TreeNode>;
+}
+
+function toStaticRouteItem(route: {
+  path: string;
+  name?: unknown;
+  component?: RouteRecordRaw["component"] | null;
+  children?: unknown;
+}): StaticRouteItem {
+  return {
+    path: route.path,
+    name: typeof route.name === "string" ? route.name : undefined,
+    component: route.component ?? undefined,
+    children: Array.isArray(route.children)
+      ? route.children.map(child =>
+          toStaticRouteItem(
+            child as {
+              path: string;
+              name?: unknown;
+              component?: RouteRecordRaw["component"] | null;
+              children?: unknown;
+            }
+          )
+        )
+      : undefined
+  };
+}
 
 function buildStaticComponentMap(
   routes: StaticRouteItem[],
@@ -53,7 +87,7 @@ function buildStaticComponentMap(
 
 // 构建静态组件映射表
 const staticComponentMap = buildStaticComponentMap(
-  staticRoutes as unknown as StaticRouteItem[]
+  staticRoutes.map(route => toStaticRouteItem(route))
 );
 
 function extractImportPath(component: string): string {
@@ -172,10 +206,9 @@ export function handleAsyncRoutes(routeList: RouteRecordRaw[]): void {
  */
 export function formatFlatteningRoutes(routesList: RouteRecordRaw[]) {
   if (routesList.length === 0) return routesList;
-  // buildHierarchyTree 接受 TreeNode[]，这里需要类型断言
   let hierarchyList = buildHierarchyTree(
-    routesList as unknown as import("@/utils/tree").TreeNode[]
-  ) as unknown as RouteRecordRaw[];
+    asTreeNodes(routesList as HierarchyRouteRecord[])
+  ) as HierarchyRouteRecord[];
   for (let i = 0; i < hierarchyList.length; i++) {
     if (hierarchyList[i].children) {
       hierarchyList = hierarchyList
@@ -183,7 +216,7 @@ export function formatFlatteningRoutes(routesList: RouteRecordRaw[]) {
         .concat(hierarchyList[i].children ?? [], hierarchyList.slice(i + 1));
     }
   }
-  return hierarchyList;
+  return hierarchyList as RouteRecordRaw[];
 }
 
 /**

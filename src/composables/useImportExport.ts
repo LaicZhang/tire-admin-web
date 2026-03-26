@@ -16,12 +16,73 @@ import {
   FileTypePresets,
   createUploadValidator
 } from "@/composables/useFileValidation";
+import {
+  isFiniteNumber,
+  isObject,
+  isString,
+  parseJsonOrNull
+} from "@/utils/type-guards";
 import type {
   ImportExportTask,
   ImportResult,
   ExportParams
 } from "@/types/importExport";
 import type { CommonResult } from "@/api/type";
+
+const IMPORT_EXPORT_TASK_STATUS = [
+  "pending",
+  "processing",
+  "success",
+  "failed"
+];
+const IMPORT_EXPORT_TASK_TYPE = ["import", "export"];
+
+function isImportExportTaskStatus(
+  value: unknown
+): value is ImportExportTask["status"] {
+  return isString(value) && IMPORT_EXPORT_TASK_STATUS.includes(value);
+}
+
+function isImportExportTaskType(
+  value: unknown
+): value is ImportExportTask["type"] {
+  return isString(value) && IMPORT_EXPORT_TASK_TYPE.includes(value);
+}
+
+function isOptionalFiniteNumber(value: unknown): boolean {
+  return value === undefined || isFiniteNumber(value);
+}
+
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || isString(value);
+}
+
+function isImportExportTask(value: unknown): value is ImportExportTask {
+  if (!isObject(value)) return false;
+
+  return (
+    isFiniteNumber(value.id) &&
+    isString(value.uid) &&
+    isImportExportTaskType(value.type) &&
+    isString(value.module) &&
+    isString(value.fileName) &&
+    isImportExportTaskStatus(value.status) &&
+    isString(value.createdAt) &&
+    isOptionalFiniteNumber(value.fileSize) &&
+    isOptionalFiniteNumber(value.totalRows) &&
+    isOptionalFiniteNumber(value.successRows) &&
+    isOptionalFiniteNumber(value.failedRows) &&
+    isOptionalString(value.errorMessage) &&
+    isOptionalString(value.downloadUrl) &&
+    isOptionalString(value.completedAt)
+  );
+}
+
+function parseStoredImportExportTasks(raw: string): ImportExportTask[] {
+  const parsed = parseJsonOrNull(raw);
+  if (!Array.isArray(parsed)) return [];
+  return parsed.filter(isImportExportTask);
+}
 
 /**
  * 导入导出任务管理
@@ -52,8 +113,7 @@ export function useImportExportTask(
     try {
       const raw = localStorage.getItem(storageKey);
       if (!raw) return [];
-      const parsed = JSON.parse(raw) as ImportExportTask[];
-      const tasks = Array.isArray(parsed) ? parsed : [];
+      const tasks = parseStoredImportExportTasks(raw);
       const pruned = pruneTasks(tasks);
       if (pruned.length !== tasks.length) writeTasks(pruned);
       return pruned;

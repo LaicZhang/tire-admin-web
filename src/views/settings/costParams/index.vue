@@ -9,6 +9,7 @@ import SettingsPresenceBadge from "@/components/SettingsPresence/SettingsPresenc
 import SettingsPresenceAlert from "@/components/SettingsPresence/SettingsPresenceAlert.vue";
 import type { CompanySettingItem } from "@/api/setting";
 import type { CostParams } from "./types";
+import { applyCostParamsSettings } from "./settings";
 
 defineOptions({
   name: "CostParams"
@@ -45,22 +46,8 @@ const {
       { id: "3", name: "手工录入成本", order: 3 }
     ]
   }),
-  transformLoad: (settings: CompanySettingItem[], form: CostParams) => {
-    settings.forEach((s: CompanySettingItem) => {
-      const key = s.key;
-      if (key === "costMethod") {
-        form.costMethod = s.value as CostParams["costMethod"];
-      } else if (key === "costCalcType") {
-        form.costCalcType = s.value as CostParams["costCalcType"];
-      } else if (key === "abnormalCostOrder") {
-        try {
-          form.abnormalCostOrder = JSON.parse(s.value);
-        } catch {
-          // keep default
-        }
-      }
-    });
-  },
+  transformLoad: (settings: CompanySettingItem[], form: CostParams) =>
+    applyCostParamsSettings(settings, form),
   transformSave: (form: CostParams) => ({
     costMethod: form.costMethod,
     costCalcType: form.costCalcType,
