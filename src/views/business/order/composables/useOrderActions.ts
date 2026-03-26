@@ -1,14 +1,17 @@
 import { h, ref, type Ref } from "vue";
 import {
+  confirmSaleAllocationApi,
+  confirmSalePickingApi,
   deleteOrderApi,
   confirmPurchaseOrderArrivalApi,
-  confirmSaleOrderShipmentApi,
   confirmSaleOrderDeliveryApi,
   confirmReturnOrderArrivalApi,
   confirmReturnOrderShipmentApi,
   confirmReturnOrderDeliveryApi,
   confirmTransferOrderShipmentApi,
   confirmTransferOrderArrivalApi,
+  createSaleAllocationFromOrderApi,
+  createSalePickingFromAllocationApi,
   reverseSaleOrderApi,
   reversePurchaseOrderApi,
   reverseReturnOrderApi,
@@ -18,7 +21,8 @@ import {
   sendPurchaseInquiryApi,
   convertSaleQuotationApi,
   getOrderListApi,
-  createSupplierClaimOrderFromClaimApi
+  createSupplierClaimOrderFromClaimApi,
+  postSalePickingApi
 } from "@/api";
 import { addDialog } from "@/composables/useDialogService";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
@@ -170,6 +174,7 @@ export function useOrderActions(
     onSubmit: (payload: {
       detailUid: string;
       shipCount?: number;
+      serialNos?: string[];
       batchNo?: string;
       productionDate?: string;
       expiryDate?: string;
@@ -179,6 +184,7 @@ export function useOrderActions(
       getPayload: () => {
         detailUid: string;
         shipCount?: number;
+        serialNos?: string[];
         batchNo?: string;
         productionDate?: string;
         expiryDate?: string;
@@ -275,7 +281,39 @@ export function useOrderActions(
       "sale-shipment",
       row,
       async payload => {
-        return confirmSaleOrderShipmentApi(row.uid, payload);
+        const allocationQuantity =
+          payload.serialNos?.length && payload.serialNos.length > 0
+            ? payload.serialNos.length
+            : payload.shipCount;
+        const allocationRes = await createSaleAllocationFromOrderApi(row.uid, {
+          detailUid: payload.detailUid,
+          allocatedQuantity: allocationQuantity
+        });
+        const allocation = allocationRes.data;
+        if (!allocation?.uid) throw new Error("创建分配单失败");
+
+        await confirmSaleAllocationApi(allocation.uid);
+        const pickingRes = await createSalePickingFromAllocationApi(
+          allocation.uid
+        );
+        const picking = pickingRes.data;
+        if (!picking?.uid) throw new Error("创建拣货单失败");
+
+        const pickingLine = picking.lines.find(
+          line => line.saleOrderDetailUid === payload.detailUid
+        );
+        if (!pickingLine?.uid) throw new Error("拣货单缺少对应明细");
+
+        await confirmSalePickingApi(picking.uid, {
+          lines: [
+            {
+              uid: pickingLine.uid,
+              pickedQuantity: allocationQuantity ?? pickingLine.pickedQuantity,
+              serialNos: payload.serialNos
+            }
+          ]
+        });
+        return postSalePickingApi(picking.uid);
       }
     );
   };

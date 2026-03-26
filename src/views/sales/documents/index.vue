@@ -154,7 +154,7 @@ function handlePageChange(page: number) {
 function viewDocument(row: DocumentItem) {
   const routeMap: Record<DocumentType, string> = {
     order: "/sales/order",
-    outbound: "/sales/outbound",
+    outbound: "/sales/order",
     return: "/sales/return"
   };
   router.push({
@@ -166,7 +166,7 @@ function viewDocument(row: DocumentItem) {
 function editDocument(row: DocumentItem) {
   const routeMap: Record<DocumentType, string> = {
     order: "/sales/order",
-    outbound: "/sales/outbound",
+    outbound: "/sales/order",
     return: "/sales/return"
   };
   router.push({

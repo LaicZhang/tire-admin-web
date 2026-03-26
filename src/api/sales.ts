@@ -1,11 +1,16 @@
 import {
   addOrderApi,
+  confirmSaleAllocationApi,
+  confirmSalePickingApi,
   confirmReturnOrderArrivalApi,
   confirmSaleOrderDeliveryApi,
   confirmSaleOrderShipmentApi,
+  createSaleAllocationFromOrderApi,
+  createSalePickingFromAllocationApi,
   deleteOrderApi,
   getOrderListApi,
   paySaleOrderApi,
+  postSalePickingApi,
   refundReturnOrderApi,
   updateOrderApi,
   type OrderQueryDto
@@ -92,6 +97,11 @@ export function deleteSalesOutboundApi(uid: string) {
 
 export {
   paySaleOrderApi,
+  createSaleAllocationFromOrderApi,
+  confirmSaleAllocationApi,
+  createSalePickingFromAllocationApi,
+  confirmSalePickingApi,
+  postSalePickingApi,
   confirmSaleOrderShipmentApi,
   confirmSaleOrderDeliveryApi,
   confirmReturnOrderArrivalApi,

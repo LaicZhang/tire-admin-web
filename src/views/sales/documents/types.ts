@@ -32,6 +32,6 @@ export interface DocumentQueryParams {
 export const DOCUMENT_TYPE_OPTIONS = [
   { label: "全部", value: "" },
   { label: "销售订单", value: "order" },
-  { label: "销售出库单", value: "outbound" },
+  { label: "销售履约", value: "outbound" },
   { label: "销售退货单", value: "return" }
 ];

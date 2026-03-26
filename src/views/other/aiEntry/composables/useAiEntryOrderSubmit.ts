@@ -11,11 +11,7 @@ import {
   createPurchaseOrderApi,
   createPurchaseReturnOrderApi
 } from "@/api/purchase";
-import {
-  createSalesOrderApi,
-  createSalesOutboundApi,
-  createSalesReturnOrderApi
-} from "@/api/sales";
+import { createSalesOrderApi, createSalesReturnOrderApi } from "@/api/sales";
 import type { OrderFormData, HistoryRecord, UploadMethod } from "../types";
 import { DocumentType } from "../types";
 import { useUserStoreHook } from "@/store/modules/user";
@@ -241,7 +237,7 @@ async function submitFormalOrder(
         details
       });
     case DocumentType.SALE_OUTBOUND:
-      return createSalesOutboundApi({
+      return createSalesOrderApi({
         order: {
           ...orderBase,
           customer: { connect: { uid: partyUid } }

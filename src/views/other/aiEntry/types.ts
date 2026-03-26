@@ -94,7 +94,7 @@ export const documentTypeConfig: Record<
     partyLabel: "客户"
   },
   [DocumentType.SALE_OUTBOUND]: {
-    label: "销售出库单",
+    label: "销售履约",
     partyType: "customer",
     partyLabel: "客户"
   },

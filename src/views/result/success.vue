@@ -72,7 +72,7 @@ const DOCUMENT_TYPE_LABELS: Record<DocumentCenterType, string> = {
   PURCHASE_INBOUND: "采购入库单",
   PURCHASE_RETURN: "采购退货单",
   SALE_ORDER: "销售订单",
-  SALE_OUTBOUND: "销售出库单",
+  SALE_OUTBOUND: "销售履约",
   SALE_RETURN: "销售退货单"
 };
 
@@ -101,7 +101,7 @@ const DOCUMENT_ROUTE_MAP: Record<DocumentCenterType, DocumentRouteConfig> = {
   PURCHASE_INBOUND: { path: "/purchase/inbound", queryMode: "uidAction" },
   PURCHASE_RETURN: { path: "/purchase/return", queryMode: "uidAction" },
   SALE_ORDER: { path: "/sales/order", queryMode: "none" },
-  SALE_OUTBOUND: { path: "/sales/outbound", queryMode: "none" },
+  SALE_OUTBOUND: { path: "/sales/order", queryMode: "none" },
   SALE_RETURN: { path: "/sales/return", queryMode: "none" }
 };
 

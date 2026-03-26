@@ -148,6 +148,45 @@ export type SaleOrderConfirmShipmentDto = {
   serialNos?: string[];
 };
 
+export type CreateSaleAllocationFromOrderDto = {
+  detailUid?: string;
+  allocatedQuantity?: number;
+};
+
+export type SaleAllocationApi = {
+  uid: string;
+  saleOrderUid: string;
+  allocationNo: string;
+  status: string;
+  totalQuantity: number;
+  lines: Array<{
+    uid: string;
+    saleOrderDetailUid: string;
+    allocatedQuantity: number;
+  }>;
+};
+
+export type ConfirmSalePickingDto = {
+  lines: Array<{
+    uid: string;
+    pickedQuantity: number;
+    serialNos?: string[];
+  }>;
+};
+
+export type SalePickingApi = {
+  uid: string;
+  saleAllocationUid: string;
+  saleOrderUid: string;
+  pickingNo: string;
+  status: string;
+  lines: Array<{
+    uid: string;
+    saleOrderDetailUid: string;
+    pickedQuantity: number;
+  }>;
+};
+
 /** 订单查询参数 DTO */
 export interface OrderQueryDto {
   providerId?: string;
@@ -271,6 +310,51 @@ export async function confirmSaleOrderShipmentApi(
     "patch",
     baseUrlApi(`/sale-order/confirm-shipment/${uid}`),
     { data }
+  );
+}
+
+export async function createSaleAllocationFromOrderApi(
+  saleOrderUid: string,
+  data: CreateSaleAllocationFromOrderDto
+) {
+  return await http.request<CommonResult<SaleAllocationApi>>(
+    "post",
+    baseUrlApi(`/sale-allocation/from-order/${saleOrderUid}`),
+    { data }
+  );
+}
+
+export async function confirmSaleAllocationApi(uid: string) {
+  return await http.request<CommonResult<SaleAllocationApi>>(
+    "patch",
+    baseUrlApi(`/sale-allocation/confirm/${uid}`)
+  );
+}
+
+export async function createSalePickingFromAllocationApi(
+  saleAllocationUid: string
+) {
+  return await http.request<CommonResult<SalePickingApi>>(
+    "post",
+    baseUrlApi(`/sale-picking/from-allocation/${saleAllocationUid}`)
+  );
+}
+
+export async function confirmSalePickingApi(
+  uid: string,
+  data: ConfirmSalePickingDto
+) {
+  return await http.request<CommonResult<SalePickingApi>>(
+    "patch",
+    baseUrlApi(`/sale-picking/confirm/${uid}`),
+    { data }
+  );
+}
+
+export async function postSalePickingApi(uid: string) {
+  return await http.request<CommonResult<SalePickingApi>>(
+    "patch",
+    baseUrlApi(`/sale-picking/post/${uid}`)
   );
 }
 

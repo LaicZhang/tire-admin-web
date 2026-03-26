@@ -11,13 +11,17 @@ import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
 import { getCompanyConnect, getCompanyId } from "@/api";
 import {
-  getSalesOrderListApi,
+  confirmSaleAllocationApi,
+  confirmSalePickingApi,
+  createSaleAllocationFromOrderApi,
+  createSalePickingFromAllocationApi,
   createSalesOrderApi,
-  updateSalesOrderApi,
+  confirmSaleOrderDeliveryApi,
   deleteSalesOrderApi,
+  getSalesOrderListApi,
   paySaleOrderApi,
-  confirmSaleOrderShipmentApi,
-  confirmSaleOrderDeliveryApi
+  postSalePickingApi,
+  updateSalesOrderApi
 } from "@/api/sales";
 import { message, handleApiError } from "@/utils";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
@@ -177,7 +181,42 @@ async function handleDelete(row: SalesOrder) {
 
 async function onConfirmShipment(row: SalesOrder) {
   await openConfirmActionDialog("确认发货", row, async payload => {
-    return confirmSaleOrderShipmentApi(row.uid, payload);
+    const allocationQuantity =
+      payload.serialNos?.length && payload.serialNos.length > 0
+        ? payload.serialNos.length
+        : payload.shipCount;
+    const allocationRes = await createSaleAllocationFromOrderApi(row.uid, {
+      detailUid: payload.detailUid,
+      allocatedQuantity: allocationQuantity
+    });
+    const allocation = allocationRes.data;
+    if (!allocation?.uid) {
+      throw new Error("创建分配单失败");
+    }
+
+    await confirmSaleAllocationApi(allocation.uid);
+    const pickingRes = await createSalePickingFromAllocationApi(allocation.uid);
+    const picking = pickingRes.data;
+    if (!picking?.uid) {
+      throw new Error("创建拣货单失败");
+    }
+    const pickingLine = picking.lines.find(
+      line => line.saleOrderDetailUid === payload.detailUid
+    );
+    if (!pickingLine?.uid) {
+      throw new Error("拣货单缺少对应明细");
+    }
+
+    await confirmSalePickingApi(picking.uid, {
+      lines: [
+        {
+          uid: pickingLine.uid,
+          pickedQuantity: allocationQuantity ?? pickingLine.pickedQuantity,
+          serialNos: payload.serialNos
+        }
+      ]
+    });
+    return postSalePickingApi(picking.uid);
   });
 }
 
