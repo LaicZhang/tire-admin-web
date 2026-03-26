@@ -16,6 +16,7 @@ export interface ReceiptDetailItem {
   receivableAmount: number;
   writeOffAmount: number;
   remark?: string;
+  invoiceDate?: string;
 }
 
 export interface ReceiptOrder {

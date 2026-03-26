@@ -6,8 +6,10 @@ import { handleApiError, message } from "@/utils";
 import { fenToYuan } from "@/utils/formatMoney";
 import {
   createReceiptApi,
+  getOpenReceivableLedgersApi,
   updateReceiptApi,
-  type CreateReceiptDto
+  type CreateReceiptDto,
+  type OpenReceivableLedger
 } from "@/api/fund/receipt";
 import {
   PAYMENT_METHOD_OPTIONS,
@@ -31,6 +33,7 @@ const props = defineProps<{
 const formRef = ref<FormInstance>();
 const { customerList, paymentList, loadCustomers, loadPayments } =
   useFundForm();
+const receivableLedgerOptions = ref<OpenReceivableLedger[]>([]);
 
 const formData = reactive<CreateReceiptDto & { details: ReceiptDetailItem[] }>({
   customerId: "",
@@ -62,6 +65,14 @@ const advanceAmount = computed(() => {
   return Math.max(0, formData.amount - totalWriteOffAmount.value);
 });
 
+function normalizeLedgerDetail(detail: ReceiptDetailItem) {
+  return {
+    ...detail,
+    receivableAmount: (detail.receivableAmount || 0) / 100,
+    writeOffAmount: (detail.writeOffAmount || 0) / 100
+  };
+}
+
 function resetForm() {
   Object.assign(formData, {
     customerId: props.initialValues?.customerId || "",
@@ -72,6 +83,7 @@ function resetForm() {
     remark: props.initialValues?.remark || "",
     details: []
   });
+  receivableLedgerOptions.value = [];
   formRef.value?.resetFields?.();
   void applySettlementDefaults();
 }
@@ -104,13 +116,51 @@ function applyEditData() {
     paymentMethod: props.editData.paymentMethod || "BANK_TRANSFER",
     receiptDate: props.editData.receiptDate || dayjs().format("YYYY-MM-DD"),
     remark: props.editData.remark || "",
-    details:
-      props.editData.details?.map(detail => ({
-        ...detail,
-        receivableAmount: (detail.receivableAmount || 0) / 100,
-        writeOffAmount: (detail.writeOffAmount || 0) / 100
-      })) || []
+    details: props.editData.details?.map(normalizeLedgerDetail) || []
   });
+}
+
+async function loadReceivableLedgers(customerId?: string) {
+  const uid = String(customerId || "").trim();
+  if (!uid) {
+    receivableLedgerOptions.value = [];
+    return;
+  }
+  try {
+    const { data } = await getOpenReceivableLedgersApi(uid);
+    receivableLedgerOptions.value = data || [];
+  } catch (error) {
+    receivableLedgerOptions.value = [];
+    handleApiError(error, "加载待核销应收失败");
+  }
+}
+
+function buildLedgerLabel(item: OpenReceivableLedger) {
+  const date = item.invoiceDate
+    ? dayjs(item.invoiceDate).format("YYYY-MM-DD")
+    : "-";
+  return `${item.invoiceNumber || item.invoiceUid} / 未结 ${fenToYuan(item.openAmount)} / ${date}`;
+}
+
+function handleLedgerChange(row: ReceiptDetailItem, ledgerUid?: string) {
+  const ledger = receivableLedgerOptions.value.find(
+    item => item.uid === ledgerUid
+  );
+  if (!ledger) {
+    row.sourceOrderId = "";
+    row.sourceOrderNo = "";
+    row.sourceOrderType = "AR_OFFICIAL";
+    row.receivableAmount = 0;
+    row.writeOffAmount = 0;
+    row.invoiceDate = "";
+    return;
+  }
+  row.sourceOrderId = ledger.uid;
+  row.sourceOrderNo = ledger.invoiceNumber;
+  row.sourceOrderType = "AR_OFFICIAL";
+  row.receivableAmount = ledger.openAmount / 100;
+  row.writeOffAmount = ledger.openAmount / 100;
+  row.invoiceDate = ledger.invoiceDate || "";
 }
 
 watch(
@@ -119,6 +169,17 @@ watch(
     applyEditData();
   },
   { immediate: true, deep: true }
+);
+
+watch(
+  () => formData.customerId,
+  (customerId, previousCustomerId) => {
+    if (customerId !== previousCustomerId && !props.editData) {
+      formData.details = [];
+    }
+    void loadReceivableLedgers(customerId);
+  },
+  { immediate: true }
 );
 
 async function submit() {
@@ -130,9 +191,12 @@ async function submit() {
       ...formData,
       amount: Math.round(formData.amount * 100),
       details: formData.details.map(detail => ({
-        ...detail,
+        sourceOrderId: detail.sourceOrderId,
+        sourceOrderNo: detail.sourceOrderNo,
+        sourceOrderType: detail.sourceOrderType,
         receivableAmount: Math.round((detail.receivableAmount || 0) * 100),
-        writeOffAmount: Math.round((detail.writeOffAmount || 0) * 100)
+        writeOffAmount: Math.round((detail.writeOffAmount || 0) * 100),
+        ...(detail.remark ? { remark: detail.remark } : {})
       }))
     };
 
@@ -152,11 +216,13 @@ async function submit() {
 
 function addDetailRow() {
   formData.details.push({
+    sourceOrderId: "",
     sourceOrderNo: "",
-    sourceOrderType: "",
+    sourceOrderType: "AR_OFFICIAL",
     receivableAmount: 0,
     writeOffAmount: 0,
-    remark: ""
+    remark: "",
+    invoiceDate: ""
   });
 }
 
@@ -166,14 +232,14 @@ function removeDetailRow(index: number) {
 
 const formColumns: TableColumnList = [
   {
-    label: "源单据编号",
+    label: "发票台账",
     slot: "sourceOrderNo",
-    minWidth: 150
+    minWidth: 240
   },
   {
-    label: "源单据类型",
-    slot: "sourceOrderType",
-    width: 120
+    label: "发票日期",
+    slot: "invoiceDate",
+    width: 140
   },
   {
     label: "应收金额",
@@ -329,13 +395,25 @@ onMounted(() => {
       :columns="formColumns"
     >
       <template #sourceOrderNo="{ row }">
-        <el-input v-model="row.sourceOrderNo" placeholder="输入单据编号" />
-      </template>
-      <template #sourceOrderType="{ row }">
-        <el-select v-model="row.sourceOrderType" placeholder="选择类型">
-          <el-option label="销售订单" value="SALE_ORDER" />
-          <el-option label="期初应收" value="INITIAL" />
+        <el-select
+          :model-value="row.sourceOrderId"
+          filterable
+          clearable
+          placeholder="选择待核销发票"
+          @update:model-value="
+            value => handleLedgerChange(row, String(value || ''))
+          "
+        >
+          <el-option
+            v-for="item in receivableLedgerOptions"
+            :key="item.uid"
+            :label="buildLedgerLabel(item)"
+            :value="item.uid"
+          />
         </el-select>
+      </template>
+      <template #invoiceDate="{ row }">
+        <span>{{ row.invoiceDate || "-" }}</span>
       </template>
       <template #receivableAmount="{ row }">
         <el-input-number

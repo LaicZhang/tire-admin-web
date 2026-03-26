@@ -55,6 +55,17 @@ export interface CreateReceiptDto {
   details?: Omit<ReceiptDetailItem, "id">[];
 }
 
+export interface OpenReceivableLedger {
+  uid: string;
+  invoiceUid: string;
+  invoiceNumber: string;
+  invoiceDate?: string;
+  totalAmount: number;
+  settledAmount: number;
+  openAmount: number;
+  status: string;
+}
+
 export async function getReceiptListApi(
   index: number,
   params?: Record<string, unknown>
@@ -71,6 +82,13 @@ export async function createReceiptApi(data: CreateReceiptDto) {
     "post",
     baseUrlApi("/receipt-order"),
     { data }
+  );
+}
+
+export async function getOpenReceivableLedgersApi(customerId: string) {
+  return await http.request<CommonResult<OpenReceivableLedger[]>>(
+    "get",
+    baseUrlApi(`/receipt-order/open-ledgers/${customerId}`)
   );
 }
 

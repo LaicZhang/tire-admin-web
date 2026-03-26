@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import {
   PAYMENT_METHOD_OPTIONS,
@@ -13,8 +13,10 @@ import { fenToYuan, fenToYuanNumber } from "@/utils/formatMoney";
 import { handleApiError, message } from "@/utils";
 import { useFundForm } from "../composables/useFundForm";
 import {
+  getOpenPayableLedgersApi,
   createPaymentOrderApi,
-  updatePaymentOrderApi
+  updatePaymentOrderApi,
+  type OpenPayableLedger
 } from "@/api/fund/payment-order";
 import { loadSettlementDefaults } from "@/composables";
 import { logger } from "@/utils/logger";
@@ -32,6 +34,7 @@ const formRef = ref<FormInstance>();
 
 const { providerList, paymentList, loadProviders, loadPayments } =
   useFundForm();
+const payableLedgerOptions = ref<OpenPayableLedger[]>([]);
 
 const formData = reactive<
   CreatePaymentOrderDto & { details: PaymentDetailItem[] }
@@ -77,6 +80,14 @@ const selectedPaymentBalance = computed(() => {
     : null;
 });
 
+function normalizeLedgerDetail(detail: PaymentDetailItem) {
+  return {
+    ...detail,
+    payableAmount: (detail.payableAmount || 0) / 100,
+    writeOffAmount: (detail.writeOffAmount || 0) / 100
+  };
+}
+
 function resetForm() {
   formRef.value?.resetFields?.();
   Object.assign(formData, {
@@ -88,6 +99,7 @@ function resetForm() {
     remark: props.initialValues?.remark || "",
     details: []
   });
+  payableLedgerOptions.value = [];
   void applySettlementDefaults();
 }
 
@@ -115,18 +127,67 @@ function applyEditData() {
       paymentMethod: props.editData.paymentMethod || "BANK_TRANSFER",
       paymentDate: props.editData.paymentDate || dayjs().format("YYYY-MM-DD"),
       remark: props.editData.remark || "",
-      details:
-        props.editData.details?.map(detail => ({
-          ...detail,
-          payableAmount: (detail.payableAmount || 0) / 100,
-          writeOffAmount: (detail.writeOffAmount || 0) / 100
-        })) || []
+      details: props.editData.details?.map(normalizeLedgerDetail) || []
     });
     return;
   }
 
   resetForm();
 }
+
+async function loadPayableLedgers(providerId?: string) {
+  const uid = String(providerId || "").trim();
+  if (!uid) {
+    payableLedgerOptions.value = [];
+    return;
+  }
+  try {
+    const { data } = await getOpenPayableLedgersApi(uid);
+    payableLedgerOptions.value = data || [];
+  } catch (error) {
+    payableLedgerOptions.value = [];
+    handleApiError(error, "加载待核销应付失败");
+  }
+}
+
+function buildLedgerLabel(item: OpenPayableLedger) {
+  const date = item.invoiceDate
+    ? dayjs(item.invoiceDate).format("YYYY-MM-DD")
+    : "-";
+  return `${item.invoiceNumber || item.invoiceUid} / 未结 ${fenToYuan(item.openAmount)} / ${date}`;
+}
+
+function handleLedgerChange(row: PaymentDetailItem, ledgerUid?: string) {
+  const ledger = payableLedgerOptions.value.find(
+    item => item.uid === ledgerUid
+  );
+  if (!ledger) {
+    row.sourceOrderId = "";
+    row.sourceOrderNo = "";
+    row.sourceOrderType = "AP_OFFICIAL";
+    row.payableAmount = 0;
+    row.writeOffAmount = 0;
+    row.invoiceDate = "";
+    return;
+  }
+  row.sourceOrderId = ledger.uid;
+  row.sourceOrderNo = ledger.invoiceNumber;
+  row.sourceOrderType = "AP_OFFICIAL";
+  row.payableAmount = ledger.openAmount / 100;
+  row.writeOffAmount = ledger.openAmount / 100;
+  row.invoiceDate = ledger.invoiceDate || "";
+}
+
+watch(
+  () => formData.providerId,
+  (providerId, previousProviderId) => {
+    if (providerId !== previousProviderId && !props.editData) {
+      formData.details = [];
+    }
+    void loadPayableLedgers(providerId);
+  },
+  { immediate: true }
+);
 
 async function submit() {
   const valid = await formRef.value?.validate().catch(() => false);
@@ -145,9 +206,12 @@ async function submit() {
       ...formData,
       amount: Math.round(formData.amount * 100),
       details: formData.details.map(d => ({
-        ...d,
+        sourceOrderId: d.sourceOrderId,
+        sourceOrderNo: d.sourceOrderNo,
+        sourceOrderType: d.sourceOrderType,
         payableAmount: Math.round((d.payableAmount || 0) * 100),
-        writeOffAmount: Math.round((d.writeOffAmount || 0) * 100)
+        writeOffAmount: Math.round((d.writeOffAmount || 0) * 100),
+        ...(d.remark ? { remark: d.remark } : {})
       }))
     };
 
@@ -167,11 +231,13 @@ async function submit() {
 
 function addDetailRow() {
   formData.details.push({
+    sourceOrderId: "",
     sourceOrderNo: "",
-    sourceOrderType: "",
+    sourceOrderType: "AP_OFFICIAL",
     payableAmount: 0,
     writeOffAmount: 0,
-    remark: ""
+    remark: "",
+    invoiceDate: ""
   });
 }
 
@@ -181,14 +247,14 @@ function removeDetailRow(index: number) {
 
 const formColumns: TableColumnList = [
   {
-    label: "源单据编号",
+    label: "发票台账",
     slot: "sourceOrderNo",
-    minWidth: 150
+    minWidth: 240
   },
   {
-    label: "源单据类型",
-    slot: "sourceOrderType",
-    width: 120
+    label: "发票日期",
+    slot: "invoiceDate",
+    width: 140
   },
   {
     label: "应付金额",
@@ -343,13 +409,25 @@ onMounted(() => {
       :columns="formColumns"
     >
       <template #sourceOrderNo="{ row }">
-        <el-input v-model="row.sourceOrderNo" placeholder="输入单据编号" />
-      </template>
-      <template #sourceOrderType="{ row }">
-        <el-select v-model="row.sourceOrderType" placeholder="选择类型">
-          <el-option label="采购入库单" value="PURCHASE_IN" />
-          <el-option label="期初应付" value="INITIAL" />
+        <el-select
+          :model-value="row.sourceOrderId"
+          filterable
+          clearable
+          placeholder="选择待核销发票"
+          @update:model-value="
+            value => handleLedgerChange(row, String(value || ''))
+          "
+        >
+          <el-option
+            v-for="item in payableLedgerOptions"
+            :key="item.uid"
+            :label="buildLedgerLabel(item)"
+            :value="item.uid"
+          />
         </el-select>
+      </template>
+      <template #invoiceDate="{ row }">
+        <span>{{ row.invoiceDate || "-" }}</span>
       </template>
       <template #payableAmount="{ row }">
         <el-input-number

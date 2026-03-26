@@ -28,6 +28,25 @@ export interface CreatePaymentOrderDto {
   paymentMethod?: string;
   paymentDate?: string;
   remark?: string;
+  details?: Array<{
+    sourceOrderId?: string;
+    sourceOrderNo?: string;
+    sourceOrderType?: string;
+    payableAmount: number;
+    writeOffAmount: number;
+    remark?: string;
+  }>;
+}
+
+export interface OpenPayableLedger {
+  uid: string;
+  invoiceUid: string;
+  invoiceNumber: string;
+  invoiceDate?: string;
+  totalAmount: number;
+  settledAmount: number;
+  openAmount: number;
+  status: string;
 }
 
 export async function getPaymentOrderListApi(
@@ -46,6 +65,13 @@ export async function createPaymentOrderApi(data: CreatePaymentOrderDto) {
     "post",
     baseUrlApi("/payment-order"),
     { data }
+  );
+}
+
+export async function getOpenPayableLedgersApi(providerId: string) {
+  return await http.request<CommonResult<OpenPayableLedger[]>>(
+    "get",
+    baseUrlApi(`/payment-order/open-ledgers/${providerId}`)
   );
 }
 

@@ -25,6 +25,8 @@ export interface PaymentDetailItem {
   writeOffAmount: number;
   /** 备注 */
   remark?: string;
+  /** 发票日期 */
+  invoiceDate?: string;
 }
 
 /** 付款单 */
