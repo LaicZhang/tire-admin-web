@@ -207,6 +207,24 @@ export interface OrderQueryDto {
   auditorId?: string;
 }
 
+export interface ReturnableSourceDto {
+  deliveryNoteLineUid: string;
+  deliveryNoteUid: string;
+  deliveryNoteNo: string;
+  tireId: string;
+  tireName: string;
+  repoId: string;
+  repoName: string;
+  quantity: number;
+  returnedQuantity: number;
+  remainingQuantity: number;
+  unitPrice: number;
+  totalAmount: number;
+  remainingAmount: number;
+  shippedAt: string;
+  invoicedAmount: number;
+}
+
 // ============ 通用订单 API ============
 
 export async function getOrderListApi<TOrder = unknown>(
@@ -570,6 +588,13 @@ export async function getReturnOrderExchangeListApi(
     "get",
     baseUrlApi(`/return-order/exchange/page/${index}`),
     { params }
+  );
+}
+
+export async function getReturnableSourcesApi(customerId: string) {
+  return await http.request<CommonResult<ReturnableSourceDto[]>>(
+    "get",
+    baseUrlApi(`/return-order/returnable-sources/${customerId}`)
   );
 }
 

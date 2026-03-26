@@ -8,6 +8,7 @@ import {
   createSaleAllocationFromOrderApi,
   createSalePickingFromAllocationApi,
   deleteOrderApi,
+  getReturnableSourcesApi,
   getOrderListApi,
   paySaleOrderApi,
   postSalePickingApi,
@@ -68,6 +69,10 @@ export function updateSalesReturnOrderApi(
 
 export function deleteSalesReturnOrderApi(uid: string) {
   return deleteOrderApi(SALES_RETURN_ORDER_TYPE, uid);
+}
+
+export function getSalesReturnableSourcesApi(customerId: string) {
+  return getReturnableSourcesApi(customerId);
 }
 
 export function getSalesOutboundListApi(index: number, params?: OrderQueryDto) {

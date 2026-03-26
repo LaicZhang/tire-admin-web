@@ -106,6 +106,12 @@ export const salesReturnColumns: TableColumn[] = [
 /** Sales Return Order Detail Table Columns */
 export const salesReturnDetailColumns: TableColumnList = [
   {
+    label: "来源发货",
+    prop: "sourceDeliveryNoteLineUid",
+    slot: "sourceDeliveryNoteLineSelect",
+    minWidth: 260
+  },
+  {
     label: "商品",
     prop: "tireId",
     slot: "tireIdSelect",

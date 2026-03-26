@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import type { SalesReturnOrder, SalesReturnDetail } from "./types";
+import type {
+  ReturnableSource,
+  SalesReturnOrder,
+  SalesReturnDetail
+} from "./types";
 import { salesReturnDetailColumns } from "./columns";
 import { RETURN_REASON_OPTIONS } from "./types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
-import { ALL_LIST, localForage, message } from "@/utils";
+import { getSalesReturnableSourcesApi } from "@/api/sales";
+import { ALL_LIST, handleApiError, localForage, message } from "@/utils";
 import {
   formatSerialNumbersText,
   parseSerialNumbersText
@@ -46,6 +51,8 @@ interface SelectItem {
 const allTireList = ref<SelectItem[]>([]);
 const allRepoList = ref<SelectItem[]>([]);
 const managerList = ref<SelectItem[]>([]);
+const returnableSourceList = ref<ReturnableSource[]>([]);
+const returnableSourceLoading = ref(false);
 
 const returnReasonOptions = RETURN_REASON_OPTIONS;
 
@@ -84,8 +91,110 @@ async function loadBaseData() {
   }
 }
 
+function findReturnableSource(sourceUid?: string) {
+  if (!sourceUid) return undefined;
+  return returnableSourceList.value.find(
+    item => item.deliveryNoteLineUid === sourceUid
+  );
+}
+
+function formatReturnableSourceLabel(source: ReturnableSource) {
+  return [
+    source.deliveryNoteNo,
+    source.tireName,
+    `剩余${source.remainingQuantity}`,
+    source.repoName
+  ].join(" | ");
+}
+
+function getSourceOptions(row: SalesReturnDetail) {
+  return returnableSourceList.value.filter(item => {
+    if (item.deliveryNoteLineUid === row.sourceDeliveryNoteLineUid) {
+      return true;
+    }
+    if (!row.tireId) {
+      return true;
+    }
+    return item.tireId === row.tireId;
+  });
+}
+
+function resolveSourceDisplay(row: SalesReturnDetail) {
+  const source = findReturnableSource(row.sourceDeliveryNoteLineUid);
+  return source
+    ? formatReturnableSourceLabel(source)
+    : row.sourceDeliveryNoteLineUid || "-";
+}
+
+function resolveDetailCountMax(row: SalesReturnDetail) {
+  const source = findReturnableSource(row.sourceDeliveryNoteLineUid);
+  return source?.remainingQuantity || 9999;
+}
+
+function applySourceToDetail(row: SalesReturnDetail) {
+  const source = findReturnableSource(row.sourceDeliveryNoteLineUid);
+  if (!source) {
+    calcDetailTotal(row);
+    return;
+  }
+  row.tireId = source.tireId;
+  row.tireName = source.tireName;
+  row.unitPrice = source.unitPrice;
+  if (!row.repoId) {
+    row.repoId = source.repoId;
+    row.repoName = source.repoName;
+  }
+  const nextCount = Math.min(
+    Math.max(row.count || 1, 1),
+    source.remainingQuantity
+  );
+  row.count = nextCount;
+  calcDetailTotal(row);
+}
+
+function syncSourceSelections() {
+  const validSourceUids = new Set(
+    returnableSourceList.value.map(item => item.deliveryNoteLineUid)
+  );
+  formData.value.details.forEach(detail => {
+    if (!detail.sourceDeliveryNoteLineUid) return;
+    if (!validSourceUids.has(detail.sourceDeliveryNoteLineUid)) {
+      detail.sourceDeliveryNoteLineUid = undefined;
+      return;
+    }
+    applySourceToDetail(detail);
+  });
+}
+
+async function loadReturnableSources(customerId?: string) {
+  if (!customerId) {
+    returnableSourceList.value = [];
+    syncSourceSelections();
+    return;
+  }
+  returnableSourceLoading.value = true;
+  try {
+    const res = await getSalesReturnableSourcesApi(customerId);
+    if (res.code !== 200) {
+      returnableSourceList.value = [];
+      message(res.msg || "加载可退货来源失败", { type: "error" });
+      syncSourceSelections();
+      return;
+    }
+    returnableSourceList.value = res.data || [];
+    syncSourceSelections();
+  } catch (error) {
+    returnableSourceList.value = [];
+    syncSourceSelections();
+    handleApiError(error, "加载可退货来源失败");
+  } finally {
+    returnableSourceLoading.value = false;
+  }
+}
+
 function onAddDetail() {
   formData.value.details.push({
+    sourceDeliveryNoteLineUid: undefined,
     tireId: "",
     count: 1,
     unitPrice: 0,
@@ -142,6 +251,15 @@ watch(
   () => props.formInline,
   val => {
     formData.value = prepareFormData(val);
+    syncSourceSelections();
+  },
+  { immediate: true }
+);
+
+watch(
+  () => formData.value.customerId,
+  customerId => {
+    loadReturnableSources(customerId || undefined);
   },
   { immediate: true }
 );
@@ -271,13 +389,34 @@ watch(
       adaptive
       show-overflow-tooltip
     >
+      <template #sourceDeliveryNoteLineSelect="{ row }">
+        <span v-if="isReadOnly">{{ resolveSourceDisplay(row) }}</span>
+        <el-select
+          v-else
+          v-model="row.sourceDeliveryNoteLineUid"
+          placeholder="选择来源发货"
+          clearable
+          filterable
+          :loading="returnableSourceLoading"
+          :disabled="!formData.customerId"
+          @change="applySourceToDetail(row)"
+        >
+          <el-option
+            v-for="item in getSourceOptions(row)"
+            :key="item.deliveryNoteLineUid"
+            :label="formatReturnableSourceLabel(item)"
+            :value="item.deliveryNoteLineUid"
+          />
+        </el-select>
+      </template>
+
       <template #tireIdSelect="{ row }">
         <el-select
           v-model="row.tireId"
           placeholder="选择商品"
           clearable
           filterable
-          :disabled="isReadOnly"
+          :disabled="isReadOnly || !!row.sourceDeliveryNoteLineUid"
         >
           <el-option
             v-for="item in allTireList"
@@ -292,7 +431,7 @@ watch(
         <el-input-number
           v-model="row.count"
           :min="1"
-          :max="9999"
+          :max="resolveDetailCountMax(row)"
           :disabled="isReadOnly || Boolean(row.serialNumbers?.length)"
           controls-position="right"
           @change="calcDetailTotal(row)"

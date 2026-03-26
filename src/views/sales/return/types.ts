@@ -2,6 +2,29 @@ import type { SerialNumberPayload } from "@/utils/serialNumber";
 
 /** Sales Return Order (销售退货) Module Types */
 
+export interface ReturnOfficialAllocation {
+  invoiceUid: string;
+  amount: number;
+}
+
+export interface ReturnableSource {
+  deliveryNoteLineUid: string;
+  deliveryNoteUid: string;
+  deliveryNoteNo: string;
+  tireId: string;
+  tireName: string;
+  repoId: string;
+  repoName: string;
+  quantity: number;
+  returnedQuantity: number;
+  remainingQuantity: number;
+  unitPrice: number;
+  totalAmount: number;
+  remainingAmount: number;
+  shippedAt: string;
+  invoicedAmount: number;
+}
+
 export interface SalesReturnDetail {
   uid?: string;
   tireId: string;
@@ -11,6 +34,8 @@ export interface SalesReturnDetail {
   total: number;
   repoId?: string;
   repoName?: string;
+  sourceDeliveryNoteLineUid?: string;
+  officialAllocations?: ReturnOfficialAllocation[];
   returnReason?: string;
   serialNumbers?: SerialNumberPayload[];
   serialNosText?: string;
