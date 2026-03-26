@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import type { InvoiceBusinessType } from "@/api/business/invoice";
-import { createInvoice } from "@/api/business/invoice";
-import { getStatementList, type Statement } from "@/api/business/statement";
+import type {
+  InvoiceBusinessType,
+  PurchaseInboundSource,
+  SaleDeliverySource
+} from "@/api/business/invoice";
+import {
+  createInvoice,
+  getPurchaseInboundSources,
+  getSaleDeliverySources
+} from "@/api/business/invoice";
 import { handleApiError } from "@/utils/error";
 import { message } from "@/utils/message";
 
@@ -10,7 +17,8 @@ const props = defineProps<{
   modelValue: boolean;
   preset?: {
     businessType?: InvoiceBusinessType;
-    statementId?: string;
+    deliveryNoteId?: string;
+    purchaseInboundId?: string;
   } | null;
 }>();
 
@@ -25,17 +33,13 @@ const dialogVisible = computed({
 });
 
 const loading = ref(false);
-const statementOptions = ref<Statement[]>([]);
-const statementSelectOptions = computed(() =>
-  statementOptions.value.filter(
-    (item): item is Statement & { uid: string } =>
-      typeof item.uid === "string" && item.uid.length > 0
-  )
-);
+const saleDeliveryOptions = ref<SaleDeliverySource[]>([]);
+const purchaseInboundOptions = ref<PurchaseInboundSource[]>([]);
 
 const form = reactive({
   businessType: "SALE" as InvoiceBusinessType,
-  statementId: "",
+  deliveryNoteId: "",
+  purchaseInboundId: "",
   invoiceNumber: "",
   invoiceType: "vat_normal",
   invoiceDate: new Date().toISOString().slice(0, 10),
@@ -45,21 +49,28 @@ const form = reactive({
   remark: ""
 });
 
-const statementType = computed(() =>
-  form.businessType === "PURCHASE" ? "PROVIDER" : "CUSTOMER"
+const sourceLabel = computed(() => {
+  if (form.businessType === "PURCHASE") return "入库单";
+  return "发货单";
+});
+
+const sourcePlaceholder = computed(() =>
+  form.businessType === "PURCHASE" ? "请选择待收票入库单" : "请选择待开票发货单"
 );
 
-async function loadStatements() {
-  const { data } = await getStatementList({
-    page: 1,
-    pageSize: 100,
-    type: statementType.value
-  });
-  statementOptions.value = data?.list || [];
+async function loadSaleDeliveries() {
+  const { data } = await getSaleDeliverySources();
+  saleDeliveryOptions.value = data || [];
+}
+
+async function loadPurchaseInbounds() {
+  const { data } = await getPurchaseInboundSources();
+  purchaseInboundOptions.value = data || [];
 }
 
 function resetForm() {
-  form.statementId = "";
+  form.deliveryNoteId = "";
+  form.purchaseInboundId = "";
   form.invoiceNumber = "";
   form.invoiceType = "vat_normal";
   form.invoiceDate = new Date().toISOString().slice(0, 10);
@@ -71,8 +82,15 @@ function resetForm() {
 
 async function prepareDialog() {
   form.businessType = props.preset?.businessType || "SALE";
-  await loadStatements();
-  form.statementId = props.preset?.statementId || "";
+  if (form.businessType === "PURCHASE") {
+    await loadPurchaseInbounds();
+    form.purchaseInboundId = props.preset?.purchaseInboundId || "";
+    form.deliveryNoteId = "";
+    return;
+  }
+  await loadSaleDeliveries();
+  form.deliveryNoteId = props.preset?.deliveryNoteId || "";
+  form.purchaseInboundId = "";
 }
 
 watch(
@@ -88,8 +106,13 @@ watch(
   () => form.businessType,
   async () => {
     if (!dialogVisible.value) return;
-    form.statementId = "";
-    await loadStatements();
+    form.deliveryNoteId = "";
+    form.purchaseInboundId = "";
+    if (form.businessType === "PURCHASE") {
+      await loadPurchaseInbounds();
+      return;
+    }
+    await loadSaleDeliveries();
   }
 );
 
@@ -98,7 +121,9 @@ async function handleSubmit() {
   try {
     await createInvoice({
       businessType: form.businessType,
-      statementId: form.statementId,
+      ...(form.businessType === "PURCHASE"
+        ? { purchaseInboundId: form.purchaseInboundId }
+        : { deliveryNoteId: form.deliveryNoteId }),
       invoiceNumber: form.invoiceNumber,
       invoiceType: form.invoiceType,
       invoiceDate: form.invoiceDate,
@@ -132,12 +157,32 @@ async function handleSubmit() {
           <el-option label="采购进项" value="PURCHASE" />
         </el-select>
       </el-form-item>
-      <el-form-item label="对账单">
-        <el-select v-model="form.statementId" filterable class="w-full">
+      <el-form-item :label="sourceLabel">
+        <el-select
+          v-if="form.businessType === 'SALE'"
+          v-model="form.deliveryNoteId"
+          filterable
+          class="w-full"
+          :placeholder="sourcePlaceholder"
+        >
           <el-option
-            v-for="item in statementSelectOptions"
+            v-for="item in saleDeliveryOptions"
             :key="item.uid"
-            :label="`${item.statementNo} / ${item.targetName}`"
+            :label="`${item.deliveryNoteNo} / ${item.customerName}`"
+            :value="item.uid"
+          />
+        </el-select>
+        <el-select
+          v-else
+          v-model="form.purchaseInboundId"
+          filterable
+          class="w-full"
+          :placeholder="sourcePlaceholder"
+        >
+          <el-option
+            v-for="item in purchaseInboundOptions"
+            :key="item.uid"
+            :label="`${item.docNo} / ${item.providerName}`"
             :value="item.uid"
           />
         </el-select>

@@ -42,7 +42,8 @@ const loading = ref(false);
 const createDialogVisible = ref(false);
 const createPreset = ref<{
   businessType?: InvoiceBusinessType;
-  statementId?: string;
+  deliveryNoteId?: string;
+  purchaseInboundId?: string;
 } | null>(null);
 
 const pagination = ref({
@@ -121,13 +122,15 @@ async function handleRedFlush(row: InvoiceRow) {
 watch(
   () => route.query,
   query => {
-    const statementId = String(query.statementId || "").trim();
+    const deliveryNoteId = String(query.deliveryNoteId || "").trim();
+    const purchaseInboundId = String(query.purchaseInboundId || "").trim();
     const businessType = String(query.businessType || "").trim() as
       | InvoiceBusinessType
       | "";
-    if (query.autoCreate === "1" && statementId) {
+    if (query.autoCreate === "1" && (deliveryNoteId || purchaseInboundId)) {
       createPreset.value = {
-        statementId,
+        ...(deliveryNoteId ? { deliveryNoteId } : {}),
+        ...(purchaseInboundId ? { purchaseInboundId } : {}),
         businessType: businessType || "SALE"
       };
       createDialogVisible.value = true;

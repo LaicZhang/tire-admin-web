@@ -35,6 +35,8 @@ export interface InvoiceRow {
   partyName: string;
   statementId: string;
   statementNo: string;
+  deliveryNoteId?: string;
+  purchaseInboundId?: string;
   statementStatus?: string;
   remark?: string;
   items?: unknown;
@@ -75,13 +77,15 @@ export interface InvoiceQuery {
   businessType?: InvoiceBusinessType;
   status?: InvoiceStatus;
   invoiceNumber?: string;
-  statementId?: string;
+  deliveryNoteId?: string;
+  purchaseInboundId?: string;
   partyName?: string;
 }
 
 export interface CreateInvoicePayload {
   businessType: InvoiceBusinessType;
-  statementId: string;
+  deliveryNoteId?: string;
+  purchaseInboundId?: string;
   invoiceNumber: string;
   invoiceType: string;
   invoiceDate: string;
@@ -89,6 +93,28 @@ export interface CreateInvoicePayload {
   taxAmount: number;
   totalAmount: number;
   remark?: string;
+}
+
+export interface SaleDeliverySource {
+  uid: string;
+  deliveryNoteNo: string;
+  customerId: string;
+  customerName: string;
+  totalAmount: number;
+  invoicedAmount: number;
+  remainingAmount: number;
+  shippedAt: string;
+}
+
+export interface PurchaseInboundSource {
+  uid: string;
+  docNo: string;
+  providerId: string;
+  providerName: string;
+  totalAmount: number;
+  invoicedAmount: number;
+  remainingAmount: number;
+  auditAt?: string;
 }
 
 export interface RedFlushInvoicePayload {
@@ -109,6 +135,20 @@ export function getInvoicePage(index = 1, params?: InvoiceQuery) {
     {
       params
     }
+  );
+}
+
+export function getSaleDeliverySources() {
+  return http.request<CommonResult<SaleDeliverySource[]>>(
+    "get",
+    baseUrlApi("/invoice/sale-delivery-sources")
+  );
+}
+
+export function getPurchaseInboundSources() {
+  return http.request<CommonResult<PurchaseInboundSource[]>>(
+    "get",
+    baseUrlApi("/invoice/purchase-inbound-sources")
   );
 }
 

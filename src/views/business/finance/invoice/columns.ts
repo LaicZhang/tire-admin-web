@@ -26,7 +26,7 @@ export const columns: TableColumnList = [
     minWidth: 160
   },
   {
-    label: "对账单号",
+    label: "来源单号",
     prop: "statementNo",
     minWidth: 160
   },
