@@ -24,6 +24,7 @@ export * from "./business/purchase-inquiry";
 export * from "./business/sale-quotation";
 export * from "./business/price-list";
 export * from "./business/storage";
+export * from "./business/stock-ledger";
 export * from "./business/stock-alert";
 export * from "./business/packing-box";
 export * from "./chat";

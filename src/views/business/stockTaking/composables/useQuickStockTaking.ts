@@ -2,10 +2,10 @@ import { ref, reactive, computed, type Ref } from "vue";
 import { message } from "@/utils/message";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import {
-  getReserveListApi,
+  getStockBalancePage,
   batchStockTakingApi,
-  type Reserve
-} from "@/api/business/reserve";
+  type StockBalanceRow
+} from "@/api";
 import { calculateStockTakingSummary } from "../utils";
 
 interface QuickStockTakingItem {
@@ -13,7 +13,7 @@ interface QuickStockTakingItem {
   tireId: string;
   count: number;
   actualCount: number;
-  tire?: Reserve["tire"];
+  tire?: StockBalanceRow["tire"];
   tireName?: string;
   description?: string;
 }
@@ -45,23 +45,24 @@ export function useQuickStockTaking(currentRepo: Ref<string | undefined>) {
     loading.value = true;
     showResultSummary.value = false;
     try {
-      const { data, code } = await getReserveListApi(
+      const { data, code } = await getStockBalancePage(
         pagination.value.currentPage,
         {
-          limit: pagination.value.pageSize,
-          repoId: currentRepo.value
+          repoId: currentRepo.value,
+          limit: pagination.value.pageSize
         }
       );
       if (code === 200 && data) {
         const list = Array.isArray(data) ? data : data.list || [];
         pagination.value.total = Array.isArray(data)
           ? data.length
-          : data.total || 0;
+          : data.count || 0;
 
-        tableData.value = (list as Reserve[]).map((item: Reserve) => ({
+        tableData.value = (list as StockBalanceRow[]).map(item => ({
           ...item,
-          actualCount: item.count,
-          tireName: item.tire?.name,
+          count: item.availableQuantity,
+          actualCount: item.availableQuantity,
+          tireName: item.tire?.name ?? undefined,
           description: ""
         }));
         quickPagination.total = pagination.value.total;

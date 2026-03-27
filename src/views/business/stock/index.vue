@@ -4,8 +4,8 @@ import { onMounted, ref, h } from "vue";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
-import { getReserveListApi, updateReserveApi } from "@/api";
-import type { Reserve } from "@/api/business/reserve";
+import { getStockBalancePage, stockTakingApi } from "@/api";
+import type { StockBalanceRow } from "@/api/business/stock-ledger";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -18,9 +18,12 @@ defineOptions({
   name: "StockTaking"
 });
 
-const dataList = ref<Reserve[]>([]);
+type StockRow = StockBalanceRow & { count: number };
+
+const dataList = ref<StockRow[]>([]);
 const loading = ref(false);
 const formRef = ref<{ formRef?: FormInstance } | null>(null);
+const activeRow = ref<StockRow | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
   keyword: ""
@@ -35,15 +38,18 @@ const pagination = ref({
 const getList = async () => {
   loading.value = true;
   try {
-    const { data, code, msg } = await getReserveListApi(
+    const { data, code, msg } = await getStockBalancePage(
       pagination.value.currentPage,
       {
-        // Simple search if backend supports it, otherwise logic needs refinement
+        limit: pagination.value.pageSize
       }
     );
     if (code === 200) {
-      dataList.value = data.list;
-      pagination.value.total = data.total ?? 0;
+      dataList.value = data.list.map(item => ({
+        ...item,
+        count: item.availableQuantity
+      }));
+      pagination.value.total = data.count ?? 0;
     } else {
       message(msg, { type: "error" });
     }
@@ -70,7 +76,13 @@ async function handleCurrentChange(val: number) {
   await getList();
 }
 
-function openDialog(row: Reserve) {
+async function handleSizeChange(val: number) {
+  pagination.value.pageSize = val;
+  pagination.value.currentPage = 1;
+  await getList();
+}
+
+function openDialog(row: StockRow) {
   type StockFormInline = {
     uid: number;
     tireName?: string;
@@ -104,6 +116,7 @@ function openDialog(row: Reserve) {
           .formInline
       }),
     beforeSure: (done, { options }) => {
+      activeRow.value = row;
       const FormRef = formRef.value?.formRef;
       if (!FormRef) return;
       const curData = (
@@ -112,10 +125,14 @@ function openDialog(row: Reserve) {
       FormRef.validate(async (valid: boolean) => {
         if (valid) {
           try {
-            // Directly update reserve count.
-            // Ideally we should create a Waste/Surplus order, but for simplicity/checklist: "Use updateReserveApi"
-            await updateReserveApi(curData.uid, {
-              count: curData.actualCount
+            if (!activeRow.value?.repoId || !activeRow.value.tireId) {
+              message("缺少仓库或商品标识，无法提交盘点", { type: "error" });
+              return;
+            }
+            await stockTakingApi({
+              repoId: activeRow.value.repoId,
+              tireId: activeRow.value.tireId,
+              actualCount: curData.actualCount
             });
             message("盘点成功", { type: "success" });
             done();
@@ -162,6 +179,7 @@ onMounted(() => {
             showOverflowTooltip
             :pagination="{ ...pagination, size }"
             @page-current-change="handleCurrentChange"
+            @page-size-change="handleSizeChange"
           >
             <template #operation="{ row }">
               <el-button

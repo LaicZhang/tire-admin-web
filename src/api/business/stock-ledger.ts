@@ -37,6 +37,34 @@ export type StockLedgerStatus =
   | "QC"
   | "FROZEN";
 
+export interface StockBalanceRow {
+  id: number;
+  uid: string;
+  repoId: string;
+  tireId: string;
+  batchId?: number | null;
+  batchNo?: string | null;
+  productionDate?: string | null;
+  expiryDate?: string | null;
+  onHandQuantity?: number;
+  availableQuantity: number;
+  reservedQuantity: number;
+  pickedQuantity: number;
+  inTransitQuantity: number;
+  qcQuantity: number;
+  frozenQuantity: number;
+  atpQuantity: number;
+  tire?: { name?: string | null } | null;
+  repo?: { name?: string | null } | null;
+}
+
+export interface StockBalanceQuery {
+  repoId?: string;
+  tireId?: string;
+  batchNo?: string;
+  limit?: number;
+}
+
 export interface StockReservationRow {
   id: number;
   uid: string;
@@ -111,6 +139,16 @@ export function getStockReservationPage(
   >("get", baseUrlApi(`/stock-ledger/reservations/${index}`), {
     params
   });
+}
+
+export function getStockBalancePage(index = 1, params?: StockBalanceQuery) {
+  return http.request<CommonResult<{ count: number; list: StockBalanceRow[] }>>(
+    "get",
+    baseUrlApi(`/stock-ledger/page/${index}`),
+    {
+      params
+    }
+  );
 }
 
 export function getStockMovementPage(index = 1, params?: StockMovementQuery) {
