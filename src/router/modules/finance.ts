@@ -48,6 +48,15 @@ export default {
       }
     },
     {
+      path: "/finance/stock-movement",
+      name: "FinanceStockMovement",
+      component: () =>
+        import("@/views/business/finance/stockMovement/index.vue"),
+      meta: {
+        title: "统一库存流水"
+      }
+    },
+    {
       path: "/finance/sale-allocation",
       name: "FinanceSaleAllocation",
       component: () =>

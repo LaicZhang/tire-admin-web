@@ -14,4 +14,17 @@ describe("finance routes", () => {
       }
     });
   });
+
+  it("exposes a unified stock movement entry", () => {
+    const movementRoute = financeRoute.children?.find(
+      route => route.path === "/finance/stock-movement"
+    );
+
+    expect(movementRoute).toMatchObject({
+      name: "FinanceStockMovement",
+      meta: {
+        title: "统一库存流水"
+      }
+    });
+  });
 });
