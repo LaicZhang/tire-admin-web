@@ -10,6 +10,11 @@ export interface ReserveDto {
   count: number;
   batchNo?: string;
   expiryDate?: string;
+  availableQuantity?: number;
+  reservedQuantity?: number;
+  pickedQuantity?: number;
+  inTransitQuantity?: number;
+  atpQuantity?: number;
 }
 
 export interface Reserve extends ReserveDto {

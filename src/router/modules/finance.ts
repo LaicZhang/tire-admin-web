@@ -39,6 +39,15 @@ export default {
       }
     },
     {
+      path: "/finance/stock-reservation",
+      name: "FinanceStockReservation",
+      component: () =>
+        import("@/views/business/finance/stockReservation/index.vue"),
+      meta: {
+        title: "统一预占"
+      }
+    },
+    {
       path: "/finance/sale-allocation",
       name: "FinanceSaleAllocation",
       component: () =>
