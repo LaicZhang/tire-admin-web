@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useCrud } from "../../src/composables";
+import { useCrud } from "../../src/composables/useCrud";
 import { flushPromises, mount } from "@vue/test-utils";
 import { nextTick, defineComponent } from "vue";
 
@@ -98,6 +98,42 @@ describe("useCrud", () => {
 
     expect(dataList.value).toEqual(mockData.data.list);
     expect(pagination.value.total).toBe(5);
+  });
+
+  it("should handle API returning { list: [], count: 0 } structure", async () => {
+    const mockData = { list: [{ id: 1 }], count: 7 };
+    mockApi.mockResolvedValue(mockData);
+
+    const { result } = withSetup(() =>
+      useCrud({
+        api: mockApi,
+        immediate: false
+      })
+    );
+    const { dataList, pagination, fetchData } = result;
+
+    await fetchData();
+
+    expect(dataList.value).toEqual(mockData.list);
+    expect(pagination.value.total).toBe(7);
+  });
+
+  it("should handle API returning { data: { list: [], count: 0 } } structure", async () => {
+    const mockData = { data: { list: [{ id: 1 }], count: 9 } };
+    mockApi.mockResolvedValue(mockData);
+
+    const { result } = withSetup(() =>
+      useCrud({
+        api: mockApi,
+        immediate: false
+      })
+    );
+    const { dataList, pagination, fetchData } = result;
+
+    await fetchData();
+
+    expect(dataList.value).toEqual(mockData.data.list);
+    expect(pagination.value.total).toBe(9);
   });
 
   it("should handle API returning { data: [] } structure", async () => {

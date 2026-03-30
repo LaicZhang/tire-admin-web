@@ -33,7 +33,7 @@ export interface UseCrudRequestContext {
  */
 function hasListProperty(
   value: unknown
-): value is { list: unknown[]; total?: number } {
+): value is { list: unknown[]; total?: number; count?: number } {
   return (
     typeof value === "object" &&
     value !== null &&
@@ -47,7 +47,7 @@ function hasListProperty(
  */
 function hasDataListProperty(
   value: unknown
-): value is { data: { list: unknown[]; total?: number } } {
+): value is { data: { list: unknown[]; total?: number; count?: number } } {
   return (
     typeof value === "object" &&
     value !== null &&
@@ -142,10 +142,10 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
           total = r.length;
         } else if (hasListProperty(r)) {
           list = r.list as T[];
-          total = r.total ?? r.list.length;
+          total = r.total ?? r.count ?? r.list.length;
         } else if (hasDataListProperty(r)) {
           list = r.data.list as T[];
-          total = r.data.total ?? r.data.list.length;
+          total = r.data.total ?? r.data.count ?? r.data.list.length;
         } else if (hasDataArrayProperty(r)) {
           list = r.data as T[];
           total = r.total ?? r.data.length;

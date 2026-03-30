@@ -6,7 +6,8 @@ import {
   getOrderListApi,
   getPurchasePlanListApi,
   getPurchaseInquiryListApi,
-  getSaleQuotationOrderListApi
+  getSaleQuotationOrderListApi,
+  type SaleQuotationDto
 } from "@/api";
 import {
   CUR_ORDER_TYPE,
@@ -45,6 +46,15 @@ export interface TableColumn {
     cellValue: unknown
   ) => string;
   cellRenderer?: (data: { row: OrderRow }) => JSX.Element;
+}
+
+function toOrderRowFromSaleQuotation(row: SaleQuotationDto): OrderRow {
+  return {
+    ...row,
+    uid: row.uid ?? String(row.id),
+    orderNo: row.quotationNo,
+    total: row.totalAmount ?? undefined
+  };
 }
 
 /**
@@ -107,9 +117,16 @@ export function useOrderList() {
           PaginatedResponseDto<OrderRow>
         >;
       } else if (orderType.value === ORDER_TYPE.saleQuotation) {
-        res = (await getSaleQuotationOrderListApi({
+        const saleQuotationRes = await getSaleQuotationOrderListApi({
           index: pagination.value.currentPage
-        })) as unknown as CommonResult<PaginatedResponseDto<OrderRow>>;
+        });
+        res = {
+          ...saleQuotationRes,
+          data: {
+            ...saleQuotationRes.data,
+            list: saleQuotationRes.data.list.map(toOrderRowFromSaleQuotation)
+          }
+        };
       } else {
         res = (await getOrderListApi(
           orderType.value,
