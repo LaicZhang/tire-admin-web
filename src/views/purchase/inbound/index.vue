@@ -300,6 +300,25 @@ function handleGenerateReturnGuide(row: InboundOrder) {
   );
 }
 
+function getCustomActions(row: InboundOrder): CustomAction<InboundOrder>[] {
+  return [
+    {
+      label: "退货指引",
+      type: "warning",
+      visible: row.isApproved,
+      onClick: handleGenerateReturnGuide
+    }
+  ];
+}
+
+function handleView(row: InboundOrder) {
+  openDialog("查看", row);
+}
+
+function handleEdit(row: InboundOrder) {
+  openDialog("修改", row);
+}
+
 async function openFromRouteQuery() {
   const uid = route.query.uid;
   const action = route.query.action;
@@ -448,20 +467,11 @@ onMounted(async () => {
                 :row="row"
                 show-audit
                 :delete-title="`确认删除编号 ${row.docNo || row.number} 的采购入库单?`"
-                :custom-actions="
-                  [
-                    {
-                      label: '退货指引',
-                      type: 'warning',
-                      visible: row.isApproved,
-                      onClick: () => handleGenerateReturnGuide(row)
-                    }
-                  ] as CustomAction[]
-                "
-                @view="openDialog('查看', $event as unknown as InboundOrder)"
-                @edit="openDialog('修改', $event as unknown as InboundOrder)"
-                @audit="openAuditDialog($event as unknown as InboundOrder)"
-                @delete="handleDelete($event as unknown as InboundOrder)"
+                :custom-actions="getCustomActions(row)"
+                @view="handleView"
+                @edit="handleEdit"
+                @audit="openAuditDialog"
+                @delete="handleDelete"
               />
             </template>
           </pure-table>

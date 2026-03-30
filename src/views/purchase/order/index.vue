@@ -233,6 +233,41 @@ async function onCreateInboundDraft(row: PurchaseOrder) {
   }
 }
 
+function getCustomActions(row: PurchaseOrder): CustomAction<PurchaseOrder>[] {
+  return [
+    {
+      label: "付款",
+      type: "primary",
+      visible: row.isApproved && (row.paidAmount || 0) < (row.total || 0),
+      onClick: target => openDialog("付款", target)
+    },
+    {
+      label: "确认到货",
+      type: "success",
+      visible: row.isApproved && row.details?.some(detail => !detail.isArrival),
+      onClick: onConfirmArrival
+    },
+    {
+      label: "生成入库草稿",
+      type: "primary",
+      visible: row.isApproved && Boolean(row.uid),
+      onClick: onCreateInboundDraft
+    }
+  ];
+}
+
+function handleView(row: PurchaseOrder) {
+  openDialog("查看", row);
+}
+
+function handleEdit(row: PurchaseOrder) {
+  openDialog("修改", row);
+}
+
+function handleAudit(row: PurchaseOrder) {
+  openDialog("审核", row);
+}
+
 // 只处理路由参数，composable 已处理 loadSelectData 和 getList
 onMounted(async () => {
   await openFromRouteQuery();
@@ -334,38 +369,11 @@ onMounted(async () => {
                 :row="row"
                 show-audit
                 :delete-title="`确认删除编号 ${row.number} 的订单?`"
-                :custom-actions="
-                  [
-                    {
-                      label: '付款',
-                      type: 'primary',
-                      visible:
-                        row.isApproved &&
-                        (row.paidAmount || 0) < (row.total || 0),
-                      onClick: () => openDialog('付款', row)
-                    },
-                    {
-                      label: '确认到货',
-                      type: 'success',
-                      visible:
-                        (row as PurchaseOrder).isApproved &&
-                        (row as PurchaseOrder).details?.some(d => !d.isArrival),
-                      onClick: () => onConfirmArrival(row as PurchaseOrder)
-                    },
-                    {
-                      label: '生成入库草稿',
-                      type: 'primary',
-                      visible:
-                        (row as PurchaseOrder).isApproved &&
-                        Boolean((row as PurchaseOrder).uid),
-                      onClick: () => onCreateInboundDraft(row as PurchaseOrder)
-                    }
-                  ] as CustomAction[]
-                "
-                @view="openDialog('查看', $event as unknown as PurchaseOrder)"
-                @edit="openDialog('修改', $event as unknown as PurchaseOrder)"
-                @audit="openDialog('审核', $event as unknown as PurchaseOrder)"
-                @delete="handleDelete($event as unknown as PurchaseOrder)"
+                :custom-actions="getCustomActions(row)"
+                @view="handleView"
+                @edit="handleEdit"
+                @audit="handleAudit"
+                @delete="handleDelete"
               />
             </template>
           </pure-table>

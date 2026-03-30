@@ -263,6 +263,35 @@ async function handleConfirmShipment(row: ReturnOrder) {
   }
 }
 
+function getCustomActions(row: ReturnOrder): CustomAction<ReturnOrder>[] {
+  return [
+    {
+      label: "确认发货",
+      type: "success",
+      visible: row.isApproved && row.logisticsStatus === 0,
+      onClick: handleConfirmShipment
+    },
+    {
+      label: "退款",
+      type: "warning",
+      visible: row.isApproved,
+      onClick: target => openDialog("退款", target)
+    }
+  ];
+}
+
+function handleView(row: ReturnOrder) {
+  openDialog("查看", row);
+}
+
+function handleEdit(row: ReturnOrder) {
+  openDialog("修改", row);
+}
+
+function handleAudit(row: ReturnOrder) {
+  openDialog("审核", row);
+}
+
 onMounted(async () => {
   await loadSelectData();
   await getList();
@@ -364,26 +393,11 @@ onMounted(async () => {
                 :row="row"
                 show-audit
                 :delete-title="`确认删除编号 ${row.number} 的退货单?`"
-                :custom-actions="
-                  [
-                    {
-                      label: '确认发货',
-                      type: 'success',
-                      visible: row.isApproved && row.logisticsStatus === 0,
-                      onClick: () => handleConfirmShipment(row)
-                    },
-                    {
-                      label: '退款',
-                      type: 'warning',
-                      visible: row.isApproved,
-                      onClick: () => openDialog('退款', row)
-                    }
-                  ] as CustomAction[]
-                "
-                @view="openDialog('查看', $event as unknown as ReturnOrder)"
-                @edit="openDialog('修改', $event as unknown as ReturnOrder)"
-                @audit="openDialog('审核', $event as unknown as ReturnOrder)"
-                @delete="handleDelete($event as unknown as ReturnOrder)"
+                :custom-actions="getCustomActions(row)"
+                @view="handleView"
+                @edit="handleEdit"
+                @audit="handleAudit"
+                @delete="handleDelete"
               />
             </template>
           </pure-table>

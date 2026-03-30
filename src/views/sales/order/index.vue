@@ -278,6 +278,46 @@ async function openConfirmActionDialog(
     }
   });
 }
+
+function getCustomActions(row: SalesOrder): CustomAction<SalesOrder>[] {
+  return [
+    {
+      label: "收款",
+      type: "primary",
+      visible: row.isApproved && (row.paidAmount || 0) < (row.total || 0),
+      onClick: target => openDialog("收款", target)
+    },
+    {
+      label: "确认发货",
+      type: "success",
+      visible:
+        row.isApproved &&
+        row.logisticsStatus !== 3 &&
+        row.logisticsStatus !== 4,
+      onClick: onConfirmShipment
+    },
+    {
+      label: "确认送达",
+      type: "success",
+      visible:
+        row.isApproved &&
+        row.details?.some(detail => detail.isShipped && !detail.isDelivered),
+      onClick: onConfirmDelivery
+    }
+  ];
+}
+
+function handleView(row: SalesOrder) {
+  openDialog("查看", row);
+}
+
+function handleEdit(row: SalesOrder) {
+  openDialog("修改", row);
+}
+
+function handleAudit(row: SalesOrder) {
+  openDialog("审核", row);
+}
 </script>
 
 <template>
@@ -376,41 +416,11 @@ async function openConfirmActionDialog(
                 :row="row"
                 show-audit
                 :delete-title="`确认删除编号 ${row.number} 的订单?`"
-                :custom-actions="
-                  [
-                    {
-                      label: '收款',
-                      type: 'primary',
-                      visible:
-                        row.isApproved &&
-                        (row.paidAmount || 0) < (row.total || 0),
-                      onClick: () => openDialog('收款', row)
-                    },
-                    {
-                      label: '确认发货',
-                      type: 'success',
-                      visible:
-                        (row as SalesOrder).isApproved &&
-                        (row as SalesOrder).logisticsStatus !== 3 &&
-                        (row as SalesOrder).logisticsStatus !== 4,
-                      onClick: () => onConfirmShipment(row as SalesOrder)
-                    },
-                    {
-                      label: '确认送达',
-                      type: 'success',
-                      visible:
-                        (row as SalesOrder).isApproved &&
-                        (row as SalesOrder).details?.some(
-                          d => d.isShipped && !d.isDelivered
-                        ),
-                      onClick: () => onConfirmDelivery(row as SalesOrder)
-                    }
-                  ] as CustomAction[]
-                "
-                @view="openDialog('查看', $event as unknown as SalesOrder)"
-                @edit="openDialog('修改', $event as unknown as SalesOrder)"
-                @audit="openDialog('审核', $event as unknown as SalesOrder)"
-                @delete="handleDelete($event as unknown as SalesOrder)"
+                :custom-actions="getCustomActions(row)"
+                @view="handleView"
+                @edit="handleEdit"
+                @audit="handleAudit"
+                @delete="handleDelete"
               />
             </template>
           </pure-table>
