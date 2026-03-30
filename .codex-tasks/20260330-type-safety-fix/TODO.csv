@@ -1,0 +1,6 @@
+id,task,status,acceptance_criteria,validation_command,completed_at,retry_count,notes
+1,建立修复任务真相文件并确认相关实现与测试入口,DONE,任务目录已创建且目标文件/测试入口已确认,test -f .codex-tasks/20260330-type-safety-fix/SPEC.md,2026-03-30 23:14:04,0,已在独立 worktree 中恢复上下文并确认目标文件/测试入口
+2,为 settings/auth/router/useCrud/订单事件链路补 failing tests,DONE,新增或更新的测试能稳定失败且指向目标问题,pnpm test -- tests/hooks/useCrud.spec.ts && pnpm test -- src/views/login/components/qrCode.test.ts && pnpm test -- src/services/__tests__/auth-bootstrap.service.test.ts,2026-03-30 23:14:04,0,已补 useCrud/qrCode/auth-bootstrap/finder 红灯测试并完成红绿闭环
+3,实现 settings auth router store 修复并让相关测试通过,DONE,settings/auth/router/store 相关断言与边界问题修复且测试通过,pnpm test -- src/views/login/components/qrCode.test.ts && pnpm test -- src/services/__tests__/auth-bootstrap.service.test.ts,2026-03-30 23:14:04,0,包含 useSettingsForm sysParams qrCode finder auth-bootstrap settings store 修复
+4,实现 useCrud order TableOperations 修复并让相关测试通过,DONE,pagination/order/事件类型链路修复且测试通过,pnpm test -- tests/hooks/useCrud.spec.ts,2026-03-30 23:14:04,0,包含 useCrud count 兼容与 4 个订单页事件链路去双重断言
+5,运行类型与 lint 校验并生成新的 issues 审计快照,DONE,代码校验通过且新审计文件已生成,"pnpm typecheck && pnpm lint:eslint:check",2026-03-30 23:14:04,0,typecheck 通过 lint 仅余仓库既有 13 条 warning 并已生成新审计快照
