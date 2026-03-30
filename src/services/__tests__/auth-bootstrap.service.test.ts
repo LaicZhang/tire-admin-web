@@ -6,12 +6,16 @@ const mocks = vi.hoisted(() => ({
   router: { currentRoute: { value: { path: "/login" } } },
   resetRouter: vi.fn(),
   addPathMatch: vi.fn(),
-  getTopMenu: vi.fn(() => ({ path: "/dashboard" })),
+  getTopMenu: vi.fn<(tag?: boolean) => { path: string } | null>(() => ({
+    path: "/dashboard"
+  })),
   initRouter: vi.fn(),
   resolveSafeHomeRoute: vi.fn(() => ({ path: "/welcome" })),
   safeNavigate: vi.fn(),
   fetchAvailableCompanies: vi.fn(),
+  fetchAvailableStores: vi.fn(),
   determineCurrentCompany: vi.fn(),
+  determineCurrentStore: vi.fn(),
   handleTags: vi.fn(),
   toMultiTypeArray: vi.fn((value: unknown) => value),
   logOut: vi.fn(),
@@ -41,8 +45,11 @@ vi.mock("@/router/utils", () => ({
 vi.mock("@/store/modules/company", () => ({
   useCurrentCompanyStoreHook: vi.fn(() => ({
     fetchAvailableCompanies: mocks.fetchAvailableCompanies,
+    fetchAvailableStores: mocks.fetchAvailableStores,
     determineCurrentCompany: mocks.determineCurrentCompany,
-    companyId: ""
+    determineCurrentStore: mocks.determineCurrentStore,
+    companyId: "",
+    storeId: ""
   }))
 }));
 
@@ -84,7 +91,9 @@ describe("auth-bootstrap.service", () => {
     mocks.safeNavigate.mockReset();
     mocks.safeNavigate.mockResolvedValue(true);
     mocks.fetchAvailableCompanies.mockReset();
+    mocks.fetchAvailableStores.mockReset();
     mocks.determineCurrentCompany.mockReset();
+    mocks.determineCurrentStore.mockReset();
     mocks.handleTags.mockReset();
     mocks.toMultiTypeArray.mockClear();
     mocks.logOut.mockReset();
@@ -95,6 +104,9 @@ describe("auth-bootstrap.service", () => {
   it("completes login directly for a single-company account", async () => {
     mocks.fetchAvailableCompanies.mockResolvedValue([
       { uid: "company-1", name: "公司一" }
+    ]);
+    mocks.fetchAvailableStores.mockResolvedValue([
+      { uid: "store-1", name: "门店一", defaultRepositoryId: "repo-1" }
     ]);
 
     await completeLogin({
@@ -109,7 +121,9 @@ describe("auth-bootstrap.service", () => {
       roles: ["admin"]
     });
     expect(mocks.fetchAvailableCompanies).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchAvailableStores).toHaveBeenCalledTimes(1);
     expect(mocks.determineCurrentCompany).not.toHaveBeenCalled();
+    expect(mocks.determineCurrentStore).not.toHaveBeenCalled();
     expect(mocks.resetRouter).toHaveBeenCalledTimes(1);
     expect(mocks.initRouter).toHaveBeenCalledTimes(1);
     expect(mocks.addPathMatch).toHaveBeenCalledTimes(1);
@@ -128,27 +142,56 @@ describe("auth-bootstrap.service", () => {
       { uid: "company-1", name: "公司一" },
       { uid: "company-2", name: "公司二" }
     ]);
+    mocks.fetchAvailableStores.mockResolvedValue([
+      { uid: "store-1", name: "门店一", defaultRepositoryId: "repo-1" }
+    ]);
     mocks.elMessageBox.mockResolvedValue(undefined);
 
     await completeLogin({ accessToken: "token" });
 
     expect(mocks.elMessageBox).toHaveBeenCalledTimes(1);
     expect(mocks.determineCurrentCompany).toHaveBeenCalledWith("company-1");
+    expect(mocks.fetchAvailableStores).toHaveBeenCalledTimes(1);
     expect(mocks.initRouter).toHaveBeenCalledTimes(1);
   });
 
   it("rebuilds route context when switching company", async () => {
     mocks.determineCurrentCompany.mockResolvedValue(undefined);
+    mocks.fetchAvailableStores.mockResolvedValue([
+      { uid: "store-1", name: "门店一", defaultRepositoryId: "repo-1" }
+    ]);
 
     await switchCompany("company-2");
 
     expect(mocks.determineCurrentCompany).toHaveBeenCalledWith("company-2");
+    expect(mocks.fetchAvailableStores).toHaveBeenCalledTimes(1);
     expect(mocks.resetRouter).toHaveBeenCalledTimes(1);
     expect(mocks.initRouter).toHaveBeenCalledTimes(1);
     expect(mocks.addPathMatch).toHaveBeenCalledTimes(1);
     expect(mocks.safeNavigate).toHaveBeenCalledWith(
       mocks.router,
       "/dashboard",
+      expect.objectContaining({
+        replace: true,
+        fallback: { path: "/welcome" }
+      })
+    );
+  });
+
+  it("falls back to safe home when no top menu is available", async () => {
+    mocks.fetchAvailableCompanies.mockResolvedValue([
+      { uid: "company-1", name: "公司一" }
+    ]);
+    mocks.fetchAvailableStores.mockResolvedValue([
+      { uid: "store-1", name: "门店一", defaultRepositoryId: "repo-1" }
+    ]);
+    mocks.getTopMenu.mockReturnValue(null);
+
+    await completeLogin({ accessToken: "token" });
+
+    expect(mocks.safeNavigate).toHaveBeenCalledWith(
+      mocks.router,
+      { path: "/welcome" },
       expect.objectContaining({
         replace: true,
         fallback: { path: "/welcome" }

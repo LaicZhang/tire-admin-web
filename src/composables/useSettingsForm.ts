@@ -15,6 +15,43 @@ function parseSettingValue(value: string): boolean | number | string {
   return value;
 }
 
+type SettingsKeyValueItem = {
+  key: string;
+  value?: string | null;
+};
+
+function hasSettingsKeyValueItem(
+  value: unknown
+): value is SettingsKeyValueItem {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.key === "string" &&
+    (record.value === undefined ||
+      record.value === null ||
+      typeof record.value === "string")
+  );
+}
+
+function applyDefaultSettingsLoad<T extends object>(
+  items: readonly SettingsKeyValueItem[],
+  target: T
+) {
+  for (const item of items) {
+    if (!Object.prototype.hasOwnProperty.call(target, item.key)) continue;
+    const rawValue = typeof item.value === "string" ? item.value : "";
+    Reflect.set(target, item.key, parseSettingValue(rawValue));
+  }
+}
+
+function toPlainRecord(value: object): Record<string, unknown> {
+  const record: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    record[key] = entry;
+  }
+  return record;
+}
+
 export interface UseSettingsFormOptions<T extends object> {
   /** Settings group name, e.g. "sys", "func", "cost" */
   group: string;
@@ -126,30 +163,26 @@ export function useSettingsForm<
         merged.push(...r.data);
       }
 
-      const presence = analyzeSettingsPresence({
-        expectedKeys: expectedSettingKeys,
-        items: merged as unknown as readonly Readonly<{
-          key: string;
-          value?: string | null;
-        }>[]
-      });
-      missingSettingKeys.value = presence.missingKeys;
-      unsetSettingKeys.value = presence.unsetKeys;
+      const presenceItems: SettingsKeyValueItem[] = merged.flatMap(item =>
+        hasSettingsKeyValueItem(item) ? [item] : []
+      );
+      if (merged.length === 0 || presenceItems.length === merged.length) {
+        const presence = analyzeSettingsPresence({
+          expectedKeys: expectedSettingKeys,
+          items: presenceItems
+        });
+        missingSettingKeys.value = presence.missingKeys;
+        unsetSettingKeys.value = presence.unsetKeys;
+      } else {
+        missingSettingKeys.value = [];
+        unsetSettingKeys.value = [];
+      }
 
       if (merged.length > 0) {
         if (transformLoad) {
           transformLoad(merged, formData.value);
         } else {
-          const groupSettings = merged as unknown as CompanySettingItem[];
-          // Default mapping: auto-convert booleans and numbers
-          groupSettings.forEach((s: CompanySettingItem) => {
-            const key = s.key as keyof T;
-            if (key in formData.value) {
-              const val = s.value;
-              (formData.value as Record<string, unknown>)[key as string] =
-                parseSettingValue(val);
-            }
-          });
+          applyDefaultSettingsLoad(presenceItems, formData.value);
         }
       }
     } catch (error) {
@@ -181,11 +214,8 @@ export function useSettingsForm<
 
       const saveData = transformSave
         ? transformSave(formData.value)
-        : formData.value;
-      const { code, msg } = await saveByGroup(
-        group,
-        saveData as Record<string, unknown>
-      );
+        : toPlainRecord(formData.value);
+      const { code, msg } = await saveByGroup(group, saveData);
       if (code === 200) {
         message("保存成功", { type: "success" });
       } else {

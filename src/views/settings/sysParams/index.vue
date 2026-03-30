@@ -4,10 +4,10 @@ import SettingsPresenceBadge from "@/components/SettingsPresence/SettingsPresenc
 import SettingsPresenceAlert from "@/components/SettingsPresence/SettingsPresenceAlert.vue";
 import {
   getSystemSettingGroupApi,
-  batchUpdateSystemSettingsApi
+  batchUpdateSystemSettingsApi,
+  type SettingItem
 } from "@/api/setting";
 import type { CommonResult } from "@/api/type";
-import type { CompanySettingItem } from "@/api/setting";
 import type { SysParams } from "./types";
 
 defineOptions({
@@ -40,12 +40,10 @@ const {
   handleSave,
   missingSettingKeys,
   unsetSettingKeys
-} = useSettingsForm<SysParams>({
+} = useSettingsForm<SysParams, SettingItem>({
   group: "sys",
-  loadGroup: async (g: string): Promise<CommonResult<CompanySettingItem[]>> =>
-    (await getSystemSettingGroupApi(g)) as unknown as CommonResult<
-      CompanySettingItem[]
-    >,
+  loadGroup: async (g: string): Promise<CommonResult<SettingItem[]>> =>
+    getSystemSettingGroupApi(g),
   saveGroup: batchUpdateSystemSettingsApi,
   expectedKeys: EXPECTED_SETTING_KEYS,
   defaults: () => ({

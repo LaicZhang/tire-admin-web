@@ -8,13 +8,61 @@ import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import type { multiType } from "@/store/modules/types";
 
+type ParentLookupKey = "path" | "name";
+
+function toMenuMeta(route: RouteRecordRaw): menuType["meta"] {
+  if (!route.meta) return undefined;
+  return {
+    title: typeof route.meta.title === "string" ? route.meta.title : undefined,
+    icon: typeof route.meta.icon === "string" ? route.meta.icon : undefined,
+    rank: typeof route.meta.rank === "number" ? route.meta.rank : undefined,
+    showParent:
+      typeof route.meta.showParent === "boolean"
+        ? route.meta.showParent
+        : undefined,
+    extraIcon:
+      typeof route.meta.extraIcon === "string"
+        ? route.meta.extraIcon
+        : undefined
+  };
+}
+
+function toMenu(route: RouteRecordRaw): menuType | null {
+  if (typeof route.path !== "string" || typeof route.name !== "string") {
+    return null;
+  }
+
+  return {
+    path: route.path,
+    name: route.name,
+    redirect: typeof route.redirect === "string" ? route.redirect : undefined,
+    meta: toMenuMeta(route)
+  };
+}
+
+function toMultiTag(route: menuType): multiType | null {
+  if (!route.path || !route.name) return null;
+  return {
+    path: route.path,
+    name: route.name,
+    meta: {
+      title: route.meta?.title,
+      icon: route.meta?.icon,
+      rank: route.meta?.rank,
+      showParent: route.meta?.showParent
+    },
+    query: undefined,
+    params: undefined
+  };
+}
+
 /**
  * 通过指定 `key` 获取父级路径集合，默认 `key` 为 `path`
  */
 export function getParentPaths(
   value: string,
   routes: readonly RouteRecordRaw[],
-  key = "path"
+  key: ParentLookupKey = "path"
 ) {
   // 深度遍历查找
   function dfs(
@@ -25,9 +73,7 @@ export function getParentPaths(
     for (let i = 0; i < routes.length; i++) {
       const item = routes[i];
       // 返回父级path
-      // Dynamic key access on route record
-      if ((item as unknown as Record<string, unknown>)[key] === value)
-        return parents;
+      if (item[key] === value) return parents;
       // children不存在或为空则不递归
       if (!item.children || !item.children.length) continue;
       // 往下查找时将当前path入栈
@@ -84,24 +130,19 @@ function handleTopMenu(route: RouteRecordRaw) {
 /**
  * 获取所有菜单中的第一个菜单（顶级菜单）
  */
-export function getTopMenu(tag = false): menuType {
-  const wholeMenus = usePermissionStoreHook()
-    .wholeMenus as unknown as RouteRecordRaw[];
+export function getTopMenu(tag = false): menuType | null {
+  const wholeMenus = usePermissionStoreHook().wholeMenus;
   // 菜单未加载时返回空对象，防止模板渲染时报错
   const firstMenu = wholeMenus?.[0];
   const firstChild = firstMenu?.children?.[0];
   if (!wholeMenus || wholeMenus.length === 0 || !firstChild) {
-    return {} as menuType;
+    return null;
   }
-  const topMenu = handleTopMenu(firstChild) as unknown as menuType;
-  if (tag && topMenu.path && topMenu.name) {
-    useMultiTagsStoreHook().handleTags("push", {
-      path: topMenu.path,
-      name: topMenu.name,
-      meta: topMenu.meta ?? {},
-      query: undefined,
-      params: undefined
-    } as multiType);
+  const topMenu = toMenu(handleTopMenu(firstChild));
+  if (!topMenu) return null;
+  if (tag) {
+    const nextTag = toMultiTag(topMenu);
+    if (nextTag) useMultiTagsStoreHook().handleTags("push", nextTag);
   }
   return topMenu;
 }

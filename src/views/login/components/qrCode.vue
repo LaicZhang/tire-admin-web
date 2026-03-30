@@ -14,6 +14,61 @@ const expired = ref(false);
 
 let expireTimer: ReturnType<typeof setTimeout> | null = null;
 
+function isOptionalString(value: unknown): value is string | undefined {
+  return value === undefined || typeof value === "string";
+}
+
+function isOptionalStringArray(value: unknown): value is string[] | undefined {
+  return (
+    value === undefined ||
+    (Array.isArray(value) && value.every(item => typeof item === "string"))
+  );
+}
+
+function normalizeSetTokenPayload(value: unknown): SetTokenPayload | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  if (
+    typeof record.accessToken !== "string" ||
+    record.accessToken.trim().length === 0
+  ) {
+    return null;
+  }
+  if (!isOptionalString(record.refreshToken)) return null;
+  if (!isOptionalString(record.username)) return null;
+  if (!isOptionalString(record.avatar)) return null;
+  if (!isOptionalString(record.nickname)) return null;
+  if (!isOptionalString(record.uid)) return null;
+  if (!isOptionalStringArray(record.roles)) return null;
+  if (!isOptionalStringArray(record.permissions)) return null;
+
+  const payload: SetTokenPayload = {
+    accessToken: record.accessToken
+  };
+  if (typeof record.refreshToken === "string")
+    payload.refreshToken = record.refreshToken;
+  if (typeof record.username === "string") payload.username = record.username;
+  if (typeof record.avatar === "string") payload.avatar = record.avatar;
+  if (typeof record.nickname === "string") payload.nickname = record.nickname;
+  if (typeof record.uid === "string") payload.uid = record.uid;
+  if (Array.isArray(record.roles)) payload.roles = record.roles;
+  if (Array.isArray(record.permissions))
+    payload.permissions = record.permissions;
+  if (record.expires instanceof Date) {
+    payload.expires = record.expires;
+  } else if (
+    typeof record.expires === "string" ||
+    typeof record.expires === "number"
+  ) {
+    const nextDate = new Date(record.expires);
+    if (Number.isNaN(nextDate.getTime())) return null;
+    payload.expires = nextDate;
+  } else if (record.expires !== undefined) {
+    return null;
+  }
+  return payload;
+}
+
 // 获取微信扫码登录 URL
 async function fetchQrLoginUrl() {
   loading.value = true;
@@ -73,9 +128,14 @@ async function checkUrlCallback() {
       });
 
       if (resCode === 200 && data) {
+        const tokenPayload = normalizeSetTokenPayload(data);
+        if (!tokenPayload) {
+          message("登录失败，请重试", { type: "error" });
+          return;
+        }
         // 清除 URL 参数
         window.history.replaceState({}, "", window.location.pathname);
-        await completeLogin(data as unknown as SetTokenPayload);
+        await completeLogin(tokenPayload);
         message("登录成功", { type: "success" });
       } else {
         message(msg || "登录失败", { type: "error" });

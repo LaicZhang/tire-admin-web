@@ -21,9 +21,15 @@ export const useSettingStore = defineStore("pure-setting", {
     }
   },
   actions: {
-    changeSetting({ key, value }: { key: keyof setType; value: unknown }) {
-      if (Reflect.has(this, key)) {
-        (this as unknown as Record<string, unknown>)[key] = value;
+    changeSetting<K extends keyof setType>({
+      key,
+      value
+    }: {
+      key: K;
+      value: setType[K];
+    }) {
+      if (Reflect.has(this.$state, key)) {
+        this.$state[key] = value;
       }
     }
   }

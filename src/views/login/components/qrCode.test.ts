@@ -165,6 +165,45 @@ describe("qrCode login", () => {
     expect(message).toHaveBeenCalledWith("登录成功", { type: "success" });
   });
 
+  it("does not complete login when callback payload is invalid", async () => {
+    vi.mocked(getWxQrLoginUrlApi).mockResolvedValue({
+      code: 200,
+      msg: "",
+      data: {
+        authUrl: "https://wx.example/qr",
+        state: "state-1",
+        expiresIn: 60
+      }
+    });
+    vi.mocked(wxQrCallbackApi).mockResolvedValue({
+      code: 200,
+      msg: "",
+      data: {
+        accessToken: "",
+        refreshToken: "refresh-token",
+        username: "alice",
+        roles: ["admin"],
+        expires: new Date("2026-03-10T00:00:00.000Z")
+      }
+    });
+    window.history.replaceState({}, "", "/login?code=wx-code&state=wx-state");
+
+    mount(QrCode, {
+      global: {
+        stubs: {
+          "el-divider": true,
+          "el-icon": true,
+          "el-button": ElButtonStub
+        }
+      }
+    });
+
+    await flushPromises();
+
+    expect(completeLogin).not.toHaveBeenCalled();
+    expect(message).toHaveBeenCalledWith("登录失败，请重试", { type: "error" });
+  });
+
   it("marks QR code as expired and refreshes it on click", async () => {
     vi.mocked(getWxQrLoginUrlApi)
       .mockResolvedValueOnce({

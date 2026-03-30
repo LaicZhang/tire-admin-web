@@ -154,11 +154,15 @@ function resetUiForContextChange() {
 }
 
 async function redirectToTopMenu() {
-  const topMenu = getTopMenu(true);
-  await safeNavigate(router, topMenu.path || resolveSafeHomeRoute(router), {
-    replace: true,
-    fallback: resolveSafeHomeRoute(router)
-  });
+  const topMenuPath = getTopMenu(true)?.path;
+  await safeNavigate(
+    router,
+    topMenuPath ? topMenuPath : resolveSafeHomeRoute(router),
+    {
+      replace: true,
+      fallback: resolveSafeHomeRoute(router)
+    }
+  );
 }
 
 /**
