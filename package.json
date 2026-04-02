@@ -98,7 +98,7 @@
     "vue-types": "^6.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^7.7.2",
+    "@antfu/eslint-config": "^7.7.3",
     "@commitlint/cli": "^20.4.4",
     "@commitlint/config-conventional": "^20.4.4",
     "@commitlint/types": "^20.4.4",
@@ -148,8 +148,8 @@
     "stylelint-prettier": "^5.0.3",
     "svgo": "^4.0.1",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.0",
+    "typescript": "6.0.2",
+    "typescript-eslint": "^8.58.0",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^31.0.0",
@@ -168,6 +168,19 @@
     "pnpm": ">=10"
   },
   "pnpm": {
+    "overrides": {
+      "@typescript-eslint/eslint-plugin": "8.58.0",
+      "@typescript-eslint/parser": "8.58.0",
+      "@typescript-eslint/project-service": "8.58.0",
+      "@typescript-eslint/rule-tester": "8.58.0",
+      "@typescript-eslint/scope-manager": "8.58.0",
+      "@typescript-eslint/tsconfig-utils": "8.58.0",
+      "@typescript-eslint/type-utils": "8.58.0",
+      "@typescript-eslint/types": "8.58.0",
+      "@typescript-eslint/typescript-estree": "8.58.0",
+      "@typescript-eslint/utils": "8.58.0",
+      "@typescript-eslint/visitor-keys": "8.58.0"
+    },
     "allowedDeprecatedVersions": {
       "are-we-there-yet": "*",
       "sourcemap-codec": "*",
