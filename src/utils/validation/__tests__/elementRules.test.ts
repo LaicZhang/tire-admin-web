@@ -35,6 +35,14 @@ describe("elementRules", () => {
     await expect(run(rule, "a")).resolves.toBeUndefined();
   });
 
+  it("requiredSelect: rejects empty array and accepts falsy selected values", async () => {
+    const rule = elementRules.requiredSelect("请选择");
+    await expect(run(rule, "")).rejects.toBeInstanceOf(Error);
+    await expect(run(rule, [])).rejects.toBeInstanceOf(Error);
+    await expect(run(rule, 0)).resolves.toBeUndefined();
+    await expect(run(rule, false)).resolves.toBeUndefined();
+  });
+
   it("requiredPhoneCN: rejects empty and validates format", async () => {
     const rule = elementRules.requiredPhoneCN("手机号不正确");
     await expect(run(rule, "")).rejects.toBeInstanceOf(Error);
@@ -48,6 +56,13 @@ describe("elementRules", () => {
     await expect(run(rule, "a")).rejects.toBeInstanceOf(Error);
     await expect(run(rule, "abcd")).rejects.toBeInstanceOf(Error);
     await expect(run(rule, "abc")).resolves.toBeUndefined();
+  });
+
+  it("maxLen: stringifies non-string values and enforces the boundary", async () => {
+    const rule = elementRules.maxLen(3, "最多3位");
+    await expect(run(rule, undefined)).resolves.toBeUndefined();
+    await expect(run(rule, 123)).resolves.toBeUndefined();
+    await expect(run(rule, 1234)).rejects.toBeInstanceOf(Error);
   });
 
   it("alphanumeric: allows empty, validates characters", async () => {
@@ -91,6 +106,9 @@ describe("elementRules", () => {
     await expect(run(rule, "")).resolves.toBeUndefined();
     await expect(run(rule, "not-uuid")).rejects.toBeInstanceOf(Error);
     await expect(
+      run(rule, " 3fa85f64-5717-4562-b3fc-2c963f66afa6 ")
+    ).resolves.toBeUndefined();
+    await expect(
       run(rule, "3fa85f64-5717-4562-b3fc-2c963f66afa6")
     ).resolves.toBeUndefined();
   });
@@ -116,6 +134,20 @@ describe("elementRules", () => {
     await expect(run(rule, 0.5)).resolves.toBeUndefined();
   });
 
+  it("numberRange: supports exclusive bounds and invalid numeric strings", async () => {
+    const rule = elementRules.numberRange({
+      min: 0,
+      max: 1,
+      minExclusive: true,
+      maxExclusive: true,
+      message: "不合法"
+    });
+    await expect(run(rule, 0)).rejects.toBeInstanceOf(Error);
+    await expect(run(rule, 1)).rejects.toBeInstanceOf(Error);
+    await expect(run(rule, "Infinity")).rejects.toBeInstanceOf(Error);
+    await expect(run(rule, "0.5")).resolves.toBeUndefined();
+  });
+
   it("moneyYuan: validates decimals and bounds", async () => {
     const rule = elementRules.moneyYuan({ min: 0, minExclusive: true });
     await expect(run(rule, "")).resolves.toBeUndefined();
@@ -124,6 +156,13 @@ describe("elementRules", () => {
     await expect(run(rule, 0.01)).resolves.toBeUndefined();
     await expect(run(rule, "1.999")).rejects.toBeInstanceOf(Error);
     await expect(run(rule, "1.99")).resolves.toBeUndefined();
+  });
+
+  it("moneyYuan: trims strings and enforces the upper bound", async () => {
+    const rule = elementRules.moneyYuan({ min: 0, max: 100 });
+    await expect(run(rule, " 100 ")).resolves.toBeUndefined();
+    await expect(run(rule, "100.01")).rejects.toBeInstanceOf(Error);
+    await expect(run(rule, "abc")).rejects.toBeInstanceOf(Error);
   });
 
   it("moneyYuanSigned: allows negative, validates decimals and bounds", async () => {
