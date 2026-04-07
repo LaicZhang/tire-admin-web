@@ -3,6 +3,7 @@ import { useFundForm } from "./useFundForm";
 import { getProviderListApi } from "@/api/business/provider";
 import { getCustomerListApi } from "@/api/business/customer";
 import { getPaymentListApi } from "@/api/payment";
+import { logger } from "@/utils/logger";
 
 vi.mock("@/api/business/provider", () => ({
   getProviderListApi: vi.fn()
@@ -27,6 +28,7 @@ describe("useFundForm", () => {
     vi.mocked(getProviderListApi).mockReset();
     vi.mocked(getCustomerListApi).mockReset();
     vi.mocked(getPaymentListApi).mockReset();
+    vi.mocked(logger.error).mockReset();
   });
 
   it("requests full provider and customer lists with explicit page size", async () => {
@@ -118,6 +120,67 @@ describe("useFundForm", () => {
         name: "账户B",
         balance: 2000
       }
+    ]);
+  });
+
+  it("falls back to an empty payment list for malformed payloads", async () => {
+    vi.mocked(getPaymentListApi).mockResolvedValue({
+      code: 200,
+      msg: "ok",
+      data: {
+        total: 1
+      }
+    });
+
+    const form = useFundForm();
+    await form.loadPayments();
+
+    expect(form.paymentList.value).toEqual([]);
+  });
+
+  it("logs provider request failures and clears loading state", async () => {
+    vi.mocked(getProviderListApi).mockRejectedValue(new Error("boom"));
+
+    const form = useFundForm();
+    await form.loadProviders();
+
+    expect(form.providerList.value).toEqual([]);
+    expect(form.loadingProviders.value).toBe(false);
+    expect(logger.error).toHaveBeenCalledWith(
+      "加载供应商列表失败",
+      expect.any(Error)
+    );
+  });
+
+  it("deduplicates in-flight provider loads", async () => {
+    let resolveRequest: ((value: unknown) => void) | undefined;
+    const pendingRequest = new Promise(resolve => {
+      resolveRequest = resolve;
+    });
+    vi.mocked(getProviderListApi).mockReturnValueOnce(
+      pendingRequest as ReturnType<typeof getProviderListApi>
+    );
+
+    const form = useFundForm();
+    const firstLoad = form.loadProviders();
+    const secondLoad = form.loadProviders();
+
+    expect(getProviderListApi).toHaveBeenCalledTimes(1);
+    expect(form.loadingProviders.value).toBe(true);
+
+    resolveRequest?.({
+      code: 200,
+      msg: "ok",
+      data: {
+        list: [{ uid: "provider-1", name: "供应商A" }],
+        total: 1
+      }
+    });
+    await Promise.all([firstLoad, secondLoad]);
+
+    expect(form.loadingProviders.value).toBe(false);
+    expect(form.providerList.value).toEqual([
+      { uid: "provider-1", name: "供应商A" }
     ]);
   });
 });

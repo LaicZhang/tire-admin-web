@@ -4,12 +4,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getInvoicePage: vi.fn(),
+  issueInvoice: vi.fn(),
   redFlushInvoice: vi.fn(),
-  push: vi.fn()
+  push: vi.fn(),
+  replace: vi.fn(),
+  handleApiError: vi.fn(),
+  routeState: {
+    path: "/finance/invoice",
+    query: {}
+  }
 }));
 
 vi.mock("@/api/business/invoice", () => ({
   getInvoicePage: mocks.getInvoicePage,
+  issueInvoice: mocks.issueInvoice,
   redFlushInvoice: mocks.redFlushInvoice
 }));
 
@@ -17,16 +25,17 @@ vi.mock("vue-router", async importOriginal => {
   const actual = await importOriginal<typeof import("vue-router")>();
   return {
     ...actual,
-    useRoute: () => ({
-      path: "/finance/invoice",
-      query: {}
-    }),
+    useRoute: () => mocks.routeState,
     useRouter: () => ({
       push: mocks.push,
-      replace: vi.fn()
+      replace: mocks.replace
     })
   };
 });
+
+vi.mock("@/utils/error", () => ({
+  handleApiError: mocks.handleApiError
+}));
 
 vi.mock("@/components/ReIcon/src/hooks", () => ({
   useRenderIcon: () => "icon"
@@ -50,11 +59,11 @@ vi.mock("@/components/ReSearchForm/index.vue", () => ({
 vi.mock("./InvoiceFormDialog.vue", () => ({
   default: {
     name: "InvoiceFormDialogStub",
-    props: ["modelValue"],
+    props: ["modelValue", "preset"],
     emits: ["update:modelValue", "success"],
     template: `
       <div data-test="invoice-form-dialog">
-        {{ modelValue ? "open" : "closed" }}
+        {{ modelValue ? "open" : "closed" }}:{{ preset?.businessType || "" }}:{{ preset?.deliveryNoteId || "" }}:{{ preset?.purchaseInboundId || "" }}
       </div>
     `
   }
@@ -144,8 +153,12 @@ function mountPage() {
 describe("business/finance/invoice/index", () => {
   beforeEach(() => {
     mocks.getInvoicePage.mockReset();
+    mocks.issueInvoice.mockReset();
     mocks.redFlushInvoice.mockReset();
     mocks.push.mockReset();
+    mocks.replace.mockReset();
+    mocks.handleApiError.mockReset();
+    mocks.routeState.query = {};
     mocks.getInvoicePage.mockResolvedValue({
       data: {
         total: 1,
@@ -165,6 +178,7 @@ describe("business/finance/invoice/index", () => {
         ]
       }
     });
+    mocks.issueInvoice.mockResolvedValue({ data: null });
   });
 
   it("应加载发票列表并支持筛选", async () => {
@@ -265,5 +279,75 @@ describe("business/finance/invoice/index", () => {
       totalAmount: 11300,
       redFlushReason: "后台红冲"
     });
+  });
+
+  it("应根据 autoCreate 路由参数打开带预设值的新建弹窗并清空查询参数", async () => {
+    mocks.routeState.query = {
+      autoCreate: "1",
+      deliveryNoteId: "delivery-1",
+      businessType: "PURCHASE"
+    };
+
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    expect(wrapper.get("[data-test='invoice-form-dialog']").text()).toContain(
+      "open:PURCHASE:delivery-1:"
+    );
+    expect(mocks.replace).toHaveBeenCalledWith({
+      path: "/finance/invoice",
+      query: {}
+    });
+  });
+
+  it("不应对非蓝票或已全额红冲发票展示红冲按钮", async () => {
+    mocks.getInvoicePage.mockResolvedValueOnce({
+      data: {
+        total: 2,
+        list: [
+          {
+            uid: "invoice-full-red-1",
+            invoiceNumber: "INV-FULL-001",
+            invoiceRole: "BLUE",
+            redFlushStatus: "FULL",
+            businessType: "SALE",
+            partyName: "客户甲",
+            statementNo: "RS-003",
+            status: "issued",
+            totalAmount: 11300,
+            invoiceDate: "2026-03-25T00:00:00.000Z"
+          },
+          {
+            uid: "invoice-red-role-1",
+            invoiceNumber: "INV-RED-001",
+            invoiceRole: "RED",
+            redFlushStatus: "NONE",
+            businessType: "SALE",
+            partyName: "客户乙",
+            statementNo: "RS-004",
+            status: "issued",
+            totalAmount: 8800,
+            invoiceDate: "2026-03-25T00:00:00.000Z"
+          }
+        ]
+      }
+    });
+
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    expect(
+      wrapper
+        .findAll("[data-row-uid='invoice-full-red-1'] button")
+        .some(button => button.text() === "红冲")
+    ).toBe(false);
+    expect(
+      wrapper
+        .findAll("[data-row-uid='invoice-red-role-1'] button")
+        .some(button => button.text() === "红冲")
+    ).toBe(false);
+    expect(mocks.redFlushInvoice).not.toHaveBeenCalled();
   });
 });
