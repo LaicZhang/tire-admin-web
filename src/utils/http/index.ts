@@ -179,14 +179,12 @@ class PureHttp {
           return Promise.reject(error);
         }
 
-        // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
+        // 先让回调完成请求定制，再基于最终配置注入幂等 key。
         if (typeof config.beforeRequestCallback === "function") {
           config.beforeRequestCallback(config);
-          return config;
         }
         if (PureHttp.initConfig.beforeRequestCallback) {
           PureHttp.initConfig.beforeRequestCallback(config);
-          return config;
         }
         ensureIdempotencyKey(config);
         return config;
