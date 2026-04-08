@@ -13,6 +13,14 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function toNumberOrNaN(value: unknown): number {
+  if (typeof value === "number") return value;
+  if (typeof value !== "string") return Number.NaN;
+  const trimmed = value.trim();
+  if (!trimmed) return Number.NaN;
+  return Number(trimmed);
+}
+
 const UUID_V4 =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -88,7 +96,7 @@ export const elementRules = {
     return makeRule({
       trigger,
       validator: (_rule, value, callback) => {
-        if (value === null || value === undefined) return callback();
+        if (isEmptyValue(value)) return callback();
         const s = typeof value === "string" ? value : String(value);
         if (typeof min === "number" && s.length < min)
           return callback(new Error(msg));
@@ -215,7 +223,7 @@ export const elementRules = {
       trigger,
       validator: (_rule, value, callback) => {
         if (isEmptyValue(value)) return callback();
-        const n = typeof value === "number" ? value : Number(value);
+        const n = toNumberOrNaN(value);
         if (!Number.isInteger(n) || n <= 0) callback(new Error(message));
         else callback();
       }
@@ -238,7 +246,7 @@ export const elementRules = {
       trigger,
       validator: (_rule, value, callback) => {
         if (isEmptyValue(value)) return callback();
-        const n = typeof value === "number" ? value : Number(value);
+        const n = toNumberOrNaN(value);
         if (!Number.isInteger(n)) return callback(new Error(msg));
         if (typeof min === "number" && n < min) return callback(new Error(msg));
         if (typeof max === "number" && n > max) return callback(new Error(msg));
@@ -267,7 +275,7 @@ export const elementRules = {
       trigger,
       validator: (_rule, value, callback) => {
         if (isEmptyValue(value)) return callback();
-        const n = typeof value === "number" ? value : Number(value);
+        const n = toNumberOrNaN(value);
         if (!Number.isFinite(n)) return callback(new Error(msg));
         if (typeof min === "number" && (minExclusive ? n <= min : n < min)) {
           return callback(new Error(msg));
@@ -288,7 +296,7 @@ export const elementRules = {
       trigger,
       validator: (_rule, value, callback) => {
         if (isEmptyValue(value)) return callback();
-        const n = typeof value === "number" ? value : Number(value);
+        const n = toNumberOrNaN(value);
         if (!Number.isFinite(n) || n < 0) callback(new Error(message));
         else callback();
       }
@@ -303,7 +311,7 @@ export const elementRules = {
       trigger,
       validator: (_rule, value, callback) => {
         if (isEmptyValue(value)) return callback();
-        const n = typeof value === "number" ? value : Number(value);
+        const n = toNumberOrNaN(value);
         if (!Number.isFinite(n) || n <= 0) callback(new Error(message));
         else callback();
       }

@@ -53,6 +53,8 @@ describe("elementRules", () => {
   it("lenRange: allows empty, validates string length", async () => {
     const rule = elementRules.lenRange({ min: 2, max: 3, message: "长度不对" });
     await expect(run(rule, undefined)).resolves.toBeUndefined();
+    await expect(run(rule, "")).resolves.toBeUndefined();
+    await expect(run(rule, "   ")).resolves.toBeUndefined();
     await expect(run(rule, "a")).rejects.toBeInstanceOf(Error);
     await expect(run(rule, "abcd")).rejects.toBeInstanceOf(Error);
     await expect(run(rule, "abc")).resolves.toBeUndefined();
@@ -116,6 +118,8 @@ describe("elementRules", () => {
   it("intRange: allows empty, validates integer bounds", async () => {
     const rule = elementRules.intRange({ min: 1, max: 3, message: "不合法" });
     await expect(run(rule, "")).resolves.toBeUndefined();
+    await expect(run(rule, true)).rejects.toBeInstanceOf(Error);
+    await expect(run(rule, [1])).rejects.toBeInstanceOf(Error);
     await expect(run(rule, 0)).rejects.toBeInstanceOf(Error);
     await expect(run(rule, 1.1)).rejects.toBeInstanceOf(Error);
     await expect(run(rule, 4)).rejects.toBeInstanceOf(Error);
@@ -129,6 +133,8 @@ describe("elementRules", () => {
       message: "不合法"
     });
     await expect(run(rule, "")).resolves.toBeUndefined();
+    await expect(run(rule, true)).rejects.toBeInstanceOf(Error);
+    await expect(run(rule, [0.5])).rejects.toBeInstanceOf(Error);
     await expect(run(rule, -0.01)).rejects.toBeInstanceOf(Error);
     await expect(run(rule, 1.01)).rejects.toBeInstanceOf(Error);
     await expect(run(rule, 0.5)).resolves.toBeUndefined();
