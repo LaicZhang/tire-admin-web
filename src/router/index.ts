@@ -24,7 +24,13 @@ import type { ExtendedRouteRecord } from "./types";
  * 如何排除文件请看：https://cn.vitejs.dev/guide/features.html#negative-patterns
  */
 const modules: Record<string, { default: RouteRecordRaw }> = import.meta.glob(
-  ["./modules/**/*.ts", "!./modules/**/remaining.ts", "!./modules/**/auth.ts"],
+  [
+    "./modules/**/*.ts",
+    "!./modules/**/*.test.ts",
+    "!./modules/**/*.spec.ts",
+    "!./modules/**/remaining.ts",
+    "!./modules/**/auth.ts"
+  ],
   {
     eager: true
   }
