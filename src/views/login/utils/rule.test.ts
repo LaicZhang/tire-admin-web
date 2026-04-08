@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  ERROR_TIPS,
-  loginRules,
-  phoneRules,
-  updateRules
-} from "./rule";
+import { ERROR_TIPS, loginRules, phoneRules, updateRules } from "./rule";
 
 type ValidatorRule = {
   validator?: (
@@ -13,6 +8,10 @@ type ValidatorRule = {
     callback: (error?: Error) => void
   ) => void;
 };
+
+function firstRule(ruleGroup: unknown): ValidatorRule {
+  return ((ruleGroup as ValidatorRule[] | undefined) ?? [])[0] ?? {};
+}
 
 function run(rule: ValidatorRule, value: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -26,7 +25,7 @@ function run(rule: ValidatorRule, value: string): Promise<void> {
 
 describe("login rule validators", () => {
   it("password validator rejects empty values and weak passwords", async () => {
-    const passwordRule = loginRules.password?.[0] as ValidatorRule;
+    const passwordRule = firstRule(loginRules.password);
 
     await expect(run(passwordRule, "")).rejects.toThrow(ERROR_TIPS.passwordReg);
     await expect(run(passwordRule, "12345678")).rejects.toThrow(
@@ -38,17 +37,19 @@ describe("login rule validators", () => {
   });
 
   it("password validator accepts valid boundary values and rejects overlong values", async () => {
-    const passwordRule = loginRules.password?.[0] as ValidatorRule;
+    const passwordRule = firstRule(loginRules.password);
 
     await expect(run(passwordRule, "Abcd1234")).resolves.toBeUndefined();
-    await expect(run(passwordRule, "A1bcdefghijklmno12")).resolves.toBeUndefined();
+    await expect(
+      run(passwordRule, "A1bcdefghijklmno12")
+    ).resolves.toBeUndefined();
     await expect(run(passwordRule, "Abcd1234!Abcd1234!x")).rejects.toThrow(
       ERROR_TIPS.passwordRuleReg
     );
   });
 
   it("login captcha validator enforces missing and incomplete values", async () => {
-    const captchaRule = loginRules.captchaCode?.[0] as ValidatorRule;
+    const captchaRule = firstRule(loginRules.captchaCode);
 
     await expect(run(captchaRule, "")).rejects.toThrow(
       ERROR_TIPS.captchaCodeReg
@@ -58,8 +59,8 @@ describe("login rule validators", () => {
   });
 
   it("phone login rules reject invalid phone numbers and non-six-digit codes", async () => {
-    const phoneRule = phoneRules.phone?.[0] as ValidatorRule;
-    const captchaRule = phoneRules.captchaCode?.[0] as ValidatorRule;
+    const phoneRule = firstRule(phoneRules.phone);
+    const captchaRule = firstRule(phoneRules.captchaCode);
 
     await expect(run(phoneRule, "")).rejects.toThrow(ERROR_TIPS.phoneReg);
     await expect(run(phoneRule, "123456")).rejects.toThrow(
@@ -77,7 +78,7 @@ describe("login rule validators", () => {
   });
 
   it("update rules keep the stronger six-digit captcha contract", async () => {
-    const captchaRule = updateRules.captchaCode?.[0] as ValidatorRule;
+    const captchaRule = firstRule(updateRules.captchaCode);
 
     await expect(run(captchaRule, "12345")).rejects.toThrow(
       ERROR_TIPS.captchaCodeSixReg

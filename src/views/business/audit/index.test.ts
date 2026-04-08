@@ -150,11 +150,11 @@ describe("AuditCenter", () => {
     });
   }
 
-  it("renders 8 audit tabs and passes columns into table bar", async () => {
+  it("renders 9 audit tabs and passes columns into table bar", async () => {
     const wrapper = mountPage();
     await flushPromises();
 
-    expect(wrapper.findAll(".tab-pane")).toHaveLength(8);
+    expect(wrapper.findAll(".tab-pane")).toHaveLength(9);
     expect(wrapper.find(".columns-count").text()).not.toBe("0");
     expect(getPendingAuditOrdersApi).toHaveBeenCalledWith("sale-order", 1, {
       pageSize: 20

@@ -88,6 +88,7 @@ function computeUiScope(
 ): "system_ui" | "company_ui" | "none" {
   const v = (uiEntry ?? "").trim();
   if (!v) return "none";
+  if (v.startsWith("/data/")) return "system_ui";
   if (v.startsWith("/settings/")) return "system_ui";
   if (v.startsWith("/company/")) return "company_ui";
   return "none";
