@@ -330,6 +330,41 @@ const customerInitialBalanceSummary = {
     }
   }
 };
+const openReceivableLedgersByCustomer = {
+  "customer-existing-1": [
+    {
+      uid: "open-receivable-1",
+      customerId: "customer-existing-1",
+      customerName: "存量客户",
+      invoiceUid: "invoice-receivable-1",
+      invoiceNumber: "AR-20260309-001",
+      invoiceDate: "2026-03-09",
+      saleDeliveryNoteUid: "delivery-note-1",
+      saleDeliveryNoteLineUid: "delivery-note-line-1",
+      saleOrderDetailId: "sale-order-detail-1",
+      quantity: 4,
+      deliveryNoteNo: "FH-20260309-001",
+      totalAmount: 128000,
+      settledAmount: 40000,
+      openAmount: 88000,
+      status: "OPEN"
+    }
+  ]
+};
+const openPayableLedgersByProvider = {
+  "provider-1": [
+    {
+      uid: "open-payable-1",
+      invoiceUid: "invoice-payable-1",
+      invoiceNumber: "AP-20260309-001",
+      invoiceDate: "2026-03-09",
+      totalAmount: 8600,
+      settledAmount: 3200,
+      openAmount: 5400,
+      status: "OPEN"
+    }
+  ]
+};
 const documentCenterItems = [
   {
     id: 1,
@@ -1019,7 +1054,27 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
+      if (method === "GET" && pathname === "/api/v1/dict/list") {
+        return sendJson(
+          res,
+          200,
+          ok([])
+        );
+      }
+
       const receiptOrderListMatch = matchPath(pathname, "/api/v1/receipt-order/:index");
+      const receiptOpenLedgerMatch = matchPath(
+        pathname,
+        "/api/v1/receipt-order/open-ledgers/:customerId"
+      );
+      if (method === "GET" && receiptOpenLedgerMatch) {
+        return sendJson(
+          res,
+          200,
+          ok(openReceivableLedgersByCustomer[receiptOpenLedgerMatch.customerId] || [])
+        );
+      }
+
       if (method === "GET" && receiptOrderListMatch) {
         const index = Number.parseInt(receiptOrderListMatch.index || "1", 10);
         const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "", 10);
@@ -1106,6 +1161,18 @@ const server = http.createServer(async (req, res) => {
       }
 
       const paymentOrderListMatch = matchPath(pathname, "/api/v1/payment-order/:index");
+      const paymentOpenLedgerMatch = matchPath(
+        pathname,
+        "/api/v1/payment-order/open-ledgers/:providerId"
+      );
+      if (method === "GET" && paymentOpenLedgerMatch) {
+        return sendJson(
+          res,
+          200,
+          ok(openPayableLedgersByProvider[paymentOpenLedgerMatch.providerId] || [])
+        );
+      }
+
       if (method === "GET" && paymentOrderListMatch) {
         const index = Number.parseInt(paymentOrderListMatch.index || "1", 10);
         const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "", 10);

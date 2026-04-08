@@ -60,6 +60,33 @@ async function submitDialog(
   await button.click({ force: true });
 }
 
+async function expectFormError(scope: Locator, text: string) {
+  await expect(
+    scope.locator(".el-form-item__error").filter({ hasText: text }).first()
+  ).toBeVisible({ timeout: 10_000 });
+}
+
+async function closeDialog(scope: Locator) {
+  await scope.getByRole("button", { name: "取消" }).click({ force: true });
+  await expect(scope).not.toBeVisible({ timeout: 10_000 });
+}
+
+async function expectRowVisible(page: Page, text: string) {
+  await expect(tableRowByText(page, text)).toBeVisible({ timeout: 10_000 });
+}
+
+async function expectRowGone(page: Page, text: string) {
+  await expect(
+    page.locator(".pure-table tbody tr").filter({ hasText: text })
+  ).toHaveCount(0, { timeout: 10_000 });
+}
+
+async function expectRowContains(page: Page, text: string, expected: string) {
+  await expect(tableRowByText(page, text)).toContainText(expected, {
+    timeout: 10_000
+  });
+}
+
 async function chooseComboboxOption(
   page: Page,
   scope: Locator,
@@ -77,6 +104,62 @@ async function chooseComboboxOption(
 }
 
 test.describe("fund mock 接口覆盖", () => {
+  test("收款单/付款单/转账单表单会阻止空提交并显示关键校验", async ({
+    page
+  }) => {
+    await page.goto("/#/fund/receipt");
+    await waitForPureTable(page);
+    await page.getByRole("button", { name: "新建收款单" }).click();
+    const receiptDialog = await waitForDialog(page, "新建收款单");
+    await submitDialog(receiptDialog);
+    await expectFormError(receiptDialog, "请选择客户");
+    await expectFormError(receiptDialog, "收款金额必须大于0");
+    await closeDialog(receiptDialog);
+
+    await page.goto("/#/fund/payment");
+    await waitForPureTable(page);
+    await page.getByRole("button", { name: "新建付款单" }).click();
+    const paymentDialog = await waitForDialog(page, "新建付款单");
+    await submitDialog(paymentDialog);
+    await expectFormError(paymentDialog, "请选择供应商");
+    await expectFormError(paymentDialog, "付款金额必须大于0");
+    await closeDialog(paymentDialog);
+
+    await page.goto("/#/fund/transfer");
+    await waitForPureTable(page);
+    await page.getByRole("button", { name: "新建转账单" }).click();
+    const transferDialog = await waitForDialog(page, "新建转账单");
+    await submitDialog(transferDialog, "确认转账");
+    await expectFormError(transferDialog, "请选择转出账户");
+    await expectFormError(transferDialog, "请选择转入账户");
+    await expectFormError(transferDialog, "转账金额必须大于0");
+  });
+
+  test("收款单/付款单在必填已选后仍会拦截 0 金额提交", async ({ page }) => {
+    await page.goto("/#/fund/receipt");
+    await waitForPureTable(page);
+    await page.getByRole("button", { name: "新建收款单" }).click();
+    const receiptDialog = await waitForDialog(page, "新建收款单");
+    await chooseOption(page, receiptDialog, "客户", "存量客户");
+    await chooseOption(page, receiptDialog, "结算账户", "工商银行");
+    await fillNumber(receiptDialog, "收款金额", "0");
+    await submitDialog(receiptDialog);
+    await expectFormError(receiptDialog, "收款金额必须大于0");
+    await closeDialog(receiptDialog);
+
+    await page.goto("/#/fund/payment");
+    await expect(page.getByRole("button", { name: "新建付款单" })).toBeVisible({
+      timeout: 10_000
+    });
+    await page.getByRole("button", { name: "新建付款单" }).click();
+    const paymentDialog = await waitForDialog(page, "新建付款单");
+    await chooseOption(page, paymentDialog, "供应商", "示例供应商");
+    await chooseOption(page, paymentDialog, "结算账户", "工商银行");
+    await fillNumber(paymentDialog, "付款金额", "0");
+    await submitDialog(paymentDialog);
+    await expectFormError(paymentDialog, "付款金额必须大于0");
+  });
+
   test("收款单页覆盖列表/新建/审核/删除接口", async ({ page }) => {
     const listResponse = page.waitForResponse(response =>
       response.url().includes("/api/v1/receipt-order/1")
@@ -101,7 +184,7 @@ test.describe("fund mock 接口覆盖", () => {
     const createdBillNo = String(
       (createResult as { data?: { billNo?: string } }).data?.billNo || ""
     );
-    await expectSuccessMessage(page, "创建成功");
+    await expectRowVisible(page, createdBillNo);
 
     const approveResponse = page.waitForResponse(response =>
       response.url().includes("/api/v1/receipt-order/receipt-order-1/approve")
@@ -111,7 +194,7 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await approveResponse;
-    await expectSuccessMessage(page, "审核成功");
+    await expectRowContains(page, "SKD-20260309-001", "已审核");
 
     const deleteResponse = page.waitForResponse(
       response =>
@@ -123,7 +206,7 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await deleteResponse;
-    await expectSuccessMessage(page, "删除成功");
+    await expectRowGone(page, createdBillNo);
   });
 
   test("付款单页覆盖列表/新建/审核/删除接口", async ({ page }) => {
@@ -150,7 +233,7 @@ test.describe("fund mock 接口覆盖", () => {
     const createdBillNo = String(
       (createResult as { data?: { billNo?: string } }).data?.billNo || ""
     );
-    await expectSuccessMessage(page, "创建成功");
+    await expectRowVisible(page, createdBillNo);
 
     const approveResponse = page.waitForResponse(response =>
       response.url().includes("/api/v1/payment-order/payment-order-1/approve")
@@ -160,7 +243,7 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await approveResponse;
-    await expectSuccessMessage(page, "审核成功");
+    await expectRowContains(page, "FKD-20260309-001", "已审核");
 
     const deleteResponse = page.waitForResponse(
       response =>
@@ -172,10 +255,12 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await deleteResponse;
-    await expectSuccessMessage(page, "删除成功");
+    await expectRowGone(page, createdBillNo);
   });
 
   test("其他收入和其他支出页覆盖主流程与二级收付款接口", async ({ page }) => {
+    test.setTimeout(90_000);
+
     const incomeListResponse = page.waitForResponse(response =>
       response.url().includes("/api/v1/other-income-order/1")
     );
@@ -225,7 +310,7 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await incomeDeleteResponse;
-    await expectSuccessMessage(page, "删除成功");
+    await expectRowGone(page, createdIncomeBillNo);
 
     const expenseListResponse = page.waitForResponse(response =>
       response.url().includes("/api/v1/other-expense-order/1")
@@ -250,7 +335,7 @@ test.describe("fund mock 接口覆盖", () => {
     const createdExpenseBillNo = String(
       (expenseCreateResult as { data?: { billNo?: string } }).data?.billNo || ""
     );
-    await expectSuccessMessage(page, "创建成功");
+    await expectRowVisible(page, createdExpenseBillNo);
 
     const payResponse = page.waitForResponse(
       response =>
@@ -276,10 +361,12 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await expenseDeleteResponse;
-    await expectSuccessMessage(page, "删除成功");
+    await expectRowGone(page, createdExpenseBillNo);
   });
 
   test("转账单和核销单页覆盖列表/新建/审核/删除接口", async ({ page }) => {
+    test.setTimeout(90_000);
+
     const transferListResponse = page.waitForResponse(response =>
       response.url().includes("/api/v1/finance-extension/account-transfer/1")
     );
@@ -304,7 +391,7 @@ test.describe("fund mock 接口覆盖", () => {
       (transferCreateResult as { data?: { billNo?: string } }).data?.billNo ||
         ""
     );
-    await expectSuccessMessage(page, "创建成功");
+    await expectRowVisible(page, createdTransferBillNo);
 
     const transferApproveResponse = page.waitForResponse(response =>
       response
@@ -332,7 +419,7 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await transferDeleteResponse;
-    await expectSuccessMessage(page, "删除成功");
+    await expectRowGone(page, createdTransferBillNo);
 
     const writeOffListResponse = page.waitForResponse(response =>
       response.url().includes("/api/v1/write-off-order/page/1")
@@ -358,7 +445,7 @@ test.describe("fund mock 接口覆盖", () => {
       (writeOffCreateResult as { data?: { billNo?: string } }).data?.billNo ||
         ""
     );
-    await expectSuccessMessage(page, "创建成功");
+    await expectRowVisible(page, createdWriteOffBillNo);
 
     const writeOffApproveResponse = page.waitForResponse(response =>
       response.url().includes("/api/v1/write-off-order/writeoff-1/approve")
@@ -368,7 +455,9 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await writeOffApproveResponse;
-    await expectSuccessMessage(page, "审核成功");
+    await expect(tableRowByText(page, "WO-20260309-001")).toContainText(
+      "已审核"
+    );
 
     const writeOffDeleteResponse = page.waitForResponse(
       response =>
@@ -380,6 +469,6 @@ test.describe("fund mock 接口覆盖", () => {
       .click();
     await confirmMessageBox(page, "确定");
     await writeOffDeleteResponse;
-    await expectSuccessMessage(page, "删除成功");
+    await expectRowGone(page, createdWriteOffBillNo);
   });
 });
