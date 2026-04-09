@@ -75,7 +75,9 @@ let nextOtherIncomeOrderId = 2;
 let nextOtherExpenseOrderId = 2;
 let nextTransferOrderId = 2;
 let nextWriteOffOrderId = 2;
+let nextBackupTaskId = 2;
 let currentCompanyId = "company-1";
+let currentStoreId = "store-1";
 
 const customers = [
   {
@@ -310,14 +312,18 @@ const backups = [
   {
     id: 1,
     uid: "backup-1",
+    issuerId: "e2e-admin",
+    issuerName: "admin",
+    action: "backup",
+    sourceUid: null,
     fileName: "backup-20260309.zip",
-    fileSizeText: "2 MB",
-    backupType: "manual",
-    backupTypeName: "手动备份",
-    status: "success",
-    statusName: "成功",
-    createTime: nowIso(),
-    remark: "用于下载冒烟"
+    filePath: "/mock/backup-20260309.zip",
+    fileSize: 2 * 1024 * 1024,
+    durationMs: 1234,
+    completedAt: nowIso(),
+    createdAt: nowIso(),
+    status: "SUCCESS",
+    error: null
   }
 ];
 const customerInitialBalanceSummary = {
@@ -435,6 +441,22 @@ const companies = [
     name: "E2E Company B"
   }
 ];
+const storesByCompany = {
+  "company-1": [
+    {
+      uid: "store-1",
+      name: "E2E Store A",
+      defaultRepositoryId: "repo-1"
+    }
+  ],
+  "company-2": [
+    {
+      uid: "store-2",
+      name: "E2E Store B",
+      defaultRepositoryId: "repo-2"
+    }
+  ]
+};
 const customerOptions = [
   { uid: "c1", name: "客户A" },
   { uid: "c2", name: "客户B" },
@@ -545,6 +567,15 @@ const matchPath = (pathname, pattern) => {
 
 const xlsxBuffer = Buffer.from("mock-xlsx-content", "utf8");
 const zipBuffer = Buffer.from("mock-zip-content", "utf8");
+const DEFAULT_BACKUP_SETTINGS = Object.freeze({
+  autoBackupEnabled: false,
+  autoBackupTime: "02:00",
+  autoBackupFrequency: "daily",
+  autoBackupWeekDay: 7,
+  autoBackupMonthDay: 1,
+  keepDays: 30
+});
+let backupSettings = { ...DEFAULT_BACKUP_SETTINGS };
 const buildDataUrl = (content, mime) =>
   `data:${mime};base64,${Buffer.from(content, "utf8").toString("base64")}`;
 
@@ -770,7 +801,8 @@ const server = http.createServer(async (req, res) => {
           user: {
             uid: "e2e-admin",
             username: "admin",
-            currentCompanyId
+            currentCompanyId,
+            currentStoreId
           }
         })
       );
@@ -797,11 +829,45 @@ const server = http.createServer(async (req, res) => {
         });
       }
       currentCompanyId = body.companyId;
+      currentStoreId =
+        storesByCompany[currentCompanyId]?.[0]?.uid || currentStoreId;
       return sendJson(
         res,
         200,
         ok({
           companyId: currentCompanyId
+        })
+      );
+    }
+
+    if (method === "GET" && pathname === "/api/v1/auth/current-store") {
+      const stores = storesByCompany[currentCompanyId] || [];
+      return sendJson(res, 200, ok(stores));
+    }
+
+    if (method === "POST" && pathname === "/api/v1/auth/current-store") {
+      const body = (await readJsonBody(req)) || {};
+      if (typeof body.storeId !== "string" || !body.storeId) {
+        return sendJson(res, 400, {
+          code: 400,
+          msg: "storeId is required",
+          data: null
+        });
+      }
+      const stores = storesByCompany[currentCompanyId] || [];
+      if (!stores.some(item => item.uid === body.storeId)) {
+        return sendJson(res, 404, {
+          code: 404,
+          msg: "store not found",
+          data: null
+        });
+      }
+      currentStoreId = body.storeId;
+      return sendJson(
+        res,
+        200,
+        ok({
+          storeId: currentStoreId
         })
       );
     }
@@ -1545,10 +1611,14 @@ const server = http.createServer(async (req, res) => {
           url.searchParams.get("pageSize") || "",
           10
         );
+        const normalized = writeOffOrders.map(item => ({
+          ...item,
+          isApproved: item.isApproved === true
+        }));
         return sendJson(
           res,
           200,
-          ok(listWithPagination(writeOffOrders, index, pageSize))
+          ok(listWithPagination(normalized, index, pageSize))
         );
       }
 
@@ -1617,18 +1687,99 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, ok(true));
       }
 
+      {
+        const backupPageMatch = matchPath(pathname, "/api/v1/backup/page/:index");
+        if (method === "GET" && backupPageMatch) {
+          const index = Number.parseInt(backupPageMatch.index || "1", 10);
+          const pageSize = Number.parseInt(
+            url.searchParams.get("pageSize") || "",
+            10
+          );
+          const paged = listWithPagination(backups, index, pageSize);
+          return sendJson(
+            res,
+            200,
+            ok({
+              list: paged.list,
+              count: paged.count
+            })
+          );
+        }
+      }
+
       if (method === "GET" && pathname === "/api/v1/backup/") {
-        return sendJson(
-          res,
-          200,
-          ok({
-            list: backups,
-            total: backups.length,
-            count: backups.length,
-            page: 1,
-            pageSize: backups.length
-          })
-        );
+        const paged = listWithPagination(backups, 1, backups.length);
+        return sendJson(res, 200, ok({ list: paged.list, count: paged.count }));
+      }
+
+      if (method === "POST" && pathname === "/api/v1/backup") {
+        const createdAt = nowIso();
+        const record = {
+          id: nextBackupTaskId++,
+          uid: randomUUID(),
+          issuerId: "e2e-admin",
+          issuerName: "admin",
+          action: "backup",
+          sourceUid: null,
+          fileName: `backup-${Date.now()}.zip`,
+          filePath: "/mock/generated-backup.zip",
+          fileSize: zipBuffer.length,
+          durationMs: 1000,
+          completedAt: createdAt,
+          createdAt,
+          status: "SUCCESS",
+          error: null
+        };
+        backups.unshift(record);
+        return sendJson(res, 200, ok(record));
+      }
+
+      if (method === "POST" && pathname === "/api/v1/backup/upload") {
+        const createdAt = nowIso();
+        const record = {
+          id: nextBackupTaskId++,
+          uid: randomUUID(),
+          issuerId: "e2e-admin",
+          issuerName: "admin",
+          action: "backup",
+          sourceUid: null,
+          fileName: `backup-upload-${Date.now()}.zip`,
+          filePath: "/mock/uploaded-backup.zip",
+          fileSize: zipBuffer.length,
+          durationMs: 0,
+          completedAt: createdAt,
+          createdAt,
+          status: "SUCCESS",
+          error: null
+        };
+        backups.unshift(record);
+        return sendJson(res, 200, ok(record));
+      }
+
+      const backupRestoreMatch = matchPath(pathname, "/api/v1/backup/:uid/restore");
+      if (method === "POST" && backupRestoreMatch) {
+        const found = backups.find(item => item.uid === backupRestoreMatch.uid);
+        if (!found) return notFound(res, method, pathname);
+        found.status = "RESTORING";
+        return sendJson(res, 200, ok(found));
+      }
+
+      const backupDeleteMatch = matchPath(pathname, "/api/v1/backup/:uid");
+      if (method === "DELETE" && backupDeleteMatch) {
+        const idx = backups.findIndex(item => item.uid === backupDeleteMatch.uid);
+        if (idx === -1) return notFound(res, method, pathname);
+        backups.splice(idx, 1);
+        return sendJson(res, 200, ok({ deleted: 1 }));
+      }
+
+      if (method === "GET" && pathname === "/api/v1/backup/settings") {
+        return sendJson(res, 200, ok(backupSettings));
+      }
+
+      if (method === "PATCH" && pathname === "/api/v1/backup/settings") {
+        const body = (await readJsonBody(req)) || {};
+        backupSettings = { ...backupSettings, ...body };
+        return sendJson(res, 200, ok(backupSettings));
       }
 
       const backupDownloadMatch = matchPath(pathname, "/api/v1/backup/:uid/download");

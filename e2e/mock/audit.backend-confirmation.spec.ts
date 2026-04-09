@@ -299,17 +299,29 @@ test.describe("审计回归（后端确认项）", () => {
     await waitForPureTable(page);
 
     await page.getByRole("button", { name: "新增" }).click();
-    const dialog = page.locator(".el-dialog").last();
+    const dialog = page
+      .locator(".el-dialog")
+      .filter({ hasText: "新增客户商品编码" })
+      .last();
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
 
-    await dialog.getByRole("combobox", { name: "* 客户" }).click();
-    await page.getByRole("option", { name: "客户A" }).click();
-    await dialog.getByRole("combobox", { name: "* 商品" }).click();
-    await page.getByRole("option", { name: "轮胎A" }).click();
+    await dialog.getByRole("combobox", { name: /客户/ }).click({ force: true });
+    await page
+      .locator(".el-select-dropdown:visible")
+      .getByRole("option", { name: "客户A" })
+      .click();
+    const tireCombobox = dialog.getByRole("combobox", { name: /商品/ });
+    await tireCombobox.focus();
+    await tireCombobox.press("ArrowDown");
+    await page
+      .locator(".el-select-dropdown:visible")
+      .getByRole("option", { name: "轮胎A" })
+      .click();
     await dialog.getByPlaceholder("请输入客户商品编码").fill(auditCode);
     await dialog
       .getByPlaceholder("请输入客户商品名称")
       .fill("审计客户商品编码");
-    await page.getByRole("button", { name: "确定" }).click();
+    await dialog.getByRole("button", { name: "确定" }).click();
     await expectSuccessMessage(page, "新增成功");
     await expect(page.locator(".pure-table")).toContainText(auditCode);
 
@@ -332,6 +344,7 @@ test.describe("审计回归（后端确认项）", () => {
     page
   }) => {
     await page.goto("/#/system/menu");
+    await waitForPureTable(page);
     await expect(page.getByText("菜单管理")).toBeVisible();
 
     await page.getByRole("button", { name: "新增菜单" }).click();
@@ -425,13 +438,14 @@ test.describe("审计回归（后端确认项）", () => {
       "CGDD-20260309-001"
     );
     const purchaseApproveCount = approveRequestCount;
-    await page.getByRole("button", { name: "批量审核" }).click();
+    const purchaseHeader = page.getByText("采购单据汇总").first().locator("..");
+    await purchaseHeader.getByRole("button", { name: "批量审核" }).click();
     await page.waitForTimeout(300);
     expect(approveRequestCount).toBe(purchaseApproveCount);
     const purchaseExportPromise = page.waitForResponse(response =>
       response.url().includes("/api/v1/document-center/export")
     );
-    await page.getByRole("button", { name: "导出" }).click();
+    await purchaseHeader.getByRole("button", { name: "导出" }).click();
     await purchaseExportPromise;
     await expectSuccessMessage(page, "下载成功");
     const purchasePrintPromise = page.waitForResponse(response =>
@@ -450,13 +464,14 @@ test.describe("审计回归（后端确认项）", () => {
       "XSDD-20260309-001"
     );
     const salesApproveCount = approveRequestCount;
-    await page.getByRole("button", { name: "批量审核" }).click();
+    const salesHeader = page.getByText("销售单据汇总").first().locator("..");
+    await salesHeader.getByRole("button", { name: "批量审核" }).click();
     await page.waitForTimeout(300);
     expect(approveRequestCount).toBe(salesApproveCount);
     const salesExportPromise = page.waitForResponse(response =>
       response.url().includes("/api/v1/document-center/export")
     );
-    await page.getByRole("button", { name: "导出" }).click();
+    await salesHeader.getByRole("button", { name: "导出" }).click();
     await salesExportPromise;
     await expectSuccessMessage(page, "下载成功");
     const salesPrintPromise = page.waitForResponse(response =>

@@ -3,6 +3,13 @@ import process from "node:process";
 import http from "node:http";
 
 const API_PORT = Number.parseInt(process.env.E2E_API_PORT || "19000", 10);
+const WEB_PORT = Number.parseInt(process.env.E2E_WEB_PORT || "18848", 10);
+
+const buildChildEnv = extraEnv => {
+  const env = { ...process.env, ...extraEnv };
+  delete env.NODE_OPTIONS;
+  return env;
+};
 
 const waitForHealth = async ({ port, timeoutMs }) => {
   const startedAt = Date.now();
@@ -29,10 +36,7 @@ const waitForHealth = async ({ port, timeoutMs }) => {
 
 const api = spawn("node", ["e2e/mock/server.mjs"], {
   stdio: "inherit",
-  env: {
-    ...process.env,
-    E2E_API_PORT: String(API_PORT)
-  }
+  env: buildChildEnv({ E2E_API_PORT: String(API_PORT) })
 });
 
 const ready = await waitForHealth({ port: API_PORT, timeoutMs: 10_000 });
@@ -43,7 +47,7 @@ if (!ready) {
 
 const web = spawn("pnpm", ["dev", "--mode", "e2e"], {
   stdio: "inherit",
-  env: process.env
+  env: buildChildEnv({ VITE_PORT: String(WEB_PORT) })
 });
 
 const shutdown = signal => {

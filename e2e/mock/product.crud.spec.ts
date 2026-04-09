@@ -68,4 +68,48 @@ test.describe("商品管理（mock）", () => {
       page.locator(".pure-table tbody tr").filter({ hasText: productName })
     ).toHaveCount(0);
   });
+
+  test("表单校验：商品名称/售价必填，库存必须为整数", async ({ page }) => {
+    await page.goto("/#/data/product");
+    await waitForPureTable(page);
+
+    await page.getByRole("button", { name: "新增商品" }).click();
+    const dialog = page.locator(".el-dialog");
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+
+    // 直接提交：触发必填校验
+    await dialog.getByRole("button", { name: "确定" }).click();
+
+    await expect(
+      dialog
+        .locator(".el-form-item")
+        .filter({ hasText: "商品名称" })
+        .first()
+        .locator(".el-form-item__error")
+    ).toContainText("请输入商品名称");
+    await expect(
+      dialog
+        .locator(".el-form-item")
+        .filter({ hasText: "售价" })
+        .first()
+        .locator(".el-form-item__error")
+    ).toContainText("请输入售价");
+
+    // 输入有效必填项，但输入非法库存（小数）
+    await dialog
+      .getByPlaceholder("请输入商品名称")
+      .fill(`E2E-商品-校验-${Date.now()}`);
+    await dialog.getByPlaceholder("售价").fill("10");
+    await dialog.getByPlaceholder("最低库存").fill("1.5");
+    await dialog.getByRole("button", { name: "确定" }).click();
+
+    await expect(
+      dialog
+        .locator(".el-form-item")
+        .filter({ hasText: "最低库存" })
+        .first()
+        .locator(".el-form-item__error")
+    ).toContainText("需为整数");
+    await expect(dialog).toBeVisible();
+  });
 });

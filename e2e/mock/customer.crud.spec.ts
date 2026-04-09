@@ -51,4 +51,25 @@ test.describe("客户管理（mock）", () => {
 
     await expect(page.locator(".pure-table")).toContainText(customerName);
   });
+
+  test("表单校验：客户名称必填且会 trim 空白", async ({ page }) => {
+    await page.goto("/#/data/customer");
+    await waitForPureTable(page);
+
+    await page.getByRole("button", { name: "新增客户" }).click();
+    const dialog = page.locator(".el-dialog");
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+
+    await dialog.getByPlaceholder("请输入客户名称").fill("   ");
+    await dialog.getByRole("button", { name: "确定" }).click();
+
+    const nameItem = dialog
+      .locator(".el-form-item")
+      .filter({ hasText: "客户名称" })
+      .first();
+    await expect(nameItem.locator(".el-form-item__error")).toContainText(
+      "请输入客户名称"
+    );
+    await expect(dialog).toBeVisible();
+  });
 });
