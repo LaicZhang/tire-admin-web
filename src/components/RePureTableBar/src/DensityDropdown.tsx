@@ -2,6 +2,7 @@ import { computed, type Ref } from "vue";
 import { useEpThemeStoreHook } from "@/store/modules/epTheme";
 import CollapseIcon from "@/assets/table-bar/collapse.svg?component";
 import { TABLE_SIZE_OPTIONS, type TableSize } from "./types";
+import { ElDropdown, ElDropdownItem, ElDropdownMenu } from "element-plus";
 
 interface DensityDropdownProps {
   size: Ref<TableSize>;
@@ -26,28 +27,28 @@ export function useDensityDropdown({
 
   const dropdown = {
     dropdown: () => (
-      <el-dropdown-menu class="translation">
+      <ElDropdownMenu class="translation">
         {TABLE_SIZE_OPTIONS.map(option => (
-          <el-dropdown-item
+          <ElDropdownItem
             key={option.value}
             style={getDropdownItemStyle.value(option.value)}
             onClick={() => (size.value = option.value)}
           >
             {option.label}
-          </el-dropdown-item>
+          </ElDropdownItem>
         ))}
-      </el-dropdown-menu>
+      </ElDropdownMenu>
     )
   };
 
   const renderDensityDropdown = () => (
-    <el-dropdown
+    <ElDropdown
       v-slots={dropdown}
       trigger="click"
       v-tippy={rendTippyProps("密度")}
     >
       <CollapseIcon class={["w-[16px]", ...iconClass]} />
-    </el-dropdown>
+    </ElDropdown>
   );
 
   return {

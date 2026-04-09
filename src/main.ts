@@ -11,6 +11,7 @@ import "@/utils/globalPolyfills";
 import { applySsoFromCurrentUrl } from "@/utils/sso";
 import AppErrorFallback from "@/components/AppErrorFallback.vue";
 import { formatRuntimeError, showRuntimeError } from "@/utils/runtimeError";
+import { plugin as VueTippy } from "vue-tippy";
 
 import Table from "@pureadmin/table";
 import PureDescriptions from "@pureadmin/descriptions";
@@ -80,7 +81,12 @@ async function bootstrap() {
     injectResponsiveStorage(app, platformConfig);
     setupStore(app);
     app.use(router);
-    app.use(MotionPlugin).use(useElementPlus).use(Table).use(PureDescriptions);
+    app
+      .use(MotionPlugin)
+      .use(useElementPlus)
+      .use(VueTippy, { defaultProps: { placement: "top", appendTo: "parent" } })
+      .use(Table)
+      .use(PureDescriptions);
 
     await router.isReady();
     app.mount("#app");
