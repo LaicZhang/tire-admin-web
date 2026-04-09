@@ -9,12 +9,17 @@ import type {
   InternalPureHttpRequestConfig
 } from "../types.d";
 import type { createPendingQueue } from "../pending-queue";
-import { useUserStoreHook } from "@/store/modules/user";
 import { authWhiteList } from "./auth";
 
 type CookieAuthConfig = InternalPureHttpRequestConfig & {
   __cookieAuthRetry?: boolean;
 };
+
+function logoutViaUserStore(): void {
+  void import("@/store/modules/user").then(mod => {
+    mod.useUserStoreHook().logOut();
+  });
+}
 
 export interface CookieAuthInterceptorOptions {
   pendingQueue: ReturnType<typeof createPendingQueue>;
@@ -79,7 +84,7 @@ export const createCookieAuthInterceptor = (
         return instance.request(originalConfig);
       } catch (refreshError) {
         pendingQueue.rejectAll(refreshError);
-        (onLogout ?? (() => useUserStoreHook().logOut()))();
+        (onLogout ?? logoutViaUserStore)();
         return Promise.reject(refreshError);
       } finally {
         state.isRefreshing = false;

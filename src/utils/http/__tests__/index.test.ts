@@ -37,6 +37,15 @@ import {
 
 describe("HTTP utility functions", () => {
   describe("shouldRetry", () => {
+    it("should return false for fatal config error code", () => {
+      const error = {
+        code: "ERR_FATAL_CONFIG",
+        config: { method: "get" },
+        response: undefined
+      } as unknown as AxiosError;
+      expect(shouldRetry(error)).toBe(false);
+    });
+
     it("should return false for non-idempotent methods (POST)", () => {
       const error = {
         config: { method: "post" },
@@ -171,6 +180,29 @@ describe("HTTP utility functions", () => {
   });
 
   describe("normalizePaginatedApiEnvelope", () => {
+    it("should return original when data is missing", () => {
+      const response = { code: 200, msg: "ok" };
+      expect(normalizePaginatedApiEnvelope(response)).toBe(response);
+    });
+
+    it("should return original when data.list is not an array", () => {
+      const response = {
+        code: 200,
+        msg: "ok",
+        data: { list: "not-array", count: 1 }
+      };
+      expect(normalizePaginatedApiEnvelope(response)).toBe(response);
+    });
+
+    it("should return original when count is not a number", () => {
+      const response = {
+        code: 200,
+        msg: "ok",
+        data: { list: [], count: "12" }
+      };
+      expect(normalizePaginatedApiEnvelope(response)).toBe(response);
+    });
+
     it("should map paginated count to total when total is missing", () => {
       const response = {
         code: 200,

@@ -10,7 +10,18 @@ import {
 import type { PureHttpRequestConfig } from "../types.d";
 import type { createPendingQueue } from "../pending-queue";
 import { getToken, formatToken } from "@/utils/auth";
-import { useUserStoreHook } from "@/store/modules/user";
+
+function logoutViaUserStore(): void {
+  void import("@/store/modules/user").then(mod => {
+    mod.useUserStoreHook().logOut();
+  });
+}
+
+async function refreshAccessToken(refreshToken: string): Promise<string> {
+  const store = (await import("@/store/modules/user")).useUserStoreHook();
+  const res = await store.handRefreshToken({ refreshToken });
+  return res.data.accessToken;
+}
 
 /** 请求白名单：不需要 token 的接口 */
 export const authWhiteList = [
@@ -57,17 +68,16 @@ export const createAuthInterceptor = (options: AuthInterceptorOptions) => {
 
     // accessToken 已过期，但 refreshToken 不存在：直接登出并快速失败
     if (!data.refreshToken) {
-      (options.onLogout ?? (() => useUserStoreHook().logOut()))();
+      (options.onLogout ?? logoutViaUserStore)();
       return Promise.reject(new Error("登录已过期，请重新登录"));
     }
 
     // Token 过期：将当前请求加入等待队列，等待刷新完成后重试
     if (!state.isRefreshing) {
       state.isRefreshing = true;
-      useUserStoreHook()
-        .handRefreshToken({ refreshToken: data.refreshToken })
+      void refreshAccessToken(data.refreshToken)
         .then(res => {
-          const token = res.data.accessToken;
+          const token = res;
           options.pendingQueue.resolveAll(pendingConfig => {
             pendingConfig.headers = AxiosHeaders.from(
               pendingConfig.headers as never
@@ -78,7 +88,7 @@ export const createAuthInterceptor = (options: AuthInterceptorOptions) => {
         })
         .catch(error => {
           options.pendingQueue.rejectAll(error);
-          (options.onLogout ?? (() => useUserStoreHook().logOut()))();
+          (options.onLogout ?? logoutViaUserStore)();
         })
         .finally(() => {
           state.isRefreshing = false;

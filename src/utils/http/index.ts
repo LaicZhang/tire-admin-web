@@ -14,17 +14,14 @@ import type {
 import { stringify } from "qs";
 import { httpLogger } from "@/utils/logger";
 import { useHttpOnlyCookie } from "@/utils/auth-config";
-import { useUserStoreHook } from "@/store/modules/user";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { resolveBaseURLFromViteEnv } from "./baseurl";
 import { createPendingQueue } from "./pending-queue";
 import { ensureIdempotencyKey } from "./idempotency";
-import {
-  createCookieAuthInterceptor,
-  createRetryInterceptor,
-  registerAuthInterceptor,
-  registerCsrfInterceptor
-} from "./interceptors";
+import { registerAuthInterceptor } from "./interceptors/auth";
+import { registerCsrfInterceptor } from "./interceptors/csrf";
+import { createRetryInterceptor } from "./interceptors/retry";
+import { createCookieAuthInterceptor } from "./interceptors/cookie-auth";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 // 优先使用环境变量，其次：开发环境走相对路径配合 Vite 代理，生产环境兜底到公网 API
@@ -121,6 +118,12 @@ export const getRetryDelay = (retryCount: number): number => {
   return Math.min(1000 * Math.pow(2, retryCount), 10000);
 };
 
+function logoutViaUserStore(): void {
+  void import("@/store/modules/user").then(mod => {
+    mod.useUserStoreHook().logOut();
+  });
+}
+
 const defaultConfig: AxiosRequestConfig = {
   baseURL: resolveBaseURL(),
   // 请求超时时间
@@ -199,7 +202,7 @@ class PureHttp {
     } else {
       registerAuthInterceptor(instance, {
         pendingQueue: PureHttp.pendingQueue,
-        onLogout: () => useUserStoreHook().logOut()
+        onLogout: logoutViaUserStore
       });
     }
   }
@@ -210,7 +213,7 @@ class PureHttp {
     const cookieAuthInterceptor = useHttpOnlyCookie
       ? createCookieAuthInterceptor({
           pendingQueue: PureHttp.cookiePendingQueue,
-          onLogout: () => useUserStoreHook().logOut()
+          onLogout: logoutViaUserStore
         })
       : null;
     const retryInterceptor = createRetryInterceptor({

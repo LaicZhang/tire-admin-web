@@ -8,7 +8,9 @@ const mockAxiosInstance = {
   interceptors: {
     request: {
       use: vi.fn((handler: RequestInterceptor) => {
-        capturedRequestInterceptor = handler;
+        // `PureHttp` 会注册多个 request interceptor（例如 auth/csrf）。
+        // 只捕获第一个（核心拦截器）避免后续覆盖导致用例不稳定。
+        if (!capturedRequestInterceptor) capturedRequestInterceptor = handler;
         return 0;
       })
     },
@@ -56,17 +58,6 @@ vi.mock("../baseurl", () => ({
 
 vi.mock("../pending-queue", () => ({
   createPendingQueue: vi.fn(() => ({}))
-}));
-
-vi.mock("../interceptors", () => ({
-  createCookieAuthInterceptor: vi.fn(() => ({
-    responseErrorInterceptor: vi.fn()
-  })),
-  createRetryInterceptor: vi.fn(() => ({
-    responseErrorInterceptor: vi.fn(error => Promise.reject(error))
-  })),
-  registerAuthInterceptor: vi.fn(),
-  registerCsrfInterceptor: vi.fn()
 }));
 
 describe("PureHttp request interceptor", () => {
