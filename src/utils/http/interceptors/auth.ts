@@ -59,7 +59,7 @@ export const createAuthInterceptor = (options: AuthInterceptorOptions) => {
     if (!data?.accessToken) return config;
 
     const expires = Number(data.expires);
-    const expired = expires <= Date.now();
+    const expired = !Number.isFinite(expires) || expires <= Date.now();
 
     if (!expired) {
       config.headers["Authorization"] = formatToken(data.accessToken);

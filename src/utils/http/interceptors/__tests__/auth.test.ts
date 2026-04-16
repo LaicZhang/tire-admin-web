@@ -170,6 +170,50 @@ describe("createAuthInterceptor", () => {
     expect(mockFormatToken).not.toHaveBeenCalled();
   });
 
+  it("非法 expires 且无 refreshToken：视为过期并登出", async () => {
+    mockGetToken.mockReturnValue({
+      accessToken: "broken",
+      expires: "not-a-number"
+    });
+
+    const pendingQueue = createTestPendingQueue();
+    const { createAuthInterceptor } = await load();
+    const { requestInterceptor } = createAuthInterceptor({
+      pendingQueue,
+      onLogout: mockLogOut
+    });
+
+    await expect(requestInterceptor(makeConfig())).rejects.toBeInstanceOf(
+      Error
+    );
+    expect(mockLogOut).toHaveBeenCalledTimes(1);
+    expect(mockFormatToken).not.toHaveBeenCalled();
+  });
+
+  it("缺少 expires 且有 refreshToken：走刷新分支并注入新 token", async () => {
+    mockGetToken.mockReturnValue({
+      accessToken: "stale",
+      refreshToken: "refresh-missing-expires"
+    });
+    mockFormatToken.mockImplementation(t => `Bearer ${t}`);
+    mockHandRefreshToken.mockResolvedValue({
+      data: { accessToken: "new-missing" }
+    });
+
+    const pendingQueue = createTestPendingQueue();
+    const { createAuthInterceptor } = await load();
+    const { requestInterceptor } = createAuthInterceptor({ pendingQueue });
+
+    const result = await requestInterceptor(makeConfig());
+
+    expect(mockHandRefreshToken).toHaveBeenCalledWith({
+      refreshToken: "refresh-missing-expires"
+    });
+    expect(result.headers).toMatchObject({
+      Authorization: "Bearer new-missing"
+    });
+  });
+
   it("过期且无 refreshToken：登出并拒绝请求", async () => {
     mockGetToken.mockReturnValue({
       accessToken: "expired",
