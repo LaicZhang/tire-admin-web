@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { InternalAxiosRequestConfig } from "axios";
+import type { PureHttpRequestConfig } from "../../types.d";
 
 type TokenPayload = {
   accessToken?: string;
@@ -36,9 +37,14 @@ async function load() {
 }
 
 type PendingQueue = {
-  enqueue: (config: unknown) => Promise<unknown>;
-  resolveAll: (mapper: (config: InternalAxiosRequestConfig) => unknown) => void;
+  enqueue: (
+    config: PureHttpRequestConfig
+  ) => Promise<PureHttpRequestConfig>;
+  resolveAll: (
+    mapper: (config: PureHttpRequestConfig) => PureHttpRequestConfig
+  ) => void;
   rejectAll: (error: unknown) => void;
+  size: () => number;
 };
 
 function createDeferred<T>() {
@@ -53,15 +59,15 @@ function createDeferred<T>() {
 
 function createTestPendingQueue(): PendingQueue {
   const entries: Array<{
-    config: InternalAxiosRequestConfig;
-    deferred: ReturnType<typeof createDeferred<unknown>>;
+    config: PureHttpRequestConfig;
+    deferred: ReturnType<typeof createDeferred<PureHttpRequestConfig>>;
   }> = [];
 
   return {
     enqueue: config => {
-      const deferred = createDeferred<unknown>();
+      const deferred = createDeferred<PureHttpRequestConfig>();
       entries.push({
-        config: config as unknown as InternalAxiosRequestConfig,
+        config,
         deferred
       });
       return deferred.promise;
@@ -75,7 +81,8 @@ function createTestPendingQueue(): PendingQueue {
       for (const entry of entries.splice(0)) {
         entry.deferred.reject(error);
       }
-    }
+    },
+    size: () => entries.length
   };
 }
 
