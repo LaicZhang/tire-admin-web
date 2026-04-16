@@ -2,6 +2,7 @@ import {
   ANALYSIS_ROUTE_ROLES,
   INVENTORY_ANALYSIS_ROLES,
   PURCHASE_ANALYSIS_ROLES,
+  SERIAL_TRACE_ANALYSIS_ROLES,
   SALES_ANALYSIS_ROLES
 } from "@/utils/analysisRole";
 
@@ -1032,6 +1033,21 @@ export default [
         meta: {
           roles: [...INVENTORY_ANALYSIS_ROLES],
           title: "库存分析",
+          icon: null
+        }
+      },
+      {
+        id: 59,
+        uid: "45678901-cc70-4b36-b283-f7a1c7c8d28d",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "serialTraceAnalysis",
+        path: "/analysis/serial-trace",
+        redirect: null,
+        component: () => import("@/views/analysis/serialTrace/index.vue"),
+        isShow: true,
+        meta: {
+          roles: [...SERIAL_TRACE_ANALYSIS_ROLES],
+          title: "轮胎全链路溯源",
           icon: null
         }
       },

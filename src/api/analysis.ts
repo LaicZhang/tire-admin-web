@@ -305,6 +305,60 @@ export interface SerialTraceData {
   }>;
 }
 
+export interface SerialRelatedData {
+  relationType?: "batch" | "sourceOrder" | "none";
+  anchor?: {
+    serialNo?: string;
+    tireId?: string;
+    tireName?: string;
+    tireFormat?: string | null;
+    tirePattern?: string | null;
+    batchNo?: string | null;
+    sourceType?: string | null;
+    sourceOrderId?: string | null;
+  };
+  items?: Array<{
+    serialNo?: string;
+    tireId?: string;
+    tireName?: string;
+    repoId?: string;
+    repoName?: string;
+    status?: string;
+    batchNo?: string | null;
+    sourceType?: string | null;
+    sourceOrderId?: string | null;
+    createdAt?: string | null;
+  }>;
+}
+
+export interface SerialProductSummaryData {
+  product?: {
+    tireId?: string;
+    tireName?: string;
+    tireFormat?: string | null;
+    tirePattern?: string | null;
+  };
+  inventory?: {
+    totalSerialCount?: number;
+    inStockCount?: number;
+    reservedCount?: number;
+    inTransitCount?: number;
+    afterSalesCount?: number;
+    terminalCount?: number;
+  };
+  statusDistribution?: Array<{
+    status?: string;
+    count?: number;
+  }>;
+  recentMovements?: Array<{
+    serialNo?: string;
+    action?: string;
+    orderType?: string | null;
+    orderId?: string | null;
+    createdAt?: string | null;
+  }>;
+}
+
 // 销售汇总
 export async function getSalesSummaryApi(params?: {
   startDate?: string;
@@ -751,6 +805,24 @@ export async function getSerialTraceApi(serialNo: string) {
     "get",
     baseUrlApi(
       prefix + `inventory/serial-trace/${encodeURIComponent(serialNo)}`
+    )
+  );
+}
+
+export async function getSerialRelatedApi(serialNo: string) {
+  return await http.request<CommonResult<SerialRelatedData>>(
+    "get",
+    baseUrlApi(
+      prefix + `inventory/serial-related/${encodeURIComponent(serialNo)}`
+    )
+  );
+}
+
+export async function getSerialProductSummaryApi(serialNo: string) {
+  return await http.request<CommonResult<SerialProductSummaryData>>(
+    "get",
+    baseUrlApi(
+      prefix + `inventory/serial-product-summary/${encodeURIComponent(serialNo)}`
     )
   );
 }

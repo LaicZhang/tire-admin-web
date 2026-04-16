@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, h } from "vue";
+import { useRouter } from "vue-router";
 import { columns, statusMap } from "./columns";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import StatusTag from "@/components/StatusTag/index.vue";
@@ -36,6 +37,7 @@ type SerialNumberAddFormExpose = {
   handleSubmit: () => Promise<boolean>;
 };
 const addFormRef = ref<SerialNumberAddFormExpose | null>(null);
+const router = useRouter();
 
 const { options: tireOptions } = useOptionsByType("tires");
 const { options: repoOptions } = useOptionsByType("repos");
@@ -150,6 +152,15 @@ function handleViewLogs(row: SerialNumber) {
       })
   });
 }
+
+function handleTrace(row: SerialNumber) {
+  router.push({
+    path: "/analysis/serial-trace",
+    query: {
+      serialNo: row.serialNo
+    }
+  });
+}
 </script>
 
 <template>
@@ -260,6 +271,14 @@ function handleViewLogs(row: SerialNumber) {
             <StatusTag :status="row.status" :status-map="statusMap" />
           </template>
           <template #operation="{ row, size }">
+            <el-button
+              link
+              type="primary"
+              :size="size"
+              @click="handleTrace(row)"
+            >
+              溯源分析
+            </el-button>
             <el-button
               link
               type="primary"
