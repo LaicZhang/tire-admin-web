@@ -946,6 +946,21 @@ export default [
         }
       },
       {
+        id: 60,
+        uid: "7e0cb45d-89af-44d1-b4da-3b1dbefc8f94",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "traceWorkbench",
+        path: "/analysis/trace-workbench",
+        redirect: null,
+        component: () => import("@/views/analysis/traceWorkbench/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "经营溯源台",
+          icon: null
+        }
+      },
+      {
         id: 36,
         uid: "36e19140-226e-43e5-abf5-051b4121f8c8",
         parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
