@@ -1,0 +1,37 @@
+overrides:
+  '@typescript-eslint/eslint-plugin': 8.58.0
+  '@typescript-eslint/parser': 8.58.0
+  '@typescript-eslint/project-service': 8.58.0
+  '@typescript-eslint/rule-tester': 8.58.0
+  '@typescript-eslint/scope-manager': 8.58.0
+  '@typescript-eslint/tsconfig-utils': 8.58.0
+  '@typescript-eslint/type-utils': 8.58.0
+  '@typescript-eslint/types': 8.58.0
+  '@typescript-eslint/typescript-estree': 8.58.0
+  '@typescript-eslint/utils': 8.58.0
+  '@typescript-eslint/visitor-keys': 8.58.0
+allowedDeprecatedVersions:
+  are-we-there-yet: '*'
+  sourcemap-codec: '*'
+  lodash.isequal: '*'
+  domexception: '*'
+  w3c-hr-time: '*'
+  inflight: '*'
+  npmlog: '*'
+  rimraf: '*'
+  stable: '*'
+  gauge: '*'
+  abab: '*'
+  glob: '*'
+shellEmulator: true
+shamefullyHoist: true
+enablePrePostScripts: true
+strictPeerDependencies: false
+allowBuilds:
+  '@parcel/watcher': true
+  '@tailwindcss/oxide': true
+  core-js: true
+  es5-ext: true
+  esbuild: true
+  typeit: true
+  vue-demi: true
