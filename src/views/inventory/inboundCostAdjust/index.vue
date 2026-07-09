@@ -93,9 +93,10 @@ const handleCurrentChange = (page: number) => {
   fetchData();
 };
 
-const openDetailDialog = (row: InboundCostAdjustItem) => {
-  selectedRow.value = row;
-  editDetails.value = row.details.map(detail => ({
+const openDetailDialog = (row: InboundCostAdjustItem | unknown) => {
+  const target = row as InboundCostAdjustItem;
+  selectedRow.value = target;
+  editDetails.value = target.details.map(detail => ({
     ...detail,
     editableUnitPrice: Number(detail.unitPrice || 0)
   }));

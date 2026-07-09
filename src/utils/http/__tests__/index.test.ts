@@ -181,7 +181,10 @@ describe("HTTP utility functions", () => {
 
   describe("normalizePaginatedApiEnvelope", () => {
     it("should return original when data is missing", () => {
-      const response = { code: 200, msg: "ok" };
+      const response: { code: number; msg: string; data?: unknown } = {
+        code: 200,
+        msg: "ok"
+      };
       expect(normalizePaginatedApiEnvelope(response)).toBe(response);
     });
 

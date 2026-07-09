@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AxiosInstance } from "axios";
 import { createCookieAuthInterceptor } from "../cookie-auth";
+import type { PureHttpRequestConfig } from "../../types.d";
 
 // 避免引入真实 `@/utils/auth`（其内部依赖 store/api/http，单测环境下会触发循环依赖）。
 vi.mock("@/utils/auth", () => ({
@@ -15,9 +16,12 @@ vi.mock("@/utils/auth", () => ({
 const mockLogOut = vi.fn();
 
 type PendingQueue = {
-  enqueue: (config: unknown) => Promise<unknown>;
-  resolveAll: (mapper: (config: unknown) => unknown) => void;
+  enqueue: (config: PureHttpRequestConfig) => Promise<PureHttpRequestConfig>;
+  resolveAll: (
+    mapper: (config: PureHttpRequestConfig) => PureHttpRequestConfig
+  ) => void;
   rejectAll: (error: unknown) => void;
+  size: () => number;
 };
 
 function createDeferred<T>() {
@@ -32,13 +36,13 @@ function createDeferred<T>() {
 
 function createTestPendingQueue(): PendingQueue & { size: () => number } {
   const entries: Array<{
-    config: unknown;
-    deferred: ReturnType<typeof createDeferred<unknown>>;
+    config: PureHttpRequestConfig;
+    deferred: ReturnType<typeof createDeferred<PureHttpRequestConfig>>;
   }> = [];
 
   return {
     enqueue: config => {
-      const deferred = createDeferred<unknown>();
+      const deferred = createDeferred<PureHttpRequestConfig>();
       entries.push({ config, deferred });
       return deferred.promise;
     },

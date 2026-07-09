@@ -52,27 +52,31 @@ function formatStatus(status?: string) {
   return status ? map[status] || status : "-";
 }
 
-function formatAmount(row: PurchaseQuotationDto) {
-  const total = row.details.reduce((sum, detail) => {
+function formatAmount(row: PurchaseQuotationDto | unknown) {
+  const target = row as PurchaseQuotationDto;
+  const total = target.details.reduce((sum, detail) => {
     return sum + detail.price * detail.quantity;
   }, 0);
   return fenToYuan(total);
 }
 
-function formatOrder(row: PurchaseQuotationDto) {
-  return row.purchaseOrder?.docNo || row.purchaseOrder?.number || "-";
+function formatOrder(row: PurchaseQuotationDto | unknown) {
+  const target = row as PurchaseQuotationDto;
+  return target.purchaseOrder?.docNo || target.purchaseOrder?.number || "-";
 }
 
 function canCreateQuotation() {
   return props.inquiry.status === "SENT" || props.inquiry.status === "REPLIED";
 }
 
-function canAccept(row: PurchaseQuotationDto) {
-  return row.status === "PENDING" && !row.purchaseOrderId;
+function canAccept(row: PurchaseQuotationDto | unknown) {
+  const target = row as PurchaseQuotationDto;
+  return target.status === "PENDING" && !target.purchaseOrderId;
 }
 
-function canConvert(row: PurchaseQuotationDto) {
-  return row.status === "ACCEPTED" && !row.purchaseOrderId;
+function canConvert(row: PurchaseQuotationDto | unknown) {
+  const target = row as PurchaseQuotationDto;
+  return target.status === "ACCEPTED" && !target.purchaseOrderId;
 }
 
 async function getData() {
@@ -132,9 +136,10 @@ function openCreateDialog() {
   });
 }
 
-async function handleAccept(row: PurchaseQuotationDto) {
+async function handleAccept(row: PurchaseQuotationDto | unknown) {
+  const target = row as PurchaseQuotationDto;
   try {
-    await acceptPurchaseQuotationApi(row.id);
+    await acceptPurchaseQuotationApi(target.id);
     message("已接受该报价", { type: "success" });
     await getData();
     notifyChanged();
@@ -144,7 +149,8 @@ async function handleAccept(row: PurchaseQuotationDto) {
   }
 }
 
-async function openConvertDialog(row: PurchaseQuotationDto) {
+async function openConvertDialog(row: PurchaseQuotationDto | unknown) {
+  const target = row as PurchaseQuotationDto;
   const [managerList, repoList] = await Promise.all([
     localForage().getItem<SelectOption[]>(ALL_LIST.manager),
     localForage().getItem<SelectOption[]>(ALL_LIST.repo)
@@ -166,7 +172,7 @@ async function openConvertDialog(row: PurchaseQuotationDto) {
         h(
           "div",
           { class: "text-sm text-gray-500" },
-          `供应商：${row.provider?.name || row.providerId}，报价金额：${formatAmount(row)} 元`
+          `供应商：${target.provider?.name || target.providerId}，报价金额：${formatAmount(target)} 元`
         ),
         h("el-form", { labelWidth: "88px" }, [
           h("el-form-item", { label: "审核人" }, [
@@ -238,7 +244,7 @@ async function openConvertDialog(row: PurchaseQuotationDto) {
       }
 
       try {
-        await convertPurchaseQuotationApi(row.id, {
+        await convertPurchaseQuotationApi(target.id, {
           auditorId: current.auditorId,
           repoId: current.repoId,
           ...(current.desc.trim() ? { desc: current.desc.trim() } : {})

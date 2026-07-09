@@ -46,13 +46,14 @@ async function loadList() {
   }
 }
 
-function goCreateInvoice(row: SaleDeliverySource) {
+function goCreateInvoice(row: unknown) {
+  const target = row as SaleDeliverySource;
   router.push({
     path: "/finance/invoice",
     query: {
       autoCreate: "1",
       businessType: "SALE",
-      deliveryNoteId: row.uid
+      deliveryNoteId: target.uid
     }
   });
 }

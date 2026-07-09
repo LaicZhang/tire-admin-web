@@ -41,10 +41,11 @@ async function openDetail(uid: string) {
   }
 }
 
-async function handlePost(row: SalePickingApi) {
-  operatingUid.value = row.uid;
+async function handlePost(row: unknown) {
+  const target = row as SalePickingApi;
+  operatingUid.value = target.uid;
   try {
-    await postSalePickingApi(row.uid);
+    await postSalePickingApi(target.uid);
     message("拣货单已过账", { type: "success" });
     await loadList();
   } catch (error) {
