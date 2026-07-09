@@ -1,30 +1,31 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { noticesData, type TabItem, type ListItem } from "./data";
+import { computed, onMounted, ref } from "vue";
+import { createNoticeTabs, type TabItem } from "./data";
 import NoticeList from "./noticeList.vue";
 import Bell from "~icons/ep/bell";
 import { getNoticeApi } from "@/api";
-import { message } from "@/utils";
+import { message } from "@/utils/message";
 
-const noticesNum = ref(0);
-const curNoticesData: TabItem[] = [];
-const notices = ref<TabItem[]>(curNoticesData);
-const activeKey = ref(curNoticesData[0]?.key);
+const notices = ref<TabItem[]>([]);
+const activeKey = ref("notice");
+
+const noticesNum = computed(() =>
+  notices.value.reduce((count, item) => count + item.list.length, 0)
+);
 
 const getNotice = async () => {
-  const { data, code, msg } = await getNoticeApi();
-  if (code === 200) {
-    notices.value[0] = {
-      key: "1",
-      name: "通知",
-      list: data as ListItem[]
-    };
-  } else {
+  try {
+    const { data, code, msg } = await getNoticeApi();
+    if (code === 200) {
+      notices.value = createNoticeTabs(data ?? []);
+      return;
+    }
     message(msg, { type: "error" });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "公告加载失败";
+    message(detail, { type: "error" });
   }
 };
-
-notices.value.map(v => (noticesNum.value += v.list.length));
 
 onMounted(async () => {
   await getNotice();

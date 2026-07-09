@@ -75,6 +75,13 @@ interface LoginHistoryQueryDto {
   ip?: string;
 }
 
+export interface AuthNoticeItem {
+  uid: string;
+  title: string;
+  content?: string;
+  level: number;
+}
+
 /**
  * 用户登录
  * @param data - 登录参数（用户名、密码、验证码等）
@@ -177,7 +184,10 @@ export const getVerifyCodeApi = (data?: SendVerifyCodeDto) => {
  * @returns 通知列表
  */
 export const getNoticeApi = () => {
-  return http.request<CommonResult>("get", baseUrlApi("/auth/notice"));
+  return http.request<CommonResult<AuthNoticeItem[]>>(
+    "get",
+    baseUrlApi("/auth/notice")
+  );
 };
 
 /**
