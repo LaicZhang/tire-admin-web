@@ -42,6 +42,12 @@ const form = ref({
 const showOperationDialog = ref(false);
 const currentPayment = ref<PaymentAccount | null>(null);
 const operationType = ref<"top-up" | "pay" | "freeze" | "unfreeze">("top-up");
+const accountTypeMap: Record<string, string> = {
+  Alipay: "alipay",
+  Wechat: "wechat",
+  Bank: "bank",
+  Cash: "cash"
+};
 
 function handleOperation(
   row: PaymentAccount,
@@ -143,11 +149,13 @@ async function handleCreate() {
           try {
             const companyUid = await getCompanyId();
             await createPaymentApi({
-              companyUid,
-              name: curData.name,
-              type: curData.type,
-              account: curData.account,
-              realName: curData.realName
+              company: { uid: companyUid },
+              payment: {
+                name: curData.name,
+                accountType: accountTypeMap[curData.type] || "other",
+                bankAccount: curData.account,
+                desc: curData.realName || undefined
+              }
             });
             message("创建成功", { type: "success" });
             done();

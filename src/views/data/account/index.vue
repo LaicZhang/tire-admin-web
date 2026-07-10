@@ -17,13 +17,15 @@ import { message } from "@/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { FormItemProps } from "./types";
 import {
-  getPaymentListApi,
+  getPaymentPageApi,
   createPaymentApi,
-  updatePaymentApi,
+  updatePaymentProfileApi,
   deletePaymentApi,
   getPaymentApi
 } from "@/api/payment";
+import { getCompanyId } from "@/api/company";
 import { useCrud } from "@/composables";
+import { yuanToFen } from "@/utils/formatMoney";
 
 defineOptions({
   name: "DataAccount"
@@ -46,25 +48,33 @@ const formColumns: PlusColumn[] = [
 
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   FormItemProps,
-  Awaited<ReturnType<typeof getPaymentListApi>>
+  Awaited<ReturnType<typeof getPaymentPageApi>>,
+  { keyword?: string; page?: number; pageSize?: number }
 >({
-  api: () => getPaymentListApi(),
+  api: params =>
+    getPaymentPageApi(params.page ?? 1, {
+      keyword: params.keyword,
+      pageSize: params.pageSize
+    }),
   deleteApi: id => deletePaymentApi(String(id)),
-  transform: res => {
-    let list = (res.data as FormItemProps[]) || [];
-    // 前端过滤搜索
-    if (state.value.name) {
-      list = list.filter((item: FormItemProps) =>
-        item.name?.toLowerCase().includes(state.value.name?.toLowerCase() ?? "")
-      );
-    }
-    return { list, total: list.length };
-  },
+  params: () => ({
+    keyword: state.value.name?.trim() || undefined
+  }),
+  transform: res => ({
+    list: (res.data?.list as FormItemProps[]) || [],
+    total: res.data?.total || 0
+  }),
   immediate: true
 });
 
 const handleReset = () => {
   state.value = { name: undefined };
+  pagination.value.currentPage = 1;
+  fetchData();
+};
+
+const handleSearch = () => {
+  pagination.value.currentPage = 1;
   fetchData();
 };
 
@@ -111,7 +121,8 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         bankAccount: row?.bankAccount ?? "",
         initialBalance: row?.initialBalance ?? 0,
         desc: row?.desc ?? "",
-        companyUid: row?.companyUid ?? ""
+        status: row?.status ?? true,
+        companyId: row?.companyId ?? getCompanyId()
       }
     },
     width: "40%",
@@ -132,12 +143,18 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         if (valid) {
           if (title === "新增") {
             const createData = {
-              companyUid: curData.companyUid || "",
-              name: curData.name,
-              accountType: curData.accountType,
-              bankName: curData.bankName,
-              bankAccount: curData.bankAccount,
-              initialBalance: curData.initialBalance
+              company: {
+                uid: curData.companyId || getCompanyId()
+              },
+              payment: {
+                name: curData.name,
+                accountType: curData.accountType,
+                bankName: curData.bankName,
+                bankAccount: curData.bankAccount,
+                desc: curData.desc,
+                status: curData.status,
+                balance: yuanToFen(curData.initialBalance)
+              }
             };
             createPaymentApi(createData).then(() => {
               message("操作成功", { type: "success" });
@@ -146,15 +163,14 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             });
           } else {
             const updateData = {
-              type: "top-up" as const,
-              payment: {
-                name: curData.name,
-                bankName: curData.bankName,
-                bankAccount: curData.bankAccount,
-                accountType: curData.accountType
-              }
+              name: curData.name,
+              bankName: curData.bankName,
+              bankAccount: curData.bankAccount,
+              accountType: curData.accountType,
+              desc: curData.desc,
+              status: curData.status
             };
-            updatePaymentApi(row?.uid ?? "", updateData).then(() => {
+            updatePaymentProfileApi(row?.uid ?? "", updateData).then(() => {
               message("操作成功", { type: "success" });
               done();
               fetchData();
@@ -197,7 +213,7 @@ const deleteOne = async (row: { uid: string; name: string }) => {
       :show-number="3"
       label-width="80"
       label-position="right"
-      @search="fetchData"
+      @search="handleSearch"
       @reset="handleReset"
     />
 
@@ -229,7 +245,7 @@ const deleteOne = async (row: { uid: string; name: string }) => {
               <span class="font-bold text-primary">
                 <MoneyDisplay
                   :value="row.balance || 0"
-                  unit="yuan"
+                  unit="fen"
                   :showSymbol="false"
                 />
               </span>

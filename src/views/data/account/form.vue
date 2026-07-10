@@ -11,7 +11,8 @@ const props = withDefaults(defineProps<FormProps>(), {
     bankName: "",
     bankAccount: "",
     initialBalance: 0,
-    desc: ""
+    desc: "",
+    status: true
   }),
   disabled: false
 });
@@ -26,6 +27,7 @@ const formRules: FormRules = reactive({
     label: "初始余额",
     min: 0
   }),
+  status: fieldRules.select({ label: "状态" }),
   desc: fieldRules.remark({ required: false, label: "备注" })
 });
 
@@ -101,6 +103,15 @@ defineExpose({ formRef: ruleFormRef });
         :min="0"
         placeholder="初始余额"
         class="w-48"
+      />
+    </el-form-item>
+
+    <el-form-item label="状态" prop="status">
+      <el-switch
+        v-model="newFormInline.status"
+        inline-prompt
+        active-text="启用"
+        inactive-text="停用"
       />
     </el-form-item>
 

@@ -12,6 +12,7 @@ import type { ColumnSetting, ModuleOption } from "./types";
 import {
   clearColumnSettingsApi,
   getColumnSettingsApi,
+  mergeColumnSettingsWithDefaults,
   saveColumnSettingsApi,
   type ColumnSettings
 } from "@/api/data/column-settings";
@@ -211,9 +212,10 @@ const {
   api: ({ module }) => getColumnSettingsApi(module),
   params: () => ({ module: currentModule.value }),
   transform: (stored: ColumnSettings | null) => {
-    const list = Array.isArray(stored)
-      ? (stored as ColumnSetting[])
-      : defaultColumns[currentModule.value] || [];
+    const list = mergeColumnSettingsWithDefaults(
+      stored,
+      defaultColumns[currentModule.value] || []
+    );
     return { list, total: list.length };
   },
   immediate: true
@@ -228,7 +230,9 @@ const handleSave = () => {
 
 // 恢复默认
 const handleResetDefault = () => {
-  columnList.value = defaultColumns[currentModule.value] || [];
+  columnList.value = (defaultColumns[currentModule.value] || []).map(item => ({
+    ...item
+  }));
   clearColumnSettingsApi(currentModule.value).then(() =>
     message("已恢复默认设置", { type: "success" })
   );

@@ -59,6 +59,41 @@ function parseColumnSettings(raw: string): ColumnSettings | null {
   return parsed.every(isColumnSettingsItem) ? parsed : null;
 }
 
+export function mergeColumnSettingsWithDefaults(
+  stored: ColumnSettings | null | undefined,
+  defaults: ColumnSettings
+): ColumnSettings {
+  if (!stored?.length) {
+    return defaults.map(item => ({ ...item }));
+  }
+
+  const storedByField = new Map(stored.map(item => [item.field, item]));
+  const merged = stored.map(item => ({ ...item }));
+
+  for (const fallback of defaults) {
+    if (!storedByField.has(fallback.field)) {
+      merged.push({
+        ...fallback,
+        sortOrder: merged.length + 1
+      });
+    }
+  }
+
+  return merged
+    .map(item => ({
+      ...item,
+      sortOrder:
+        typeof item.sortOrder === "number" && item.sortOrder > 0
+          ? item.sortOrder
+          : merged.length + 1
+    }))
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((item, index) => ({
+      ...item,
+      sortOrder: index + 1
+    }));
+}
+
 export async function getColumnSettingsApi(
   module: string
 ): Promise<ColumnSettings | null> {

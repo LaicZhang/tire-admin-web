@@ -65,6 +65,8 @@ function normalizePaymentList(
 ): PaymentAccount[] {
   if (!data) return [];
   if (Array.isArray(data)) return data as PaymentAccount[];
+  const payments = (data as { payments?: PaymentAccount[] }).payments;
+  if (Array.isArray(payments)) return payments;
   const list = (data as { list?: PaymentAccount[] }).list;
   return Array.isArray(list) ? list : [];
 }

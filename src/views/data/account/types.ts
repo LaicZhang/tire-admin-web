@@ -8,8 +8,10 @@ export interface FormItemProps {
   bankAccount?: string;
   initialBalance?: number;
   balance?: number | string;
-  desc?: string;
-  companyUid?: string;
+  desc?: string | null;
+  status?: boolean;
+  level?: number | null;
+  companyId?: string;
 }
 
 export interface FormProps {

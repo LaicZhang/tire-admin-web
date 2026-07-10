@@ -26,6 +26,12 @@ export const columns: TableColumnList = [
     slot: "balance"
   },
   {
+    label: "状态",
+    prop: "status",
+    minWidth: 90,
+    formatter: ({ status }) => (status === false ? "停用" : "启用")
+  },
+  {
     label: "操作",
     fixed: "right",
     prop: "operation",

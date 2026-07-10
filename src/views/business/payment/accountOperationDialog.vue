@@ -2,6 +2,7 @@
 import { ref, computed, watch } from "vue";
 import { message } from "@/utils";
 import { updatePaymentApi } from "@/api";
+import { yuanToFen } from "@/utils/formatMoney";
 
 type OperationType = "top-up" | "pay" | "freeze" | "unfreeze";
 
@@ -95,7 +96,7 @@ async function handleSubmit() {
     const { code, msg } = await updatePaymentApi(props.paymentUid, {
       type: props.type,
       record: {
-        amount: formData.value.amount,
+        modified: yuanToFen(formData.value.amount),
         desc: formData.value.desc || undefined
       }
     });

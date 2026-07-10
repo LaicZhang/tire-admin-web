@@ -94,20 +94,28 @@ export type VerifySendResponseDto = {
 // 支付相关类型
 export type PaymentAccount = {
   uid: string;
-  companyUid: string;
+  companyId?: string;
+  companyUid?: string;
   balance: number | string;
+  frozen?: number | string;
   /** 账户名称 */
-  name?: string;
+  name: string;
   /** 银行名称 */
   bankName?: string;
   /** 银行账号 */
   bankAccount?: string;
   /** 账户类型 */
   accountType?: string;
+  /** 备注 */
+  desc?: string | null;
+  /** 启停用 */
+  status?: boolean | null;
+  /** 排序级别 */
+  level?: number | null;
   /** 创建时间 */
-  createTime?: string;
+  createAt?: string;
   /** 更新时间 */
-  updateTime?: string;
+  updateAt?: string;
 };
 
 export type PaymentRecord = {
@@ -127,39 +135,61 @@ export type PaymentRecord = {
 };
 
 export type CreatePaymentDto = {
-  companyUid: string;
-  /** 账户名称 */
+  company: {
+    uid: string;
+  };
+  payment: {
+    name: string;
+    type?: number;
+    accountType?: string;
+    bankName?: string;
+    bankAccount?: string;
+    desc?: string | null;
+    status?: boolean | null;
+    level?: number | null;
+    /** 初始余额，单位分 */
+    balance?: number;
+    /** 初始冻结金额，单位分 */
+    frozen?: number;
+  };
+};
+
+export type UpdatePaymentProfileDto = {
+  type?: number;
   name?: string;
-  /** 支付类型（如支付宝/微信/银行卡等，后端字段可能为 type/accountType） */
-  type?: string;
-  /** 账号 */
-  account?: string;
-  /** 实名 */
-  realName?: string;
-  /** 银行名称 */
-  bankName?: string;
-  /** 银行账号 */
-  bankAccount?: string;
-  /** 账户类型 */
   accountType?: string;
-  /** 初始余额 */
-  initialBalance?: number;
+  bankName?: string;
+  bankAccount?: string;
+  desc?: string | null;
+  status?: boolean | null;
+  level?: number | null;
 };
 
 export type UpdatePaymentDto = {
   type: "top-up" | "pay" | "freeze" | "unfreeze" | "pay-frozen";
   /** 支付账户更新信息 */
   payment?: {
+    type?: number;
     name?: string;
     bankName?: string;
     bankAccount?: string;
     accountType?: string;
+    desc?: string | null;
+    status?: boolean | null;
+    level?: number | null;
   };
   /** 交易记录信息 */
-  record?: {
-    amount: number;
+  record: {
+    modified: number;
+    operator?: {
+      connect: {
+        uid: string;
+      };
+    };
     desc?: string;
     orderId?: string;
+    type?: number;
+    confirm?: boolean;
   };
 };
 

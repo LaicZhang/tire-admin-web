@@ -10,7 +10,10 @@ vi.mock("@/api/setting", () => ({
   patchCompanySettingGroupApi: mocks.patchCompanySettingGroupApi
 }));
 
-import { getColumnSettingsApi } from "./column-settings";
+import {
+  getColumnSettingsApi,
+  mergeColumnSettingsWithDefaults
+} from "./column-settings";
 
 describe("column-settings api", () => {
   beforeEach(() => {
@@ -61,5 +64,62 @@ describe("column-settings api", () => {
     });
 
     await expect(getColumnSettingsApi("tire")).resolves.toEqual(stored);
+  });
+
+  it("merges stored settings with defaults to keep missing columns", () => {
+    const defaults = [
+      {
+        id: 1,
+        uid: "1",
+        module: "tire",
+        field: "name",
+        label: "名称",
+        visible: true,
+        sortOrder: 1
+      },
+      {
+        id: 2,
+        uid: "2",
+        module: "tire",
+        field: "brand",
+        label: "品牌",
+        visible: true,
+        sortOrder: 2
+      }
+    ];
+    const stored = [
+      {
+        id: 1,
+        uid: "1",
+        module: "tire",
+        field: "name",
+        label: "名称",
+        alias: "商品名称",
+        visible: true,
+        sortOrder: 1
+      }
+    ];
+
+    expect(mergeColumnSettingsWithDefaults(stored, defaults)).toEqual([
+      {
+        id: 1,
+        uid: "1",
+        module: "tire",
+        field: "name",
+        label: "名称",
+        alias: "商品名称",
+        visible: true,
+        sortOrder: 1
+      },
+      {
+        id: 2,
+        uid: "2",
+        module: "tire",
+        field: "brand",
+        label: "品牌",
+        visible: true,
+        sortOrder: 2
+      }
+    ]);
   });
 });

@@ -5,14 +5,16 @@ import type {
   CreatePaymentDto,
   PaginatedResponseDto,
   PaymentAccount,
-  UpdatePaymentDto
+  UpdatePaymentDto,
+  UpdatePaymentProfileDto
 } from "./type";
 
 const prefix = "/payment/";
 
 export type PaymentListData =
   | PaymentAccount[]
-  | { list?: PaymentAccount[]; count?: number };
+  | { list?: PaymentAccount[]; count?: number }
+  | { payments?: PaymentAccount[] };
 
 export interface PaymentPageQuery {
   pageSize?: number;
@@ -51,6 +53,19 @@ export async function createPaymentApi(data: CreatePaymentDto) {
   return await http.request<CommonResult<PaymentAccount>>(
     "post",
     baseUrlApi(prefix),
+    {
+      data
+    }
+  );
+}
+
+export async function updatePaymentProfileApi(
+  uid: string,
+  data: UpdatePaymentProfileDto
+) {
+  return await http.request<CommonResult<PaymentAccount>>(
+    "patch",
+    baseUrlApi(prefix + `${uid}/profile`),
     {
       data
     }
