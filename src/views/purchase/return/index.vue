@@ -193,9 +193,7 @@ function openDialog(title: string, row?: ReturnOrder) {
           } else if (title === "退款") {
             await refundReturnOrderApi(formData.uid, {
               fee: formData.refundAmount || 0,
-              ...(formData.paymentId
-                ? { paymentId: String(formData.paymentId).trim() }
-                : {})
+              paymentId: String(formData.paymentId || "").trim()
             });
             message("退款成功", { type: "success" });
           }

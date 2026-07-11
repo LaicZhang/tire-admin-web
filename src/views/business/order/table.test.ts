@@ -142,7 +142,7 @@ describe("business/order/table", () => {
     });
   });
 
-  it("builds refund payload with optional paymentId and desc", () => {
+  it("builds refund payload with required paymentId and desc", () => {
     expect(
       buildRefundPayload({
         fee: 1200,
@@ -155,14 +155,12 @@ describe("business/order/table", () => {
       desc: "退款备注"
     });
 
-    expect(
+    expect(() =>
       buildRefundPayload({
         fee: 0,
         paymentId: " ",
         desc: ""
       })
-    ).toEqual({
-      fee: 0
-    });
+    ).toThrow("paymentId is required");
   });
 });

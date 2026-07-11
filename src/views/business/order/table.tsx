@@ -212,11 +212,14 @@ function toOptionalNumber(value: unknown) {
 export function buildRefundPayload(
   submitData: Pick<OrderRow, "fee" | "paymentId" | "desc">
 ) {
-  const payload: { fee: number; paymentId?: string; desc?: string } = {
-    fee: submitData.fee || 0
-  };
   const paymentId = toOptionalString(submitData.paymentId);
-  if (paymentId) payload.paymentId = paymentId;
+  if (!paymentId) {
+    throw new Error("paymentId is required");
+  }
+  const payload: { fee: number; paymentId: string; desc?: string } = {
+    fee: submitData.fee || 0,
+    paymentId
+  };
   const desc = toOptionalString(submitData.desc);
   if (desc) payload.desc = desc;
   return payload;

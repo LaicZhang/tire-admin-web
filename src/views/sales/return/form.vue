@@ -37,6 +37,22 @@ const formRules: FormRules = {
   customerId: [{ required: true, message: "请选择客户", trigger: "change" }],
   returnReason: [
     { required: true, message: "请选择退货原因", trigger: "change" }
+  ],
+  paymentId: [
+    {
+      validator: (_rule, value, callback) => {
+        if (props.formTitle !== "退款") {
+          callback();
+          return;
+        }
+        if (typeof value === "string" && value.trim().length > 0) {
+          callback();
+          return;
+        }
+        callback(new Error("请选择退款账户"));
+      },
+      trigger: "change"
+    }
   ]
 };
 
