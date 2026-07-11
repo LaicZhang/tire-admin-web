@@ -42,36 +42,6 @@ export async function getReserveListApi(index: number, params?: ReserveQuery) {
   );
 }
 
-export async function addReserveApi(data: ReserveDto) {
-  return await http.request<CommonResult<Reserve>>("post", baseUrlApi(prefix), {
-    data
-  });
-}
-
-export async function getReserveApi(id: number) {
-  return await http.request<CommonResult<Reserve>>(
-    "get",
-    baseUrlApi(prefix + id)
-  );
-}
-
-export async function updateReserveApi(id: number, data?: Partial<ReserveDto>) {
-  return await http.request<CommonResult<Reserve>>(
-    "patch",
-    baseUrlApi(prefix + id),
-    {
-      data
-    }
-  );
-}
-
-export async function deleteReserveApi(id: number) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + id)
-  );
-}
-
 // 库存盘点 (单品)
 export async function stockTakingApi(data: {
   repoId: string;
