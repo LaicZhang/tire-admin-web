@@ -1,6 +1,7 @@
 const typeTextMap: Record<string, string> = {
-  SYSTEM: "系统",
-  CUSTOM: "自定义"
+  STANDARD: "标准价",
+  PROMOTION: "促销价",
+  SPECIAL: "特价"
 };
 
 export const columns: TableColumnList = [
@@ -16,8 +17,9 @@ export const columns: TableColumnList = [
     }
   },
   {
-    label: "备注",
-    prop: "desc"
+    label: "启用",
+    prop: "isActive",
+    formatter: (_row, _column, cellValue) => (cellValue ? "是" : "否")
   },
   {
     label: "操作",

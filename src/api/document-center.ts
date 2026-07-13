@@ -60,6 +60,15 @@ export interface DocumentCenterPrintDto {
   status: string;
   targetName?: string;
   detail: Record<string, string>;
+  lines: Array<{
+    uid: string;
+    tireId: string;
+    tireName: string;
+    repoName: string;
+    count: number;
+    unitPrice: string;
+    totalAmount: string;
+  }>;
 }
 
 const prefix = "/document-center";

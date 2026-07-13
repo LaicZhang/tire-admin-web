@@ -15,6 +15,8 @@ import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 import { loadInventoryDefaults, loadSettlementDefaults } from "@/composables";
 import { logger } from "@/utils/logger";
+import { quoteSalePriceApi } from "@/api/business/price-list";
+import { applySalePriceQuote } from "./priceQuote";
 
 const props = withDefaults(
   defineProps<{
@@ -47,6 +49,8 @@ const managerList = ref<SelectItem[]>([]);
 const isReadOnly = computed(() => ["查看", "审核"].includes(props.formTitle));
 
 const isEditable = computed(() => ["新增", "修改"].includes(props.formTitle));
+const quoteLoading = ref(false);
+let quoteSequence = 0;
 
 function prepareDetail(detail: SalesOrderDetail): SalesOrderDetail {
   return {
@@ -134,14 +138,7 @@ function onDeleteDetail(index: number) {
   formData.value.total -= detail.total || 0;
   formData.value.showTotal = formData.value.total;
   formData.value.details.splice(index, 1);
-}
-
-function calcDetailTotal(row: SalesOrderDetail) {
-  const baseTotal = (row.count || 0) * (row.unitPrice || 0);
-  const discountRate = row.discountRate || 0;
-  row.discountAmount = baseTotal * (discountRate / 100);
-  row.total = baseTotal - row.discountAmount;
-  recalcOrderTotal();
+  void refreshPriceQuote();
 }
 
 function syncDetailSerialNumbers(row: SalesOrderDetail) {
@@ -150,26 +147,56 @@ function syncDetailSerialNumbers(row: SalesOrderDetail) {
   if (serialNumbers.length > 0) {
     row.count = serialNumbers.length;
   }
-  calcDetailTotal(row);
+  void refreshPriceQuote();
 }
 
-function recalcOrderTotal() {
-  let totalCount = 0;
-  let totalAmount = 0;
-  formData.value.details.forEach(d => {
-    totalCount += d.count || 0;
-    totalAmount += d.total || 0;
-  });
-  formData.value.count = totalCount;
-  formData.value.total = totalAmount;
-  formData.value.showTotal = totalAmount;
+async function refreshPriceQuote() {
+  if (!isEditable.value) return true;
+  const customerId = formData.value.customerId?.trim();
+  const details = formData.value.details;
+  if (
+    !customerId ||
+    details.length === 0 ||
+    details.some(detail => !detail.tireId || detail.count < 1)
+  ) {
+    return false;
+  }
+  const sequence = ++quoteSequence;
+  quoteLoading.value = true;
+  try {
+    const response = await quoteSalePriceApi({
+      customerId,
+      lines: details.map(detail => ({
+        tireId: detail.tireId,
+        count: detail.count
+      }))
+    });
+    if (sequence !== quoteSequence) return false;
+    if (response.code !== 200 || !response.data) {
+      throw new Error(response.msg || "获取服务端报价失败");
+    }
+    const total = applySalePriceQuote(details, response.data);
+    formData.value.total = total;
+    formData.value.showTotal = total;
+    formData.value.count = details.reduce(
+      (sum, detail) => sum + detail.count,
+      0
+    );
+    return true;
+  } finally {
+    if (sequence === quoteSequence) quoteLoading.value = false;
+  }
 }
 
 function getReceiveFee() {
   return receiveFee.value;
 }
 
-defineExpose({ formRef: ruleFormRef, getReceiveFee });
+defineExpose({
+  formRef: ruleFormRef,
+  getReceiveFee,
+  refreshPriceQuote
+});
 
 onMounted(() => {
   loadBaseData();
@@ -223,6 +250,7 @@ watch(
             placeholder="请选择客户"
             :disabled="isReadOnly"
             class="w-full"
+            @change="refreshPriceQuote"
           />
         </el-form-item>
       </el-col>
@@ -345,6 +373,7 @@ watch(
           clearable
           filterable
           :disabled="isReadOnly"
+          @change="refreshPriceQuote"
         >
           <el-option
             v-for="item in allTireList"
@@ -362,7 +391,7 @@ watch(
           :max="9999"
           :disabled="isReadOnly || Boolean(row.serialNumbers?.length)"
           controls-position="right"
-          @change="calcDetailTotal(row)"
+          @change="refreshPriceQuote"
         />
       </template>
 
@@ -371,9 +400,8 @@ watch(
           v-model="row.unitPrice"
           :min="0"
           :precision="2"
-          :disabled="isReadOnly"
+          disabled
           controls-position="right"
-          @change="calcDetailTotal(row)"
         />
       </template>
 
@@ -383,9 +411,8 @@ watch(
           :min="0"
           :max="100"
           :precision="1"
-          :disabled="isReadOnly"
+          disabled
           controls-position="right"
-          @change="calcDetailTotal(row)"
         />
       </template>
 
@@ -486,6 +513,10 @@ watch(
     </pure-table>
 
     <el-divider>金额汇总</el-divider>
+
+    <div v-if="quoteLoading" class="mb-3 text-sm text-[var(--el-text-color-secondary)]">
+      正在刷新报价...
+    </div>
 
     <el-row :gutter="20">
       <el-col :span="6">

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
+import type { PriceListType } from "@/api/business/price-list";
 
 interface FormProps {
   formInline: {
-    id?: string;
+    id?: number;
     name: string;
-    desc?: string;
-    type: string;
+    type: PriceListType;
+    isDefault: boolean;
+    isActive: boolean;
   };
 }
 
@@ -40,17 +42,18 @@ defineExpose({ formRef: ruleFormRef });
 
     <el-form-item label="类型" prop="type">
       <el-select v-model="newFormInline.type" placeholder="请选择类型">
-        <el-option label="系统" value="SYSTEM" />
-        <el-option label="自定义" value="CUSTOM" />
+        <el-option label="标准价" value="STANDARD" />
+        <el-option label="促销价" value="PROMOTION" />
+        <el-option label="特价" value="SPECIAL" />
       </el-select>
     </el-form-item>
 
-    <el-form-item label="备注" prop="desc">
-      <el-input
-        v-model="newFormInline.desc"
-        placeholder="请输入备注信息"
-        type="textarea"
-      />
+    <el-form-item label="默认价目表">
+      <el-switch v-model="newFormInline.isDefault" />
+    </el-form-item>
+
+    <el-form-item label="启用">
+      <el-switch v-model="newFormInline.isActive" />
     </el-form-item>
   </el-form>
 </template>

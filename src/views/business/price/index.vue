@@ -11,14 +11,14 @@ import {
   createPriceListApi,
   updatePriceListApi,
   deletePriceListApi
-} from "@/api/business/price";
+} from "@/api/business/price-list";
 import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
-import type { PriceList } from "@/api/business/price";
+import type { PriceList } from "@/api/business/price-list";
 import { columns } from "./columns";
 
 defineOptions({
@@ -66,22 +66,29 @@ const handleSearch = () => {
 };
 
 const handleDelete = async (row: PriceList) => {
-  await deletePriceListApi(row.uid);
+  await deletePriceListApi(row.id);
   message("删除成功", { type: "success" });
   getData();
 };
 
-type FormInline = { id?: string; name: string; desc: string; type: string };
+type FormInline = {
+  id?: number;
+  name: string;
+  type: PriceList["type"];
+  isDefault: boolean;
+  isActive: boolean;
+};
 
 function openDialog(title = "新增", row?: PriceList) {
   addDialog({
     title: `${title}价目表`,
     props: {
       formInline: {
-        id: row?.uid,
+        id: row?.id,
         name: row?.name ?? "",
-        desc: row?.desc ?? "",
-        type: row?.type ?? "CUSTOM"
+        type: row?.type ?? "STANDARD",
+        isDefault: row?.isDefault ?? false,
+        isActive: row?.isActive ?? true
       }
     },
     width: "40%",

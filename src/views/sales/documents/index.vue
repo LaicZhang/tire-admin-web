@@ -267,8 +267,14 @@ async function handlePrint(row: DocumentItem) {
           `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
       )
       .join("");
+    const lineRows = (data.lines ?? [])
+      .map(
+        line =>
+          `<tr><td style="padding:8px;border:1px solid #ddd;">${line.tireName}</td><td style="padding:8px;border:1px solid #ddd;">${line.repoName}</td><td style="padding:8px;border:1px solid #ddd;">${line.count}</td><td style="padding:8px;border:1px solid #ddd;">${line.unitPrice}</td><td style="padding:8px;border:1px solid #ddd;">${line.totalAmount}</td></tr>`
+      )
+      .join("");
     popup.document.write(
-      `<!doctype html><html><head><title>${data.billNo}</title></head><body style="font-family:sans-serif;padding:24px;"><h2>${data.billNo}</h2><p>状态：${data.status}</p><p>客户：${data.targetName ?? "-"}</p><table style="border-collapse:collapse;width:100%;margin-top:16px;">${rows}</table></body></html>`
+      `<!doctype html><html><head><title>${data.billNo}</title></head><body style="font-family:sans-serif;padding:24px;"><h2>${data.billNo}</h2><p>状态：${data.status}</p><p>客户：${data.targetName ?? "-"}</p><table style="border-collapse:collapse;width:100%;margin-top:16px;">${rows}</table>${lineRows ? `<h3>明细</h3><table style="border-collapse:collapse;width:100%;"><tr><th>商品</th><th>仓库</th><th>数量</th><th>单价</th><th>金额</th></tr>${lineRows}</table>` : ""}</body></html>`
     );
     popup.document.close();
     popup.focus();

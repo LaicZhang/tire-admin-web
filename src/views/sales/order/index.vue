@@ -23,6 +23,7 @@ import {
   postSalePickingApi,
   updateSalesOrderApi
 } from "@/api/sales";
+import { auditOrderApi } from "@/api/business/order";
 import { message, handleApiError } from "@/utils";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { useOrderListPage } from "@/composables/useOrderListPage";
@@ -38,6 +39,7 @@ defineOptions({
 type SalesOrderFormRef = {
   formRef?: FormInstance;
   getReceiveFee?: () => number;
+  refreshPriceQuote?: () => Promise<boolean>;
 };
 const formRef = ref<SalesOrderFormRef | null>(null);
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
@@ -100,6 +102,11 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
   }),
   handlers: {
     新增: async formData => {
+      const quoted = await formRef.value?.refreshPriceQuote?.();
+      if (!quoted) {
+        message("请先完成客户、商品和数量后获取报价", { type: "warning" });
+        return false;
+      }
       const companyId = await getCompanyId();
       const { details, customer, operator, auditor, ...orderData } = formData;
 
@@ -139,13 +146,10 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
       message("修改成功", { type: "success" });
     },
     审核: async formData => {
-      const companyId = await getCompanyId();
-      await updateSalesOrderApi(formData.uid, {
+      await auditOrderApi(formData.uid, {
+        type: "sale-order",
         isApproved: formData.isApproved,
-        isLocked: formData.isApproved,
-        rejectReason: formData.rejectReason,
-        auditAt: formData.isApproved ? new Date().toISOString() : null,
-        company: getCompanyConnect(companyId)
+        desc: formData.rejectReason ?? null
       });
       message("审核完成", { type: "success" });
     },

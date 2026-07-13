@@ -2,9 +2,9 @@
 import { ref } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import {
-  getProductPriceApi,
-  type ProductPriceQueryResult
-} from "@/api/business/price";
+  queryPriceApi,
+  type PriceQueryResult
+} from "@/api/business/price-list";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import TireSelect from "@/components/EntitySelect/TireSelect.vue";
 import { message } from "@/utils";
@@ -27,14 +27,18 @@ const rules: FormRules = {
   ],
   customerId: [elementRules.uuidV4("客户不合法", "change")]
 };
-const result = ref<ProductPriceQueryResult | null>(null);
+const result = ref<PriceQueryResult | null>(null);
 const loading = ref(false);
 
 const onSearch = async () => {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
   loading.value = true;
-  const { data, code, msg } = await getProductPriceApi(form.value);
+  const { data, code, msg } = await queryPriceApi({
+    tireId: form.value.tireId ?? "",
+    customerId: form.value.customerId ?? "",
+    quantity: 1
+  });
   if (code === 200) {
     result.value = data;
   } else {
@@ -72,17 +76,14 @@ const onSearch = async () => {
 
       <div v-if="result" class="mt-4">
         <el-descriptions title="查询结果" border>
-          <el-descriptions-item label="商品">{{
-            result.tireName
-          }}</el-descriptions-item>
           <el-descriptions-item label="执行价格">{{
             result.price
           }}</el-descriptions-item>
           <el-descriptions-item label="价格来源">{{
             result.source
           }}</el-descriptions-item>
-          <el-descriptions-item label="应用策略">{{
-            result.strategy
+          <el-descriptions-item label="价格类型">{{
+            result.priceType
           }}</el-descriptions-item>
         </el-descriptions>
       </div>
