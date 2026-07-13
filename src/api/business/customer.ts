@@ -158,16 +158,28 @@ export async function migrateCustomerApi(uid: string, data: { uid: string }) {
 export async function createCustomerDebtProfileApi(
   uid: string,
   data: {
-    idCardImageUrl: string;
-    iouImageUrl: string;
-    liveImageUrl: string;
+    idCardImageUid: string;
+    iouImageUid: string;
+    liveImageUid: string;
     phone: string;
+    paymentTermDays?: number;
   }
 ) {
+  const { idCardImageUid, iouImageUid, liveImageUid, phone, paymentTermDays } =
+    data;
+
   return await http.request<CommonResult<void>>(
     "post",
     baseUrlApi(prefix + "debt-profile/" + uid),
-    { data }
+    {
+      data: {
+        idCardImageUid,
+        iouImageUid,
+        liveImageUid,
+        phone,
+        paymentTermDays
+      }
+    }
   );
 }
 
