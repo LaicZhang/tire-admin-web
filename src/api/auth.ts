@@ -312,10 +312,22 @@ export const wxLoginApi = (data: { jsCode: string; isRemember: boolean }) => {
 };
 
 /** 绑定微信账号 */
-export const wxBindApi = (data: { jsCode: string; state?: string }) => {
+export const wxBindApi = (data: {
+  jsCode: string;
+  state: string;
+  currentPassword: string;
+}) => {
   return http.request<CommonResult>("post", baseUrlApi("/auth/wx-bind"), {
     data
   });
+};
+
+/** 签发一次性微信绑定 state */
+export const issueWxBindStateApi = () => {
+  return http.request<CommonResult<{ state: string; expiresIn: number }>>(
+    "post",
+    baseUrlApi("/auth/wx-bind/state")
+  );
 };
 
 /** 解绑微信账号 */
