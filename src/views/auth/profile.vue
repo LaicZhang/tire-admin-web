@@ -27,13 +27,13 @@
           <template #label>
             <div class="cell-item">手机号</div>
           </template>
-          {{ userInfo.phone }}
+          {{ maskPhoneDisplay(userInfo.phone) }}
         </el-descriptions-item>
         <el-descriptions-item>
           <template #label>
             <div class="cell-item">邮箱</div>
           </template>
-          {{ userInfo.email }}
+          {{ maskEmailDisplay(userInfo.email) }}
         </el-descriptions-item>
         <el-descriptions-item>
           <template #label>
@@ -119,6 +119,7 @@ import {
   getWxQrLoginUrlApi
 } from "@/api/auth";
 import { message } from "@/utils/message";
+import { maskEmailDisplay, maskPhoneDisplay } from "@/utils/presentationMask";
 import type { ComponentSize } from "element-plus";
 import { userInfoTemplate, type UserInfoType } from "./info";
 import { User, Connection } from "@element-plus/icons-vue";

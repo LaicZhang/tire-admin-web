@@ -14,6 +14,7 @@ import { addDialog } from "@/composables/useDialogService";
 import { deviceDetection } from "@pureadmin/utils";
 import StaffForm from "./form.vue";
 import { message } from "@/utils";
+import { maskPhoneDisplay } from "@/utils/presentationMask";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { FormItemProps } from "./types";
 import {
@@ -275,7 +276,7 @@ const deleteOne = async (row: { uid: string; name: string }) => {
             @page-current-change="onCurrentChange"
           >
             <template #phone="{ row }">
-              {{ row.user?.phone || row.phone || "-" }}
+              {{ maskPhoneDisplay(row.user?.phone || row.phone) }}
             </template>
             <template #status="{ row }">
               <StatusTag

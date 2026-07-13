@@ -4,6 +4,7 @@ import EditPen from "~icons/ep/edit-pen";
 import View from "~icons/ep/view";
 import { PureTableBar } from "@/components/RePureTableBar";
 import type { DataAuthUser } from "../types";
+import { maskPhoneDisplay } from "@/utils/presentationMask";
 
 defineProps<{
   loading: boolean;
@@ -25,7 +26,8 @@ const columns: TableColumnList = [
   {
     label: "手机号",
     prop: "phone",
-    minWidth: 120
+    minWidth: 120,
+    cellRenderer: ({ row }) => maskPhoneDisplay(row.phone)
   },
   {
     label: "角色",

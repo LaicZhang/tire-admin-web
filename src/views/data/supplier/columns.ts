@@ -1,3 +1,5 @@
+import { maskPhoneDisplay } from "@/utils/presentationMask";
+
 export const columns: TableColumnList = [
   {
     label: "ID",
@@ -17,7 +19,8 @@ export const columns: TableColumnList = [
   {
     label: "电话",
     prop: "phone",
-    minWidth: 120
+    minWidth: 120,
+    formatter: ({ phone }) => maskPhoneDisplay(phone)
   },
   {
     label: "地址",

@@ -1,4 +1,5 @@
 import type { FormItemProps } from "./utils/types";
+import { maskEmailDisplay, maskPhoneDisplay } from "@/utils/presentationMask";
 
 export const columns: TableColumnList = [
   {
@@ -14,12 +15,14 @@ export const columns: TableColumnList = [
   {
     label: "电话",
     prop: "phone",
-    minWidth: 120
+    minWidth: 120,
+    cellRenderer: ({ row }) => maskPhoneDisplay((row as FormItemProps).phone)
   },
   {
     label: "邮箱",
     prop: "email",
-    minWidth: 150
+    minWidth: 150,
+    cellRenderer: ({ row }) => maskEmailDisplay((row as FormItemProps).email)
   },
   {
     label: "状态",

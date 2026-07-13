@@ -1,3 +1,5 @@
+import { maskBankAccountDisplay } from "@/utils/presentationMask";
+
 export const columns: TableColumnList = [
   {
     label: "账户名称",
@@ -17,7 +19,8 @@ export const columns: TableColumnList = [
   {
     label: "银行账号",
     prop: "bankAccount",
-    minWidth: 180
+    minWidth: 180,
+    formatter: ({ bankAccount }) => maskBankAccountDisplay(bankAccount)
   },
   {
     label: "当前余额",

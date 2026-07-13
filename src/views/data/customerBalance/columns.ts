@@ -1,9 +1,16 @@
+import { maskPhoneDisplay } from "@/utils/presentationMask";
+
 export const columns: TableColumnList = [
   { type: "selection", width: 50 },
   { label: "ID", prop: "id", width: 80 },
   { label: "客户名称", prop: "customerName" },
   { label: "客户编码", prop: "customerCode", width: 120 },
-  { label: "联系电话", prop: "phone", width: 130 },
+  {
+    label: "联系电话",
+    prop: "phone",
+    width: 130,
+    formatter: ({ phone }) => maskPhoneDisplay(phone)
+  },
   {
     label: "期初应收余额",
     prop: "receivableBalance",
