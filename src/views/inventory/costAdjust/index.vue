@@ -18,6 +18,7 @@ import type {
   CostAdjustQuery,
   CreateCostAdjustOrderDto
 } from "./types";
+import { toCostAdjustFormData, toCostAdjustPayload } from "./money";
 import {
   getCostAdjustOrderList,
   createCostAdjustOrder,
@@ -102,7 +103,7 @@ const openDialog = (
   addDialog({
     title,
     props: {
-      formInline: row || {},
+      formInline: row ? toCostAdjustFormData(row) : {},
       isView
     },
     width: "70%",
@@ -131,7 +132,7 @@ const openDialog = (
         if (valid) {
           try {
             const formData = formRef.getFormData();
-            await createCostAdjustOrder(formData);
+            await createCostAdjustOrder(toCostAdjustPayload(formData));
             message("创建成功", { type: "success" });
             done();
             fetchData();

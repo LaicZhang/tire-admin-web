@@ -59,6 +59,7 @@ const formData = reactive<CreateCostAdjustOrderDto>({
 
 const rules = reactive<FormRules>({
   operatorId: [{ required: true, message: "请选择操作人", trigger: "change" }],
+  auditorId: [{ required: true, message: "请选择审核人", trigger: "change" }],
   reason: [{ required: true, message: "请输入调整原因", trigger: "blur" }]
 });
 
@@ -145,10 +146,10 @@ onMounted(() => {
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        <el-form-item label="审核人">
+        <el-form-item label="审核人" prop="auditorId">
           <el-select
             v-model="formData.auditorId"
-            placeholder="请选择审核人(可选)"
+            placeholder="请选择审核人"
             filterable
             clearable
             class="w-full"

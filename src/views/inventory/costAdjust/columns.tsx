@@ -44,7 +44,7 @@ export const columns: TableColumnList = [
     cellRenderer: ({ row }) => {
       const amount = Number(row.totalAdjustAmount);
       const color = amount >= 0 ? "text-green-600" : "text-red-600";
-      return <span class={color}>{fenToYuan(amount * 100)}</span>;
+      return <span class={color}>{fenToYuan(amount)}</span>;
     }
   },
   {
