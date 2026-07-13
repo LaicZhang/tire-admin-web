@@ -171,6 +171,9 @@ export const useUserStore = defineStore("pure-user", {
       const result = await refreshTokenApi(data);
       if (result?.data) {
         setToken(result.data);
+        resetRouter();
+        const { initRouter } = await import("@/router/utils");
+        await initRouter();
       }
       return result;
     }

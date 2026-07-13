@@ -10,11 +10,10 @@ import { userKey, type DataInfo } from "@/utils/auth";
 import { currentCompanyKey } from "@/store/modules/company";
 import { router } from "../index";
 import { usePermissionStoreHook } from "@/store/modules/permission";
+import { useUserStoreHook } from "@/store/modules/user";
 import { handleAsyncRoutes } from "./dynamic";
 import { getAsyncRoutes } from "@/api/routes";
-
-/** 路由缓存过期时间（毫秒）：1小时 */
-const ROUTE_CACHE_EXPIRY_MS = 60 * 60 * 1000;
+import { collectServerPermissionSummary } from "./permissionSummary";
 
 /** 缓存刷新延迟时间（毫秒） */
 const CACHE_REFRESH_DELAY_MS = 100;
@@ -38,44 +37,36 @@ function getAsyncRouteCacheKey() {
 }
 
 /**
- * 检查路由缓存是否过期
- */
-function isRouteCacheExpired(cacheData: RouteCacheData | null): boolean {
-  if (!cacheData || !cacheData.timestamp) return true;
-  return Date.now() - cacheData.timestamp > ROUTE_CACHE_EXPIRY_MS;
-}
-
-/**
  * 初始化路由
  */
 export async function initRouter() {
+  const { data } = await getAsyncRoutes();
+  const serverRoutes = Array.isArray(data) ? data : [];
+  const summary = collectServerPermissionSummary(serverRoutes);
+  const userStore = useUserStoreHook();
+  userStore.setRoles(summary.roles);
+  userStore.setPerms(summary.permissions);
+  const cachedUserInfo = storageLocal().getItem<DataInfo<number>>(userKey);
+  if (cachedUserInfo) {
+    storageLocal().setItem(userKey, {
+      ...cachedUserInfo,
+      roles: summary.roles,
+      permissions: summary.permissions
+    });
+  }
+
   if (getConfig()?.CachingAsyncRoutes) {
     // 开启动态路由缓存本地localStorage
     const key = getAsyncRouteCacheKey();
-    const cachedData = storageLocal().getItem(key) as RouteCacheData | null;
-
-    // 检查缓存是否存在且未过期
-    if (
-      cachedData &&
-      cachedData.routes &&
-      cachedData.routes.length > 0 &&
-      !isRouteCacheExpired(cachedData)
-    ) {
-      handleAsyncRoutes(cachedData.routes);
-      return router;
-    }
-
-    const { data } = await getAsyncRoutes();
-    handleAsyncRoutes(cloneDeep(data));
+    handleAsyncRoutes(cloneDeep(serverRoutes) as RouteRecordRaw[]);
     storageLocal().setItem(key, {
-      routes: data,
+      routes: serverRoutes,
       timestamp: Date.now()
     } as RouteCacheData);
     return router;
   }
 
-  const { data } = await getAsyncRoutes();
-  handleAsyncRoutes(cloneDeep(data));
+  handleAsyncRoutes(cloneDeep(serverRoutes) as RouteRecordRaw[]);
   return router;
 }
 
