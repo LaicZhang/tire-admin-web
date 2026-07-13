@@ -60,12 +60,13 @@ export interface UpdateCompanyInfoDto {
 }
 
 /** 更新用户信息参数 */
-interface UpdateUserInfoDto {
+export interface UpdateUserInfoDto {
   nickname?: string;
   phone?: string;
   email?: string;
   gender?: number;
   birthday?: string;
+  currentPassword?: string;
 }
 
 /** 登录历史查询参数 */

@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { updateUserInfoApi } from "@/api/auth";
 import { message } from "@/utils/message";
 import { elementRules } from "@/utils/validation/elementRules";
+import {
+  buildUpdateCurrentUserInfoPayload,
+  requiresCurrentPassword,
+  type ProfileEditFormData
+} from "./profile-edit";
 
 const props = defineProps<{
   initialData: {
@@ -18,8 +23,14 @@ const props = defineProps<{
 }>();
 
 const loading = ref(false);
-const form = ref({ ...props.initialData });
+const form = ref<ProfileEditFormData>({
+  ...props.initialData,
+  currentPassword: ""
+});
 const formRef = ref<FormInstance>();
+const needsCurrentPassword = computed(() =>
+  requiresCurrentPassword(props.initialData, form.value)
+);
 
 const rules: FormRules = {
   nickname: [elementRules.maxLen(50, "昵称最多 50 个字符")],
@@ -50,6 +61,16 @@ const rules: FormRules = {
         callback();
       }
     }
+  ],
+  currentPassword: [
+    {
+      trigger: "blur",
+      validator: (_rule, value, callback) => {
+        if (!needsCurrentPassword.value) return callback();
+        if (typeof value === "string" && value.trim()) return callback();
+        callback(new Error("修改手机号或邮箱时请输入当前密码"));
+      }
+    }
   ]
 };
 
@@ -59,28 +80,7 @@ const handleSubmit = async () => {
 
   loading.value = true;
   try {
-    const payload: {
-      nickname?: string;
-      phone?: string;
-      email?: string;
-      gender?: number;
-      birthday?: string;
-    } = {};
-    if (form.value.nickname !== undefined) {
-      payload.nickname = form.value.nickname;
-    }
-    if (form.value.phone !== undefined) {
-      payload.phone = form.value.phone;
-    }
-    if (form.value.email !== undefined) {
-      payload.email = form.value.email;
-    }
-    if (form.value.gender !== undefined) {
-      payload.gender = form.value.gender;
-    }
-    if (form.value.birthday) {
-      payload.birthday = form.value.birthday;
-    }
+    const payload = buildUpdateCurrentUserInfoPayload(form.value);
     const { code, msg } = await updateUserInfoApi(payload);
     if (code === 200) {
       message("更新成功", { type: "success" });
@@ -115,6 +115,19 @@ const handleSubmit = async () => {
       </el-form-item>
       <el-form-item label="邮箱" prop="email">
         <el-input v-model="form.email" placeholder="请输入邮箱" type="email" />
+      </el-form-item>
+      <el-form-item
+        v-if="needsCurrentPassword"
+        label="当前密码"
+        prop="currentPassword"
+      >
+        <el-input
+          v-model="form.currentPassword"
+          type="password"
+          show-password
+          placeholder="修改手机号或邮箱时必填"
+          autocomplete="current-password"
+        />
       </el-form-item>
       <el-form-item label="性别" prop="gender">
         <el-radio-group v-model="form.gender">
