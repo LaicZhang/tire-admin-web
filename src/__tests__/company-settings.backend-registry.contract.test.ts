@@ -6,6 +6,7 @@ import {
   parseSettingsCsv,
   type SettingsCsvRow
 } from "../../test-utils/settingsCsv";
+import { resolveWorkspaceRoot } from "../../test-utils/workspaceRoot";
 
 type RegistryDefinition = Readonly<{
   group: string;
@@ -19,8 +20,7 @@ const REGISTRY_DEF_RE =
 
 function resolveRepoRoot(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const tireAdminWebRoot = path.resolve(here, "..", "..");
-  return path.resolve(tireAdminWebRoot, "..");
+  return resolveWorkspaceRoot(here);
 }
 
 function resolveCompanySettingsCsvPath(): string {

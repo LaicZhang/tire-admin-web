@@ -3,12 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseSettingsCsv } from "../../test-utils/settingsCsv";
+import { resolveWorkspaceRoot } from "../../test-utils/workspaceRoot";
 
 function resolveSettingsCsvPath(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const tireAdminWebRoot = path.resolve(here, "..", "..");
-  const repoRoot = path.resolve(tireAdminWebRoot, "..");
-  return path.join(repoRoot, "docs", "settings.csv");
+  const workspaceRoot = resolveWorkspaceRoot(here);
+  return path.join(workspaceRoot, "docs", "settings.csv");
 }
 
 type ExistenceFlag = "yes" | "no";
