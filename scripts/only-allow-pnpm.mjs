@@ -9,7 +9,7 @@ if (!userAgent.includes("pnpm/")) {
       "",
       "Fix:",
       "  corepack enable",
-      "  corepack prepare pnpm@10 --activate",
+      "  corepack prepare pnpm@11 --activate",
       "  pnpm install"
     ].join("\n")
   );

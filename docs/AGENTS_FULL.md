@@ -49,7 +49,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 
 - Prerequisites:
   - Install Node and pnpm; it is recommended to use Corepack to manage pnpm version:
-    - `corepack enable && corepack prepare pnpm@10 --activate`
+    - `corepack enable && corepack prepare pnpm@11 --activate`
   - Ensure that the Node and pnpm versions meet the requirements of package.json:engines
 
 - Install dependencies:
