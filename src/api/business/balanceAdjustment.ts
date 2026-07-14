@@ -10,9 +10,7 @@ export type BalanceAdjustmentType =
   | "REVERSAL";
 
 export type BalanceAdjustmentSourceType =
-  | "WRITE_OFF_ORDER"
-  | "INITIAL_BALANCE"
-  | "MANUAL";
+  "WRITE_OFF_ORDER" | "INITIAL_BALANCE" | "MANUAL";
 
 export interface BalanceAdjustment {
   id: number;

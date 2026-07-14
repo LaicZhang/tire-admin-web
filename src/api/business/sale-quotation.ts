@@ -5,11 +5,7 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 const prefix = "/sale-quotation/";
 
 export type SaleQuotationStatus =
-  | "DRAFT"
-  | "SENT"
-  | "ACCEPTED"
-  | "REJECTED"
-  | "EXPIRED";
+  "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "EXPIRED";
 
 export interface SaleQuotationDetailDto {
   tireId: string;

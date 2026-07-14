@@ -61,10 +61,8 @@ describe("price list api contract", () => {
 
     await quoteSalePriceApi(payload);
 
-    expect(http.request).toHaveBeenCalledWith(
-      "post",
-      "/api/v1/price/quote",
-      { data: payload }
-    );
+    expect(http.request).toHaveBeenCalledWith("post", "/api/v1/price/quote", {
+      data: payload
+    });
   });
 });

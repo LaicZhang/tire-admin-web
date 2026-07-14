@@ -62,11 +62,12 @@ type RowItem = {
 };
 
 const rows = computed<RowItem[]>(() => {
-  if (!config.value) return [];
+  const currentConfig = config.value;
+  if (!currentConfig) return [];
   return ORDER_TYPES.map(type => ({
     type,
     label: ORDER_TYPE_LABELS[type],
-    cfg: config.value![type]
+    cfg: currentConfig[type]
   }));
 });
 

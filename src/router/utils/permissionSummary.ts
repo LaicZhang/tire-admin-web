@@ -8,19 +8,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function collectServerPermissionSummary(
-  routes: readonly unknown[],
+  routes: readonly unknown[]
 ): ServerPermissionSummary {
   const roles = new Set<string>();
   const permissions = new Set<string>();
 
   function visit(node: unknown) {
-    if (!isRecord(node))
-      return;
+    if (!isRecord(node)) return;
     const meta = isRecord(node.meta) ? node.meta : undefined;
     if (Array.isArray(meta?.roles)) {
       for (const role of meta.roles) {
-        if (typeof role === "string" && role.trim())
-          roles.add(role.trim());
+        if (typeof role === "string" && role.trim()) roles.add(role.trim());
       }
     }
     if (Array.isArray(meta?.auths)) {
@@ -30,16 +28,14 @@ export function collectServerPermissionSummary(
       }
     }
     if (Array.isArray(node.children)) {
-      for (const child of node.children)
-        visit(child);
+      for (const child of node.children) visit(child);
     }
   }
 
-  for (const route of routes)
-    visit(route);
+  for (const route of routes) visit(route);
 
   return {
     roles: [...roles].sort(),
-    permissions: [...permissions].sort(),
+    permissions: [...permissions].sort()
   };
 }

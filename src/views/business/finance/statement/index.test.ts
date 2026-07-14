@@ -179,6 +179,18 @@ function mountPage() {
   });
 }
 
+function requireButton(
+  buttons: ReturnType<ReturnType<typeof mount>["findAll"]>,
+  text: string
+) {
+  const button = buttons.find(item => item.text() === text);
+  expect(button, `button "${text}" should exist`).toBeTruthy();
+  if (!button) {
+    throw new Error(`button "${text}" should exist`);
+  }
+  return button;
+}
+
 describe("business/finance/statement/index", () => {
   beforeEach(() => {
     mocks.getStatementList.mockReset();
@@ -256,20 +268,14 @@ describe("business/finance/statement/index", () => {
     await flushPromises();
 
     const detailButtons = wrapper.findAll("[data-row-id='1'] button");
-    const viewButton = detailButtons.find(button => button.text() === "查看");
-    expect(viewButton).toBeDefined();
-    await viewButton!.trigger("click");
+    await requireButton(detailButtons, "查看").trigger("click");
     await flushPromises();
 
     expect(
       wrapper.get("[data-test='statement-summary-dialog']").text()
     ).toContain("open:客户甲");
 
-    const createButton = wrapper
-      .findAll("button")
-      .find(button => button.text() === "新建对账");
-    expect(createButton).toBeDefined();
-    await createButton!.trigger("click");
+    await requireButton(wrapper.findAll("button"), "新建对账").trigger("click");
     await flushPromises();
 
     expect(wrapper.get("[data-test='statement-form-dialog']").text()).toContain(

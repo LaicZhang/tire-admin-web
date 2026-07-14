@@ -57,8 +57,7 @@ const toCentInt = (value: unknown) => {
 
 function extractCreatedId(result: CommonResult) {
   const data = result.data as
-    | { id?: string | number; uid?: string }
-    | undefined;
+    { id?: string | number; uid?: string } | undefined;
   return data?.id ?? data?.uid;
 }
 

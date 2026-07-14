@@ -278,8 +278,7 @@ function openDialog(title = "新增", row?: TaskItem) {
         return;
       }
       let promise:
-        | ReturnType<typeof createTaskApi>
-        | ReturnType<typeof updateTaskApi>;
+        ReturnType<typeof createTaskApi> | ReturnType<typeof updateTaskApi>;
 
       if (title === "新增") {
         promise = createTaskApi(data);

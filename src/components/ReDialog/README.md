@@ -12,10 +12,7 @@ import { addDialog, closeDialog, closeAllDialog } from "@/components/ReDialog";
 // 打开对话框
 addDialog({
   title: "对话框标题",
-  contentRenderer: () =>
-    h(YourComponent, {
-      /* props */
-    }),
+  contentRenderer: () => h(YourComponent, {/* props */}),
   beforeSure: (done, { options }) => {
     // 点击确定按钮时的回调
     done(); // 关闭对话框

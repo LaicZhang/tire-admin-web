@@ -86,8 +86,7 @@ export function useFormRef<T extends FormInstance = FormInstance>(
    * 获取表单数据
    */
   function getFormData<T = Record<string, unknown>>():
-    | T
-    | Record<string, never> {
+    T | Record<string, never> {
     const instance = getInstance();
     return (instance?.model as T) ?? {};
   }

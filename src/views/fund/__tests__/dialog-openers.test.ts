@@ -301,7 +301,10 @@ function getButtonByText(wrapper: ReturnType<typeof mount>, text: string) {
     .findAll("button")
     .find(item => item.text().includes(text));
   expect(button, `button "${text}" should exist`).toBeTruthy();
-  return button!;
+  if (!button) {
+    throw new Error(`button "${text}" should exist`);
+  }
+  return button;
 }
 
 beforeEach(() => {

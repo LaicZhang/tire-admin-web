@@ -150,6 +150,15 @@ describe("AuditCenter", () => {
     });
   }
 
+  function requireButton(text: string, wrapper = mountPage()) {
+    const button = wrapper.findAll("button").find(item => item.text() === text);
+    expect(button, `button "${text}" should exist`).toBeTruthy();
+    if (!button) {
+      throw new Error(`button "${text}" should exist`);
+    }
+    return button;
+  }
+
   it("renders 9 audit tabs and passes columns into table bar", async () => {
     const wrapper = mountPage();
     await flushPromises();
@@ -165,12 +174,7 @@ describe("AuditCenter", () => {
     const wrapper = mountPage();
     await flushPromises();
 
-    const approveButton = wrapper
-      .findAll("button")
-      .find(button => button.text() === "通过");
-    expect(approveButton).toBeDefined();
-
-    await approveButton!.trigger("click");
+    await requireButton("通过", wrapper).trigger("click");
     await flushPromises();
 
     expect(confirmBox).toHaveBeenCalled();
@@ -187,12 +191,7 @@ describe("AuditCenter", () => {
     const wrapper = mountPage();
     await flushPromises();
 
-    const rejectButton = wrapper
-      .findAll("button")
-      .find(button => button.text() === "驳回");
-    expect(rejectButton).toBeDefined();
-
-    await rejectButton!.trigger("click");
+    await requireButton("驳回", wrapper).trigger("click");
     await flushPromises();
 
     expect(ElMessageBox.prompt).toHaveBeenCalled();

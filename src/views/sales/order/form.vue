@@ -514,7 +514,10 @@ watch(
 
     <el-divider>金额汇总</el-divider>
 
-    <div v-if="quoteLoading" class="mb-3 text-sm text-[var(--el-text-color-secondary)]">
+    <div
+      v-if="quoteLoading"
+      class="mb-3 text-sm text-[var(--el-text-color-secondary)]"
+    >
       正在刷新报价...
     </div>
 

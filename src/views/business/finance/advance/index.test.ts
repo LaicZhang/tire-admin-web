@@ -187,6 +187,18 @@ function mountPage() {
   });
 }
 
+function requireButton(
+  buttons: ReturnType<ReturnType<typeof mount>["findAll"]>,
+  text: string
+) {
+  const button = buttons.find(item => item.text() === text);
+  expect(button, `button "${text}" should exist`).toBeTruthy();
+  if (!button) {
+    throw new Error(`button "${text}" should exist`);
+  }
+  return button;
+}
+
 describe("business/finance/advance/index", () => {
   beforeEach(() => {
     mocks.getAdvancePaymentList.mockReset();
@@ -255,11 +267,7 @@ describe("business/finance/advance/index", () => {
 
     const typeInput = wrapper.get("input[placeholder='请选择类型']");
     await typeInput.setValue("PAYMENT");
-    const createButton = wrapper
-      .findAll("button")
-      .find(button => button.text() === "新建");
-    expect(createButton).toBeDefined();
-    await createButton!.trigger("click");
+    await requireButton(wrapper.findAll("button"), "新建").trigger("click");
     await flushPromises();
 
     expect(wrapper.get("[data-test='advance-dialog']").text()).toContain(
@@ -273,11 +281,7 @@ describe("business/finance/advance/index", () => {
     await flushPromises();
 
     const receiptButtons = wrapper.findAll("[data-row-id='1'] button");
-    const receiptDeleteButton = receiptButtons.find(
-      button => button.text() === "删除"
-    );
-    expect(receiptDeleteButton).toBeDefined();
-    await receiptDeleteButton!.trigger("click");
+    await requireButton(receiptButtons, "删除").trigger("click");
     await flushPromises();
 
     expect(mocks.confirm).toHaveBeenCalledWith(
@@ -292,11 +296,7 @@ describe("business/finance/advance/index", () => {
     );
 
     const paymentButtons = wrapper.findAll("[data-row-id='2'] button");
-    const approveButton = paymentButtons.find(
-      button => button.text() === "审核"
-    );
-    expect(approveButton).toBeDefined();
-    await approveButton!.trigger("click");
+    await requireButton(paymentButtons, "审核").trigger("click");
     await flushPromises();
 
     expect(mocks.confirm).toHaveBeenCalledWith(

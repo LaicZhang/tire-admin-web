@@ -94,11 +94,13 @@ const handleUpdateDetail = async (detail: StocktakingDetail) => {
     beforeSure: async done => {
       const editor = detailEditorRef.value;
       const form = editor?.formRef;
+      const task = props.formInline.task;
       if (!editor || !form) return;
+      if (!task) return;
       const valid = await form.validate().catch(() => false);
       if (!valid) return;
       try {
-        await updateInventoryCheckDetailsApi(props.formInline.task!.id, {
+        await updateInventoryCheckDetailsApi(task.id, {
           details: [editor.getPayload()]
         });
         message("更新成功", { type: "success" });

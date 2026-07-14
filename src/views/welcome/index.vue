@@ -386,11 +386,7 @@ onMounted(() => {
   overflow: hidden;
   color: #fff;
   background:
-    radial-gradient(
-      circle at top left,
-      rgb(34 197 94 / 18%),
-      transparent 32%
-    ),
+    radial-gradient(circle at top left, rgb(34 197 94 / 18%), transparent 32%),
     radial-gradient(
       circle at right center,
       rgb(37 99 235 / 24%),
@@ -541,11 +537,7 @@ onMounted(() => {
   padding: 18px;
   cursor: pointer;
   background:
-    linear-gradient(
-      180deg,
-      rgb(241 245 249 / 92%),
-      rgb(255 255 255 / 98%)
-    ),
+    linear-gradient(180deg, rgb(241 245 249 / 92%), rgb(255 255 255 / 98%)),
     linear-gradient(145deg, rgb(59 130 246 / 6%), rgb(34 197 94 / 8%));
   border: 1px solid #e2e8f0;
   border-radius: 22px;

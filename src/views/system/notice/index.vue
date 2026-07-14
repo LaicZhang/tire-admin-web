@@ -231,8 +231,7 @@ function openDialog(title = "新增", row?: NoticeItem) {
         return;
       }
       let promise:
-        | ReturnType<typeof createNoticeApi>
-        | ReturnType<typeof updateNoticeApi>;
+        ReturnType<typeof createNoticeApi> | ReturnType<typeof updateNoticeApi>;
 
       if (title === "新增") {
         promise = createNoticeApi(data);

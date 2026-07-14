@@ -2,10 +2,7 @@ import type { InventoryMovementData, TrackingSummary } from "@/api/analysis";
 import type { DashboardAlertItem } from "@/api/dashboard";
 
 type DashboardMetricKey =
-  | "storeMetrics"
-  | "warehouseMetrics"
-  | "purchaseMetrics"
-  | "salesMetrics";
+  "storeMetrics" | "warehouseMetrics" | "purchaseMetrics" | "salesMetrics";
 
 const DASHBOARD_MODULE_LABELS: Record<DashboardMetricKey, string> = {
   storeMetrics: "门店",

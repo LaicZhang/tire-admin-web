@@ -141,6 +141,18 @@ function mountPage() {
   });
 }
 
+function requireButton(
+  buttons: ReturnType<ReturnType<typeof mount>["findAll"]>,
+  text: string
+) {
+  const button = buttons.find(item => item.text() === text);
+  expect(button, `button "${text}" should exist`).toBeTruthy();
+  if (!button) {
+    throw new Error(`button "${text}" should exist`);
+  }
+  return button;
+}
+
 describe("business/finance/invoice/index", () => {
   beforeEach(() => {
     mocks.getInvoicePage.mockReset();
@@ -198,21 +210,16 @@ describe("business/finance/invoice/index", () => {
 
     await flushPromises();
 
-    const detailButton = wrapper
-      .findAll("[data-row-uid='invoice-1'] button")
-      .find(button => button.text() === "查看");
-    expect(detailButton).toBeDefined();
-    await detailButton!.trigger("click");
+    await requireButton(
+      wrapper.findAll("[data-row-uid='invoice-1'] button"),
+      "查看"
+    ).trigger("click");
 
     expect(mocks.push).toHaveBeenCalledWith(
       "/finance/invoice/detail/invoice-1"
     );
 
-    const createButton = wrapper
-      .findAll("button")
-      .find(button => button.text() === "新建发票");
-    expect(createButton).toBeDefined();
-    await createButton!.trigger("click");
+    await requireButton(wrapper.findAll("button"), "新建发票").trigger("click");
     await flushPromises();
 
     expect(wrapper.get("[data-test='invoice-form-dialog']").text()).toContain(
@@ -248,12 +255,10 @@ describe("business/finance/invoice/index", () => {
 
     await flushPromises();
 
-    const redFlushButton = wrapper
-      .findAll("[data-row-uid='invoice-issued-1'] button")
-      .find(button => button.text() === "红冲");
-
-    expect(redFlushButton).toBeDefined();
-    await redFlushButton!.trigger("click");
+    await requireButton(
+      wrapper.findAll("[data-row-uid='invoice-issued-1'] button"),
+      "红冲"
+    ).trigger("click");
     await flushPromises();
 
     expect(mocks.redFlushInvoice).toHaveBeenCalledWith("invoice-issued-1", {
