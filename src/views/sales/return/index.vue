@@ -21,6 +21,7 @@ import {
   refundReturnOrderApi
 } from "@/api/sales";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
+import { auditOrderApi } from "@/api/business/order";
 import { salesReturnColumns } from "./columns";
 import type { SalesReturnOrder, SalesReturnQueryParams } from "./types";
 import editForm from "./form.vue";
@@ -150,8 +151,18 @@ function openDialog(title: string, row?: SalesReturnOrder) {
 
         try {
           const companyId = await getCompanyId();
-          const { details, customer, operator, auditor, ...orderData } =
-            formData;
+          const {
+            details,
+            customer,
+            operator,
+            auditor,
+            auditorId: _auditorId,
+            isApproved: _isApproved,
+            isLocked: _isLocked,
+            rejectReason: _rejectReason,
+            auditAt: _auditAt,
+            ...orderData
+          } = formData;
 
           if (title === "新增") {
             if (details.length === 0) {
@@ -162,10 +173,7 @@ function openDialog(title: string, row?: SalesReturnOrder) {
               order: {
                 ...orderData,
                 company: getCompanyConnect(companyId),
-                customer: { connect: { uid: orderData.customerId } },
-                ...(orderData.auditorId
-                  ? { auditor: { connect: { uid: orderData.auditorId } } }
-                  : {})
+                customer: { connect: { uid: orderData.customerId } }
               },
               details: details.map(({ serialNosText, ...detail }) => ({
                 ...detail,
@@ -180,12 +188,10 @@ function openDialog(title: string, row?: SalesReturnOrder) {
             });
             message("修改成功", { type: "success" });
           } else if (title === "审核") {
-            await updateSalesReturnOrderApi(formData.uid, {
+            await auditOrderApi(formData.uid, {
+              type: "return-order",
               isApproved: formData.isApproved,
-              isLocked: formData.isApproved,
-              rejectReason: formData.rejectReason,
-              auditAt: formData.isApproved ? new Date().toISOString() : null,
-              company: getCompanyConnect(companyId)
+              desc: formData.rejectReason ?? null
             });
             message("审核完成", { type: "success" });
           } else if (title === "退款") {

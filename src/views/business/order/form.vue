@@ -98,7 +98,6 @@ const props = withDefaults(defineProps<OrderFormProps>(), {
       id: undefined,
       desc: undefined,
       operatorId: undefined,
-      auditorId: undefined,
       warehouseEmployeeId: undefined,
       count: 0,
       total: 0,
@@ -543,23 +542,6 @@ watch(
           placeholder="请选择客户"
           class="w-60!"
         />
-      </el-form-item>
-
-      <el-form-item label="审核人" prop="auditorId">
-        <el-select
-          v-model="newFormInline.auditorId"
-          placeholder="请选择审核人"
-          class="w-60!"
-        >
-          <el-option
-            v-for="item in managerList"
-            :key="item.id"
-            :label="item.name"
-            :value="item.uid"
-          >
-            {{ item.name }}
-          </el-option>
-        </el-select>
       </el-form-item>
     </div>
 

@@ -1,8 +1,11 @@
 import { ref } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useStockTakingTasks } from "./useStockTakingTasks";
 import {
-  completeInventoryCheckTaskApi,
+  getInventoryCheckSnapshotWarning,
+  useStockTakingTasks
+} from "./useStockTakingTasks";
+import {
+  auditInventoryCheckTaskApi,
   createInventoryCheckTaskApi,
   getInventoryCheckTaskApi,
   updateInventoryCheckDetailsApi,
@@ -26,7 +29,7 @@ vi.mock("@/api/business/inventory-check", () => ({
   getInventoryCheckTasksApi: vi.fn(),
   getInventoryCheckTaskApi: vi.fn(),
   updateInventoryCheckDetailsApi: vi.fn(),
-  completeInventoryCheckTaskApi: vi.fn(),
+  auditInventoryCheckTaskApi: vi.fn(),
   cancelInventoryCheckTaskApi: vi.fn()
 }));
 
@@ -43,6 +46,8 @@ function createTask(
     companyId: "company-1",
     repoId: "repo-1",
     status: "IN_PROGRESS",
+    snapshotVersion: 1,
+    ledgerCursorId: 0,
     startedAt: "2026-03-09T00:00:00.000Z",
     createdBy: "user-1",
     createdAt: "2026-03-09T00:00:00.000Z",
@@ -59,6 +64,7 @@ function createDetail(
     taskId: 1,
     tireId: "tire-1",
     bookCount: 10,
+    snapshotInvalidated: false,
     ...overrides
   };
 }
@@ -69,7 +75,7 @@ describe("useStockTakingTasks", () => {
     vi.mocked(createInventoryCheckTaskApi).mockReset();
     vi.mocked(getInventoryCheckTaskApi).mockReset();
     vi.mocked(updateInventoryCheckDetailsApi).mockReset();
-    vi.mocked(completeInventoryCheckTaskApi).mockReset();
+    vi.mocked(auditInventoryCheckTaskApi).mockReset();
     vi.mocked(message).mockReset();
   });
 
@@ -160,9 +166,9 @@ describe("useStockTakingTasks", () => {
     expect(message).toHaveBeenCalledWith("保存成功", { type: "success" });
   });
 
-  it("completes a task and reports generated surplus and waste orders", async () => {
+  it("audits a task and reports generated surplus and waste orders", async () => {
     const repoId = ref<string | undefined>("repo-1");
-    vi.mocked(completeInventoryCheckTaskApi).mockResolvedValue({
+    vi.mocked(auditInventoryCheckTaskApi).mockResolvedValue({
       code: 200,
       data: {
         task: createTask({
@@ -183,13 +189,24 @@ describe("useStockTakingTasks", () => {
 
     await composable.handleCompleteTask();
 
-    expect(completeInventoryCheckTaskApi).toHaveBeenCalledWith(9);
+    expect(auditInventoryCheckTaskApi).toHaveBeenCalledWith(9);
     expect(composable.currentTask.value).toMatchObject({ status: "COMPLETED" });
     expect(message).toHaveBeenCalledWith(
-      "盘点完成，已生成盘盈单，已生成盘亏单，库存以后续单据审核为准",
+      "盘点审核完成，已生成盘盈单，已生成盘亏单，库存以后续单据审核为准",
       {
         type: "success"
       }
     );
+  });
+
+  it("explains when ledger movements invalidate the snapshot and require recount", () => {
+    expect(
+      getInventoryCheckSnapshotWarning(
+        createTask({
+          snapshotInvalidatedAt: "2026-07-15T00:00:00.000Z",
+          details: [createDetail({ snapshotInvalidated: true })]
+        })
+      )
+    ).toBe("盘点期间库存发生变化，1 项明细已刷新账面数，请重新盘点后再审核");
   });
 });

@@ -32,8 +32,7 @@ const ruleFormRef = ref<FormInstance>();
 const formData = ref<SalesOrder>(props.formInline);
 
 const formRules: FormRules = {
-  customerId: [{ required: true, message: "请选择客户", trigger: "change" }],
-  auditorId: [{ required: true, message: "请选择审核人", trigger: "change" }]
+  customerId: [{ required: true, message: "请选择客户", trigger: "change" }]
 };
 
 interface SelectItem {
@@ -252,24 +251,6 @@ watch(
             class="w-full"
             @change="refreshPriceQuote"
           />
-        </el-form-item>
-      </el-col>
-      <el-col :span="8">
-        <el-form-item label="审核人" prop="auditorId">
-          <el-select
-            v-model="formData.auditorId"
-            placeholder="请选择审核人"
-            clearable
-            :disabled="isReadOnly"
-            class="w-full"
-          >
-            <el-option
-              v-for="item in managerList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
         </el-form-item>
       </el-col>
       <el-col :span="8">

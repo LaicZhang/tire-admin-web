@@ -47,7 +47,6 @@ type TransferOrderFormRef = {
   getFormData: () => {
     fromRepositoryId: string;
     toRepositoryId: string;
-    auditorId: string;
     desc: string;
     details: Array<{
       uid?: string;
@@ -175,7 +174,6 @@ const { openDialog } = useActionFormDialog<
           uid: uuid(),
           fromRepositoryId: "",
           toRepositoryId: "",
-          auditorId: "",
           desc: "",
           isApproved: false,
           isLocked: false,
@@ -209,12 +207,9 @@ const { openDialog } = useActionFormDialog<
           uid: formInline.uid,
           company: getCompanyConnect(companyId),
           operator: { connect: { uid: operatorId } },
-          auditor: { connect: { uid: data.auditorId } },
           fromRepository: { connect: { uid: data.fromRepositoryId } },
           toRepository: { connect: { uid: data.toRepositoryId } },
-          desc: data.desc || null,
-          isApproved: false,
-          isLocked: false
+          desc: data.desc || null
         },
         details: details.map(({ serialNosText, ...detail }) => ({
           companyId,
@@ -238,7 +233,6 @@ const { openDialog } = useActionFormDialog<
       if (!data) return false;
 
       await updateOrderApi(ORDER_TYPE, formInline.uid, {
-        auditor: { connect: { uid: data.auditorId } },
         fromRepository: { connect: { uid: data.fromRepositoryId } },
         toRepository: { connect: { uid: data.toRepositoryId } },
         desc: data.desc || null,

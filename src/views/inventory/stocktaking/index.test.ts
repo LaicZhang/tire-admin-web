@@ -10,7 +10,7 @@ vi.mock("@/api/business/inventory-check", () => ({
   getInventoryCheckTaskApi: vi.fn(),
   createInventoryCheckTaskApi: vi.fn(),
   updateInventoryCheckDetailsApi: vi.fn(),
-  completeInventoryCheckTaskApi: vi.fn(),
+  auditInventoryCheckTaskApi: vi.fn(),
   cancelInventoryCheckTaskApi: vi.fn(),
   deleteInventoryCheckTaskApi: vi.fn()
 }));

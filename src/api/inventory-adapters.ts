@@ -350,7 +350,6 @@ export function buildAssemblyCreatePayload(
       company: { connect: { uid: companyId } },
       repo: { connect: { uid: data.targetRepoId } },
       operator: { connect: { uid: userId } },
-      auditor: { connect: { uid: userId } },
       type: "ASSEMBLY" as const,
       desc: toNullableText(data.remark)
     },
@@ -367,7 +366,6 @@ export function buildAssemblyUpdatePayload(
     company: { connect: { uid: companyId } },
     repo: { connect: { uid: data.targetRepoId } },
     operator: { connect: { uid: userId } },
-    auditor: { connect: { uid: userId } },
     type: "ASSEMBLY" as const,
     desc: toNullableText(data.remark),
     details: {
@@ -430,7 +428,6 @@ export function buildDisassemblyCreatePayload(
       company: { connect: { uid: companyId } },
       repo: { connect: { uid: data.sourceRepoId } },
       operator: { connect: { uid: userId } },
-      auditor: { connect: { uid: userId } },
       type: "DISASSEMBLY" as const,
       desc: toNullableText(data.remark)
     },
@@ -447,7 +444,6 @@ export function buildDisassemblyUpdatePayload(
     company: { connect: { uid: companyId } },
     repo: { connect: { uid: data.sourceRepoId } },
     operator: { connect: { uid: userId } },
-    auditor: { connect: { uid: userId } },
     type: "DISASSEMBLY" as const,
     desc: toNullableText(data.remark),
     details: {

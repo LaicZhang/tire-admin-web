@@ -43,13 +43,11 @@ interface DetailItem {
 const formData = reactive<{
   fromRepositoryId: string;
   toRepositoryId: string;
-  auditorId: string;
   desc: string;
   details: DetailItem[];
 }>({
   fromRepositoryId: props.formInline.fromRepositoryId || "",
   toRepositoryId: props.formInline.toRepositoryId || "",
-  auditorId: props.formInline.auditorId || "",
   desc: (props.formInline.desc as string) || "",
   details: props.formInline.details?.map(d => ({
     uid: d.uid,
@@ -69,8 +67,7 @@ const rules = reactive<FormRules>({
   ],
   toRepositoryId: [
     { required: true, message: "请选择调入仓库", trigger: "change" }
-  ],
-  auditorId: [{ required: true, message: "请选择审核人", trigger: "change" }]
+  ]
 });
 
 const filteredToRepoList = computed(() =>
@@ -179,23 +176,6 @@ onMounted(() => {
     </el-row>
 
     <el-row :gutter="20">
-      <el-col :span="12">
-        <el-form-item label="审核人" prop="auditorId">
-          <el-select
-            v-model="formData.auditorId"
-            placeholder="请选择审核人"
-            filterable
-            class="w-full"
-          >
-            <el-option
-              v-for="item in auditorList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-      </el-col>
       <el-col :span="12">
         <el-form-item label="备注">
           <el-input v-model="formData.desc" placeholder="请输入备注" />

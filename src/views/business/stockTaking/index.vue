@@ -1,50 +1,27 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, watch } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Search from "~icons/ep/search";
 import Check from "~icons/ep/check";
 import Plus from "~icons/ep/plus";
-import Minus from "~icons/ep/minus";
 import List from "~icons/ep/list";
 import Close from "~icons/ep/close";
 import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
-import { ORDER_TYPE } from "@/utils/const";
 import { useRepoSelector } from "./composables/useRepoSelector";
-import { useQuickStockTaking } from "./composables/useQuickStockTaking";
-import { useStockTakingTasks } from "./composables/useStockTakingTasks";
-import { getStockTakingRoute, getStockTakingStorageKey } from "./orderBridge";
-import { calculateStockTakingSummary } from "./utils";
 import {
-  quickStockColumns,
-  taskDetailColumns,
-  taskListColumns
-} from "./columns";
+  getInventoryCheckSnapshotWarning,
+  useStockTakingTasks
+} from "./composables/useStockTakingTasks";
+import { calculateStockTakingSummary } from "./utils";
+import { taskDetailColumns, taskListColumns } from "./columns";
 import CreateTaskDialog from "./components/CreateTaskDialog.vue";
 
 defineOptions({
   name: "BusinessStockTaking"
 });
 
-const router = useRouter();
-const activeTab = ref<"quick" | "task">("quick");
-
 // 仓库选择
 const { repoList, currentRepo, getRepos } = useRepoSelector();
-
-// 快速盘点
-const {
-  loading: quickLoading,
-  tableData,
-  showResultSummary,
-  quickPagination,
-  stockTakingSummary: quickSummary,
-  loadData,
-  handleSubmit,
-  handleSizeChange,
-  handleCurrentChange
-} = useQuickStockTaking(currentRepo);
 
 // 盘点任务
 const {
@@ -60,69 +37,17 @@ const {
   handleSaveDetails,
   handleCompleteTask,
   handleCancelTask,
-  handleBackToList,
-  handleCreateSurplusOrder: taskCreateSurplus,
-  handleCreateWasteOrder: taskCreateWaste
+  handleBackToList
 } = useStockTakingTasks(currentRepo);
-
-const loading = computed(() => quickLoading.value || taskLoading.value);
 
 // 任务模式的汇总
 const taskSummary = computed(() => {
   if (!currentTask.value) return null;
   return calculateStockTakingSummary(currentTask.value.details || []);
 });
-
-// 快速盘点的盘盈盘亏处理
-const handleCreateSurplusOrder = () => {
-  const surplusItems = tableData.value.filter(
-    item => item.actualCount > item.count
-  );
-  if (surplusItems.length === 0) {
-    return;
-  }
-  sessionStorage.setItem(
-    getStockTakingStorageKey(ORDER_TYPE.surplus),
-    JSON.stringify(
-      surplusItems.map(item => ({
-        repoId: item.repoId || currentRepo.value,
-        tireId: item.tireId,
-        tireName: item.tire?.name || item.tireName,
-        count: item.actualCount - item.count,
-        desc: item.description || undefined
-      }))
-    )
-  );
-  router.push(getStockTakingRoute(ORDER_TYPE.surplus));
-};
-
-const handleCreateWasteOrder = () => {
-  const wasteItems = tableData.value.filter(
-    item => item.actualCount < item.count
-  );
-  if (wasteItems.length === 0) {
-    return;
-  }
-  sessionStorage.setItem(
-    getStockTakingStorageKey(ORDER_TYPE.waste),
-    JSON.stringify(
-      wasteItems.map(item => ({
-        repoId: item.repoId || currentRepo.value,
-        tireId: item.tireId,
-        tireName: item.tire?.name || item.tireName,
-        count: item.count - item.actualCount,
-        desc: item.description || undefined
-      }))
-    )
-  );
-  router.push(getStockTakingRoute(ORDER_TYPE.waste));
-};
-
-const handleTabChange = (tab: string | number | boolean | undefined) => {
-  if (tab === "task") {
-    loadTaskList();
-  }
-};
+const snapshotWarning = computed(() =>
+  getInventoryCheckSnapshotWarning(currentTask.value)
+);
 
 const taskStatusMap = {
   IN_PROGRESS: { label: "进行中", type: "warning" },
@@ -132,18 +57,12 @@ const taskStatusMap = {
 
 // 监听仓库变化
 watch(currentRepo, () => {
-  if (activeTab.value === "quick") {
-    loadData();
-  } else {
-    loadTaskList();
-  }
+  loadTaskList();
 });
 
 onMounted(() => {
   getRepos().then(() => {
-    if (currentRepo.value && activeTab.value === "quick") {
-      loadData();
-    }
+    if (currentRepo.value) loadTaskList();
   });
 });
 </script>
@@ -162,157 +81,20 @@ onMounted(() => {
             :value="item.uid"
           />
         </el-select>
-        <el-radio-group v-model="activeTab" @change="handleTabChange">
-          <el-radio-button value="quick">快速盘点</el-radio-button>
-          <el-radio-button value="task">盘点任务</el-radio-button>
-        </el-radio-group>
         <div class="grow" />
         <el-button
-          v-if="activeTab === 'task' && !currentTask"
+          v-if="!currentTask"
           type="primary"
           :icon="useRenderIcon(Plus)"
           @click="showCreateTaskDialog = true"
         >
           创建盘点任务
         </el-button>
-        <el-button
-          v-if="activeTab === 'quick'"
-          type="primary"
-          :icon="useRenderIcon(Search)"
-          @click="loadData"
-        >
-          查询
-        </el-button>
-        <el-button
-          v-if="activeTab === 'quick'"
-          type="success"
-          :icon="useRenderIcon(Check)"
-          :disabled="!tableData.length"
-          @click="handleSubmit"
-        >
-          提交盘点
-        </el-button>
       </div>
     </el-card>
 
-    <!-- 快速盘点模式 -->
-    <template v-if="activeTab === 'quick'">
-      <!-- 盘点差异汇总 -->
-      <el-card v-if="tableData.length" class="mb-4">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <span class="font-bold">盘点差异汇总</span>
-            <div class="flex space-x-2">
-              <el-button
-                v-if="quickSummary.surplusCount > 0"
-                type="success"
-                size="small"
-                :icon="useRenderIcon(Plus)"
-                @click="handleCreateSurplusOrder"
-              >
-                生成盘盈单 ({{ quickSummary.surplusCount }}项)
-              </el-button>
-              <el-button
-                v-if="quickSummary.wasteCount > 0"
-                type="danger"
-                size="small"
-                :icon="useRenderIcon(Minus)"
-                @click="handleCreateWasteOrder"
-              >
-                生成盘亏单 ({{ quickSummary.wasteCount }}项)
-              </el-button>
-            </div>
-          </div>
-        </template>
-        <div class="grid grid-cols-5 gap-4 text-center">
-          <div class="p-3 bg-gray-50 rounded">
-            <div class="text-2xl font-bold text-gray-600">
-              {{ quickSummary.total }}
-            </div>
-            <div class="text-sm text-gray-500">盘点商品</div>
-          </div>
-          <div class="p-3 bg-green-50 rounded">
-            <div class="text-2xl font-bold text-green-600">
-              {{ quickSummary.surplusCount }}
-            </div>
-            <div class="text-sm text-gray-500">盘盈品项</div>
-          </div>
-          <div class="p-3 bg-green-50 rounded">
-            <div class="text-2xl font-bold text-green-600">
-              +{{ quickSummary.surplusQty }}
-            </div>
-            <div class="text-sm text-gray-500">盘盈数量</div>
-          </div>
-          <div class="p-3 bg-red-50 rounded">
-            <div class="text-2xl font-bold text-red-600">
-              {{ quickSummary.wasteCount }}
-            </div>
-            <div class="text-sm text-gray-500">盘亏品项</div>
-          </div>
-          <div class="p-3 bg-red-50 rounded">
-            <div class="text-2xl font-bold text-red-600">
-              -{{ quickSummary.wasteQty }}
-            </div>
-            <div class="text-sm text-gray-500">盘亏数量</div>
-          </div>
-        </div>
-      </el-card>
-
-      <!-- 数据表格 -->
-      <PureTableBar title="快速盘点" @refresh="loadData">
-        <template v-slot="{ size, dynamicColumns }">
-          <pure-table
-            border
-            stripe
-            align-whole="center"
-            showOverflowTooltip
-            table-layout="auto"
-            :loading="quickLoading"
-            :size="size"
-            :columns="dynamicColumns"
-            :data="tableData"
-            :pagination="quickPagination"
-            :paginationSmall="size === 'small'"
-            :header-cell-style="{
-              background: 'var(--el-fill-color-light)',
-              color: 'var(--el-text-color-primary)'
-            }"
-            @page-size-change="handleSizeChange"
-            @page-current-change="handleCurrentChange"
-          >
-            <template #actualCount="{ row }">
-              <el-input-number
-                v-model="row.actualCount"
-                :min="0"
-                :step="1"
-                size="small"
-              />
-            </template>
-            <template #difference="{ row }">
-              <span
-                :class="{
-                  'text-green-500': row.actualCount > row.count,
-                  'text-red-500': row.actualCount < row.count,
-                  'text-gray-400': row.actualCount === row.count
-                }"
-              >
-                {{ row.actualCount - row.count }}
-              </span>
-            </template>
-            <template #description="{ row }">
-              <el-input
-                v-model="row.description"
-                placeholder="差异说明"
-                size="small"
-              />
-            </template>
-          </pure-table>
-        </template>
-      </PureTableBar>
-    </template>
-
     <!-- 盘点任务模式 -->
-    <template v-else-if="activeTab === 'task'">
+    <template>
       <!-- 任务详情 -->
       <template v-if="currentTask">
         <el-card class="mb-4">
@@ -345,7 +127,7 @@ onMounted(() => {
                   保存
                 </el-button>
                 <el-button type="success" @click="handleCompleteTask">
-                  完成盘点
+                  审核盘点
                 </el-button>
                 <el-button
                   type="danger"
@@ -373,6 +155,15 @@ onMounted(() => {
               }}</span
             >
           </div>
+
+          <el-alert
+            v-if="snapshotWarning"
+            class="mb-4"
+            type="warning"
+            :closable="false"
+            show-icon
+            :title="snapshotWarning"
+          />
 
           <!-- 盘点差异汇总 -->
           <div
@@ -420,6 +211,14 @@ onMounted(() => {
             border
           >
             <template #actualCount="{ row }">
+              <el-tag
+                v-if="row.snapshotInvalidated"
+                class="mr-2"
+                type="warning"
+                size="small"
+              >
+                需重盘
+              </el-tag>
               <el-input-number
                 v-if="currentTask?.status === 'IN_PROGRESS'"
                 v-model="row.actualCount"

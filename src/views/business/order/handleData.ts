@@ -27,27 +27,12 @@ import {
   saleQuotationFormRules
 } from "./props";
 
-type CurOrderData = {
-  auditorId?: string;
-};
-
-export const getCommonData = (
-  uid: string,
-  companyId: string,
-  curData: CurOrderData
-) => {
+export const getCommonData = (uid: string, companyId: string) => {
   return {
     uid,
     company: {
       connect: { uid: companyId }
-    },
-    ...(curData.auditorId
-      ? {
-          auditor: {
-            connect: { uid: curData.auditorId }
-          }
-        }
-      : {})
+    }
   };
 };
 

@@ -148,7 +148,7 @@ const warehouseShortcuts: HomeShortcut[] = [
   {
     key: "stock-taking",
     title: "盘点工作台",
-    description: "快速盘点并生成差异单据",
+    description: "创建正式盘点任务并录入实盘数据",
     icon: "ri:checkbox-multiple-line",
     path: "/business/stockTaking"
   },

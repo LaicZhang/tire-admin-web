@@ -9,6 +9,9 @@ export interface InventoryCheckTask {
   name?: string;
   status: "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   isAudited?: boolean;
+  snapshotVersion: number;
+  ledgerCursorId: number;
+  snapshotInvalidatedAt?: string | null;
   resultSavedAt?: string;
   auditedAt?: string;
   auditedBy?: string;
@@ -37,6 +40,7 @@ export interface InventoryCheckDetail {
   bookCount: number;
   actualCount?: number;
   difference?: number;
+  snapshotInvalidated: boolean;
   reasonCode?: string | null;
   remark?: string;
   repoId?: string;
@@ -50,6 +54,7 @@ export interface CreateInventoryCheckDto {
   name?: string;
   mode?: "quantity" | "serial";
   tireIds?: string[];
+  includeZeroStock?: boolean;
   remark?: string;
 }
 
@@ -164,18 +169,6 @@ export const reverseAuditInventoryCheckTaskApi = (id: number) => {
     "post",
     `/api/v1/inventory-check/task/${id}/reverse-audit`
   );
-};
-
-// 完成盘点任务
-export const completeInventoryCheckTaskApi = (id: number) => {
-  return http.request<{
-    data: {
-      task: InventoryCheckTask;
-      surplusOrderId?: string;
-      wasteOrderId?: string;
-    };
-    code: number;
-  }>("post", `/api/v1/inventory-check/task/${id}/complete`);
 };
 
 // 取消盘点任务

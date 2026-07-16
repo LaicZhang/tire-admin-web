@@ -10,7 +10,6 @@ import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
 import { useRoute } from "vue-router";
 import {
-  confirmPurchaseOrderArrivalApi,
   createPurchaseInboundFromPurchaseOrderApi,
   createPurchaseOrderApi,
   deletePurchaseOrderApi,
@@ -20,10 +19,10 @@ import {
   updatePurchaseOrderApi
 } from "@/api/purchase";
 import { getCompanyConnect, getCompanyId } from "@/api/company";
+import { auditOrderApi } from "@/api/business/order";
 import { message, handleApiError } from "@/utils";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { useOrderListPage } from "@/composables/useOrderListPage";
-import { useOrderConfirmActions } from "@/composables/useOrderConfirmActions";
 import { purchaseOrderColumns } from "./columns";
 import type { PurchaseOrder, PurchaseOrderQueryParams } from "./types";
 import editForm from "./form.vue";
@@ -67,11 +66,6 @@ const {
   searchFormRef
 });
 
-// 使用订单确认操作 composable
-const { handleConfirmArrival } = useOrderConfirmActions({
-  onSuccess: getList
-});
-
 // 获取下拉数据的别名引用
 const employeeList = selectData.employee;
 const managerList = selectData.manager;
@@ -106,7 +100,18 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
     handlers: {
       新增: async formData => {
         const companyId = await getCompanyId();
-        const { details, provider, operator, auditor, ...orderData } = formData;
+        const {
+          details,
+          provider,
+          operator,
+          auditor,
+          auditorId: _auditorId,
+          isApproved: _isApproved,
+          isLocked: _isLocked,
+          rejectReason: _rejectReason,
+          auditAt: _auditAt,
+          ...orderData
+        } = formData;
 
         if (details.length === 0) {
           message("请添加商品明细", { type: "warning" });
@@ -116,10 +121,7 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
           order: {
             ...orderData,
             company: getCompanyConnect(companyId),
-            provider: { connect: { uid: orderData.providerId } },
-            ...(orderData.auditorId
-              ? { auditor: { connect: { uid: orderData.auditorId } } }
-              : {})
+            provider: { connect: { uid: orderData.providerId } }
           },
           details: details.map(d => ({ ...d, companyId }))
         });
@@ -132,6 +134,11 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
           provider,
           operator,
           auditor,
+          auditorId: _auditorId,
+          isApproved: _isApproved,
+          isLocked: _isLocked,
+          rejectReason: _rejectReason,
+          auditAt: _auditAt,
           ...orderData
         } = formData;
         await updatePurchaseOrderApi(formData.uid, {
@@ -141,13 +148,10 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
         message("修改成功", { type: "success" });
       },
       审核: async formData => {
-        const companyId = await getCompanyId();
-        await updatePurchaseOrderApi(formData.uid, {
+        await auditOrderApi(formData.uid, {
+          type: "purchase-order",
           isApproved: formData.isApproved,
-          isLocked: formData.isApproved,
-          rejectReason: formData.rejectReason,
-          auditAt: formData.isApproved ? new Date().toISOString() : null,
-          company: getCompanyConnect(companyId)
+          desc: formData.rejectReason ?? null
         });
         message("审核完成", { type: "success" });
       },
@@ -209,11 +213,6 @@ async function openFromRouteQuery() {
   } finally {
     loading.value = false;
   }
-}
-
-// 确认到货 - 使用 composable 封装的方法
-async function onConfirmArrival(row: PurchaseOrder) {
-  await handleConfirmArrival(row, confirmPurchaseOrderArrivalApi);
 }
 
 async function onCreateInboundDraft(row: PurchaseOrder) {
@@ -343,14 +342,6 @@ onMounted(async () => {
                         row.isApproved &&
                         (row.paidAmount || 0) < (row.total || 0),
                       onClick: () => openDialog('付款', row)
-                    },
-                    {
-                      label: '确认到货',
-                      type: 'success',
-                      visible:
-                        (row as PurchaseOrder).isApproved &&
-                        (row as PurchaseOrder).details?.some(d => !d.isArrival),
-                      onClick: () => onConfirmArrival(row as PurchaseOrder)
                     },
                     {
                       label: '生成入库草稿',

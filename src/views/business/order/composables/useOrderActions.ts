@@ -3,13 +3,13 @@ import {
   confirmSaleAllocationApi,
   confirmSalePickingApi,
   deleteOrderApi,
-  confirmPurchaseOrderArrivalApi,
   confirmSaleOrderDeliveryApi,
   confirmReturnOrderArrivalApi,
   confirmReturnOrderShipmentApi,
   confirmReturnOrderDeliveryApi,
   confirmTransferOrderShipmentApi,
   confirmTransferOrderArrivalApi,
+  cancelTransferOrderApi,
   createSaleAllocationFromOrderApi,
   createSalePickingFromAllocationApi,
   reverseSaleOrderApi,
@@ -17,6 +17,7 @@ import {
   reverseReturnOrderApi,
   reverseWasteOrderApi,
   reverseClaimOrderApi,
+  reverseSupplierClaimOrderApi,
   reverseSurplusOrderApi,
   sendPurchaseInquiryApi,
   convertSaleQuotationApi,
@@ -262,18 +263,6 @@ export function useOrderActions(
     }
   };
 
-  // 采购订单：确认到货
-  const handleConfirmPurchaseArrival = async (row: OrderRow) => {
-    await openConfirmDetailActionDialog(
-      "确认到货",
-      "purchase-arrival",
-      row,
-      async payload => {
-        return confirmPurchaseOrderArrivalApi(row.uid, payload);
-      }
-    );
-  };
-
   // 销售订单：确认发货
   const handleConfirmSaleShipment = async (row: OrderRow) => {
     await openConfirmDetailActionDialog(
@@ -447,25 +436,54 @@ export function useOrderActions(
     [ORDER_TYPE.return]: reverseReturnOrderApi,
     [ORDER_TYPE.waste]: reverseWasteOrderApi,
     [ORDER_TYPE.claim]: reverseClaimOrderApi,
+    [ORDER_TYPE.supplierClaim]: reverseSupplierClaimOrderApi,
+    [ORDER_TYPE.transfer]: cancelTransferOrderApi,
     [ORDER_TYPE.surplus]: reverseSurplusOrderApi
   };
 
   const handleReverseOrder = async (row: OrderRow) => {
     try {
+      const isSupplierClaim = orderType.value === ORDER_TYPE.supplierClaim;
+      const isTransfer = orderType.value === ORDER_TYPE.transfer;
       type PromptResult = { value: string } | string;
-      const res = await ElMessageBox.prompt("请输入作废原因", "订单作废", {
-        confirmButtonText: "确认",
-        cancelButtonText: "取消",
-        inputPattern: /\S+/,
-        inputErrorMessage: "作废原因不能为空"
-      });
+      const res = await ElMessageBox.prompt(
+        isSupplierClaim
+          ? "请输入冲销原因"
+          : isTransfer
+            ? "请输入取消原因"
+            : "请输入作废原因",
+        isSupplierClaim
+          ? "供应商索赔冲销"
+          : isTransfer
+            ? "调拨单取消"
+            : "订单作废",
+        {
+          confirmButtonText: "确认",
+          cancelButtonText: "取消",
+          inputPattern: /\S+/,
+          inputErrorMessage: isSupplierClaim
+            ? "冲销原因不能为空"
+            : isTransfer
+              ? "取消原因不能为空"
+              : "作废原因不能为空"
+        }
+      );
       const result = res as PromptResult;
       const reason = typeof result === "string" ? result : result.value;
       if (reason) {
         const api = reverseApiMap[orderType.value];
         if (api) {
           await api(row.uid, reason);
-          message("订单已作废", { type: "success" });
+          message(
+            isSupplierClaim
+              ? "供应商索赔已冲销"
+              : isTransfer
+                ? "调拨单已取消"
+                : "订单已作废",
+            {
+              type: "success"
+            }
+          );
           await onSearch();
         }
       }
@@ -531,7 +549,6 @@ export function useOrderActions(
     formTitle,
     handleOpenDialog,
     handleDelete,
-    handleConfirmPurchaseArrival,
     handleConfirmSaleShipment,
     handleConfirmSaleDelivery,
     handleProcessClaimPayment,

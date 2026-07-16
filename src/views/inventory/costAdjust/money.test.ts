@@ -5,7 +5,6 @@ describe("cost adjust money mapping", () => {
   it("converts yuan form values to integer cents for submission", () => {
     const payload = toCostAdjustPayload({
       operatorId: "operator-1",
-      auditorId: "auditor-1",
       reason: "库存校正",
       details: [
         {
@@ -25,7 +24,6 @@ describe("cost adjust money mapping", () => {
   it("converts stored cents to yuan for form display", () => {
     const form = toCostAdjustFormData({
       operatorId: "operator-1",
-      auditorId: "auditor-1",
       details: [
         {
           repoId: "repo-1",

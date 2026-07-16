@@ -47,6 +47,9 @@ export interface InboundOrder {
   status: boolean;
   isApproved: boolean;
   isLocked: boolean;
+  isReversed?: boolean;
+  reversalReason?: string;
+  reversalAt?: string;
   rejectReason?: string;
   paymentId?: string;
   auditAt?: string;

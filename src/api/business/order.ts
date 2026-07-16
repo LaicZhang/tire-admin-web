@@ -85,8 +85,6 @@ export interface CreateOrderDto {
     customer?: PrismaConnect<{ uid: string | undefined }>;
     /** Prisma 关联 - 公司 */
     company?: PrismaConnect<{ uid: string }>;
-    /** Prisma 关联 - 审核人 */
-    auditor?: PrismaConnect<{ uid: string }>;
   };
   details: OrderDetailDto[];
 }
@@ -97,14 +95,6 @@ export interface UpdateOrderDto extends Partial<BaseOrderDto> {
   orderStatus?: number;
   /** 物流状态 */
   logisticsStatus?: number;
-  /** 是否锁定 */
-  isLocked?: boolean;
-  /** 是否已审批 */
-  isApproved?: boolean;
-  /** 驳回原因 */
-  rejectReason?: string | null;
-  /** 审批时间 */
-  auditAt?: string | Date | null;
   /** Prisma 关联 - 公司 */
   company?: PrismaConnect<{ uid: string }>;
   /** Prisma 关联 - 供应商 */
@@ -133,13 +123,6 @@ export interface AuditOrderDto {
 export type ConfirmDetailUidDto = {
   detailUid: string;
   serialNos?: string[];
-};
-
-export type PurchaseOrderConfirmArrivalDto = {
-  detailUid: string;
-  batchNo?: string;
-  productionDate?: string;
-  expiryDate?: string;
 };
 
 export type SaleOrderConfirmShipmentDto = {
@@ -307,17 +290,6 @@ export async function payPurchaseOrderApi(uid: string, data: PayOrderDto) {
   );
 }
 
-export async function confirmPurchaseOrderArrivalApi(
-  uid: string,
-  data: PurchaseOrderConfirmArrivalDto
-) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(`/purchase-order/confirm-arrival/${uid}`),
-    { data }
-  );
-}
-
 // 销售订单特定接口
 export async function getSaleOrderCountApi() {
   return await http.request<CommonResult>(
@@ -467,6 +439,17 @@ export async function settleSupplierClaimOrderApi(
     "patch",
     baseUrlApi(`/supplier-claim-order/${uid}/settle`),
     { data }
+  );
+}
+
+export async function reverseSupplierClaimOrderApi(
+  uid: string,
+  reason: string
+) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/supplier-claim-order/${uid}/reverse`),
+    { data: { reason } }
   );
 }
 
@@ -659,6 +642,14 @@ export async function confirmTransferOrderArrivalApi(
     "patch",
     baseUrlApi(`/transfer-order/confirm-arrival/${uid}`),
     { data }
+  );
+}
+
+export async function cancelTransferOrderApi(uid: string, reason: string) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(`/transfer-order/${uid}/cancel`),
+    { data: { reason } }
   );
 }
 

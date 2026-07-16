@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { v7 as uuid } from "uuid";
-import type { FormInstance } from "element-plus";
+import { ElMessageBox, type FormInstance } from "element-plus";
 import { useRoute } from "vue-router";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -16,6 +16,8 @@ import {
   deletePurchaseInboundApi,
   getPurchaseInboundApi,
   getPurchaseInboundListApi,
+  restorePurchaseInboundApi,
+  reversePurchaseInboundApi,
   updatePurchaseInboundApi
 } from "@/api/purchase";
 import { getCompanyConnect, getCompanyId } from "@/api/company";
@@ -164,15 +166,10 @@ function buildCreatePayload(formData: InboundOrder, companyId: string) {
       paidAmount: toNumber(formData.paidAmount),
       desc: formData.desc || null,
       status: formData.status,
-      isApproved: false,
-      isLocked: false,
       sourceMode: formData.sourceMode || "MANUAL",
       company: getCompanyConnect(companyId),
       operator: { connect: { uid: userId } },
       provider: { connect: { uid: formData.providerId } },
-      ...(formData.auditorId
-        ? { auditor: { connect: { uid: formData.auditorId } } }
-        : {}),
       ...(formData.sourcePurchaseOrderId
         ? { sourcePurchaseOrderId: formData.sourcePurchaseOrderId }
         : {})
@@ -191,9 +188,6 @@ function buildUpdatePayload(formData: InboundOrder, companyId: string) {
     sourceMode: formData.sourceMode || "MANUAL",
     company: getCompanyConnect(companyId),
     provider: { connect: { uid: formData.providerId } },
-    ...(formData.auditorId
-      ? { auditor: { connect: { uid: formData.auditorId } } }
-      : {}),
     ...(formData.sourcePurchaseOrderId
       ? {
           sourcePurchaseOrder: {
@@ -288,6 +282,42 @@ async function handleDelete(row: InboundOrder) {
     getList();
   } catch (error) {
     handleApiError(error, "删除采购入库单失败");
+  }
+}
+
+async function handleReverse(row: InboundOrder) {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      "请输入采购入库冲正原因",
+      "冲正采购入库",
+      {
+        confirmButtonText: "确认冲正",
+        cancelButtonText: "取消",
+        inputValidator: value => Boolean(value?.trim()) || "请输入冲正原因"
+      }
+    );
+    await reversePurchaseInboundApi(row.uid, value.trim());
+    message("采购入库已冲正", { type: "success" });
+    getList();
+  } catch (error) {
+    if (error === "cancel" || error === "close") return;
+    handleApiError(error, "采购入库冲正失败");
+  }
+}
+
+async function handleRestore(row: InboundOrder) {
+  try {
+    await ElMessageBox.confirm(
+      "恢复后将重新写入库存、批次、序列号和临时应付，确认继续？",
+      "恢复采购入库",
+      { type: "warning" }
+    );
+    await restorePurchaseInboundApi(row.uid);
+    message("采购入库已恢复", { type: "success" });
+    getList();
+  } catch (error) {
+    if (error === "cancel" || error === "close") return;
+    handleApiError(error, "采购入库恢复失败");
   }
 }
 
@@ -455,6 +485,18 @@ onMounted(async () => {
                       type: 'warning',
                       visible: row.isApproved,
                       onClick: () => handleGenerateReturnGuide(row)
+                    },
+                    {
+                      label: '冲正',
+                      type: 'danger',
+                      visible: row.isApproved && !row.isReversed,
+                      onClick: () => handleReverse(row)
+                    },
+                    {
+                      label: '恢复',
+                      type: 'success',
+                      visible: Boolean(row.isReversed),
+                      onClick: () => handleRestore(row)
                     }
                   ] as CustomAction[]
                 "

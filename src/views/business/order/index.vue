@@ -43,7 +43,6 @@ const { employeeList, managerList, loadAllData } = useOrderData(orderType);
 const {
   handleOpenDialog,
   handleDelete,
-  handleConfirmPurchaseArrival,
   handleConfirmSaleShipment,
   handleConfirmSaleDelivery,
   handleProcessClaimPayment,
@@ -74,6 +73,14 @@ const supportsWorkflowActions = computed(
     orderType.value !== ORDER_TYPE.surplus &&
     orderType.value !== ORDER_TYPE.saleQuotation
 );
+
+function isTransferCancellable(row: {
+  details?: Array<{ isShipped?: boolean; isArrival?: boolean }>;
+}) {
+  return !(row.details || []).some(
+    detail => detail.isShipped || detail.isArrival
+  );
+}
 
 const getRouteOrderType = () => {
   const queryOrderType =
@@ -313,19 +320,6 @@ onMounted(async () => {
                 {{ orderType === ORDER_TYPE.sale ? "收款" : "付款" }}
               </el-button>
 
-              <!-- 采购订单：确认到货 -->
-              <el-button
-                v-if="
-                  orderType === ORDER_TYPE.purchase && row.isApproved === true
-                "
-                class="reset-margin"
-                link
-                type="success"
-                @click="handleConfirmPurchaseArrival(row)"
-              >
-                确认到货
-              </el-button>
-
               <!-- 销售订单：确认发货 -->
               <el-button
                 v-if="
@@ -551,18 +545,33 @@ onMounted(async () => {
 
               <el-button
                 v-if="
+                  orderType === ORDER_TYPE.supplierClaim &&
                   row.isApproved === true &&
-                  !row.isReversed &&
-                  orderType !== ORDER_TYPE.supplierClaim &&
-                  orderType !== ORDER_TYPE.assembly &&
-                  orderType !== ORDER_TYPE.transfer
+                  !row.isReversed
                 "
                 class="reset-margin"
                 link
                 type="danger"
                 @click="handleReverseOrder(row)"
               >
-                作废
+                冲销
+              </el-button>
+
+              <el-button
+                v-if="
+                  row.isApproved === true &&
+                  !row.isReversed &&
+                  orderType !== ORDER_TYPE.supplierClaim &&
+                  orderType !== ORDER_TYPE.assembly &&
+                  (orderType !== ORDER_TYPE.transfer ||
+                    isTransferCancellable(row))
+                "
+                class="reset-margin"
+                link
+                type="danger"
+                @click="handleReverseOrder(row)"
+              >
+                {{ orderType === ORDER_TYPE.transfer ? "取消" : "作废" }}
               </el-button>
 
               <el-button

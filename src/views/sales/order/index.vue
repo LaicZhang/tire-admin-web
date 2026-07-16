@@ -108,7 +108,18 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
         return false;
       }
       const companyId = await getCompanyId();
-      const { details, customer, operator, auditor, ...orderData } = formData;
+      const {
+        details,
+        customer,
+        operator,
+        auditor,
+        auditorId: _auditorId,
+        isApproved: _isApproved,
+        isLocked: _isLocked,
+        rejectReason: _rejectReason,
+        auditAt: _auditAt,
+        ...orderData
+      } = formData;
 
       if (details.length === 0) {
         message("请添加商品明细", { type: "warning" });
@@ -118,10 +129,7 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
         order: {
           ...orderData,
           company: getCompanyConnect(companyId),
-          customer: { connect: { uid: orderData.customerId } },
-          ...(orderData.auditorId
-            ? { auditor: { connect: { uid: orderData.auditorId } } }
-            : {})
+          customer: { connect: { uid: orderData.customerId } }
         },
         details: details.map(({ serialNosText, ...detail }) => ({
           ...detail,
@@ -137,6 +145,11 @@ const { openDialog } = useActionFormDialog<SalesOrder, SalesOrderFormRef>({
         customer,
         operator,
         auditor,
+        auditorId: _auditorId,
+        isApproved: _isApproved,
+        isLocked: _isLocked,
+        rejectReason: _rejectReason,
+        auditAt: _auditAt,
         ...orderData
       } = formData;
       await updateSalesOrderApi(formData.uid, {

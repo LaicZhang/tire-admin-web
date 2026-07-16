@@ -41,17 +41,5 @@ export const columns: TableColumnList = [
     prop: "inTransitQuantity",
     width: 100,
     formatter: row => row.inTransitQuantity ?? 0
-  },
-  // {
-  //   label: "实际库存",
-  //   prop: "actualCount",
-  //   slot: "actualCount",
-  //   width: 150
-  // },
-  {
-    label: "操作",
-    fixed: "right",
-    slot: "operation",
-    width: 120
   }
 ];

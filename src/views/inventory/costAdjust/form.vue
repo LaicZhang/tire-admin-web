@@ -16,7 +16,6 @@ import { useUserStoreHook } from "@/store/modules/user";
 interface Props {
   formInline: {
     operatorId?: string;
-    auditorId?: string;
     reason?: string;
     desc?: string;
     details?: CreateCostAdjustDetailDto[];
@@ -38,7 +37,6 @@ const loading = ref(false);
 
 const formData = reactive<CreateCostAdjustOrderDto>({
   operatorId: props.formInline.operatorId || currentUserUid || "",
-  auditorId: props.formInline.auditorId || "",
   reason: props.formInline.reason || "",
   desc: props.formInline.desc || "",
   details: props.formInline.details?.map(d => ({
@@ -59,7 +57,6 @@ const formData = reactive<CreateCostAdjustOrderDto>({
 
 const rules = reactive<FormRules>({
   operatorId: [{ required: true, message: "请选择操作人", trigger: "change" }],
-  auditorId: [{ required: true, message: "请选择审核人", trigger: "change" }],
   reason: [{ required: true, message: "请输入调整原因", trigger: "blur" }]
 });
 
@@ -134,24 +131,6 @@ onMounted(() => {
             v-model="formData.operatorId"
             placeholder="请选择操作人"
             filterable
-            class="w-full"
-          >
-            <el-option
-              v-for="emp in employeeList"
-              :key="emp.uid"
-              :label="emp.name"
-              :value="emp.uid"
-            />
-          </el-select>
-        </el-form-item>
-      </el-col>
-      <el-col :span="12">
-        <el-form-item label="审核人" prop="auditorId">
-          <el-select
-            v-model="formData.auditorId"
-            placeholder="请选择审核人"
-            filterable
-            clearable
             class="w-full"
           >
             <el-option

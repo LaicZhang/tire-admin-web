@@ -16,8 +16,7 @@ vi.mock("@/api", () => ({
   payPurchaseOrderApi: vi.fn(),
   paySaleOrderApi: vi.fn(),
   processClaimOrderPaymentApi: vi.fn(),
-  refundReturnOrderApi: vi.fn(),
-  confirmPurchaseOrderArrivalApi: vi.fn()
+  refundReturnOrderApi: vi.fn()
 }));
 
 vi.mock("@/composables/useDialogService", () => ({
@@ -62,8 +61,7 @@ describe("business/order/table", () => {
         uid: "surplus-uid",
         count: 2,
         total: 0,
-        company: { connect: { uid: "company-1" } },
-        auditor: { connect: { uid: "manager-1" } }
+        company: { connect: { uid: "company-1" } }
       }),
       details: [
         {
@@ -102,8 +100,7 @@ describe("business/order/table", () => {
         uid: "waste-uid",
         count: 1,
         total: 0,
-        company: { connect: { uid: "company-2" } },
-        auditor: { connect: { uid: "manager-2" } }
+        company: { connect: { uid: "company-2" } }
       }),
       details: [
         {

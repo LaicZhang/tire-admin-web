@@ -41,33 +41,3 @@ export async function getReserveListApi(index: number, params?: ReserveQuery) {
     { params }
   );
 }
-
-// 库存盘点 (单品)
-export async function stockTakingApi(data: {
-  repoId: string;
-  tireId: string;
-  actualCount: number;
-  desc?: string;
-}) {
-  return await http.request<CommonResult<void>>(
-    "post",
-    baseUrlApi(prefix + "stock-taking"),
-    { data }
-  );
-}
-
-// 批量库存盘点
-export async function batchStockTakingApi(data: {
-  items: Array<{
-    repoId: string;
-    tireId: string;
-    actualCount: number;
-    desc?: string;
-  }>;
-}) {
-  return await http.request<CommonResult<void>>(
-    "post",
-    baseUrlApi(prefix + "stock-taking/batch"),
-    { data }
-  );
-}

@@ -39,7 +39,6 @@ export interface CostAdjustOrder {
 
 export interface CreateCostAdjustOrderDto {
   operatorId: string;
-  auditorId: string;
   reason?: string;
   desc?: string;
   details: Omit<CostAdjustOrderDetail, "id" | "tire" | "repo">[];

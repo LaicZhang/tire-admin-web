@@ -13,7 +13,6 @@ import {
   processClaimOrderPaymentApi,
   settleSupplierClaimOrderApi,
   refundReturnOrderApi,
-  confirmPurchaseOrderArrivalApi,
   type OrderDetailDto
 } from "@/api";
 import editForm from "./form.vue";
@@ -243,11 +242,14 @@ export function buildCreateOrderPayload(
     details,
     providerId,
     customerId,
-    auditorId,
+    auditorId: _auditorId,
     operatorId,
+    isApproved: _isApproved,
+    isLocked: _isLocked,
+    rejectReason: _rejectReason,
     ...orderData
   } = curData;
-  const commonData = getCommonData(uid, companyId, { auditorId });
+  const commonData = getCommonData(uid, companyId);
   const normalizedDetails = normalizeCreateDetails(details);
   const resolvedOperatorId = toOptionalString(operatorId) ?? userStore.uid;
 
@@ -296,13 +298,6 @@ export function buildCreateOrderPayload(
             ? orderData.desc
             : null,
         attachments: normalizeAttachments(orderData.attachments),
-        isApproved: Boolean(orderData.isApproved),
-        isLocked: Boolean(orderData.isLocked),
-        rejectReason:
-          typeof orderData.rejectReason === "string" &&
-          orderData.rejectReason.length > 0
-            ? orderData.rejectReason
-            : null,
         ...commonData,
         operator: {
           connect: { uid: resolvedOperatorId }
@@ -399,7 +394,6 @@ type OrderDialogTitle =
   | "结算"
   | "更新物流"
   | "更新状态"
-  | "确认到货"
   | "处理理赔费用"
   | "退款";
 
@@ -516,29 +510,6 @@ async function submitRefund({ submitData }: SubmitContext) {
   return true;
 }
 
-async function submitConfirmArrival({ submitData }: SubmitContext) {
-  const selected = (
-    submitData.details as Array<_OrderDetail & { isArrival?: boolean }>
-  ).filter(item => Boolean(item.isArrival));
-
-  if (selected.length === 0) {
-    message("请在明细中勾选要确认到货的行（是否到货）", {
-      type: "warning"
-    });
-    return false;
-  }
-
-  for (const item of selected) {
-    if (!item.uid) continue;
-    await confirmPurchaseOrderArrivalApi(submitData.uid, {
-      detailUid: item.uid,
-      batchNo: item.batchNo,
-      expiryDate: item.expiryDate
-    });
-  }
-  return true;
-}
-
 async function submitGenericUpdate({
   type,
   submitData,
@@ -568,8 +539,6 @@ async function submitDialogAction(context: SubmitContext) {
       return submitClaimPayment(context);
     case "退款":
       return submitRefund(context);
-    case "确认到货":
-      return submitConfirmArrival(context);
     case "修改":
     case "更新物流":
     case "更新状态":

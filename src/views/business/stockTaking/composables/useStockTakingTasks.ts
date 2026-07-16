@@ -1,5 +1,4 @@
 import { ref, reactive, type Ref } from "vue";
-import { useRouter } from "vue-router";
 import { message } from "@/utils/message";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import {
@@ -7,16 +6,24 @@ import {
   getInventoryCheckTasksApi,
   getInventoryCheckTaskApi,
   updateInventoryCheckDetailsApi,
-  completeInventoryCheckTaskApi,
+  auditInventoryCheckTaskApi,
   cancelInventoryCheckTaskApi,
   type InventoryCheckTask,
   type InventoryCheckDetail
 } from "@/api/business/inventory-check";
-import { ORDER_TYPE } from "@/utils/const";
-import { getStockTakingRoute, getStockTakingStorageKey } from "../orderBridge";
+
+export function getInventoryCheckSnapshotWarning(
+  task: InventoryCheckTask | null | undefined
+): string | null {
+  if (!task?.snapshotInvalidatedAt) return null;
+  const affectedCount = (task.details || []).filter(
+    detail => detail.snapshotInvalidated
+  ).length;
+  if (affectedCount === 0) return null;
+  return `盘点期间库存发生变化，${affectedCount} 项明细已刷新账面数，请重新盘点后再审核`;
+}
 
 export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
-  const router = useRouter();
   const loading = ref(false);
   const taskList = ref<InventoryCheckTask[]>([]);
   const currentTask = ref<InventoryCheckTask | null>(null);
@@ -133,7 +140,7 @@ export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
 
     try {
       loading.value = true;
-      const { data, code } = await completeInventoryCheckTaskApi(
+      const { data, code } = await auditInventoryCheckTaskApi(
         currentTask.value.id
       );
       if (code === 200) {
@@ -146,13 +153,13 @@ export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
         const suffix = generated
           ? `，${generated}，库存以后续单据审核为准`
           : "";
-        message(`盘点完成${suffix}`, { type: "success" });
+        message(`盘点审核完成${suffix}`, { type: "success" });
         currentTask.value = data.task;
         loadTaskList();
       }
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "完成盘点失败";
+        error instanceof Error ? error.message : "审核盘点失败";
       message(errorMessage, { type: "error" });
     } finally {
       loading.value = false;
@@ -181,54 +188,6 @@ export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
     currentTask.value = null;
   };
 
-  const handleCreateSurplusOrder = () => {
-    if (!currentTask.value) return;
-    const surplusItems = (currentTask.value.details || []).filter(
-      (item: InventoryCheckDetail) => (item.actualCount ?? 0) > item.bookCount
-    );
-    if (surplusItems.length === 0) {
-      message("没有盘盈商品", { type: "warning" });
-      return;
-    }
-    sessionStorage.setItem(
-      getStockTakingStorageKey(ORDER_TYPE.surplus),
-      JSON.stringify(
-        surplusItems.map((item: InventoryCheckDetail) => ({
-          repoId: item.repoId || currentRepo.value,
-          tireId: item.tireId,
-          tireName: item.tire?.name || item.tireName,
-          count: (item.actualCount ?? 0) - item.bookCount,
-          desc: item.remark || undefined
-        }))
-      )
-    );
-    router.push(getStockTakingRoute(ORDER_TYPE.surplus));
-  };
-
-  const handleCreateWasteOrder = () => {
-    if (!currentTask.value) return;
-    const wasteItems = (currentTask.value.details || []).filter(
-      (item: InventoryCheckDetail) => (item.actualCount ?? 0) < item.bookCount
-    );
-    if (wasteItems.length === 0) {
-      message("没有盘亏商品", { type: "warning" });
-      return;
-    }
-    sessionStorage.setItem(
-      getStockTakingStorageKey(ORDER_TYPE.waste),
-      JSON.stringify(
-        wasteItems.map((item: InventoryCheckDetail) => ({
-          repoId: item.repoId || currentRepo.value,
-          tireId: item.tireId,
-          tireName: item.tire?.name || item.tireName,
-          count: item.bookCount - (item.actualCount ?? 0),
-          desc: item.remark || undefined
-        }))
-      )
-    );
-    router.push(getStockTakingRoute(ORDER_TYPE.waste));
-  };
-
   return {
     loading,
     taskList,
@@ -242,8 +201,6 @@ export function useStockTakingTasks(currentRepo: Ref<string | undefined>) {
     handleSaveDetails,
     handleCompleteTask,
     handleCancelTask,
-    handleBackToList,
-    handleCreateSurplusOrder,
-    handleCreateWasteOrder
+    handleBackToList
   };
 }

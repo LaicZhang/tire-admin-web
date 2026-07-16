@@ -167,24 +167,6 @@ watch(
         </el-form-item>
       </el-col>
       <el-col :span="6">
-        <el-form-item label="审核人" prop="auditorId">
-          <el-select
-            v-model="formData.auditorId"
-            placeholder="请选择审核人"
-            clearable
-            :disabled="isReadOnly"
-            class="w-full"
-          >
-            <el-option
-              v-for="item in managerList"
-              :key="item.uid"
-              :label="item.name"
-              :value="item.uid"
-            />
-          </el-select>
-        </el-form-item>
-      </el-col>
-      <el-col :span="6">
         <el-form-item label="退货单号">
           <el-input v-model="formData.number" disabled />
         </el-form-item>

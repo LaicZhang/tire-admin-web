@@ -34,7 +34,6 @@ export interface CreateCostAdjustDetailDto {
 
 export interface CreateCostAdjustOrderDto {
   operatorId: string;
-  auditorId: string;
   reason?: string;
   desc?: string;
   details: CreateCostAdjustDetailDto[];

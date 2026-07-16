@@ -10,7 +10,6 @@ export const toCostAdjustPayload = (
   formData: CreateCostAdjustOrderDto
 ): ApiCreateCostAdjustOrderDto => ({
   operatorId: formData.operatorId,
-  auditorId: formData.auditorId,
   reason: formData.reason,
   desc: formData.desc,
   details: formData.details.map(detail => ({
@@ -25,7 +24,6 @@ export const toCostAdjustPayload = (
 
 type CostAdjustFormSource = {
   operatorId?: string;
-  auditorId?: string;
   reason?: string;
   desc?: string;
   details?: Array<
@@ -44,7 +42,6 @@ export const toCostAdjustFormData = (
   formData: CostAdjustFormSource | CostAdjustOrder
 ): CreateCostAdjustOrderDto => ({
   operatorId: "operatorId" in formData ? formData.operatorId || "" : "",
-  auditorId: "auditorId" in formData ? formData.auditorId || "" : "",
   reason: formData.reason || "",
   desc: formData.desc || "",
   details: (formData.details || []).map(detail => ({

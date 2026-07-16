@@ -1,6 +1,5 @@
 import {
   addOrderApi,
-  confirmPurchaseOrderArrivalApi,
   confirmReturnOrderArrivalApi,
   confirmReturnOrderDeliveryApi,
   confirmReturnOrderShipmentApi,
@@ -100,6 +99,21 @@ export function approvePurchaseInboundApi(uid: string) {
   );
 }
 
+export function reversePurchaseInboundApi(uid: string, reason: string) {
+  return http.request<CommonResult<InboundOrder>>(
+    "post",
+    baseUrlApi(`/purchase-inbound/${uid}/reverse`),
+    { data: { reason } }
+  );
+}
+
+export function restorePurchaseInboundApi(uid: string) {
+  return http.request<CommonResult<InboundOrder>>(
+    "post",
+    baseUrlApi(`/purchase-inbound/${uid}/restore`)
+  );
+}
+
 export function getPurchaseReturnOrderListApi(
   index: number,
   params?: OrderQueryDto
@@ -134,7 +148,6 @@ export function deletePurchaseReturnOrderApi(uid: string) {
 
 export {
   payPurchaseOrderApi,
-  confirmPurchaseOrderArrivalApi,
   confirmReturnOrderArrivalApi,
   confirmReturnOrderShipmentApi,
   confirmReturnOrderDeliveryApi,
