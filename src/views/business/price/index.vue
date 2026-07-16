@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref, h } from "vue";
+import { reactive, ref, h } from "vue";
+import { ElMessageBox } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
@@ -10,7 +11,13 @@ import {
   getPriceListListApi,
   createPriceListApi,
   updatePriceListApi,
-  deletePriceListApi
+  deletePriceListApi,
+  getPriceListApi,
+  addPriceListDetailApi,
+  updatePriceListDetailApi,
+  deletePriceListDetailApi,
+  assignPriceListToCustomerApi,
+  unassignPriceListCustomerApi
 } from "@/api/business/price-list";
 import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
@@ -28,6 +35,10 @@ defineOptions({
 const form = ref({
   name: undefined as string | undefined
 });
+const detailDrawerVisible = ref(false);
+const selectedPriceList = ref<PriceList | null>(null);
+const detailForm = reactive({ tireId: "", price: 0, minQuantity: 1 });
+const assignmentForm = reactive({ customerId: "", priority: 0 });
 
 const {
   loading,
@@ -70,6 +81,105 @@ const handleDelete = async (row: PriceList) => {
   message("删除成功", { type: "success" });
   getData();
 };
+
+function getPriceListRow(row: unknown): PriceList {
+  if (
+    !row ||
+    typeof row !== "object" ||
+    !("id" in row) ||
+    typeof row.id !== "number"
+  ) {
+    throw new Error("价目表 ID 缺失");
+  }
+  return row as PriceList;
+}
+
+async function refreshPriceListDetail() {
+  if (!selectedPriceList.value) return;
+  const res = await getPriceListApi(selectedPriceList.value.id);
+  selectedPriceList.value = res.data;
+}
+
+async function openDetailManager(row: unknown) {
+  selectedPriceList.value = getPriceListRow(row);
+  detailDrawerVisible.value = true;
+  await refreshPriceListDetail();
+}
+
+async function addDetail() {
+  if (!selectedPriceList.value || !detailForm.tireId.trim()) return;
+  await addPriceListDetailApi(selectedPriceList.value.id, {
+    tireId: detailForm.tireId.trim(),
+    price: detailForm.price,
+    minQuantity: detailForm.minQuantity
+  });
+  detailForm.tireId = "";
+  detailForm.price = 0;
+  detailForm.minQuantity = 1;
+  await refreshPriceListDetail();
+}
+
+async function editDetail(row: unknown) {
+  if (
+    !row ||
+    typeof row !== "object" ||
+    !("id" in row) ||
+    typeof row.id !== "number" ||
+    !("price" in row)
+  ) {
+    return;
+  }
+  const result = await ElMessageBox.prompt(
+    "请输入新价格（分）",
+    "修改价目明细",
+    {
+      inputValue: String(row.price),
+      inputPattern: /^\d+$/,
+      inputErrorMessage: "价格必须为非负整数"
+    }
+  );
+  await updatePriceListDetailApi(row.id, { price: Number(result.value) });
+  await refreshPriceListDetail();
+}
+
+async function removeDetail(row: unknown) {
+  if (
+    !row ||
+    typeof row !== "object" ||
+    !("id" in row) ||
+    typeof row.id !== "number"
+  )
+    return;
+  await deletePriceListDetailApi(row.id);
+  await refreshPriceListDetail();
+}
+
+async function assignCustomer() {
+  if (!selectedPriceList.value || !assignmentForm.customerId.trim()) return;
+  await assignPriceListToCustomerApi(selectedPriceList.value.id, {
+    customerId: assignmentForm.customerId.trim(),
+    priority: assignmentForm.priority
+  });
+  assignmentForm.customerId = "";
+  assignmentForm.priority = 0;
+  await refreshPriceListDetail();
+}
+
+async function unassignCustomer(row: unknown) {
+  if (
+    !selectedPriceList.value ||
+    !row ||
+    typeof row !== "object" ||
+    !("customerId" in row) ||
+    typeof row.customerId !== "string"
+  )
+    return;
+  await unassignPriceListCustomerApi(
+    selectedPriceList.value.id,
+    row.customerId
+  );
+  await refreshPriceListDetail();
+}
 
 type FormInline = {
   id?: number;
@@ -178,6 +288,9 @@ function openDialog(title = "新增", row?: PriceList) {
             @page-current-change="onCurrentChange"
           >
             <template #operation="{ row }">
+              <el-button link type="primary" @click="openDetailManager(row)">
+                明细与客户
+              </el-button>
               <el-button
                 class="reset-margin"
                 link
@@ -193,5 +306,76 @@ function openDialog(title = "新增", row?: PriceList) {
         </template>
       </PureTableBar>
     </el-card>
+
+    <el-drawer
+      v-model="detailDrawerVisible"
+      :title="`${selectedPriceList?.name || ''} - 明细与客户`"
+      size="72%"
+    >
+      <el-card class="mb-3">
+        <template #header>价目明细</template>
+        <el-form inline>
+          <el-form-item label="商品 UID">
+            <el-input v-model="detailForm.tireId" class="w-[280px]" />
+          </el-form-item>
+          <el-form-item label="价格（分）">
+            <el-input-number v-model="detailForm.price" :min="0" />
+          </el-form-item>
+          <el-form-item label="起订量">
+            <el-input-number v-model="detailForm.minQuantity" :min="1" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="addDetail">添加明细</el-button>
+          </el-form-item>
+        </el-form>
+        <el-table :data="selectedPriceList?.details || []" border>
+          <el-table-column prop="tire.name" label="商品" min-width="160" />
+          <el-table-column prop="tireId" label="商品 UID" min-width="220" />
+          <el-table-column prop="price" label="价格（分）" width="140" />
+          <el-table-column prop="minQuantity" label="起订量" width="100" />
+          <el-table-column label="操作" width="150">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="editDetail(row)"
+                >修改</el-button
+              >
+              <el-button link type="danger" @click="removeDetail(row)"
+                >删除</el-button
+              >
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+
+      <el-card>
+        <template #header>客户分配</template>
+        <el-form inline>
+          <el-form-item label="客户 UID">
+            <el-input v-model="assignmentForm.customerId" class="w-[280px]" />
+          </el-form-item>
+          <el-form-item label="优先级">
+            <el-input-number v-model="assignmentForm.priority" :min="0" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="assignCustomer"
+              >分配客户</el-button
+            >
+          </el-form-item>
+        </el-form>
+        <el-table :data="selectedPriceList?.customerLink || []" border>
+          <el-table-column prop="customer.name" label="客户" min-width="160" />
+          <el-table-column prop="customerId" label="客户 UID" min-width="220" />
+          <el-table-column prop="priority" label="优先级" width="100" />
+          <el-table-column label="操作" width="100">
+            <template #default="{ row }">
+              <Auth value="delete/price-list/:id/assign-customer/:customerId">
+                <el-button link type="danger" @click="unassignCustomer(row)">
+                  取消分配
+                </el-button>
+              </Auth>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+    </el-drawer>
   </div>
 </template>

@@ -20,6 +20,22 @@ export interface PriceList extends PriceListDto {
   id: number;
   uid: string;
   createdAt?: string;
+  details?: PriceListDetail[];
+  customerLink?: CustomerPriceListAssignment[];
+}
+
+export interface PriceListDetail {
+  id: number;
+  tireId: string;
+  price: ApiMoney;
+  minQuantity: number;
+  tire?: { uid: string; name?: string };
+}
+
+export interface CustomerPriceListAssignment {
+  customerId: string;
+  priority: number;
+  customer?: { uid: string; name?: string };
 }
 
 export interface PriceListQuery {
@@ -75,6 +91,13 @@ export async function createPriceListApi(data: PriceListDto) {
   );
 }
 
+export async function getPriceListApi(id: number) {
+  return await http.request<CommonResult<PriceList>>(
+    "get",
+    baseUrlApi(`${prefix}/${id}`)
+  );
+}
+
 export async function updatePriceListApi(
   id: number,
   data: Partial<PriceListDto>
@@ -111,6 +134,24 @@ export async function deletePriceListDetailApi(detailId: number) {
   );
 }
 
+export async function updatePriceListDetailApi(
+  detailId: number,
+  data: Partial<{ tireId: string; price: number; minQuantity: number }>
+) {
+  return await http.request<CommonResult<PriceListDetail>>(
+    "patch",
+    baseUrlApi(`${prefix}/detail/${detailId}`),
+    { data }
+  );
+}
+
+export async function restorePriceListDetailApi(detailId: number) {
+  return await http.request<CommonResult<PriceListDetail>>(
+    "post",
+    baseUrlApi(`${prefix}/detail/${detailId}/restore`)
+  );
+}
+
 export async function assignPriceListToCustomerApi(
   id: number,
   data: { customerId: string; priority?: number }
@@ -119,6 +160,16 @@ export async function assignPriceListToCustomerApi(
     "post",
     baseUrlApi(`${prefix}/${id}/assign-customer`),
     { data }
+  );
+}
+
+export async function unassignPriceListCustomerApi(
+  id: number,
+  customerId: string
+) {
+  return await http.request<CommonResult>(
+    "delete",
+    baseUrlApi(`${prefix}/${id}/assign-customer/${customerId}`)
   );
 }
 

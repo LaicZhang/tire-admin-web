@@ -481,6 +481,21 @@ export default [
         }
       },
       {
+        id: 230,
+        uid: "1904de54-3e48-4e88-9791-74cd9f49c53c",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "commission",
+        path: "/company/commission",
+        redirect: null,
+        component: () => import("@/views/company/commission/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "finance", "manager"],
+          title: "销售提成",
+          icon: null
+        }
+      },
+      {
         id: 24,
         uid: "a3159aa9-1bbe-4336-8341-3b96e9d1cf51",
         parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
@@ -781,6 +796,34 @@ export default [
         meta: {
           roles: ["admin", "boss", "seller"],
           title: "价目表",
+          icon: null
+        }
+      },
+      {
+        id: 146,
+        uid: "5c85c30a-e61b-4eed-a3d5-6cc4d8b52146",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "specialPrice",
+        path: "/business/specialPrice",
+        component: () => import("@/views/business/specialPrice/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "seller", "manager"],
+          title: "销售特价",
+          icon: null
+        }
+      },
+      {
+        id: 147,
+        uid: "fc730b58-5e07-49c2-9242-cdcaa775a147",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "supplierPromotion",
+        path: "/business/supplierPromotion",
+        component: () => import("@/views/purchase/supplierPromotion/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "purchaser", "manager"],
+          title: "供应商促销",
           icon: null
         }
       },
