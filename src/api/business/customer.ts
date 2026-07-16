@@ -83,6 +83,28 @@ export interface Customer {
   info?: { phone?: string };
 }
 
+export interface CustomerPii {
+  uid: string;
+  info?: {
+    phone?: string | null;
+    secondPhone?: string | null;
+    email?: string | null;
+    taxNumber?: string | null;
+    bank?: string | null;
+    cardNumberOfBank?: string | null;
+    address?: string | null;
+  } | null;
+  identificationCN?: {
+    name: string;
+    number: string;
+    address: string;
+    issuer: string;
+    isValid?: boolean | null;
+    validDateStart: string;
+    validDateEnd: string;
+  } | null;
+}
+
 export interface CustomerInitialBalanceSummary {
   latestRecord: Record<string, unknown> | null;
   summary: {
@@ -127,6 +149,13 @@ export const addCustomerApi = baseCustomerApi.add;
 
 /** 获取客户详情 */
 export const getCustomerApi = baseCustomerApi.get;
+
+export function getCustomerPiiApi(uid: string) {
+  return http.request<CommonResult<CustomerPii>>(
+    "get",
+    baseUrlApi(prefix + `pii/${uid}`)
+  );
+}
 
 /** 更新客户 */
 export const updateCustomerApi = baseCustomerApi.update;

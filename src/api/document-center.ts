@@ -21,7 +21,14 @@ export type DocumentCenterType =
   | "PURCHASE_RETURN"
   | "SALE_ORDER"
   | "SALE_OUTBOUND"
-  | "SALE_RETURN";
+  | "SALE_RETURN"
+  | "CLAIM"
+  | "SUPPLIER_CLAIM"
+  | "WARRANTY"
+  | "INSTALLATION"
+  | "COMMISSION"
+  | "SPECIAL_PRICE"
+  | "SUPPLIER_PROMOTION";
 
 export interface DocumentCenterItem {
   id: number;
@@ -131,5 +138,16 @@ export function getDocumentCenterPrintApi(
   return http.request<CommonResult<DocumentCenterPrintDto>>(
     "get",
     baseUrlApi(`${prefix}/print/${documentType}/${uid}`)
+  );
+}
+
+export function getDocumentCenterPdfApi(
+  documentType: DocumentCenterType,
+  uid: string
+) {
+  return http.request<Blob>(
+    "get",
+    baseUrlApi(`${prefix}/print/${documentType}/${uid}/pdf`),
+    { responseType: "blob" }
   );
 }

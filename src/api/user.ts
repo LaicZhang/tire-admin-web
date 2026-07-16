@@ -55,8 +55,32 @@ export interface UserDto {
   deleteAt?: string | null;
 }
 
+export interface IdentificationPii {
+  name: string;
+  number: string;
+  address: string;
+  issuer: string;
+  isValid?: boolean | null;
+  validDateStart: string;
+  validDateEnd: string;
+}
+
+export interface UserPii {
+  uid: string;
+  phone?: string | null;
+  email?: string | null;
+  identificationCN?: IdentificationPii | null;
+}
+
 export const getOneUserApi = (uid: string) => {
   return http.request<CommonResult>("get", baseUrlApi(prefix) + `/${uid}`);
+};
+
+export const getUserPiiApi = (uid: string) => {
+  return http.request<CommonResult<UserPii>>(
+    "get",
+    baseUrlApi(prefix + `pii/${uid}`)
+  );
 };
 
 export const addUserApi = (data: CreateUserDto) => {

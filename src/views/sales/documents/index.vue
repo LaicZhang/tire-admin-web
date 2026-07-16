@@ -9,7 +9,7 @@ import {
   approveDocumentCenterApi,
   exportDocumentCenterApi,
   getDocumentCenterListApi,
-  getDocumentCenterPrintApi,
+  getDocumentCenterPdfApi,
   type DocumentCenterType
 } from "@/api/document-center";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
@@ -244,43 +244,20 @@ async function handleExport() {
 
 async function handlePrint(row: DocumentItem) {
   try {
-    const { code, data, msg } = await getDocumentCenterPrintApi(
+    const blob = await getDocumentCenterPdfApi(
       documentTypeMap[row.type],
       row.uid
     );
-    if (code !== 200 || !data) {
-      message(msg || "获取打印数据失败", { type: "error" });
-      return;
-    }
-    const popup = window.open(
-      "",
-      "_blank",
-      "noopener,noreferrer,width=960,height=720"
-    );
+    const url = window.URL.createObjectURL(blob);
+    const popup = window.open(url, "_blank", "noopener,noreferrer");
     if (!popup) {
+      window.URL.revokeObjectURL(url);
       message("打印窗口打开失败", { type: "warning" });
       return;
     }
-    const rows = Object.entries(data.detail)
-      .map(
-        ([key, value]) =>
-          `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
-      )
-      .join("");
-    const lineRows = (data.lines ?? [])
-      .map(
-        line =>
-          `<tr><td style="padding:8px;border:1px solid #ddd;">${line.tireName}</td><td style="padding:8px;border:1px solid #ddd;">${line.repoName}</td><td style="padding:8px;border:1px solid #ddd;">${line.count}</td><td style="padding:8px;border:1px solid #ddd;">${line.unitPrice}</td><td style="padding:8px;border:1px solid #ddd;">${line.totalAmount}</td></tr>`
-      )
-      .join("");
-    popup.document.write(
-      `<!doctype html><html><head><title>${data.billNo}</title></head><body style="font-family:sans-serif;padding:24px;"><h2>${data.billNo}</h2><p>状态：${data.status}</p><p>客户：${data.targetName ?? "-"}</p><table style="border-collapse:collapse;width:100%;margin-top:16px;">${rows}</table>${lineRows ? `<h3>明细</h3><table style="border-collapse:collapse;width:100%;"><tr><th>商品</th><th>仓库</th><th>数量</th><th>单价</th><th>金额</th></tr>${lineRows}</table>` : ""}</body></html>`
-    );
-    popup.document.close();
-    popup.focus();
-    popup.print();
+    window.setTimeout(() => window.URL.revokeObjectURL(url), 60000);
   } catch {
-    message("获取打印数据失败", { type: "error" });
+    message("获取 PDF 失败", { type: "error" });
   }
 }
 

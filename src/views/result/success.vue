@@ -51,7 +51,14 @@ const VALID_DOCUMENT_TYPES = [
   "PURCHASE_RETURN",
   "SALE_ORDER",
   "SALE_OUTBOUND",
-  "SALE_RETURN"
+  "SALE_RETURN",
+  "CLAIM",
+  "SUPPLIER_CLAIM",
+  "WARRANTY",
+  "INSTALLATION",
+  "COMMISSION",
+  "SPECIAL_PRICE",
+  "SUPPLIER_PROMOTION"
 ] as const satisfies readonly DocumentCenterType[];
 
 const DOCUMENT_TYPE_LABELS: Record<DocumentCenterType, string> = {
@@ -73,7 +80,14 @@ const DOCUMENT_TYPE_LABELS: Record<DocumentCenterType, string> = {
   PURCHASE_RETURN: "采购退货单",
   SALE_ORDER: "销售订单",
   SALE_OUTBOUND: "销售履约",
-  SALE_RETURN: "销售退货单"
+  SALE_RETURN: "销售退货单",
+  CLAIM: "理赔单",
+  SUPPLIER_CLAIM: "供应商索赔单",
+  WARRANTY: "质保登记",
+  INSTALLATION: "安装登记",
+  COMMISSION: "提成记录",
+  SPECIAL_PRICE: "销售特价申请",
+  SUPPLIER_PROMOTION: "供应商促销政策"
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -102,7 +116,17 @@ const DOCUMENT_ROUTE_MAP: Record<DocumentCenterType, DocumentRouteConfig> = {
   PURCHASE_RETURN: { path: "/purchase/return", queryMode: "uidAction" },
   SALE_ORDER: { path: "/sales/order", queryMode: "none" },
   SALE_OUTBOUND: { path: "/sales/order", queryMode: "none" },
-  SALE_RETURN: { path: "/sales/return", queryMode: "none" }
+  SALE_RETURN: { path: "/sales/return", queryMode: "none" },
+  CLAIM: { path: "/business/order", queryMode: "none" },
+  SUPPLIER_CLAIM: { path: "/business/order", queryMode: "none" },
+  WARRANTY: { path: "/business/warrantyRegistration", queryMode: "none" },
+  INSTALLATION: { path: "/business/installationRecord", queryMode: "none" },
+  COMMISSION: { path: "/company/commission", queryMode: "none" },
+  SPECIAL_PRICE: { path: "/business/specialPrice", queryMode: "none" },
+  SUPPLIER_PROMOTION: {
+    path: "/business/supplierPromotion",
+    queryMode: "none"
+  }
 };
 
 const route = useRoute();
