@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 const WEB_PORT = Number.parseInt(process.env.E2E_WEB_PORT || "18848", 10);
 const BASE_URL = `http://localhost:${WEB_PORT}`;
 const storageStatePath = "test-results/.auth/state.json";
+const browserExecutablePath = process.env.E2E_BROWSER_EXECUTABLE_PATH;
 
 export default defineConfig({
   testDir: "./e2e/mock",
@@ -15,7 +16,10 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    video: "on-first-retry"
+    video: "on-first-retry",
+    ...(browserExecutablePath
+      ? { launchOptions: { executablePath: browserExecutablePath } }
+      : {})
   },
   projects: [
     {

@@ -24,7 +24,7 @@ function resolveRepoRoot(): string {
 }
 
 function resolveCompanySettingsCsvPath(): string {
-  return path.join(resolveRepoRoot(), "docs", "settings.csv");
+  return path.join(resolveRepoRoot(), "be-core", "docs", "settings.csv");
 }
 
 function resolveBackendRegistryPath(): string {

@@ -8,7 +8,7 @@ import { resolveWorkspaceRoot } from "../../test-utils/workspaceRoot";
 function resolveSettingsCsvPath(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const workspaceRoot = resolveWorkspaceRoot(here);
-  return path.join(workspaceRoot, "docs", "settings.csv");
+  return path.join(workspaceRoot, "be-core", "docs", "settings.csv");
 }
 
 type ExistenceFlag = "yes" | "no";
