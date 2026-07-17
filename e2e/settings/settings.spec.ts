@@ -9,11 +9,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseSettingsCsv } from "../../test-utils/settingsCsv";
+import { resolveWorkspaceRoot } from "../../test-utils/workspaceRoot";
 
 const specDir = path.dirname(fileURLToPath(import.meta.url));
-const tireAdminWebRoot = path.resolve(specDir, "..", "..");
-const repoRoot = path.resolve(tireAdminWebRoot, "..");
-const settingsCsvPath = path.join(repoRoot, "docs", "settings.csv");
+const workspaceRoot = resolveWorkspaceRoot(specDir);
+const settingsCsvPath = path.join(
+  workspaceRoot,
+  "be-core",
+  "docs",
+  "settings.csv"
+);
 const settingsCsvText = fs.readFileSync(settingsCsvPath, "utf-8");
 const settingsCsvRows = parseSettingsCsv(settingsCsvText);
 const companySettingsUiEntries = Array.from(
