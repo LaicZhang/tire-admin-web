@@ -11,7 +11,7 @@
 - API 调用：统一走 `src/utils/http`；URL 用 `baseUrlApi('/xxx')`（`src/api/utils.ts`，自动加 `/api/v1` 前缀）
 - 权限：页面级用路由 `meta.roles`；按钮级用 `<Auth :value="'perm.code' | ['perm.code']">`
 - 运行时平台配置：`public/platform-config.json`（字段类型见 `types/global.d.ts` 的 `PlatformConfigs`）
-- 合入前自检：`pnpm typecheck && pnpm lint && pnpm build`
+- 合入前自检：`pnpm typecheck && pnpm lint:check && pnpm test && pnpm build --mode staging`
 
 ## 常用命令
 
@@ -20,14 +20,14 @@
 - 安装：`pnpm i`
 - 开发：`pnpm dev`
 - 类型检查：`pnpm typecheck`
-- 规范检查：`pnpm lint`
+- 规范检查：`pnpm lint:check`（只读）或 `pnpm lint`（自动修复后格式化）
 - 构建：`pnpm build`
 
 从根目录执行（等价）：
 
 - `pnpm -C tire-admin-web dev`
 - `pnpm -C tire-admin-web typecheck`
-- `pnpm -C tire-admin-web lint`
+- `pnpm -C tire-admin-web lint:check`
 
 ## 环境变量（常用）
 

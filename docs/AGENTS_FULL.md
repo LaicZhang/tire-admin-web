@@ -38,7 +38,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 - Application type: 轮胎行业进销存管理后台（SPA）
 - Technology stack:
   - Frontend: Vue 3, TypeScript, Vite, Pinia, Vue Router, Element Plus, Tailwind CSS, ECharts, Axios
-  - Toolchain: ESLint 9 (Antfu configuration为主), Stylelint, Prettier, Husky + lint-staged, Commitlint, SVGO, Rollup visualization, Vite plugin system
+  - Toolchain: ESLint, Stylelint, Oxfmt, Husky + lint-staged, Commitlint, SVGO, Rollup visualization, Vite plugin system
 - Runtime environment: Node 24.12+, pnpm ≥ 10 (enforced by only-allow)
 - Package management: `pnpm` (required)
 - Production deployment: Static site (can be deployed via Docker + Nginx, Vercel, object storage/cloud hosting, etc.), HTML5 History rewritten to `index.html` via `vercel.json`
@@ -62,7 +62,8 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 
 - 类型检查与规范：
   - `pnpm typecheck`（tsc + vue-tsc）
-  - `pnpm lint`（ESLint + Prettier + Stylelint，全量）
+  - `pnpm lint`（ESLint/Stylelint 自动修复后由 Oxfmt 最终格式化）
+  - `pnpm lint:check`（ESLint + Stylelint + Oxfmt 全量只读检查）
   - 提交前会触发 Husky 的 lint-staged 与 commitlint 检查
 
 - 构建与预览：
@@ -174,10 +175,10 @@ This document is a workbook and constraints for intelligent coding agents (Agent
   - 类型举例：`feat`、`fix`、`refactor`、`docs`、`style`、`test`、`build`、`chore`、`ci`、`revert`、`types`、`release` 等
 - 示例：`feat(business): add provider CRUD pages`
 - 预提交钩子：Husky + lint-staged
-  - 针对暂存区文件执行 Prettier/ESLint/Stylelint 修复
+  - 针对暂存区文件按类型执行 ESLint/Stylelint 修复，并由 Oxfmt 最终格式化
 - 脚本执行策略：本地默认启用 `preinstall`/`prepare`（only-allow pnpm + husky）；CI 通过 `CI=true` 跳过 hooks，必要时可设置 `PNPM_ENABLE_PRE_POST_SCRIPTS=false` 禁用 pre/post 脚本执行
 - 手动质量检查：
-  - `pnpm typecheck`、`pnpm lint`、`pnpm svgo`（压缩 SVG）、`pnpm cloc`（代码统计）
+  - `pnpm typecheck`、`pnpm lint:check`、`pnpm svgo`（压缩 SVG）、`pnpm cloc`（代码统计）
 
 参考文件：
 
@@ -280,7 +281,7 @@ This document is a workbook and constraints for intelligent coding agents (Agent
 - 文档与注释：
   - 涉及配置、环境变量、路由权限等改动，请更新本文件或 `README.md` 中相应说明
 - 不要提交：`dist/`、`node_modules/`、`.eslintcache`、报告文件等构建产物或临时文件
-- 提交前自检：`pnpm typecheck && pnpm lint && pnpm build`，确保通过
+- 提交前自检：`pnpm typecheck && pnpm lint:check && pnpm test && pnpm build --mode staging`，确保通过
 
 ---
 
