@@ -33,7 +33,14 @@ type InputModelValue = string | number | null | undefined;
 type SelectModelValue = string | number | boolean | null | undefined;
 type ScopeModelValue = "nonDeleted" | "deleted" | "all" | undefined;
 type DatePickerModelValue =
-  string | number | Date | string[] | number[] | Date[] | null | undefined;
+  | string
+  | number
+  | Date
+  | string[]
+  | number[]
+  | Date[]
+  | null
+  | undefined;
 type NumberModelValue = number | null | undefined;
 
 // Props

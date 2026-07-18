@@ -88,7 +88,8 @@ export default defineComponent({
     function handleInit(index = curIndex.value) {
       nextTick(() => {
         const curLabelRef = instance?.proxy?.$refs[`labelRef${index}`] as
-          HTMLElement | undefined;
+          | HTMLElement
+          | undefined;
         if (!curLabelRef) return;
         width.value = curLabelRef.clientWidth;
         translateX.value = curLabelRef.offsetLeft;

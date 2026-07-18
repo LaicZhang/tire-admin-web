@@ -1,5 +1,10 @@
 export type AnalysisRoleView =
-  "executive" | "sales" | "purchase" | "warehouse" | "finance" | "analyst";
+  | "executive"
+  | "sales"
+  | "purchase"
+  | "warehouse"
+  | "finance"
+  | "analyst";
 
 export type AnalysisPageKey = "sales" | "purchase" | "inventory";
 

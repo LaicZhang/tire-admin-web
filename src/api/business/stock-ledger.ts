@@ -3,7 +3,10 @@ import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
 
 export type StockReservationStatus =
-  "RESERVED" | "PICKED" | "RELEASED" | "CONSUMED";
+  | "RESERVED"
+  | "PICKED"
+  | "RELEASED"
+  | "CONSUMED";
 
 export type StockReservationSourceType =
   | "SALE_ALLOCATION"
@@ -27,7 +30,12 @@ export type StockMovementSourceType =
   | "STOCK_TAKING";
 
 export type StockLedgerStatus =
-  "AVAILABLE" | "RESERVED" | "PICKED" | "IN_TRANSIT" | "QC" | "FROZEN";
+  | "AVAILABLE"
+  | "RESERVED"
+  | "PICKED"
+  | "IN_TRANSIT"
+  | "QC"
+  | "FROZEN";
 
 export interface StockBalanceRow {
   id: number;

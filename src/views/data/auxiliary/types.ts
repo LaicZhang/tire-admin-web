@@ -26,7 +26,11 @@ export interface FormProps {
 
 /** Tab类型 */
 export type AuxiliaryType =
-  "income" | "expense" | "settlement" | "customerLevel" | "businessType";
+  | "income"
+  | "expense"
+  | "settlement"
+  | "customerLevel"
+  | "businessType";
 
 /** Tab配置 */
 export interface TabConfig {

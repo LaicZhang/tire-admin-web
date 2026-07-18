@@ -3,7 +3,12 @@ export type PaymentOrderStatus = "DRAFT" | "APPROVED" | "COMPLETED" | "VOID";
 
 /** 付款方式 */
 export type PaymentMethod =
-  "CASH" | "BANK_TRANSFER" | "WECHAT" | "ALIPAY" | "CHECK" | "OTHER";
+  | "CASH"
+  | "BANK_TRANSFER"
+  | "WECHAT"
+  | "ALIPAY"
+  | "CHECK"
+  | "OTHER";
 
 /** 付款单明细项 */
 export interface PaymentDetailItem {

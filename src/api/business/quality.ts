@@ -18,7 +18,9 @@ export interface DefectCategory extends DefectCategoryDto {
 
 export type InspectionResult = "PASS" | "PARTIAL" | "FAIL";
 export type QualityInspectionDisposalStatus =
-  "PENDING" | "RETURN_CREATED" | "COMPLETED";
+  | "PENDING"
+  | "RETURN_CREATED"
+  | "COMPLETED";
 
 export interface CreateQualityInspectionDto {
   purchaseOrderUid: string;

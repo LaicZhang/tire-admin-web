@@ -5,7 +5,10 @@ import type { CommonResult } from "../type";
 const prefix = "/commission/";
 
 export type CommissionRecordStatus =
-  "ESTIMATED" | "AVAILABLE" | "SETTLED" | "REVERSED";
+  | "ESTIMATED"
+  | "AVAILABLE"
+  | "SETTLED"
+  | "REVERSED";
 
 export interface CommissionRecord {
   id: number;
@@ -36,7 +39,10 @@ export interface CommissionSummary {
 }
 
 export type CommissionSettlementStatus =
-  "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REVERSED";
+  | "DRAFT"
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "REVERSED";
 
 export interface CommissionSettlement {
   id: number;
