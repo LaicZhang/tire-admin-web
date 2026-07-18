@@ -16,7 +16,7 @@ type RegistryDefinition = Readonly<{
 }>;
 
 const REGISTRY_DEF_RE =
-  /\{\s*group:\s*"([^"]+)",\s*key:\s*"([^"]+)",\s*displayName:\s*"([^"]+)",\s*type:\s*"([^"]+)",/gms;
+  /\{\s*group:\s*(["'])([^"']+)\1,\s*key:\s*(["'])([^"']+)\3,\s*displayName:\s*(["'])([^"']+)\5,\s*type:\s*(["'])([^"']+)\7,/gms;
 
 function resolveRepoRoot(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -46,10 +46,10 @@ function normalizeCell(value: string | undefined): string {
 function parseRegistryDefinitions(registryText: string): RegistryDefinition[] {
   const defs: RegistryDefinition[] = [];
   for (const match of registryText.matchAll(REGISTRY_DEF_RE)) {
-    const group = match[1] ?? "";
-    const key = match[2] ?? "";
-    const displayName = match[3] ?? "";
-    const settingType = match[4] ?? "";
+    const group = match[2] ?? "";
+    const key = match[4] ?? "";
+    const displayName = match[6] ?? "";
+    const settingType = match[8] ?? "";
     defs.push({ group, key, displayName, settingType });
   }
   if (defs.length === 0) {
@@ -85,6 +85,26 @@ function buildCompanyScopeRowMap(
 }
 
 describe("company-setting registry ↔ docs/settings.csv contract", () => {
+  it("parses registry definitions formatted with single quotes", () => {
+    expect(
+      parseRegistryDefinitions(`
+        {
+          group: 'asset',
+          key: 'nullDeptAssetVisibility',
+          displayName: '资产空部门可见性',
+          type: 'enum',
+        },
+      `)
+    ).toEqual([
+      {
+        group: "asset",
+        key: "nullDeptAssetVisibility",
+        displayName: "资产空部门可见性",
+        settingType: "enum"
+      }
+    ]);
+  });
+
   it("keeps backend registry definitions aligned with CSV (scope=company)", () => {
     const csvText = fs.readFileSync(resolveCompanySettingsCsvPath(), "utf-8");
     const csvRows = parseSettingsCsv(csvText);

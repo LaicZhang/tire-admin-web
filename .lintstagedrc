@@ -1,20 +1,16 @@
 {
   "*.{js,jsx,ts,tsx}": [
-    "prettier --cache --ignore-unknown  --write",
-    "eslint --cache --fix"
-  ],
-  "{!(package)*.json,*.code-snippets,.!({browserslist,npm,nvm})*rc}": [
-    "prettier --cache --write--parser json"
-  ],
-  "package.json": ["prettier --cache --write"],
-  "*.vue": [
-    "prettier --write",
     "eslint --cache --fix",
-    "stylelint --fix --allow-empty-input"
+    "oxfmt --write"
+  ],
+  "*.vue": [
+    "eslint --cache --fix",
+    "stylelint --fix --allow-empty-input",
+    "oxfmt --write"
   ],
   "*.{css,scss,sass,html}": [
-    "prettier --cache --ignore-unknown --write",
-    "stylelint --fix --allow-empty-input"
+    "stylelint --fix --allow-empty-input",
+    "oxfmt --write"
   ],
-  "*.md": ["prettier --cache --ignore-unknown --write"]
+  "*.{json,code-snippets,md}": ["oxfmt --write"]
 }
