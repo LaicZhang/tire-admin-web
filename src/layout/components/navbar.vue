@@ -70,8 +70,8 @@ const onSelectCompany = async (companyId: string) => {
     <div v-if="layout === 'vertical'" class="vertical-header-right">
       <!-- 菜单搜索 -->
       <Search id="header-search" />
-      <!-- 全屏 -->
-      <FullScreen id="full-screen" />
+      <!-- 全屏（移动端隐藏，避免顶栏裁切） -->
+      <FullScreen v-if="device !== 'mobile'" id="full-screen" />
       <!-- 消息通知 -->
       <Notice id="header-notice" />
       <!-- 公司切换（多公司） -->
@@ -80,8 +80,12 @@ const onSelectCompany = async (companyId: string) => {
         trigger="click"
         @visible-change="onCompanyDropdownVisibleChange"
       >
-        <span class="el-dropdown-link navbar-bg-hover select-none">
-          <p class="dark:text-white">{{ currentCompanyName }}</p>
+        <span
+          class="el-dropdown-link navbar-bg-hover select-none max-w-[40vw] sm:max-w-none"
+        >
+          <p class="dark:text-white truncate max-w-[28vw] sm:max-w-[160px]">
+            {{ currentCompanyName }}
+          </p>
           <IconifyIconOffline :icon="ArrowDown" style="margin-left: 6px" />
         </span>
         <template #dropdown>
@@ -101,7 +105,9 @@ const onSelectCompany = async (companyId: string) => {
       <el-dropdown trigger="click">
         <span class="el-dropdown-link navbar-bg-hover select-none">
           <img loading="lazy" :src="userAvatar" :style="avatarsStyle" />
-          <p v-if="username" class="dark:text-white">{{ username }}</p>
+          <p v-if="username && device !== 'mobile'" class="dark:text-white">
+            {{ username }}
+          </p>
         </span>
         <template #dropdown>
           <el-dropdown-menu class="logout">
@@ -141,9 +147,10 @@ const onSelectCompany = async (companyId: string) => {
 
   .vertical-header-right {
     display: flex;
+    flex: 1;
     align-items: center;
     justify-content: flex-end;
-    min-width: 280px;
+    min-width: 0;
     height: 48px;
     color: #000000d9;
 

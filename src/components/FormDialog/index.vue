@@ -83,6 +83,7 @@ defineExpose({
 <template>
   <el-dialog
     v-model="dialogVisible"
+    class="pure-dialog"
     :title="title"
     :width="width"
     :close-on-click-modal="false"

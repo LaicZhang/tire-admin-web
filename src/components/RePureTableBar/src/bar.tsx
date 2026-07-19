@@ -105,15 +105,17 @@ export default defineComponent({
               : "mt-2"
           ]}
         >
-          <div class="flex justify-between w-full h-[60px] p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 w-full min-h-[60px] p-4">
             {slots?.title ? (
               slots.title()
             ) : (
-              <p class="font-bold truncate">{props.title}</p>
+              <p class="font-bold truncate max-w-full">{props.title}</p>
             )}
-            <div class="flex items-center justify-around">
+            <div class="flex flex-wrap items-center justify-end gap-2 min-w-0">
               {slots?.buttons ? (
-                <div class="flex mr-4">{slots.buttons()}</div>
+                <div class="flex flex-wrap items-center gap-2 mr-0 sm:mr-2">
+                  {slots.buttons()}
+                </div>
               ) : null}
               {props.tableRef?.size ? (
                 <>

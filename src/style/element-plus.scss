@@ -43,6 +43,27 @@
   }
 }
 
+/* ADM-MOB-001: 固定宽度弹窗统一移动兜底 */
+.el-dialog.pure-dialog,
+.el-dialog {
+  max-width: calc(100vw - 32px);
+}
+
+@media (width <= 768px) {
+  .el-dialog:not(.is-fullscreen) {
+    --el-dialog-width: min(var(--el-dialog-width, 50%), calc(100vw - 24px));
+
+    width: min(100%, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px);
+    margin-top: 6vh !important;
+    margin-bottom: 6vh !important;
+  }
+
+  .el-drawer {
+    max-width: 100vw;
+  }
+}
+
 .pure-dialog {
   .el-dialog__header.show-close {
     padding-right: 16px;
