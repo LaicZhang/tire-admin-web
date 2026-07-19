@@ -9,7 +9,7 @@ import {
   type PaymentDetailItem
 } from "./types";
 import dayjs from "dayjs";
-import { fenToYuan, fenToYuanNumber } from "@/utils/formatMoney";
+import { fenToYuan, fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import { handleApiError, message } from "@/utils";
 import { useFundForm } from "../composables/useFundForm";
 import {
@@ -83,8 +83,8 @@ const selectedPaymentBalance = computed(() => {
 function normalizeLedgerDetail(detail: PaymentDetailItem) {
   return {
     ...detail,
-    payableAmount: (detail.payableAmount || 0) / 100,
-    writeOffAmount: (detail.writeOffAmount || 0) / 100
+    payableAmount: fenToYuanNumber(detail.payableAmount || 0),
+    writeOffAmount: fenToYuanNumber(detail.writeOffAmount || 0)
   };
 }
 
@@ -123,7 +123,7 @@ function applyEditData() {
     Object.assign(formData, {
       providerId: props.editData.providerId,
       paymentId: props.editData.paymentId,
-      amount: (props.editData.amount || 0) / 100,
+      amount: fenToYuanNumber(props.editData.amount || 0),
       paymentMethod: props.editData.paymentMethod || "BANK_TRANSFER",
       paymentDate: props.editData.paymentDate || dayjs().format("YYYY-MM-DD"),
       remark: props.editData.remark || "",
@@ -173,8 +173,8 @@ function handleLedgerChange(row: PaymentDetailItem, ledgerUid?: string) {
   row.sourceOrderId = ledger.uid;
   row.sourceOrderNo = ledger.invoiceNumber;
   row.sourceOrderType = "AP_OFFICIAL";
-  row.payableAmount = ledger.openAmount / 100;
-  row.writeOffAmount = ledger.openAmount / 100;
+  row.payableAmount = fenToYuanNumber(ledger.openAmount);
+  row.writeOffAmount = fenToYuanNumber(ledger.openAmount);
   row.invoiceDate = ledger.invoiceDate || "";
 }
 
@@ -204,13 +204,13 @@ async function submit() {
   try {
     const submitData = {
       ...formData,
-      amount: Math.round(formData.amount * 100),
+      amount: yuanToFen(formData.amount),
       details: formData.details.map(d => ({
         sourceOrderId: d.sourceOrderId,
         sourceOrderNo: d.sourceOrderNo,
         sourceOrderType: d.sourceOrderType,
-        payableAmount: Math.round((d.payableAmount || 0) * 100),
-        writeOffAmount: Math.round((d.writeOffAmount || 0) * 100),
+        payableAmount: yuanToFen(d.payableAmount || 0),
+        writeOffAmount: yuanToFen(d.writeOffAmount || 0),
         ...(d.remark ? { remark: d.remark } : {})
       }))
     };
@@ -374,7 +374,7 @@ onMounted(() => {
       <el-col :span="12">
         <el-form-item label="本次预付">
           <el-input
-            :model-value="advanceAmount.toFixed(2)"
+            :model-value="fenToYuan(yuanToFen(advanceAmount))"
             disabled
             class="w-full"
           >
@@ -461,7 +461,7 @@ onMounted(() => {
     </pure-table>
 
     <div class="flex justify-end text-sm text-gray-500">
-      核销合计: ¥{{ totalWriteOffAmount.toFixed(2) }}
+      核销合计: ¥{{ fenToYuan(yuanToFen(totalWriteOffAmount)) }}
     </div>
   </el-form>
 </template>

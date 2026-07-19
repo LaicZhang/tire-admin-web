@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import dayjs from "dayjs";
 import { handleApiError, message } from "@/utils";
-import { fenToYuan } from "@/utils/formatMoney";
+import { fenToYuan, fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import {
   createReceiptApi,
   getOpenReceivableLedgersApi,
@@ -68,8 +68,8 @@ const advanceAmount = computed(() => {
 function normalizeLedgerDetail(detail: ReceiptDetailItem) {
   return {
     ...detail,
-    receivableAmount: (detail.receivableAmount || 0) / 100,
-    writeOffAmount: (detail.writeOffAmount || 0) / 100
+    receivableAmount: fenToYuanNumber(detail.receivableAmount || 0),
+    writeOffAmount: fenToYuanNumber(detail.writeOffAmount || 0)
   };
 }
 
@@ -112,7 +112,7 @@ function applyEditData() {
   Object.assign(formData, {
     customerId: props.editData.customerId,
     paymentId: props.editData.paymentId,
-    amount: (props.editData.amount || 0) / 100,
+    amount: fenToYuanNumber(props.editData.amount || 0),
     paymentMethod: props.editData.paymentMethod || "BANK_TRANSFER",
     receiptDate: props.editData.receiptDate || dayjs().format("YYYY-MM-DD"),
     remark: props.editData.remark || "",
@@ -159,8 +159,8 @@ function handleLedgerChange(row: ReceiptDetailItem, ledgerUid?: string) {
   row.sourceOrderId = ledger.uid;
   row.sourceOrderNo = ledger.invoiceNumber;
   row.sourceOrderType = "AR_OFFICIAL";
-  row.receivableAmount = ledger.openAmount / 100;
-  row.writeOffAmount = ledger.openAmount / 100;
+  row.receivableAmount = fenToYuanNumber(ledger.openAmount);
+  row.writeOffAmount = fenToYuanNumber(ledger.openAmount);
   row.invoiceDate = ledger.invoiceDate || "";
   row.deliveryNoteNo = ledger.deliveryNoteNo || "";
 }
@@ -191,7 +191,7 @@ async function submit() {
   try {
     const submitData = {
       ...formData,
-      amount: Math.round(formData.amount * 100),
+      amount: yuanToFen(formData.amount),
       details: formData.details.map(detail => ({
         sourceOrderId: detail.sourceOrderId,
         sourceOrderNo: detail.sourceOrderNo,
@@ -360,7 +360,7 @@ onMounted(() => {
       <el-col :span="12">
         <el-form-item label="本次预收">
           <el-input
-            :model-value="advanceAmount.toFixed(2)"
+            :model-value="fenToYuan(yuanToFen(advanceAmount))"
             disabled
             class="w-full"
           >
@@ -449,7 +449,7 @@ onMounted(() => {
     </pure-table>
 
     <div class="flex justify-end text-sm text-gray-500">
-      核销合计: ¥{{ totalWriteOffAmount.toFixed(2) }}
+      核销合计: ¥{{ fenToYuan(yuanToFen(totalWriteOffAmount)) }}
     </div>
   </el-form>
 </template>

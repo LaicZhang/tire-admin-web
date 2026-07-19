@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
+import { fenToYuanNumber } from "@/utils/formatMoney";
 import { ref, reactive, onMounted, computed } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -219,9 +220,9 @@ function handleFormSuccess() {
 const exportColumns: PresentationColumn<ReceiptOrder>[] = [
   { label: "单据编号", value: row => row.billNo },
   { label: "客户", value: row => row.customerName || "-" },
-  { label: "收款金额", value: row => row.amount / 100 },
-  { label: "本次核销", value: row => (row.writeOffAmount || 0) / 100 },
-  { label: "本次预收", value: row => (row.advanceAmount || 0) / 100 },
+  { label: "收款金额", value: row => fenToYuanNumber(row.amount) },
+  { label: "本次核销", value: row => fenToYuanNumber(row.writeOffAmount || 0) },
+  { label: "本次预收", value: row => fenToYuanNumber(row.advanceAmount || 0) },
   { label: "结算账户", value: row => row.paymentName || "-" },
   { label: "收款方式", value: row => row.paymentMethod || "-" },
   {

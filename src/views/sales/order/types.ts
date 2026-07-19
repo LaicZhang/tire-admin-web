@@ -80,12 +80,26 @@ export interface OptionItem {
   name: string;
 }
 
+/** @deprecated 使用 PAYMENT_STATUS_MAP / paymentStatusLabel；orderStatus 是支付态非审批态 */
 export const ORDER_STATUS_MAP: Record<number, string> = {
-  0: "草稿",
-  1: "待审核",
-  2: "已审核",
-  3: "已完成",
-  4: "已关闭"
+  0: "待支付",
+  1: "部分支付",
+  2: "已付清",
+  3: "已取消"
+};
+
+/** 支付状态（后端 orderStatus / OrderStatusEnum） */
+export const PAYMENT_STATUS_MAP: Record<number, string> = {
+  0: "待支付",
+  1: "部分支付",
+  2: "已付清",
+  3: "已取消"
+};
+
+/** 单据启停（DB status boolean，非 orderStatus） */
+export const DOCUMENT_STATUS_MAP: Record<string, string> = {
+  true: "正常",
+  false: "已关闭"
 };
 
 export const LOGISTICS_STATUS_MAP: Record<number, string> = {

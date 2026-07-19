@@ -17,6 +17,7 @@ import {
 import type { Provider } from "@/api/business/provider";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
+import PageContainer from "@/components/PageContainer/index.vue";
 import { ImportDialog, ExportDialog } from "@/components/ImportExport";
 import ImportIcon from "~icons/ri/upload-cloud-2-line";
 import ExportIcon from "~icons/ri/download-cloud-2-line";
@@ -109,139 +110,141 @@ function handleBalance(row: Provider) {
 </script>
 
 <template>
-  <div class="main">
-    <ReSearchForm
-      ref="formRef"
-      class="m-1"
-      :form="form"
-      :loading="loading"
-      :body-style="{ paddingBottom: '0', overflow: 'auto' }"
-      @search="onSearch"
-      @reset="resetForm(formRef)"
-    >
-      <el-form-item label="供应商名称：" prop="name">
-        <el-input
-          v-model="form.name"
-          placeholder="请输入供应商名称"
-          clearable
-          class="w-[180px]!"
-        />
-      </el-form-item>
-      <el-form-item label="备注：" prop="desc">
-        <el-input
-          v-model="form.desc"
-          placeholder="请输入备注"
-          clearable
-          class="w-[180px]!"
-        />
-      </el-form-item>
-      <el-form-item label="范围：" prop="scope">
-        <el-select v-model="form.scope" class="w-[180px]!" clearable>
-          <el-option label="未删除" value="nonDeleted" />
-          <el-option label="已删除" value="deleted" />
-          <el-option label="全部" value="all" />
-        </el-select>
-      </el-form-item>
-    </ReSearchForm>
+  <PageContainer :show-search="false">
+    <div class="main">
+      <ReSearchForm
+        ref="formRef"
+        class="m-1"
+        :form="form"
+        :loading="loading"
+        :body-style="{ paddingBottom: '0', overflow: 'auto' }"
+        @search="onSearch"
+        @reset="resetForm(formRef)"
+      >
+        <el-form-item label="供应商名称：" prop="name">
+          <el-input
+            v-model="form.name"
+            placeholder="请输入供应商名称"
+            clearable
+            class="w-[180px]!"
+          />
+        </el-form-item>
+        <el-form-item label="备注：" prop="desc">
+          <el-input
+            v-model="form.desc"
+            placeholder="请输入备注"
+            clearable
+            class="w-[180px]!"
+          />
+        </el-form-item>
+        <el-form-item label="范围：" prop="scope">
+          <el-select v-model="form.scope" class="w-[180px]!" clearable>
+            <el-option label="未删除" value="nonDeleted" />
+            <el-option label="已删除" value="deleted" />
+            <el-option label="全部" value="all" />
+          </el-select>
+        </el-form-item>
+      </ReSearchForm>
 
-    <el-card class="m-1">
-      <PureTableBar :title="$route.meta.title" @refresh="fetchData">
-        <template #buttons>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon(AddFill)"
-            @click="openDialog()"
-          >
-            新增供应商
-          </el-button>
+      <el-card class="m-1">
+        <PureTableBar :title="$route.meta.title" @refresh="fetchData">
+          <template #buttons>
+            <el-button
+              type="primary"
+              :icon="useRenderIcon(AddFill)"
+              @click="openDialog()"
+            >
+              新增供应商
+            </el-button>
 
-          <el-button
-            :icon="useRenderIcon(ImportIcon)"
-            @click="showImportDialog = true"
-          >
-            导入
-          </el-button>
+            <el-button
+              :icon="useRenderIcon(ImportIcon)"
+              @click="showImportDialog = true"
+            >
+              导入
+            </el-button>
 
-          <el-button
-            :icon="useRenderIcon(ExportIcon)"
-            @click="showExportDialog = true"
-          >
-            导出
-          </el-button>
-        </template>
-        <template v-slot="{ size }">
-          <pure-table
-            row-key="id"
-            adaptive
-            :size
-            :columns
-            border
-            :data="dataList"
-            :loading="loading"
-            showOverflowTooltip
-            :pagination="{ ...pagination, size }"
-            @page-current-change="onCurrentChange"
-          >
-            <template #operation="{ row }">
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                @click="handleBalance(row)"
-              >
-                余额
-              </el-button>
+            <el-button
+              :icon="useRenderIcon(ExportIcon)"
+              @click="showExportDialog = true"
+            >
+              导出
+            </el-button>
+          </template>
+          <template v-slot="{ size }">
+            <pure-table
+              row-key="id"
+              adaptive
+              :size
+              :columns
+              border
+              :data="dataList"
+              :loading="loading"
+              showOverflowTooltip
+              :pagination="{ ...pagination, size }"
+              @page-current-change="onCurrentChange"
+            >
+              <template #operation="{ row }">
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  @click="handleBalance(row)"
+                >
+                  余额
+                </el-button>
 
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                @click="openDialog('查看', row)"
-              >
-                查看
-              </el-button>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  @click="openDialog('查看', row)"
+                >
+                  查看
+                </el-button>
 
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :icon="useRenderIcon(EditPen)"
-                @click="openDialog('修改', row)"
-              >
-                修改
-              </el-button>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :icon="useRenderIcon(EditPen)"
+                  @click="openDialog('修改', row)"
+                >
+                  修改
+                </el-button>
 
-              <DeleteButton
-                v-if="!row.deleteAt"
-                :show-icon="false"
-                :title="`是否确认删除${row.name}这条数据`"
-                @confirm="handleDelete(row)"
-              />
-              <el-button
-                v-else
-                class="reset-margin"
-                link
-                type="primary"
-                @click="handleRestore(row)"
-              >
-                恢复
-              </el-button>
-            </template>
-          </pure-table>
-        </template>
-      </PureTableBar>
-    </el-card>
+                <DeleteButton
+                  v-if="!row.deleteAt"
+                  :show-icon="false"
+                  :title="`是否确认删除${row.name}这条数据`"
+                  @confirm="handleDelete(row)"
+                />
+                <el-button
+                  v-else
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  @click="handleRestore(row)"
+                >
+                  恢复
+                </el-button>
+              </template>
+            </pure-table>
+          </template>
+        </PureTableBar>
+      </el-card>
 
-    <ImportDialog
-      v-model:visible="showImportDialog"
-      type="provider"
-      title="批量导入供应商"
-      @success="fetchData"
-    />
-    <ExportDialog
-      v-model:visible="showExportDialog"
-      type="provider"
-      title="导出供应商数据"
-    />
-  </div>
+      <ImportDialog
+        v-model:visible="showImportDialog"
+        type="provider"
+        title="批量导入供应商"
+        @success="fetchData"
+      />
+      <ExportDialog
+        v-model:visible="showExportDialog"
+        type="provider"
+        title="导出供应商数据"
+      />
+    </div>
+  </PageContainer>
 </template>

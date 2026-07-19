@@ -6,6 +6,7 @@ import {
   getCustomerLevelListApi
 } from "@/api";
 import { useSysDictOptions } from "@/composables/useSysDict";
+import { fenToYuan } from "@/utils/formatMoney";
 
 interface FormItemProps {
   uid: string;
@@ -193,11 +194,11 @@ defineExpose({ formRef: ruleFormRef });
           <span v-if="initialBalanceLoading">正在加载期初余额摘要...</span>
           <span v-else>
             当前期初净额：{{
-              initialBalanceSummary.totalBalance / 100
+              fenToYuan(initialBalanceSummary.totalBalance)
             }}
             （应收：{{
-              initialBalanceSummary.receivableBalance / 100
-            }}，预收：{{ initialBalanceSummary.advanceBalance / 100 }}）
+              fenToYuan(initialBalanceSummary.receivableBalance)
+            }}，预收：{{ fenToYuan(initialBalanceSummary.advanceBalance) }}）
           </span>
         </template>
         <template v-else>客户创建后请通过财务期初余额维护。</template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { applyOrderFormSummary } from "./composables/useOrderFormSummary";
 import { computed, onMounted, ref, watch } from "vue";
 import type { FormRules } from "element-plus";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
@@ -157,51 +158,13 @@ function getDetails(): OrderDetail[] {
   return newFormInline.value.details;
 }
 
-function toFiniteNumber(value: unknown) {
-  const next = Number(value);
-  return Number.isFinite(next) ? next : 0;
-}
-
-function resolveClaimLineAmount(detail: Record<string, unknown>) {
-  return (
-    toFiniteNumber(detail.claimFee) +
-    toFiniteNumber(detail.wearFee) +
-    toFiniteNumber(detail.claimTirePrice)
-  );
-}
-
 function syncSummaryFromDetails() {
-  const details = getDetails();
-  const count =
-    orderType.value === ORDER_TYPE.supplierClaim
-      ? details.length
-      : details.reduce((sum, detail) => sum + toFiniteNumber(detail.count), 0);
-  const total = details.reduce((sum, detail) => {
-    const row = asRecord(detail);
-    if (orderType.value === ORDER_TYPE.claim)
-      return sum + resolveClaimLineAmount(row);
-    if (orderType.value === ORDER_TYPE.supplierClaim)
-      return sum + toFiniteNumber(row.claimAmount);
-    if ("total" in row) return sum + toFiniteNumber(row.total);
-    return sum + toFiniteNumber(row.count) * toFiniteNumber(row.unitPrice);
-  }, 0);
-  const settledTotal =
-    orderType.value === ORDER_TYPE.supplierClaim
-      ? details.reduce(
-          (sum, detail) => sum + toFiniteNumber(asRecord(detail).settledAmount),
-          0
-        )
-      : total;
-
-  newFormInline.value.count = count;
-  newFormInline.value.showTotal = total;
-  if (orderType.value === ORDER_TYPE.supplierClaim) {
-    newFormInline.value.total = settledTotal;
-    return;
-  }
-  if (["新增", "修改"].includes(formTitle.value)) {
-    newFormInline.value.total = total;
-  }
+  applyOrderFormSummary({
+    orderType: orderType.value,
+    details: getDetails(),
+    formTitle: formTitle.value,
+    target: newFormInline
+  });
 }
 
 function makeDetailsRule() {

@@ -1,8 +1,18 @@
 import { MoneyDisplay, StatusTag } from "@/components";
+import { paymentStatusLabel } from "@/services/order.service";
 
-const ORDER_STATUS_TAG_MAP = {
+/** 单据启停（boolean status），非支付态 */
+const DOCUMENT_STATUS_TAG_MAP = {
   true: { label: "正常", type: "success" },
   false: { label: "已关闭", type: "info" }
+} as const;
+
+/** 支付状态（orderStatus / OrderStatusEnum） */
+const PAYMENT_STATUS_TAG_MAP = {
+  0: { label: "待支付", type: "warning" },
+  1: { label: "部分支付", type: "primary" },
+  2: { label: "已付清", type: "success" },
+  3: { label: "已取消", type: "danger" }
 } as const;
 
 const APPROVAL_STATUS_TAG_MAP = {
@@ -74,8 +84,21 @@ export const purchaseOrderColumns: TableColumnList = [
     prop: "status",
     width: 100,
     cellRenderer: ({ row }) => (
-      <StatusTag status={row.status} statusMap={ORDER_STATUS_TAG_MAP} />
+      <StatusTag status={row.status} statusMap={DOCUMENT_STATUS_TAG_MAP} />
     )
+  },
+  {
+    label: "支付状态",
+    prop: "orderStatus",
+    width: 100,
+    cellRenderer: ({ row }) => {
+      const value = row.orderStatus;
+      const mapped =
+        value === 0 || value === 1 || value === 2 || value === 3
+          ? PAYMENT_STATUS_TAG_MAP[value as 0 | 1 | 2 | 3]
+          : { label: paymentStatusLabel(value), type: "info" as const };
+      return <StatusTag status={value} statusMap={{ [value]: mapped }} />;
+    }
   },
   {
     label: "审核状态",

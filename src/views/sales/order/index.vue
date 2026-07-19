@@ -3,6 +3,7 @@ import { h, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
 import { PureTableBar } from "@/components/RePureTableBar";
+import PageContainer from "@/components/PageContainer/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
@@ -298,141 +299,143 @@ async function openConfirmActionDialog(
 </script>
 
 <template>
-  <div class="main">
-    <ReSearchForm
-      ref="searchFormRef"
-      class="m-1"
-      :form="searchForm"
-      :loading="loading"
-      @search="onSearch"
-      @reset="onReset"
-    >
-      <el-form-item label="客户">
-        <el-select
-          v-model="searchForm.customerId"
-          placeholder="请选择客户"
-          clearable
-          filterable
-          class="w-[180px]"
-        >
-          <el-option
-            v-for="item in customerList"
-            :key="item.uid"
-            :label="item.name"
-            :value="item.uid"
+  <PageContainer :show-search="false">
+    <div class="main">
+      <ReSearchForm
+        ref="searchFormRef"
+        class="m-1"
+        :form="searchForm"
+        :loading="loading"
+        @search="onSearch"
+        @reset="onReset"
+      >
+        <el-form-item label="客户">
+          <el-select
+            v-model="searchForm.customerId"
+            placeholder="请选择客户"
+            clearable
+            filterable
+            class="w-[180px]"
+          >
+            <el-option
+              v-for="item in customerList"
+              :key="item.uid"
+              :label="item.name"
+              :value="item.uid"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="操作人">
+          <el-select
+            v-model="searchForm.operatorId"
+            placeholder="请选择操作人"
+            clearable
+            class="w-[180px]"
+          >
+            <el-option
+              v-for="item in employeeList"
+              :key="item.uid"
+              :label="item.name"
+              :value="item.uid"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="审核人">
+          <el-select
+            v-model="searchForm.auditorId"
+            placeholder="请选择审核人"
+            clearable
+            class="w-[180px]"
+          >
+            <el-option
+              v-for="item in managerList"
+              :key="item.uid"
+              :label="item.name"
+              :value="item.uid"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input
+            v-model="searchForm.desc"
+            placeholder="请输入备注关键词"
+            clearable
+            class="w-[180px]"
           />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="操作人">
-        <el-select
-          v-model="searchForm.operatorId"
-          placeholder="请选择操作人"
-          clearable
-          class="w-[180px]"
-        >
-          <el-option
-            v-for="item in employeeList"
-            :key="item.uid"
-            :label="item.name"
-            :value="item.uid"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="审核人">
-        <el-select
-          v-model="searchForm.auditorId"
-          placeholder="请选择审核人"
-          clearable
-          class="w-[180px]"
-        >
-          <el-option
-            v-for="item in managerList"
-            :key="item.uid"
-            :label="item.name"
-            :value="item.uid"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input
-          v-model="searchForm.desc"
-          placeholder="请输入备注关键词"
-          clearable
-          class="w-[180px]"
-        />
-      </el-form-item>
-    </ReSearchForm>
+        </el-form-item>
+      </ReSearchForm>
 
-    <el-card class="m-1">
-      <PureTableBar title="销售订单" @refresh="getList">
-        <template #buttons>
-          <el-button
-            type="primary"
-            :icon="useRenderIcon(AddFill)"
-            @click="openDialog('新增')"
-          >
-            新增订单
-          </el-button>
-        </template>
-        <template v-slot="{ size }">
-          <pure-table
-            row-key="uid"
-            adaptive
-            :size
-            :columns="salesOrderColumns"
-            border
-            :data="dataList"
-            :loading="loading"
-            show-overflow-tooltip
-            :pagination="{ ...pagination, size }"
-            @page-current-change="handlePageChange"
-            @page-size-change="handleSizeChange"
-          >
-            <template #operation="{ row }">
-              <TableOperations
-                :row="row"
-                show-audit
-                :delete-title="`确认删除编号 ${row.number} 的订单?`"
-                :custom-actions="
-                  [
-                    {
-                      label: '收款',
-                      type: 'primary',
-                      visible:
-                        row.isApproved &&
-                        (row.paidAmount || 0) < (row.total || 0),
-                      onClick: () => openDialog('收款', row)
-                    },
-                    {
-                      label: '确认发货',
-                      type: 'success',
-                      visible:
-                        (row as SalesOrder).isApproved &&
-                        (row as SalesOrder).logisticsStatus !== 3 &&
-                        (row as SalesOrder).logisticsStatus !== 4,
-                      onClick: () => onConfirmShipment(row as SalesOrder)
-                    },
-                    {
-                      label: '确认送达',
-                      type: 'success',
-                      visible:
-                        (row as SalesOrder).isApproved &&
-                        (row as SalesOrder).details?.some(
-                          d => d.isShipped && !d.isDelivered
-                        ),
-                      onClick: () => onConfirmDelivery(row as SalesOrder)
-                    }
-                  ] as CustomAction[]
-                "
-                @view="openDialog('查看', $event as unknown as SalesOrder)"
-                @edit="openDialog('修改', $event as unknown as SalesOrder)"
-                @audit="openDialog('审核', $event as unknown as SalesOrder)"
-                @delete="handleDelete($event as unknown as SalesOrder)"
-              />
-            </template>
-          </pure-table>
-        </template>
-      </PureTableBar>
-    </el-card>
-  </div>
+      <el-card class="m-1">
+        <PureTableBar title="销售订单" @refresh="getList">
+          <template #buttons>
+            <el-button
+              type="primary"
+              :icon="useRenderIcon(AddFill)"
+              @click="openDialog('新增')"
+            >
+              新增订单
+            </el-button>
+          </template>
+          <template v-slot="{ size }">
+            <pure-table
+              row-key="uid"
+              adaptive
+              :size
+              :columns="salesOrderColumns"
+              border
+              :data="dataList"
+              :loading="loading"
+              show-overflow-tooltip
+              :pagination="{ ...pagination, size }"
+              @page-current-change="handlePageChange"
+              @page-size-change="handleSizeChange"
+            >
+              <template #operation="{ row }">
+                <TableOperations
+                  :row="row"
+                  show-audit
+                  :delete-title="`确认删除编号 ${row.number} 的订单?`"
+                  :custom-actions="
+                    [
+                      {
+                        label: '收款',
+                        type: 'primary',
+                        visible:
+                          row.isApproved &&
+                          (row.paidAmount || 0) < (row.total || 0),
+                        onClick: () => openDialog('收款', row)
+                      },
+                      {
+                        label: '确认发货',
+                        type: 'success',
+                        visible:
+                          (row as SalesOrder).isApproved &&
+                          (row as SalesOrder).logisticsStatus !== 3 &&
+                          (row as SalesOrder).logisticsStatus !== 4,
+                        onClick: () => onConfirmShipment(row as SalesOrder)
+                      },
+                      {
+                        label: '确认送达',
+                        type: 'success',
+                        visible:
+                          (row as SalesOrder).isApproved &&
+                          (row as SalesOrder).details?.some(
+                            d => d.isShipped && !d.isDelivered
+                          ),
+                        onClick: () => onConfirmDelivery(row as SalesOrder)
+                      }
+                    ] as CustomAction[]
+                  "
+                  @view="openDialog('查看', $event as unknown as SalesOrder)"
+                  @edit="openDialog('修改', $event as unknown as SalesOrder)"
+                  @audit="openDialog('审核', $event as unknown as SalesOrder)"
+                  @delete="handleDelete($event as unknown as SalesOrder)"
+                />
+              </template>
+            </pure-table>
+          </template>
+        </PureTableBar>
+      </el-card>
+    </div>
+  </PageContainer>
 </template>

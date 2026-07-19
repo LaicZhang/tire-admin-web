@@ -31,7 +31,9 @@ export function getOrderTypeLabel(type: string): string {
 }
 
 /**
- * 订单状态枚举
+ * 聚合生命周期视图枚举（非 DB 字段）。
+ * DB 支付态请用 PaymentStatus / orderStatus；审批用 isApproved；物流用 LogisticsStatus。
+ * @deprecated 勿用于映射后端 orderStatus 数字。
  */
 export enum OrderStatus {
   DRAFT = 0,
@@ -43,7 +45,8 @@ export enum OrderStatus {
 }
 
 /**
- * 订单状态显示名称
+ * 聚合生命周期文案（非 DB orderStatus）。
+ * @deprecated 勿用于映射后端 orderStatus 数字。
  */
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   [OrderStatus.DRAFT]: "草稿",
@@ -82,24 +85,57 @@ export const LOGISTICS_STATUS_LABELS: Record<LogisticsStatus, string> = {
 };
 
 /**
- * 支付状态枚举
+ * 支付状态枚举（对齐后端 OrderStatusEnum / order_status）
+ * 0 Pending / 1 Partially / 2 Paid / 3 Cancelled
  */
 export enum PaymentStatus {
   UNPAID = 0,
   PARTIAL = 1,
   PAID = 2,
-  REFUNDED = 3
+  CANCELLED = 3
 }
 
+/** @deprecated 使用 PaymentStatus.CANCELLED；3 为已取消而非退款 */
+export const PaymentStatusRefundedAlias = PaymentStatus.CANCELLED;
+
 /**
- * 支付状态显示名称
+ * 支付状态显示名称（与后端 order-state-machine 文案一致）
  */
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
-  [PaymentStatus.UNPAID]: "未付款",
-  [PaymentStatus.PARTIAL]: "部分付款",
-  [PaymentStatus.PAID]: "已付款",
-  [PaymentStatus.REFUNDED]: "已退款"
+  [PaymentStatus.UNPAID]: "待支付",
+  [PaymentStatus.PARTIAL]: "部分支付",
+  [PaymentStatus.PAID]: "已付清",
+  [PaymentStatus.CANCELLED]: "已取消"
 };
+
+/** 支付状态标签；未知值显示「未知(value)」 */
+export function paymentStatusLabel(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "未知";
+  if (
+    value === PaymentStatus.UNPAID ||
+    value === PaymentStatus.PARTIAL ||
+    value === PaymentStatus.PAID ||
+    value === PaymentStatus.CANCELLED
+  ) {
+    return PAYMENT_STATUS_LABELS[value];
+  }
+  return `未知(${value})`;
+}
+
+/** 物流状态标签；未知值显示「未知(value)」 */
+export function logisticsStatusLabel(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "未知";
+  if (
+    value === LogisticsStatus.Pending ||
+    value === LogisticsStatus.PartialShipped ||
+    value === LogisticsStatus.Shipped ||
+    value === LogisticsStatus.Delivered ||
+    value === LogisticsStatus.Cancelled
+  ) {
+    return LOGISTICS_STATUS_LABELS[value];
+  }
+  return `未知(${value})`;
+}
 
 /**
  * 检查订单是否可编辑
