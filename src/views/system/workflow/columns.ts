@@ -8,36 +8,41 @@ export const columns: TableColumnList = [
   {
     label: "流程名称",
     prop: "name",
-    minWidth: 150
+    minWidth: 140
   },
   {
-    label: "描述",
-    prop: "description",
-    minWidth: 200,
-    showOverflowTooltip: true
+    label: "单据类型",
+    prop: "targetType",
+    minWidth: 120
   },
   {
-    label: "状态",
-    prop: "status",
-    width: 100,
+    label: "策略",
+    prop: "strategy",
+    width: 90,
+    align: "center"
+  },
+  {
+    label: "金额区间",
+    prop: "amountRange",
+    minWidth: 140,
+    slot: "amountRange"
+  },
+  {
+    label: "启用",
+    prop: "isEnabled",
+    width: 90,
     align: "center",
     slot: "status"
   },
   {
     label: "创建时间",
-    prop: "createTime",
-    width: 180,
-    align: "center"
-  },
-  {
-    label: "删除时间",
-    prop: "deleteTime",
+    prop: "createdAt",
     width: 180,
     align: "center"
   },
   {
     label: "操作",
-    width: 180,
+    width: 160,
     fixed: "right",
     align: "center",
     slot: "operation"

@@ -2,99 +2,117 @@ import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
 
-/** Workflow Query Parameters */
-export interface WorkflowQuery extends Record<string, unknown> {
-  name?: string;
-  status?: number;
-  scope?: "nonDeleted" | "deleted" | "all";
-  page?: number;
-  pageSize?: number;
-}
+/** Runtime approval flow (ApprovalFlow) — AWF-005 */
+export type ApprovalStrategy = "ALL" | "ANY";
 
-/** Workflow Form Data */
-export interface WorkflowForm {
-  id?: number;
-  name: string;
-  description?: string;
-  steps: WorkflowStep[];
-  status: number;
-}
-
-/** Workflow Step Definition */
-export interface WorkflowStep {
-  name: string;
-  approverId?: number;
-  approverType: "user" | "role";
-  condition?: string;
+export interface ApprovalFlowStep {
+  approverIds?: string[];
+  roleIds?: string[];
+  /** UI-only stable key */
   _uid?: string;
 }
 
-/** Workflow View Object */
-export interface WorkflowVO {
-  id: number;
+export interface ApprovalFlowForm {
+  uid?: string;
   name: string;
-  description: string;
-  steps: WorkflowStep[];
-  status: number;
-  createTime: string;
-  deleteTime?: string;
+  targetType: string;
+  minAmount?: string;
+  maxAmount?: string;
+  strategy?: ApprovalStrategy;
+  steps: ApprovalFlowStep[];
+  isEnabled?: boolean;
 }
 
-const prefix = "/system/workflow/";
+export interface ApprovalFlowVO {
+  uid: string;
+  id?: number;
+  name: string;
+  targetType: string;
+  minAmount?: string | number | null;
+  maxAmount?: string | number | null;
+  strategy?: ApprovalStrategy | string | null;
+  steps: ApprovalFlowStep[];
+  isEnabled?: boolean;
+  createdAt?: string;
+  companyId?: string;
+}
 
-/** Get Workflow List */
+/** @deprecated legacy SystemWorkflow — read-only if still called */
+export type WorkflowForm = ApprovalFlowForm;
+export type WorkflowVO = ApprovalFlowVO;
+export type WorkflowStep = ApprovalFlowStep;
+export type WorkflowQuery = {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+};
+
+const prefix = "/approval-flow/";
+
 export async function getWorkflowListApi(params?: WorkflowQuery) {
-  return await http.request<CommonResult<PaginatedResponseDto<WorkflowVO>>>(
+  const page = params?.page ?? 1;
+  return await http.request<CommonResult<PaginatedResponseDto<ApprovalFlowVO>>>(
     "get",
-    baseUrlApi(prefix + "list"),
-    {
-      params
-    }
+    baseUrlApi(`${prefix}page/${page}`)
   );
 }
 
-/** Get Workflow Detail */
-export async function getWorkflowApi(id: number) {
-  return await http.request<CommonResult<WorkflowVO>>(
+export async function getWorkflowApi(uid: string) {
+  return await http.request<CommonResult<ApprovalFlowVO>>(
     "get",
-    baseUrlApi(prefix + id)
+    baseUrlApi(prefix + uid)
   );
 }
 
-/** Create Workflow */
-export async function createWorkflowApi(data: WorkflowForm) {
-  return await http.request<CommonResult<WorkflowVO>>(
+export async function createWorkflowApi(data: ApprovalFlowForm) {
+  return await http.request<CommonResult<ApprovalFlowVO>>(
     "post",
     baseUrlApi(prefix),
     {
-      data
+      data: {
+        name: data.name,
+        targetType: data.targetType,
+        minAmount: data.minAmount || undefined,
+        maxAmount: data.maxAmount || undefined,
+        strategy: data.strategy,
+        steps: data.steps.map(({ approverIds, roleIds }) => ({
+          approverIds: approverIds?.filter(Boolean),
+          roleIds: roleIds?.filter(Boolean)
+        })),
+        isEnabled: data.isEnabled ?? true
+      }
     }
   );
 }
 
-/** Update Workflow */
-export async function updateWorkflowApi(id: number, data: WorkflowForm) {
-  return await http.request<CommonResult<WorkflowVO>>(
+export async function updateWorkflowApi(uid: string, data: ApprovalFlowForm) {
+  return await http.request<CommonResult<ApprovalFlowVO>>(
     "patch",
-    baseUrlApi(prefix + id),
+    baseUrlApi(prefix + uid),
     {
-      data
+      data: {
+        name: data.name,
+        minAmount: data.minAmount || undefined,
+        maxAmount: data.maxAmount || undefined,
+        strategy: data.strategy,
+        steps: data.steps.map(({ approverIds, roleIds }) => ({
+          approverIds: approverIds?.filter(Boolean),
+          roleIds: roleIds?.filter(Boolean)
+        })),
+        isEnabled: data.isEnabled
+      }
     }
   );
 }
 
-/** Delete Workflow */
-export async function deleteWorkflowApi(id: number) {
+export async function deleteWorkflowApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
-    baseUrlApi(prefix + id)
+    baseUrlApi(prefix + uid)
   );
 }
 
-/** Restore Workflow */
-export async function restoreWorkflowApi(id: number) {
-  return await http.request<CommonResult<WorkflowVO>>(
-    "post",
-    baseUrlApi(prefix + id + "/restore")
-  );
+/** Legacy restore is not supported for ApprovalFlow soft-delete. */
+export async function restoreWorkflowApi(_uid: string) {
+  throw new Error("真实审批流不支持从本页恢复 SystemWorkflow；请使用 approval-flow 重新创建");
 }

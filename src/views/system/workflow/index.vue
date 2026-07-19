@@ -6,7 +6,6 @@ import { columns } from "./columns";
 import {
   getWorkflowListApi,
   deleteWorkflowApi,
-  restoreWorkflowApi,
   type WorkflowQuery,
   type WorkflowVO
 } from "@/api/system/workflow";
@@ -21,6 +20,7 @@ import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { message } from "@/utils";
 import { fieldRules } from "@/utils/validation/fieldRules";
+import { handleApiError } from "@/utils/error";
 
 defineOptions({
   name: "WorkflowIndex"
@@ -34,39 +34,12 @@ const formRef = ref<WorkflowFormExpose>();
 const { confirm } = useConfirmDialog();
 
 const queryFormRef = ref<FormInstance>();
-const queryForm = reactive<Pick<WorkflowQuery, "name" | "status" | "scope">>({
-  name: undefined,
-  status: undefined,
-  scope: "nonDeleted"
+const queryForm = reactive<Pick<WorkflowQuery, "name">>({
+  name: undefined
 });
 
 const queryRules: FormRules = {
-  name: fieldRules.name({ required: false, label: "流程名称", max: 50 }),
-  status: [
-    {
-      trigger: "change",
-      validator: (_rule, value, callback) => {
-        if (value === null || value === undefined || value === "")
-          return callback();
-        if (value !== 0 && value !== 1)
-          return callback(new Error("状态不合法"));
-        callback();
-      }
-    }
-  ],
-  scope: [
-    {
-      trigger: "change",
-      validator: (_rule, value, callback) => {
-        if (value === null || value === undefined || value === "")
-          return callback();
-        const allowed = new Set(["nonDeleted", "deleted", "all"]);
-        if (!allowed.has(String(value)))
-          return callback(new Error("范围不合法"));
-        callback();
-      }
-    }
-  ]
+  name: fieldRules.name({ required: false, label: "流程名称", max: 50 })
 };
 
 const {
@@ -103,21 +76,32 @@ const {
   immediate: true
 });
 
-const workflowStatusMap = {
-  1: { label: "启用", type: "success" },
-  0: { label: "禁用", type: "info" }
+const enabledStatusMap = {
+  true: { label: "启用", type: "success" },
+  false: { label: "禁用", type: "info" }
 } as const;
 
-// Reset Query
+const formatAmountRange = (row: WorkflowVO) => {
+  const min =
+    row.minAmount === null || row.minAmount === undefined || row.minAmount === ""
+      ? null
+      : String(row.minAmount);
+  const max =
+    row.maxAmount === null || row.maxAmount === undefined || row.maxAmount === ""
+      ? null
+      : String(row.maxAmount);
+  if (!min && !max) return "不限";
+  if (min && max) return `${min} ~ ${max}`;
+  if (min) return `≥ ${min}`;
+  return `≤ ${max}`;
+};
+
 const resetQuery = () => {
   queryForm.name = "";
-  queryForm.status = undefined;
-  queryForm.scope = "nonDeleted";
   pagination.value = { ...pagination.value, currentPage: 1 };
   handleQuery();
 };
 
-// Search
 const onSearch = async () => {
   const valid = await queryFormRef.value?.validate().catch(() => false);
   if (!valid) return;
@@ -125,16 +109,15 @@ const onSearch = async () => {
   handleQuery();
 };
 
-// Add Workflow
 const handleAdd = () => {
   addDialog({
-    title: "新增审批流程",
+    title: "新增审批流程（ApprovalFlow）",
     props: {
       formInline: {
         isEdit: false
       }
     },
-    width: "600px",
+    width: "640px",
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
@@ -160,17 +143,16 @@ const handleAdd = () => {
   });
 };
 
-// Edit Workflow
 const handleEdit = (row: WorkflowVO) => {
   addDialog({
-    title: "编辑审批流程",
+    title: "编辑审批流程（ApprovalFlow）",
     props: {
       formInline: {
         isEdit: true,
         data: row
       }
     },
-    width: "600px",
+    width: "640px",
     draggable: true,
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
@@ -196,33 +178,31 @@ const handleEdit = (row: WorkflowVO) => {
   });
 };
 
-// Delete Workflow
 const handleDelete = async (row: WorkflowVO) => {
   const ok = await confirm(`确认删除流程 "${row.name}" 吗?`, "提示");
   if (!ok) return;
 
   try {
-    await deleteWorkflowApi(row.id);
+    await deleteWorkflowApi(row.uid);
     message("删除成功", { type: "success" });
     handleQuery();
-  } catch {
-    // ignore
-  }
-};
-
-const handleRestore = async (row: WorkflowVO) => {
-  try {
-    await restoreWorkflowApi(row.id);
-    message("恢复成功", { type: "success" });
-    handleQuery();
-  } catch {
-    // ignore
+  } catch (e) {
+    handleApiError(e);
   }
 };
 </script>
 
 <template>
   <div class="main-content">
+    <el-alert
+      class="mb-4"
+      type="warning"
+      show-icon
+      :closable="false"
+      title="AWF-005：本页已切换为真实 ApprovalFlow"
+      description="订单审核只读取 ApprovalFlow。旧 SystemWorkflow 写入已在后端禁用，避免双真相配置。"
+    />
+
     <el-card shadow="never" class="search-wrapper">
       <el-form
         ref="queryFormRef"
@@ -233,37 +213,14 @@ const handleRestore = async (row: WorkflowVO) => {
         <el-form-item label="流程名称" prop="name">
           <el-input
             v-model="queryForm.name"
-            placeholder="请输入流程名称"
+            placeholder="客户端筛选（后端暂无 name 过滤）"
             clearable
             @keyup.enter="onSearch"
           />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select
-            v-model="queryForm.status"
-            placeholder="请选择状态"
-            clearable
-            style="width: 200px"
-          >
-            <el-option label="启用" :value="1" />
-            <el-option label="禁用" :value="0" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="范围" prop="scope">
-          <el-select
-            v-model="queryForm.scope"
-            placeholder="请选择范围"
-            clearable
-            style="width: 200px"
-          >
-            <el-option label="未删除" value="nonDeleted" />
-            <el-option label="已删除" value="deleted" />
-            <el-option label="全部" value="all" />
-          </el-select>
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="onSearch"
-            >搜索</el-button
+            >刷新</el-button
           >
           <el-button :icon="Refresh" @click="resetQuery">重置</el-button>
         </el-form-item>
@@ -272,7 +229,7 @@ const handleRestore = async (row: WorkflowVO) => {
 
     <div class="table-wrapper bg-white p-4">
       <PureTableBar
-        title="审批流程列表"
+        title="审批流程列表（ApprovalFlow）"
         :columns="columns"
         @refresh="handleQuery"
       >
@@ -300,16 +257,18 @@ const handleRestore = async (row: WorkflowVO) => {
             @page-size-change="onPageSizeChange"
             @page-current-change="onCurrentPageChange"
           >
+            <template #amountRange="{ row }">
+              {{ formatAmountRange(row) }}
+            </template>
             <template #status="{ row }">
               <StatusTag
-                :status="row.status"
-                :status-map="workflowStatusMap"
+                :status="row.isEnabled !== false"
+                :status-map="enabledStatusMap"
                 size="default"
               />
             </template>
             <template #operation="{ row }">
               <el-button
-                v-if="!row.deleteTime"
                 link
                 type="primary"
                 :icon="Edit"
@@ -317,15 +276,11 @@ const handleRestore = async (row: WorkflowVO) => {
                 >编辑</el-button
               >
               <el-button
-                v-if="!row.deleteTime"
                 link
                 type="danger"
                 :icon="Delete"
                 @click="handleDelete(row)"
                 >删除</el-button
-              >
-              <el-button v-else link type="primary" @click="handleRestore(row)"
-                >恢复</el-button
               >
             </template>
           </pure-table>
@@ -342,11 +297,5 @@ const handleRestore = async (row: WorkflowVO) => {
 
 .search-wrapper {
   margin-bottom: 20px;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
 }
 </style>
