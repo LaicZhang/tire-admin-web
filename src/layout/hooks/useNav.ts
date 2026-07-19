@@ -1,7 +1,7 @@
 import { storeToRefs } from "pinia";
 import { getConfig } from "@/config";
 import { emitter } from "@/utils/mitt";
-import userAvatar from "@/assets/user.webp";
+import defaultUserAvatar from "@/assets/user.webp";
 import { getTopMenu, safeNavigate } from "@/router/utils";
 import { useFullscreen } from "@vueuse/core";
 import { useGlobal } from "@pureadmin/utils";
@@ -42,6 +42,14 @@ export function useNav() {
   /** 用户名 */
   const username = computed(() => {
     return useUserStoreHook()?.username;
+  });
+
+  /** PPE-012: navbar avatar from user store (fallback default asset) */
+  const userAvatar = computed(() => {
+    const avatar = useUserStoreHook()?.avatar;
+    return typeof avatar === "string" && avatar.trim().length > 0
+      ? avatar
+      : defaultUserAvatar;
   });
 
   const avatarsStyle = computed(() => {

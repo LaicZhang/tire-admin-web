@@ -66,7 +66,7 @@
             <div class="cell-item">性别</div>
           </template>
           <el-tag size="small">{{
-            userInfo.info.gender === 1 ? "男" : "女"
+            formatGenderLabel(userInfo.info?.gender)
           }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item>
@@ -137,6 +137,12 @@
 </template>
 
 <script setup lang="ts">
+function formatGenderLabel(gender: number | null | undefined) {
+  if (gender === 1) return "男";
+  if (gender === 0) return "女";
+  return "未设置";
+}
+
 import { computed, h, onMounted, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { getUserInfoApi } from "@/api";
