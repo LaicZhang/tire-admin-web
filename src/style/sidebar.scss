@@ -19,7 +19,7 @@
 
   /* popper menu 超出内容区可滚动 */
   .pure-scrollbar {
-    max-height: calc(100vh - calc(50px * 2.5));
+    max-height: calc(var(--app-viewport-height, 100vh) - calc(50px * 2.5));
     overflow: hidden auto;
   }
 
@@ -45,7 +45,7 @@
 
   .main-container {
     position: relative;
-    height: 100vh;
+    height: var(--app-viewport-height, 100vh);
     min-height: 100%;
     margin-left: $sideBarWidth;
     background: #f0f2f5;

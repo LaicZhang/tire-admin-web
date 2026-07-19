@@ -279,7 +279,8 @@ function handleExportSuccess() {
                   <img
                     :src="barcodeImage"
                     alt="条码预览"
-                    class="border rounded p-2"
+                    class="barcode-preview border rounded p-2 max-w-full h-auto"
+                    style="max-width: 100%; height: auto; object-fit: contain"
                   />
                   <el-button size="small" @click="downloadBarcode">
                     下载条码图片

@@ -4,9 +4,9 @@ import {
   store,
   getConfig,
   storageLocal,
-  deviceDetection,
   responsiveStorageNameSpace
 } from "../utils";
+import { isMobileViewport } from "@/utils/viewport";
 
 export const useAppStore = defineStore("pure-app", {
   state: (): appType => ({
@@ -27,7 +27,7 @@ export const useAppStore = defineStore("pure-app", {
       )?.layout ??
       getConfig().Layout ??
       "vertical",
-    device: deviceDetection() ? "mobile" : "desktop",
+    device: isMobileViewport() ? "mobile" : "desktop",
     // 浏览器窗口的可视区域大小
     viewportSize: {
       width: document.documentElement.clientWidth,

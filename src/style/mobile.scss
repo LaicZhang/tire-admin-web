@@ -1,0 +1,76 @@
+/* ADM-MOB-006/007/009/010 — mobile web adaptations */
+
+/* ADM-MOB-007: dynamic viewport height + safe-area fallbacks */
+:root {
+  --app-viewport-height: 100vh;
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --app-viewport-height: 100dvh;
+  }
+}
+
+/* ADM-MOB-006: make table horizontal scroll obvious on narrow screens */
+@media (width <= 768px) {
+  .pure-table,
+  .el-table {
+    max-width: 100%;
+  }
+
+  .el-table__body-wrapper,
+  .el-scrollbar__wrap {
+    /* native overscroll cue */
+    overscroll-behavior-x: contain;
+  }
+
+  .pure-table::after {
+    display: block;
+    padding: 4px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--el-text-color-secondary, #909399);
+    text-align: center;
+    content: "← 左右滑动查看更多列 →";
+  }
+}
+
+/* ADM-MOB-009: preview / content images never blow layout */
+.el-image,
+.el-image img,
+img.preview-img,
+.barcode-preview img {
+  max-width: 100%;
+  height: auto;
+}
+
+.el-image img {
+  object-fit: contain;
+}
+
+/* ADM-MOB-010: compact landscape chrome after viewport-driven layout */
+@media (orientation: landscape) and (height <= 500px) {
+  .navbar {
+    height: 40px !important;
+  }
+
+  .navbar .hamburger-container,
+  .navbar .vertical-header-right,
+  .navbar .el-dropdown-link {
+    height: 40px !important;
+    line-height: 40px !important;
+  }
+
+  .tags-view {
+    display: none !important;
+  }
+
+  .el-dialog__footer {
+    padding-top: 8px;
+    padding-bottom: calc(8px + var(--app-safe-bottom));
+  }
+}

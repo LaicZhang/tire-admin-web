@@ -94,3 +94,45 @@ const handleReset = () => {
     </el-form>
   </el-card>
 </template>
+
+<style scoped lang="scss">
+/* ADM-MOB-005: ≤640 搜索表单项/控件/操作区全宽，避免固定宽控件溢出 */
+@media (width <= 640px) {
+  .re-search-form {
+    :deep(.search-form-inline) {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      align-items: stretch;
+
+      .el-form-item {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 12px;
+
+        .el-form-item__content {
+          flex-wrap: wrap;
+          width: 100%;
+        }
+
+        .el-input,
+        .el-select,
+        .el-date-editor,
+        .el-cascader,
+        .el-autocomplete {
+          width: 100% !important;
+          max-width: 100%;
+        }
+      }
+
+      /* 操作按钮行：全宽可换行 */
+      .el-form-item:last-child .el-form-item__content {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+      }
+    }
+  }
+}
+</style>

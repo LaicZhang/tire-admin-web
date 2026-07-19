@@ -7,11 +7,16 @@ import {
 } from "@/api/business/invoice";
 import { handleApiError } from "@/utils/error";
 import { formatMoneyFromFen } from "@/utils/formatMoney";
+import { isMobileViewport } from "@/utils/viewport";
+import { useAppStoreHook } from "@/store/modules/app";
 
 defineOptions({
   name: "FinanceArTempList"
 });
 
+const isMobileLayout = computed(() =>
+  isMobileViewport(useAppStoreHook().getViewportWidth)
+);
 const router = useRouter();
 const loading = ref(false);
 const dataList = ref<SaleDeliverySource[]>([]);
@@ -81,7 +86,11 @@ loadList();
             {{ row.shippedAt.slice(0, 10) }}
           </template>
         </el-table-column>
-        <el-table-column label="账龄(天)" min-width="100">
+        <el-table-column
+          v-if="!isMobileLayout"
+          label="账龄(天)"
+          min-width="100"
+        >
           <template #default="{ row }">
             {{ calcAgeDays(row.shippedAt) }}
           </template>
@@ -91,7 +100,7 @@ loadList();
             {{ formatMoneyFromFen(row.totalAmount) }}
           </template>
         </el-table-column>
-        <el-table-column label="已开票" min-width="120">
+        <el-table-column v-if="!isMobileLayout" label="已开票" min-width="120">
           <template #default="{ row }">
             {{ formatMoneyFromFen(row.invoicedAmount) }}
           </template>
@@ -101,7 +110,11 @@ loadList();
             {{ formatMoneyFromFen(row.remainingAmount) }}
           </template>
         </el-table-column>
-        <el-table-column label="发货行余额" min-width="340">
+        <el-table-column
+          v-if="!isMobileLayout"
+          label="发货行余额"
+          min-width="340"
+        >
           <template #default="{ row }">
             <div class="space-y-1">
               <div v-for="line in row.lines" :key="line.uid" class="text-xs">

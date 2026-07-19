@@ -134,8 +134,12 @@ const onSelectCompany = async (companyId: string) => {
 
 <style lang="scss" scoped>
 .navbar {
+  box-sizing: content-box;
   width: 100%;
   height: 48px;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-left: env(safe-area-inset-left, 0);
   overflow: hidden;
 
   .hamburger-container {

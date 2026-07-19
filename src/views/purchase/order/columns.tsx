@@ -1,5 +1,8 @@
 import { MoneyDisplay, StatusTag } from "@/components";
 import { paymentStatusLabel } from "@/services/order.service";
+import { isMobileViewport } from "@/utils/viewport";
+
+const hideOnMobile = () => isMobileViewport();
 
 /** 单据启停（boolean status），非支付态 */
 const DOCUMENT_STATUS_TAG_MAP = {
@@ -43,7 +46,8 @@ export const purchaseOrderColumns: TableColumnList = [
   {
     label: "商品数量",
     prop: "count",
-    width: 100
+    width: 100,
+    hide: hideOnMobile
   },
   {
     label: "应付金额",
@@ -60,6 +64,7 @@ export const purchaseOrderColumns: TableColumnList = [
   {
     label: "已付金额",
     prop: "paidAmount",
+    hide: hideOnMobile,
     width: 120,
     align: "right",
     cellRenderer: ({ row }) => (
@@ -72,17 +77,20 @@ export const purchaseOrderColumns: TableColumnList = [
   {
     label: "采购员",
     prop: "operator.name",
-    width: 100
+    width: 100,
+    hide: hideOnMobile
   },
   {
     label: "审核员",
     prop: "auditor.name",
-    width: 100
+    width: 100,
+    hide: hideOnMobile
   },
   {
     label: "单据状态",
     prop: "status",
     width: 100,
+    hide: hideOnMobile,
     cellRenderer: ({ row }) => (
       <StatusTag status={row.status} statusMap={DOCUMENT_STATUS_TAG_MAP} />
     )
@@ -111,6 +119,7 @@ export const purchaseOrderColumns: TableColumnList = [
   {
     label: "物流状态",
     prop: "logisticsStatus",
+    hide: hideOnMobile,
     width: 100,
     cellRenderer: ({ row }) => (
       <StatusTag

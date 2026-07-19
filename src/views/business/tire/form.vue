@@ -416,6 +416,9 @@ watch(
           :key="item.id"
           :src="coverPreviewList[index]"
           loading="lazy"
+          fit="contain"
+          class="max-w-full"
+          style="max-width: 100%; max-height: 160px"
           :preview-src-list="coverPreviewList"
         />
       </div>

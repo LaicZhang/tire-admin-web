@@ -14,12 +14,8 @@ import {
   onBeforeMount,
   defineComponent
 } from "vue";
-import {
-  useDark,
-  useGlobal,
-  deviceDetection,
-  useResizeObserver
-} from "@pureadmin/utils";
+import { useDark, useGlobal, useResizeObserver } from "@pureadmin/utils";
+import { VIEWPORT_BREAKPOINTS, isMobileViewport } from "@/utils/viewport";
 
 import navbar from "./components/navbar.vue";
 import tag from "./components/tag/index.vue";
@@ -32,7 +28,6 @@ import backTop from "@/assets/svg/back_top.svg?component";
 const appWrapperRef = ref<HTMLDivElement | null>(null);
 const { isDark } = useDark();
 const { layout } = useLayout();
-const isMobile = deviceDetection();
 const pureSetting = useSettingStoreHook();
 const { $storage } = useGlobal<GlobalPropertiesApi>();
 
@@ -77,16 +72,10 @@ function toggle(device: string, bool: boolean) {
 // 判断是否可自动关闭菜单栏
 let isAutoCloseSidebar = true;
 
-/** 布局断点常量 */
-const BREAKPOINTS = {
-  MOBILE: 760,
-  TABLET: 990
-} as const;
+/** 布局断点：统一 viewport 宽度（ADM-MOB-004），不使用 UA deviceDetection */
+const BREAKPOINTS = VIEWPORT_BREAKPOINTS;
 
-useResizeObserver(".app-wrapper", entries => {
-  if (isMobile) return;
-  const entry = entries[0];
-  const [{ inlineSize: width, blockSize: height }] = entry.borderBoxSize;
+function applyViewportLayout(width: number, height: number) {
   useAppStoreHook().setViewportSize({ width, height });
   width <= BREAKPOINTS.MOBILE
     ? setTheme("vertical")
@@ -111,10 +100,20 @@ useResizeObserver(".app-wrapper", entries => {
     toggle("desktop", false);
     isAutoCloseSidebar = false;
   }
+}
+
+useResizeObserver(".app-wrapper", entries => {
+  const entry = entries[0];
+  const [{ inlineSize: width, blockSize: height }] = entry.borderBoxSize;
+  applyViewportLayout(width, height);
 });
 
 onMounted(() => {
-  if (isMobile) {
+  // 初始同步：窄窗桌面 UA 与真机均按实际宽度判定
+  const width = document.documentElement.clientWidth;
+  const height = document.documentElement.clientHeight;
+  applyViewportLayout(width, height);
+  if (isMobileViewport(width)) {
     toggle("mobile", false);
   }
 });

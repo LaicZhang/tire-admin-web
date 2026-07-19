@@ -214,3 +214,10 @@
   border: none !important;
   box-shadow: none !important;
 }
+
+/* ADM-MOB-007: dialog footer clears home indicator */
+.el-dialog__footer {
+  padding-bottom: calc(
+    var(--el-dialog-padding-primary, 16px) + env(safe-area-inset-bottom, 0px)
+  );
+}

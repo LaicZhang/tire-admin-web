@@ -205,9 +205,10 @@ onMounted(async () => {
                 :key="item.id"
                 :src="BaseImagePath + item.hash + '.' + item.ext"
                 loading="lazy"
+                fit="cover"
                 hide-on-click-modal
                 preview-teleported
-                style="height: 30px"
+                style="width: 40px; height: 30px"
                 :preview-src-list="
                   row.covers.map((item: { hash: string; ext: string }) => {
                     return BaseImagePath + item.hash + '.' + item.ext;
