@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import Motion from "../utils/motion";
 import { message } from "@/utils/message";
 import { updateRules } from "../utils/rule";
 import type { FormInstance } from "element-plus";
 import { useCaptchaCode } from "../utils/captchaCode";
+import { useCaptcha } from "../composables/useLoginForm";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Lock from "~icons/ri/lock-fill";
@@ -14,12 +15,19 @@ import { forgetPasswordApi, getVerifyCodeApi } from "@/api";
 const loading = ref(false);
 const ruleForm = reactive({
   phone: "",
+  graphicCaptcha: "",
   captchaCode: "",
   password: "",
   repeatPassword: ""
 });
 const ruleFormRef = ref<FormInstance>();
 const { isDisabled, text } = useCaptchaCode();
+const { captchaUrl, refreshCaptcha } = useCaptcha();
+
+onMounted(() => {
+  refreshCaptcha();
+});
+
 const repeatPasswordRule = [
   {
     validator: (
@@ -39,18 +47,36 @@ const repeatPasswordRule = [
   }
 ];
 
-const sendSmsCode = () => {
-  useCaptchaCode().start(ruleFormRef.value, "phone");
-  getVerifyCodeApi({ phone: ruleForm.phone, type: "reset-password" }).then(
-    res => {
-      const { code, msg } = res;
-      if (code === 200) {
-        message("验证码发送成功", { type: "success" });
-      } else {
-        message(msg, { type: "error" });
-      }
+const sendSmsCode = async () => {
+  if (!ruleForm.phone?.trim()) {
+    message("请先输入手机号", { type: "warning" });
+    return;
+  }
+  if (!ruleForm.graphicCaptcha?.trim()) {
+    message("请先输入图形验证码", { type: "warning" });
+    return;
+  }
+
+  await useCaptchaCode().start(ruleFormRef.value, "phone");
+  try {
+    const res = await getVerifyCodeApi({
+      phone: ruleForm.phone,
+      type: "reset-password",
+      code: ruleForm.graphicCaptcha
+    });
+    const { code, msg } = res;
+    if (code === 200) {
+      message("验证码发送成功", { type: "success" });
+      ruleForm.graphicCaptcha = "";
+      refreshCaptcha();
+    } else {
+      message(msg || "发送失败", { type: "error" });
+      refreshCaptcha();
     }
-  );
+  } catch {
+    message("发送失败", { type: "error" });
+    refreshCaptcha();
+  }
 };
 
 const onUpdate = async (formEl: FormInstance | undefined) => {
@@ -99,9 +125,28 @@ function onBack() {
         <el-input
           v-model="ruleForm.phone"
           clearable
-          :placeholder="'手机号'"
+          placeholder="手机号码"
           :prefix-icon="useRenderIcon(Iphone)"
         />
+      </el-form-item>
+    </Motion>
+
+    <Motion :delay="50">
+      <el-form-item prop="graphicCaptcha">
+        <div class="w-full flex justify-between items-center gap-2">
+          <el-input
+            v-model="ruleForm.graphicCaptcha"
+            clearable
+            placeholder="图形验证码"
+            :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
+          />
+          <img
+            class="h-10 cursor-pointer rounded border"
+            :src="captchaUrl"
+            alt="点击刷新"
+            @click="refreshCaptcha"
+          />
+        </div>
       </el-form-item>
     </Motion>
 
@@ -127,19 +172,19 @@ function onBack() {
           v-model="ruleForm.password"
           clearable
           show-password
-          :placeholder="'新密码'"
+          placeholder="新密码"
           :prefix-icon="useRenderIcon(Lock)"
         />
       </el-form-item>
     </Motion>
 
     <Motion :delay="200">
-      <el-form-item :rules="repeatPasswordRule" prop="repeatPassword">
+      <el-form-item prop="repeatPassword" :rules="repeatPasswordRule">
         <el-input
           v-model="ruleForm.repeatPassword"
           clearable
           show-password
-          :placeholder="'确认新密码'"
+          placeholder="确认新密码"
           :prefix-icon="useRenderIcon(Lock)"
         />
       </el-form-item>
