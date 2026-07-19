@@ -14,6 +14,29 @@
             <el-button type="primary" @click="openEditDialog">更新</el-button>
           </div>
         </template>
+        <el-descriptions-item :span="2">
+          <template #label>
+            <div class="cell-item">头像</div>
+          </template>
+          <div class="flex items-center gap-4">
+            <el-avatar :size="64" :src="avatarDisplayUrl || undefined">
+              <el-icon><User /></el-icon>
+            </el-avatar>
+            <el-upload
+              :show-file-list="false"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              :disabled="avatarUploading"
+              :http-request="handleAvatarUpload"
+            >
+              <el-button size="small" :loading="avatarUploading">
+                更换头像
+              </el-button>
+            </el-upload>
+            <span class="text-xs text-gray-400"
+              >支持 png/jpg/webp，最大 5MB</span
+            >
+          </div>
+        </el-descriptions-item>
         <el-descriptions-item>
           <template #label>
             <div class="cell-item">用户名</div>
@@ -123,13 +146,21 @@ import {
   wxQrBindApi,
   wxUnbindApi
 } from "@/api/auth";
+import {
+  checkStaticImageApi,
+  updateAvatarApi,
+  uploadStaticImageApi
+} from "@/api/static";
+import { getFileContentMd5, getImageWH } from "@/utils";
 import { message } from "@/utils/message";
 import { maskEmailDisplay, maskPhoneDisplay } from "@/utils/presentationMask";
-import type { ComponentSize } from "element-plus";
+import type { ComponentSize, UploadRequestOptions } from "element-plus";
 import { userInfoTemplate, type UserInfoType } from "./info";
 import { User, Connection } from "@element-plus/icons-vue";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { addDialog, closeAllDialog } from "@/composables/useDialogService";
+import { useUserStoreHook } from "@/store/modules/user";
+import { BaseImagePath, StaticImageTypeEnum } from "@/utils/const";
 import WxBindForm from "./WxBindForm.vue";
 import ProfileEditForm from "./ProfileEditForm.vue";
 import ResetPasswordForm from "./ResetPasswordForm.vue";
@@ -141,7 +172,105 @@ defineOptions({
 const size = ref<ComponentSize>("default");
 const userInfo = ref<UserInfoType>(userInfoTemplate);
 const wxLoading = ref(false);
+const avatarUploading = ref(false);
+const avatarPreviewUrl = ref("");
+const userStore = useUserStoreHook();
 const { confirm } = useConfirmDialog();
+
+/** Prefer freshly uploaded preview; fall back to store avatar or known base path + avatarId. */
+const avatarDisplayUrl = computed(() => {
+  if (avatarPreviewUrl.value) return avatarPreviewUrl.value;
+  if (userStore.avatar) return userStore.avatar;
+  const avatarId = userInfo.value.info?.avatarId;
+  if (avatarId) return `${BaseImagePath}${avatarId}`;
+  return "";
+});
+
+const parseExtFromFilename = (name: string) => {
+  const i = name.lastIndexOf(".");
+  return i >= 0 ? name.slice(i + 1).toLowerCase() : "png";
+};
+
+const handleAvatarUpload = async (options: UploadRequestOptions) => {
+  const file = options.file as File;
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    message("头像不能超过 5MB", { type: "warning" });
+    return;
+  }
+  if (!file.type.startsWith("image/")) {
+    message("请上传图片文件", { type: "warning" });
+    return;
+  }
+
+  const userUid = userStore.uid;
+  if (!userUid) {
+    message("未获取到用户身份，请重新登录", { type: "error" });
+    return;
+  }
+
+  avatarUploading.value = true;
+  try {
+    // PPE-004: real content MD5 required by backend compareMD5
+    const hash = await getFileContentMd5(file);
+    let staticUid: string | undefined;
+
+    try {
+      const checked = await checkStaticImageApi(hash);
+      if (checked.code === 200 && checked.data?.uid) {
+        staticUid = checked.data.uid;
+      }
+    } catch {
+      // miss cache — fall through to multipart upload
+    }
+
+    if (!staticUid) {
+      const ext = parseExtFromFilename(file.name);
+      const { width, height } = await getImageWH(file);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("filename", file.name);
+      formData.append("ext", ext);
+      formData.append("hash", hash);
+      formData.append("mimetype", file.type || "image/png");
+      formData.append("size", String(file.size));
+      formData.append("width", String(width));
+      formData.append("height", String(height));
+      formData.append("lastModified", String(file.lastModified));
+      formData.append("type", String(StaticImageTypeEnum.AVATAR));
+
+      const uploadRes = await uploadStaticImageApi(formData);
+      if (uploadRes.code !== 200 || !uploadRes.data?.uid) {
+        message(uploadRes.msg || "头像上传失败", { type: "error" });
+        return;
+      }
+      staticUid = uploadRes.data.uid;
+    }
+
+    const bindRes = await updateAvatarApi(userUid, staticUid);
+    if (bindRes.code !== 200) {
+      message(bindRes.msg || "头像绑定失败", { type: "error" });
+      return;
+    }
+
+    avatarPreviewUrl.value = URL.createObjectURL(file);
+    userInfo.value = {
+      ...userInfo.value,
+      info: {
+        ...userInfo.value.info,
+        avatarId: staticUid
+      }
+    };
+    userStore.setAvatar(avatarPreviewUrl.value);
+    message("头像更新成功", { type: "success" });
+    options.onSuccess?.({ code: 200, data: { uid: staticUid } } as never);
+  } catch {
+    message("头像更新失败", { type: "error" });
+    options.onError?.(new Error("avatar upload failed") as never);
+  } finally {
+    avatarUploading.value = false;
+  }
+};
 
 const wxBindStatus = ref({
   isBound: false,

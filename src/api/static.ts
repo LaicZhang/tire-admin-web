@@ -45,3 +45,11 @@ export async function uploadStaticImageApi(
     }
   );
 }
+
+/** PPE-004: self-service avatar bind (path uid accepted for compat, backend uses auth user). */
+export async function updateAvatarApi(userUid: string, staticUid: string) {
+  return await http.request<CommonResult>(
+    "patch",
+    baseUrlApi(`/info/avatar/${userUid}/${staticUid}`)
+  );
+}

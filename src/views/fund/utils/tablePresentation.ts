@@ -1,4 +1,5 @@
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
+import { neutralizeCsvFormula } from "@/utils/tablePresentation";
 
 export interface PresentationColumn<T> {
   label: string;
@@ -92,19 +93,25 @@ function buildHtmlTable<T>(
 </html>`;
 }
 
+function toCsvCell(
+  value: string | number | boolean | null | undefined
+): string {
+  const neutralized = neutralizeCsvFormula(normalizeCell(value)).replace(
+    /"/g,
+    '""'
+  );
+  return `"${neutralized}"`;
+}
+
 export function exportRowsAsCsv<T>(
   rows: T[],
   columns: PresentationColumn<T>[],
   baseFilename: string
 ) {
-  const header = columns.map(column => column.label).join(",");
+  // FILE-009: fund 副本路径统一走 neutralizeCsvFormula，防止公式注入
+  const header = columns.map(column => toCsvCell(column.label)).join(",");
   const lines = rows.map(row =>
-    columns
-      .map(column => {
-        const value = normalizeCell(column.value(row)).replace(/"/g, '""');
-        return `"${value}"`;
-      })
-      .join(",")
+    columns.map(column => toCsvCell(column.value(row))).join(",")
   );
   const content = ["\ufeff" + header, ...lines].join("\n");
   const blob = new Blob([content], {
