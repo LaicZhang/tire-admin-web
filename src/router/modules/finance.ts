@@ -74,6 +74,15 @@ export default {
       }
     },
     {
+      path: "/finance/sale-fulfillment",
+      name: "FinanceSaleFulfillment",
+      component: () =>
+        import("@/views/business/finance/saleFulfillment/index.vue"),
+      meta: {
+        title: "销售履约工作台"
+      }
+    },
+    {
       path: "/finance/invoice/detail/:uid",
       name: "FinanceInvoiceDetail",
       component: () => import("@/views/business/finance/invoice/detail.vue"),

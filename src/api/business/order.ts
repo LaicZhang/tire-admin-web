@@ -317,6 +317,48 @@ export async function confirmSaleOrderShipmentApi(
   );
 }
 
+/** BIZ-006/010: unified fulfillment next-action workbench */
+export type FulfillmentNextAction =
+  | "AWAIT_APPROVAL"
+  | "CREATE_ALLOCATION"
+  | "CONFIRM_ALLOCATION"
+  | "CREATE_PICKING"
+  | "CONFIRM_PICKING"
+  | "POST_PICKING"
+  | "SHIP_OR_DONE"
+  | "REVERSED"
+  | "DONE";
+
+export interface SaleFulfillmentWorkbenchItem {
+  saleOrderUid: string;
+  docNo: string | null;
+  customerId: string;
+  isApproved: boolean;
+  isReversed: boolean;
+  nextAction: FulfillmentNextAction;
+  nextActionLabel: string;
+  allocationUid: string | null;
+  allocationStatus: string | null;
+  pickingUid: string | null;
+  pickingStatus: string | null;
+  nextPath: string | null;
+}
+
+export async function getSaleFulfillmentWorkbenchApi(limit = 30) {
+  return await http.request<CommonResult<SaleFulfillmentWorkbenchItem[]>>(
+    "get",
+    baseUrlApi("/sale-fulfillment/workbench"),
+    { params: { limit } }
+  );
+}
+
+export async function getSaleFulfillmentNextApi(saleOrderUid: string) {
+  return await http.request<CommonResult<SaleFulfillmentWorkbenchItem>>(
+    "get",
+    baseUrlApi(`/sale-fulfillment/next/${saleOrderUid}`)
+  );
+}
+
 export async function createSaleAllocationFromOrderApi(
   saleOrderUid: string,
   data: CreateSaleAllocationFromOrderDto
