@@ -51,7 +51,8 @@ const employeeStatus = computed(
 
 async function getPositionList() {
   const cached = (await localForage().getItem(ALL_LIST.position)) as
-    { list: PositionItem[] } | PositionItem[];
+    | { list: PositionItem[] }
+    | PositionItem[];
   allPositionList.value = Array.isArray(cached) ? cached : cached?.list || [];
 }
 

@@ -7,7 +7,12 @@ export interface HomeShortcut {
 }
 
 type RoleHomeKey =
-  "executive" | "sales" | "purchase" | "warehouse" | "finance" | "analyst";
+  | "executive"
+  | "sales"
+  | "purchase"
+  | "warehouse"
+  | "finance"
+  | "analyst";
 
 const executiveShortcuts: HomeShortcut[] = [
   {

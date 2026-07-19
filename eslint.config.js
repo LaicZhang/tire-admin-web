@@ -3,7 +3,6 @@ import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 import * as parserVue from "vue-eslint-parser";
 import configPrettier from "eslint-config-prettier";
-import pluginPrettier from "eslint-plugin-prettier";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 const typescriptRules = {
@@ -92,12 +91,8 @@ export default defineConfig([
         parseFloat: "readonly"
       }
     },
-    plugins: {
-      prettier: pluginPrettier
-    },
     rules: {
       ...configPrettier.rules,
-      ...pluginPrettier.configs.recommended.rules,
       "no-debugger": "off",
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-unused-vars": [
@@ -105,12 +100,6 @@ export default defineConfig([
         {
           argsIgnorePattern: "^_",
           varsIgnorePattern: "^_"
-        }
-      ],
-      "prettier/prettier": [
-        "error",
-        {
-          endOfLine: "auto"
         }
       ]
     }

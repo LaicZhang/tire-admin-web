@@ -1,7 +1,12 @@
 export type ReceiptStatus = "DRAFT" | "APPROVED" | "COMPLETED" | "VOID";
 
 export type PaymentMethod =
-  "CASH" | "BANK_TRANSFER" | "WECHAT" | "ALIPAY" | "CHECK" | "OTHER";
+  | "CASH"
+  | "BANK_TRANSFER"
+  | "WECHAT"
+  | "ALIPAY"
+  | "CHECK"
+  | "OTHER";
 
 export interface ReceiptDetailItem {
   id?: number;

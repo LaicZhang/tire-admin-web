@@ -313,7 +313,8 @@ export const claimOrderDetailsColumns: TableColumnList = [
     minWidth: 260,
     cellRenderer: ({ row }) => {
       const trace = row.serialTrace as
-        ClaimFormItemProps["details"][number]["serialTrace"] | undefined;
+        | ClaimFormItemProps["details"][number]["serialTrace"]
+        | undefined;
       if (!trace?.serialNo) return <span class="text-gray-400">-</span>;
       const parts = getClaimTraceSummaryLines(trace);
       return (

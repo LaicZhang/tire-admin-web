@@ -125,7 +125,8 @@ watch(
     const deliveryNoteId = String(query.deliveryNoteId || "").trim();
     const purchaseInboundId = String(query.purchaseInboundId || "").trim();
     const businessType = String(query.businessType || "").trim() as
-      InvoiceBusinessType | "";
+      | InvoiceBusinessType
+      | "";
     if (query.autoCreate === "1" && (deliveryNoteId || purchaseInboundId)) {
       createPreset.value = {
         ...(deliveryNoteId ? { deliveryNoteId } : {}),

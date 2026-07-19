@@ -5,7 +5,11 @@ import type { CommonResult } from "../type";
 const prefix = "/special-price-request";
 
 export type SpecialPriceRequestStatus =
-  "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "USED" | "CANCELLED";
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "REJECTED"
+  | "USED"
+  | "CANCELLED";
 
 export interface SpecialPriceRequest {
   uid: string;

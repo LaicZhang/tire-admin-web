@@ -5,7 +5,12 @@ import { handleApiError } from "@/utils";
 import { openManagedFormDialog } from "./formDialogBase";
 
 export type ActionFormDialogAction =
-  "新增" | "修改" | "查看" | "审核" | "收款" | "付款";
+  | "新增"
+  | "修改"
+  | "查看"
+  | "审核"
+  | "收款"
+  | "付款";
 
 export interface ActionFormDialogFormRef {
   formRef?: FormInstance;
