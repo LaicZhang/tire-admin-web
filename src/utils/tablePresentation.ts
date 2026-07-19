@@ -28,6 +28,19 @@ function normalizeCell(value: string | number | boolean | null | undefined) {
   return String(value);
 }
 
+/**
+ * Neutralize spreadsheet formula injection prefixes for CSV cells (FILE-009).
+ * Leading whitespace/tab/CR are stripped before checking = + - @.
+ */
+export function neutralizeCsvFormula(value: string): string {
+  // Strip leading whitespace / tab / CR / LF before formula-prefix check
+  const trimmedStart = value.replace(/^[\u0009\u000d\u000a ]+/, "");
+  if (/^[=+\u002d@]/.test(trimmedStart)) {
+    return `'${value}`;
+  }
+  return value;
+}
+
 function buildHtmlTable<T>(
   rows: T[],
   columns: PresentationColumn<T>[],
@@ -99,7 +112,10 @@ function buildHtmlTable<T>(
 }
 
 function toCsvLine(values: string[]) {
-  return values.map(value => `"${value.replace(/"/g, '""')}"`).join(",");
+  return values
+    .map(value => neutralizeCsvFormula(value))
+    .map(value => `"${value.replace(/"/g, '""')}"`)
+    .join(",");
 }
 
 export function exportRowsAsCsv<T>(

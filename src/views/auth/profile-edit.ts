@@ -5,6 +5,12 @@ type SensitiveContactFields = {
   email?: string;
 };
 
+export type ProfileEditSnapshot = SensitiveContactFields & {
+  nickname?: string;
+  gender?: number;
+  birthday?: string;
+};
+
 export type ProfileEditFormData = UpdateUserInfoDto & {
   currentPassword?: string;
 };
@@ -23,7 +29,13 @@ export function requiresCurrentPassword<
   );
 }
 
+/**
+ * Build PATCH /auth/info payload as a diff against the initial profile snapshot.
+ * Sensitive contact fields (phone/email) are only sent when they actually change,
+ * so backend re-auth is not triggered for nickname/gender/birthday-only edits.
+ */
 export function buildUpdateCurrentUserInfoPayload(
+  initialData: ProfileEditSnapshot,
   form: ProfileEditFormData
 ): UpdateUserInfoDto {
   const payload: UpdateUserInfoDto = {};
@@ -31,22 +43,28 @@ export function buildUpdateCurrentUserInfoPayload(
   if (form.nickname !== undefined) {
     payload.nickname = form.nickname;
   }
-  if (form.phone !== undefined) {
+
+  if (normalizeText(form.phone) !== normalizeText(initialData.phone)) {
     payload.phone = form.phone;
   }
-  if (form.email !== undefined) {
+
+  if (normalizeText(form.email) !== normalizeText(initialData.email)) {
     payload.email = form.email;
   }
+
   if (form.gender !== undefined) {
     payload.gender = form.gender;
   }
+
   if (normalizeText(form.birthday)) {
     payload.birthday = form.birthday;
   }
 
-  const currentPassword = normalizeText(form.currentPassword);
-  if (currentPassword) {
-    payload.currentPassword = currentPassword;
+  if (requiresCurrentPassword(initialData, form)) {
+    const currentPassword = normalizeText(form.currentPassword);
+    if (currentPassword) {
+      payload.currentPassword = currentPassword;
+    }
   }
 
   return payload;

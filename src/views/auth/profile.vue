@@ -9,7 +9,10 @@
         border
       >
         <template #extra>
-          <el-button type="primary" @click="openEditDialog">更新</el-button>
+          <div class="flex gap-2">
+            <el-button @click="openResetPasswordDialog">修改密码</el-button>
+            <el-button type="primary" @click="openEditDialog">更新</el-button>
+          </div>
         </template>
         <el-descriptions-item>
           <template #label>
@@ -112,11 +115,13 @@
 
 <script setup lang="ts">
 import { computed, h, onMounted, ref } from "vue";
+import { ElMessageBox } from "element-plus";
 import { getUserInfoApi } from "@/api";
 import {
   getWxBindStatusApi,
-  wxUnbindApi,
-  getWxQrLoginUrlApi
+  getWxQrLoginUrlApi,
+  wxQrBindApi,
+  wxUnbindApi
 } from "@/api/auth";
 import { message } from "@/utils/message";
 import { maskEmailDisplay, maskPhoneDisplay } from "@/utils/presentationMask";
@@ -127,6 +132,7 @@ import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { addDialog, closeAllDialog } from "@/composables/useDialogService";
 import WxBindForm from "./WxBindForm.vue";
 import ProfileEditForm from "./ProfileEditForm.vue";
+import ResetPasswordForm from "./ResetPasswordForm.vue";
 
 defineOptions({
   name: "profile"
@@ -148,7 +154,6 @@ const formattedBirthday = computed(() => {
   const birthday = userInfo.value.info?.birthday;
   if (!birthday) return "";
   try {
-    // Handle both Date objects and date strings
     const date = new Date(birthday as string | Date);
     if (isNaN(date.getTime())) return "";
     return date.toISOString().substring(0, 10);
@@ -159,7 +164,7 @@ const formattedBirthday = computed(() => {
 
 const getUserInfo = async () => {
   const { data, code, msg } = await getUserInfoApi();
-  if (code === 200) {
+  if (code === 200 && data) {
     userInfo.value = data as UserInfoType;
   } else {
     message(msg, { type: "error" });
@@ -198,24 +203,80 @@ const checkBindStatus = async () => {
   }
 };
 
+const promptCurrentPassword = async (title: string, messageText: string) => {
+  try {
+    type PromptResult = { value: string } | string;
+    const result = (await ElMessageBox.prompt(messageText, title, {
+      confirmButtonText: "确认",
+      cancelButtonText: "取消",
+      inputType: "password",
+      inputPlaceholder: "请输入当前密码",
+      inputValidator: value =>
+        typeof value === "string" && value.trim().length >= 6
+          ? true
+          : "请输入至少 6 位当前密码",
+      closeOnClickModal: false
+    })) as PromptResult;
+    const value = typeof result === "string" ? result : result.value;
+    return value.trim();
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * PPE-003: PC 绑定不能走登录 QR 后直接声称绑定成功。
+ * 流程：当前密码 → getWxQrLoginUrlApi（签发 WX_QR_LOGIN_STATE + authUrl）
+ * → 展示授权二维码 → 可选粘贴 OAuth code 调用 wxQrBindApi({code,state,currentPassword})。
+ * 小程序 jsCode 绑定应使用 issueWxBindStateApi + wxBindApi（本页 PC 不走该路径）。
+ */
 const handleBindWx = async () => {
+  const currentPassword = await promptCurrentPassword(
+    "绑定微信",
+    "绑定微信账号需要验证当前密码"
+  );
+  if (!currentPassword) return;
+
   wxLoading.value = true;
   try {
     const { data, code, msg } = await getWxQrLoginUrlApi();
-    const qrData = data as { url?: string };
-    const qrUrl = qrData.url;
-    if (code === 200 && qrUrl) {
+    const qrData = data as {
+      authUrl?: string;
+      state?: string;
+      url?: string;
+      expiresIn?: number;
+    };
+    const authUrl = qrData.authUrl || qrData.url || "";
+    const state = qrData.state || "";
+
+    if (code === 200 && authUrl && state) {
       addDialog({
         title: "绑定微信",
-        width: "400px",
+        width: "420px",
         draggable: true,
         closeOnClickModal: false,
         hideFooter: true,
         contentRenderer: () =>
           h(WxBindForm, {
-            qrUrl,
+            authUrl,
+            state,
+            currentPassword,
             onCheck: checkBindStatus,
-            onClose: () => closeAllDialog()
+            onClose: () => closeAllDialog(),
+            onComplete: async payload => {
+              try {
+                const res = await wxQrBindApi(payload);
+                if (res.code === 200) {
+                  message("绑定成功", { type: "success" });
+                  closeAllDialog();
+                  await getWxBindStatus();
+                } else {
+                  message(res.msg || "绑定失败", { type: "error" });
+                }
+              } catch {
+                message("绑定失败", { type: "error" });
+              }
+            }
           })
       });
     } else {
@@ -241,8 +302,14 @@ const handleUnbindWx = async () => {
     );
     if (!ok) return;
 
+    const currentPassword = await promptCurrentPassword(
+      "验证身份",
+      "解除微信绑定需要输入当前密码"
+    );
+    if (!currentPassword) return;
+
     wxLoading.value = true;
-    const { code, msg } = await wxUnbindApi();
+    const { code, msg } = await wxUnbindApi({ currentPassword });
     if (code === 200) {
       message("解绑成功", { type: "success" });
       wxBindStatus.value = {
@@ -281,6 +348,21 @@ const openEditDialog = () => {
           closeAllDialog();
           await getUserInfo();
         },
+        onClose: () => closeAllDialog()
+      })
+  });
+};
+
+const openResetPasswordDialog = () => {
+  addDialog({
+    title: "修改密码",
+    width: "460px",
+    draggable: true,
+    closeOnClickModal: false,
+    hideFooter: true,
+    contentRenderer: () =>
+      h(ResetPasswordForm, {
+        onSuccess: () => closeAllDialog(),
         onClose: () => closeAllDialog()
       })
   });

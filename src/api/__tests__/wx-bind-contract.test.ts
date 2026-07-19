@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { http } from "@/utils/http";
-import { issueWxBindStateApi, wxBindApi } from "../auth";
+import {
+  issueWxBindStateApi,
+  wxBindApi,
+  wxQrBindApi,
+  wxUnbindApi
+} from "../auth";
 
 vi.mock("@/utils/http", () => ({
   http: {
@@ -35,5 +40,33 @@ describe("WeChat bind API contract", () => {
     expect(http.request).toHaveBeenCalledWith("post", "/api/v1/auth/wx-bind", {
       data: payload
     });
+  });
+
+  it("unbinds with currentPassword in the DELETE body", async () => {
+    const payload = { currentPassword: "secret-password" };
+
+    await wxUnbindApi(payload);
+
+    expect(http.request).toHaveBeenCalledWith(
+      "delete",
+      "/api/v1/auth/wx-bind",
+      { data: payload }
+    );
+  });
+
+  it("posts QR bind body with code, state and currentPassword", async () => {
+    const payload = {
+      code: "oauth-code",
+      state: "qr-state",
+      currentPassword: "secret-password"
+    };
+
+    await wxQrBindApi(payload);
+
+    expect(http.request).toHaveBeenCalledWith(
+      "post",
+      "/api/v1/auth/wx-qr/bind",
+      { data: payload }
+    );
   });
 });

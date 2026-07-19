@@ -80,7 +80,10 @@ const handleSubmit = async () => {
 
   loading.value = true;
   try {
-    const payload = buildUpdateCurrentUserInfoPayload(form.value);
+    const payload = buildUpdateCurrentUserInfoPayload(
+      props.initialData,
+      form.value
+    );
     const { code, msg } = await updateUserInfoApi(payload);
     if (code === 200) {
       message("更新成功", { type: "success" });

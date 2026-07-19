@@ -47,6 +47,8 @@ interface SendVerifyCodeDto {
   email?: string;
   phone?: string;
   type: number | "register" | "reset-password" | "bind";
+  /** 图形验证码（后端 CreateVerifyDto.code） */
+  code?: string;
 }
 
 /** 更新公司信息参数 */
@@ -330,9 +332,11 @@ export const issueWxBindStateApi = () => {
   );
 };
 
-/** 解绑微信账号 */
-export const wxUnbindApi = () => {
-  return http.request<CommonResult>("delete", baseUrlApi("/auth/wx-bind"));
+/** 解绑微信账号（需当前密码再认证） */
+export const wxUnbindApi = (data: { currentPassword: string }) => {
+  return http.request<CommonResult>("delete", baseUrlApi("/auth/wx-bind"), {
+    data
+  });
 };
 
 /** 获取微信绑定状态 */
@@ -359,9 +363,13 @@ export const wxQrCallbackApi = (params: {
   );
 };
 
-/** 微信扫码绑定账号 (PC/Web) */
-export const wxQrBindApi = (params: { code: string; state: string }) => {
+/** 微信扫码绑定账号 (PC/Web)，body 含 currentPassword 再认证 */
+export const wxQrBindApi = (data: {
+  code: string;
+  state: string;
+  currentPassword: string;
+}) => {
   return http.request<CommonResult>("post", baseUrlApi("/auth/wx-qr/bind"), {
-    params
+    data
   });
 };
