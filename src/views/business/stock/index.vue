@@ -30,10 +30,12 @@ const pagination = ref({
 const getList = async () => {
   loading.value = true;
   try {
+    const keyword = form.value.keyword?.trim();
     const { data, code, msg } = await getStockBalancePage(
       pagination.value.currentPage,
       {
-        limit: pagination.value.pageSize
+        limit: pagination.value.pageSize,
+        ...(keyword ? { keyword } : {})
       }
     );
     if (code === 200) {
@@ -89,7 +91,12 @@ onMounted(() => {
       @reset="resetForm"
     >
       <el-form-item label="关键字">
-        <el-input v-model="form.keyword" placeholder="搜索（预留）" disabled />
+        <el-input
+          v-model="form.keyword"
+          clearable
+          placeholder="轮胎/仓库/批次"
+          @keyup.enter="onSearch"
+        />
       </el-form-item>
     </ReSearchForm>
 

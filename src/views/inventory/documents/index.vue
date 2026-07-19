@@ -511,6 +511,16 @@ const handleReverseAudit = async (row: InventoryDocument) => {
 onMounted(() => {
   fetchData();
 });
+
+/** Escape untrusted values before interpolating into print HTML. */
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 </script>
 
 <template>
@@ -707,13 +717,3 @@ onMounted(() => {
   padding: 16px;
 }
 </style>
-function escapeHtml(value: string): string {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-

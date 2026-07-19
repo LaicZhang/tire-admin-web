@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import type { userType } from "./types";
+import { clearMenuSearchLocal } from "@/layout/components/search/utils/menu-search-storage";
 import {
   store,
   router,
@@ -136,6 +137,8 @@ export const useUserStore = defineStore("pure-user", {
     logOut() {
       // 使用 $reset() 清理所有用户状态
       this.$reset();
+      // SEARCH-025: clear menu search history on shared devices
+      clearMenuSearchLocal();
       removeToken();
       useMultiTagsStoreHook().handleTags(
         "equal",

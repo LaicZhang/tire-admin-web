@@ -9,7 +9,10 @@ export interface SearchFormProps {
   shadow?: "always" | "hover" | "never";
   /** el-card body-style attribute */
   bodyStyle?: CSSProperties;
-  /** 搜索按钮防抖时间（毫秒），0 或不设置表示不防抖 */
+  /**
+   * 搜索按钮防抖时间（毫秒）。
+   * SEARCH-012: 默认 0（按钮提交模式不防抖）；若改为输入即搜必须设 >0（建议 300）。
+   */
   debounceMs?: number;
 }
 

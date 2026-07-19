@@ -26,6 +26,7 @@ defineOptions({
 
 const searchFormRef = ref<InstanceType<typeof ReSearchForm> | null>(null);
 const form = ref({
+  keyword: undefined as string | undefined,
   group: undefined as string | undefined,
   name: undefined as string | undefined,
   desc: undefined as string | undefined
@@ -110,6 +111,14 @@ onMounted(async () => {
       @search="onSearch"
       @reset="resetForm"
     >
+      <el-form-item label="关键字：" prop="keyword">
+        <el-input
+          v-model="form.keyword"
+          clearable
+          placeholder="名称/条码/花纹/规格"
+          class="!w-[200px]"
+        />
+      </el-form-item>
       <el-form-item label="分组名称：" prop="group">
         <el-select
           v-model="form.group"

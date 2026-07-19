@@ -62,6 +62,8 @@ export interface StockBalanceQuery {
   repoId?: string;
   tireId?: string;
   batchNo?: string;
+  /** SEARCH-003: tire/repo name / batchNo free-text */
+  keyword?: string;
   limit?: number;
 }
 

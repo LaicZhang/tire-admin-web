@@ -11,6 +11,10 @@ import { ref, computed, shallowRef, watch } from "vue";
 import { useDebounceFn, onKeyStroke } from "@vueuse/core";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { cloneDeep, isAllEmpty, storageLocal } from "@pureadmin/utils";
+import {
+  MENU_SEARCH_COLLECT_KEY,
+  MENU_SEARCH_HISTORY_KEY
+} from "../utils/menu-search-storage";
 import Search from "~icons/ri/search-line";
 
 interface Props {
@@ -30,8 +34,8 @@ const router = useRouter();
 
 const HISTORY_TYPE = "history";
 const COLLECT_TYPE = "collect";
-const LOCALEHISTORYKEY = "menu-search-history";
-const LOCALECOLLECTKEY = "menu-search-collect";
+const LOCALEHISTORYKEY = MENU_SEARCH_HISTORY_KEY;
+const LOCALECOLLECTKEY = MENU_SEARCH_COLLECT_KEY;
 
 const keyword = ref("");
 const resultRef = ref();
