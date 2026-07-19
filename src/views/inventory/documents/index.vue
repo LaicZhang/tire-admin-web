@@ -262,16 +262,16 @@ const openPrintPreview = (data: {
   const rows = Object.entries(data.detail)
     .map(
       ([key, value]) =>
-        `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
+        `<tr><td style="padding:8px;border:1px solid #ddd;">${escapeHtml(key)}</td><td style="padding:8px;border:1px solid #ddd;">${escapeHtml(String(value ?? ""))}</td></tr>`
     )
     .join("");
   popup.document.write(`<!doctype html>
 <html>
-  <head><title>${data.billNo}</title></head>
+  <head><title>${escapeHtml(String(data.billNo ?? ""))}</title></head>
   <body style="font-family: sans-serif; padding: 24px;">
-    <h2>${data.documentType} - ${data.billNo}</h2>
-    <p>状态：${data.status}</p>
-    <p>仓库/对象：${data.targetName ?? "-"}</p>
+    <h2>${escapeHtml(String(data.documentType ?? ""))} - ${escapeHtml(String(data.billNo ?? ""))}</h2>
+    <p>状态：${escapeHtml(String(data.status ?? ""))}</p>
+    <p>仓库/对象：${escapeHtml(String(data.targetName ?? "-"))}</p>
     <table style="border-collapse: collapse; width: 100%; margin-top: 16px;">${rows}</table>
   </body>
 </html>`);
@@ -707,3 +707,13 @@ onMounted(() => {
   padding: 16px;
 }
 </style>
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+

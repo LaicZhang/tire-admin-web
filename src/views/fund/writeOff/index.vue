@@ -60,6 +60,16 @@ const queryForm = reactive<WriteOffQueryParams>({
 const { openDialog: openWriteOffDialog } =
   useManagedSubmitDialog<ManagedSubmitDialogRef>();
 
+
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function toViewWriteOffOrder(row: WriteOffOrderApi): WriteOffOrder {
   return {
     ...row,
@@ -207,7 +217,7 @@ function handlePrint() {
         const rows = Object.entries(result.data.detail)
           .map(
             ([key, value]) =>
-              `<tr><td style="padding:8px;border:1px solid #ddd;">${key}</td><td style="padding:8px;border:1px solid #ddd;">${value}</td></tr>`
+              `<tr><td style="padding:8px;border:1px solid #ddd;">${escapeHtml(key)}</td><td style="padding:8px;border:1px solid #ddd;">${escapeHtml(String(value ?? ""))}</td></tr>`
           )
           .join("");
         const popup = window.open(
@@ -220,7 +230,7 @@ function handlePrint() {
           return;
         }
         popup.document.write(
-          `<!doctype html><html><head><title>${result.data.billNo}</title></head><body style="font-family:sans-serif;padding:24px;"><h2>${result.data.billNo}</h2><p>状态：${result.data.status}</p><p>往来单位：${result.data.targetName ?? "-"}</p><table style="border-collapse:collapse;width:100%;margin-top:16px;">${rows}</table></body></html>`
+          `<!doctype html><html><head><title>${escapeHtml(String(result.data.billNo ?? ""))}</title></head><body style="font-family:sans-serif;padding:24px;"><h2>${escapeHtml(String(result.data.billNo ?? ""))}</h2><p>状态：${escapeHtml(String(result.data.status ?? ""))}</p><p>往来单位：${escapeHtml(String(result.data.targetName ?? "-"))}</p><table style="border-collapse:collapse;width:100%;margin-top:16px;">${rows}</table></body></html>`
         );
         popup.document.close();
         popup.focus();

@@ -93,14 +93,15 @@ function emitNext(values: string[]) {
 
 async function handlePreview(file: UploadUserFile) {
   if (!file.url) return;
-  await ElMessageBox.alert(
-    `<img src="${file.url}" style="max-width:100%;display:block;margin:0 auto;" alt="附件预览" />`,
-    "附件预览",
-    {
-      dangerouslyUseHTMLString: true,
+  // FILE-005: never inject URL into HTML; open image URL as plain text / new tab
+  const url = String(file.url);
+  try {
+    window.open(url, "_blank", "noopener,noreferrer");
+  } catch {
+    await ElMessageBox.alert(url, "附件预览", {
       confirmButtonText: "关闭"
-    }
-  );
+    });
+  }
 }
 
 function handleRemove(file: UploadUserFile) {
