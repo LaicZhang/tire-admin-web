@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 import { useSysDictOptions } from "@/composables/useSysDict";
 import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
+import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 
 const props = defineProps<{
   editData?: OtherExpense | null;
@@ -73,8 +74,8 @@ watch(
       Object.assign(formData, {
         providerId: editData.providerId || "",
         expenseType: editData.expenseType,
-        amount: (editData.amount || 0) / 100,
-        paidAmount: (editData.paidAmount || 0) / 100,
+        amount: fenToYuanNumber(editData.amount || 0),
+        paidAmount: fenToYuanNumber(editData.paidAmount || 0),
         paymentId: editData.paymentId || "",
         expenseDate: editData.expenseDate || dayjs().format("YYYY-MM-DD"),
         category: editData.category || "",
@@ -106,7 +107,7 @@ watch(
 
       const balance = Number(res.data?.balance ?? NaN);
       selectedPaymentBalance.value = Number.isFinite(balance)
-        ? balance / 100
+        ? fenToYuanNumber(balance)
         : null;
     } catch {
       selectedPaymentBalance.value = null;
@@ -148,9 +149,9 @@ async function submit() {
   try {
     const submitData = {
       ...formData,
-      amount: Math.round(formData.amount * 100),
+      amount: yuanToFen(formData.amount),
       paidAmount: formData.paidAmount
-        ? Math.round(formData.paidAmount * 100)
+        ? yuanToFen(formData.paidAmount)
         : undefined
     };
 

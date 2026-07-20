@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { MoneyDisplayProps } from "./types";
+import { fenToYuanNumber } from "@/utils/formatMoney";
 
 defineOptions({
   name: "MoneyDisplay"
@@ -19,7 +20,8 @@ const displayValue = computed(() => {
     return props.emptyText;
   }
 
-  const yuan = props.unit === "fen" ? props.value / 100 : props.value;
+  const yuan =
+    props.unit === "fen" ? fenToYuanNumber(props.value) : props.value;
   const formatted = yuan.toFixed(props.precision);
 
   return props.showSymbol ? `${props.symbol}${formatted}` : formatted;

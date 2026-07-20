@@ -66,6 +66,7 @@ async function loadLevels() {
 }
 
 function openCreateForm() {
+  // 非表单动作：次级维护弹窗，非主实体 CRUD conf
   addDialog({
     title: "新增等级",
     width: "450px",
@@ -90,6 +91,7 @@ function openCreateForm() {
   });
 }
 
+// 非表单动作：次级维护弹窗，非主实体 CRUD conf
 function openEditForm(level: Level) {
   addDialog({
     title: "编辑等级",

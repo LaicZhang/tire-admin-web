@@ -196,8 +196,8 @@ async function submit() {
         sourceOrderId: detail.sourceOrderId,
         sourceOrderNo: detail.sourceOrderNo,
         sourceOrderType: detail.sourceOrderType,
-        receivableAmount: Math.round((detail.receivableAmount || 0) * 100),
-        writeOffAmount: Math.round((detail.writeOffAmount || 0) * 100),
+        receivableAmount: yuanToFen(detail.receivableAmount || 0),
+        writeOffAmount: yuanToFen(detail.writeOffAmount || 0),
         ...(detail.remark ? { remark: detail.remark } : {})
       }))
     };

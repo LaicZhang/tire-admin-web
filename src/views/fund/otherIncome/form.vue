@@ -13,6 +13,7 @@ import {
   type IncomeType
 } from "./types";
 import dayjs from "dayjs";
+import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 
 const props = defineProps<{
   editData?: OtherIncome | null;
@@ -67,8 +68,8 @@ watch(
       Object.assign(formData, {
         customerId: editData.customerId || "",
         incomeType: editData.incomeType,
-        amount: (editData.amount || 0) / 100,
-        receivedAmount: (editData.receivedAmount || 0) / 100,
+        amount: fenToYuanNumber(editData.amount || 0),
+        receivedAmount: fenToYuanNumber(editData.receivedAmount || 0),
         paymentId: editData.paymentId || "",
         incomeDate: editData.incomeDate || dayjs().format("YYYY-MM-DD"),
         category: editData.category || "",
@@ -110,9 +111,9 @@ async function submit() {
   try {
     const submitData = {
       ...formData,
-      amount: Math.round(formData.amount * 100),
+      amount: yuanToFen(formData.amount),
       receivedAmount: formData.receivedAmount
-        ? Math.round(formData.receivedAmount * 100)
+        ? yuanToFen(formData.receivedAmount)
         : undefined
     };
 

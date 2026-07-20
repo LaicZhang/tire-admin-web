@@ -9,6 +9,7 @@ import {
   type WriteOffBusinessType
 } from "./types";
 import dayjs from "dayjs";
+import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import { handleApiError, message } from "@/utils";
 import { useFundForm } from "../composables/useFundForm";
 
@@ -109,9 +110,9 @@ function applyEditData() {
       toCustomerId: props.editData.toCustomerId || "",
       fromProviderId: props.editData.fromProviderId || "",
       toProviderId: props.editData.toProviderId || "",
-      receivableAmount: (props.editData.receivableAmount || 0) / 100,
-      payableAmount: (props.editData.payableAmount || 0) / 100,
-      writeOffAmount: (props.editData.writeOffAmount || 0) / 100,
+      receivableAmount: fenToYuanNumber(props.editData.receivableAmount || 0),
+      payableAmount: fenToYuanNumber(props.editData.payableAmount || 0),
+      writeOffAmount: fenToYuanNumber(props.editData.writeOffAmount || 0),
       writeOffDate: props.editData.writeOffDate || dayjs().format("YYYY-MM-DD"),
       reason: props.editData.reason || "",
       remark: props.editData.remark || ""
@@ -153,12 +154,12 @@ async function submit() {
     const submitData = {
       ...formData,
       receivableAmount: formData.receivableAmount
-        ? Math.round(formData.receivableAmount * 100)
+        ? yuanToFen(formData.receivableAmount)
         : undefined,
       payableAmount: formData.payableAmount
-        ? Math.round(formData.payableAmount * 100)
+        ? yuanToFen(formData.payableAmount)
         : undefined,
-      writeOffAmount: Math.round(formData.writeOffAmount * 100)
+      writeOffAmount: yuanToFen(formData.writeOffAmount)
     };
 
     await createWriteOffApi(submitData);

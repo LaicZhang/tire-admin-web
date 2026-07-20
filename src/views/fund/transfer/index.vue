@@ -13,6 +13,7 @@ import Printer from "~icons/ep/printer";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { handleApiError, message } from "@/utils";
 import { getPaymentListApi } from "@/api/payment";
+import { fenToYuanNumber } from "@/utils/formatMoney";
 import {
   approveTransferApi,
   deleteTransferApi,
@@ -231,8 +232,8 @@ const exportColumns: PresentationColumn<Transfer>[] = [
   { label: "单据编号", value: row => row.billNo },
   { label: "转出账户", value: row => row.fromPaymentName || "-" },
   { label: "转入账户", value: row => row.toPaymentName || "-" },
-  { label: "转账金额", value: row => row.amount / 100 },
-  { label: "手续费", value: row => (row.fee || 0) / 100 },
+  { label: "转账金额", value: row => fenToYuanNumber(row.amount) },
+  { label: "手续费", value: row => fenToYuanNumber(row.fee || 0) },
   { label: "手续费账户", value: row => row.feePaymentName || "-" },
   {
     label: "状态",

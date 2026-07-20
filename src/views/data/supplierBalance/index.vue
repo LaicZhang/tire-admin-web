@@ -11,6 +11,7 @@ import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { MoneyDisplay } from "@/components";
 import { message } from "@/utils";
+import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
 import {
@@ -65,10 +66,10 @@ const PROVIDER_PAYABLE_TYPE = "provider-payable";
 const PROVIDER_PREPAID_TYPE = "provider-prepaid";
 
 const toYuan = (amount: string | number | null | undefined) =>
-  amount === null || amount === undefined ? 0 : Number(amount) / 100;
+  amount === null || amount === undefined ? 0 : fenToYuanNumber(Number(amount));
 
 const toCents = (amount: number | null | undefined) =>
-  Math.round(Number(amount || 0) * 100);
+  yuanToFen(Number(amount || 0));
 
 const today = () => new Date().toISOString().slice(0, 10);
 

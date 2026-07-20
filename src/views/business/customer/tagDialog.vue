@@ -60,6 +60,7 @@ async function loadTags() {
 }
 
 function openCreateForm() {
+  // 非表单动作：次级维护弹窗，非主实体 CRUD conf
   addDialog({
     title: "新增标签",
     width: "400px",
@@ -80,6 +81,7 @@ function openCreateForm() {
   });
 }
 
+// 非表单动作：次级维护弹窗，非主实体 CRUD conf
 function openEditForm(tag: Tag) {
   addDialog({
     title: "编辑标签",

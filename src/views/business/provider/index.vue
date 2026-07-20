@@ -93,6 +93,7 @@ async function handleRestore(row: Provider) {
 }
 
 function handleBalance(row: Provider) {
+  // 非表单动作：余额流水面板，不走 table openDialog 表单 conf
   addDialog({
     title: `${row.name} - 余额`,
     width: "980px",

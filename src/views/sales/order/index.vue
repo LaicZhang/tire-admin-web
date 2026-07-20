@@ -268,6 +268,7 @@ async function openConfirmActionDialog(
     validate: () => Promise<boolean>;
   } | null>(null);
 
+  // 非表单动作：确认发货/送达业务弹窗，不走 useActionFormDialog 表单 conf
   addDialog({
     title,
     width: "520px",

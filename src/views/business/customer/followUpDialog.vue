@@ -47,6 +47,7 @@ async function loadFollowUps() {
 }
 
 function openAddForm() {
+  // 非表单动作：次级维护弹窗，非主实体 CRUD conf
   addDialog({
     title: "添加跟进记录",
     width: "500px",

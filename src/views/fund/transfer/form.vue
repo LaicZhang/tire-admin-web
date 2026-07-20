@@ -6,7 +6,7 @@ import { handleApiError } from "@/utils/error";
 import { message } from "@/utils";
 import type { CreateTransferDto, Transfer } from "./types";
 import dayjs from "dayjs";
-import { fenToYuan } from "@/utils/formatMoney";
+import { fenToYuan, fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import { useFundForm } from "../composables/useFundForm";
 
 const props = defineProps<{
@@ -79,8 +79,8 @@ function applyEditData() {
     Object.assign(formData, {
       fromPaymentId: props.editData.fromPaymentId,
       toPaymentId: props.editData.toPaymentId,
-      amount: (props.editData.amount || 0) / 100,
-      fee: (props.editData.fee || 0) / 100,
+      amount: fenToYuanNumber(props.editData.amount || 0),
+      fee: fenToYuanNumber(props.editData.fee || 0),
       feePaymentId: props.editData.feePaymentId || "",
       transferDate: props.editData.transferDate || dayjs().format("YYYY-MM-DD"),
       remark: props.editData.remark || ""
@@ -110,7 +110,7 @@ async function submit() {
   const totalAmount = formData.amount + (formData.fee || 0);
   if (
     selectedFromAccount.value?.balance !== undefined &&
-    totalAmount > selectedFromAccount.value.balance / 100
+    totalAmount > fenToYuanNumber(selectedFromAccount.value.balance)
   ) {
     message("转出账户余额不足", { type: "warning" });
     return false;
@@ -119,8 +119,8 @@ async function submit() {
   try {
     const submitData = {
       ...formData,
-      amount: Math.round(formData.amount * 100),
-      fee: formData.fee ? Math.round(formData.fee * 100) : undefined
+      amount: yuanToFen(formData.amount),
+      fee: formData.fee ? yuanToFen(formData.fee) : undefined
     };
 
     await createTransferApi(submitData);
