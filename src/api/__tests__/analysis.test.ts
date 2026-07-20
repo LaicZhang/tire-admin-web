@@ -2,6 +2,9 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   getAnalysisMembersApi,
   getInventoryMovementApi,
+  getSerialProductSummaryApi,
+  getSerialRelatedApi,
+  getSerialTraceApi,
   getSalesSummaryApi,
   getProviderEvaluationApi,
   getPurchaseOrderTrackingApi,
@@ -129,6 +132,33 @@ describe("analysis api", () => {
       "get",
       "/api/v1/analysis/members",
       { params: { module: "purchase" } }
+    );
+  });
+
+  it("requests serial trace by serialNo", async () => {
+    await getSerialTraceApi("SN/001");
+
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/inventory/serial-trace/SN%2F001"
+    );
+  });
+
+  it("requests related serials by serialNo", async () => {
+    await getSerialRelatedApi("SN/002");
+
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/inventory/serial-related/SN%2F002"
+    );
+  });
+
+  it("requests same-product summary by serialNo", async () => {
+    await getSerialProductSummaryApi("SN/003");
+
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/inventory/serial-product-summary/SN%2F003"
     );
   });
 });

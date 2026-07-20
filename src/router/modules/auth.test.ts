@@ -16,4 +16,20 @@ describe("auth routes", () => {
       }
     });
   });
+
+  it("exposes a management-first serial trace analysis entry", () => {
+    const analysisRoute = authRoutes.find(route => route.name === "analysis");
+    const serialTraceRoute = analysisRoute?.children?.find(
+      route => route.path === "/analysis/serial-trace"
+    );
+
+    expect(serialTraceRoute).toMatchObject({
+      name: "serialTraceAnalysis",
+      isShow: true,
+      meta: {
+        title: "轮胎全链路溯源",
+        roles: ["admin", "boss", "dataAnalyst", "dataAnalystManager"]
+      }
+    });
+  });
 });

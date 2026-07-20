@@ -75,6 +75,13 @@ export const INVENTORY_ANALYSIS_ROLES = [
   "warehouseManager"
 ] as const;
 
+export const SERIAL_TRACE_ANALYSIS_ROLES = [
+  "admin",
+  "boss",
+  "dataAnalyst",
+  "dataAnalystManager"
+] as const;
+
 const EXECUTIVE_ROLES = new Set(["admin", "boss"]);
 const ANALYST_ROLES = new Set(["dataAnalyst", "dataAnalystManager"]);
 const SALES_ROLES = new Set(["seller", "sellerManager"]);
