@@ -7,6 +7,8 @@ import SearchFooter from "./SearchFooter.vue";
 import { useNav } from "@/layout/hooks/useNav";
 import SearchHistory from "./SearchHistory.vue";
 import type { optionsItem, dragItem } from "../types";
+import { getDocumentByNoApi } from "@/api/document-center";
+import type { DocumentByNoHit } from "@/api/document-center";
 import { ref, computed, shallowRef, watch } from "vue";
 import { useDebounceFn, onKeyStroke } from "@vueuse/core";
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -44,6 +46,7 @@ const scrollbarRef = ref();
 const activePath = ref("");
 const historyPath = ref("");
 const resultOptions = shallowRef<optionsItem[]>([]);
+const documentOptions = shallowRef<optionsItem[]>([]);
 const historyOptions = shallowRef<optionsItem[]>([]);
 const handleSearch = useDebounceFn(search, 300);
 const historyNum = getConfig().MenuSearchHistory ?? 10;
@@ -71,7 +74,10 @@ watch(
 );
 
 const showSearchResult = computed(() => {
-  return keyword.value && resultOptions.value.length > 0;
+  return (
+    keyword.value &&
+    (resultOptions.value.length > 0 || documentOptions.value.length > 0)
+  );
 });
 
 const showSearchHistory = computed(() => {
@@ -81,7 +87,9 @@ const showSearchHistory = computed(() => {
 const showEmpty = computed(() => {
   return (
     (!keyword.value && historyOptions.value.length === 0) ||
-    (keyword.value && resultOptions.value.length === 0)
+    (keyword.value &&
+      resultOptions.value.length === 0 &&
+      documentOptions.value.length === 0)
   );
 });
 
@@ -106,20 +114,77 @@ function flatTree(arr: optionsItem[]): optionsItem[] {
   return res;
 }
 
-/** 查询 */
-function search() {
+function documentListPath(type: string): string {
+  if (
+    type.startsWith("SALE_") ||
+    type === "COMMISSION" ||
+    type === "SPECIAL_PRICE"
+  ) {
+    return "/sales/documents";
+  }
+  if (
+    type.startsWith("PURCHASE_") ||
+    type === "SUPPLIER_CLAIM" ||
+    type === "SUPPLIER_PROMOTION"
+  ) {
+    return "/purchase/documents";
+  }
+  if (
+    type.startsWith("INVENTORY_") ||
+    type === "STOCKTAKING" ||
+    type === "OTHER_INBOUND" ||
+    type === "OTHER_OUTBOUND" ||
+    type === "ASSEMBLY" ||
+    type === "DISASSEMBLY" ||
+    type === "COST_ADJUST"
+  ) {
+    return "/inventory/documents";
+  }
+  return "/fund/documents";
+}
+
+function mapDocumentHit(hit: DocumentByNoHit): optionsItem {
+  const base = documentListPath(hit.type);
+  const path = `${base}?keyword=${encodeURIComponent(hit.billNo)}&uid=${encodeURIComponent(hit.uid)}`;
+  return {
+    path,
+    type: "history",
+    meta: {
+      title: `[单据] ${hit.type} ${hit.billNo}`,
+      icon: "ep:document"
+    }
+  };
+}
+
+/** 查询：菜单 + 单据号精确 equals（SEARCH-005） */
+async function search() {
   const flatMenusData = flatTree(menusData.value);
+  const key = keyword.value.toLocaleLowerCase().trim();
   resultOptions.value = flatMenusData.filter(menu =>
-    keyword.value
+    key
       ? (() => {
           const title = menu.meta?.title?.toLocaleLowerCase() ?? "";
-          const key = keyword.value.toLocaleLowerCase().trim();
           return title.includes(key) || !isAllEmpty(match(title, key));
         })()
       : false
   );
-  activePath.value =
-    resultOptions.value?.length > 0 ? resultOptions.value[0].path : "";
+
+  documentOptions.value = [];
+  const raw = keyword.value.trim();
+  if (raw.length >= 3 && raw.length <= 100) {
+    try {
+      const res = await getDocumentByNoApi(raw);
+      const hits = (res as { data?: DocumentByNoHit[] })?.data ?? [];
+      if (Array.isArray(hits) && hits.length > 0) {
+        documentOptions.value = hits.map(mapDocumentHit);
+      }
+    } catch {
+      documentOptions.value = [];
+    }
+  }
+
+  const combined = [...documentOptions.value, ...resultOptions.value];
+  activePath.value = combined.length > 0 ? combined[0].path : "";
 }
 
 function handleClose() {
@@ -127,6 +192,7 @@ function handleClose() {
   /** 延时处理防止用户看到某些操作 */
   setTimeout(() => {
     resultOptions.value = [];
+    documentOptions.value = [];
     historyPath.value = "";
     keyword.value = "";
   }, 200);
@@ -140,8 +206,9 @@ function scrollTo(index: number) {
 
 /** 获取当前选项和路径 */
 function getCurrentOptionsAndPath() {
-  const isResultOptions = resultOptions.value.length > 0;
-  const options = isResultOptions ? resultOptions.value : historyOptions.value;
+  const combinedResults = [...documentOptions.value, ...resultOptions.value];
+  const isResultOptions = combinedResults.length > 0;
+  const options = isResultOptions ? combinedResults : historyOptions.value;
   const currentPath = isResultOptions ? activePath.value : historyPath.value;
   return { options, currentPath, isResultOptions };
 }
@@ -149,7 +216,8 @@ function getCurrentOptionsAndPath() {
 /** 更新路径并滚动到指定项 */
 function updatePathAndScroll(newIndex: number, isResultOptions: boolean) {
   if (isResultOptions) {
-    activePath.value = resultOptions.value[newIndex].path;
+    const combined = [...documentOptions.value, ...resultOptions.value];
+    activePath.value = combined[newIndex].path;
   } else {
     historyPath.value = historyOptions.value[newIndex].path;
   }
@@ -289,7 +357,7 @@ onKeyStroke("ArrowDown", handleDown);
       v-model="keyword"
       size="large"
       clearable
-      placeholder="搜索菜单（支持拼音搜索）"
+      placeholder="搜索菜单或完整单据号"
       @input="handleSearch"
     >
       <template #prefix>
@@ -312,9 +380,27 @@ onKeyStroke("ArrowDown", handleDown);
           @collect="handleCollect"
           @drag="handleDrag"
         />
+        <div
+          v-if="keyword && documentOptions.length > 0"
+          class="mb-2 text-xs text-gray-400 px-1"
+        >
+          单据（完整单号精确匹配）
+        </div>
         <SearchResult
-          v-if="showSearchResult"
+          v-if="keyword && documentOptions.length > 0"
           ref="resultRef"
+          v-model:value="activePath"
+          :options="documentOptions"
+          @click="handleEnter"
+        />
+        <div
+          v-if="keyword && resultOptions.length > 0"
+          class="mb-2 mt-2 text-xs text-gray-400 px-1"
+        >
+          菜单
+        </div>
+        <SearchResult
+          v-if="resultOptions.length > 0"
           v-model:value="activePath"
           :options="resultOptions"
           @click="handleEnter"
@@ -322,7 +408,7 @@ onKeyStroke("ArrowDown", handleDown);
       </el-scrollbar>
     </div>
     <template #footer>
-      <SearchFooter :total="resultOptions.length" />
+      <SearchFooter :total="resultOptions.length + documentOptions.length" />
     </template>
   </el-dialog>
 </template>

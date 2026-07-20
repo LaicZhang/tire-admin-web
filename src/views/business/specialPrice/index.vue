@@ -117,10 +117,16 @@ onMounted(loadData);
       <template #header>新建特价申请</template>
       <el-form inline>
         <el-form-item label="客户 UID">
-          <el-input v-model="form.customerId" class="w-[240px]" />
+          <el-input
+            v-model="form.customerId"
+            class="w-full max-w-full sm:w-[240px]"
+          />
         </el-form-item>
         <el-form-item label="商品 UID">
-          <el-input v-model="form.tireId" class="w-[240px]" />
+          <el-input
+            v-model="form.tireId"
+            class="w-full max-w-full sm:w-[240px]"
+          />
         </el-form-item>
         <el-form-item label="数量">
           <el-input-number v-model="form.quantity" :min="1" />
@@ -136,7 +142,10 @@ onMounted(loadData);
           />
         </el-form-item>
         <el-form-item label="原因">
-          <el-input v-model="form.reason" class="w-[280px]" />
+          <el-input
+            v-model="form.reason"
+            class="w-full max-w-full sm:w-[280px]"
+          />
         </el-form-item>
         <el-form-item>
           <Auth value="post/special-price-request">
@@ -151,7 +160,11 @@ onMounted(loadData);
     <el-card>
       <el-form inline>
         <el-form-item label="状态">
-          <el-select v-model="filters.status" clearable class="w-[150px]">
+          <el-select
+            v-model="filters.status"
+            clearable
+            class="w-full max-w-full sm:w-[150px]"
+          >
             <el-option label="待审核" value="PENDING_APPROVAL" />
             <el-option label="已通过" value="APPROVED" />
             <el-option label="已驳回" value="REJECTED" />

@@ -151,3 +151,20 @@ export function getDocumentCenterPdfApi(
     { responseType: "blob" }
   );
 }
+
+export interface DocumentByNoHit {
+  type: DocumentCenterType;
+  id: number | string;
+  uid: string;
+  billNo: string;
+  routeHint?: string;
+}
+
+/** SEARCH-005: exact document number cross-type lookup */
+export function getDocumentByNoApi(q: string) {
+  return http.request<CommonResult<DocumentByNoHit[]>>(
+    "get",
+    baseUrlApi(`${prefix}/document-by-no`),
+    { params: { q } }
+  );
+}

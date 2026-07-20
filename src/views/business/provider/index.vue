@@ -126,7 +126,7 @@ function handleBalance(row: Provider) {
             v-model="form.name"
             placeholder="请输入供应商名称"
             clearable
-            class="w-[180px]!"
+            class="w-full max-w-full sm:w-[180px]!"
           />
         </el-form-item>
         <el-form-item label="备注：" prop="desc">
@@ -134,11 +134,15 @@ function handleBalance(row: Provider) {
             v-model="form.desc"
             placeholder="请输入备注"
             clearable
-            class="w-[180px]!"
+            class="w-full max-w-full sm:w-[180px]!"
           />
         </el-form-item>
         <el-form-item label="范围：" prop="scope">
-          <el-select v-model="form.scope" class="w-[180px]!" clearable>
+          <el-select
+            v-model="form.scope"
+            class="w-full max-w-full sm:w-[180px]!"
+            clearable
+          >
             <el-option label="未删除" value="nonDeleted" />
             <el-option label="已删除" value="deleted" />
             <el-option label="全部" value="all" />
