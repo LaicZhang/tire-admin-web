@@ -32,10 +32,19 @@ jobs:
         run: corepack enable
 
       - name: Activate pnpm (Corepack)
-        run: corepack prepare pnpm@11.12.0 --activate
+        run: corepack prepare pnpm@11.15.1 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Ensure no real .env files are tracked
+        run: |
+          bad=$(git ls-files -- .env* | grep -vE '\.example$' || true)
+          if [ -n "$bad" ]; then
+            echo "Tracked .env files found (should be .env*.example only):"
+            echo "$bad"
+            exit 1
+          fi
 
       - name: Dependency audit (block on critical)
         run: pnpm audit --audit-level=critical
@@ -46,5 +55,11 @@ jobs:
       - name: Lint
         run: pnpm lint:check
 
+      - name: Unit tests
+        run: pnpm test
+
       - name: Build (staging)
         run: pnpm build --mode staging
+
+      - name: Build (production)
+        run: pnpm build --mode production

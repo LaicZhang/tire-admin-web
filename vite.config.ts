@@ -41,6 +41,7 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
       : {
           // 端口号
           port: VITE_PORT,
+          // BUILD-017: 0.0.0.0 for trusted LAN only; do not expose as production.
           host: "0.0.0.0",
           // 本地跨域代理 https://cn.vitejs.dev/config/server-options.html#server-proxy
           proxy: {

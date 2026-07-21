@@ -2,7 +2,7 @@ FROM node:24.18.0-alpine AS build-stage
 
 WORKDIR /app
 RUN corepack enable
-RUN corepack prepare pnpm@11 --activate
+RUN corepack prepare pnpm@11.15.1 --activate
 
 COPY .npmrc package.json pnpm-lock.yaml ./
 COPY scripts ./scripts

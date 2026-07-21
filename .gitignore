@@ -28,3 +28,9 @@ tests/**/coverage/
 *.njsproj
 *.sln
 tsconfig.tsbuildinfo
+
+# Env (BUILD-009): keep only *.example in git; real secrets stay local
+.env
+.env.*
+!.env.example
+!.env.*.example
