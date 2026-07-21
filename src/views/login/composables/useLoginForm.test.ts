@@ -59,6 +59,7 @@ describe("useLoginForm", () => {
       origin: window.location.origin,
       source: mockPopup as unknown as Window,
       data: {
+        type: "github-login-result",
         accessToken: "token",
         refreshToken: "refresh",
         expires: "2026-03-08T00:00:00.000Z",
@@ -101,6 +102,7 @@ describe("useLoginForm", () => {
       origin: window.location.origin,
       source: mockPopup as unknown as Window,
       data: {
+        type: "github-login-result",
         data: {
           accessToken: "token"
         }
@@ -131,7 +133,7 @@ describe("useLoginForm", () => {
     messageHandler({
       origin: window.location.origin,
       source: mockPopup as unknown as Window,
-      data: { error: "Access denied" }
+      data: { type: "github-login-result", error: "Access denied" }
     } as MessageEvent);
 
     await expect(promise).rejects.toThrow("Access denied");
@@ -172,7 +174,7 @@ describe("useLoginForm", () => {
     messageHandler({
       origin: window.location.origin,
       source: popup as unknown as Window,
-      data: { accessToken: "ok-token" }
+      data: { type: "github-login-result", accessToken: "ok-token" }
     } as MessageEvent);
 
     await expect(promise).resolves.toEqual({
@@ -206,5 +208,43 @@ describe("useLoginForm", () => {
 
     await expect(promise).rejects.toThrow("用户取消登录");
     expect(githubLoading.value).toBe(false);
+  });
+
+  it("FSW-007: ignores postMessage without explicit type", async () => {
+    const { handleGithubLogin } = useLoginForm();
+    const mockPopup = { closed: false, close: vi.fn() };
+    vi.mocked(window.open).mockReturnValue(mockPopup as unknown as Window);
+
+    let messageHandler: ((event: MessageEvent) => void) | undefined;
+    vi.mocked(window.addEventListener).mockImplementation((event, handler) => {
+      if (event === "message") {
+        messageHandler = handler as (event: MessageEvent) => void;
+      }
+    });
+
+    const promise = handleGithubLogin();
+    if (!messageHandler) throw new Error("message handler not registered");
+
+    // Random same-origin message must not resolve login
+    messageHandler({
+      origin: window.location.origin,
+      source: mockPopup as unknown as Window,
+      data: { accessToken: "evil-token", permissions: ["*"] }
+    } as MessageEvent);
+
+    // Still pending — complete with typed message
+    messageHandler({
+      origin: window.location.origin,
+      source: mockPopup as unknown as Window,
+      data: {
+        type: "github-login-result",
+        accessToken: "good-token"
+      }
+    } as MessageEvent);
+
+    await expect(promise).resolves.toEqual({
+      accessToken: "good-token",
+      permissions: []
+    });
   });
 });

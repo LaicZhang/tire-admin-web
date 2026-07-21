@@ -222,6 +222,7 @@ export function setToken(data: SetTokenPayload) {
   ) {
     const avatar = extra?.avatar ?? "";
     const nickname = extra?.nickname ?? "";
+    // FSW-005 / PA-008: local permissions are display-only; async-routes is authority.
     const permissions = extra?.permissions ?? [];
     const userStore = useUserStoreHook();
 

@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
       username: "admin",
       password: "123456",
       captchaCode: "abcd",
-      isRemember: true
+      isRemember: false
     }
   }
 }));

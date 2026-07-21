@@ -1,9 +1,7 @@
+// FSW-008: hide incomplete WeChat QR scan until polling/callback is closed
 const operates = [
   {
     title: "手机号登录"
-  },
-  {
-    title: "扫码登录"
   }
 ];
 

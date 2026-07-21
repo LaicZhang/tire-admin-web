@@ -21,7 +21,8 @@ const ruleForm = reactive({
   captchaCode: ""
 });
 const ruleFormRef = ref<FormInstance>();
-const { isDisabled, text } = useCaptchaCode();
+const captchaCodeCtl = useCaptchaCode();
+const { isDisabled, text } = captchaCodeCtl;
 const { captchaUrl, refreshCaptcha } = useCaptcha();
 
 onMounted(() => {
@@ -71,7 +72,7 @@ const sendSmsCode = async () => {
     return;
   }
 
-  await useCaptchaCode().start(ruleFormRef.value, "phone");
+  await captchaCodeCtl.start(ruleFormRef.value, "phone");
   try {
     // LOGIN-P1-06: backend CreateVerifyDto.code is graphic captcha
     const res = await getVerifyCodeApi({
@@ -95,7 +96,7 @@ const sendSmsCode = async () => {
 };
 
 function onBack() {
-  useCaptchaCode().end();
+  captchaCodeCtl.end();
   useUserStoreHook().setCurrentPage(0);
 }
 </script>

@@ -35,7 +35,8 @@ export function useCaptcha() {
  * 记住登录 composable
  */
 export function useRememberLogin() {
-  const checked = ref(true);
+  // FSW-006: default off on shared devices
+  const checked = ref(false);
   type LoginDayOption = 1 | 7 | 30;
   const loginDay = ref<LoginDayOption>(7);
 
@@ -65,7 +66,7 @@ export function useLoginForm() {
     username: "",
     password: "",
     captchaCode: "",
-    isRemember: true
+    isRemember: false
   });
 
   let cleanupFn: (() => void) | null = null;
@@ -76,9 +77,25 @@ export function useLoginForm() {
     if (!isObject(data)) return null;
     const record = data as Record<string, unknown>;
 
-    // Support { code, data: {...} } or { data: {...} }
-    if (isObject(record.data)) {
-      return parseGithubLoginMessage(record.data);
+    // FSW-007: require explicit message type (ignore random postMessage)
+    const messageType = record.type;
+    if (
+      messageType !== "github-login" &&
+      messageType !== "github-login-result"
+    ) {
+      // Nested envelope may still carry type on outer or inner
+      if (isObject(record.data)) {
+        return parseGithubLoginMessage(record.data);
+      }
+      return null;
+    }
+
+    // Support { type, data: {...} } envelope
+    if (isObject(record.data) && !record.accessToken) {
+      return parseGithubLoginMessage({
+        type: messageType,
+        ...(record.data as Record<string, unknown>)
+      });
     }
 
     const error = record.error;

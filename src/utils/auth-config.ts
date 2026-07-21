@@ -10,7 +10,9 @@
  * - Frontend sends credentials: 'include' with all requests
  * - CSRF token is read from a non-HttpOnly cookie and sent in headers
  *
- * Set VITE_USE_HTTPONLY_COOKIE=true after backend migration is complete
+ * Development: keep false unless local admin is same-site with API.
+ * Production (.env.production): default true (FSW-004). Requires AUTH_COOKIE_ENABLED=true
+ * and CSRF header (see be-core DEPLOYMENT / .env.production.example).
  */
 export const useHttpOnlyCookie =
   import.meta.env.VITE_USE_HTTPONLY_COOKIE === "true";

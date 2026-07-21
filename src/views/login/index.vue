@@ -72,11 +72,16 @@ const onLogin = async (formEl: FormInstance | undefined) => {
       message("登录成功", { type: "success" });
     } else {
       message(msg, { type: "error" });
+      // FSW-003: captcha is one-shot; always refresh after failed login
+      ruleForm.captchaCode = "";
+      refreshCaptcha();
     }
   } catch (err: unknown) {
     if (err instanceof Error) {
       message(err.message, { type: "error" });
     }
+    ruleForm.captchaCode = "";
+    refreshCaptcha();
   } finally {
     disabled.value = false;
     loading.value = false;
@@ -236,7 +241,7 @@ onMounted(() => {
                       <el-tooltip
                         effect="dark"
                         placement="top"
-                        content="勾选并登录后，规定天数内无需再次登录"
+                        content="共享设备请勿勾选。勾选后在规定天数内可免登录，关闭浏览器后仍可能保持登录态"
                       >
                         <IconifyIconOffline :icon="Info" class="ml-1" />
                       </el-tooltip>

@@ -21,7 +21,8 @@ const ruleForm = reactive({
   repeatPassword: ""
 });
 const ruleFormRef = ref<FormInstance>();
-const { isDisabled, text } = useCaptchaCode();
+const captchaCodeCtl = useCaptchaCode();
+const { isDisabled, text } = captchaCodeCtl;
 const { captchaUrl, refreshCaptcha } = useCaptcha();
 
 onMounted(() => {
@@ -57,7 +58,7 @@ const sendSmsCode = async () => {
     return;
   }
 
-  await useCaptchaCode().start(ruleFormRef.value, "phone");
+  await captchaCodeCtl.start(ruleFormRef.value, "phone");
   try {
     const res = await getVerifyCodeApi({
       phone: ruleForm.phone,
@@ -108,7 +109,7 @@ const onUpdate = async (formEl: FormInstance | undefined) => {
 };
 
 function onBack() {
-  useCaptchaCode().end();
+  captchaCodeCtl.end();
   useUserStoreHook().setCurrentPage(0);
 }
 </script>
