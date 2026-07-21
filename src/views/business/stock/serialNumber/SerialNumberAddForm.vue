@@ -31,7 +31,9 @@ const formData = reactive({
   repoId: "",
   batchNo: "",
   productionDate: "",
-  expiryDate: ""
+  expiryDate: "",
+  sourceType: "SURPLUS",
+  sourceOrderId: ""
 });
 
 // 重置表单
@@ -44,7 +46,9 @@ const resetForm = () => {
     repoId: "",
     batchNo: "",
     productionDate: "",
-    expiryDate: ""
+    expiryDate: "",
+    sourceType: "SURPLUS",
+    sourceOrderId: ""
   });
 };
 
@@ -116,6 +120,18 @@ const validate = (): boolean => {
     message("备注最多 255 个字符", { type: "warning" });
     return false;
   }
+  formData.sourceType = String(formData.sourceType || "").trim();
+  formData.sourceOrderId = String(formData.sourceOrderId || "").trim();
+  if (!formData.sourceType || !formData.sourceOrderId) {
+    message("自由建条须选择来源并填写来源单号（盘盈/调整路径，禁止幽灵在库）", {
+      type: "warning"
+    });
+    return false;
+  }
+  if (!["ADJUST", "SURPLUS"].includes(formData.sourceType)) {
+    message("自由建条仅允许 ADJUST/SURPLUS 盘盈路径", { type: "warning" });
+    return false;
+  }
   return true;
 };
 
@@ -133,7 +149,9 @@ const handleSubmit = async () => {
         repoId: formData.repoId,
         batchNo: formData.batchNo || undefined,
         productionDate: formData.productionDate || undefined,
-        expiryDate: formData.expiryDate || undefined
+        expiryDate: formData.expiryDate || undefined,
+        sourceType: formData.sourceType,
+        sourceOrderId: formData.sourceOrderId
       });
       message("创建成功", { type: "success" });
       return true;
@@ -150,7 +168,9 @@ const handleSubmit = async () => {
         serialNos,
         remark: formData.remark || undefined,
         tireId: formData.tireId,
-        repoId: formData.repoId
+        repoId: formData.repoId,
+        sourceType: formData.sourceType,
+        sourceOrderId: formData.sourceOrderId
       });
       const successCount = data.filter(r => r.success).length;
       const failCount = data.filter(r => !r.success).length;
@@ -254,6 +274,28 @@ defineExpose({
       <div class="text-xs text-gray-400 mt-1">
         提示：仓库数据需从仓库管理模块获取
       </div>
+    </el-form-item>
+    <el-form-item label="来源类型" required>
+      <el-select
+        v-model="formData.sourceType"
+        class="w-full!"
+        placeholder="盘盈/调整"
+      >
+        <el-option label="盘盈 SURPLUS" value="SURPLUS" />
+        <el-option label="调整 ADJUST" value="ADJUST" />
+      </el-select>
+      <div class="text-xs text-gray-400 mt-1">
+        SN-004：禁止无来源幽灵在库；单据入库请走采购/退货等流程
+      </div>
+    </el-form-item>
+    <el-form-item label="来源单号" required>
+      <el-input
+        v-model="formData.sourceOrderId"
+        placeholder="盘盈单/调整单 UID 或业务单号"
+        maxlength="100"
+        show-word-limit
+        clearable
+      />
     </el-form-item>
     <el-form-item v-if="formInline.type === 'single'" label="批次号">
       <el-input
