@@ -27,7 +27,7 @@ describe("sso", () => {
       username: "alice",
       accessToken: "token",
       roles: ["admin", "user"],
-      permissions: ["p1", "p2"]
+      permissions: []
     });
   });
 
@@ -40,7 +40,8 @@ describe("sso", () => {
     expect(payload).toEqual({
       username: "alice",
       accessToken: "token",
-      roles: ["admin"]
+      roles: ["admin"],
+      permissions: []
     });
   });
 
@@ -49,6 +50,15 @@ describe("sso", () => {
       "https://example.com/#/login?username=alice&roles=admin"
     );
     expect(parseSsoPayloadFromUrl(url)).toBeNull();
+  });
+
+  it("ignores forged permissions from SSO URL (PA-008)", () => {
+    const url = new URL(
+      "https://example.com/login?username=alice&accessToken=token&roles=admin&permissions=sys:all,admin:*"
+    );
+    const payload = parseSsoPayloadFromUrl(url);
+    expect(payload?.permissions).toEqual([]);
+    expect(payload?.roles).toEqual(["admin"]);
   });
 
   it("removes SSO params but keeps other params", () => {
@@ -100,7 +110,12 @@ describe("sso", () => {
       expect(setToken).toHaveBeenCalledWith({
         username: "alice",
         accessToken: "token",
-        roles: ["admin"]
+        roles: ["admin"],
+        // PA-008: permissions forced empty; identity extras may be undefined
+        permissions: [],
+        avatar: undefined,
+        nickname: undefined,
+        uid: undefined
       });
 
       expect(replaceSpy).toHaveBeenCalledTimes(1);

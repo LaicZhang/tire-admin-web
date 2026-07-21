@@ -104,11 +104,7 @@ export function useLoginForm() {
           (r): r is string => typeof r === "string"
         ) as string[])
       : undefined;
-    const permissions = Array.isArray(record.permissions)
-      ? (record.permissions.filter(
-          (p): p is string => typeof p === "string"
-        ) as string[])
-      : undefined;
+    // PA-008: ignore third-party message permissions; only token/identity fields.
 
     const expiresRaw = record.expires;
     const expires =
@@ -120,10 +116,11 @@ export function useLoginForm() {
 
     const payload: SetTokenPayload = {
       accessToken: accessToken.trim(),
+      // PA-008: never accept permissions from postMessage; initRouter overwrites authz.
+      permissions: [],
       ...(refreshToken ? { refreshToken } : {}),
       ...(expires && !Number.isNaN(expires.getTime()) ? { expires } : {}),
       ...(roles ? { roles } : {}),
-      ...(permissions ? { permissions } : {}),
       ...(username ? { username } : {}),
       ...(uid ? { uid } : {}),
       ...(nickname ? { nickname } : {}),

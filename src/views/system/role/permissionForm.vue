@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
-import { ElTree } from "element-plus";
+import { ElMessageBox, ElTree } from "element-plus";
 import {
   getRolePermissionTreeApi,
   getRolePermissionsApi,
@@ -35,13 +35,44 @@ async function loadCheckedKeys() {
   return Array.isArray(data) ? data : [];
 }
 
+async function promptSensitiveReason(): Promise<string | null> {
+  try {
+    const result = await ElMessageBox.prompt(
+      "赋权为敏感操作，请填写操作原因（至少 5 个字符）",
+      "确认赋权",
+      {
+        confirmButtonText: "确认保存",
+        cancelButtonText: "取消",
+        inputPlaceholder: "例如：按岗位调整销售权限",
+        inputValidator: (value: string) => {
+          const reason = (value ?? "").trim();
+          if (reason.length < 5) return "操作原因至少需要 5 个字符";
+          return true;
+        }
+      }
+    );
+    const reason =
+      typeof result === "string" ? result : String(result?.value ?? "");
+    return reason.trim();
+  } catch {
+    return null;
+  }
+}
+
 async function submit() {
   try {
+    const reason = await promptSensitiveReason();
+    if (!reason) return false;
+
     const permissionUids = (treeRef.value?.getCheckedKeys(true) ??
       []) as string[];
     const { code, msg } = await setRolePermissionsApi(
       props.uid,
-      permissionUids
+      permissionUids,
+      {
+        confirm: true,
+        reason
+      }
     );
     if (code !== 200) {
       message(msg || "保存失败", { type: "error" });

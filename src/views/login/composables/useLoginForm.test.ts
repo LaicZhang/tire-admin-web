@@ -65,7 +65,7 @@ describe("useLoginForm", () => {
         username: "octocat",
         uid: "user-1",
         roles: ["admin"],
-        permissions: ["sys:user:add"]
+        permissions: []
       }
     } as MessageEvent);
 
@@ -76,7 +76,7 @@ describe("useLoginForm", () => {
       username: "octocat",
       uid: "user-1",
       roles: ["admin"],
-      permissions: ["sys:user:add"]
+      permissions: []
     });
     expect(githubLoading.value).toBe(false);
   });
@@ -107,7 +107,10 @@ describe("useLoginForm", () => {
       }
     } as MessageEvent);
 
-    await expect(promise).resolves.toEqual({ accessToken: "token" });
+    await expect(promise).resolves.toEqual({
+      accessToken: "token",
+      permissions: []
+    });
   });
 
   it("handleGithubLogin rejects on error message", async () => {
@@ -172,7 +175,10 @@ describe("useLoginForm", () => {
       data: { accessToken: "ok-token" }
     } as MessageEvent);
 
-    await expect(promise).resolves.toEqual({ accessToken: "ok-token" });
+    await expect(promise).resolves.toEqual({
+      accessToken: "ok-token",
+      permissions: []
+    });
     expect(githubLoading.value).toBe(false);
   });
 

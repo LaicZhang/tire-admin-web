@@ -117,23 +117,40 @@ export async function getDepartmentRolesApi(uid: string) {
 }
 
 /** 分配部门角色 */
-export async function setDepartmentRolesApi(uid: string, roleUids: string[]) {
+export async function setDepartmentRolesApi(
+  uid: string,
+  roleUids: string[],
+  options?: { confirm?: boolean; reason?: string }
+) {
   return await http.request<CommonResult<void>>(
     "patch",
     baseUrlApi(prefix + `${uid}/roles`),
-    { data: { roleUids } }
+    {
+      data: {
+        roleUids,
+        confirm: options?.confirm ?? true,
+        reason: options?.reason
+      }
+    }
   );
 }
 
 /** 移除部门角色 */
 export async function removeDepartmentRolesApi(
   uid: string,
-  roleUids: string[]
+  roleUids: string[],
+  options?: { confirm?: boolean; reason?: string }
 ) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + `${uid}/roles`),
-    { data: { roleUids } }
+    {
+      data: {
+        roleUids,
+        confirm: options?.confirm ?? true,
+        reason: options?.reason
+      }
+    }
   );
 }
 

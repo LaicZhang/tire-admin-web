@@ -138,13 +138,14 @@ test.describe("系统设置", () => {
     });
   });
 
-  test.describe("权限设置", () => {
+  // PA-009: legacy /settings/permissions removed; formal entry is /system/role
+  test.describe("系统角色（正式赋权入口）", () => {
     test.beforeEach(async ({ authenticatedPage: page }) => {
-      await page.goto("/settings/permissions");
+      await page.goto("/system/role");
       await waitForTableLoad(page);
     });
 
-    test("页面应正确显示权限列表", async ({ authenticatedPage: page }) => {
+    test("页面应正确显示角色列表", async ({ authenticatedPage: page }) => {
       await expect(page.locator(selectors.table)).toBeVisible();
     });
   });

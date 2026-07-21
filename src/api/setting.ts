@@ -7,6 +7,5 @@ export * from "./setting/recycle";
 export * from "./setting/data-auth";
 export * from "./setting/operation-log";
 export * from "./setting/backup";
-export * from "./setting/permission";
 export * from "./setting/closing";
 export * from "./setting/code-rule";

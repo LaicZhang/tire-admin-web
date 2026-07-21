@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { h, ref } from "vue";
+import { ElMessageBox } from "element-plus";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
@@ -147,14 +148,50 @@ async function openRolesDialog(row: { uid: string; name: string }) {
           (r: string) => !selectedRolesList.includes(r)
         );
 
+        if (toAdd.length === 0 && toRemove.length === 0) {
+          done();
+          return;
+        }
+
+        let reason = "";
+        try {
+          const result = await ElMessageBox.prompt(
+            "部门赋角为敏感操作，请填写操作原因（至少 5 个字符）",
+            "确认保存部门角色",
+            {
+              confirmButtonText: "确认保存",
+              cancelButtonText: "取消",
+              inputPlaceholder: "例如：销售部岗位权限调整",
+              inputValidator: (value: string) => {
+                const text = (value ?? "").trim();
+                if (text.length < 5) return "操作原因至少需要 5 个字符";
+                return true;
+              }
+            }
+          );
+          reason =
+            typeof result === "string"
+              ? result.trim()
+              : String(result?.value ?? "").trim();
+        } catch {
+          return;
+        }
+        if (!reason) return;
+
         // 添加新角色
         if (toAdd.length > 0) {
-          await setDepartmentRolesApi(row.uid, toAdd);
+          await setDepartmentRolesApi(row.uid, toAdd, {
+            confirm: true,
+            reason
+          });
         }
 
         // 移除角色
         if (toRemove.length > 0) {
-          await removeDepartmentRolesApi(row.uid, toRemove);
+          await removeDepartmentRolesApi(row.uid, toRemove, {
+            confirm: true,
+            reason
+          });
         }
 
         message("角色分配保存成功", { type: "success" });

@@ -7,6 +7,7 @@ const ssoKeys = [
   "uid",
   "avatar",
   "nickname",
+  // still strip legacy query keys, but never trust them as authz state
   "permissions"
 ] as const;
 
@@ -57,7 +58,8 @@ function parseSsoPayloadFromParams(
   const uid = normalizeScalar(params.get("uid")) || undefined;
   const avatar = normalizeScalar(params.get("avatar")) || undefined;
   const nickname = normalizeScalar(params.get("nickname")) || undefined;
-  const permissions = parseListParam(params, "permissions");
+  // PA-008: never trust URL permissions; server async-routes overwrite via initRouter.
+  // roles remain as display placeholders only until completeLogin/initRouter.
 
   const payload: SetTokenPayload = {
     username,
@@ -66,7 +68,7 @@ function parseSsoPayloadFromParams(
     uid,
     avatar,
     nickname,
-    ...(permissions.length > 0 ? { permissions } : {})
+    permissions: []
   };
 
   return payload;

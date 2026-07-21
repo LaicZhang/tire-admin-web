@@ -74,12 +74,13 @@ export async function setRoleMenusApi(
   menuUids: string[],
   companyId?: string
 ) {
+  const targetCompanyId = companyId ?? getCompanyId();
   return await http.request<CommonResult<void>>(
     "patch",
     baseUrlApi(`/role/${uid}/menus`),
     {
       data: { menuUids },
-      params: companyId ? { companyId } : undefined
+      params: targetCompanyId ? { companyId: targetCompanyId } : undefined
     }
   );
 }
@@ -104,13 +105,22 @@ export async function getRolePermissionsApi(uid: string, companyId?: string) {
 export async function setRolePermissionsApi(
   uid: string,
   permissionUids: string[],
-  companyId?: string
+  options?: {
+    companyId?: string;
+    confirm?: boolean;
+    reason?: string;
+  }
 ) {
+  const companyId = options?.companyId ?? getCompanyId();
   return await http.request<CommonResult<void>>(
     "patch",
     baseUrlApi(`/role/${uid}/permissions`),
     {
-      data: { permissionUids },
+      data: {
+        permissionUids,
+        confirm: options?.confirm ?? true,
+        reason: options?.reason
+      },
       params: companyId ? { companyId } : undefined
     }
   );

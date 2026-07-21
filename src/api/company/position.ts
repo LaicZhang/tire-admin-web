@@ -1,6 +1,7 @@
 import { http } from "../../utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 
 const prefix = "/role/";
 
@@ -71,11 +72,13 @@ export async function getPositionMenuUidsApi(uid: string) {
 }
 
 export async function setPositionMenusApi(uid: string, menuUids: string[]) {
+  const companyId = useCurrentCompanyStoreHook().companyId;
   return await http.request<CommonResult<void>>(
     "patch",
     baseUrlApi(`${prefix}${uid}/menus`),
     {
-      data: { menuUids }
+      data: { menuUids },
+      params: companyId ? { companyId } : undefined
     }
   );
 }
