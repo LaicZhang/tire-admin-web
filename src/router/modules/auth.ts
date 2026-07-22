@@ -870,6 +870,49 @@ export default [
           icon: null
         }
       },
+
+      {
+        id: 248,
+        uid: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "saleContract",
+        path: "/business/saleContract",
+        component: () => import("@/views/business/contract/sale/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "seller", "manager"],
+          title: "销售合同",
+          icon: null
+        }
+      },
+      {
+        id: 249,
+        uid: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "purchaseContract",
+        path: "/business/purchaseContract",
+        component: () => import("@/views/business/contract/purchase/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "purchaser", "manager"],
+          title: "采购合同",
+          icon: null
+        }
+      },
+      {
+        id: 250,
+        uid: "c3d4e5f6-a7b8-9012-cdef-123456789012",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "contractTemplate",
+        path: "/business/contractTemplate",
+        component: () => import("@/views/business/contract/template/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "manager"],
+          title: "合同模板",
+          icon: null
+        }
+      },
       {
         id: 147,
         uid: "fc730b58-5e07-49c2-9242-cdcaa775a147",
