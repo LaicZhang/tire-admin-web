@@ -151,15 +151,31 @@ export default [
         id: 13,
         uid: "42e642e6-8fcf-46f5-a658-e3d56f07ca01",
         parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
-        name: "log",
-        path: "/system/log",
+        name: "monitorPlatform",
+        path: "/monitor/platform",
         redirect: null,
-        component: () => import("@/views/system/log/index.vue"),
+        component: () => import("@/views/monitor/platform/index.vue"),
         isShow: true,
         meta: {
           roles: ["admin"],
+          title: "平台监控中心",
+          icon: "ep:monitor"
+        }
+      },
+      {
+        id: 1301,
+        uid: "42e642e6-8fcf-46f5-a658-e3d56f07ca02",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "systemLogRedirect",
+        path: "/system/log",
+        redirect: "/monitor/platform?tab=logs",
+        component: () => import("@/views/monitor/platform/index.vue"),
+        isShow: false,
+        meta: {
+          roles: ["admin"],
           title: "日志管理",
-          icon: null
+          icon: null,
+          showLink: false
         }
       },
       {
@@ -375,6 +391,46 @@ export default [
       rank: 10
     },
     children: [
+      {
+        id: 9001,
+        uid: "f1a2b3c4-d5e6-7890-abcd-ef1234567890",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "monitorCompany",
+        path: "/monitor/company",
+        redirect: null,
+        component: () => import("@/views/monitor/company/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "公司审计中心",
+          icon: "ep:data-analysis",
+          auths: [
+            "get/monitor/overview",
+            "get/monitor/logs",
+            "get/monitor/org",
+            "get/monitor/business",
+            "get/monitor/system",
+            "get/monitor/money",
+            "get/monitor/export"
+          ]
+        }
+      },
+      {
+        id: 9002,
+        uid: "f1a2b3c4-d5e6-7890-abcd-ef1234567891",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "settingsOperationLogRedirect",
+        path: "/settings/operationLog",
+        redirect: "/monitor/company?tab=logs",
+        component: () => import("@/views/monitor/company/index.vue"),
+        isShow: false,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "操作日志",
+          icon: null,
+          showLink: false
+        }
+      },
       {
         id: 20,
         uid: "7ea26f47-c628-42fd-9ad4-9eff60336b92",

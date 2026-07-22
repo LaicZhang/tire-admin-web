@@ -37,7 +37,7 @@ async function loadCheckedKeys() {
 
 async function promptSensitiveReason(): Promise<string | null> {
   try {
-    const result = await ElMessageBox.prompt(
+    const { value } = await ElMessageBox.prompt(
       "赋权为敏感操作，请填写操作原因（至少 5 个字符）",
       "确认赋权",
       {
@@ -51,9 +51,7 @@ async function promptSensitiveReason(): Promise<string | null> {
         }
       }
     );
-    const reason =
-      typeof result === "string" ? result : String(result?.value ?? "");
-    return reason.trim();
+    return String(value ?? "").trim();
   } catch {
     return null;
   }

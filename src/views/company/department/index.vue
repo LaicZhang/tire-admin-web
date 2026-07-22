@@ -155,7 +155,7 @@ async function openRolesDialog(row: { uid: string; name: string }) {
 
         let reason = "";
         try {
-          const result = await ElMessageBox.prompt(
+          const { value: promptValue } = await ElMessageBox.prompt(
             "部门赋角为敏感操作，请填写操作原因（至少 5 个字符）",
             "确认保存部门角色",
             {
@@ -169,10 +169,7 @@ async function openRolesDialog(row: { uid: string; name: string }) {
               }
             }
           );
-          reason =
-            typeof result === "string"
-              ? result.trim()
-              : String(result?.value ?? "").trim();
+          reason = String(promptValue ?? "").trim();
         } catch {
           return;
         }
