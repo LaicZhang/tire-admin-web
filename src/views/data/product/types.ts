@@ -14,6 +14,8 @@ export interface FormItemProps {
   maxStock?: number;
   enableSerialNumber?: boolean;
   enableBatch?: boolean;
+  /** PHYSICAL | SERVICE */
+  productType?: "PHYSICAL" | "SERVICE";
   desc?: string;
 }
 

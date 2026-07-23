@@ -18,8 +18,9 @@ defineOptions({
 const { confirm } = useConfirmDialog();
 
 const costMethodOptions = [
-  { label: "移动平均法", value: "moving_average" },
-  { label: "先进先出法", value: "fifo" }
+  { label: "SKU移动加权", value: "moving_average" },
+  { label: "批次移动加权", value: "moving_average_batch" },
+  { label: "批次FIFO", value: "fifo" }
 ];
 
 const costCalcTypeOptions = [
@@ -66,8 +67,8 @@ const handleCostMethodChange = async (value: string) => {
     }
   );
   if (!ok) {
-    formData.value.costMethod =
-      value === "moving_average" ? "fifo" : "moving_average";
+    // revert: keep previous via reload defaults path — use SKU MA as safe fallback
+    formData.value.costMethod = "moving_average";
   }
 };
 

@@ -23,12 +23,18 @@ const importDialogVisible = ref(false);
 const exportDialogVisible = ref(false);
 
 // 模板管理
-const templateType = ref("user");
+const templateType = ref("employee");
 const typeOptions = [
-  { label: "员工导入", value: "user" },
+  { label: "员工导入", value: "employee" },
   { label: "商品导入", value: "tire" },
   { label: "客户导入", value: "customer" },
-  { label: "供应商导入", value: "provider" }
+  { label: "供应商导入", value: "provider" },
+  { label: "采购订单（草稿）", value: "purchase-order" },
+  { label: "采购入库（草稿）", value: "purchase-inbound" },
+  { label: "采购退货（草稿）", value: "purchase-return" },
+  { label: "销售订单（草稿）", value: "sale-order" },
+  { label: "销售出库草稿", value: "sale-outbound" },
+  { label: "资金单据", value: "fund-document" }
 ];
 
 async function downloadTemplate() {

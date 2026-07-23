@@ -118,6 +118,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
         maxStock: row?.maxStock,
         enableSerialNumber: row?.enableSerialNumber ?? false,
         enableBatch: row?.enableBatch ?? false,
+        productType: row?.productType ?? "PHYSICAL",
         desc: row?.desc ?? ""
       }
     },

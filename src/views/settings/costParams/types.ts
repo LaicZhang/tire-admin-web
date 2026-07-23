@@ -1,7 +1,7 @@
 // 成本参数 - 类型定义
 export interface CostParams {
   // 成本核算方法
-  costMethod: "moving_average" | "fifo";
+  costMethod: "moving_average" | "moving_average_batch" | "fifo";
   // 成本核算方式
   costCalcType: "total_warehouse" | "sub_warehouse";
   // 异常成本处理顺序

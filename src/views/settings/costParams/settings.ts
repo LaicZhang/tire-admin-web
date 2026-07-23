@@ -7,7 +7,7 @@ import {
 } from "@/utils/type-guards";
 import type { AbnormalCostItem, CostParams } from "./types";
 
-const COST_METHODS = ["moving_average", "fifo"];
+const COST_METHODS = ["moving_average", "moving_average_batch", "fifo"];
 const COST_CALC_TYPES = ["total_warehouse", "sub_warehouse"];
 
 function isCostMethod(value: unknown): value is CostParams["costMethod"] {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import type { FormProps } from "./types";
 import { useSysDictOptions } from "@/composables/useSysDict";
 import { getAllUnitsApi, type Unit } from "@/api/business/unit";
@@ -20,6 +20,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     maxStock: undefined,
     enableSerialNumber: false,
     enableBatch: false,
+    productType: "PHYSICAL",
     desc: ""
   }),
   disabled: false
@@ -61,6 +62,9 @@ const formRules: FormRules = reactive({
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+const isServiceProduct = computed(
+  () => (newFormInline.value.productType ?? "PHYSICAL") === "SERVICE"
+);
 
 const { options: groupOptions } = useSysDictOptions("tireGroup");
 const { options: brandOptions } = useSysDictOptions("tireBrand");
@@ -233,14 +237,24 @@ defineExpose({ formRef: ruleFormRef });
       </el-form-item>
     </div>
 
+    <el-form-item label="商品类型" prop="productType">
+      <el-radio-group v-model="newFormInline.productType">
+        <el-radio :value="'PHYSICAL'">实物商品</el-radio>
+        <el-radio :value="'SERVICE'">服务商品</el-radio>
+      </el-radio-group>
+      <span class="ml-2 text-gray-400 text-sm"
+        >服务商品不写库存/批次/序列号</span
+      >
+    </el-form-item>
+
     <el-divider content-position="left">管理设置</el-divider>
 
-    <el-form-item label="序列号管理">
+    <el-form-item v-if="!isServiceProduct" label="序列号管理">
       <el-switch v-model="newFormInline.enableSerialNumber" />
       <span class="ml-2 text-gray-400 text-sm"> 启用后可录入商品序列号 </span>
     </el-form-item>
 
-    <el-form-item label="批次管理">
+    <el-form-item v-if="!isServiceProduct" label="批次管理">
       <el-switch v-model="newFormInline.enableBatch" />
       <span class="ml-2 text-gray-400 text-sm"> 启用后可录入商品批次 </span>
     </el-form-item>
