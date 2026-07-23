@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { recordSuccessfulCreate } from "@/composables";
 import { ref, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import AddFill from "~icons/ri/add-circle-line";
@@ -125,6 +126,15 @@ const { openDialog } = useActionFormDialog<PurchaseOrder, PurchaseOrderFormRef>(
             provider: { connect: { uid: orderData.providerId } }
           },
           details: details.map(d => ({ ...d, companyId }))
+        });
+        void recordSuccessfulCreate("purchaseOrder", {
+          providerId: orderData.providerId,
+          providerName:
+            (formData as { providerName?: string }).providerName ||
+            (provider as { name?: string } | undefined)?.name ||
+            "",
+          paymentId: (orderData as { paymentId?: string }).paymentId || "",
+          repoId: details[0]?.repoId || ""
         });
         message("新增成功", { type: "success" });
       },

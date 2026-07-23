@@ -37,3 +37,6 @@ export * from "./useBarcodeSettings";
 
 // 创建表单公司默认值
 export * from "./applyCreateDefaults";
+
+// 最近实体 / last-used 表头
+export * from "./recentFormMemory";

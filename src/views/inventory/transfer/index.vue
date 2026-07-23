@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { recordSuccessfulCreate } from "@/composables";
 import { PAGE_SIZE_MEDIUM } from "@/utils/constants";
 import { h, onMounted, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
@@ -222,6 +223,12 @@ const { openDialog } = useActionFormDialog<
             ? { serialNumbers: detail.serialNumbers }
             : {})
         }))
+      });
+      void recordSuccessfulCreate("transfer", {
+        fromRepositoryId: data.fromRepositoryId || "",
+        toRepositoryId: data.toRepositoryId || "",
+        sourceRepoId: data.fromRepositoryId || "",
+        targetRepoId: data.toRepositoryId || ""
       });
       message("创建成功", { type: "success" });
     },

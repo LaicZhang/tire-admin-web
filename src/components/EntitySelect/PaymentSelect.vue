@@ -3,6 +3,10 @@ import { computed, ref, watch } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import { getPaymentApi, getPaymentListApi, type PaymentListData } from "@/api";
 import type { PaymentAccount } from "@/api/type";
+import {
+  listRecentEntities,
+  touchRecentEntity
+} from "@/composables/recentFormMemory";
 import { handleApiError, message } from "@/utils";
 
 type OptionItem = {
@@ -39,6 +43,11 @@ const innerValue = computed<string | undefined>({
 const loading = ref(false);
 const keyword = ref("");
 const allAccounts = ref<PaymentAccount[]>([]);
+const recent = ref<OptionItem[]>([]);
+
+function accountLabel(a: PaymentAccount): string {
+  return `${a.name ?? "未命名"} (余额:${a.balance ?? 0})`;
+}
 
 const options = computed<OptionItem[]>(() => {
   const kw = keyword.value.trim().toLowerCase();
@@ -55,7 +64,7 @@ const options = computed<OptionItem[]>(() => {
 
   return filtered.map(a => ({
     value: a.uid,
-    label: `${a.name ?? "未命名"} (余额:${a.balance ?? 0})`,
+    label: accountLabel(a),
     raw: a
   }));
 });
@@ -69,6 +78,15 @@ function normalizePaymentList(
   if (Array.isArray(payments)) return payments;
   const list = (data as { list?: PaymentAccount[] }).list;
   return Array.isArray(list) ? list : [];
+}
+
+async function loadRecent() {
+  try {
+    const items = await listRecentEntities("payment");
+    recent.value = items.map(i => ({ value: i.uid, label: i.name }));
+  } catch {
+    recent.value = [];
+  }
 }
 
 async function fetchList() {
@@ -108,8 +126,29 @@ watch(
 );
 
 function onFocus() {
+  void loadRecent();
   if (allAccounts.value.length === 0) fetchList();
 }
+
+function onChange(val: string | undefined) {
+  if (!val) return;
+  const fromList = allAccounts.value.find(a => a.uid === val);
+  const fromRecent = recent.value.find(o => o.value === val);
+  void touchRecentEntity("payment", {
+    uid: val,
+    name: fromList?.name || fromRecent?.label || val
+  });
+}
+
+const showRecentGroup = computed(
+  () => recent.value.length > 0 && keyword.value.trim().length === 0
+);
+
+const remoteOptions = computed(() => {
+  if (!showRecentGroup.value) return options.value;
+  const recentIds = new Set(recent.value.map(r => r.value));
+  return options.value.filter(o => !recentIds.has(o.value));
+});
 
 const remoteMethod = useDebounceFn((val: string) => {
   keyword.value = val || "";
@@ -128,12 +167,33 @@ const remoteMethod = useDebounceFn((val: string) => {
     :loading="loading"
     class="w-full"
     @focus="onFocus"
+    @change="onChange"
   >
-    <el-option
-      v-for="item in options"
-      :key="item.value"
-      :label="item.label"
-      :value="item.value"
-    />
+    <template v-if="showRecentGroup">
+      <el-option-group label="最近">
+        <el-option
+          v-for="item in recent"
+          :key="`r-${item.value}`"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-option-group>
+      <el-option-group v-if="remoteOptions.length" label="全部">
+        <el-option
+          v-for="item in remoteOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-option-group>
+    </template>
+    <template v-else>
+      <el-option
+        v-for="item in options"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </template>
   </el-select>
 </template>

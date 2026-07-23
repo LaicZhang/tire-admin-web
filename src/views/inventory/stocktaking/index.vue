@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { recordSuccessfulCreate } from "@/composables";
 import { PAGE_SIZE_MEDIUM } from "@/utils/constants";
 import { ref, reactive, onMounted, h } from "vue";
 import type { FormInstance } from "element-plus";
@@ -149,6 +150,9 @@ const openCreateDialog = () => {
           try {
             const formData = formRef.getFormData();
             await createInventoryCheckTaskApi(formData);
+            void recordSuccessfulCreate("stocktake", {
+              repoId: formData.repoId || ""
+            });
             message("创建成功", { type: "success" });
             done();
             fetchData();

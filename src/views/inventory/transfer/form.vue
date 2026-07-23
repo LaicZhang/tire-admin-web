@@ -10,7 +10,7 @@ import {
   formatSerialNumbersText,
   parseSerialNumbersText
 } from "@/utils/serialNumber";
-import { applyCreateDefaults } from "@/composables";
+import { applyCreateDefaults, applyLastFormHeaderAsync } from "@/composables";
 import { logger } from "@/utils/logger";
 
 interface Props {
@@ -138,9 +138,41 @@ async function applyDefaults() {
   }
 }
 
+async function applyLastUsedPrefill() {
+  if (!props.isCreate || props.isView) return;
+  try {
+    const target: Record<string, unknown> = {
+      fromRepositoryId: formData.fromRepositoryId || "",
+      toRepositoryId: formData.toRepositoryId || "",
+      sourceRepoId: formData.fromRepositoryId || "",
+      targetRepoId: formData.toRepositoryId || ""
+    };
+    const header = await applyLastFormHeaderAsync(target, "transfer");
+    if (!header) return;
+    if (
+      typeof target.fromRepositoryId === "string" &&
+      target.fromRepositoryId
+    ) {
+      formData.fromRepositoryId = target.fromRepositoryId;
+    } else if (typeof target.sourceRepoId === "string" && target.sourceRepoId) {
+      formData.fromRepositoryId = target.sourceRepoId;
+    }
+    if (typeof target.toRepositoryId === "string" && target.toRepositoryId) {
+      formData.toRepositoryId = target.toRepositoryId;
+    } else if (typeof target.targetRepoId === "string" && target.targetRepoId) {
+      formData.toRepositoryId = target.targetRepoId;
+    }
+  } catch (error) {
+    logger.error("[LastForm] transfer prefill failed", error);
+  }
+}
+
 onMounted(() => {
   loadData();
-  void applyDefaults();
+  void (async () => {
+    await applyDefaults();
+    await applyLastUsedPrefill();
+  })();
 });
 </script>
 

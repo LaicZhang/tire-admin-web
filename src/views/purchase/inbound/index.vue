@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { recordSuccessfulCreate } from "@/composables";
 import { ref, onMounted } from "vue";
 import { v7 as uuid } from "uuid";
 import { ElMessageBox, type FormInstance } from "element-plus";
@@ -243,6 +244,10 @@ const { openDialog } = useActionFormDialog<InboundOrder, InboundOrderFormRef>({
       if (!validateCreateDetails(formData.details)) return false;
       const companyId = getCompanyId();
       await createPurchaseInboundApi(buildCreatePayload(formData, companyId));
+      void recordSuccessfulCreate("purchaseInbound", {
+        providerId: formData.providerId || "",
+        repoId: formData.details?.[0]?.repoId || ""
+      });
       message("新增成功", { type: "success" });
     },
     修改: async formData => {

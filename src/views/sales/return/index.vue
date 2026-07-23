@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { recordSuccessfulCreate } from "@/composables";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import { h, onMounted, ref } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -179,6 +180,11 @@ function openDialog(title: string, row?: SalesReturnOrder) {
                 ...detail,
                 companyId
               }))
+            });
+            void recordSuccessfulCreate("salesReturn", {
+              customerId: orderData.customerId || formData.customerId || "",
+              paymentId: formData.paymentId || "",
+              repoId: details[0]?.repoId || ""
             });
             message("新增成功", { type: "success" });
           } else if (title === "修改") {

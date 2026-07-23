@@ -269,6 +269,9 @@ export function removeToken() {
   storageLocal().removeItem(userKey);
   useCurrentCompanyStoreHook().clearCurrentCompany();
   sessionStorage.removeItem(refreshTokenKey);
+  void import("@/composables/recentFormMemory")
+    .then(m => m.clearRecentFormMemory({ allScopes: true }))
+    .catch(() => undefined);
 }
 
 /** 格式化token（jwt格式） */

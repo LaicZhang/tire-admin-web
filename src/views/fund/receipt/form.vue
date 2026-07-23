@@ -19,8 +19,10 @@ import {
 } from "./types";
 import { useFundForm } from "../composables/useFundForm";
 import {
+  applyLastFormHeaderAsync,
   loadSettlementDefaults,
-  createBackdateDisabledDate
+  createBackdateDisabledDate,
+  recordSuccessfulCreate
 } from "@/composables";
 import { logger } from "@/utils/logger";
 
@@ -88,13 +90,40 @@ function resetForm() {
   });
   receivableLedgerOptions.value = [];
   formRef.value?.resetFields?.();
-  void applySettlementDefaults();
+  void (async () => {
+    await applySettlementDefaults();
+    await applyLastUsedPrefill();
+  })();
 }
 
 const allowBackdateDays = ref(0);
 const disabledBackdateDate = createBackdateDisabledDate(
   () => allowBackdateDays.value
 );
+
+async function applyLastUsedPrefill() {
+  if (props.editData) return;
+  try {
+    const target: Record<string, unknown> = {
+      customerId: formData.customerId || "",
+      paymentId: formData.paymentId || "",
+      paymentMethod: formData.paymentMethod || ""
+    };
+    await applyLastFormHeaderAsync(target, "receipt");
+    if (typeof target.customerId === "string" && target.customerId) {
+      formData.customerId = target.customerId as typeof formData.customerId;
+    }
+    if (typeof target.paymentId === "string" && target.paymentId) {
+      formData.paymentId = target.paymentId as typeof formData.paymentId;
+    }
+    if (typeof target.paymentMethod === "string" && target.paymentMethod) {
+      formData.paymentMethod =
+        target.paymentMethod as typeof formData.paymentMethod;
+    }
+  } catch (error) {
+    logger.error("[LastForm] receipt prefill failed", error);
+  }
+}
 
 async function applySettlementDefaults() {
   if (props.editData) return;
@@ -217,6 +246,13 @@ async function submit() {
       await createReceiptApi(submitData);
     }
 
+    if (!props.editData) {
+      void recordSuccessfulCreate("receipt", {
+        customerId: formData.customerId,
+        paymentId: formData.paymentId,
+        paymentMethod: formData.paymentMethod
+      });
+    }
     message(props.editData ? "更新成功" : "创建成功", { type: "success" });
     return true;
   } catch (error) {

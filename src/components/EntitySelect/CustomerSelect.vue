@@ -6,6 +6,10 @@ import {
   getCustomerListApi,
   type Customer
 } from "@/api/business/customer";
+import {
+  listRecentEntities,
+  touchRecentEntity
+} from "@/composables/recentFormMemory";
 import { handleApiError, message } from "@/utils";
 
 type OptionItem = {
@@ -39,14 +43,26 @@ const innerValue = computed<string | undefined>({
 
 const loading = ref(false);
 const options = ref<OptionItem[]>([]);
+const recent = ref<OptionItem[]>([]);
+const keyword = ref("");
 
 let requestSeq = 0;
 
-async function fetchList(keyword: string) {
+async function loadRecent() {
+  try {
+    const items = await listRecentEntities("customer");
+    recent.value = items.map(i => ({ value: i.uid, label: i.name }));
+  } catch {
+    recent.value = [];
+  }
+}
+
+async function fetchList(kw: string) {
   const seq = ++requestSeq;
   loading.value = true;
+  keyword.value = kw || "";
   try {
-    const res = await getCustomerListApi(1, { keyword: keyword || "" });
+    const res = await getCustomerListApi(1, { keyword: keyword.value });
     if (seq !== requestSeq) return;
     if (res.code !== 200) {
       message(res.msg || "加载客户列表失败", { type: "error" });
@@ -68,7 +84,12 @@ const fetchListDebounced = useDebounceFn(fetchList, 300);
 
 async function ensureSelected(uid: string) {
   if (!uid) return;
-  if (options.value.some(o => o.value === uid)) return;
+  if (
+    options.value.some(o => o.value === uid) ||
+    recent.value.some(o => o.value === uid)
+  ) {
+    return;
+  }
   try {
     const res = await getCustomerBatchApi([uid]);
     if (res.code !== 200) return;
@@ -92,8 +113,30 @@ watch(
 );
 
 function onFocus() {
+  void loadRecent();
   if (options.value.length === 0) fetchList("");
 }
+
+function onChange(val: string | undefined) {
+  if (!val) return;
+  const item =
+    recent.value.find(o => o.value === val) ||
+    options.value.find(o => o.value === val);
+  void touchRecentEntity("customer", {
+    uid: val,
+    name: item?.label || val
+  });
+}
+
+const showRecentGroup = computed(
+  () => recent.value.length > 0 && keyword.value.trim().length === 0
+);
+
+const remoteOptions = computed(() => {
+  if (!showRecentGroup.value) return options.value;
+  const recentIds = new Set(recent.value.map(r => r.value));
+  return options.value.filter(o => !recentIds.has(o.value));
+});
 </script>
 
 <template>
@@ -108,12 +151,33 @@ function onFocus() {
     :loading="loading"
     class="w-full"
     @focus="onFocus"
+    @change="onChange"
   >
-    <el-option
-      v-for="item in options"
-      :key="item.value"
-      :label="item.label"
-      :value="item.value"
-    />
+    <template v-if="showRecentGroup">
+      <el-option-group label="最近">
+        <el-option
+          v-for="item in recent"
+          :key="`r-${item.value}`"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-option-group>
+      <el-option-group v-if="remoteOptions.length" label="全部">
+        <el-option
+          v-for="item in remoteOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-option-group>
+    </template>
+    <template v-else>
+      <el-option
+        v-for="item in options"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </template>
   </el-select>
 </template>

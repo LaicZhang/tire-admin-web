@@ -19,7 +19,7 @@ import {
 } from "@/utils/serialNumber";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
-import { applyCreateDefaults } from "@/composables";
+import { applyCreateDefaults, applyLastFormHeaderAsync } from "@/composables";
 import { logger } from "@/utils/logger";
 
 const props = withDefaults(
@@ -236,6 +236,37 @@ async function applyDefaults() {
   }
 }
 
+async function applyLastUsedPrefill() {
+  if (props.formTitle !== "新增") return;
+  try {
+    const target: Record<string, unknown> = {
+      customerId: formData.value.customerId || "",
+      customerName: formData.value.customerName || "",
+      paymentId: formData.value.paymentId || "",
+      repoId: defaultWarehouseId.value || ""
+    };
+    const header = await applyLastFormHeaderAsync(target, "salesReturn");
+    if (!header) return;
+    if (typeof target.customerId === "string" && target.customerId) {
+      formData.value.customerId = target.customerId;
+    }
+    if (typeof target.customerName === "string" && target.customerName) {
+      formData.value.customerName = target.customerName;
+    }
+    if (typeof target.paymentId === "string" && target.paymentId) {
+      formData.value.paymentId = target.paymentId;
+    }
+    if (typeof target.repoId === "string" && target.repoId) {
+      defaultWarehouseId.value = target.repoId;
+      for (const row of formData.value.details || []) {
+        if (!row.repoId) row.repoId = target.repoId;
+      }
+    }
+  } catch (error) {
+    logger.error("[LastForm] salesReturn prefill failed", error);
+  }
+}
+
 function onAddDetail() {
   formData.value.details.push({
     sourceDeliveryNoteLineUid: undefined,
@@ -289,7 +320,10 @@ defineExpose({ formRef: ruleFormRef });
 
 onMounted(() => {
   loadBaseData();
-  void applyDefaults();
+  void (async () => {
+    await applyDefaults();
+    await applyLastUsedPrefill();
+  })();
 });
 
 watch(

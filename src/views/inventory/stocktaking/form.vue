@@ -3,7 +3,7 @@ import { ref, reactive, onMounted } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import type { StocktakingTask, CreateStocktakingDto } from "./types";
 import { getRepoListApi } from "@/api/company/repo";
-import { applyCreateDefaults } from "@/composables";
+import { applyCreateDefaults, applyLastFormHeaderAsync } from "@/composables";
 import { logger } from "@/utils/logger";
 
 interface Props {
@@ -62,9 +62,28 @@ async function applyDefaults() {
   }
 }
 
+async function applyLastUsedPrefill() {
+  if (props.isView || props.isEdit) return;
+  try {
+    const target: Record<string, unknown> = {
+      repoId: formData.repoId || ""
+    };
+    const header = await applyLastFormHeaderAsync(target, "stocktake");
+    if (!header) return;
+    if (typeof target.repoId === "string" && target.repoId) {
+      formData.repoId = target.repoId;
+    }
+  } catch (error) {
+    logger.error("[LastForm] stocktake prefill failed", error);
+  }
+}
+
 onMounted(() => {
   loadRepos();
-  void applyDefaults();
+  void (async () => {
+    await applyDefaults();
+    await applyLastUsedPrefill();
+  })();
 });
 </script>
 
