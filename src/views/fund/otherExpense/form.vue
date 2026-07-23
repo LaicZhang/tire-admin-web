@@ -16,6 +16,8 @@ import { useSysDictOptions } from "@/composables/useSysDict";
 import ProviderSelect from "@/components/EntitySelect/ProviderSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = defineProps<{
   editData?: OtherExpense | null;
@@ -52,6 +54,18 @@ const needPay = computed(() => {
 
 const selectedPaymentBalance = ref<number | null>(null);
 
+async function applySettlementDefaults() {
+  if (props.editData) return;
+  try {
+    await applyCreateDefaults(formData, {
+      isCreate: true,
+      settlement: "payable"
+    });
+  } catch (error) {
+    logger.error("[CreateDefaults] otherExpense failed", error);
+  }
+}
+
 function resetForm() {
   Object.assign(formData, {
     providerId: "",
@@ -65,6 +79,7 @@ function resetForm() {
     remark: ""
   });
   formRef.value?.resetFields?.();
+  void applySettlementDefaults();
 }
 
 watch(

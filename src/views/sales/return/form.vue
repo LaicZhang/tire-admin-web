@@ -19,6 +19,8 @@ import {
 } from "@/utils/serialNumber";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = withDefaults(
   defineProps<{
@@ -208,6 +210,32 @@ async function loadReturnableSources(customerId?: string) {
   }
 }
 
+const defaultWarehouseId = ref<string | undefined>(undefined);
+
+async function applyDefaults() {
+  const isCreate = props.formTitle === "新增";
+  if (!isCreate && props.formTitle !== "退款") return;
+  try {
+    const target = {
+      paymentId: formData.value.paymentId,
+      details: formData.value.details
+    };
+    const applied = await applyCreateDefaults(target, {
+      isCreate: isCreate || props.formTitle === "退款",
+      detailWarehouse: isCreate,
+      settlement: props.formTitle === "退款" ? "receivable" : false
+    });
+    if (target.paymentId) {
+      formData.value.paymentId = target.paymentId;
+    }
+    if (applied?.inventory.defaultWarehouseId) {
+      defaultWarehouseId.value = applied.inventory.defaultWarehouseId;
+    }
+  } catch (error) {
+    logger.error("[CreateDefaults] sales return failed", error);
+  }
+}
+
 function onAddDetail() {
   formData.value.details.push({
     sourceDeliveryNoteLineUid: undefined,
@@ -215,7 +243,7 @@ function onAddDetail() {
     count: 1,
     unitPrice: 0,
     total: 0,
-    repoId: "",
+    repoId: defaultWarehouseId.value || "",
     returnReason: "",
     serialNumbers: [],
     serialNosText: "",
@@ -261,6 +289,7 @@ defineExpose({ formRef: ruleFormRef });
 
 onMounted(() => {
   loadBaseData();
+  void applyDefaults();
 });
 
 watch(

@@ -10,6 +10,8 @@ import {
   formatSerialNumbersText,
   parseSerialNumbersText
 } from "@/utils/serialNumber";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 interface Props {
   formInline: Partial<TransferOrder>;
@@ -124,8 +126,21 @@ const getFormData = () => formData;
 
 defineExpose({ formRef: formRef, getFormData });
 
+async function applyDefaults() {
+  if (!props.isCreate || props.isView) return;
+  try {
+    await applyCreateDefaults(formData, {
+      isCreate: true,
+      transferFromWarehouse: true
+    });
+  } catch (error) {
+    logger.error("[CreateDefaults] transfer failed", error);
+  }
+}
+
 onMounted(() => {
   loadData();
+  void applyDefaults();
 });
 </script>
 

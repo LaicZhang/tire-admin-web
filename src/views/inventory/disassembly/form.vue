@@ -6,6 +6,8 @@ import type { DisassemblyOrder, CreateDisassemblyOrderDto } from "./types";
 import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
 import { createUid } from "@/utils/uid";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 interface Props {
   formInline: Partial<DisassemblyOrder>;
@@ -20,6 +22,7 @@ const formRef = ref<FormInstance>();
 const repoList = ref<{ uid: string; name: string }[]>([]);
 const tireList = ref<{ uid: string; name: string; barcode?: string }[]>([]);
 const loading = ref(false);
+const defaultWarehouseId = ref<string | undefined>(undefined);
 
 const formData = reactive<CreateDisassemblyOrderDto>({
   sourceTireId: props.formInline.sourceTireId || "",
@@ -65,7 +68,7 @@ const availableComponents = computed(() =>
 const addComponent = () => {
   formData.components.push({
     tireId: "",
-    repoId: "",
+    repoId: defaultWarehouseId.value || "",
     quantity: 1,
     unitCost: 0,
     remark: "",
@@ -101,8 +104,25 @@ const getFormData = () => formData;
 
 defineExpose({ formRef: formRef, getFormData });
 
+async function applyDefaults() {
+  if (props.isView) return;
+  try {
+    const applied = await applyCreateDefaults(formData, {
+      isCreate: true,
+      sourceWarehouse: true,
+      componentWarehouse: true
+    });
+    if (applied?.inventory.defaultWarehouseId) {
+      defaultWarehouseId.value = applied.inventory.defaultWarehouseId;
+    }
+  } catch (error) {
+    logger.error("[CreateDefaults] disassembly failed", error);
+  }
+}
+
 onMounted(() => {
   loadData();
+  void applyDefaults();
 });
 </script>
 

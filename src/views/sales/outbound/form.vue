@@ -13,6 +13,8 @@ import {
 } from "@/utils/serialNumber";
 import CustomerSelect from "@/components/EntitySelect/CustomerSelect.vue";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = withDefaults(
   defineProps<{
@@ -76,13 +78,35 @@ async function loadBaseData() {
   }
 }
 
+const defaultWarehouseId = ref<string | undefined>(undefined);
+
+async function applyDefaults() {
+  const isCreate = props.formTitle === "新增";
+  if (!isCreate) return;
+  try {
+    const target = {
+      details: formData.value.details
+    };
+    const applied = await applyCreateDefaults(target, {
+      isCreate: true,
+      detailWarehouse: true,
+      settlement: false
+    });
+    if (applied?.inventory.defaultWarehouseId) {
+      defaultWarehouseId.value = applied.inventory.defaultWarehouseId;
+    }
+  } catch (error) {
+    logger.error("[CreateDefaults] load failed", error);
+  }
+}
+
 function onAddDetail() {
   formData.value.details.push({
     tireId: "",
     count: 1,
     unitPrice: 0,
     total: 0,
-    repoId: "",
+    repoId: defaultWarehouseId.value || "",
     batchNo: "",
     isShipped: false,
     serialNumbers: [],
@@ -129,6 +153,7 @@ defineExpose({ formRef: ruleFormRef });
 
 onMounted(() => {
   loadBaseData();
+  void applyDefaults();
 });
 
 watch(

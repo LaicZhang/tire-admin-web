@@ -13,6 +13,8 @@ import { getTireListApi } from "@/api/business/tire";
 import { getProviderListApi } from "@/api/business/provider";
 import { createUid } from "@/utils/uid";
 import { useUserStoreHook } from "@/store/modules/user";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 interface Props {
   formInline: Partial<OtherInboundOrder>;
@@ -107,8 +109,26 @@ const getFormData = () => formData;
 
 defineExpose({ formRef: formRef, getFormData });
 
+const defaultWarehouseId = ref<string | undefined>(undefined);
+
+async function applyDefaults() {
+  if (props.isView) return;
+  try {
+    const applied = await applyCreateDefaults(formData, {
+      isCreate: true,
+      detailWarehouse: true
+    });
+    if (applied?.inventory.defaultWarehouseId) {
+      defaultWarehouseId.value = applied.inventory.defaultWarehouseId;
+    }
+  } catch (error) {
+    logger.error("[CreateDefaults] failed", error);
+  }
+}
+
 onMounted(() => {
   loadData();
+  void applyDefaults();
 });
 </script>
 

@@ -34,3 +34,6 @@ export * from "./useSettingsForm";
 export * from "./useSettlementDefaults";
 export * from "./useInventoryDefaults";
 export * from "./useBarcodeSettings";
+
+// 创建表单公司默认值
+export * from "./applyCreateDefaults";

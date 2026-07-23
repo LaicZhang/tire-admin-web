@@ -6,6 +6,8 @@ import type { AssemblyOrder, CreateAssemblyOrderDto } from "./types";
 import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
 import { createUid } from "@/utils/uid";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 interface Props {
   formInline: Partial<AssemblyOrder>;
@@ -59,10 +61,12 @@ const availableComponents = computed(() =>
   tireList.value.filter(t => t.uid !== formData.targetTireId)
 );
 
+const defaultWarehouseId = ref<string | undefined>(undefined);
+
 const addComponent = () => {
   formData.components.push({
     tireId: "",
-    repoId: "",
+    repoId: defaultWarehouseId.value || "",
     quantity: 1,
     unitCost: 0,
     remark: "",
@@ -102,8 +106,25 @@ const getFormData = () => formData;
 
 defineExpose({ formRef: formRef, getFormData });
 
+async function applyDefaults() {
+  if (props.isView) return;
+  try {
+    const applied = await applyCreateDefaults(formData, {
+      isCreate: true,
+      targetWarehouse: true,
+      componentWarehouse: true
+    });
+    if (applied?.inventory.defaultWarehouseId) {
+      defaultWarehouseId.value = applied.inventory.defaultWarehouseId;
+    }
+  } catch (error) {
+    logger.error("[CreateDefaults] assembly failed", error);
+  }
+}
+
 onMounted(() => {
   loadData();
+  void applyDefaults();
 });
 </script>
 

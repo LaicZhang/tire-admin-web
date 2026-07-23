@@ -18,7 +18,10 @@ import {
   updatePaymentOrderApi,
   type OpenPayableLedger
 } from "@/api/fund/payment-order";
-import { loadSettlementDefaults } from "@/composables";
+import {
+  loadSettlementDefaults,
+  createBackdateDisabledDate
+} from "@/composables";
 import { logger } from "@/utils/logger";
 
 const props = defineProps<{
@@ -103,10 +106,16 @@ function resetForm() {
   void applySettlementDefaults();
 }
 
+const allowBackdateDays = ref(0);
+const disabledBackdateDate = createBackdateDisabledDate(
+  () => allowBackdateDays.value
+);
+
 async function applySettlementDefaults() {
   if (props.editData) return;
   try {
     const defaults = await loadSettlementDefaults();
+    allowBackdateDays.value = defaults.allowBackdateDays;
     if (!formData.paymentId && defaults.defaultPayableAccount) {
       formData.paymentId = defaults.defaultPayableAccount;
     }
@@ -368,6 +377,7 @@ onMounted(() => {
             placeholder="选择日期"
             value-format="YYYY-MM-DD"
             class="w-full"
+            :disabled-date="disabledBackdateDate"
           />
         </el-form-item>
       </el-col>

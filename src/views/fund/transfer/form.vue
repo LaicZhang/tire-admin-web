@@ -8,6 +8,8 @@ import type { CreateTransferDto, Transfer } from "./types";
 import dayjs from "dayjs";
 import { fenToYuan, fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import { useFundForm } from "../composables/useFundForm";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = defineProps<{
   editData?: Transfer | null;
@@ -61,6 +63,18 @@ const showFeePayment = computed(() => {
   return formData.fee && formData.fee > 0;
 });
 
+async function applySettlementDefaults() {
+  if (props.editData) return;
+  try {
+    await applyCreateDefaults(formData, {
+      isCreate: true,
+      settlement: "transferFrom"
+    });
+  } catch (error) {
+    logger.error("[CreateDefaults] fund transfer failed", error);
+  }
+}
+
 function resetForm() {
   Object.assign(formData, {
     fromPaymentId: "",
@@ -72,6 +86,7 @@ function resetForm() {
     remark: ""
   });
   formRef.value?.resetFields?.();
+  void applySettlementDefaults();
 }
 
 function applyEditData() {

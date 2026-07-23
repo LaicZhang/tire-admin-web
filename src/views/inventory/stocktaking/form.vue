@@ -3,6 +3,8 @@ import { ref, reactive, onMounted } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import type { StocktakingTask, CreateStocktakingDto } from "./types";
 import { getRepoListApi } from "@/api/company/repo";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 interface Props {
   formInline: Partial<StocktakingTask>;
@@ -48,8 +50,21 @@ const getFormData = () => formData;
 
 defineExpose({ formRef: formRef, getFormData });
 
+async function applyDefaults() {
+  if (props.isView || props.isEdit) return;
+  try {
+    await applyCreateDefaults(formData, {
+      isCreate: true,
+      warehouse: true
+    });
+  } catch (error) {
+    logger.error("[CreateDefaults] stocktaking failed", error);
+  }
+}
+
 onMounted(() => {
   loadRepos();
+  void applyDefaults();
 });
 </script>
 

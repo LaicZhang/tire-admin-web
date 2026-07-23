@@ -14,6 +14,8 @@ import {
 } from "./types";
 import dayjs from "dayjs";
 import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
+import { applyCreateDefaults } from "@/composables";
+import { logger } from "@/utils/logger";
 
 const props = defineProps<{
   editData?: OtherIncome | null;
@@ -47,6 +49,18 @@ const needReceive = computed(() => {
   return formData.receivedAmount && formData.receivedAmount > 0;
 });
 
+async function applySettlementDefaults() {
+  if (props.editData) return;
+  try {
+    await applyCreateDefaults(formData, {
+      isCreate: true,
+      settlement: "receivable"
+    });
+  } catch (error) {
+    logger.error("[CreateDefaults] otherIncome failed", error);
+  }
+}
+
 function resetForm() {
   Object.assign(formData, {
     customerId: "",
@@ -59,6 +73,7 @@ function resetForm() {
     remark: ""
   });
   formRef.value?.resetFields?.();
+  void applySettlementDefaults();
 }
 
 watch(
