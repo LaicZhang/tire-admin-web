@@ -6,12 +6,10 @@ import { completeLogin } from "@/services";
 import { message } from "@/utils/message";
 
 const mocks = vi.hoisted(() => ({
-  handleGithubLogin: vi.fn(),
   loginByUsername: vi.fn(),
   setCurrentPage: vi.fn(),
   useLoginForm: {
     loading: { value: false },
-    githubLoading: { value: false },
     disabled: { value: false },
     ruleForm: {
       username: "admin",
@@ -60,10 +58,8 @@ vi.mock("./composables/useLoginForm", () => ({
   useRememberLogin: () => ({ checked: ref(false), loginDay: ref(7) }),
   useLoginForm: () => ({
     loading: ref(mocks.useLoginForm.loading.value),
-    githubLoading: ref(mocks.useLoginForm.githubLoading.value),
     disabled: ref(mocks.useLoginForm.disabled.value),
-    ruleForm: reactive(mocks.useLoginForm.ruleForm),
-    handleGithubLogin: mocks.handleGithubLogin
+    ruleForm: reactive(mocks.useLoginForm.ruleForm)
   })
 }));
 
@@ -132,12 +128,10 @@ describe("Login.vue", () => {
   let wrapper: VueWrapper | undefined;
 
   beforeEach(() => {
-    mocks.handleGithubLogin.mockReset();
     mocks.loginByUsername.mockReset();
     mocks.setCurrentPage.mockReset();
     vi.mocked(completeLogin).mockReset();
     vi.mocked(message).mockReset();
-    mocks.useLoginForm.githubLoading.value = false;
     mocks.useLoginForm.loading.value = false;
   });
 
@@ -150,25 +144,18 @@ describe("Login.vue", () => {
   function mountView() {
     wrapper = mount(Login, {
       global: {
-        stubs: commonStubs,
-        directives: {
-          loading: (el, binding) => {
-            el.setAttribute("data-loading", String(binding.value));
-          }
-        }
+        stubs: commonStubs
       }
     });
     return wrapper;
   }
 
-  it("renders GitHub login entry and hides register entry", () => {
+  it("hides register entry and does not render GitHub login", () => {
     const view = mountView();
 
     expect(view.text()).not.toContain("注册");
-    expect(view.find(".github-btn").exists()).toBe(true);
-    expect(view.find(".el-tooltip-stub").attributes("content")).toBe(
-      "仅限管理员登录"
-    );
+    expect(view.find(".github-btn").exists()).toBe(false);
+    expect(view.html()).not.toContain("仅限管理员登录");
   });
 
   it("uses completeLogin after username login succeeds", async () => {
@@ -189,24 +176,24 @@ describe("Login.vue", () => {
     expect(message).toHaveBeenCalledWith("登录成功", { type: "success" });
   });
 
-  it("passes full GitHub payload into completeLogin", async () => {
-    mocks.handleGithubLogin.mockResolvedValue({
-      accessToken: "token",
-      refreshToken: "refresh",
-      username: "octocat",
-      roles: ["admin"]
-    });
+  it("shows unavailable message for placeholder third-party login", async () => {
     const view = mountView();
+    const wechatIcon = view
+      .findAll(".iconify-stub")
+      .find(node => node.attributes("data-icon") === "ri:wechat-fill");
 
-    await view.find(".github-btn").trigger("click");
-    await Promise.resolve();
+    expect(wechatIcon).toBeDefined();
+    await wechatIcon!.element.parentElement!.dispatchEvent(new Event("click"));
+    // trigger via wrapper click on parent span
+    const spans = view
+      .findAll("span")
+      .filter(s => s.attributes("title") === "微信登录");
+    if (spans.length) {
+      await spans[0].trigger("click");
+    }
 
-    expect(mocks.handleGithubLogin).toHaveBeenCalled();
-    expect(completeLogin).toHaveBeenCalledWith({
-      accessToken: "token",
-      refreshToken: "refresh",
-      username: "octocat",
-      roles: ["admin"]
+    expect(message).toHaveBeenCalledWith("该登录方式暂未开放", {
+      type: "warning"
     });
   });
 });

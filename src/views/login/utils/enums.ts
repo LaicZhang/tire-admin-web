@@ -21,10 +21,6 @@ const thirdParty = [
   {
     title: "微博",
     icon: "weibo"
-  },
-  {
-    title: "GitHub",
-    icon: "github"
   }
 ];
 

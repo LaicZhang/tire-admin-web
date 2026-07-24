@@ -39,8 +39,7 @@ const showThirdPartyLogin = ref(true);
 // 使用 composables
 const { captchaUrl, refreshCaptcha } = useCaptcha();
 const { checked, loginDay } = useRememberLogin();
-const { loading, disabled, ruleForm, githubLoading, handleGithubLogin } =
-  useLoginForm();
+const { loading, disabled, ruleForm } = useLoginForm();
 
 const { initStorage } = useLayout();
 initStorage();
@@ -97,18 +96,9 @@ function onkeydown({ code }: KeyboardEvent) {
 // 使用 VueUse 的 useEventListener 自动处理事件清理
 useEventListener(document, "keydown", onkeydown, { passive: true });
 
-const onThirdPartyLogin = (icon: string) => {
-  if (icon === "github") {
-    if (githubLoading.value) return;
-    handleGithubLogin()
-      .then(async tokenPayload => {
-        await completeLogin(tokenPayload);
-        message("登录成功", { type: "success" });
-      })
-      .catch(err => {
-        message(err.message, { type: "error" });
-      });
-  }
+const onThirdPartyLogin = (_icon: string) => {
+  // Third-party OAuth entries are placeholders (GitHub login removed)
+  message("该登录方式暂未开放", { type: "warning" });
 };
 
 onMounted(() => {
@@ -118,13 +108,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    v-loading.fullscreen.lock="githubLoading"
-    class="select-none"
-    element-loading-text="正在进行 GitHub 授权..."
-    element-loading-background="rgba(0, 0, 0, 0.7)"
-    element-loading-custom-class="oauth-loading-overlay"
-  >
+  <div class="select-none">
     <picture>
       <source :srcset="bgWebp" type="image/webp" />
       <img loading="lazy" :src="bgPng" class="wave" />
@@ -260,7 +244,7 @@ onMounted(() => {
                   size="default"
                   type="primary"
                   :loading="loading"
-                  :disabled="disabled || githubLoading"
+                  :disabled="disabled"
                   @click="onLogin(ruleFormRef)"
                 >
                   登录
@@ -288,45 +272,18 @@ onMounted(() => {
                 <p class="text-gray-500 text-xs">第三方登录</p>
               </el-divider>
               <div class="w-full flex justify-evenly">
-                <template v-for="item in thirdParty" :key="item.icon">
-                  <el-tooltip
-                    v-if="item.icon === 'github'"
-                    content="仅限管理员登录"
-                    placement="top"
-                    :disabled="githubLoading"
-                  >
-                    <span
-                      class="github-btn"
-                      :class="{ 'is-disabled': githubLoading }"
-                      :title="item.title"
-                      @click="!githubLoading && onThirdPartyLogin(item.icon)"
-                    >
-                      <IconifyIconOnline
-                        v-if="githubLoading"
-                        icon="ri:loader-4-line"
-                        width="20"
-                        class="animate-spin text-blue-400"
-                      />
-                      <IconifyIconOnline
-                        v-else
-                        :icon="`ri:${item.icon}-fill`"
-                        width="20"
-                        class="cursor-pointer text-gray-500 transition-colors"
-                      />
-                    </span>
-                  </el-tooltip>
-                  <span
-                    v-else
-                    :title="item.title"
-                    @click="onThirdPartyLogin(item.icon)"
-                  >
-                    <IconifyIconOnline
-                      :icon="`ri:${item.icon}-fill`"
-                      width="20"
-                      class="cursor-pointer text-gray-500 hover:text-blue-400"
-                    />
-                  </span>
-                </template>
+                <span
+                  v-for="item in thirdParty"
+                  :key="item.icon"
+                  :title="item.title"
+                  @click="onThirdPartyLogin(item.icon)"
+                >
+                  <IconifyIconOnline
+                    :icon="`ri:${item.icon}-fill`"
+                    width="20"
+                    class="cursor-pointer text-gray-500 hover:text-blue-400"
+                  />
+                </span>
               </div>
             </el-form-item>
           </Motion>
