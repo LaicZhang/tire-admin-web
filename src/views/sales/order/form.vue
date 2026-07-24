@@ -16,7 +16,10 @@ import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 import {
   applyLastFormHeaderAsync,
   loadInventoryDefaults,
-  loadSettlementDefaults
+  loadSettlementDefaults,
+  readFormDraft,
+  writeFormDraft,
+  applyFormDraftHeader
 } from "@/composables";
 import { logger } from "@/utils/logger";
 import { quoteSalePriceApi } from "@/api/business/price-list";
@@ -126,7 +129,12 @@ async function applyLastUsedPrefill() {
       repoId: defaultWarehouseId.value || ""
     };
     const header = await applyLastFormHeaderAsync(target, "saleOrder");
-    if (!header) return;
+    // DRF-01: prefer draft only for still-blank fields after last-used
+    const draft = await readFormDraft("saleOrder");
+    if (draft) {
+      applyFormDraftHeader(target, draft, "prefer");
+    }
+    if (!header && !draft) return;
     if (typeof target.customerId === "string" && target.customerId) {
       formData.value.customerId = target.customerId;
     }
@@ -146,6 +154,36 @@ async function applyLastUsedPrefill() {
     logger.error("[LastForm] saleOrder prefill failed", error);
   }
 }
+
+let draftSaveTimer: ReturnType<typeof setTimeout> | undefined;
+function scheduleDraftSave() {
+  if (props.formTitle !== "新增") return;
+  if (draftSaveTimer) clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(() => {
+    void writeFormDraft("saleOrder", {
+      customerId: formData.value.customerId,
+      customerName: formData.value.customerName,
+      paymentId: formData.value.paymentId,
+      repoId: defaultWarehouseId.value,
+      details: (formData.value.details || []).map(d => ({
+        tireId: d.tireId,
+        tireName: (d as { tireName?: string }).tireName,
+        qty: d.count,
+        count: d.count,
+        repoId: d.repoId
+      })),
+      remark: (formData.value as { remark?: string }).remark
+    });
+  }, 800);
+}
+
+watch(
+  formData,
+  () => {
+    scheduleDraftSave();
+  },
+  { deep: true }
+);
 
 function onAddDetail() {
   formData.value.details.push({

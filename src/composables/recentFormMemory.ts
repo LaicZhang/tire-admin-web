@@ -326,6 +326,17 @@ export async function recordSuccessfulCreate(
       scope
     );
   }
+
+  // DRF-01: drop draft after successful create
+  try {
+    const { clearFormDraft } = await import("./formDraftMemory");
+    await clearFormDraft(
+      docType as import("./formDraftMemory").FormDraftDocType,
+      scope
+    );
+  } catch {
+    // ignore
+  }
 }
 
 async function clearScopeKeys(

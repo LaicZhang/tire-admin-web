@@ -272,6 +272,9 @@ export function removeToken() {
   void import("@/composables/recentFormMemory")
     .then(m => m.clearRecentFormMemory({ allScopes: true }))
     .catch(() => undefined);
+  void import("@/composables/formDraftMemory")
+    .then(m => m.clearFormDraftMemory({ allScopes: true }))
+    .catch(() => undefined);
 }
 
 /** 格式化token（jwt格式） */

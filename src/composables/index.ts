@@ -40,3 +40,6 @@ export * from "./applyCreateDefaults";
 
 // 最近实体 / last-used 表头
 export * from "./recentFormMemory";
+
+// 创建草稿 DRF-01
+export * from "./formDraftMemory";
