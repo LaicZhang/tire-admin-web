@@ -40,10 +40,12 @@ const onLogin = async (formEl: FormInstance | undefined) => {
       return;
     }
 
+    // P1-5: OTP login also requires one-shot graphic captcha (same as password path)
     const res = await useUserStoreHook().loginByUsername({
       username: ruleForm.phone,
       isRemember: useUserStoreHook().isRemember,
-      code: ruleForm.captchaCode
+      code: ruleForm.captchaCode,
+      captchaCode: ruleForm.graphicCaptcha
     });
     const { code, msg } = res;
     if (code === 200) {
@@ -59,6 +61,9 @@ const onLogin = async (formEl: FormInstance | undefined) => {
   } finally {
     isDisabled.value = false;
     loading.value = false;
+    // Login consumes graphic captcha (P1-5); always refresh for next attempt.
+    ruleForm.graphicCaptcha = "";
+    refreshCaptcha();
   }
 };
 
