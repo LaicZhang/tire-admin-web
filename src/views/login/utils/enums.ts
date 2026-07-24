@@ -1,7 +1,11 @@
-// FSW-008: hide incomplete WeChat QR scan until polling/callback is closed
+// W47 / QR-C2: re-enable WeChat QR entry (backend QR-C1 DTO closed).
+// When WX_OPEN_* is missing, qrCode.vue / API surfaces disabled messaging.
 const operates = [
   {
     title: "手机号登录"
+  },
+  {
+    title: "微信扫码登录"
   }
 ];
 
