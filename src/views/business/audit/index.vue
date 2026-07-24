@@ -212,6 +212,7 @@ onMounted(() => {
               查看详情
             </el-button>
             <el-button
+              v-auth="['patch/audit']"
               type="primary"
               link
               size="small"
@@ -220,6 +221,7 @@ onMounted(() => {
               通过
             </el-button>
             <el-button
+              v-auth="['patch/audit']"
               type="danger"
               link
               size="small"

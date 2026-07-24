@@ -18,6 +18,7 @@ import type { TransferOrder, TransferOrderQuery } from "./types";
 import { getAuditStatus, getLogisticsStatus } from "./types";
 import {
   addOrderApi,
+  auditOrderApi,
   confirmTransferOrderArrivalApi,
   confirmTransferOrderShipmentApi,
   deleteOrderApi,
@@ -272,13 +273,11 @@ async function handleApprove(row: TransferOrder) {
   if (!ok) return;
 
   try {
-    const companyId = await getCompanyId();
-    await updateOrderApi(ORDER_TYPE, row.uid, {
-      company: getCompanyConnect(companyId),
-      isApproved: true,
-      isLocked: true,
-      rejectReason: null,
-      auditAt: new Date().toISOString()
+    // AWF-015: must use unified audit API (inventory strategy + ApprovalFlow),
+    // not PATCH update with isApproved (server strips those fields → fake success).
+    await auditOrderApi(row.uid, {
+      type: ORDER_TYPE,
+      isApproved: true
     });
     message("审核成功", { type: "success" });
     fetchData();
@@ -297,13 +296,10 @@ async function handleReject(row: TransferOrder) {
     });
     if (typeof res === "string") return;
     const { value } = res;
-    const companyId = await getCompanyId();
-    await updateOrderApi(ORDER_TYPE, row.uid, {
-      company: getCompanyConnect(companyId),
+    await auditOrderApi(row.uid, {
+      type: ORDER_TYPE,
       isApproved: false,
-      isLocked: false,
-      rejectReason: value,
-      auditAt: null
+      desc: value
     });
     message("已拒绝", { type: "success" });
     fetchData();
@@ -509,6 +505,7 @@ onMounted(async () => {
               </el-button>
               <el-button
                 v-if="!row.isApproved && !row.isLocked"
+                v-auth="['patch/audit']"
                 link
                 type="success"
                 @click="handleApprove(row)"
@@ -517,6 +514,7 @@ onMounted(async () => {
               </el-button>
               <el-button
                 v-if="!row.isApproved && !row.isLocked"
+                v-auth="['patch/audit']"
                 link
                 type="warning"
                 @click="handleReject(row)"

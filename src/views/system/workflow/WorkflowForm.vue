@@ -38,7 +38,9 @@ const formData = reactive<ApprovalFlowForm>({
 
 const rules = {
   name: [{ required: true, message: "请输入流程名称", trigger: "blur" }],
-  targetType: [{ required: true, message: "请输入目标单据类型", trigger: "blur" }],
+  targetType: [
+    { required: true, message: "请输入目标单据类型", trigger: "blur" }
+  ],
   strategy: [{ required: true, message: "请选择策略", trigger: "change" }]
 };
 
@@ -197,15 +199,25 @@ defineExpose({ formRef: formRef, getFormData, handleSubmit });
     </el-form-item>
     <el-form-item label="策略" prop="strategy">
       <el-radio-group v-model="formData.strategy">
-        <el-radio value="ALL">ALL 会签</el-radio>
+        <el-radio value="ALL">ALL 会签（仅对显式审批人列表生效）</el-radio>
         <el-radio value="ANY">ANY 或签</el-radio>
       </el-radio-group>
+      <div class="text-xs text-[var(--el-text-color-secondary)] mt-1">
+        AWF-009：仅配置角色的步骤始终为或签（任一角色成员通过即可），不会按 ALL
+        会签枚举全员。
+      </div>
     </el-form-item>
     <el-form-item label="最小金额">
-      <el-input v-model="formData.minAmount" placeholder="可选，整数金额字符串" />
+      <el-input
+        v-model="formData.minAmount"
+        placeholder="可选，整数金额字符串"
+      />
     </el-form-item>
     <el-form-item label="最大金额">
-      <el-input v-model="formData.maxAmount" placeholder="可选，整数金额字符串" />
+      <el-input
+        v-model="formData.maxAmount"
+        placeholder="可选，整数金额字符串"
+      />
     </el-form-item>
     <el-form-item label="启用">
       <el-switch v-model="formData.isEnabled" />
