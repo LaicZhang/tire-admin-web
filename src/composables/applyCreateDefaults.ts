@@ -66,14 +66,19 @@ function fillIfBlank(
 /**
  * Merge company inventory/settlement defaults into an empty create form.
  * Never overwrites non-empty fields. Swallows load errors (logs only).
+ *
+ * Accepts wider form models (fund details without `repoId`, etc.) so callers
+ * do not need casts; only the known default fields are read/written.
  */
 export async function applyCreateDefaults(
-  target: CreateDefaultsTarget,
+  target: CreateDefaultsTarget | Record<string, unknown>,
   options: ApplyCreateDefaultsOptions
 ): Promise<AppliedCreateDefaults | null> {
   if (!options.isCreate) {
     return null;
   }
+
+  const form = target as CreateDefaultsTarget;
 
   const needInventory =
     options.warehouse ||
@@ -105,28 +110,28 @@ export async function applyCreateDefaults(
 
   const warehouseId = inventory.defaultWarehouseId;
 
-  if (options.warehouse && "repoId" in target) {
-    const next = fillIfBlank(target.repoId, warehouseId);
-    if (next !== undefined) target.repoId = next;
+  if (options.warehouse && "repoId" in form) {
+    const next = fillIfBlank(form.repoId, warehouseId);
+    if (next !== undefined) form.repoId = next;
   }
 
-  if (options.transferFromWarehouse && "fromRepositoryId" in target) {
-    const next = fillIfBlank(target.fromRepositoryId, warehouseId);
-    if (next !== undefined) target.fromRepositoryId = next;
+  if (options.transferFromWarehouse && "fromRepositoryId" in form) {
+    const next = fillIfBlank(form.fromRepositoryId, warehouseId);
+    if (next !== undefined) form.fromRepositoryId = next;
   }
 
-  if (options.targetWarehouse && "targetRepoId" in target) {
-    const next = fillIfBlank(target.targetRepoId, warehouseId);
-    if (next !== undefined) target.targetRepoId = next;
+  if (options.targetWarehouse && "targetRepoId" in form) {
+    const next = fillIfBlank(form.targetRepoId, warehouseId);
+    if (next !== undefined) form.targetRepoId = next;
   }
 
-  if (options.sourceWarehouse && "sourceRepoId" in target) {
-    const next = fillIfBlank(target.sourceRepoId, warehouseId);
-    if (next !== undefined) target.sourceRepoId = next;
+  if (options.sourceWarehouse && "sourceRepoId" in form) {
+    const next = fillIfBlank(form.sourceRepoId, warehouseId);
+    if (next !== undefined) form.sourceRepoId = next;
   }
 
-  if (options.detailWarehouse && Array.isArray(target.details) && warehouseId) {
-    for (const row of target.details) {
+  if (options.detailWarehouse && Array.isArray(form.details) && warehouseId) {
+    for (const row of form.details) {
       if (isBlank(row.repoId)) {
         row.repoId = warehouseId;
       }
@@ -135,10 +140,10 @@ export async function applyCreateDefaults(
 
   if (
     options.componentWarehouse &&
-    Array.isArray(target.components) &&
+    Array.isArray(form.components) &&
     warehouseId
   ) {
-    for (const row of target.components) {
+    for (const row of form.components) {
       if (isBlank(row.repoId)) {
         row.repoId = warehouseId;
       }
@@ -146,40 +151,40 @@ export async function applyCreateDefaults(
   }
 
   if (options.settlement === "receivable") {
-    if ("paymentId" in target) {
+    if ("paymentId" in form) {
       const next = fillIfBlank(
-        target.paymentId,
+        form.paymentId,
         settlement.defaultReceivableAccount
       );
-      if (next !== undefined) target.paymentId = next;
+      if (next !== undefined) form.paymentId = next;
     }
-    if ("paymentMethod" in target && settlement.defaultPaymentMethod) {
-      if (isBlank(target.paymentMethod)) {
-        target.paymentMethod = settlement.defaultPaymentMethod;
+    if ("paymentMethod" in form && settlement.defaultPaymentMethod) {
+      if (isBlank(form.paymentMethod)) {
+        form.paymentMethod = settlement.defaultPaymentMethod;
       }
     }
   }
 
   if (options.settlement === "payable") {
-    if ("paymentId" in target) {
+    if ("paymentId" in form) {
       const next = fillIfBlank(
-        target.paymentId,
+        form.paymentId,
         settlement.defaultPayableAccount
       );
-      if (next !== undefined) target.paymentId = next;
+      if (next !== undefined) form.paymentId = next;
     }
-    if ("paymentMethod" in target && settlement.defaultPaymentMethod) {
-      if (isBlank(target.paymentMethod)) {
-        target.paymentMethod = settlement.defaultPaymentMethod;
+    if ("paymentMethod" in form && settlement.defaultPaymentMethod) {
+      if (isBlank(form.paymentMethod)) {
+        form.paymentMethod = settlement.defaultPaymentMethod;
       }
     }
   }
 
-  if (options.settlement === "transferFrom" && "fromPaymentId" in target) {
+  if (options.settlement === "transferFrom" && "fromPaymentId" in form) {
     const account =
       settlement.defaultPayableAccount || settlement.defaultReceivableAccount;
-    const next = fillIfBlank(target.fromPaymentId, account);
-    if (next !== undefined) target.fromPaymentId = next;
+    const next = fillIfBlank(form.fromPaymentId, account);
+    if (next !== undefined) form.fromPaymentId = next;
   }
 
   return { inventory, settlement };

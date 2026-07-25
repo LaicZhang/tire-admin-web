@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import type { FormRules } from "element-plus";
 import type { InitialStockForm, InitialStockItem } from "./types";
 import AddIcon from "~icons/ep/plus";
 import DeleteIcon from "~icons/ep/delete";
 import { MoneyDisplay } from "@/components";
+import { applyCreateDefaults } from "@/composables";
 import { elementRules } from "@/utils/validation/elementRules";
 import { fieldRules } from "@/utils/validation/fieldRules";
 import { createUid } from "@/utils/uid";
+import { logger } from "@/utils/logger";
 
 interface FormProps {
   formInline?: InitialStockForm;
@@ -138,7 +140,25 @@ function getStockItems() {
   return stockItems.value;
 }
 
+/** DEF-FORM-CORE-01: prefill blank warehouse rows on create */
+async function applyDefaults() {
+  if (props.isEdit) return;
+  try {
+    const target = { details: stockItems.value };
+    await applyCreateDefaults(target, {
+      isCreate: true,
+      detailWarehouse: true
+    });
+  } catch (error) {
+    logger.error("[CreateDefaults] initialStock failed", error);
+  }
+}
+
 defineExpose({ formRef: ruleFormRef, getStockItems });
+
+onMounted(() => {
+  void applyDefaults();
+});
 </script>
 
 <template>

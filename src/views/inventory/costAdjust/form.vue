@@ -10,7 +10,9 @@ import { getRepoListApi } from "@/api/company/repo";
 import { getTireListApi } from "@/api/business/tire";
 import { getEmployeeListApi } from "@/api/company/employee";
 import { MoneyDisplay } from "@/components";
+import { applyCreateDefaults } from "@/composables";
 import { createUid } from "@/utils/uid";
+import { logger } from "@/utils/logger";
 import { useUserStoreHook } from "@/store/modules/user";
 
 interface Props {
@@ -110,8 +112,22 @@ const getFormData = () => formData;
 
 defineExpose({ formRef: formRef, getFormData });
 
+/** DEF-FORM-CORE-01: prefill blank detail warehouses on create */
+async function applyDefaults() {
+  if (props.isView) return;
+  try {
+    await applyCreateDefaults(formData, {
+      isCreate: true,
+      detailWarehouse: true
+    });
+  } catch (error) {
+    logger.error("[CreateDefaults] costAdjust failed", error);
+  }
+}
+
 onMounted(() => {
   loadData();
+  void applyDefaults();
 });
 </script>
 
