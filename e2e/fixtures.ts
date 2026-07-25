@@ -57,7 +57,7 @@ export async function waitForPageLoad(page: TestPage) {
 export async function navigateToMenu(page: TestPage, menuPath: string[]) {
   for (const menuItem of menuPath) {
     await page.getByText(menuItem, { exact: true }).first().click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded");
   }
   await waitForPageLoad(page);
 }
@@ -67,7 +67,7 @@ export async function navigateToMenu(page: TestPage, menuPath: string[]) {
  */
 export async function clickAddButton(page: TestPage, buttonText = "新增") {
   await page.getByRole("button", { name: new RegExp(buttonText) }).click();
-  await page.waitForTimeout(500);
+  await page.waitForLoadState("domcontentloaded");
 }
 
 /**
@@ -145,7 +145,7 @@ export async function confirmDelete(page: TestPage) {
  */
 export async function saveDocument(page: TestPage) {
   await page.getByRole("button", { name: /保存/ }).click();
-  await page.waitForTimeout(500);
+  await page.waitForLoadState("domcontentloaded");
 }
 
 /**
@@ -161,7 +161,7 @@ export async function deleteDocument(page: TestPage) {
  */
 export async function copyDocument(page: TestPage) {
   await page.getByRole("button", { name: /复制/ }).click();
-  await page.waitForTimeout(500);
+  await page.waitForLoadState("domcontentloaded");
 }
 
 /**
@@ -171,7 +171,7 @@ export async function approveDocument(page: TestPage) {
   const approveBtn = page.getByRole("button", { name: /审核/ });
   if (await approveBtn.isVisible()) {
     await approveBtn.click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
   }
 }
 
@@ -182,7 +182,7 @@ export async function unapproveDocument(page: TestPage) {
   const unapproveBtn = page.getByRole("button", { name: /反审核/ });
   if (await unapproveBtn.isVisible()) {
     await unapproveBtn.click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
   }
 }
 
@@ -193,7 +193,7 @@ export async function openPrintPreview(page: TestPage) {
   const printBtn = page.getByRole("button", { name: /预览打印|打印/ });
   if (await printBtn.isVisible()) {
     await printBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
   }
 }
 
@@ -228,7 +228,7 @@ export async function generateRelatedDocument(page: TestPage, docType: string) {
   });
   if (await genBtn.isVisible()) {
     await genBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
   }
 }
 
@@ -257,8 +257,8 @@ export async function selectOption(
   const select = page.getByPlaceholder(placeholder);
   if (await select.isVisible()) {
     await select.click();
-    await page.waitForTimeout(300);
     const options = page.locator(".el-select-dropdown__item");
+    await expect(options.first()).toBeVisible({ timeout: 5000 });
     const count = await options.count();
     if (count > optionIndex) {
       await options.nth(optionIndex).click();
@@ -290,12 +290,12 @@ export async function expectError(page: TestPage) {
 export async function clickFirstRowAction(page: TestPage, actionName: string) {
   const firstRow = page.locator(".pure-table tbody tr").first();
   const rowCount = await page.locator(".pure-table tbody tr").count();
-  if (rowCount > 0) {
-    await firstRow
-      .getByRole("button", { name: new RegExp(actionName) })
-      .click();
-    await page.waitForTimeout(500);
+  if (rowCount === 0) {
+    test.skip(true, "表格无数据，跳过行操作");
+    return;
   }
+  await firstRow.getByRole("button", { name: new RegExp(actionName) }).click();
+  await page.waitForLoadState("domcontentloaded");
 }
 
 /**

@@ -49,7 +49,7 @@ test.describe("库存管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查调入仓库、调出仓库字段
       }
     });
@@ -59,7 +59,7 @@ test.describe("库存管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -95,7 +95,7 @@ test.describe("库存管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查业务类型下拉框
         const _typeSelect = page.getByLabel(/业务类型/);
       }
@@ -106,7 +106,7 @@ test.describe("库存管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -133,7 +133,7 @@ test.describe("库存管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查业务类型下拉框
       }
     });
@@ -143,7 +143,7 @@ test.describe("库存管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -177,7 +177,7 @@ test.describe("库存管理", () => {
       const createBtn = page.getByRole("button", { name: /新增|创建/ });
       if (await createBtn.isVisible()) {
         await createBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查创建盘点单弹窗
       }
     });
@@ -187,7 +187,7 @@ test.describe("库存管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         const _importBtn = page.getByRole("button", { name: /导入/ });
         // 导入按钮可能存在
       }
@@ -198,7 +198,7 @@ test.describe("库存管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         const _genBtn = page.getByRole("button", { name: /生成盘盈|生成盘亏/ });
         // 生成盘盈/盘亏按钮可能存在
       }
@@ -224,7 +224,7 @@ test.describe("库存管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
       }
     });
   });
@@ -248,7 +248,7 @@ test.describe("库存管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectBOM(page);
       }
     });
@@ -257,7 +257,7 @@ test.describe("库存管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         const _saveTemplateBtn = page.getByRole("button", { name: /存为模版/ });
         // 存为模版按钮可能存在
       }
@@ -283,7 +283,7 @@ test.describe("库存管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查自动分摊选项
         const _autoAllocate = page.getByLabel(/自动分摊/);
       }
@@ -294,7 +294,7 @@ test.describe("库存管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectBOM(page);
       }
     });
@@ -307,7 +307,7 @@ test.describe("库存管理", () => {
   test.describe("库存报表", () => {
     test("应能访问库存报表", async ({ authenticatedPage: page }) => {
       await page.goto("/inventory/report");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       await expect(page.locator(selectors.table)).toBeVisible();
     });
   });

@@ -44,7 +44,7 @@ test.describe("库存管理", () => {
 
       if (await warehouseSelect.isVisible()) {
         await warehouseSelect.click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded");
 
         // 选择选项
         const options = page.locator(".el-select-dropdown__item");

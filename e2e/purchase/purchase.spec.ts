@@ -50,7 +50,7 @@ test.describe("采购管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 验证进入新增页面或弹出对话框
       }
     });
@@ -60,7 +60,7 @@ test.describe("采购管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectBOM(page);
       }
     });
@@ -70,7 +70,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "采购入库单");
       }
     });
@@ -80,7 +80,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "销售订单");
       }
     });
@@ -90,7 +90,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await copyDocument(page);
       }
     });
@@ -99,7 +99,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await openPrintPreview(page);
       }
     });
@@ -109,7 +109,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
         await unapproveDocument(page);
       }
@@ -144,7 +144,7 @@ test.describe("采购管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectSourceDocument(page);
       }
     });
@@ -154,7 +154,7 @@ test.describe("采购管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectBOM(page);
       }
     });
@@ -166,7 +166,7 @@ test.describe("采购管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查采购费用分摊相关元素
         const _expenseSection = page.getByText(/采购费用|费用分摊/);
         // 费用分摊区域可能存在
@@ -178,7 +178,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "采购退货单");
       }
     });
@@ -188,7 +188,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "销售出库单");
       }
     });
@@ -198,7 +198,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "其他出库单");
       }
     });
@@ -208,7 +208,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -233,7 +233,7 @@ test.describe("采购管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectSourceDocument(page);
       }
     });
@@ -243,7 +243,7 @@ test.describe("采购管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectBOM(page);
       }
     });
@@ -253,7 +253,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await openPrintPreview(page);
       }
     });
@@ -263,7 +263,7 @@ test.describe("采购管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -276,7 +276,7 @@ test.describe("采购管理", () => {
   test.describe("采购报表", () => {
     test("应能访问采购汇总表", async ({ authenticatedPage: page }) => {
       await page.goto("/purchase/report");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       await expect(page.locator(selectors.table)).toBeVisible();
     });
   });

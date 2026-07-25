@@ -48,7 +48,7 @@ test.describe("资金管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查必填项标识
       }
     });
@@ -58,7 +58,7 @@ test.describe("资金管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查源单据选择区域
         const _sourceSection = page.getByText(/源单据|应收|核销/);
       }
@@ -69,7 +69,7 @@ test.describe("资金管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await openPrintPreview(page);
       }
     });
@@ -101,7 +101,7 @@ test.describe("资金管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查必填项
       }
     });
@@ -111,7 +111,7 @@ test.describe("资金管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查源单据区域
       }
     });
@@ -121,7 +121,7 @@ test.describe("资金管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await openPrintPreview(page);
       }
     });
@@ -157,7 +157,7 @@ test.describe("资金管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查客户、收入类型、金额字段
       }
     });
@@ -193,7 +193,7 @@ test.describe("资金管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查供应商、支出类型、金额字段
       }
     });
@@ -227,7 +227,7 @@ test.describe("资金管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查转出账户、转入账户、金额字段
       }
     });
@@ -237,7 +237,7 @@ test.describe("资金管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -247,7 +247,7 @@ test.describe("资金管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await openPrintPreview(page);
       }
     });
@@ -260,7 +260,7 @@ test.describe("资金管理", () => {
   test.describe("资金报表", () => {
     test("应能访问资金报表", async ({ authenticatedPage: page }) => {
       await page.goto("/fund/report");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       await expect(page.locator(selectors.table)).toBeVisible();
     });
   });

@@ -143,7 +143,7 @@ test.describe("公司管理", () => {
       const statusSelect = page.locator(".el-select").first();
       if (await statusSelect.isVisible()) {
         await statusSelect.click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded");
         const options = page.locator(".el-select-dropdown__item");
         const optionCount = await options.count();
         if (optionCount > 0) {

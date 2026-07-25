@@ -115,7 +115,7 @@ test.describe("产品管理", () => {
 
     if (await categorySelect.isVisible()) {
       await categorySelect.click();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded");
 
       // 选择第一个选项（如果有）
       const options = page.locator(".el-select-dropdown__item");

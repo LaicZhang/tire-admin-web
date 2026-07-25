@@ -30,12 +30,12 @@ test.describe("核销单", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查业务类型下拉框
         const typeSelect = page.getByLabel(/业务类型/);
         if (await typeSelect.isVisible()) {
           await typeSelect.click();
-          await page.waitForTimeout(300);
+          await page.waitForLoadState("domcontentloaded");
           const option = page.getByText(/预收冲应收/);
           if (await option.isVisible()) {
             await option.click();
@@ -49,11 +49,11 @@ test.describe("核销单", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         const typeSelect = page.getByLabel(/业务类型/);
         if (await typeSelect.isVisible()) {
           await typeSelect.click();
-          await page.waitForTimeout(300);
+          await page.waitForLoadState("domcontentloaded");
           const option = page.getByText(/预付冲应付/);
           if (await option.isVisible()) {
             await option.click();
@@ -67,11 +67,11 @@ test.describe("核销单", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         const typeSelect = page.getByLabel(/业务类型/);
         if (await typeSelect.isVisible()) {
           await typeSelect.click();
-          await page.waitForTimeout(300);
+          await page.waitForLoadState("domcontentloaded");
           const option = page.getByText(/应收冲应付/);
           if (await option.isVisible()) {
             await option.click();
@@ -85,11 +85,11 @@ test.describe("核销单", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         const typeSelect = page.getByLabel(/业务类型/);
         if (await typeSelect.isVisible()) {
           await typeSelect.click();
-          await page.waitForTimeout(300);
+          await page.waitForLoadState("domcontentloaded");
           const option = page.getByText(/应收转应收/);
           if (await option.isVisible()) {
             await option.click();
@@ -103,11 +103,11 @@ test.describe("核销单", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         const typeSelect = page.getByLabel(/业务类型/);
         if (await typeSelect.isVisible()) {
           await typeSelect.click();
-          await page.waitForTimeout(300);
+          await page.waitForLoadState("domcontentloaded");
           const option = page.getByText(/应付转应付/);
           if (await option.isVisible()) {
             await option.click();
@@ -122,7 +122,7 @@ test.describe("核销单", () => {
     const rowCount = await page.locator(".pure-table tbody tr").count();
     if (rowCount > 0) {
       await clickFirstRowAction(page, "查看|编辑");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       await openPrintPreview(page);
     }
   });
@@ -131,7 +131,7 @@ test.describe("核销单", () => {
     const rowCount = await page.locator(".pure-table tbody tr").count();
     if (rowCount > 0) {
       await clickFirstRowAction(page, "查看|编辑");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       await approveDocument(page);
     }
   });

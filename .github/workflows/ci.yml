@@ -58,6 +58,12 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
+      - name: Install Playwright Chromium (mock e2e)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Mock E2E (Playwright)
+        run: pnpm test:e2e
+
       - name: Build (staging)
         run: pnpm build --mode staging
 

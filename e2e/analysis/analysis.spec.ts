@@ -34,7 +34,7 @@ test.describe("报表分析", () => {
       const datePicker = page.locator(".el-date-editor").first();
       if (await datePicker.isVisible()) {
         await datePicker.click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded");
         // 选择今天
         const todayBtn = page
           .locator(".el-picker-panel__link-btn")
@@ -90,7 +90,7 @@ test.describe("报表分析", () => {
       const warehouseSelect = page.locator(".el-select").first();
       if (await warehouseSelect.isVisible()) {
         await warehouseSelect.click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded");
         const options = page.locator(".el-select-dropdown__item");
         const optionCount = await options.count();
         if (optionCount > 0) {

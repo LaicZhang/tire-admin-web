@@ -48,7 +48,7 @@ test.describe("销售管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
       }
     });
 
@@ -57,7 +57,7 @@ test.describe("销售管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectBOM(page);
       }
     });
@@ -67,7 +67,7 @@ test.describe("销售管理", () => {
       const settingsBtn = page.getByRole("button", { name: /设置|列设置/ });
       if (await settingsBtn.isVisible()) {
         await settingsBtn.click();
-        await page.waitForTimeout(500);
+        await page.waitForLoadState("domcontentloaded");
       }
     });
 
@@ -76,7 +76,7 @@ test.describe("销售管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查折扣率相关字段
         const _discountField = page.getByLabel(/折扣率|折扣/);
         // 折扣率字段可能存在
@@ -88,7 +88,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "销售出库单");
       }
     });
@@ -97,7 +97,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "采购订单");
       }
     });
@@ -107,7 +107,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -116,7 +116,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await openPrintPreview(page);
       }
     });
@@ -150,7 +150,7 @@ test.describe("销售管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectBOM(page);
       }
     });
@@ -160,7 +160,7 @@ test.describe("销售管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectSourceDocument(page);
       }
     });
@@ -170,7 +170,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "销售退货单");
       }
     });
@@ -179,7 +179,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await generateRelatedDocument(page, "采购入库单");
       }
     });
@@ -189,7 +189,7 @@ test.describe("销售管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         // 检查折扣率设置
         const _discountBtn = page.getByRole("button", { name: /统一折扣/ });
         // 统一折扣按钮可能存在
@@ -201,7 +201,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -226,7 +226,7 @@ test.describe("销售管理", () => {
       const addBtn = page.getByRole("button", { name: /新增/ });
       if (await addBtn.isVisible()) {
         await addBtn.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await selectBOM(page);
       }
     });
@@ -236,7 +236,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await openPrintPreview(page);
       }
     });
@@ -246,7 +246,7 @@ test.describe("销售管理", () => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
       if (rowCount > 0) {
         await clickFirstRowAction(page, "查看|编辑");
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState("domcontentloaded");
         await approveDocument(page);
       }
     });
@@ -259,7 +259,7 @@ test.describe("销售管理", () => {
   test.describe("销售报表", () => {
     test("应能访问销售报表", async ({ authenticatedPage: page }) => {
       await page.goto("/sales/report");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       await expect(page.locator(selectors.table)).toBeVisible();
     });
   });
