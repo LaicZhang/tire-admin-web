@@ -19,8 +19,8 @@ import {
 } from "./types";
 import { useFundForm } from "../composables/useFundForm";
 import {
+  applyCreateDefaults,
   applyLastFormHeaderAsync,
-  loadSettlementDefaults,
   createBackdateDisabledDate,
   recordSuccessfulCreate
 } from "@/composables";
@@ -128,13 +128,12 @@ async function applyLastUsedPrefill() {
 async function applySettlementDefaults() {
   if (props.editData) return;
   try {
-    const defaults = await loadSettlementDefaults();
-    allowBackdateDays.value = defaults.allowBackdateDays;
-    if (!formData.paymentId && defaults.defaultReceivableAccount) {
-      formData.paymentId = defaults.defaultReceivableAccount;
-    }
-    if (defaults.defaultPaymentMethod) {
-      formData.paymentMethod = defaults.defaultPaymentMethod as PaymentMethod;
+    const applied = await applyCreateDefaults(formData, {
+      isCreate: true,
+      settlement: "receivable"
+    });
+    if (applied?.settlement) {
+      allowBackdateDays.value = applied.settlement.allowBackdateDays ?? 0;
     }
   } catch (error) {
     logger.error("[SettlementDefaults] load failed", error);

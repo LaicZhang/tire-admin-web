@@ -145,6 +145,11 @@ function resolveNoticeTone(level: number) {
 onMounted(() => {
   void loadWorkbench();
 });
+
+/** FSW-012: explicit refresh aligned with dashboard workbench reload */
+function onRefreshWorkbench() {
+  void loadWorkbench();
+}
 </script>
 
 <template>
@@ -173,6 +178,9 @@ onMounted(() => {
       </div>
 
       <div class="hero-actions">
+        <el-button size="large" :loading="loading" @click="onRefreshWorkbench">
+          刷新工作台
+        </el-button>
         <el-button
           v-if="canViewDashboard"
           type="primary"

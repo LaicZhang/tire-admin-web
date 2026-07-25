@@ -19,8 +19,8 @@ import {
   type OpenPayableLedger
 } from "@/api/fund/payment-order";
 import {
+  applyCreateDefaults,
   applyLastFormHeaderAsync,
-  loadSettlementDefaults,
   createBackdateDisabledDate,
   recordSuccessfulCreate
 } from "@/composables";
@@ -143,13 +143,12 @@ async function applyLastUsedPrefill() {
 async function applySettlementDefaults() {
   if (props.editData) return;
   try {
-    const defaults = await loadSettlementDefaults();
-    allowBackdateDays.value = defaults.allowBackdateDays;
-    if (!formData.paymentId && defaults.defaultPayableAccount) {
-      formData.paymentId = defaults.defaultPayableAccount;
-    }
-    if (defaults.defaultPaymentMethod) {
-      formData.paymentMethod = defaults.defaultPaymentMethod as PaymentMethod;
+    const applied = await applyCreateDefaults(formData, {
+      isCreate: true,
+      settlement: "payable"
+    });
+    if (applied?.settlement) {
+      allowBackdateDays.value = applied.settlement.allowBackdateDays ?? 0;
     }
   } catch (error) {
     logger.error("[SettlementDefaults] load failed", error);
