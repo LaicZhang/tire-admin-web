@@ -303,6 +303,7 @@ const handleCreateDisassembly = async (row: Bom) => {
               </el-button>
               <el-button
                 v-if="row.status === 'draft'"
+                v-auth="['post/bom/:uid/approve']"
                 link
                 type="success"
                 @click="handleApprove(row)"

@@ -60,7 +60,6 @@ const queryForm = reactive<WriteOffQueryParams>({
 const { openDialog: openWriteOffDialog } =
   useManagedSubmitDialog<ManagedSubmitDialogRef>();
 
-
 function escapeHtml(value: string): string {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -385,6 +384,7 @@ onMounted(() => {
             </el-button>
             <el-button
               v-if="!row.isApproved"
+              v-auth="['post/write-off-order/:uid/approve']"
               link
               type="success"
               :size="size"

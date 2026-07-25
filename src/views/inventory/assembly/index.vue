@@ -318,6 +318,7 @@ onMounted(() => {
               </el-button>
               <el-button
                 v-if="row.status === 'pending'"
+                v-auth="['patch/audit']"
                 link
                 type="success"
                 @click="handleApprove(row)"

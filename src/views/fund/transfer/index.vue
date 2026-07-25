@@ -382,6 +382,7 @@ onMounted(() => {
             </el-button>
             <el-button
               v-if="row.status === 'DRAFT'"
+              v-auth="['post/finance-extension/account-transfer/:uid/approve']"
               link
               type="success"
               :size="size"

@@ -678,6 +678,7 @@ function escapeHtml(value: string): string {
                   row.status !== 'APPROVED' &&
                   row.status !== 'VOID'
                 "
+                v-auth="['post/document-center/approve']"
                 link
                 type="success"
                 @click="handleApprove(row)"

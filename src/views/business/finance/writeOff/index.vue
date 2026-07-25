@@ -229,6 +229,7 @@ onSearch();
           <template #operation="{ row, size }">
             <el-button
               v-if="!row.isApproved"
+              v-auth="['post/write-off-order/:uid/approve']"
               link
               type="primary"
               :size="size"

@@ -284,6 +284,7 @@ onMounted(() => {
               </el-button>
               <el-button
                 v-if="!row.isApproved && !row.isLocked"
+                v-auth="['post/cost-adjust-order/:id/approve']"
                 link
                 type="success"
                 @click="handleApprove(row)"
