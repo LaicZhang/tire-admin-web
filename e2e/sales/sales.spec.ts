@@ -32,10 +32,9 @@ test.describe("销售管理", () => {
 
     test("订单应显示状态标签", async ({ authenticatedPage: page }) => {
       const rowCount = await page.locator(".pure-table tbody tr").count();
-      if (rowCount > 0) {
-        const statusTags = page.locator(".pure-table tbody .el-tag");
-        await expect(statusTags.first()).toBeVisible();
-      }
+      test.skip(rowCount === 0, "empty sales order table");
+      const statusTags = page.locator(".pure-table tbody .el-tag");
+      await expect(statusTags.first()).toBeVisible();
     });
 
     test("搜索功能应正常工作", async ({ authenticatedPage: page }) => {
@@ -46,29 +45,27 @@ test.describe("销售管理", () => {
 
     test("点击新增应进入订单创建页面", async ({ authenticatedPage: page }) => {
       const addBtn = page.getByRole("button", { name: /新增/ });
-      if (await addBtn.isVisible()) {
-        await addBtn.click();
-        await page.waitForLoadState("domcontentloaded");
-      }
+      test.skip(!(await addBtn.isVisible()), "no add button in env");
+      await addBtn.click();
+      await page.waitForLoadState("domcontentloaded");
+      await expect(page).toHaveURL(/sales\/(order\/)?(create|add|edit|form)/i);
     });
 
     // 文档: 方式二：可【选择BOM表】快速下销售订单
     test("新增订单应支持选择BOM表", async ({ authenticatedPage: page }) => {
       const addBtn = page.getByRole("button", { name: /新增/ });
-      if (await addBtn.isVisible()) {
-        await addBtn.click();
-        await page.waitForLoadState("domcontentloaded");
-        await selectBOM(page);
-      }
+      test.skip(!(await addBtn.isVisible()), "no add button in env");
+      await addBtn.click();
+      await page.waitForLoadState("domcontentloaded");
+      await selectBOM(page);
     });
 
     // 文档: 3) 列设置
     test("销售订单列表应支持列设置", async ({ authenticatedPage: page }) => {
       const settingsBtn = page.getByRole("button", { name: /设置|列设置/ });
-      if (await settingsBtn.isVisible()) {
-        await settingsBtn.click();
-        await page.waitForLoadState("domcontentloaded");
-      }
+      test.skip(!(await settingsBtn.isVisible()), "no column settings button");
+      await settingsBtn.click();
+      await page.waitForLoadState("domcontentloaded");
     });
 
     // 文档: 4) 折扣率
