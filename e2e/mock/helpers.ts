@@ -1,11 +1,18 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
 export async function expectSuccessMessage(page: Page, text: string) {
-  const message = page
-    .locator(".el-message--success")
-    .filter({ hasText: text })
-    .last();
-  await expect(message).toBeVisible({ timeout: 10_000 });
+  // Toast may auto-dismiss quickly; wait until the success text appears at least once.
+  await expect
+    .poll(
+      async () => {
+        const messages = page
+          .locator(".el-message--success")
+          .filter({ hasText: text });
+        return messages.count();
+      },
+      { timeout: 10_000 }
+    )
+    .toBeGreaterThan(0);
 }
 
 export async function waitForPureTable(page: Page) {

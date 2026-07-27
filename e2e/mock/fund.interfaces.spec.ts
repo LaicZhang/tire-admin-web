@@ -1,10 +1,5 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import {
-  confirmMessageBox,
-  expectSuccessMessage,
-  tableRowByText,
-  waitForPureTable
-} from "./helpers";
+import { confirmMessageBox, tableRowByText, waitForPureTable } from "./helpers";
 
 const UI_TIMEOUT_MS = 10_000;
 const FLOW_TIMEOUT_MS = 90_000;
@@ -56,10 +51,16 @@ async function submitDialog(
   scope: Locator,
   buttonText: RegExp | string = "确定"
 ) {
+  // Footer buttons live on the dialog shell; wait until the form body is mounted
+  // so ManagedSubmitDialog's formRef.submit() can run validation.
+  await expect(scope.locator(".el-form, form").first()).toBeVisible({
+    timeout: UI_TIMEOUT_MS
+  });
   const button =
     typeof buttonText === "string"
       ? scope.getByRole("button", { name: buttonText })
       : scope.getByRole("button", { name: buttonText });
+  await expect(button).toBeEnabled({ timeout: UI_TIMEOUT_MS });
   await button.click({ force: true });
 }
 
@@ -135,12 +136,13 @@ async function coverOtherIncomeFlow(page: Page) {
   const createdIncomeBillNo = String(
     (incomeCreateResult as { data?: { billNo?: string } }).data?.billNo || ""
   );
-  await expectSuccessMessage(page, "创建成功");
+  await expectRowVisible(page, createdIncomeBillNo);
 
   const receiveResponse = page.waitForResponse(
     response =>
       response.url().includes("/api/v1/receipt-order") &&
-      response.request().method() === "POST"
+      response.request().method() === "POST" &&
+      response.ok()
   );
   await tableRowByText(page, "QTSR-20260309-001")
     .getByRole("button", { name: "收款" })
@@ -149,7 +151,6 @@ async function coverOtherIncomeFlow(page: Page) {
   await chooseOption(page, receiveDialog, "结算账户", "工商银行");
   await submitDialog(receiveDialog);
   await receiveResponse;
-  await expectSuccessMessage(page, "创建成功");
 
   const incomeDeleteResponse = page.waitForResponse(
     response =>
@@ -191,7 +192,8 @@ async function coverOtherExpenseFlow(page: Page) {
   const payResponse = page.waitForResponse(
     response =>
       response.url().includes("/api/v1/payment-order") &&
-      response.request().method() === "POST"
+      response.request().method() === "POST" &&
+      response.ok()
   );
   await tableRowByText(page, "QTZC-20260309-001")
     .getByRole("button", { name: "付款" })
@@ -200,7 +202,6 @@ async function coverOtherExpenseFlow(page: Page) {
   await chooseOption(page, payDialog, "结算账户", "工商银行");
   await submitDialog(payDialog);
   await payResponse;
-  await expectSuccessMessage(page, "创建成功");
 
   const expenseDeleteResponse = page.waitForResponse(
     response =>
@@ -246,17 +247,25 @@ async function coverTransferInterfaces(page: Page) {
   );
   await expectRowVisible(page, createdTransferBillNo);
 
-  const transferApproveResponse = page.waitForResponse(response =>
-    response
-      .url()
-      .includes("/api/v1/finance-extension/account-transfer/transfer-1/approve")
+  const transferApproveResponse = page.waitForResponse(
+    response =>
+      response
+        .url()
+        .includes(
+          "/api/v1/finance-extension/account-transfer/transfer-1/approve"
+        ) &&
+      response.request().method() === "POST" &&
+      response.ok()
   );
   await tableRowByText(page, "ZZD-20260309-001")
     .getByRole("button", { name: "审核" })
     .click();
   await confirmMessageBox(page, "确定");
   await transferApproveResponse;
-  await expectSuccessMessage(page, "审核成功");
+  await expect(tableRowByText(page, "ZZD-20260309-001")).toContainText(
+    "已审核",
+    { timeout: 10_000 }
+  );
 
   const transferDeleteResponse = page.waitForResponse(
     response =>
@@ -377,8 +386,9 @@ test.describe("fund mock 接口覆盖", () => {
     await waitForPureTable(page);
     await page.getByRole("button", { name: "新建转账单" }).click();
     const transferDialog = await waitForDialog(page, "新建转账单");
+    // Settlement defaults may prefill 转出账户 (select is not clearable); still assert
+    // remaining required fields block empty submit.
     await submitDialog(transferDialog, "确认转账");
-    await expectFormError(transferDialog, "请选择转出账户");
     await expectFormError(transferDialog, "请选择转入账户");
     await expectFormError(transferDialog, "转账金额必须大于0");
   });

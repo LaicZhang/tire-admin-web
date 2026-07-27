@@ -612,6 +612,8 @@ const ensureCurrentCompanyScopedCustomerProductCodes = () => {
   return customerProductCodesByCompany[currentCompanyId];
 };
 
+// Button-level auths must live on route meta: initRouter overwrites user.permissions
+// from async-routes (see router/utils/cache.ts). Missing auths hide v-auth buttons.
 const asyncRoutes = () => [
   {
     path: "/data/customer",
@@ -626,6 +628,8 @@ const asyncRoutes = () => [
   {
     path: "/data/importExport",
     name: "E2EImportExport",
+    // Explicit component: path-only resolution can miss this view under layout.
+    component: "/src/views/data/importExport/index.vue",
     meta: { title: "导入导出", roles: ["admin"] }
   },
   {
@@ -646,12 +650,20 @@ const asyncRoutes = () => [
   {
     path: "/fund/receipt",
     name: "E2EFundReceipt",
-    meta: { title: "预收款", roles: ["admin"] }
+    meta: {
+      title: "预收款",
+      roles: ["admin"],
+      auths: ["post/receipt-order/:uid/approve"]
+    }
   },
   {
     path: "/fund/payment",
     name: "E2EFundPayment",
-    meta: { title: "付款单", roles: ["admin"] }
+    meta: {
+      title: "付款单",
+      roles: ["admin"],
+      auths: ["post/payment-order/:uid/approve"]
+    }
   },
   {
     path: "/fund/otherIncome",
@@ -666,12 +678,20 @@ const asyncRoutes = () => [
   {
     path: "/fund/transfer",
     name: "E2EFundTransfer",
-    meta: { title: "转账单", roles: ["admin"] }
+    meta: {
+      title: "转账单",
+      roles: ["admin"],
+      auths: ["post/finance-extension/account-transfer/:uid/approve"]
+    }
   },
   {
     path: "/fund/writeOff",
     name: "E2EFundWriteOff",
-    meta: { title: "核销单", roles: ["admin"] }
+    meta: {
+      title: "核销单",
+      roles: ["admin"],
+      auths: ["post/write-off-order/:uid/approve"]
+    }
   },
   {
     path: "/business/order",
@@ -716,10 +736,11 @@ const asyncRoutes = () => [
   {
     path: "/audit/permission",
     name: "E2EAuditPermission",
+    // No meta.auths: hasAuth falls back to user.permissions so this page can
+    // demonstrate store-only permission state (auditor vs forged localStorage).
     meta: {
       title: "审计权限预览",
-      roles: ["admin", "auditor"],
-      auths: ["audit:export", "audit:delete"]
+      roles: ["admin", "auditor"]
     }
   },
   {
@@ -728,7 +749,8 @@ const asyncRoutes = () => [
     meta: {
       title: "审计同源 iframe",
       roles: ["admin"],
-      frameSrc: "/platform-config.json"
+      frameSrc: "/platform-config.json",
+      frameLoading: false
     }
   },
   {
@@ -737,7 +759,8 @@ const asyncRoutes = () => [
     meta: {
       title: "审计白名单 iframe",
       roles: ["admin"],
-      frameSrc: "https://trusted.example.com/embed"
+      frameSrc: "https://trusted.example.com/embed",
+      frameLoading: false
     }
   },
   {
@@ -746,7 +769,8 @@ const asyncRoutes = () => [
     meta: {
       title: "审计阻断 iframe",
       roles: ["admin"],
-      frameSrc: "https://evil.example.com/embed"
+      frameSrc: "https://evil.example.com/embed",
+      frameLoading: false
     }
   }
 ];
@@ -782,6 +806,10 @@ const server = http.createServer(async (req, res) => {
             "get/document-center/page",
             "get/backup",
             "get/tools/export/schema",
+            "post/receipt-order/:uid/approve",
+            "post/payment-order/:uid/approve",
+            "post/finance-extension/account-transfer/:uid/approve",
+            "post/write-off-order/:uid/approve",
             "audit:export",
             "audit:delete"
           ],

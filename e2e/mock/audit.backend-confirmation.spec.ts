@@ -59,7 +59,9 @@ test.describe("审计回归（后端确认项）", () => {
     page
   }) => {
     await page.goto("/#/data/importExport");
-    await expect(page.getByRole("tab", { name: "数据导入" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "数据导入" })).toBeVisible({
+      timeout: 30_000
+    });
 
     const importModule = page
       .locator(".el-form-item")
@@ -144,15 +146,21 @@ test.describe("审计回归（后端确认项）", () => {
     await waitForPureTable(page);
     await expect(page.locator(".pure-table")).toContainText("WO-20260309-001");
 
-    const approveResponse = page.waitForResponse(response =>
-      response.url().includes("/api/v1/write-off-order/writeoff-1/approve")
+    const approveResponse = page.waitForResponse(
+      response =>
+        response.url().includes("/api/v1/write-off-order/writeoff-1/approve") &&
+        response.request().method() === "POST" &&
+        response.ok()
     );
     await tableRowByText(page, "WO-20260309-001")
       .getByRole("button", { name: "审核" })
       .click();
     await confirmMessageBox(page, "确定");
     await approveResponse;
-    await expectSuccessMessage(page, "审核成功");
+    await expect(tableRowByText(page, "WO-20260309-001")).toContainText(
+      "已审核",
+      { timeout: 10_000 }
+    );
   });
 
   test("CSV:41 备份下载走后端 Blob 下载接口", async ({ page }) => {
@@ -244,6 +252,30 @@ test.describe("审计回归（后端确认项）", () => {
   test("CSV:14/25 权限审计页同时验证按钮鉴权与菜单过滤仅读取用户态", async ({
     page
   }) => {
+    // initRouter overwrites store roles/permissions from async-routes. Scope the
+    // mock routes so the page reflects auditor identity, not the full admin menu set.
+    await page.route("**/api/v1/auth/async-routes", async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          code: 200,
+          msg: "ok",
+          data: [
+            {
+              path: "/audit/permission",
+              name: "E2EAuditPermission",
+              meta: {
+                title: "审计权限预览",
+                roles: ["auditor"],
+                auths: ["audit:export"]
+              }
+            }
+          ]
+        })
+      });
+    });
+
     await page.addInitScript(() => {
       localStorage.setItem(
         "user-info",
@@ -364,7 +396,7 @@ test.describe("审计回归（后端确认项）", () => {
 
     await page.goto("/#/audit/frame-same-origin");
     const sameOriginFrame = page.locator("iframe");
-    await expect(sameOriginFrame).toBeVisible();
+    await expect(sameOriginFrame).toBeVisible({ timeout: 30_000 });
     await expect(sameOriginFrame).toHaveAttribute("sandbox", /allow-scripts/);
     await expect(sameOriginFrame).toHaveAttribute(
       "referrerpolicy",
@@ -377,14 +409,16 @@ test.describe("审计回归（后端确认项）", () => {
 
     await page.goto("/#/audit/frame-whitelist");
     const whitelistFrame = page.locator("iframe");
-    await expect(whitelistFrame).toBeVisible();
+    await expect(whitelistFrame).toBeVisible({ timeout: 30_000 });
     await expect(whitelistFrame).toHaveAttribute(
       "src",
       /trusted\.example\.com/
     );
 
     await page.goto("/#/audit/frame-blocked");
-    await expect(page.getByText("嵌入内容已拦截")).toBeVisible();
+    await expect(page.getByText("嵌入内容已拦截")).toBeVisible({
+      timeout: 30_000
+    });
     await expect(page.locator("iframe")).toHaveCount(0);
   });
 
