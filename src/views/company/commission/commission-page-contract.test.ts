@@ -18,6 +18,7 @@ describe("commission admin page contract", () => {
     expect(pageSource).toContain("createCommissionSettlementApi");
     expect(pageSource).toContain("submitCommissionSettlementApi");
     expect(pageSource).toContain("approveCommissionSettlementApi");
+    expect(pageSource).toContain("rejectCommissionSettlementApi");
     expect(pageSource).toContain("reverseCommissionSettlementApi");
     expect(pageSource).toContain("按销售员汇总");
   });

@@ -145,3 +145,12 @@ export function reverseCommissionSettlementApi(uid: string, reason: string) {
     { data: { reason } }
   );
 }
+
+/** COM-C2: PENDING_APPROVAL → DRAFT */
+export function rejectCommissionSettlementApi(uid: string, reason: string) {
+  return http.request<CommonResult<CommissionSettlement>>(
+    "post",
+    baseUrlApi(`${prefix}settlements/${uid}/reject`),
+    { data: { reason } }
+  );
+}

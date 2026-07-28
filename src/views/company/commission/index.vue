@@ -11,6 +11,7 @@ import {
   getCommissionRecordsApi,
   getCommissionSettlementsApi,
   getCommissionSummaryApi,
+  rejectCommissionSettlementApi,
   reverseCommissionSettlementApi,
   submitCommissionSettlementApi,
   type CommissionRecord,
@@ -147,6 +148,16 @@ async function reverseSettlement(row: unknown) {
   await reverseCommissionSettlementApi(uid, result.value.trim());
   message("提成结算已冲销", { type: "success" });
   await Promise.all([loadSettlements(), loadRecords()]);
+}
+
+async function rejectSettlement(row: unknown) {
+  const uid = getSettlementUid(row);
+  const result = await ElMessageBox.prompt("请输入拒审原因", "拒审提成结算", {
+    inputValidator: value => Boolean(value?.trim()) || "拒审原因不能为空"
+  });
+  await rejectCommissionSettlementApi(uid, result.value.trim());
+  message("已拒审并退回草稿", { type: "success" });
+  await loadSettlements();
 }
 
 function onTabChange(name: string | number) {
@@ -345,6 +356,16 @@ onMounted(() => {
                     @click="approveSettlement(row)"
                   >
                     审核入账
+                  </el-button>
+                </Auth>
+                <Auth value="post/commission/settlements/:uid/reject">
+                  <el-button
+                    v-if="row.status === 'PENDING_APPROVAL'"
+                    link
+                    type="warning"
+                    @click="rejectSettlement(row)"
+                  >
+                    拒审
                   </el-button>
                 </Auth>
                 <Auth value="post/commission/settlements/:uid/reverse">

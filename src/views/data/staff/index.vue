@@ -38,9 +38,12 @@ const state = ref({
   keyword: undefined as string | undefined
 });
 
+/** CLO-E-008: display only; 离职真源为 layoffAt / 主员工状态机，不用 0=离职 */
 const staffStatusMap = {
   1: { label: "在职", type: "success" },
-  0: { label: "离职", type: "danger" }
+  0: { label: "在职(兼容)", type: "success" },
+  2: { label: "停用", type: "warning" },
+  4: { label: "已离职", type: "danger" }
 } as const;
 
 const formColumns: PlusColumn[] = [
@@ -192,12 +195,12 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
               message("缺少职员ID，无法更新", { type: "error" });
               return;
             }
+            // CLO-E-008: never send staff status=0 as "离职"; omit status on update
             const updateData = {
               name: {
                 name: curData.name,
                 nickname: curData.nickname,
-                desc: curData.desc,
-                status: curData.status
+                desc: curData.desc
               },
               user: {
                 phone: curData.phone,

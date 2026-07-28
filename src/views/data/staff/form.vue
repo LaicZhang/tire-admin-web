@@ -101,11 +101,19 @@ defineExpose({ formRef: ruleFormRef });
       />
     </el-form-item>
 
+    <!-- CLO-E-008: 离职不得用 status=0 裸改；主路径走员工页 layoff API -->
     <el-form-item label="状态" prop="status">
-      <el-select v-model="newFormInline.status" placeholder="请选择状态">
+      <el-select
+        v-model="newFormInline.status"
+        placeholder="请选择状态"
+        :disabled="disabled || Boolean(newFormInline.uid)"
+      >
         <el-option label="在职" :value="1" />
-        <el-option label="离职" :value="0" />
       </el-select>
+      <p v-if="newFormInline.uid" class="text-xs text-gray-500 mt-1 leading-5">
+        离职/复职请使用「公司 → 员工管理」中的离职/复职操作（layoffAt
+        真源），禁止在此用错误枚举值改状态。
+      </p>
     </el-form-item>
 
     <el-form-item label="备注" prop="desc">
