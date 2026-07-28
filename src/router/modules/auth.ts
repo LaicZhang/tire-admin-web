@@ -532,7 +532,7 @@ export default [
         component: () => import("@/views/company/salary/index.vue"),
         isShow: true,
         meta: {
-          roles: ["admin", "boss", "manager"],
+          roles: ["admin", "boss", "manager", "finance"],
           title: "工资管理",
           icon: null
         }

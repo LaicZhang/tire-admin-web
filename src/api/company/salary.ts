@@ -4,25 +4,76 @@ import type { CommonResult, PaginatedResponseDto } from "../type";
 
 const prefix = "/salary/";
 
-export interface SalaryDto {
-  name: string;
-  company?: { connect: { uid: string } };
-  base?: number;
-  performance?: number;
-  fulltimeAttendanceAward?: number;
-  subsidy?: number;
+/** Nested total components in fen (string or number from form). */
+export interface SalaryTotalInput {
+  base: string | number;
+  performance: string | number;
+  fulltimeAttendanceAward?: string | number;
+  subsidy: string | number;
+  other?: string | number;
+}
+
+export interface SalarySocialInput {
+  pension?: string | number;
+  medical?: string | number;
+  unemployment?: string | number;
+  fertility?: string | number;
+  injurty?: string | number;
+  birth?: string | number;
+  housing?: string | number;
+  tax?: string | number;
+}
+
+/** Create payload aligned with BE CreateSalaryDto (monthly payroll). */
+export interface CreateSalaryDto {
+  employeeId: string;
+  /** YYYYMM as number, e.g. 202607 */
+  date: number;
+  total?: SalaryTotalInput;
+  eSocial?: SalarySocialInput;
+  cSocial?: SalarySocialInput;
+  /** Legacy FK path (optional when nested provided) */
+  totalId?: number;
+  eSocialInsuranceId?: number;
+  cSocialInsuranceId?: number;
+  payableWages?: string | number;
+  actualWages?: string | number;
   desc?: string;
 }
 
-export interface Salary extends SalaryDto {
-  id: number;
-  uid: string;
+export type UpdateSalaryDto = Partial<CreateSalaryDto>;
+
+export interface SalaryEmployeeSummary {
+  uid?: string;
+  name?: string;
 }
 
-export async function getSalaryListApi(
-  index: number,
-  params?: Record<string, unknown>
-) {
+export interface Salary {
+  id: number;
+  uid: string;
+  employeeId: string;
+  date: number;
+  payableWages: string | number;
+  actualWages: string | number;
+  confirmedAt?: string | null;
+  desc?: string | null;
+  createAt?: string;
+  updateAt?: string;
+  employee?: SalaryEmployeeSummary | null;
+  operator?: SalaryEmployeeSummary | null;
+  total?: Record<string, unknown> | null;
+  eSocial?: Record<string, unknown> | null;
+  cSocial?: Record<string, unknown> | null;
+}
+
+export interface SalaryQuery {
+  employeeId?: string;
+  date?: number;
+  operatorId?: string;
+  scope?: "nonDeleted" | "deleted" | "all";
+}
+
+export async function getSalaryListApi(index: number, params?: SalaryQuery) {
   return await http.request<CommonResult<PaginatedResponseDto<Salary>>>(
     "get",
     baseUrlApi(prefix + "page/" + index),
@@ -30,7 +81,7 @@ export async function getSalaryListApi(
   );
 }
 
-export async function addSalaryApi(data: SalaryDto) {
+export async function addSalaryApi(data: CreateSalaryDto) {
   return await http.request<CommonResult<Salary>>("post", baseUrlApi(prefix), {
     data
   });
@@ -43,7 +94,7 @@ export async function getSalaryApi(uid: string) {
   );
 }
 
-export async function updateSalaryApi(uid: string, data: Partial<SalaryDto>) {
+export async function updateSalaryApi(uid: string, data: UpdateSalaryDto) {
   return await http.request<CommonResult<Salary>>(
     "patch",
     baseUrlApi(prefix + uid),
@@ -53,9 +104,23 @@ export async function updateSalaryApi(uid: string, data: Partial<SalaryDto>) {
   );
 }
 
+export async function confirmSalaryApi(uid: string) {
+  return await http.request<CommonResult<Salary>>(
+    "post",
+    baseUrlApi(prefix + uid + "/confirm")
+  );
+}
+
 export async function deleteSalaryApi(uid: string) {
   return await http.request<CommonResult<void>>(
     "delete",
     baseUrlApi(prefix + uid)
+  );
+}
+
+export async function restoreSalaryApi(uid: string) {
+  return await http.request<CommonResult<Salary>>(
+    "post",
+    baseUrlApi(prefix + uid + "/restore")
   );
 }

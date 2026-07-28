@@ -1,43 +1,67 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { reactive } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import type { FormRules } from "element-plus";
+import { getAllEmployeeApi, type Employee } from "@/api/company/employee";
 
-interface FormItemProps {
-  name: string;
-  id?: number;
+export interface FormItemProps {
+  uid?: string;
+  employeeId: string;
+  /** YYYYMM number or string from inputs */
+  date: number | string;
+  /** yuan strings for form UX; converted to fen on submit */
+  baseYuan: string;
+  performanceYuan: string;
+  fulltimeAttendanceAwardYuan: string;
+  subsidyYuan: string;
+  otherYuan: string;
+  personalTaxYuan: string;
+  companyPensionYuan: string;
   desc?: string;
-  base: number;
-  performance: number;
-  fulltimeAttendanceAward: number;
-  subsidy: number;
+  confirmedAt?: string | null;
 }
 
 interface FormProps {
   formInline?: FormItemProps;
+  readonly?: boolean;
 }
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
-    name: "",
-    id: undefined,
-    base: 0,
-    performance: 0,
-    fulltimeAttendanceAward: 0,
-    subsidy: 0,
+    uid: "",
+    employeeId: "",
+    date: "",
+    baseYuan: "0",
+    performanceYuan: "0",
+    fulltimeAttendanceAwardYuan: "0",
+    subsidyYuan: "0",
+    otherYuan: "0",
+    personalTaxYuan: "0",
+    companyPensionYuan: "0",
     desc: ""
-  })
+  }),
+  readonly: false
 });
-/** 自定义表单规则校验 */
-const formRules = reactive({
-  name: [{ required: true, message: "角色名称为必填项", trigger: "blur" }],
-  base: [{ required: true, message: "基础工资为必填项", trigger: "blur" }]
+
+const formRules = reactive<FormRules>({
+  employeeId: [{ required: true, message: "员工为必填项", trigger: "change" }],
+  date: [{ required: true, message: "月份(YYYYMM)为必填项", trigger: "blur" }],
+  baseYuan: [{ required: true, message: "基本工资为必填项", trigger: "blur" }]
 });
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+const employees = ref<Employee[]>([]);
 
-defineExpose({ formRef: ruleFormRef });
+onMounted(async () => {
+  try {
+    const res = await getAllEmployeeApi({ scope: "active" });
+    employees.value = res.data ?? [];
+  } catch {
+    employees.value = [];
+  }
+});
+
+defineExpose({ formRef: ruleFormRef, formInline: newFormInline });
 </script>
 
 <template>
@@ -45,45 +69,83 @@ defineExpose({ formRef: ruleFormRef });
     ref="ruleFormRef"
     :model="newFormInline"
     :rules="formRules"
-    label-width="82px"
+    label-width="110px"
+    :disabled="readonly || Boolean(newFormInline.confirmedAt)"
   >
-    <el-form-item label="名称" prop="name">
-      <el-input
-        v-model="newFormInline.name"
+    <el-form-item label="员工" prop="employeeId">
+      <el-select
+        v-model="newFormInline.employeeId"
+        filterable
         clearable
-        placeholder="请输入名称"
+        placeholder="请选择员工"
+        class="w-full"
+      >
+        <el-option
+          v-for="emp in employees"
+          :key="emp.uid"
+          :label="emp.name"
+          :value="emp.uid"
+        />
+      </el-select>
+    </el-form-item>
+
+    <el-form-item label="月份" prop="date">
+      <el-input
+        v-model="newFormInline.date"
+        clearable
+        placeholder="例如 202607"
       />
     </el-form-item>
 
-    <el-form-item label="基本工资" prop="base">
+    <el-form-item label="基本工资(元)" prop="baseYuan">
+      <el-input v-model="newFormInline.baseYuan" clearable placeholder="0.00" />
+    </el-form-item>
+
+    <el-form-item label="绩效(元)" prop="performanceYuan">
       <el-input
-        v-model="newFormInline.base"
+        v-model="newFormInline.performanceYuan"
         clearable
-        placeholder="请输入基本工资"
+        placeholder="0.00"
       />
     </el-form-item>
 
-    <el-form-item label="绩效" prop="performance">
+    <el-form-item label="全勤奖(元)">
       <el-input
-        v-model="newFormInline.performance"
+        v-model="newFormInline.fulltimeAttendanceAwardYuan"
         clearable
-        placeholder="请输入绩效"
+        placeholder="0.00"
       />
     </el-form-item>
 
-    <el-form-item label="全勤奖" prop="fulltimeAttendanceAward">
+    <el-form-item label="补贴(元)">
       <el-input
-        v-model="newFormInline.fulltimeAttendanceAward"
+        v-model="newFormInline.subsidyYuan"
         clearable
-        placeholder="请输入全勤奖"
+        placeholder="0.00"
       />
     </el-form-item>
 
-    <el-form-item label="补贴" prop="subsidy">
+    <el-form-item label="其他(元)">
       <el-input
-        v-model="newFormInline.subsidy"
+        v-model="newFormInline.otherYuan"
         clearable
-        placeholder="请输入补贴"
+        placeholder="0.00"
+      />
+    </el-form-item>
+
+    <el-form-item label="个税(元)">
+      <el-input
+        v-model="newFormInline.personalTaxYuan"
+        clearable
+        placeholder="0.00"
+      />
+    </el-form-item>
+
+    <el-form-item label="公司养老(元)">
+      <el-input
+        v-model="newFormInline.companyPensionYuan"
+        clearable
+        placeholder="0.00"
       />
     </el-form-item>
 
