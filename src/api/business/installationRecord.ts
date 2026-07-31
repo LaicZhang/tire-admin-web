@@ -18,6 +18,8 @@ export interface InstallationRecordItem {
   store?: { uid?: string; name?: string | null } | null;
   tireId: string;
   tire?: { uid?: string; name?: string | null } | null;
+  serviceWorkOrderUid?: string | null;
+  serviceWorkOrder?: { uid?: string; billNo?: string | null } | null;
 }
 
 export interface CreateInstallationRecordPayload {
@@ -31,6 +33,7 @@ export interface CreateInstallationRecordPayload {
   installedAt?: string | null;
   warrantyEndAt?: string | null;
   remark?: string | null;
+  serviceWorkOrderUid?: string | null;
 }
 
 const prefix = "/installation-record";

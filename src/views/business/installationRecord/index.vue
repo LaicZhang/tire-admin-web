@@ -48,7 +48,8 @@ const form = reactive({
   technicianName: "",
   installedAt: "",
   warrantyEndAt: "",
-  remark: ""
+  remark: "",
+  serviceWorkOrderUid: ""
 });
 
 const rules: FormRules = {
@@ -108,6 +109,11 @@ const columns: TableColumnList = [
     label: "备注",
     prop: "remark",
     minWidth: 160
+  },
+  {
+    label: "关联工单",
+    prop: "serviceWorkOrderUid",
+    minWidth: 140
   }
 ];
 
@@ -165,6 +171,7 @@ function resetForm() {
   form.installedAt = "";
   form.warrantyEndAt = "";
   form.remark = "";
+  form.serviceWorkOrderUid = "";
 }
 
 function openCreateDialog() {
@@ -187,7 +194,8 @@ async function submit() {
       technicianName: form.technicianName.trim(),
       installedAt: form.installedAt || null,
       warrantyEndAt: form.warrantyEndAt || null,
-      remark: form.remark.trim() || null
+      remark: form.remark.trim() || null,
+      serviceWorkOrderUid: form.serviceWorkOrderUid.trim() || null
     });
     message("安装登记已创建", { type: "success" });
     dialogVisible.value = false;
@@ -351,6 +359,13 @@ onMounted(async () => {
             type="datetime"
             value-format="YYYY-MM-DDTHH:mm:ss.SSS[Z]"
             class="w-full"
+          />
+        </el-form-item>
+        <el-form-item label="关联工单">
+          <el-input
+            v-model="form.serviceWorkOrderUid"
+            placeholder="可选：服务工单 UID"
+            clearable
           />
         </el-form-item>
         <el-form-item label="备注">

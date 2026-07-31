@@ -1027,6 +1027,34 @@ export default [
         }
       },
       {
+        id: 251,
+        uid: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "servicePackage",
+        path: "/business/servicePackage",
+        component: () => import("@/views/business/servicePackage/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "seller", "manager"],
+          title: "服务套餐",
+          icon: null
+        }
+      },
+      {
+        id: 252,
+        uid: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+        parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "serviceWorkOrder",
+        path: "/business/serviceWorkOrder",
+        component: () => import("@/views/business/serviceWorkOrder/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "seller", "warehouseManager", "manager"],
+          title: "服务工单",
+          icon: null
+        }
+      },
+      {
         id: 58,
         uid: "4dd4bf61-a0bf-449f-b4d4-cf8254745b42",
         parentId: "d3537daf-db89-4ccf-a79e-1dd3437d5ddd",
