@@ -54,6 +54,41 @@ export async function restoreCompanyApi(uid: string) {
   );
 }
 
-export async function deleteCompanyApi(uid: string) {
-  return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid));
+export type CompanyClosePrecheck = {
+  companyUid: string;
+  name: string;
+  alreadyDeleted: boolean;
+  activeEmployeeCount: number;
+  isCurrentCompany: boolean;
+  blockers: string[];
+  canCloseWithoutForce: boolean;
+};
+
+export async function getCompanyClosePrecheckApi(uid: string) {
+  return await http.request<CommonResult<CompanyClosePrecheck>>(
+    "get",
+    baseUrlApi(prefix + uid + "/close-precheck")
+  );
+}
+
+export type CloseCompanyBody = {
+  force?: boolean;
+  reason?: string;
+};
+
+export async function deleteCompanyApi(uid: string, body?: CloseCompanyBody) {
+  return await http.request<CommonResult>("delete", baseUrlApi(prefix + uid), {
+    data: body
+  });
+}
+
+export async function transferCompanyBossApi(
+  uid: string,
+  newBossUserId: string
+) {
+  return await http.request<CommonResult>(
+    "post",
+    baseUrlApi(prefix + uid + "/transfer-boss"),
+    { data: { newBossUserId } }
+  );
 }

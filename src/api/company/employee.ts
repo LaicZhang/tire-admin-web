@@ -123,10 +123,20 @@ export async function restoreEmployeeApi(uid: string) {
   );
 }
 
-export async function layoffEmployeeApi(uid: string) {
+export type LayoffEmployeeBody = {
+  reason?: string;
+  effectiveAt?: string;
+  handoffUserId?: string;
+};
+
+export async function layoffEmployeeApi(
+  uid: string,
+  body?: LayoffEmployeeBody
+) {
   return await http.request<CommonResult<void>>(
     "post",
-    baseUrlApi(prefix + uid + "/layoff")
+    baseUrlApi(prefix + uid + "/layoff"),
+    { data: body }
   );
 }
 

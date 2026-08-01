@@ -14,8 +14,11 @@ import {
   addCompanyApi,
   updateCompanyApi,
   deleteCompanyApi,
-  restoreCompanyApi
+  restoreCompanyApi,
+  getCompanyClosePrecheckApi,
+  transferCompanyBossApi
 } from "@/api/company";
+import { ElMessageBox } from "element-plus";
 import { useUserStoreHook } from "@/store/modules/user";
 import { v7 as uuid } from "uuid";
 
@@ -133,16 +136,89 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 
 const handleDelete = async (row: FormItemProps) => {
   if (!row.uid) return;
-  await deleteCompanyApi(row.uid);
-  message("删除成功（可恢复）", { type: "success" });
-  onSearch();
+  try {
+    const { data: precheck } = await getCompanyClosePrecheckApi(row.uid);
+    let force = false;
+    let reason: string | undefined;
+
+    if (precheck && !precheck.canCloseWithoutForce) {
+      const blockers = (precheck.blockers ?? []).join("；") || "存在阻断项";
+      const { value } = await ElMessageBox.prompt(
+        `关停前置检查未通过：${blockers}。如需强制关停，请填写原因：`,
+        "强制关停公司",
+        {
+          confirmButtonText: "强制关停",
+          cancelButtonText: "取消",
+          inputPattern: /\S+/,
+          inputErrorMessage: "强制关停必须填写原因",
+          type: "warning"
+        }
+      );
+      force = true;
+      reason = String(value ?? "").trim();
+      if (!reason) {
+        message("已取消关停", { type: "info" });
+        return;
+      }
+    }
+
+    await deleteCompanyApi(row.uid, force ? { force, reason } : undefined);
+    message(force ? "强制关停成功（可恢复）" : "删除成功（可恢复）", {
+      type: "success"
+    });
+    onSearch();
+  } catch (e) {
+    // user cancel on prompt
+    if (
+      e === "cancel" ||
+      e === "close" ||
+      (typeof e === "object" &&
+        e !== null &&
+        "message" in e &&
+        String((e as { message?: unknown }).message ?? "").includes("cancel"))
+    ) {
+      return;
+    }
+    // Element Plus cancel is often 'cancel' string
+    if (e === "cancel") return;
+    handleApiError(e, "关停公司失败");
+  }
 };
 
 const handleRestore = async (row: FormItemProps) => {
   if (!row.uid) return;
-  await restoreCompanyApi(row.uid);
-  message("恢复成功", { type: "success" });
-  onSearch();
+  try {
+    await restoreCompanyApi(row.uid);
+    message("恢复成功", { type: "success" });
+    onSearch();
+  } catch (e) {
+    handleApiError(e, "恢复公司失败");
+  }
+};
+
+const handleTransferBoss = async (row: FormItemProps) => {
+  if (!row.uid) return;
+  try {
+    const { value } = await ElMessageBox.prompt(
+      `将公司「${row.name}」老板移交给指定在职员工（填写员工 UID）：`,
+      "移交老板",
+      {
+        confirmButtonText: "确认移交",
+        cancelButtonText: "取消",
+        inputPattern: /\S+/,
+        inputErrorMessage: "请填写新老板员工 UID",
+        inputPlaceholder: "新老板 user/employee uid"
+      }
+    );
+    const newBossUserId = String(value ?? "").trim();
+    if (!newBossUserId) return;
+    await transferCompanyBossApi(row.uid, newBossUserId);
+    message("老板移交成功", { type: "success" });
+    onSearch();
+  } catch (e) {
+    if (e === "cancel" || e === "close") return;
+    handleApiError(e, "老板移交失败");
+  }
 };
 
 function handleSizeChange(val: number) {
@@ -238,6 +314,15 @@ onMounted(() => {
                 @click="openDialog('修改', row)"
               >
                 修改
+              </el-button>
+              <el-button
+                class="reset-margin"
+                link
+                type="warning"
+                :size="size"
+                @click="handleTransferBoss(row)"
+              >
+                移交老板
               </el-button>
               <DeleteButton
                 :size="size"

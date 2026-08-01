@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { ElMessageBox } from "element-plus";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -78,10 +79,45 @@ async function handleDelete(row: Employee) {
 
 async function handleLayoff(row: Employee) {
   try {
-    await layoffEmployeeApi(row.uid);
+    const { value: reason } = await ElMessageBox.prompt(
+      `确认将 ${row.name} 标记为离职。可选填写离职原因（审计）：`,
+      "员工离职",
+      {
+        confirmButtonText: "确认离职",
+        cancelButtonText: "取消",
+        inputPlaceholder: "离职原因（可选）",
+        inputValue: "",
+        type: "warning"
+      }
+    );
+
+    let handoffUserId: string | undefined;
+    try {
+      const { value: handoff } = await ElMessageBox.prompt(
+        "可选：填写交接接收人 UID（本公司在职员工；仅客户与未审核销售单）",
+        "业务交接（可选）",
+        {
+          confirmButtonText: "继续",
+          cancelButtonText: "跳过交接",
+          inputPlaceholder: "接收人 UID（可选）",
+          inputValue: ""
+        }
+      );
+      const trimmed = String(handoff ?? "").trim();
+      if (trimmed) handoffUserId = trimmed;
+    } catch {
+      // skip handoff on cancel
+    }
+
+    const reasonTrimmed = String(reason ?? "").trim();
+    await layoffEmployeeApi(row.uid, {
+      reason: reasonTrimmed || undefined,
+      handoffUserId
+    });
     message(`已将${row.name}标记为离职`, { type: "success" });
     fetchData();
   } catch (e) {
+    if (e === "cancel" || e === "close") return;
     handleApiError(e, "员工离职操作失败");
   }
 }
