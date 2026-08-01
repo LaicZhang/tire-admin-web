@@ -212,7 +212,8 @@ function openLogDetail() {
 
 function openTraceDialog(initialSection: "plan" | "execute") {
   const incident = detail.value?.incident;
-  if (!incident?.traceId) return;
+  const traceId = incident?.traceId;
+  if (!incident || !traceId) return;
 
   addDialog({
     title: initialSection === "execute" ? "溯源与回滚" : "溯源预览",
@@ -224,7 +225,7 @@ function openTraceDialog(initialSection: "plan" | "execute") {
     hideFooter: true,
     contentRenderer: () =>
       h(RollbackTraceDialog, {
-        traceId: incident.traceId,
+        traceId,
         initialSection,
         logSummary: {
           module: incident.module,

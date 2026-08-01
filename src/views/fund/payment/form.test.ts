@@ -17,9 +17,14 @@ const resetFieldsMock = vi.fn();
 const loadProvidersMock = vi.fn();
 const loadPaymentsMock = vi.fn();
 const providerList = ref([{ uid: "provider-1", name: "供应商A" }]);
+const customerList = ref([{ uid: "customer-1", name: "客户A" }]);
 const paymentList = ref([
   { uid: "payment-default", name: "账户A", balance: 500_000 }
 ]);
+const loadingProviders = ref(false);
+const loadingCustomers = ref(false);
+const loadingPayments = ref(false);
+const loadCustomersMock = vi.fn();
 
 vi.mock("../composables/useFundForm", () => ({
   useFundForm: vi.fn()
@@ -145,6 +150,8 @@ describe("Payment Form", () => {
     loadProvidersMock.mockResolvedValue(undefined);
     loadPaymentsMock.mockReset();
     loadPaymentsMock.mockResolvedValue(undefined);
+    loadCustomersMock.mockReset();
+    loadCustomersMock.mockResolvedValue(undefined);
     providerList.value = [{ uid: "provider-1", name: "供应商A" }];
     paymentList.value = [
       { uid: "payment-default", name: "账户A", balance: 500_000 }
@@ -152,14 +159,20 @@ describe("Payment Form", () => {
 
     vi.mocked(useFundForm).mockReturnValue({
       providerList,
+      customerList,
       paymentList,
+      loadingProviders,
+      loadingCustomers,
+      loadingPayments,
       loadProviders: loadProvidersMock,
+      loadCustomers: loadCustomersMock,
       loadPayments: loadPaymentsMock
     });
     vi.mocked(loadSettlementDefaults).mockReset();
     vi.mocked(loadSettlementDefaults).mockResolvedValue({
       defaultPayableAccount: "payment-default",
-      defaultPaymentMethod: "WECHAT"
+      defaultPaymentMethod: "WECHAT",
+      allowBackdateDays: 0
     });
     vi.mocked(getOpenPayableLedgersApi).mockClear();
     vi.mocked(createPaymentOrderApi).mockClear();

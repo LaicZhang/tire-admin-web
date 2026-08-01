@@ -128,7 +128,8 @@ describe("useFundForm", () => {
       code: 200,
       msg: "ok",
       data: {
-        total: 1
+        // malformed: neither array nor { list } / { payments }
+        count: 1
       }
     });
 
