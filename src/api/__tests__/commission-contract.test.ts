@@ -4,6 +4,8 @@ import {
   approveCommissionSettlementApi,
   createCommissionSettlementApi,
   getCommissionRecordsApi,
+  mergeCommissionIntoPayrollApi,
+  payCommissionImmediateApi,
   reverseCommissionSettlementApi,
   submitCommissionSettlementApi
 } from "../company/commission";
@@ -16,7 +18,7 @@ describe("commission lifecycle API contract", () => {
     vi.mocked(http.request).mockResolvedValue({ code: 200, data: {} });
   });
 
-  it("lists records and creates a salesperson settlement", async () => {
+  it("lists records and creates a salesperson settlement with required payoutMode", async () => {
     await getCommissionRecordsApi(2, { salespersonId: "employee-1" });
     expect(http.request).toHaveBeenNthCalledWith(
       1,
@@ -27,6 +29,7 @@ describe("commission lifecycle API contract", () => {
 
     await createCommissionSettlementApi({
       salespersonId: "employee-1",
+      payoutMode: "PAYROLL",
       recordUids: ["record-1"]
     });
     expect(http.request).toHaveBeenNthCalledWith(
@@ -36,6 +39,7 @@ describe("commission lifecycle API contract", () => {
       {
         data: {
           salespersonId: "employee-1",
+          payoutMode: "PAYROLL",
           recordUids: ["record-1"]
         }
       }
@@ -62,6 +66,24 @@ describe("commission lifecycle API contract", () => {
       "post",
       "/api/v1/commission/settlements/settlement-1/reverse",
       { data: { reason: "金额错误" } }
+    );
+  });
+
+  it("merges PAYROLL settlement and pays IMMEDIATE via dedicated endpoints", async () => {
+    await mergeCommissionIntoPayrollApi("settlement-1", "run-1");
+    await payCommissionImmediateApi("settlement-2", "payment-1");
+
+    expect(http.request).toHaveBeenNthCalledWith(
+      1,
+      "post",
+      "/api/v1/commission/settlements/settlement-1/merge-payroll",
+      { data: { payrollRunId: "run-1" } }
+    );
+    expect(http.request).toHaveBeenNthCalledWith(
+      2,
+      "post",
+      "/api/v1/commission/settlements/settlement-2/pay-immediate",
+      { data: { paymentId: "payment-1" } }
     );
   });
 });

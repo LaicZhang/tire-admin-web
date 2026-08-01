@@ -10,6 +10,8 @@ export type CommissionRecordStatus =
   | "SETTLED"
   | "REVERSED";
 
+export type CommissionPayoutMode = "PAYROLL" | "IMMEDIATE";
+
 export interface CommissionRecord {
   id: number;
   uid: string;
@@ -44,16 +46,27 @@ export type CommissionSettlementStatus =
   | "APPROVED"
   | "REVERSED";
 
+export interface CommissionPayoutLink {
+  uid: string;
+  payoutMode: CommissionPayoutMode;
+  payrollRunId?: string | null;
+  payrollLineItemId?: string | null;
+  otherExpenseOrderUid?: string | null;
+  amount: string;
+}
+
 export interface CommissionSettlement {
   id: number;
   uid: string;
   salespersonId: string;
   status: CommissionSettlementStatus;
+  payoutMode: CommissionPayoutMode;
   totalAmount: string;
   remark?: string | null;
   createdAt: string;
   approvedAt?: string | null;
   reversedAt?: string | null;
+  payoutLink?: CommissionPayoutLink | null;
   items: Array<{
     uid: string;
     commissionRecordUid: string;
@@ -75,6 +88,7 @@ export interface CommissionRecordQuery {
 
 export interface CreateCommissionSettlementInput {
   salespersonId: string;
+  payoutMode: CommissionPayoutMode;
   recordUids?: string[];
   periodStart?: string;
   periodEnd?: string;
@@ -152,5 +166,26 @@ export function rejectCommissionSettlementApi(uid: string, reason: string) {
     "post",
     baseUrlApi(`${prefix}settlements/${uid}/reject`),
     { data: { reason } }
+  );
+}
+
+/** COM-C1: merge APPROVED PAYROLL settlement into draft payroll run */
+export function mergeCommissionIntoPayrollApi(
+  uid: string,
+  payrollRunId: string
+) {
+  return http.request<CommonResult<unknown>>(
+    "post",
+    baseUrlApi(`${prefix}settlements/${uid}/merge-payroll`),
+    { data: { payrollRunId } }
+  );
+}
+
+/** COM-C1/S2: IMMEDIATE payout via fund account */
+export function payCommissionImmediateApi(uid: string, paymentId: string) {
+  return http.request<CommonResult<unknown>>(
+    "post",
+    baseUrlApi(`${prefix}settlements/${uid}/pay-immediate`),
+    { data: { paymentId } }
   );
 }

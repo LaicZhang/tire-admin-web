@@ -523,6 +523,51 @@ export default [
         }
       },
       {
+        id: 231,
+        uid: "a7c2e8f1-4b5d-4e9a-9c1f-salary-item01",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "salaryItem",
+        path: "/company/salary-item",
+        redirect: null,
+        component: () => import("@/views/company/salary-item/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "manager", "finance"],
+          title: "工资项目",
+          icon: null
+        }
+      },
+      {
+        id: 232,
+        uid: "b8d3f9a2-5c6e-4f0b-ad2e-social-rate01",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "socialRate",
+        path: "/company/social-rate",
+        redirect: null,
+        component: () => import("@/views/company/social-rate/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "manager", "finance"],
+          title: "五险一金",
+          icon: null
+        }
+      },
+      {
+        id: 233,
+        uid: "c9e4a0b3-6d7f-401c-be3f-payroll-run01",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "payrollRun",
+        path: "/company/payroll-run",
+        redirect: null,
+        component: () => import("@/views/company/payroll-run/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "manager", "finance"],
+          title: "工资表",
+          icon: null
+        }
+      },
+      {
         id: 23,
         uid: "f233ec36-4507-418d-8883-1263325f82df",
         parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
@@ -533,7 +578,7 @@ export default [
         isShow: true,
         meta: {
           roles: ["admin", "boss", "manager", "finance"],
-          title: "工资管理",
+          title: "单笔工资(兼容)",
           icon: null
         }
       },
