@@ -180,6 +180,110 @@ export interface RoleDashboardData {
   sections: RoleDashboardSection[];
 }
 
+export type TraceWorkbenchModule =
+  | "sales"
+  | "purchase"
+  | "inventory"
+  | "finance"
+  | "rollback";
+
+export type TraceWorkbenchSeverity = "info" | "warning" | "danger" | "success";
+
+export type TraceWorkbenchStatus =
+  | "open"
+  | "investigating"
+  | "rollbackRecommended"
+  | "resolved";
+
+export type TraceWorkbenchIncidentType =
+  | "salesAnomaly"
+  | "purchaseAnomaly"
+  | "inventoryAnomaly"
+  | "financeAnomaly"
+  | "rollbackFocus";
+
+export interface TraceWorkbenchSummary {
+  openIncidentCount: number;
+  highRiskCount: number;
+  rollbackRecommendedCount: number;
+  resolvedTodayCount: number;
+}
+
+export interface TraceWorkbenchIncident {
+  incidentId: string;
+  title: string;
+  module: TraceWorkbenchModule;
+  incidentType: TraceWorkbenchIncidentType;
+  severity: TraceWorkbenchSeverity;
+  status: TraceWorkbenchStatus;
+  occurredAt: string;
+  operatorName: string;
+  storeName?: string;
+  repoName?: string;
+  primaryDocumentNo?: string;
+  traceId?: string;
+  summary: string;
+}
+
+export interface TraceWorkbenchDocument {
+  type: string;
+  id: string;
+  no: string;
+  label: string;
+  targetPath?: string;
+}
+
+export interface TraceWorkbenchTimelineItem {
+  time: string;
+  action: string;
+  operatorName: string;
+  result: string;
+  remark?: string;
+}
+
+export interface TraceWorkbenchImpact {
+  inventoryDelta?: string;
+  amountDelta?: string;
+  affectedOrderCount?: number;
+  affectedSkuCount?: number;
+}
+
+export interface TraceWorkbenchActions {
+  canPreviewRollback: boolean;
+  canExecuteRollback: boolean;
+  canOpenLogDetail: boolean;
+}
+
+export interface TraceWorkbenchIncidentDetail {
+  incidentId: string;
+  title: string;
+  module: TraceWorkbenchModule;
+  incidentType: TraceWorkbenchIncidentType;
+  severity: TraceWorkbenchSeverity;
+  status: TraceWorkbenchStatus;
+  occurredAt: string;
+  operatorName: string;
+  traceId?: string;
+  summary: string;
+  reasonHint?: string;
+}
+
+export interface TraceWorkbenchListResponse {
+  summary: TraceWorkbenchSummary;
+  list: TraceWorkbenchIncident[];
+  total: number;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface TraceWorkbenchDetailResponse {
+  incident: TraceWorkbenchIncidentDetail;
+  documents: TraceWorkbenchDocument[];
+  timeline: TraceWorkbenchTimelineItem[];
+  impact: TraceWorkbenchImpact;
+  actions: TraceWorkbenchActions;
+}
+
 /**
  * 获取仪表盘汇总数据
  * GET /api/v1/dashboard/summary
@@ -240,5 +344,40 @@ export async function getRoleOverviewApi(params?: {
     "get",
     baseUrlApi(dashboardPrefix + "role-overview"),
     { params }
+  );
+}
+
+export async function getTraceWorkbenchListApi(
+  page: number,
+  params?: {
+    startDate?: string;
+    endDate?: string;
+    storeId?: string;
+    repoId?: string;
+    module?: string;
+    incidentType?: string;
+    status?: string;
+    keyword?: string;
+    pageSize?: number;
+  }
+) {
+  return await http.request<CommonResult<TraceWorkbenchListResponse>>(
+    "get",
+    baseUrlApi(dashboardPrefix + "trace-workbench"),
+    {
+      params: {
+        page,
+        ...params
+      }
+    }
+  );
+}
+
+export async function getTraceWorkbenchDetailApi(incidentId: string) {
+  return await http.request<CommonResult<TraceWorkbenchDetailResponse>>(
+    "get",
+    baseUrlApi(
+      dashboardPrefix + `trace-workbench/${encodeURIComponent(incidentId)}`
+    )
   );
 }

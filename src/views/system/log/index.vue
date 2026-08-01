@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
-import { ref, reactive, onMounted, h } from "vue";
+import { ref, reactive, onMounted, h, watch } from "vue";
+import { useRoute } from "vue-router";
 import {
   getOperationLogListApi,
   type OperationLogItem
@@ -22,6 +23,7 @@ defineOptions({
   name: "SystemLog"
 });
 
+const route = useRoute();
 const loading = ref(true);
 const dataList = ref<OperationLogItem[]>([]);
 const formRef = ref<{ resetFields: () => void }>();
@@ -39,6 +41,30 @@ const form = reactive({
   success: undefined as boolean | undefined,
   dateRange: [] as string[]
 });
+
+function getQueryString(key: string): string | undefined {
+  const value = route.query[key];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function applyRouteFilters() {
+  form.module = getQueryString("module");
+  form.operator = getQueryString("operator");
+  form.traceId = getQueryString("traceId");
+
+  const success = getQueryString("success");
+  if (success === "true") {
+    form.success = true;
+  } else if (success === "false") {
+    form.success = false;
+  } else {
+    form.success = undefined;
+  }
+
+  const startDate = getQueryString("startDate");
+  const endDate = getQueryString("endDate");
+  form.dateRange = startDate && endDate ? [startDate, endDate] : [];
+}
 
 async function onSearch() {
   loading.value = true;
@@ -195,8 +221,17 @@ function handlePageChange() {
 }
 
 onMounted(() => {
+  applyRouteFilters();
   onSearch();
 });
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteFilters();
+    void onSearch();
+  }
+);
 </script>
 
 <template>
