@@ -31,6 +31,7 @@ export interface SerialNumber {
   targetType?: string;
   targetOrderId?: string;
   batchNo?: string;
+  costPrice?: number | string;
   productionDate?: string;
   expiryDate?: string;
   createdAt: string;
@@ -92,6 +93,7 @@ export function createSerialNumber(data: {
   sourceType?: string;
   sourceOrderId?: string;
   batchNo?: string;
+  costPrice?: number | string;
   productionDate?: string;
   expiryDate?: string;
 }) {
@@ -108,6 +110,7 @@ export function createSerialNumberBatch(data: {
   repoId: string;
   sourceType?: string;
   sourceOrderId?: string;
+  costPrice?: number | string;
 }) {
   return http.request<
     CommonResult<Array<{ serialNo: string; success: boolean; error?: string }>>
