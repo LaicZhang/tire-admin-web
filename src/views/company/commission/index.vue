@@ -4,6 +4,7 @@ import { ElMessageBox } from "element-plus";
 import { message } from "@/utils";
 import { formatMoneyFromFen } from "@/utils/formatMoney";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
+import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 import {
   approveCommissionSettlementApi,
   createCommissionSettlementApi,
@@ -11,9 +12,12 @@ import {
   getCommissionRecordsApi,
   getCommissionSettlementsApi,
   getCommissionSummaryApi,
+  mergeCommissionIntoPayrollApi,
+  payCommissionImmediateApi,
   rejectCommissionSettlementApi,
   reverseCommissionSettlementApi,
   submitCommissionSettlementApi,
+  type CommissionPayoutMode,
   type CommissionRecord,
   type CommissionRecordStatus,
   type CommissionSettlement,
@@ -34,7 +38,25 @@ const filters = reactive<{
   saleOrderId?: string;
   status?: CommissionRecordStatus;
 }>({});
-const settlementForm = reactive({ salespersonId: "", remark: "" });
+const settlementForm = reactive<{
+  salespersonId: string;
+  remark: string;
+  payoutMode: CommissionPayoutMode;
+}>({
+  salespersonId: "",
+  remark: "",
+  payoutMode: "PAYROLL"
+});
+const mergeDialog = reactive({
+  visible: false,
+  uid: "",
+  payrollRunId: ""
+});
+const immediateDialog = reactive({
+  visible: false,
+  uid: "",
+  paymentId: "" as string | undefined
+});
 
 const statusText: Record<string, string> = {
   ESTIMATED: "预计",
@@ -44,6 +66,11 @@ const statusText: Record<string, string> = {
   DRAFT: "草稿",
   PENDING_APPROVAL: "待审核",
   APPROVED: "已审核"
+};
+
+const payoutModeText: Record<CommissionPayoutMode, string> = {
+  PAYROLL: "并入工资表",
+  IMMEDIATE: "立即出账"
 };
 
 function money(value: string | null | undefined) {
@@ -103,8 +130,16 @@ async function createSettlement() {
     message("请输入销售员 UID", { type: "warning" });
     return;
   }
+  if (
+    settlementForm.payoutMode !== "PAYROLL" &&
+    settlementForm.payoutMode !== "IMMEDIATE"
+  ) {
+    message("请选出账方式", { type: "warning" });
+    return;
+  }
   await createCommissionSettlementApi({
     salespersonId,
+    payoutMode: settlementForm.payoutMode,
     remark: settlementForm.remark.trim() || undefined
   });
   message("提成结算草稿已创建", { type: "success" });
@@ -134,7 +169,10 @@ async function submitSettlement(row: unknown) {
 
 async function approveSettlement(row: unknown) {
   const uid = getSettlementUid(row);
-  await ElMessageBox.confirm("审核后提成将正式入账，是否继续？", "审核提成");
+  await ElMessageBox.confirm(
+    "审核后提成将正式入账（PAYROLL 不扣款，IMMEDIATE 需再出账），是否继续？",
+    "审核提成"
+  );
   await approveCommissionSettlementApi(uid);
   message("提成结算已审核入账", { type: "success" });
   await Promise.all([loadSettlements(), loadRecords()]);
@@ -158,6 +196,53 @@ async function rejectSettlement(row: unknown) {
   await rejectCommissionSettlementApi(uid, result.value.trim());
   message("已拒审并退回草稿", { type: "success" });
   await loadSettlements();
+}
+
+function openMerge(row: CommissionSettlement) {
+  mergeDialog.uid = row.uid;
+  mergeDialog.payrollRunId = "";
+  mergeDialog.visible = true;
+}
+
+async function confirmMerge() {
+  const runId = mergeDialog.payrollRunId.trim();
+  if (!runId) {
+    message("请输入目标工资表 Run UID", { type: "warning" });
+    return;
+  }
+  await mergeCommissionIntoPayrollApi(mergeDialog.uid, runId);
+  message("已并入工资表", { type: "success" });
+  mergeDialog.visible = false;
+  await loadSettlements();
+}
+
+function openImmediate(row: CommissionSettlement) {
+  immediateDialog.uid = row.uid;
+  immediateDialog.paymentId = undefined;
+  immediateDialog.visible = true;
+}
+
+async function confirmImmediate() {
+  if (!immediateDialog.paymentId) {
+    message("请选择资金账户", { type: "warning" });
+    return;
+  }
+  await payCommissionImmediateApi(
+    immediateDialog.uid,
+    immediateDialog.paymentId
+  );
+  message("立即出账完成", { type: "success" });
+  immediateDialog.visible = false;
+  await loadSettlements();
+}
+
+function payoutLinkLabel(row: CommissionSettlement) {
+  const link = row.payoutLink;
+  if (!link) return "—";
+  if (link.payrollRunId) return `工资表 ${link.payrollRunId.slice(0, 8)}…`;
+  if (link.otherExpenseOrderUid)
+    return `支出单 ${link.otherExpenseOrderUid.slice(0, 8)}…`;
+  return "已关联";
 }
 
 function onTabChange(name: string | number) {
@@ -218,21 +303,23 @@ onMounted(() => {
               min-width="220"
             />
             <el-table-column label="记录数" width="100">
-              <template #default="{ row }">{{ row._count._all }}</template>
+              <template #default="{ row }">{{
+                row._count?._all ?? 0
+              }}</template>
             </el-table-column>
-            <el-table-column label="预计提成" width="140">
+            <el-table-column label="预计合计" width="140">
               <template #default="{ row }"
-                >¥{{ money(row._sum.estimatedAmount) }}</template
+                >¥{{ money(row._sum?.estimatedAmount) }}</template
               >
             </el-table-column>
-            <el-table-column label="可结算" width="140">
+            <el-table-column label="可结算合计" width="140">
               <template #default="{ row }"
-                >¥{{ money(row._sum.availableAmount) }}</template
+                >¥{{ money(row._sum?.availableAmount) }}</template
               >
             </el-table-column>
-            <el-table-column label="已结算" width="140">
+            <el-table-column label="已结算合计" width="140">
               <template #default="{ row }"
-                >¥{{ money(row._sum.settledAmount) }}</template
+                >¥{{ money(row._sum?.settledAmount) }}</template
               >
             </el-table-column>
           </el-table>
@@ -242,7 +329,7 @@ onMounted(() => {
           <el-table v-loading="loading" :data="records" border>
             <el-table-column
               prop="createdAt"
-              label="计提时间"
+              label="创建时间"
               min-width="180"
             />
             <el-table-column
@@ -300,6 +387,12 @@ onMounted(() => {
                 class="w-[320px]"
               />
             </el-form-item>
+            <el-form-item label="出账方式">
+              <el-radio-group v-model="settlementForm.payoutMode">
+                <el-radio-button value="PAYROLL">并入工资表</el-radio-button>
+                <el-radio-button value="IMMEDIATE">立即出账</el-radio-button>
+              </el-radio-group>
+            </el-form-item>
             <el-form-item label="备注">
               <el-input v-model="settlementForm.remark" class="w-[260px]" />
             </el-form-item>
@@ -325,6 +418,12 @@ onMounted(() => {
               label="销售员 UID"
               min-width="220"
             />
+            <el-table-column label="出账方式" width="120">
+              <template #default="{ row }">{{
+                payoutModeText[row.payoutMode as CommissionPayoutMode] ||
+                row.payoutMode
+              }}</template>
+            </el-table-column>
             <el-table-column label="结算金额" width="140">
               <template #default="{ row }"
                 >¥{{ money(row.totalAmount) }}</template
@@ -335,8 +434,11 @@ onMounted(() => {
                 statusText[row.status] || row.status
               }}</template>
             </el-table-column>
-            <el-table-column prop="remark" label="备注" min-width="180" />
-            <el-table-column label="操作" width="260" fixed="right">
+            <el-table-column label="出账关联" min-width="180">
+              <template #default="{ row }">{{ payoutLinkLabel(row) }}</template>
+            </el-table-column>
+            <el-table-column prop="remark" label="备注" min-width="160" />
+            <el-table-column label="操作" width="360" fixed="right">
               <template #default="{ row }">
                 <Auth value="post/commission/settlements/:uid/submit">
                   <el-button
@@ -368,6 +470,34 @@ onMounted(() => {
                     拒审
                   </el-button>
                 </Auth>
+                <Auth value="post/commission/settlements/:uid/merge-payroll">
+                  <el-button
+                    v-if="
+                      row.status === 'APPROVED' &&
+                      row.payoutMode === 'PAYROLL' &&
+                      !row.payoutLink
+                    "
+                    link
+                    type="primary"
+                    @click="openMerge(row)"
+                  >
+                    并入工资表
+                  </el-button>
+                </Auth>
+                <Auth value="post/commission/settlements/:uid/pay-immediate">
+                  <el-button
+                    v-if="
+                      row.status === 'APPROVED' &&
+                      row.payoutMode === 'IMMEDIATE' &&
+                      !row.payoutLink
+                    "
+                    link
+                    type="success"
+                    @click="openImmediate(row)"
+                  >
+                    立即出账
+                  </el-button>
+                </Auth>
                 <Auth value="post/commission/settlements/:uid/reverse">
                   <el-button
                     v-if="row.status === 'APPROVED'"
@@ -391,5 +521,32 @@ onMounted(() => {
         </el-card>
       </el-tab-pane>
     </el-tabs>
+
+    <el-dialog v-model="mergeDialog.visible" title="并入工资表" width="480px">
+      <el-form label-width="120px">
+        <el-form-item label="工资表 Run UID">
+          <el-input
+            v-model="mergeDialog.payrollRunId"
+            placeholder="DRAFT 工资表 uid"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="mergeDialog.visible = false">取消</el-button>
+        <el-button type="primary" @click="confirmMerge">确认并入</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="immediateDialog.visible" title="立即出账" width="480px">
+      <el-form label-width="100px">
+        <el-form-item label="资金账户">
+          <PaymentSelect v-model="immediateDialog.paymentId" class="w-full" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="immediateDialog.visible = false">取消</el-button>
+        <el-button type="primary" @click="confirmImmediate">确认出账</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
