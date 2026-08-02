@@ -175,4 +175,17 @@ describe("auth-bootstrap.service", () => {
       })
     );
   });
+
+  it("does not logout when switchCompany fails", async () => {
+    mocks.determineCurrentCompany.mockRejectedValue(new Error("not a member"));
+
+    await expect(switchCompany("company-x")).rejects.toThrow("not a member");
+
+    expect(mocks.message).toHaveBeenCalledWith(
+      "not a member",
+      expect.objectContaining({ type: "error" })
+    );
+    expect(mocks.logOut).not.toHaveBeenCalled();
+    expect(mocks.initRouter).not.toHaveBeenCalled();
+  });
 });
