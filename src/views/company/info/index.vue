@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
+import { ElMessageBox } from "element-plus";
 import { getCompanyInfoApi } from "@/api";
-import { message } from "@/utils/message";
+import {
+  deleteCompanyApi,
+  getCompanyClosePrecheckApi
+} from "@/api/company";
+import { message, handleApiError } from "@/utils";
 import { formatDateTime } from "@/utils";
 import { openDialog } from "./table";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -13,13 +18,18 @@ import Location from "~icons/ep/location";
 import Calendar from "~icons/ep/calendar";
 import EditPen from "~icons/ep/edit-pen";
 import type { CompanyInfo } from "@/api/type";
+import { useUserStoreHook } from "@/store/modules/user";
+import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 
 defineOptions({
   name: "companyInfo"
 });
 
 const loading = ref(false);
+const closing = ref(false);
 const companyInfo = ref<Partial<CompanyInfo>>({});
+const userStore = useUserStoreHook();
+const companyStore = useCurrentCompanyStoreHook();
 
 const companyStatusMap = {
   1: { label: "正常运营", type: "success" },
@@ -29,6 +39,15 @@ const companyStatusMap = {
 const companyStatus = computed(() =>
   companyInfo.value?.status === true ? 1 : 0
 );
+
+/** CLO-X-001: Boss of current company may self-close */
+const canSelfClose = computed(() => {
+  const bossId = companyInfo.value?.bossId;
+  const uid = companyInfo.value?.uid;
+  const userId = userStore.uid;
+  if (!bossId || !uid || !userId) return false;
+  return bossId === userId && uid === companyStore.companyId;
+});
 
 const getCompanyInfo = async () => {
   loading.value = true;
@@ -46,6 +65,105 @@ const getCompanyInfo = async () => {
 
 const handleEdit = () => {
   openDialog("更新", companyInfo.value, getCompanyInfo);
+};
+
+const handleCloseCurrentCompany = async () => {
+  const uid = companyInfo.value?.uid || companyStore.companyId;
+  if (!uid) {
+    message("无法识别当前公司", { type: "warning" });
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      "关闭本公司将软删除公司壳，并默认对在职员工执行批量离职（可取消该选项）、冻结排班与支付账户。恢复仅还原壳与 Info/Card，不会自动复职。此操作后将退出登录。",
+      "关闭本公司",
+      {
+        type: "warning",
+        confirmButtonText: "继续",
+        cancelButtonText: "取消",
+        confirmButtonClass: "el-button--danger"
+      }
+    );
+  } catch {
+    return;
+  }
+
+  closing.value = true;
+  try {
+    const { data: precheck } = await getCompanyClosePrecheckApi(uid);
+    let force = false;
+    let reason: string | undefined;
+    let massLayoff = false;
+
+    if (precheck && !precheck.canCloseWithoutForce) {
+      const blockers = (precheck.blockers ?? []).join("；") || "存在阻断项";
+      const { value } = await ElMessageBox.prompt(
+        `关停前置检查未通过：${blockers}。强制关停须填写原因（默认会批量离职在职员工）：`,
+        "强制关闭本公司",
+        {
+          confirmButtonText: "强制关闭",
+          cancelButtonText: "取消",
+          inputPattern: /\S+/,
+          inputErrorMessage: "强制关停必须填写原因",
+          type: "warning"
+        }
+      );
+      force = true;
+      reason = String(value ?? "").trim();
+      massLayoff = true;
+      if (!reason) {
+        message("已取消关停", { type: "info" });
+        return;
+      }
+    } else {
+      try {
+        await ElMessageBox.confirm(
+          "干净关闭：默认不自动裁员。是否仍对在职员工执行批量离职？",
+          "批量离职选项",
+          {
+            distinguishCancelAndClose: true,
+            confirmButtonText: "批量离职后关闭",
+            cancelButtonText: "仅关公司不裁员",
+            type: "warning"
+          }
+        );
+        massLayoff = true;
+      } catch (e) {
+        if (e === "cancel") {
+          massLayoff = false;
+        } else {
+          return;
+        }
+      }
+    }
+
+    await deleteCompanyApi(uid, {
+      force: force || undefined,
+      reason,
+      massLayoff
+    });
+    message("本公司已关闭，正在退出…", { type: "success" });
+    companyStore.clearCurrentCompany();
+    try {
+      await userStore.logout();
+    } catch {
+      // logout always clears local state in finally/logOut and routes to login
+    }
+  } catch (e) {
+    if (
+      e === "cancel" ||
+      e === "close" ||
+      (typeof e === "object" &&
+        e !== null &&
+        "message" in e &&
+        String((e as { message?: unknown }).message ?? "").includes("cancel"))
+    ) {
+      return;
+    }
+    handleApiError(e, "关闭本公司失败");
+  } finally {
+    closing.value = false;
+  }
 };
 
 onMounted(async () => {
@@ -82,6 +200,16 @@ onMounted(async () => {
             @click="handleEdit"
           >
             更新信息
+          </el-button>
+          <el-button
+            v-if="canSelfClose"
+            type="danger"
+            plain
+            class="mt-2"
+            :loading="closing"
+            @click="handleCloseCurrentCompany"
+          >
+            关闭本公司
           </el-button>
         </div>
       </div>

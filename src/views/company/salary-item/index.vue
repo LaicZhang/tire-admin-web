@@ -17,8 +17,8 @@ const rows = ref<SalaryItemDefinition[]>([]);
 const form = reactive({
   code: "",
   name: "",
-  category: "EARNING" as const,
-  calcKind: "INPUT" as const,
+  category: "EARNING" as "EARNING" | "DEDUCTION" | "EMPLOYER_COST",
+  calcKind: "INPUT" as "INPUT" | "FORMULA",
   formula: "",
   sort: 100
 });
@@ -104,9 +104,13 @@ onMounted(load);
         <el-form-item v-if="form.calcKind === 'FORMULA'" label="公式">
           <el-input
             v-model="form.formula"
-            class="w-[220px]"
-            placeholder="BASE+PERF"
+            class="w-[320px]"
+            placeholder="BASE+PERF 或 IF(BASE>=10000,BASE*2,BASE)"
           />
+          <div class="text-xs text-gray-500 mt-1 w-full">
+            支持 + - * 与有界 IF(条件,真,假)；条件为比较（&gt; &gt;= &lt; &lt;= ==
+            !=）；嵌套深度≤3；不支持除法/AND/OR/字符串。
+          </div>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="createItem">创建</el-button>

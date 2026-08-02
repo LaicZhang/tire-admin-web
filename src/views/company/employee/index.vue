@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { columns } from "./columns";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -17,6 +17,10 @@ import {
   restoreEmployeeApi,
   type Employee
 } from "@/api/company/employee";
+import {
+  getOffboardAuditListApi,
+  type OffboardAuditEvent
+} from "@/api/company/offboard-audit";
 import { message, handleApiError } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables";
@@ -37,6 +41,23 @@ const form = ref({
   phone: undefined,
   email: undefined
 });
+
+const recentOffboard = ref<OffboardAuditEvent[]>([]);
+const offboardLoading = ref(false);
+
+async function loadRecentOffboard() {
+  offboardLoading.value = true;
+  try {
+    const res = await getOffboardAuditListApi({ page: 1, pageSize: 8 });
+    recentOffboard.value = res.data?.list ?? [];
+  } catch {
+    // finance/admin only; ignore for users without permission
+    recentOffboard.value = [];
+  } finally {
+    offboardLoading.value = false;
+  }
+}
+
 
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   Employee,
@@ -94,7 +115,7 @@ async function handleLayoff(row: Employee) {
     let handoffUserId: string | undefined;
     try {
       const { value: handoff } = await ElMessageBox.prompt(
-        "可选：填写交接接收人 UID（本公司在职员工；仅客户与未审核销售单）",
+        "可选：填写交接接收人 UID（本公司在职）。将迁移：客户/供应商、未审销售/采购/退货单、非终态合同；部门管理者仅断开，不自动挂接。不迁移已审历史、审核人、资金与工资历史。",
         "业务交接（可选）",
         {
           confirmButtonText: "继续",
@@ -116,6 +137,7 @@ async function handleLayoff(row: Employee) {
     });
     message(`已将${row.name}标记为离职`, { type: "success" });
     fetchData();
+    void loadRecentOffboard();
   } catch (e) {
     if (e === "cancel" || e === "close") return;
     handleApiError(e, "员工离职操作失败");
@@ -171,10 +193,34 @@ const employeeStatus = computed(
       cn: string;
     }>
 );
+
+onMounted(() => {
+  void loadRecentOffboard();
+});
 </script>
 
 <template>
   <div class="main">
+    <el-card
+      v-if="recentOffboard.length"
+      v-loading="offboardLoading"
+      class="m-1 mb-2"
+      shadow="never"
+    >
+      <template #header>
+        <div class="flex justify-between items-center">
+          <span>最近离岗/关停审计（只读）</span>
+          <el-button link type="primary" @click="loadRecentOffboard">刷新</el-button>
+        </div>
+      </template>
+      <el-table :data="recentOffboard" size="small" max-height="220">
+        <el-table-column prop="action" label="动作" width="130" />
+        <el-table-column prop="targetEmployeeId" label="对象" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="reason" label="原因" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="operatorId" label="操作人" min-width="120" show-overflow-tooltip />
+        <el-table-column prop="createAt" label="时间" min-width="160" />
+      </el-table>
+    </el-card>
     <ReSearchForm
       ref="formRef"
       class="m-1"

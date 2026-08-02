@@ -74,6 +74,8 @@ export async function getCompanyClosePrecheckApi(uid: string) {
 export type CloseCompanyBody = {
   force?: boolean;
   reason?: string;
+  /** CLO-C-008: defaults true when force, false on clean close */
+  massLayoff?: boolean;
 };
 
 export async function deleteCompanyApi(uid: string, body?: CloseCompanyBody) {

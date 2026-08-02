@@ -162,10 +162,18 @@ const handleDelete = async (row: FormItemProps) => {
       }
     }
 
-    await deleteCompanyApi(row.uid, force ? { force, reason } : undefined);
-    message(force ? "强制关停成功（可恢复）" : "删除成功（可恢复）", {
-      type: "success"
-    });
+    await deleteCompanyApi(
+      row.uid,
+      force
+        ? { force, reason, massLayoff: true }
+        : { massLayoff: false }
+    );
+    message(
+      force
+        ? "强制关停成功（可恢复壳；默认已批量离职在职员工）"
+        : "删除成功（可恢复壳；干净关闭不自动裁员）",
+      { type: "success" }
+    );
     onSearch();
   } catch (e) {
     // user cancel on prompt
@@ -189,7 +197,9 @@ const handleRestore = async (row: FormItemProps) => {
   if (!row.uid) return;
   try {
     await restoreCompanyApi(row.uid);
-    message("恢复成功", { type: "success" });
+    message("恢复成功（仅公司壳与 Info/Card；不自动复职/恢复排班与账户）", {
+      type: "success"
+    });
     onSearch();
   } catch (e) {
     handleApiError(e, "恢复公司失败");
