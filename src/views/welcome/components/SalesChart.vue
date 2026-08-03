@@ -14,8 +14,8 @@ const loading = ref(false);
 const chartRef = ref<HTMLElement | null>(null);
 let chartInstance: EChartsType | null = null;
 
-// 当前选择的天数 (7 或 30)
-const selectedDays = ref(7);
+// 当前选择的天数 (7 / 30 / 90)
+const selectedDays = ref(30);
 
 // 数据
 const dailySummary = ref<DailySummaryItem[]>([]);
@@ -229,6 +229,13 @@ defineExpose({ refresh: loadData });
             @click="switchDays(30)"
           >
             近30天
+          </el-button>
+          <el-button
+            :type="selectedDays === 90 ? 'primary' : 'default'"
+            size="small"
+            @click="switchDays(90)"
+          >
+            近90天
           </el-button>
         </el-button-group>
       </div>

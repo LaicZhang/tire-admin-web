@@ -89,7 +89,9 @@ describe("Analysis dashboard role overview", () => {
           ElDatePicker: true,
           ElSelect: true,
           ElOption: true,
-          RoleDashboardContent
+          RoleDashboardContent,
+          CockpitDecisionCards: true,
+          AnalysisDateToolbar: true
         }
       }
     });

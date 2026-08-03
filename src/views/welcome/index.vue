@@ -24,6 +24,8 @@ import {
   getRoleHomeShortcuts,
   type HomeShortcut
 } from "./homeShortcuts";
+import SalesChart from "./components/SalesChart.vue";
+import AlertCards from "./components/AlertCards.vue";
 
 defineOptions({
   name: "Welcome"
@@ -201,6 +203,11 @@ function onRefreshWorkbench() {
           </div>
         </div>
       </div>
+    </section>
+
+    <section class="decision-section">
+      <SalesChart />
+      <AlertCards />
     </section>
 
     <section class="workbench-grid">
@@ -384,6 +391,12 @@ function onRefreshWorkbench() {
   max-width: 1480px;
   padding: 12px 8px 28px;
   margin: 0 auto;
+}
+
+.decision-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .hero-panel {

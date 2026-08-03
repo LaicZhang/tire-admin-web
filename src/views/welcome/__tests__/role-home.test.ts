@@ -172,6 +172,8 @@ describe("Welcome role home", () => {
     const wrapper = mount(Welcome, {
       global: {
         stubs: {
+          SalesChart: true,
+          AlertCards: true,
           ElCard,
           ElButton,
           ElTag,
@@ -199,4 +201,31 @@ describe("Welcome role home", () => {
     await wrapper.find(".todo-item").trigger("click");
     expect(push).toHaveBeenCalledWith("/analysis/sales");
   });
+
+  it("mounts welcome decision chart section", async () => {
+    const wrapper = mount(Welcome, {
+      global: {
+        stubs: {
+          SalesChart: defineComponent({
+            name: "SalesChart",
+            template: "<div class='sales-chart-stub'>SalesChart</div>"
+          }),
+          AlertCards: defineComponent({
+            name: "AlertCards",
+            template: "<div class='alert-cards-stub'>AlertCards</div>"
+          }),
+          ElCard,
+          ElButton,
+          ElTag,
+          ElEmpty,
+          IconifyIconOffline: true
+        }
+      }
+    });
+    await flushPromises();
+    expect(wrapper.find(".decision-section").exists()).toBe(true);
+    expect(wrapper.find(".sales-chart-stub").exists()).toBe(true);
+    expect(wrapper.find(".alert-cards-stub").exists()).toBe(true);
+  });
+
 });

@@ -21,6 +21,7 @@ import {
   type AnalysisFilterState,
   type AnalysisGroupBy
 } from "../shared";
+import CockpitDecisionCards from "../components/CockpitDecisionCards.vue";
 import RoleDashboardContent from "../components/RoleDashboardContent.vue";
 
 defineOptions({
@@ -181,6 +182,10 @@ onMounted(async () => {
       </div>
     </el-card>
 
+    <CockpitDecisionCards
+      :start-date="filterParams.startDate"
+      :end-date="filterParams.endDate"
+    />
     <RoleDashboardContent :data="dashboardData" :loading="loading" />
   </div>
 </template>
