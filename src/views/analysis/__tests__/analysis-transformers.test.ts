@@ -91,3 +91,123 @@ describe("analysis transformers", () => {
     ]);
   });
 });
+
+import {
+  formatYuanAmount,
+  mapCashFlowSegments,
+  mapFundReportBalanceTrend,
+  mapIncomeExpenseSummaryCards,
+  mapProfitStatementCards,
+  mapProfitWaterfall
+} from "../transformers";
+
+describe("finance/profit W120 mappers", () => {
+  it("formats BE yuan strings without dividing by 100", () => {
+    expect(formatYuanAmount("12345.67")).toBe(
+      Number(12345.67).toLocaleString("zh-CN", { minimumFractionDigits: 2 })
+    );
+    expect(formatYuanAmount("0")).toBe(
+      Number(0).toLocaleString("zh-CN", { minimumFractionDigits: 2 })
+    );
+  });
+
+  it("maps income-expense summary cards with netIncome", () => {
+    const cards = mapIncomeExpenseSummaryCards(
+      {
+        totalIncome: "100.00",
+        totalExpense: "40.00",
+        netIncome: "60.00",
+        incomeCount: 2,
+        expenseCount: 1,
+        incomeByCategory: [],
+        expenseByCategory: [],
+        incomeByAccount: [],
+        expenseByAccount: []
+      },
+      "88.00"
+    );
+    expect(cards).toEqual({
+      totalIncome: "100.00",
+      totalExpense: "40.00",
+      netIncome: "60.00",
+      currentBalance: "88.00"
+    });
+  });
+
+  it("maps cash-flow three segments", () => {
+    expect(
+      mapCashFlowSegments({
+        operatingCashFlow: "10.00",
+        investingCashFlow: "-2.00",
+        financingCashFlow: "1.50",
+        netCashFlow: "9.50",
+        operatingDetails: [],
+        investingDetails: [],
+        financingDetails: []
+      })
+    ).toEqual([
+      { name: "经营活动", value: 10 },
+      { name: "投资活动", value: -2 },
+      { name: "筹资活动", value: 1.5 }
+    ]);
+  });
+
+  it("maps fund report endBalance as balance trend", () => {
+    expect(
+      mapFundReportBalanceTrend({
+        items: [
+          {
+            period: "2026-07-01",
+            beginBalance: "10.00",
+            income: "5.00",
+            expense: "2.00",
+            endBalance: "13.00"
+          },
+          {
+            period: "2026-07-02",
+            beginBalance: "13.00",
+            income: "0",
+            expense: "1.00",
+            endBalance: "12.00"
+          }
+        ],
+        totalBeginBalance: "10.00",
+        totalIncome: "5.00",
+        totalExpense: "3.00",
+        totalEndBalance: "12.00"
+      })
+    ).toEqual([
+      { period: "2026-07-01", balance: 13 },
+      { period: "2026-07-02", balance: 12 }
+    ]);
+  });
+
+  it("maps profit statement cards and waterfall steps", () => {
+    const statement = {
+      salesRevenue: "100.00",
+      salesCost: "40.00",
+      grossProfit: "60.00",
+      grossProfitRate: 60,
+      operatingExpense: "15.00",
+      otherIncome: "5.00",
+      netProfit: "50.00",
+      salesOrderCount: 3,
+      unknownCostQuantity: 1,
+      startDate: "2026-07-01",
+      endDate: "2026-07-31"
+    };
+    expect(mapProfitStatementCards(statement).grossProfit).toBe("60.00");
+    expect(mapProfitStatementCards(statement).netProfit).toBe("50.00");
+    const steps = mapProfitWaterfall(statement);
+    expect(steps.map(s => s.name)).toEqual([
+      "销售收入",
+      "销售成本",
+      "毛利",
+      "营业费用",
+      "其他收入",
+      "净利润"
+    ]);
+    expect(steps[1].value).toBe(-40);
+    expect(steps[5].value).toBe(50);
+  });
+});

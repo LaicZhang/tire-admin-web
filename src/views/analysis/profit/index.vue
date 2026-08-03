@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
-import { getGrossProfitApi, getNetProfitApi } from "@/api/analysis";
+import { getProfitStatementApi } from "@/api/analysis";
 import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
 import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
+import {
+  formatYuanAmount,
+  mapProfitStatementCards,
+  mapProfitWaterfall,
+  toChartNumber
+} from "../transformers";
 
 defineOptions({
   name: "AnalysisProfit"
@@ -14,8 +20,11 @@ defineOptions({
 
 const loading = ref(false);
 
-// 日期范围筛选
-const dateRange = ref<[Date, Date] | null>(null);
+const dateRange = ref<[Date, Date] | null>([
+  dayjs().subtract(29, "day").toDate(),
+  dayjs().toDate()
+]);
+
 const shortcuts = [
   {
     text: "最近一周",
@@ -46,33 +55,9 @@ const shortcuts = [
   }
 ];
 
-// 利润汇总
-const profitSummary = ref({
-  grossProfit: "0",
-  netProfit: "0",
-  salesRevenue: "0",
-  salesCost: "0",
-  operatingExpense: "0"
-});
+const profitSummary = ref(mapProfitStatementCards(null));
+const waterfall = ref(mapProfitWaterfall(null));
 
-// Chart data interfaces
-interface GrossTrendItem {
-  period: string;
-  revenue?: number | string;
-  cost?: number | string;
-  grossProfit?: number | string;
-}
-
-interface NetTrendItem {
-  period: string;
-  netProfit?: number | string;
-}
-
-// 趋势数据
-const grossTrend = ref<GrossTrendItem[]>([]);
-const netTrend = ref<NetTrendItem[]>([]);
-
-// 图表
 const chartRef = ref<HTMLElement | null>(null);
 let chartInstance: EChartsType | null = null;
 
@@ -84,41 +69,15 @@ const dateParams = computed(() => {
   };
 });
 
-const formatAmount = (val: string | number) => {
-  const num = Number(val) / 100;
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
-
-const getGrossProfit = async () => {
+const getProfitStatement = async () => {
   try {
-    const { data, code } = await getGrossProfitApi({
-      ...dateParams.value,
-      groupBy: "month"
-    });
+    const { data, code } = await getProfitStatementApi(dateParams.value);
     if (code === 200 && data) {
-      profitSummary.value.grossProfit = data.totalGrossProfit || "0";
-      profitSummary.value.salesRevenue = data.totalRevenue || "0";
-      profitSummary.value.salesCost = data.totalCost || "0";
-      grossTrend.value = data.trend || [];
+      profitSummary.value = mapProfitStatementCards(data);
+      waterfall.value = mapProfitWaterfall(data);
     }
   } catch (error) {
-    handleApiError(error, "获取毛利失败");
-  }
-};
-
-const getNetProfit = async () => {
-  try {
-    const { data, code } = await getNetProfitApi({
-      ...dateParams.value,
-      groupBy: "month"
-    });
-    if (code === 200 && data) {
-      profitSummary.value.netProfit = data.totalNetProfit || "0";
-      profitSummary.value.operatingExpense = data.totalExpense || "0";
-      netTrend.value = data.trend || [];
-    }
-  } catch (error) {
-    handleApiError(error, "获取净利润失败");
+    handleApiError(error, "获取利润表失败");
   }
 };
 
@@ -129,50 +88,45 @@ const updateChart = async () => {
     chartInstance = echarts.init(chartRef.value);
   }
   const chart = chartInstance;
+  const steps = waterfall.value;
 
-  // Merge trends (assuming same periods)
-  const periods = grossTrend.value.map((d: GrossTrendItem) => d.period);
-
+  // Simple signed bar waterfall substitute for single-period statement
   chart.setOption({
-    tooltip: { trigger: "axis" },
-    legend: { data: ["销售收入", "销售成本", "毛利润", "净利润"] },
+    tooltip: {
+      trigger: "axis",
+      formatter: (params: Array<{ name: string; value: number }>) => {
+        const item = Array.isArray(params) ? params[0] : params;
+        if (!item) return "";
+        return `${item.name}<br/>¥${formatYuanAmount(item.value)}`;
+      }
+    },
     grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-    xAxis: { type: "category", data: periods },
+    xAxis: {
+      type: "category",
+      data: steps.map(s => s.name)
+    },
     yAxis: {
       type: "value",
       name: "金额(元)",
-      axisLabel: { formatter: (val: number) => (val / 100).toLocaleString() }
+      axisLabel: {
+        formatter: (val: number) => val.toLocaleString()
+      }
     },
     series: [
       {
-        name: "销售收入",
+        name: "利润构成",
         type: "bar",
-        stack: "revenue",
-        data: grossTrend.value.map((d: GrossTrendItem) =>
-          Number(d.revenue || 0)
-        ),
-        itemStyle: { color: "#409EFF" }
-      },
-      {
-        name: "销售成本",
-        type: "bar",
-        stack: "cost",
-        data: grossTrend.value.map((d: GrossTrendItem) => Number(d.cost || 0)),
-        itemStyle: { color: "#E6A23C" }
-      },
-      {
-        name: "毛利润",
-        type: "line",
-        data: grossTrend.value.map((d: GrossTrendItem) =>
-          Number(d.grossProfit || 0)
-        ),
-        itemStyle: { color: "#67C23A" }
-      },
-      {
-        name: "净利润",
-        type: "line",
-        data: netTrend.value.map((d: NetTrendItem) => Number(d.netProfit || 0)),
-        itemStyle: { color: "#F56C6C" }
+        data: steps.map(s => ({
+          value: toChartNumber(s.value),
+          itemStyle: {
+            color:
+              s.kind === "decrease"
+                ? "#F56C6C"
+                : s.kind === "increase"
+                  ? "#67C23A"
+                  : "#409EFF"
+          }
+        }))
       }
     ]
   });
@@ -181,7 +135,7 @@ const updateChart = async () => {
 const loadData = async () => {
   loading.value = true;
   try {
-    await Promise.all([getGrossProfit(), getNetProfit()]);
+    await getProfitStatement();
     nextTick(() => void updateChart());
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载利润数据失败";
@@ -213,7 +167,6 @@ onUnmounted(() => {
 
 <template>
   <div class="main p-4">
-    <!-- 筛选栏 -->
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
         <el-date-picker
@@ -229,37 +182,47 @@ onUnmounted(() => {
       </div>
     </el-card>
 
-    <!-- 汇总卡片 -->
     <el-row :gutter="16" class="mb-4">
-      <el-col :span="5">
+      <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">销售收入</div>
           <div class="text-xl font-bold text-blue-500 mt-2">
-            ¥{{ formatAmount(profitSummary.salesRevenue) }}
+            ¥{{ formatYuanAmount(profitSummary.salesRevenue) }}
           </div>
         </el-card>
       </el-col>
-      <el-col :span="5">
+      <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">销售成本</div>
           <div class="text-xl font-bold text-orange-500 mt-2">
-            ¥{{ formatAmount(profitSummary.salesCost) }}
+            ¥{{ formatYuanAmount(profitSummary.salesCost) }}
           </div>
         </el-card>
       </el-col>
-      <el-col :span="5">
+      <el-col :span="4">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">毛利润</div>
           <div class="text-xl font-bold text-green-500 mt-2">
-            ¥{{ formatAmount(profitSummary.grossProfit) }}
+            ¥{{ formatYuanAmount(profitSummary.grossProfit) }}
+          </div>
+          <div class="text-xs text-gray-400 mt-1">
+            毛利率 {{ profitSummary.grossProfitRate.toFixed(1) }}%
           </div>
         </el-card>
       </el-col>
-      <el-col :span="5">
+      <el-col :span="4">
         <el-card shadow="hover" class="text-center">
-          <div class="text-gray-500 text-sm">运营费用</div>
+          <div class="text-gray-500 text-sm">营业费用</div>
           <div class="text-xl font-bold text-yellow-500 mt-2">
-            ¥{{ formatAmount(profitSummary.operatingExpense) }}
+            ¥{{ formatYuanAmount(profitSummary.operatingExpense) }}
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="text-center">
+          <div class="text-gray-500 text-sm">其他收入</div>
+          <div class="text-xl font-bold text-teal-500 mt-2">
+            ¥{{ formatYuanAmount(profitSummary.otherIncome) }}
           </div>
         </el-card>
       </el-col>
@@ -267,16 +230,21 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">净利润</div>
           <div class="text-xl font-bold text-red-500 mt-2">
-            ¥{{ formatAmount(profitSummary.netProfit) }}
+            ¥{{ formatYuanAmount(profitSummary.netProfit) }}
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 趋势图 -->
     <el-card>
       <template #header>
-        <span class="font-bold">利润趋势</span>
+        <div class="flex items-center justify-between">
+          <span class="font-bold">利润构成（单期瀑布）</span>
+          <span class="text-xs text-gray-400">
+            订单 {{ profitSummary.salesOrderCount }} · 成本未知出库
+            {{ profitSummary.unknownCostQuantity }}
+          </span>
+        </div>
       </template>
       <div ref="chartRef" v-loading="loading" class="h-96" />
     </el-card>

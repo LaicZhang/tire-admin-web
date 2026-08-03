@@ -43,15 +43,72 @@ export interface AgingData {
   }>;
 }
 
-export interface FinanceSummary {
+/** BE IncomeExpenseSummaryDto — amounts already in yuan strings */
+export interface CategoryAmountItem {
+  category: string;
+  amount: string;
+  count: number;
+  percentage: number;
+}
+
+export interface AccountAmountItem {
+  accountId: string;
+  accountName: string;
+  amount: string;
+  count: number;
+}
+
+export interface IncomeExpenseSummary {
   totalIncome: string;
   totalExpense: string;
+  netIncome: string;
+  incomeCount: number;
+  expenseCount: number;
+  incomeByCategory: CategoryAmountItem[];
+  expenseByCategory: CategoryAmountItem[];
+  incomeByAccount: AccountAmountItem[];
+  expenseByAccount: AccountAmountItem[];
+}
+
+/** @deprecated use IncomeExpenseSummary; kept for gradual call-site migration */
+export type FinanceSummary = IncomeExpenseSummary;
+
+/** BE CashFlowReportDto — three activity segments, not a time series */
+export interface CashFlowDetailItem {
+  itemType: string;
+  inflow: string;
+  outflow: string;
+  net: string;
+  count: number;
+}
+
+export interface CashFlowReport {
+  operatingCashFlow: string;
+  investingCashFlow: string;
+  financingCashFlow: string;
   netCashFlow: string;
-  currentBalance: string;
-  trend: Array<{
-    date: string;
-    data: number;
-  }>;
+  operatingDetails: CashFlowDetailItem[];
+  investingDetails: CashFlowDetailItem[];
+  financingDetails: CashFlowDetailItem[];
+}
+
+/** BE FundReportResponseDto — used as balance-trend substitute */
+export interface FundReportItem {
+  period: string;
+  beginBalance: string;
+  income: string;
+  expense: string;
+  endBalance: string;
+  incomeCount?: number;
+  expenseCount?: number;
+}
+
+export interface FundReport {
+  items: FundReportItem[];
+  totalBeginBalance: string;
+  totalIncome: string;
+  totalExpense: string;
+  totalEndBalance: string;
 }
 
 export interface SalesSummary {
@@ -174,6 +231,22 @@ export interface ReturnRateData {
   trend: Array<{ date: string; rate: number }>;
 }
 
+/** BE ProfitStatementDto — single-period statement (no trend series) */
+export interface ProfitStatement {
+  salesRevenue: string;
+  salesCost: string;
+  grossProfit: string;
+  grossProfitRate: number;
+  operatingExpense: string;
+  otherIncome: string;
+  netProfit: string;
+  salesOrderCount: number;
+  unknownCostQuantity: number;
+  startDate: string;
+  endDate: string;
+}
+
+/** @deprecated mapped from ProfitStatement in W120; prefer ProfitStatement */
 export interface ProfitData {
   totalGrossProfit?: string;
   totalRevenue?: string;
@@ -840,66 +913,100 @@ export async function exportReportApi(params?: {
   });
 }
 
-// 利润核算 - 毛利分析
+// 利润核算 - 利润表（毛利+净利同一 BE 契约）
+export async function getProfitStatementApi(params?: {
+  startDate?: string;
+  endDate?: string;
+}) {
+  return await http.request<CommonResult<ProfitStatement>>(
+    "get",
+    baseUrlApi(prefix + "profit/statement"),
+    { params }
+  );
+}
+
+/** @deprecated W120: use getProfitStatementApi — maps to BE profit/statement */
 export async function getGrossProfitApi(params?: {
   startDate?: string;
   endDate?: string;
   groupBy?: "day" | "week" | "month";
 }) {
-  return await http.request<CommonResult<ProfitData>>(
-    "get",
-    baseUrlApi(prefix + "profit/gross"),
-    { params }
-  );
+  void params?.groupBy;
+  return getProfitStatementApi({
+    startDate: params?.startDate,
+    endDate: params?.endDate
+  });
 }
 
-// 利润核算 - 净利润分析
+/** @deprecated W120: use getProfitStatementApi — maps to BE profit/statement */
 export async function getNetProfitApi(params?: {
   startDate?: string;
   endDate?: string;
   groupBy?: "day" | "week" | "month";
 }) {
-  return await http.request<CommonResult<ProfitData>>(
-    "get",
-    baseUrlApi(prefix + "profit/net"),
-    { params }
-  );
+  void params?.groupBy;
+  return getProfitStatementApi({
+    startDate: params?.startDate,
+    endDate: params?.endDate
+  });
 }
 
-// 资金报表 - 收支汇总
+// 资金报表 - 收支汇总（BE: income-expense-summary）
 export async function getIncomeExpenseSummaryApi(params?: {
   startDate?: string;
   endDate?: string;
 }) {
-  return await http.request<CommonResult<FinanceSummary>>(
+  return await http.request<CommonResult<IncomeExpenseSummary>>(
     "get",
-    baseUrlApi(prefix + "finance/summary"),
+    baseUrlApi(prefix + "income-expense-summary"),
     { params }
   );
 }
 
-// 资金报表 - 现金流分析
+// 资金报表 - 现金流（BE: cash-flow，三段活动净额）
 export async function getCashFlowApi(params?: {
   startDate?: string;
   endDate?: string;
   groupBy?: "day" | "week" | "month";
 }) {
-  return await http.request<CommonResult<TrendData>>(
+  void params?.groupBy;
+  return await http.request<CommonResult<CashFlowReport>>(
     "get",
-    baseUrlApi(prefix + "finance/cashflow"),
+    baseUrlApi(prefix + "cash-flow"),
+    {
+      params: {
+        startDate: params?.startDate,
+        endDate: params?.endDate
+      }
+    }
+  );
+}
+
+// 资金报表 - 余额趋势降级为 fund/report 期末折线（BE 无 balance-trend）
+export async function getFundReportApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  reportType?: "daily" | "monthly";
+  accountId?: string;
+}) {
+  return await http.request<CommonResult<FundReport>>(
+    "get",
+    baseUrlApi(prefix + "fund/report"),
     { params }
   );
 }
 
-// 资金报表 - 账户余额趋势
+/** @deprecated W120: use getFundReportApi; balance trend derived from fund/report */
 export async function getBalanceTrendApi(params?: {
   startDate?: string;
   endDate?: string;
   paymentUid?: string;
+  reportType?: "daily" | "monthly";
 }) {
-  return await http.request<CommonResult<TrendData>>(
-    "get",
-    baseUrlApi(prefix + "finance/balance-trend"),
-    { params }
-  );
+  return getFundReportApi({
+    startDate: params?.startDate,
+    endDate: params?.endDate,
+    reportType: params?.reportType ?? "daily",
+    accountId: params?.paymentUid
+  });
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import dayjs from "dayjs";
 import { ref, onMounted } from "vue";
 import {
   getReturnRateApi,
@@ -63,8 +64,8 @@ async function loadReturnRate() {
   try {
     const params: Record<string, unknown> = {};
     if (dateRange.value) {
-      params.startDate = dateRange.value[0].toISOString();
-      params.endDate = dateRange.value[1].toISOString();
+      params.startDate = dayjs(dateRange.value[0]).format("YYYY-MM-DD");
+      params.endDate = dayjs(dateRange.value[1]).format("YYYY-MM-DD");
     }
     const { data, code, msg } = await getReturnRateApi(params);
     if (code === 200) {
@@ -89,8 +90,8 @@ async function loadClaimLoss() {
   try {
     const params: Record<string, unknown> = {};
     if (dateRange.value) {
-      params.startDate = dateRange.value[0].toISOString();
-      params.endDate = dateRange.value[1].toISOString();
+      params.startDate = dayjs(dateRange.value[0]).format("YYYY-MM-DD");
+      params.endDate = dayjs(dateRange.value[1]).format("YYYY-MM-DD");
     }
     const { data, code, msg } = await getClaimLossApi(params);
     if (code === 200) {

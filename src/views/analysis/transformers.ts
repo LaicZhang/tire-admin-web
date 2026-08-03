@@ -1,4 +1,11 @@
-import type { InventoryMovementData, TrackingSummary } from "@/api/analysis";
+import type {
+  CashFlowReport,
+  FundReport,
+  IncomeExpenseSummary,
+  InventoryMovementData,
+  ProfitStatement,
+  TrackingSummary
+} from "@/api/analysis";
 import type { DashboardAlertItem } from "@/api/dashboard";
 
 type DashboardMetricKey =
@@ -112,5 +119,134 @@ export function buildInventoryMovementRows(
       quantity: data.totalEndQty,
       amount: Number(data.totalEndAmount)
     }
+  ];
+}
+
+
+/** BE money strings are already yuan (e.g. "123.45"). */
+export function formatYuanAmount(val: string | number | null | undefined): string {
+  const num = Number(val ?? 0);
+  if (Number.isNaN(num)) return "0.00";
+  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
+}
+
+export function toChartNumber(val: string | number | null | undefined): number {
+  const num = Number(val ?? 0);
+  return Number.isNaN(num) ? 0 : num;
+}
+
+export interface FinanceSummaryCards {
+  totalIncome: string;
+  totalExpense: string;
+  netIncome: string;
+  /** From fund/report totalEndBalance when available */
+  currentBalance: string;
+}
+
+export function mapIncomeExpenseSummaryCards(
+  data: IncomeExpenseSummary | null | undefined,
+  currentBalance = "0"
+): FinanceSummaryCards {
+  return {
+    totalIncome: data?.totalIncome ?? "0",
+    totalExpense: data?.totalExpense ?? "0",
+    netIncome: data?.netIncome ?? "0",
+    currentBalance
+  };
+}
+
+export interface CashFlowSegmentBar {
+  name: string;
+  value: number;
+}
+
+/** Map CashFlowReportDto to three-segment bar (B9). */
+export function mapCashFlowSegments(
+  data: CashFlowReport | null | undefined
+): CashFlowSegmentBar[] {
+  return [
+    {
+      name: "经营活动",
+      value: toChartNumber(data?.operatingCashFlow)
+    },
+    {
+      name: "投资活动",
+      value: toChartNumber(data?.investingCashFlow)
+    },
+    {
+      name: "筹资活动",
+      value: toChartNumber(data?.financingCashFlow)
+    }
+  ];
+}
+
+export interface BalanceTrendPoint {
+  period: string;
+  balance: number;
+}
+
+/** Derive balance trend from fund/report endBalance (B10). */
+export function mapFundReportBalanceTrend(
+  data: FundReport | null | undefined
+): BalanceTrendPoint[] {
+  return (data?.items ?? []).map(item => ({
+    period: item.period,
+    balance: toChartNumber(item.endBalance)
+  }));
+}
+
+export interface ProfitSummaryCards {
+  salesRevenue: string;
+  salesCost: string;
+  grossProfit: string;
+  operatingExpense: string;
+  otherIncome: string;
+  netProfit: string;
+  grossProfitRate: number;
+  salesOrderCount: number;
+  unknownCostQuantity: number;
+}
+
+export function mapProfitStatementCards(
+  data: ProfitStatement | null | undefined
+): ProfitSummaryCards {
+  return {
+    salesRevenue: data?.salesRevenue ?? "0",
+    salesCost: data?.salesCost ?? "0",
+    grossProfit: data?.grossProfit ?? "0",
+    operatingExpense: data?.operatingExpense ?? "0",
+    otherIncome: data?.otherIncome ?? "0",
+    netProfit: data?.netProfit ?? "0",
+    grossProfitRate: data?.grossProfitRate ?? 0,
+    salesOrderCount: data?.salesOrderCount ?? 0,
+    unknownCostQuantity: data?.unknownCostQuantity ?? 0
+  };
+}
+
+export interface ProfitWaterfallStep {
+  name: string;
+  value: number;
+  /** cumulative helper for waterfall: 'total' | 'increase' | 'decrease' */
+  kind: "total" | "increase" | "decrease";
+}
+
+/** Single-period waterfall (C3/E14) when BE has no period trend. */
+export function mapProfitWaterfall(
+  data: ProfitStatement | null | undefined
+): ProfitWaterfallStep[] {
+  const revenue = toChartNumber(data?.salesRevenue);
+  const cost = toChartNumber(data?.salesCost);
+  const gross = toChartNumber(data?.grossProfit);
+  const expense = toChartNumber(data?.operatingExpense);
+  const other = toChartNumber(data?.otherIncome);
+  const net = toChartNumber(data?.netProfit);
+
+  return [
+    { name: "销售收入", value: revenue, kind: "total" },
+    { name: "销售成本", value: -cost, kind: "decrease" },
+    { name: "毛利", value: gross, kind: "total" },
+    { name: "营业费用", value: -expense, kind: "decrease" },
+    { name: "其他收入", value: other, kind: "increase" },
+    { name: "净利润", value: net, kind: "total" }
   ];
 }

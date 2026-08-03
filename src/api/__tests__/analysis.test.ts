@@ -9,7 +9,14 @@ import {
   getProviderEvaluationApi,
   getPurchaseOrderTrackingApi,
   getPurchaseTrendApi,
-  getSalesOrderTrackingApi
+  getSalesOrderTrackingApi,
+  getIncomeExpenseSummaryApi,
+  getCashFlowApi,
+  getFundReportApi,
+  getBalanceTrendApi,
+  getProfitStatementApi,
+  getGrossProfitApi,
+  getNetProfitApi
 } from "../analysis";
 import { http } from "@/utils/http";
 
@@ -159,6 +166,103 @@ describe("analysis api", () => {
     expect(http.request).toHaveBeenCalledWith(
       "get",
       "/api/v1/analysis/inventory/serial-product-summary/SN%2F003"
+    );
+  });
+
+  it("aligns finance income-expense path to BE", async () => {
+    const params = { startDate: "2026-07-01", endDate: "2026-07-31" };
+    await getIncomeExpenseSummaryApi(params);
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/income-expense-summary",
+      { params }
+    );
+  });
+
+  it("aligns cash-flow path to BE and drops groupBy", async () => {
+    await getCashFlowApi({
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      groupBy: "month"
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/cash-flow",
+      { params: { startDate: "2026-07-01", endDate: "2026-07-31" } }
+    );
+  });
+
+  it("uses fund/report for balance trend substitute", async () => {
+    await getFundReportApi({
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      reportType: "daily"
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/fund/report",
+      {
+        params: {
+          startDate: "2026-07-01",
+          endDate: "2026-07-31",
+          reportType: "daily"
+        }
+      }
+    );
+
+    vi.mocked(http.request).mockClear();
+    await getBalanceTrendApi({
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      paymentUid: "pay-1"
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/fund/report",
+      {
+        params: {
+          startDate: "2026-07-01",
+          endDate: "2026-07-31",
+          reportType: "daily",
+          accountId: "pay-1"
+        }
+      }
+    );
+  });
+
+  it("maps profit gross/net orphans to profit/statement", async () => {
+    await getProfitStatementApi({
+      startDate: "2026-07-01",
+      endDate: "2026-07-31"
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/profit/statement",
+      { params: { startDate: "2026-07-01", endDate: "2026-07-31" } }
+    );
+
+    vi.mocked(http.request).mockClear();
+    await getGrossProfitApi({
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      groupBy: "month"
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/profit/statement",
+      { params: { startDate: "2026-07-01", endDate: "2026-07-31" } }
+    );
+
+    vi.mocked(http.request).mockClear();
+    await getNetProfitApi({
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      groupBy: "week"
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/profit/statement",
+      { params: { startDate: "2026-07-01", endDate: "2026-07-31" } }
     );
   });
 });

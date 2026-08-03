@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import {
   getIncomeExpenseSummaryApi,
   getCashFlowApi,
-  getBalanceTrendApi
+  getFundReportApi
 } from "@/api/analysis";
 import { message, handleApiError } from "@/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -11,6 +11,13 @@ import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
 import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
+import {
+  formatYuanAmount,
+  mapCashFlowSegments,
+  mapFundReportBalanceTrend,
+  mapIncomeExpenseSummaryCards,
+  toChartNumber
+} from "../transformers";
 
 defineOptions({
   name: "AnalysisFinance"
@@ -18,8 +25,11 @@ defineOptions({
 
 const loading = ref(false);
 
-// 日期范围筛选
-const dateRange = ref<[Date, Date] | null>(null);
+const dateRange = ref<[Date, Date] | null>([
+  dayjs().subtract(29, "day").toDate(),
+  dayjs().toDate()
+]);
+
 const shortcuts = [
   {
     text: "最近一周",
@@ -49,34 +59,11 @@ const shortcuts = [
   }
 ];
 
-// 收支汇总
-const summaryData = ref({
-  totalIncome: "0",
-  totalExpense: "0",
-  netCashFlow: "0",
-  currentBalance: "0"
-});
+const summaryData = ref(mapIncomeExpenseSummaryCards(null));
+const cashFlowSegments = ref(mapCashFlowSegments(null));
+const balanceTrend = ref(mapFundReportBalanceTrend(null));
+const netCashFlow = ref("0");
 
-// Chart data interfaces
-interface CashFlowTrendItem {
-  period: string;
-  income?: number | string;
-  expense?: number | string;
-  netFlow?: number | string;
-}
-
-interface BalanceTrendItem {
-  date?: string;
-  period?: string;
-  balance?: number | string;
-}
-
-// 现金流趋势
-const cashFlowTrend = ref<CashFlowTrendItem[]>([]);
-// 账户余额趋势
-const balanceTrend = ref<BalanceTrendItem[]>([]);
-
-// 图表
 const cashFlowChartRef = ref<HTMLElement | null>(null);
 const balanceChartRef = ref<HTMLElement | null>(null);
 let cashFlowChart: EChartsType | null = null;
@@ -90,21 +77,14 @@ const dateParams = computed(() => {
   };
 });
 
-const formatAmount = (val: string | number) => {
-  const num = Number(val) / 100;
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
-
 const getSummary = async () => {
   try {
     const { data, code } = await getIncomeExpenseSummaryApi(dateParams.value);
     if (code === 200 && data) {
-      summaryData.value = {
-        totalIncome: data.totalIncome || "0",
-        totalExpense: data.totalExpense || "0",
-        netCashFlow: data.netCashFlow || "0",
-        currentBalance: data.currentBalance || "0"
-      };
+      summaryData.value = mapIncomeExpenseSummaryCards(
+        data,
+        summaryData.value.currentBalance
+      );
     }
   } catch (error) {
     handleApiError(error, "获取收支汇总失败");
@@ -113,14 +93,10 @@ const getSummary = async () => {
 
 const getCashFlow = async () => {
   try {
-    const { data, code } = await getCashFlowApi({
-      ...dateParams.value,
-      groupBy: "month"
-    });
+    const { data, code } = await getCashFlowApi(dateParams.value);
     if (code === 200 && data) {
-      cashFlowTrend.value = (data.trend ||
-        data.data ||
-        []) as CashFlowTrendItem[];
+      cashFlowSegments.value = mapCashFlowSegments(data);
+      netCashFlow.value = data.netCashFlow || "0";
       nextTick(() => void updateCashFlowChart());
     }
   } catch (error) {
@@ -130,15 +106,25 @@ const getCashFlow = async () => {
 
 const getBalance = async () => {
   try {
-    const { data, code } = await getBalanceTrendApi(dateParams.value);
+    const spanDays =
+      dateRange.value != null
+        ? dayjs(dateRange.value[1]).diff(dayjs(dateRange.value[0]), "day")
+        : 30;
+    const reportType = spanDays > 62 ? "monthly" : "daily";
+    const { data, code } = await getFundReportApi({
+      ...dateParams.value,
+      reportType
+    });
     if (code === 200 && data) {
-      balanceTrend.value = (data.trend ||
-        data.data ||
-        []) as BalanceTrendItem[];
+      balanceTrend.value = mapFundReportBalanceTrend(data);
+      summaryData.value = {
+        ...summaryData.value,
+        currentBalance: data.totalEndBalance || "0"
+      };
       nextTick(() => void updateBalanceChart());
     }
   } catch (error) {
-    handleApiError(error, "获取余额趋势失败");
+    handleApiError(error, "获取资金日报失败");
   }
 };
 
@@ -149,43 +135,38 @@ const updateCashFlowChart = async () => {
     cashFlowChart = echarts.init(cashFlowChartRef.value);
   }
   const chart = cashFlowChart;
-
-  const periods = cashFlowTrend.value.map((d: CashFlowTrendItem) => d.period);
+  const segments = cashFlowSegments.value;
 
   chart.setOption({
-    tooltip: { trigger: "axis" },
-    legend: { data: ["收入", "支出", "净现金流"] },
+    tooltip: {
+      trigger: "axis",
+      formatter: (params: Array<{ name: string; value: number }>) => {
+        const item = Array.isArray(params) ? params[0] : params;
+        if (!item) return "";
+        return `${item.name}<br/>净额：¥${formatYuanAmount(item.value)}`;
+      }
+    },
     grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-    xAxis: { type: "category", data: periods },
+    xAxis: {
+      type: "category",
+      data: segments.map(s => s.name)
+    },
     yAxis: {
       type: "value",
       name: "金额(元)",
-      axisLabel: { formatter: (val: number) => (val / 100).toLocaleString() }
+      axisLabel: {
+        formatter: (val: number) => val.toLocaleString()
+      }
     },
     series: [
       {
-        name: "收入",
-        type: "bar",
-        data: cashFlowTrend.value.map((d: CashFlowTrendItem) =>
-          Number(d.income || 0)
-        ),
-        itemStyle: { color: "#67C23A" }
-      },
-      {
-        name: "支出",
-        type: "bar",
-        data: cashFlowTrend.value.map((d: CashFlowTrendItem) =>
-          Number(d.expense || 0)
-        ),
-        itemStyle: { color: "#F56C6C" }
-      },
-      {
         name: "净现金流",
-        type: "line",
-        data: cashFlowTrend.value.map((d: CashFlowTrendItem) =>
-          Number(d.netFlow || 0)
-        ),
-        itemStyle: { color: "#409EFF" }
+        type: "bar",
+        data: segments.map(s => s.value),
+        itemStyle: {
+          color: (params: { value: number }) =>
+            params.value >= 0 ? "#67C23A" : "#F56C6C"
+        }
       }
     ]
   });
@@ -200,24 +181,31 @@ const updateBalanceChart = async () => {
   const chart = balanceChart;
 
   chart.setOption({
-    tooltip: { trigger: "axis" },
+    tooltip: {
+      trigger: "axis",
+      formatter: (params: Array<{ name: string; value: number }>) => {
+        const item = Array.isArray(params) ? params[0] : params;
+        if (!item) return "";
+        return `${item.name}<br/>期末余额：¥${formatYuanAmount(item.value)}`;
+      }
+    },
     xAxis: {
       type: "category",
-      data: balanceTrend.value.map((d: BalanceTrendItem) => d.date || d.period)
+      data: balanceTrend.value.map(d => d.period)
     },
     yAxis: {
       type: "value",
       name: "余额(元)",
-      axisLabel: { formatter: (val: number) => (val / 100).toLocaleString() }
+      axisLabel: {
+        formatter: (val: number) => val.toLocaleString()
+      }
     },
     series: [
       {
         type: "line",
         smooth: true,
         areaStyle: { opacity: 0.3 },
-        data: balanceTrend.value.map((d: BalanceTrendItem) =>
-          Number(d.balance || 0)
-        ),
+        data: balanceTrend.value.map(d => toChartNumber(d.balance)),
         itemStyle: { color: "#E6A23C" }
       }
     ]
@@ -259,7 +247,6 @@ onUnmounted(() => {
 
 <template>
   <div class="main p-4">
-    <!-- 筛选栏 -->
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
         <el-date-picker
@@ -275,13 +262,12 @@ onUnmounted(() => {
       </div>
     </el-card>
 
-    <!-- 汇总卡片 -->
     <el-row :gutter="16" class="mb-4">
       <el-col :span="6">
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">总收入</div>
           <div class="text-xl font-bold text-green-500 mt-2">
-            ¥{{ formatAmount(summaryData.totalIncome) }}
+            ¥{{ formatYuanAmount(summaryData.totalIncome) }}
           </div>
         </el-card>
       </el-col>
@@ -289,34 +275,36 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">总支出</div>
           <div class="text-xl font-bold text-red-500 mt-2">
-            ¥{{ formatAmount(summaryData.totalExpense) }}
+            ¥{{ formatYuanAmount(summaryData.totalExpense) }}
           </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover" class="text-center">
-          <div class="text-gray-500 text-sm">净现金流</div>
+          <div class="text-gray-500 text-sm">净收入 / 净现金流</div>
           <div class="text-xl font-bold text-blue-500 mt-2">
-            ¥{{ formatAmount(summaryData.netCashFlow) }}
+            ¥{{ formatYuanAmount(summaryData.netIncome) }}
+          </div>
+          <div class="text-xs text-gray-400 mt-1">
+            活动净额 ¥{{ formatYuanAmount(netCashFlow) }}
           </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover" class="text-center">
-          <div class="text-gray-500 text-sm">当前余额</div>
+          <div class="text-gray-500 text-sm">期末余额</div>
           <div class="text-xl font-bold text-orange-500 mt-2">
-            ¥{{ formatAmount(summaryData.currentBalance) }}
+            ¥{{ formatYuanAmount(summaryData.currentBalance) }}
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 图表 -->
     <el-row :gutter="16">
       <el-col :span="12">
         <el-card>
           <template #header>
-            <span class="font-bold">现金流趋势</span>
+            <span class="font-bold">现金流构成（经营/投资/筹资）</span>
           </template>
           <div ref="cashFlowChartRef" v-loading="loading" class="h-80" />
         </el-card>
@@ -324,7 +312,7 @@ onUnmounted(() => {
       <el-col :span="12">
         <el-card>
           <template #header>
-            <span class="font-bold">账户余额趋势</span>
+            <span class="font-bold">资金余额趋势（fund/report）</span>
           </template>
           <div ref="balanceChartRef" v-loading="loading" class="h-80" />
         </el-card>
