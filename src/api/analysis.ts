@@ -1049,16 +1049,108 @@ export async function getSerialProductSummaryApi(serialNo: string) {
   );
 }
 
-// 报表导出
+// 报表导出（经营概览 Excel/PDF）
 export async function exportReportApi(params?: {
   startDate?: string;
   endDate?: string;
-  format?: "excel";
+  format?: "excel" | "pdf";
 }) {
   return await http.request<Blob>("get", baseUrlApi(prefix + "export"), {
     params,
     responseType: "blob"
   });
+}
+
+// ============ 报表订阅 (W127 / W-CH6) ============
+
+export type ReportSubscriptionFrequency = "daily" | "weekly" | "monthly";
+export type ReportSubscriptionReportType =
+  | "sales_summary"
+  | "purchase_summary"
+  | "inventory_summary";
+export type ReportSubscriptionChannel = "email" | "sms";
+
+export interface ReportSubscription {
+  uid: string;
+  name: string;
+  reportType: string;
+  frequency: string;
+  channels: string[];
+  recipients: string[];
+  status: boolean;
+  parameters?: Record<string, unknown> | null;
+  nextRunAt?: string | null;
+  lastRunAt?: string | null;
+  createAt: string;
+}
+
+export interface CreateReportSubscriptionPayload {
+  name: string;
+  reportType: ReportSubscriptionReportType | string;
+  frequency: ReportSubscriptionFrequency;
+  channels: ReportSubscriptionChannel[] | string[];
+  recipients: string[];
+  parameters?: Record<string, unknown>;
+}
+
+export interface UpdateReportSubscriptionPayload {
+  name?: string;
+  reportType?: ReportSubscriptionReportType | string;
+  frequency?: ReportSubscriptionFrequency;
+  channels?: ReportSubscriptionChannel[] | string[];
+  recipients?: string[];
+  parameters?: Record<string, unknown>;
+  status?: boolean;
+}
+
+export interface QueryReportSubscriptionParams {
+  reportType?: string;
+  status?: boolean;
+}
+
+export async function getReportSubscriptionsApi(
+  params?: QueryReportSubscriptionParams
+) {
+  return await http.request<CommonResult<ReportSubscription[]>>(
+    "get",
+    baseUrlApi(prefix + "subscriptions"),
+    { params }
+  );
+}
+
+export async function getReportSubscriptionApi(uid: string) {
+  return await http.request<CommonResult<ReportSubscription>>(
+    "get",
+    baseUrlApi(prefix + `subscriptions/${encodeURIComponent(uid)}`)
+  );
+}
+
+export async function createReportSubscriptionApi(
+  data: CreateReportSubscriptionPayload
+) {
+  return await http.request<CommonResult<ReportSubscription>>(
+    "post",
+    baseUrlApi(prefix + "subscriptions"),
+    { data }
+  );
+}
+
+export async function updateReportSubscriptionApi(
+  uid: string,
+  data: UpdateReportSubscriptionPayload
+) {
+  return await http.request<CommonResult<ReportSubscription>>(
+    "patch",
+    baseUrlApi(prefix + `subscriptions/${encodeURIComponent(uid)}`),
+    { data }
+  );
+}
+
+export async function deleteReportSubscriptionApi(uid: string) {
+  return await http.request<CommonResult<ReportSubscription>>(
+    "delete",
+    baseUrlApi(prefix + `subscriptions/${encodeURIComponent(uid)}`)
+  );
 }
 
 // 利润核算 - 利润表（毛利+净利同一 BE 契约）

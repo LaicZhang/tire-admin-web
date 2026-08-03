@@ -48,4 +48,21 @@ describe("auth routes", () => {
       }
     });
   });
+
+  it("exposes report subscriptions analysis entry", () => {
+    const analysisRoute = authRoutes.find(route => route.name === "analysis");
+    const subscriptionsRoute = analysisRoute?.children?.find(
+      route => route.path === "/analysis/subscriptions"
+    );
+
+    expect(subscriptionsRoute).toMatchObject({
+      name: "reportSubscriptions",
+      isShow: true,
+      meta: {
+        title: "报表订阅与导出",
+        roles: ["admin", "boss", "dataAnalyst"]
+      }
+    });
+  });
+
 });

@@ -1355,6 +1355,21 @@ export default [
           title: "综合分析",
           icon: null
         }
+      },
+      {
+        id: 61,
+        uid: "a1b2c3d4-e5f6-4789-a012-3456789abcde",
+        parentId: "d3637daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "reportSubscriptions",
+        path: "/analysis/subscriptions",
+        redirect: null,
+        component: () => import("@/views/analysis/subscriptions/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss", "dataAnalyst"],
+          title: "报表订阅与导出",
+          icon: null
+        }
       }
     ]
   }
