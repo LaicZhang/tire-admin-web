@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { getSalesOrderListApi } from "@/api/sales";
 import {
@@ -18,6 +18,7 @@ import type {
   ReportQueryParams
 } from "./types";
 import { useColumns } from "./columns";
+import ReportSparkline from "@/components/ReportSparkline/index.vue";
 
 defineOptions({
   name: "SalesReport"
@@ -63,6 +64,13 @@ const statistics = ref<SalesStatistics>({
 
 const customerRanking = ref<CustomerRanking[]>([]);
 const trendData = ref<TrendData[]>([]);
+
+const sparklinePoints = computed(() =>
+  trendData.value.map(item => ({
+    label: item.date,
+    value: Number(item.amount || 0)
+  }))
+);
 
 const groupByOptions = [
   { label: "按日", value: "day" },
@@ -377,6 +385,19 @@ onMounted(async () => {
             <template #prefix>¥</template>
           </el-statistic>
         </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16" class="m-1">
+      <el-col :span="24">
+        <ReportSparkline
+          title="销售金额趋势（E19）"
+          series-name="销售金额"
+          :points="sparklinePoints"
+          :loading="loading"
+          value-prefix="¥"
+          color="#2563eb"
+        />
       </el-col>
     </el-row>
 

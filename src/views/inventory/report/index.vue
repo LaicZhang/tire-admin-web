@@ -270,6 +270,41 @@ const handlePrint = () => {
   }
 };
 
+
+const sparklinePoints = computed(() => {
+  if (currentReportType.value === ReportType.SUMMARY) {
+    return summaryList.value.slice(0, 12).map(item => ({
+      label: item.tireName || "SKU",
+      value: Number(item.closingQuantity || 0)
+    }));
+  }
+  if (currentReportType.value === ReportType.DETAIL) {
+    return detailList.value.slice(0, 12).map(item => ({
+      label: (item.orderDate || item.orderNumber || "-").slice(0, 16),
+      value: Number(item.quantity || 0)
+    }));
+  }
+  return balanceList.value
+    .slice()
+    .sort((a, b) => Number(b.quantity || 0) - Number(a.quantity || 0))
+    .slice(0, 12)
+    .map(item => ({
+      label: item.tireName || "SKU",
+      value: Number(item.quantity || 0)
+    }));
+});
+
+const sparklineTitle = computed(() => {
+  switch (currentReportType.value) {
+    case ReportType.DETAIL:
+      return "库存明细数量小图（E19）";
+    case ReportType.SUMMARY:
+      return "收发汇总小图（E19）";
+    default:
+      return "库存余额 Top 数量（E19）";
+  }
+});
+
 onMounted(() => {
   fetchData();
 });
@@ -341,7 +376,19 @@ onMounted(() => {
 
     <!-- 报表数据 -->
     <el-card>
-      <PureTableBar
+          <div class="m-1 mb-4">
+      <ReportSparkline
+        :title="sparklineTitle"
+        series-name="数量"
+        chart-type="bar"
+        :points="sparklinePoints"
+        :loading="loading"
+        color="#f59e0b"
+        height="200px"
+      />
+    </div>
+
+<PureTableBar
         :title="reportTypeMap[currentReportType]?.label || '库存报表'"
         :columns="currentColumns"
         @refresh="fetchData"

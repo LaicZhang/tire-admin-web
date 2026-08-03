@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import dayjs from "dayjs";
 import { getPurchaseOrderListApi } from "@/api/purchase";
@@ -12,6 +12,7 @@ import type {
   ReportQueryParams
 } from "./types";
 import { useColumns } from "./columns";
+import ReportSparkline from "@/components/ReportSparkline/index.vue";
 
 defineOptions({
   name: "PurchaseReport"
@@ -58,6 +59,13 @@ const statistics = ref<PurchaseStatistics>({
 
 const providerRanking = ref<ProviderRanking[]>([]);
 const trendData = ref<TrendData[]>([]);
+
+const sparklinePoints = computed(() =>
+  trendData.value.map(item => ({
+    label: item.date,
+    value: Number(item.amount || 0)
+  }))
+);
 
 const groupByOptions = [
   { label: "按日", value: "day" },
@@ -419,6 +427,19 @@ onMounted(async () => {
             <template #prefix>¥</template>
           </el-statistic>
         </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16" class="m-1">
+      <el-col :span="24">
+        <ReportSparkline
+          title="采购金额趋势（E19）"
+          series-name="采购金额"
+          :points="sparklinePoints"
+          :loading="loading"
+          value-prefix="¥"
+          color="#0d9488"
+        />
       </el-col>
     </el-row>
 

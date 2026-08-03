@@ -28,6 +28,7 @@ import {
 } from "./columns";
 import dayjs from "dayjs";
 import ReportStatisticsCards from "./components/ReportStatisticsCards.vue";
+import ReportSparkline from "@/components/ReportSparkline/index.vue";
 import FundFlowTab from "./components/FundFlowTab.vue";
 import AccountBalanceTab from "./components/AccountBalanceTab.vue";
 import ContactDebtTab from "./components/ContactDebtTab.vue";
@@ -139,6 +140,61 @@ const statistics = reactive({
   netBalance: 0,
   totalReceivable: 0,
   totalPayable: 0
+});
+
+const sparklinePoints = computed(() => {
+  if (activeTab.value === "balance") {
+    return accountBalanceList.value.slice(0, 12).map(item => ({
+      label: item.paymentName || "账户",
+      value: Number(item.closingBalance || 0) / 100
+    }));
+  }
+  if (activeTab.value === "debt") {
+    return contactDebtList.value
+      .slice()
+      .sort((a, b) => Math.abs(b.netDebt || 0) - Math.abs(a.netDebt || 0))
+      .slice(0, 12)
+      .map(item => ({
+        label: item.targetName || "单位",
+        value: Number(item.netDebt || 0) / 100
+      }));
+  }
+  // flow: daily net from fundFlowList
+  const byDay = new Map<string, number>();
+  for (const item of fundFlowList.value) {
+    const day = String(item.transactionTime || item.createdAt || "").slice(0, 10) || "未知";
+    const signed =
+      (item.direction === "OUT" ? -1 : 1) * (Number(item.amount || 0) / 100);
+    byDay.set(day, (byDay.get(day) || 0) + signed);
+  }
+  return Array.from(byDay.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([label, value]) => ({ label, value }));
+});
+
+const sparklineMeta = computed(() => {
+  if (activeTab.value === "balance") {
+    return {
+      title: "账户期末余额小图（E19）",
+      seriesName: "期末余额(元)",
+      chartType: "bar" as const,
+      color: "#0f766e"
+    };
+  }
+  if (activeTab.value === "debt") {
+    return {
+      title: "往来净欠款 Top（E19）",
+      seriesName: "净欠款(元)",
+      chartType: "bar" as const,
+      color: "#ef4444"
+    };
+  }
+  return {
+    title: "资金流水日净额趋势（E19）",
+    seriesName: "日净额(元)",
+    chartType: "line" as const,
+    color: "#2563eb"
+  };
 });
 
 const queryForm = reactive<FundReportQueryParams>({
@@ -466,6 +522,19 @@ onMounted(() => {
     </ReSearchForm>
 
     <ReportStatisticsCards :active-tab="activeTab" :statistics="statistics" />
+
+    <div class="px-4 mb-4">
+      <ReportSparkline
+        :title="sparklineMeta.title"
+        :series-name="sparklineMeta.seriesName"
+        :chart-type="sparklineMeta.chartType"
+        :color="sparklineMeta.color"
+        :points="sparklinePoints"
+        :loading="loading"
+        value-prefix="¥"
+        height="200px"
+      />
+    </div>
 
     <!-- 标签页 -->
     <el-tabs v-model="activeTab" class="px-4" @tab-change="handleTabChange">
