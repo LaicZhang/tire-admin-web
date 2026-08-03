@@ -9,10 +9,12 @@ import {
   getProviderRankingApi,
   getPurchaseOrderTrackingApi,
   getPurchaseSummaryApi,
+  getPurchaseSummaryByDimensionApi,
   getPurchaseTrendApi,
   type AnalysisMember,
   type ProviderEvaluationData,
-  type PurchaseOrderTrackingData
+  type PurchaseOrderTrackingData,
+  type SalesDimensionGroupBy
 } from "@/api/analysis";
 import { getStoreListApi, type Store } from "@/api/company/store";
 import { getEcharts } from "@/utils/echarts";
@@ -72,6 +74,13 @@ const groupBy = computed({
 const selectedStoreId = ref("");
 const selectedOperatorId = ref("");
 const activeRankingTab = ref("provider");
+const purchaseDim = ref<SalesDimensionGroupBy>("provider");
+const dimensionItems = ref<
+  Array<{ name: string; amount: string; quantity: number; count: number }>
+>([]);
+const dimChartRef = ref<HTMLElement | null>(null);
+let dimChartInstance: EChartsType | null = null;
+
 
 const summaryData = ref({
   totalAmount: "0",
@@ -251,6 +260,68 @@ async function getProviderEvaluation() {
   };
 }
 
+function fenToYuan(val: string | number | null | undefined): number {
+  const n = Number(String(val ?? "0").replace(/,/g, ""));
+  return Number.isFinite(n) ? n / 100 : 0;
+}
+
+async function updateDimChart() {
+  if (!dimChartRef.value) return;
+  if (!dimChartInstance) {
+    const echarts = await getEcharts();
+    dimChartInstance = echarts.init(dimChartRef.value);
+  }
+  const labels = dimensionItems.value.map(i => i.name).reverse();
+  const amounts = dimensionItems.value.map(i => fenToYuan(i.amount)).reverse();
+  dimChartInstance.setOption({
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "shadow" },
+      formatter: (params: unknown) => {
+        const list = Array.isArray(params) ? params : [params];
+        const item = list[0] as { name?: string; value?: number } | undefined;
+        if (!item) return "";
+        return `${item.name}<br/>金额：¥${Number(item.value ?? 0).toLocaleString("zh-CN", { minimumFractionDigits: 2 })}`;
+      }
+    },
+    grid: { left: "3%", right: "8%", bottom: "3%", top: "8%", containLabel: true },
+    xAxis: { type: "value", name: "金额(元)" },
+    yAxis: {
+      type: "category",
+      data: labels,
+      axisLabel: { width: 96, overflow: "truncate" }
+    },
+    series: [
+      {
+        name: "采购金额",
+        type: "bar",
+        data: amounts,
+        itemStyle: { color: "#0d9488" }
+      }
+    ]
+  } as EChartsCoreOption);
+}
+
+async function getDimension() {
+  const { data, code } = await getPurchaseSummaryByDimensionApi({
+    ...dateParams.value,
+    groupBy: purchaseDim.value,
+    limit: 15
+  });
+  if (code !== 200 || !data) {
+    dimensionItems.value = [];
+    await updateDimChart();
+    return;
+  }
+  dimensionItems.value = (data.items ?? []).map(item => ({
+    name: item.name,
+    amount: item.amount,
+    quantity: item.quantity,
+    count: item.count
+  }));
+  await updateDimChart();
+}
+
 async function loadData() {
   loading.value = true;
   try {
@@ -259,7 +330,8 @@ async function loadData() {
       getTrend(),
       getRankings(),
       getTracking(),
-      getProviderEvaluation()
+      getProviderEvaluation(),
+      getDimension()
     ]);
   } catch (error) {
     handleApiError(error, "加载采购分析失败");
@@ -311,6 +383,7 @@ async function clearMemberFilter() {
 
 function handleResize() {
   chartInstance?.resize();
+  dimChartInstance?.resize();
 }
 
 watch(
@@ -335,6 +408,8 @@ onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   chartInstance?.dispose();
   chartInstance = null;
+  dimChartInstance?.dispose();
+  dimChartInstance = null;
 });
 </script>
 
@@ -545,6 +620,25 @@ onUnmounted(() => {
         </el-card>
       </el-col>
     </el-row>
+
+    <el-card class="mb-4">
+      <template #header>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="font-bold">采购维度构成（B5）</span>
+          <el-segmented
+            v-model="purchaseDim"
+            size="small"
+            :options="[
+              { label: '供应商', value: 'provider' },
+              { label: '商品', value: 'tire' },
+              { label: '业务员', value: 'operator' }
+            ]"
+            @change="getDimension"
+          />
+        </div>
+      </template>
+      <div ref="dimChartRef" v-loading="loading" class="h-72" />
+    </el-card>
 
     <el-card v-if="visibleSections.has('evaluation')">
       <template #header>

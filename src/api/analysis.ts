@@ -432,6 +432,85 @@ export interface SerialProductSummaryData {
   }>;
 }
 
+
+/** W123: 区域销售 summary + period×region trend */
+export interface RegionSalesItem {
+  regionId: number;
+  regionName: string;
+  amount: string;
+  count: number;
+  customerCount: number;
+}
+
+export interface RegionAnalysisData {
+  summary: RegionSalesItem[];
+  trend: Array<{
+    period: string;
+    regions: RegionSalesItem[];
+  }>;
+}
+
+/** W123: 省份销售（Customer.province） */
+export interface ProvinceSalesItem {
+  province: string;
+  amount: string;
+  count: number;
+  customerCount: number;
+}
+
+export interface ProvinceAnalysisData {
+  summary: ProvinceSalesItem[];
+}
+
+export type SalesDimensionGroupBy =
+  | "tire"
+  | "provider"
+  | "customer"
+  | "operator";
+
+export interface DimensionSummaryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  amount: string;
+  cost?: string;
+  profit?: string;
+  profitRate?: number;
+  unknownCostQuantity?: number;
+  count: number;
+}
+
+export interface DimensionSummaryData {
+  items: DimensionSummaryItem[];
+  totalQuantity: number;
+  totalAmount: string;
+  totalCost?: string;
+  totalProfit?: string;
+  unknownCostQuantity?: number;
+  total: number;
+}
+
+export interface ProviderQualityItem {
+  providerId: string;
+  providerName: string;
+  totalIssues: number;
+  totalLoss: string;
+  claimOrderCount?: number;
+  avgResponsibilityRatio?: number;
+  topDefectCategories?: Array<{
+    categoryName?: string;
+    name?: string;
+    count: number;
+    lossAmount?: string;
+  }>;
+}
+
+export interface ProviderQualityData {
+  items: ProviderQualityItem[];
+  totalIssues?: number;
+  totalLoss?: string;
+}
+
 // 销售汇总
 export async function getSalesSummaryApi(params?: {
   startDate?: string;
@@ -457,6 +536,75 @@ export async function getSalesTrendApi(params?: {
   return await http.request<CommonResult<TrendData>>(
     "get",
     baseUrlApi(prefix + "sales/trend"),
+    { params }
+  );
+}
+
+// 区域销售分析（B1a/B1b）
+export async function getSalesRegionApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  regionId?: number;
+  groupBy?: "day" | "week" | "month";
+}) {
+  return await http.request<CommonResult<RegionAnalysisData>>(
+    "get",
+    baseUrlApi(prefix + "sales/region"),
+    { params }
+  );
+}
+
+// 省份销售分析（B1c）
+export async function getSalesProvinceApi(params?: {
+  startDate?: string;
+  endDate?: string;
+}) {
+  return await http.request<CommonResult<ProvinceAnalysisData>>(
+    "get",
+    baseUrlApi(prefix + "sales/province"),
+    { params }
+  );
+}
+
+// 销售维度汇总（B2）
+export async function getSalesSummaryByDimensionApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  groupBy?: SalesDimensionGroupBy;
+  limit?: number;
+}) {
+  return await http.request<CommonResult<DimensionSummaryData>>(
+    "get",
+    baseUrlApi(prefix + "sales/summary/dimension"),
+    { params }
+  );
+}
+
+// 采购维度汇总（B5）
+export async function getPurchaseSummaryByDimensionApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  groupBy?: SalesDimensionGroupBy;
+  limit?: number;
+}) {
+  return await http.request<CommonResult<DimensionSummaryData>>(
+    "get",
+    baseUrlApi(prefix + "purchase/summary/dimension"),
+    { params }
+  );
+}
+
+// 供应商质量问题（综合/质检）
+export async function getProviderQualityIssuesApi(params?: {
+  startDate?: string;
+  endDate?: string;
+  providerId?: string;
+  defectCategoryId?: number;
+  responsibilityType?: string;
+}) {
+  return await http.request<CommonResult<ProviderQualityData>>(
+    "get",
+    baseUrlApi(prefix + "provider-quality-issues"),
     { params }
   );
 }

@@ -16,7 +16,12 @@ import {
   getBalanceTrendApi,
   getProfitStatementApi,
   getGrossProfitApi,
-  getNetProfitApi
+  getNetProfitApi,
+  getSalesRegionApi,
+  getSalesProvinceApi,
+  getSalesSummaryByDimensionApi,
+  getPurchaseSummaryByDimensionApi,
+  getProviderQualityIssuesApi
 } from "../analysis";
 import { http } from "@/utils/http";
 
@@ -265,4 +270,76 @@ describe("analysis api", () => {
       { params: { startDate: "2026-07-01", endDate: "2026-07-31" } }
     );
   });
+
+  it("requests sales region analysis", async () => {
+    const params = {
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      groupBy: "week" as const,
+      regionId: 3
+    };
+    await getSalesRegionApi(params);
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/sales/region",
+      { params }
+    );
+  });
+
+  it("requests sales province analysis", async () => {
+    const params = { startDate: "2026-07-01", endDate: "2026-07-31" };
+    await getSalesProvinceApi(params);
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/sales/province",
+      { params }
+    );
+  });
+
+  it("requests sales and purchase dimension summaries", async () => {
+    await getSalesSummaryByDimensionApi({
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      groupBy: "customer",
+      limit: 20
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/sales/summary/dimension",
+      {
+        params: {
+          startDate: "2026-07-01",
+          endDate: "2026-07-31",
+          groupBy: "customer",
+          limit: 20
+        }
+      }
+    );
+
+    vi.mocked(http.request).mockClear();
+    await getPurchaseSummaryByDimensionApi({
+      groupBy: "provider",
+      limit: 10
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/purchase/summary/dimension",
+      { params: { groupBy: "provider", limit: 10 } }
+    );
+  });
+
+  it("requests provider quality issues", async () => {
+    const params = {
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      providerId: "p1"
+    };
+    await getProviderQualityIssuesApi(params);
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/provider-quality-issues",
+      { params }
+    );
+  });
+
 });

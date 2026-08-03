@@ -18,6 +18,7 @@ import { getEcharts } from "@/utils/echarts";
 import { handleApiError } from "@/utils";
 import { useColumns } from "./columns";
 import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
+import SalesHotspotCharts from "../components/SalesHotspotCharts.vue";
 import {
   buildAnalysisFilterQuery,
   createDefaultAnalysisFilterState,
@@ -26,6 +27,7 @@ import {
   toRequiredDateParams,
   type AnalysisGroupBy
 } from "../shared";
+import type { SalesDimensionGroupBy } from "@/api/analysis";
 import { buildTrackingSummaryCards } from "../transformers";
 import { useUserStoreHook } from "@/store/modules/user";
 import {
@@ -69,6 +71,8 @@ const groupBy = computed({
 const selectedStoreId = ref("");
 const selectedOperatorId = ref("");
 const activeRankingTab = ref("customer");
+const dimensionGroupBy = ref<SalesDimensionGroupBy>("tire");
+
 
 const summaryData = ref({
   totalAmount: "0",
@@ -274,19 +278,36 @@ function applyRouteFilters() {
   filterState.value = { ...parsed };
   selectedStoreId.value = parsed.storeId;
   selectedOperatorId.value = parsed.operatorId;
+  const dim = route.query.dim;
+  if (
+    dim === "tire" ||
+    dim === "provider" ||
+    dim === "customer" ||
+    dim === "operator"
+  ) {
+    dimensionGroupBy.value = dim;
+  }
 }
 
 async function syncQuery() {
   await router.replace({
-    query: buildAnalysisFilterQuery({
-      ...filterState.value,
-      storeId: selectedStoreId.value,
-      operatorId: canSelectMember.value ? selectedOperatorId.value : ""
-    })
+    query: {
+      ...buildAnalysisFilterQuery({
+        ...filterState.value,
+        storeId: selectedStoreId.value,
+        operatorId: canSelectMember.value ? selectedOperatorId.value : ""
+      }),
+      dim: dimensionGroupBy.value
+    }
   });
 }
 
 async function handleFilterChange() {
+  await syncQuery();
+}
+
+async function handleDimensionChange(value: SalesDimensionGroupBy) {
+  dimensionGroupBy.value = value;
   await syncQuery();
 }
 
@@ -463,6 +484,15 @@ onUnmounted(() => {
         </el-card>
       </el-col>
     </el-row>
+
+    <SalesHotspotCharts
+      v-if="visibleSections.has('trend')"
+      :start-date="dateParams.startDate"
+      :end-date="dateParams.endDate"
+      :group-by="groupBy"
+      :dimension="dimensionGroupBy"
+      @update:dimension="handleDimensionChange"
+    />
 
     <el-row
       v-if="visibleSections.has('ranking') || visibleSections.has('tracking')"

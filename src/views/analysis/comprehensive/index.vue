@@ -12,7 +12,8 @@ import {
   getClaimLossApi,
   getSlowMovingApi,
   getExpiryDistributionApi,
-  getStockoutApi
+  getStockoutApi,
+  getProviderQualityIssuesApi
 } from "@/api/analysis";
 import { message } from "@/utils/message";
 import { fenToYuan } from "@/utils/formatMoney";
@@ -79,6 +80,19 @@ const expiryData = ref({
 // 缺货数据
 const stockoutData = ref({
   list: [] as { name: string; currentStock: number; minStock: number }[]
+});
+
+const providerQuality = ref({
+  totalIssues: 0,
+  totalLoss: "0",
+  items: [] as Array<{
+    providerId: string;
+    providerName: string;
+    totalIssues: number;
+    totalLoss: string;
+    claimOrderCount: number;
+    avgResponsibilityRatio: number;
+  }>
 });
 
 async function loadReturnRate() {
@@ -195,6 +209,34 @@ async function loadStockout() {
   }
 }
 
+async function loadProviderQuality() {
+  loading.value = true;
+  try {
+    const params = { ...toRequiredDateParams(dateRange.value) };
+    const { data, code, msg } = await getProviderQualityIssuesApi(params);
+    if (code === 200 && data) {
+      providerQuality.value = {
+        totalIssues: data.totalIssues ?? 0,
+        totalLoss: data.totalLoss ?? "0",
+        items: (data.items ?? []).map(item => ({
+          providerId: item.providerId,
+          providerName: item.providerName,
+          totalIssues: item.totalIssues,
+          totalLoss: item.totalLoss,
+          claimOrderCount: item.claimOrderCount ?? 0,
+          avgResponsibilityRatio: item.avgResponsibilityRatio ?? 0
+        }))
+      };
+    } else {
+      message(msg || "加载失败", { type: "error" });
+    }
+  } catch {
+    message("加载供应商质量问题失败", { type: "error" });
+  } finally {
+    loading.value = false;
+  }
+}
+
 function handleTabChange(tab: string | number) {
   switch (String(tab)) {
     case "return-rate":
@@ -211,6 +253,9 @@ function handleTabChange(tab: string | number) {
       break;
     case "stockout":
       loadStockout();
+      break;
+    case "provider-quality":
+      void loadProviderQuality();
       break;
   }
 }
@@ -344,6 +389,43 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- 缺货分析 -->
+      <el-tab-pane label="供应商质量" name="provider-quality">
+        <div v-loading="loading" class="space-y-4">
+          <el-row :gutter="16">
+            <el-col :span="8">
+              <el-statistic title="质量问题数" :value="providerQuality.totalIssues" />
+            </el-col>
+            <el-col :span="8">
+              <el-statistic
+                title="总损失(元)"
+                :value="formatMoney(Number(providerQuality.totalLoss || 0))"
+              />
+            </el-col>
+            <el-col :span="8">
+              <el-statistic
+                title="涉及供应商"
+                :value="providerQuality.items.length"
+              />
+            </el-col>
+          </el-row>
+          <el-table :data="providerQuality.items" stripe max-height="420">
+            <el-table-column prop="providerName" label="供应商" min-width="140" />
+            <el-table-column prop="totalIssues" label="问题数" width="100" />
+            <el-table-column prop="claimOrderCount" label="理赔单" width="100" />
+            <el-table-column label="损失(元)" min-width="120">
+              <template #default="{ row }">
+                {{ formatMoney(Number(row.totalLoss || 0)).toLocaleString() }}
+              </template>
+            </el-table-column>
+            <el-table-column label="平均责任比" width="120">
+              <template #default="{ row }">
+                {{ row.avgResponsibilityRatio }}%
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-tab-pane>
+
       <el-tab-pane label="缺货分析" name="stockout">
         <div v-loading="loading" class="min-h-[300px]">
           <pure-table
