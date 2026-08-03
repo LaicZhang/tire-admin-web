@@ -113,7 +113,7 @@
     "@types/nprogress": "^0.2.3",
     "@types/qs": "^6.15.1",
     "@types/sortablejs": "^1.15.9",
-    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitejs/plugin-vue": "^6.0.8",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
     "@vitest/coverage-v8": "^4.1.9",
     "@vue/compiler-sfc": "^3.5.39",
