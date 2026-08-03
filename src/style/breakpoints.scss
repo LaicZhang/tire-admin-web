@@ -1,0 +1,5 @@
+// Keep in sync with VIEWPORT_BREAKPOINTS in src/utils/viewport.ts
+// (CSS custom properties cannot drive @media queries reliably.)
+$viewport-mobile: 760px;
+$viewport-tablet: 990px;
+$viewport-search-stack: 640px;

@@ -13,7 +13,6 @@ import { Plus, Search, Refresh, Delete, Edit } from "@element-plus/icons-vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import WorkflowForm from "./WorkflowForm.vue";
 import { useCrud } from "@/composables";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
@@ -21,6 +20,7 @@ import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { message } from "@/utils";
 import { fieldRules } from "@/utils/validation/fieldRules";
 import { handleApiError } from "@/utils/error";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "WorkflowIndex"
@@ -83,11 +83,15 @@ const enabledStatusMap = {
 
 const formatAmountRange = (row: WorkflowVO) => {
   const min =
-    row.minAmount === null || row.minAmount === undefined || row.minAmount === ""
+    row.minAmount === null ||
+    row.minAmount === undefined ||
+    row.minAmount === ""
       ? null
       : String(row.minAmount);
   const max =
-    row.maxAmount === null || row.maxAmount === undefined || row.maxAmount === ""
+    row.maxAmount === null ||
+    row.maxAmount === undefined ||
+    row.maxAmount === ""
       ? null
       : String(row.maxAmount);
   if (!min && !max) return "不限";
@@ -119,7 +123,7 @@ const handleAdd = () => {
     },
     width: "640px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
@@ -154,7 +158,7 @@ const handleEdit = (row: WorkflowVO) => {
     },
     width: "640px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

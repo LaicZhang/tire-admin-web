@@ -8,7 +8,6 @@ import { handleApiError, message } from "@/utils";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import {
   getCompanySettingGroupApi,
   patchCompanySettingGroupApi
@@ -22,6 +21,7 @@ import {
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { columns } from "./columns";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "PriceLimit"
@@ -162,7 +162,7 @@ const openDialog = (row: PriceLimit) => {
     title: `编辑限价 - ${row.tireName}`,
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     closeOnClickModal: false,
     contentRenderer: () =>
       h("div", { class: "p-4" }, [

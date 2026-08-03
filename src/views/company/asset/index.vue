@@ -19,11 +19,11 @@ import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
 import { h } from "vue";
-import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import type { AssetItem, AssetFormItem } from "./types";
 import type { AssetQueryDto } from "@/api/asset";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "Asset"
@@ -126,7 +126,7 @@ function openDialog(title = "新增", row?: AssetItem) {
     },
     width: "50%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

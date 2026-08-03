@@ -18,7 +18,6 @@ import {
   validateFile as validateFileUtil,
   FileTypePresets
 } from "@/composables/useFileValidation";
-import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { SupplierBalance, SupplierBalanceForm } from "./types";
 import type {
@@ -40,6 +39,7 @@ import {
 import { exportDataApi, getExportSchemaApi, importDataApi } from "@/api/tools";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { columns } from "./columns";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "SupplierBalance"
@@ -214,7 +214,7 @@ const openDialog = (title = "新增", row?: SupplierBalance) => {
     },
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

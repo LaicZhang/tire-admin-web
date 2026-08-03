@@ -1,4 +1,5 @@
 import { maskBankAccountDisplay } from "@/utils/presentationMask";
+import { hideOnMobile } from "@/utils/viewport";
 
 export const columns: TableColumnList = [
   {
@@ -9,17 +10,20 @@ export const columns: TableColumnList = [
   {
     label: "账户类型",
     prop: "accountType",
-    minWidth: 100
+    minWidth: 100,
+    hide: hideOnMobile
   },
   {
     label: "开户行",
     prop: "bankName",
-    minWidth: 150
+    minWidth: 150,
+    hide: hideOnMobile
   },
   {
     label: "银行账号",
     prop: "bankAccount",
     minWidth: 180,
+    hide: hideOnMobile,
     formatter: ({ bankAccount }) => maskBankAccountDisplay(bankAccount)
   },
   {

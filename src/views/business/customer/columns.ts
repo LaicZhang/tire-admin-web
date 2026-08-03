@@ -1,9 +1,12 @@
 import { formatDate } from "@/utils";
 import { formatMoneyFromFen } from "@/utils/formatMoney";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     label: "ID",
+    hide: hideOnMobile,
     prop: "id"
   },
   {
@@ -21,18 +24,22 @@ export const columns: TableColumnList = [
   },
   {
     label: "等级",
+    hide: hideOnMobile,
     prop: "level"
   },
   {
     label: "总消费",
+    hide: hideOnMobile,
     prop: "totalTransactionAmount"
   },
   {
     label: "限制",
+    hide: hideOnMobile,
     prop: "limit"
   },
   {
     label: "客户来源",
+    hide: hideOnMobile,
     prop: "from"
   },
   {
@@ -44,6 +51,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc"
   },
   {

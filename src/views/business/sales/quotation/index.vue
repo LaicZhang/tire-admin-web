@@ -17,9 +17,9 @@ import {
 } from "@/api/business/sale-quotation";
 import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { ElOption, ElSelect } from "element-plus";
 import SaleQuotationFormDialog from "./components/SaleQuotationFormDialog.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "SalesQuotation"
@@ -166,7 +166,7 @@ const openCreateDialog = () => {
     title: "新增报价单",
     width: "780px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: () =>

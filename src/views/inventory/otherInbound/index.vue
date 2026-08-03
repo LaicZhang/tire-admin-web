@@ -11,7 +11,6 @@ import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { columns } from "./columns";
 import editForm from "./form.vue";
 import {
@@ -33,6 +32,7 @@ import {
 } from "@/api/inventory";
 import { handleApiError, message } from "@/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "InventoryOtherInbound"
@@ -125,7 +125,7 @@ const openDialog = (
     },
     width: "70%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

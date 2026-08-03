@@ -11,13 +11,13 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { handleApiError } from "@/utils";
 import View from "~icons/ep/view";
 import RollbackTraceDialog from "./RollbackTraceDialog.vue";
 import { message } from "@/utils/message";
 import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "SystemLog"
@@ -106,7 +106,7 @@ function viewDetail(row: OperationLogItem) {
     title: "日志详情",
     width: "50%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: true,
     hideFooter: true,
@@ -196,7 +196,7 @@ function openTraceDialog(
     title: initialSection === "execute" ? "溯源与回滚" : "溯源预览",
     width: "70%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     hideFooter: true,

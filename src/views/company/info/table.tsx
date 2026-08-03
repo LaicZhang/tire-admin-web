@@ -2,11 +2,11 @@ import { h, ref } from "vue";
 import type { FormInstance } from "element-plus";
 import { message } from "@/utils/message";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { updateCompanyInfoApi } from "@/api";
 import type { CompanyInfo } from "@/api/type";
 import type { UpdateCompanyInfoDto } from "@/api/auth";
 import editForm from "./form.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 interface FormItemProps extends UpdateCompanyInfoDto {
   id?: number;
@@ -51,7 +51,7 @@ export function openDialog(
     width: "50%",
     hideFooter: title === "查看",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

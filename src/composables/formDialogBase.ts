@@ -1,6 +1,6 @@
 import { addDialog } from "@/composables/useDialogService";
 import type { DialogOptions } from "@/composables/useDialogService";
-import { isMobileViewport } from "@/utils/viewport";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 type ManagedFormDialogOptions = DialogOptions & {
   title: NonNullable<DialogOptions["title"]>;
@@ -19,7 +19,7 @@ export function openManagedFormDialog(options: ManagedFormDialogOptions) {
     footerRenderer: options.footerRenderer,
     draggable: true,
     // 弹窗全屏跟 viewport 断点对齐，避免窄桌面窗不全屏 / 宽平板被 UA 强制全屏
-    fullscreen: isMobileViewport(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: options.closeOnClickModal ?? false,
     contentRenderer: options.contentRenderer,

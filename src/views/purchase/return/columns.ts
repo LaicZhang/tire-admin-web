@@ -1,5 +1,7 @@
 import type { ReturnOrder } from "./types";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 /** 退货原因选项 */
 export const RETURN_REASON_OPTIONS = [
   { label: "质量问题", value: "quality" },
@@ -10,6 +12,7 @@ export const RETURN_REASON_OPTIONS = [
 
 type TableColumn = {
   label: string;
+  hide?: boolean | (() => boolean);
   prop?: string;
   slot?: string;
   fixed?: string | boolean;
@@ -31,6 +34,7 @@ export const returnOrderColumns: TableColumn[] = [
   },
   {
     label: "源单号",
+    hide: hideOnMobile,
     prop: "sourceOrderNumber",
     minWidth: 140
   },
@@ -41,6 +45,7 @@ export const returnOrderColumns: TableColumn[] = [
   },
   {
     label: "退货数量",
+    hide: hideOnMobile,
     prop: "count",
     width: 100
   },
@@ -51,26 +56,31 @@ export const returnOrderColumns: TableColumn[] = [
   },
   {
     label: "已退款",
+    hide: hideOnMobile,
     prop: "refundAmount",
     width: 120
   },
   {
     label: "退货原因",
+    hide: hideOnMobile,
     prop: "returnReason",
     minWidth: 120
   },
   {
     label: "操作员",
+    hide: hideOnMobile,
     prop: "operator.name",
     width: 100
   },
   {
     label: "审核员",
+    hide: hideOnMobile,
     prop: "auditor.name",
     width: 100
   },
   {
     label: "单据状态",
+    hide: hideOnMobile,
     prop: "status",
     width: 100,
     formatter: (_row, _column, cellValue) => {
@@ -87,6 +97,7 @@ export const returnOrderColumns: TableColumn[] = [
   },
   {
     label: "物流状态",
+    hide: hideOnMobile,
     prop: "logisticsStatus",
     width: 100,
     formatter: (_row, _column, cellValue) => {
@@ -100,6 +111,7 @@ export const returnOrderColumns: TableColumn[] = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     minWidth: 150
   },
@@ -121,6 +133,7 @@ export const returnOrderDetailColumns: TableColumnList = [
   },
   {
     label: "退货数量",
+    hide: hideOnMobile,
     prop: "count",
     slot: "countInput",
     width: 120
@@ -145,12 +158,14 @@ export const returnOrderDetailColumns: TableColumnList = [
   },
   {
     label: "退货原因",
+    hide: hideOnMobile,
     prop: "returnReason",
     slot: "returnReasonSelect",
     width: 120
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     slot: "descInput",
     minWidth: 150

@@ -1,8 +1,11 @@
 import { maskPhoneDisplay } from "@/utils/presentationMask";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     label: "ID",
+    hide: hideOnMobile,
     prop: "id",
     minWidth: 60
   },
@@ -29,12 +32,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "等级",
+    hide: hideOnMobile,
     prop: "level",
     minWidth: 100,
     slot: "level"
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     minWidth: 120
   },

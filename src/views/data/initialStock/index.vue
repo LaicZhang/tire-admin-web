@@ -16,7 +16,6 @@ import {
   validateFile as validateFileUtil,
   FileTypePresets
 } from "@/composables/useFileValidation";
-import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { InitialStock, InitialStockForm, InitialStockItem } from "./types";
 import type {
@@ -34,6 +33,7 @@ import { getRepoListApi } from "@/api/company/repo";
 import { exportDataApi, getExportSchemaApi, importDataApi } from "@/api/tools";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { columns } from "./columns";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "InitialStock"
@@ -146,7 +146,7 @@ const openDialog = (title = "新增", row?: InitialStock) => {
     },
     width: "800px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

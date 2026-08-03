@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@pureadmin/utils", () => ({
-  deviceDetection: () => false
+vi.mock("@/utils/viewport", () => ({
+  resolveDialogFullscreen: () => false,
+  isMobileViewport: () => false,
+  hideOnMobile: () => false
 }));
 
 vi.mock("@/api", () => ({

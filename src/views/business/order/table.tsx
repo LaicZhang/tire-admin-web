@@ -1,7 +1,6 @@
 import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import {
   getCompanyId,
   getCompanyConnect,
@@ -191,6 +190,7 @@ export async function getFormTileInLocal() {
 import { v7 as uuid } from "uuid";
 import { getCommonData } from "./handleData";
 import { getFooterButtons } from "./props";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 function normalizeCreateDetails(details: _OrderDetail[]) {
   return details.map(({ index: _idx, ...rest }, index) => ({ ...rest, index }));
@@ -584,7 +584,7 @@ export async function openDialog(
     width: "95%",
     hideFooter: ["查看"].includes(title),
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     closeCallBack: dialogOptions?.closeCallBack,

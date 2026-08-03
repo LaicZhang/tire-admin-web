@@ -9,7 +9,6 @@ import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { columns } from "./columns";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import CustomerForm from "./form.vue";
 import { message } from "@/utils";
 import type { FormItemProps } from "./types";
@@ -25,6 +24,7 @@ import {
 } from "@/api/business/customer";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "DataCustomer"
@@ -102,7 +102,7 @@ const getDetails = async (row: FormItemProps) => {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: true,
     hideFooter: true,
@@ -134,7 +134,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

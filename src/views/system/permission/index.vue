@@ -6,7 +6,6 @@ import { useColumns } from "./columns";
 import { FormItemProps } from "./utils/types";
 import PermissionForm from "./form.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { message, handleApiError } from "@/utils";
 import {
   getPermissionsApi,
@@ -23,6 +22,7 @@ import "plus-pro-components/es/components/search/style/css";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "PermissionManagement"
@@ -128,7 +128,7 @@ const openDialog = (title = "新增", row?: PermissionDto) => {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

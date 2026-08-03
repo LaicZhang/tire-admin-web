@@ -1,7 +1,10 @@
 import type { SalesReturnOrder } from "./types";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 type TableColumn = {
   label: string;
+  hide?: boolean | (() => boolean);
   prop?: string;
   slot?: string;
   fixed?: string | boolean;
@@ -23,6 +26,7 @@ export const salesReturnColumns: TableColumn[] = [
   },
   {
     label: "源单号",
+    hide: hideOnMobile,
     prop: "sourceOrderNumber",
     minWidth: 140
   },
@@ -33,6 +37,7 @@ export const salesReturnColumns: TableColumn[] = [
   },
   {
     label: "退货数量",
+    hide: hideOnMobile,
     prop: "count",
     width: 100
   },
@@ -43,26 +48,31 @@ export const salesReturnColumns: TableColumn[] = [
   },
   {
     label: "已退款",
+    hide: hideOnMobile,
     prop: "refundAmount",
     width: 120
   },
   {
     label: "退货原因",
+    hide: hideOnMobile,
     prop: "returnReason",
     minWidth: 120
   },
   {
     label: "操作员",
+    hide: hideOnMobile,
     prop: "operator.name",
     width: 100
   },
   {
     label: "审核员",
+    hide: hideOnMobile,
     prop: "auditor.name",
     width: 100
   },
   {
     label: "单据状态",
+    hide: hideOnMobile,
     prop: "status",
     width: 100,
     formatter: (_row, _column, cellValue) => {
@@ -79,6 +89,7 @@ export const salesReturnColumns: TableColumn[] = [
   },
   {
     label: "物流状态",
+    hide: hideOnMobile,
     prop: "logisticsStatus",
     width: 100,
     formatter: (_row, _column, cellValue) => {
@@ -92,6 +103,7 @@ export const salesReturnColumns: TableColumn[] = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     minWidth: 150
   },
@@ -119,6 +131,7 @@ export const salesReturnDetailColumns: TableColumnList = [
   },
   {
     label: "退货数量",
+    hide: hideOnMobile,
     prop: "count",
     slot: "countInput",
     width: 120
@@ -143,6 +156,7 @@ export const salesReturnDetailColumns: TableColumnList = [
   },
   {
     label: "退货原因",
+    hide: hideOnMobile,
     prop: "returnReason",
     slot: "returnReasonSelect",
     width: 120
@@ -155,6 +169,7 @@ export const salesReturnDetailColumns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     slot: "descInput",
     minWidth: 150

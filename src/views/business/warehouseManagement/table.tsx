@@ -1,13 +1,13 @@
 import { h, ref } from "vue";
 import { message } from "@/utils/message";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyConnect } from "@/api/company";
 import { addRepoApi, updateRepoApi, type Repo } from "@/api/company/repo";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
 
 import type { FormItemProps } from "./types";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 const formRef = ref<{ formRef?: FormInstance } | null>(null);
 
@@ -34,7 +34,7 @@ export function openDialog(
     width: "40%",
     hideFooter: title === "查看",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

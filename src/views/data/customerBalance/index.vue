@@ -14,7 +14,6 @@ import { message } from "@/utils";
 import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import {
   validateFile as validateFileUtil,
   FileTypePresets
@@ -40,6 +39,7 @@ import {
 import { exportDataApi, getExportSchemaApi, importDataApi } from "@/api/tools";
 import { downloadBlob, generateFilenameWithTimestamp } from "@/utils/download";
 import { columns } from "./columns";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "CustomerBalance"
@@ -215,7 +215,7 @@ const openDialog = (title = "新增", row?: CustomerBalance) => {
     },
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

@@ -2,6 +2,8 @@ import { getPaymentMethodText } from "./types";
 import type { PaymentOrder } from "./types";
 import { fenToYuanOrDash } from "@/utils/formatMoney";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     type: "selection",
@@ -30,6 +32,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "本次核销",
+    hide: hideOnMobile,
     prop: "writeOffAmount",
     minWidth: 120,
     align: "right",
@@ -37,6 +40,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "本次预付",
+    hide: hideOnMobile,
     prop: "advanceAmount",
     minWidth: 120,
     align: "right",
@@ -44,6 +48,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "结算账户",
+    hide: hideOnMobile,
     prop: "paymentName",
     minWidth: 130,
     formatter: (row: PaymentOrder) =>
@@ -51,12 +56,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "付款方式",
+    hide: hideOnMobile,
     prop: "paymentMethod",
     minWidth: 100,
     formatter: (row: PaymentOrder) => getPaymentMethodText(row.paymentMethod)
   },
   {
     label: "付款日期",
+    hide: hideOnMobile,
     prop: "paymentDate",
     minWidth: 120
   },
@@ -68,12 +75,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "remark",
     minWidth: 150,
     showOverflowTooltip: true
   },
   {
     label: "创建时间",
+    hide: hideOnMobile,
     prop: "createdAt",
     minWidth: 160
   },
@@ -115,6 +124,7 @@ export const detailColumns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "remark",
     minWidth: 150
   }

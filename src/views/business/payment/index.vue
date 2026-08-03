@@ -20,12 +20,12 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import { addDialog } from "@/composables/useDialogService";
 import { getCompanyId } from "@/api/company";
-import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import AccountOperationDialog from "./accountOperationDialog.vue";
 import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
 import { useCrud } from "@/composables";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "Payment"
@@ -127,7 +127,7 @@ async function handleCreate() {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: () => h(editForm, { ref: editFormRef }),

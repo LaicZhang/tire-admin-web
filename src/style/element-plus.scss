@@ -49,7 +49,8 @@
   max-width: calc(100vw - 32px);
 }
 
-@media (width <= 768px) {
+/* sync: breakpoints.scss $viewport-mobile */
+@media (width <= 760px) {
   .el-dialog:not(.is-fullscreen) {
     --el-dialog-width: min(var(--el-dialog-width, 50%), calc(100vw - 24px));
 
@@ -220,4 +221,39 @@
   padding-bottom: calc(
     var(--el-dialog-padding-primary, 16px) + env(safe-area-inset-bottom, 0px)
   );
+}
+
+/* ADM-MOB-005-inline: 未包 ReSearchForm 的主内容区 inline 筛选，≤640 全宽堆叠 */
+
+/* sync: breakpoints.scss $viewport-search-stack */
+@media (width <= 640px) {
+  .main-content .el-form--inline,
+  .app-main .el-form--inline:not(.search-form-inline),
+  .plus-search .el-form--inline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: stretch;
+
+    .el-form-item {
+      width: 100%;
+      margin-right: 0;
+      margin-bottom: 12px;
+
+      .el-form-item__content {
+        flex-wrap: wrap;
+        width: 100%;
+      }
+
+      .el-input,
+      .el-select,
+      .el-date-editor,
+      .el-cascader,
+      .el-autocomplete,
+      .el-input-number {
+        width: 100% !important;
+        max-width: 100%;
+      }
+    }
+  }
 }

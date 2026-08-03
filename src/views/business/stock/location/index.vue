@@ -13,11 +13,11 @@ import {
 } from "@/api/business/stock";
 import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { columns } from "./columns";
 import RepoSelect from "@/components/EntitySelect/RepoSelect.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "StockLocation"
@@ -74,7 +74,7 @@ function openDialog(title = "新增", row?: unknown) {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {

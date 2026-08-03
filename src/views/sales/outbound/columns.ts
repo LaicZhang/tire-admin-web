@@ -1,7 +1,10 @@
 import type { OutboundOrder } from "./types";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 type TableColumn = {
   label: string;
+  hide?: boolean | (() => boolean);
   prop?: string;
   slot?: string;
   fixed?: string | boolean;
@@ -23,6 +26,7 @@ export const outboundOrderColumns: TableColumn[] = [
   },
   {
     label: "关联销售单",
+    hide: hideOnMobile,
     prop: "saleOrder.number",
     minWidth: 140
   },
@@ -33,6 +37,7 @@ export const outboundOrderColumns: TableColumn[] = [
   },
   {
     label: "商品数量",
+    hide: hideOnMobile,
     prop: "count",
     width: 100
   },
@@ -43,21 +48,25 @@ export const outboundOrderColumns: TableColumn[] = [
   },
   {
     label: "本次收款",
+    hide: hideOnMobile,
     prop: "paidAmount",
     width: 120
   },
   {
     label: "出库员",
+    hide: hideOnMobile,
     prop: "operator.name",
     width: 100
   },
   {
     label: "审核员",
+    hide: hideOnMobile,
     prop: "auditor.name",
     width: 100
   },
   {
     label: "单据状态",
+    hide: hideOnMobile,
     prop: "status",
     width: 100,
     formatter: (_row, _column, cellValue) => {
@@ -74,6 +83,7 @@ export const outboundOrderColumns: TableColumn[] = [
   },
   {
     label: "物流状态",
+    hide: hideOnMobile,
     prop: "logisticsStatus",
     width: 100,
     formatter: (_row, _column, cellValue) => {
@@ -89,6 +99,7 @@ export const outboundOrderColumns: TableColumn[] = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     minWidth: 150
   },
@@ -152,6 +163,7 @@ export const outboundOrderDetailColumns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     slot: "descInput",
     minWidth: 150

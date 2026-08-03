@@ -1,10 +1,14 @@
+vi.mock("@/utils/viewport", () => ({
+  resolveDialogFullscreen: () => false,
+  isMobileViewport: () => false,
+  hideOnMobile: () => false
+}));
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@pureadmin/utils", async importOriginal => {
   const actual = await importOriginal<typeof import("@pureadmin/utils")>();
   return {
-    ...actual,
-    deviceDetection: () => false
+    ...actual
   };
 });
 

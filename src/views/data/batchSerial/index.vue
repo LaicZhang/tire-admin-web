@@ -9,7 +9,6 @@ import StatusTag from "@/components/StatusTag/index.vue";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import { batchColumns, serialColumns, expiryColumns } from "./columns";
 import type { BatchForm } from "./types";
@@ -28,6 +27,7 @@ import type { FormInstance, TabPaneName } from "element-plus";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { useOptionsByType } from "@/composables/useOptions";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "BatchSerial"
@@ -197,7 +197,7 @@ const openBatchDialog = (title = "新增", row?: Batch) => {
     },
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
@@ -256,7 +256,7 @@ const openSerialDialog = () => {
     title: "新增序列号",
     width: "600px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     closeOnClickModal: false,
     contentRenderer: () =>
       h("div", { class: "p-4" }, [

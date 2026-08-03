@@ -2,6 +2,8 @@ import { getIncomeTypeText, getStatusInfo } from "./types";
 import type { OtherIncome } from "./types";
 import { fenToYuanOrDash } from "@/utils/formatMoney";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     type: "selection",
@@ -36,6 +38,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "本次收款",
+    hide: hideOnMobile,
     prop: "receivedAmount",
     minWidth: 110,
     align: "right",
@@ -67,12 +70,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "remark",
     minWidth: 150,
     showOverflowTooltip: true
   },
   {
     label: "创建时间",
+    hide: hideOnMobile,
     prop: "createdAt",
     minWidth: 160
   },

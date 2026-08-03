@@ -10,7 +10,6 @@ import "plus-pro-components/es/components/search/style/css";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { documentColumns } from "./columns";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { message } from "@/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import StatusTag from "@/components/StatusTag/index.vue";
@@ -26,6 +25,7 @@ import {
 } from "@/api/setting";
 import CodeRuleForm from "./form.vue";
 import type { CodeRule } from "./types";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "CodeRule"
@@ -144,7 +144,7 @@ const openDialog = (title = "新增", row?: CodeRule) => {
     },
     width: "600px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

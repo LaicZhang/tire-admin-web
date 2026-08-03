@@ -1,9 +1,6 @@
 import { MoneyDisplay, StatusTag } from "@/components";
 import { paymentStatusLabel } from "@/services/order.service";
-import { isMobileViewport } from "@/utils/viewport";
-
-/** 窄屏隐藏次要列，保留编号/客户/金额/状态/操作 */
-const hideOnMobile = () => isMobileViewport();
+import { hideOnMobile } from "@/utils/viewport";
 
 /** 单据启停（boolean status），非支付态 */
 const DOCUMENT_STATUS_TAG_MAP = {

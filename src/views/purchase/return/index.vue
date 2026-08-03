@@ -9,7 +9,6 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
 import { useRoute } from "vue-router";
@@ -28,6 +27,7 @@ import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
 import { returnOrderColumns } from "./columns";
 import type { ReturnOrder, ReturnOrderQueryParams } from "./types";
 import editForm from "./form.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "PurchaseReturn"
@@ -139,7 +139,7 @@ function openDialog(title: string, row?: ReturnOrder) {
     width: "90%",
     hideFooter: title === "查看",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: () =>

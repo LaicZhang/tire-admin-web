@@ -9,7 +9,6 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { message } from "@/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { CustomerProductCode, CustomerProductCodeForm } from "./types";
 import type { FormInstance } from "element-plus";
@@ -22,6 +21,7 @@ import { getCustomerBatchApi } from "@/api/business/customer";
 import { getTireBatchApi } from "@/api/business/tire";
 import { useOptions } from "@/composables/useOptions";
 import { columns } from "./columns";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "CustomerProductCode"
@@ -124,7 +124,7 @@ const openDialog = (title = "新增", row?: CustomerProductCode) => {
     },
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

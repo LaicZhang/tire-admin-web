@@ -7,7 +7,6 @@ import { useColumns } from "./columns";
 import { FormItemProps } from "./utils/types";
 import CompanyForm from "./form.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { message, handleApiError } from "@/utils";
 import {
   getCompanyListApi,
@@ -26,6 +25,7 @@ import { v7 as uuid } from "uuid";
 import AddFill from "~icons/ri/add-circle-line";
 import EditPen from "~icons/ep/edit-pen";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "CompanyManagement"
@@ -80,7 +80,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     },
     width: "45%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
@@ -164,9 +164,7 @@ const handleDelete = async (row: FormItemProps) => {
 
     await deleteCompanyApi(
       row.uid,
-      force
-        ? { force, reason, massLayoff: true }
-        : { massLayoff: false }
+      force ? { force, reason, massLayoff: true } : { massLayoff: false }
     );
     message(
       force

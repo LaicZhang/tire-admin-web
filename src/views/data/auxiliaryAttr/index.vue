@@ -21,12 +21,12 @@ import {
 } from "@/api/data/category";
 import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import type { FormInstance, FormRules } from "element-plus";
 import { fieldRules } from "@/utils/validation/fieldRules";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "AuxiliaryAttrManagement"
@@ -119,7 +119,7 @@ function openDialog(title = "新增", row?: AuxiliaryAttrItem) {
     },
     width: "550px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

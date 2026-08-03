@@ -11,7 +11,6 @@ import { columns } from "./columns";
 import { PureTableBar } from "@/components/RePureTableBar";
 import StatusTag from "@/components/StatusTag/index.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import StaffForm from "./form.vue";
 import { message } from "@/utils";
 import { maskPhoneDisplay } from "@/utils/presentationMask";
@@ -25,6 +24,7 @@ import {
   getEmployeeApi
 } from "@/api/company/employee";
 import { useCrud } from "@/composables";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "DataStaff"
@@ -116,7 +116,7 @@ const getDetails = async (row: { uid: string }) => {
       },
       width: "40%",
       draggable: true,
-      fullscreen: deviceDetection(),
+      fullscreen: resolveDialogFullscreen(),
       fullscreenIcon: true,
       closeOnClickModal: true,
       hideFooter: true,
@@ -152,7 +152,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

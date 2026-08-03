@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { h, onMounted, ref } from "vue";
-import { deviceDetection } from "@pureadmin/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -17,6 +16,7 @@ import {
 import { columns } from "./columns";
 import PurchaseInquiryFormDialog from "./components/PurchaseInquiryFormDialog.vue";
 import { openPurchaseQuotationManagerDialog } from "./usePurchaseQuotationDialogs";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "PurchaseInquiry"
@@ -68,7 +68,7 @@ function openCreateDialog() {
     title: "新增询价单",
     width: "780px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: () =>

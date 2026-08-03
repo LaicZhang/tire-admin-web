@@ -7,7 +7,6 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { message } from "@/utils/message";
 import { handleApiError } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import {
   getTaskListApi,
   createTaskApi,
@@ -24,6 +23,7 @@ import Play from "~icons/ep/video-play";
 import View from "~icons/ep/view";
 import DeleteButton from "@/components/DeleteButton/index.vue";
 import type { FormInstance } from "element-plus";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "TaskManagement"
@@ -91,7 +91,7 @@ function viewDetail(row: TaskItem) {
     title: "任务详情",
     width: "50%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: true,
     contentRenderer: () =>
@@ -163,7 +163,7 @@ function openDialog(title = "新增", row?: TaskItem) {
     },
     width: "45%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {

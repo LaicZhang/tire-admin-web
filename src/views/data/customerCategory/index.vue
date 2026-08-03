@@ -18,9 +18,9 @@ import {
 } from "@/api/data/category";
 import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import type { FormInstance } from "element-plus";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "CustomerCategoryManagement"
@@ -129,7 +129,7 @@ function openDialog(
     },
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

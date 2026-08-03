@@ -1,11 +1,11 @@
 import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { addCustomerApi, getCompanyConnect, updateCustomerApi } from "@/api";
 import editForm from "./form.vue";
 import type { FormInstance } from "element-plus";
 import { useUserStoreHook } from "@/store/modules/user";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 interface FormItemProps {
   uid: string;
@@ -80,7 +80,7 @@ export function openDialog(
     width: "45%",
     hideFooter: title === "查看",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

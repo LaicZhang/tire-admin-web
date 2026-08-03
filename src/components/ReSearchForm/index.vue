@@ -96,7 +96,7 @@ const handleReset = () => {
 </template>
 
 <style scoped lang="scss">
-/* ADM-MOB-005: ≤640 搜索表单项/控件/操作区全宽，避免固定宽控件溢出 */
+/* ADM-MOB-005: ≤640 (VIEWPORT_BREAKPOINTS.SEARCH_STACK) 搜索表单项全宽 */
 @media (width <= 640px) {
   .re-search-form {
     :deep(.search-form-inline) {

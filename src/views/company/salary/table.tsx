@@ -1,7 +1,6 @@
 import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import {
   addSalaryApi,
   updateSalaryApi,
@@ -11,6 +10,7 @@ import {
 import { yuanToFen } from "@/utils/formatMoney";
 import editForm, { type FormItemProps } from "./form.vue";
 import type { FormInstance } from "element-plus";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 interface FormProps {
   formInline: FormItemProps;
@@ -91,7 +91,7 @@ export function openDialog(
     width: "480px",
     hideFooter: isView,
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

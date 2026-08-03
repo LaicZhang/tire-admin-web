@@ -1,5 +1,7 @@
 import { getDocumentTypeInfo, getStatusInfo } from "./types";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     type: "selection",
@@ -54,17 +56,20 @@ export const columns: TableColumnList = [
   },
   {
     label: "经办人",
+    hide: hideOnMobile,
     prop: "operatorName",
     minWidth: 100
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "remark",
     minWidth: 150,
     showOverflowTooltip: true
   },
   {
     label: "创建时间",
+    hide: hideOnMobile,
     prop: "createdAt",
     minWidth: 160
   },

@@ -8,6 +8,7 @@ import {
   getLogisticsStatus,
   getLogisticsStatusInfo
 } from "./types";
+import { hideOnMobile } from "@/utils/viewport";
 
 export const columns: TableColumnList = [
   {
@@ -39,12 +40,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "调出仓库",
+    hide: hideOnMobile,
     prop: "fromRepository.name",
     minWidth: 120,
     formatter: (row: TransferOrder) => row.fromRepository?.name || "-"
   },
   {
     label: "调入仓库",
+    hide: hideOnMobile,
     prop: "toRepository.name",
     minWidth: 120,
     formatter: (row: TransferOrder) => row.toRepository?.name || "-"
@@ -70,6 +73,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "创建时间",
+    hide: hideOnMobile,
     prop: "createAt",
     width: 160,
     formatter: (row: TransferOrder) =>
@@ -77,6 +81,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     minWidth: 150,
     showOverflowTooltip: true

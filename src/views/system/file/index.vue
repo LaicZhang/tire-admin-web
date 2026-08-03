@@ -8,7 +8,6 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import {
   getFileListApi,
   deleteFileApi,
@@ -19,6 +18,7 @@ import {
 import UploadFilled from "~icons/ep/upload-filled";
 import Download from "~icons/ep/download";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "FileManagement"
@@ -96,7 +96,7 @@ function openUploadDialog() {
     title: "上传文件",
     width: "30%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: () =>

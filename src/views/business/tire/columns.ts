@@ -1,6 +1,9 @@
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     label: "ID",
+    hide: hideOnMobile,
     prop: "id"
   },
   {
@@ -34,6 +37,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc"
   },
   {

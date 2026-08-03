@@ -7,7 +7,6 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import View from "~icons/ep/view";
 import Delete from "~icons/ep/delete";
 import Download from "~icons/ep/download";
@@ -50,6 +49,7 @@ import {
   type InventoryDocument,
   type InventoryDocumentType
 } from "./types";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "InventoryDocuments"
@@ -196,7 +196,7 @@ const openStocktakingImportDialog = (row: InventoryDocument) => {
     },
     width: "80%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: true,
     hideFooter: true,

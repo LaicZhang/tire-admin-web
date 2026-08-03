@@ -18,11 +18,11 @@ import {
 } from "@/api/system/role";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import RoleForm from "./form.vue";
 import RolePermissionForm from "./permissionForm.vue";
 import { message, handleApiError } from "@/utils";
 import { FormItemProps } from "./utils/types";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 const {
   loading,
@@ -119,7 +119,7 @@ const openDialog = (title = "新增", row?: CompanyRoleItem) => {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
@@ -176,7 +176,7 @@ const openPermissionDialog = (row: CompanyRoleItem) => {
     title: `${row.cn || row.name}权限设置`,
     width: "720px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: () =>

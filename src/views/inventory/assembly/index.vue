@@ -10,7 +10,6 @@ import Delete from "~icons/ep/delete";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import editForm from "./form.vue";
@@ -31,6 +30,7 @@ import {
 import { auditOrderApi } from "@/api";
 import { createBomFromOrderApi } from "@/api/inventory";
 import { handleApiError, message } from "@/utils";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "InventoryAssembly"
@@ -115,7 +115,7 @@ const openDialog = (
     },
     width: "70%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

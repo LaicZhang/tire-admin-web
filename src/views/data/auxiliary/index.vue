@@ -24,11 +24,11 @@ import {
 } from "@/api/data/category";
 import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import Form from "./form.vue";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import type { FormInstance } from "element-plus";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "AuxiliaryManagement"
@@ -151,7 +151,7 @@ function openDialog(title = "新增", row?: AuxiliaryItem) {
     },
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

@@ -1,12 +1,12 @@
 import { h, ref } from "vue";
 import { message } from "../../../utils/message";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { getCompanyId, addEmployeeApi, updateEmployeeApi } from "@/api";
 import editForm from "./form.vue";
 import { getRandomName, getUsernameOfOnlyNumber } from "@/utils";
 import type { FormInstance } from "element-plus";
 import type { EmployeeNameDto, EmployeeUserDto } from "@/api/company/employee";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 export interface FormItemProps {
   phone?: string;
@@ -63,7 +63,7 @@ export function openDialog(title = "新增", row?: FormItemProps) {
     width: "40%",
     hideFooter: title === "查看",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

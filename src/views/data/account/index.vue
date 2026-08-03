@@ -10,7 +10,6 @@ import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { columns } from "./columns";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import AccountForm from "./form.vue";
 import { MoneyDisplay } from "@/components";
 import { message } from "@/utils";
@@ -26,6 +25,7 @@ import {
 import { getCompanyId } from "@/api/company";
 import { useCrud } from "@/composables";
 import { yuanToFen } from "@/utils/formatMoney";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "DataAccount"
@@ -92,7 +92,7 @@ const getDetails = async (row: { uid: string }) => {
       },
       width: "40%",
       draggable: true,
-      fullscreen: deviceDetection(),
+      fullscreen: resolveDialogFullscreen(),
       fullscreenIcon: true,
       closeOnClickModal: true,
       hideFooter: true,
@@ -127,7 +127,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

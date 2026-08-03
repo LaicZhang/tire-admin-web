@@ -13,12 +13,12 @@ import {
 } from "@/api/business/unit";
 import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import UnitForm from "./UnitForm.vue";
 import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "Unit"
@@ -71,7 +71,7 @@ function openDialog() {
     },
     width: "30%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

@@ -11,7 +11,6 @@ import { ImportDialog } from "@/components/ImportExport";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import editForm from "./form.vue";
 import type { PriceInfo, PriceInfoForm } from "./types";
 import type { FormInstance } from "element-plus";
@@ -28,6 +27,7 @@ import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import type { Tire } from "@/api/business/tire";
 import { useSysDictOptions } from "@/composables/useSysDict";
 import { columns } from "./columns";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "PriceInfo"
@@ -188,7 +188,7 @@ const openDialog = (row: PriceInfo) => {
     },
     width: "600px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

@@ -13,13 +13,13 @@ import {
 } from "@/api/business/serialNumber";
 import { message } from "@/utils/message";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import SerialNumberAddForm from "./SerialNumberAddForm.vue";
 import SerialNumberLogsForm from "./SerialNumberLogsForm.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { useOptionsByType } from "@/composables/useOptions";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "SerialNumberList"
@@ -103,7 +103,7 @@ function handleAdd(type: "single" | "batch") {
     },
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
@@ -141,7 +141,7 @@ function handleViewLogs(row: SerialNumber) {
     },
     width: "700px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: true,
     hideFooter: true,

@@ -9,7 +9,6 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import TableOperations from "@/components/TableOperations/index.vue";
 import type { CustomAction } from "@/components/TableOperations/types";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { v7 as uuid } from "uuid";
 import type { FormInstance } from "element-plus";
 import { getCompanyConnect, getCompanyId } from "@/api";
@@ -27,6 +26,7 @@ import { salesReturnColumns } from "./columns";
 import type { SalesReturnOrder, SalesReturnQueryParams } from "./types";
 import editForm from "./form.vue";
 import ReturnInspectionDialog from "./ReturnInspectionDialog.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "SalesReturn"
@@ -134,7 +134,7 @@ function openDialog(title: string, row?: SalesReturnOrder) {
     width: "90%",
     hideFooter: title === "查看",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: () =>

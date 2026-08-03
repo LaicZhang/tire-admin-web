@@ -1,10 +1,10 @@
 import { h, ref, type Component } from "vue";
 import type { FormInstance } from "element-plus";
-import { deviceDetection } from "@pureadmin/utils";
 import { addDialog } from "@/composables/useDialogService";
 import { useCrud } from "@/composables";
 import { message } from "@/utils";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 interface UseAlertCrudOptions<TItem, TResponse, TForm, TSubmit> {
   title: string;
@@ -45,7 +45,7 @@ export function useAlertCrud<TItem, TResponse, TForm, TSubmit = TForm>(
       props: { formInline: options.defaultForm() },
       width: "40%",
       draggable: true,
-      fullscreen: deviceDetection(),
+      fullscreen: resolveDialogFullscreen(),
       fullscreenIcon: true,
       closeOnClickModal: false,
       contentRenderer: ({ options: dialogOptions }) =>

@@ -1,3 +1,5 @@
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     type: "selection",
@@ -47,12 +49,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "remark",
     minWidth: 160,
     showOverflowTooltip: true
   },
   {
     label: "创建时间",
+    hide: hideOnMobile,
     prop: "createdAt",
     minWidth: 160
   },

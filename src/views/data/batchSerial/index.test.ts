@@ -29,6 +29,12 @@ vi.mock("@/composables/useDialogService", () => ({
   addDialog: vi.fn()
 }));
 
+vi.mock("@/utils/viewport", () => ({
+  resolveDialogFullscreen: () => false,
+  isMobileViewport: () => false,
+  hideOnMobile: () => false
+}));
+
 vi.mock("@pureadmin/utils", () => ({
   withInstall: (comp: unknown) => comp,
   cloneDeep: (value: unknown) => JSON.parse(JSON.stringify(value)) as unknown,
@@ -38,7 +44,6 @@ vi.mock("@pureadmin/utils", () => ({
     Array.isArray(arr)
       ? arr.map(item => (item as Record<string, unknown>)[key])
       : [],
-  deviceDetection: () => false,
   storageLocal: () => ({
     getItem: () => null,
     setItem: () => undefined,

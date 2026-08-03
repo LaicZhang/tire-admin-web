@@ -20,13 +20,13 @@ import {
 } from "@/api/user";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import UserForm from "./form.vue";
 import { message, handleApiError } from "@/utils";
 import { FormItemProps } from "./utils/types";
 import { useCrud } from "@/composables";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "user"
@@ -138,7 +138,7 @@ const getDetails = async (row: { uid: string }) => {
       },
       width: "40%",
       draggable: true,
-      fullscreen: deviceDetection(),
+      fullscreen: resolveDialogFullscreen(),
       fullscreenIcon: true,
       closeOnClickModal: true,
       hideFooter: true,
@@ -171,7 +171,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

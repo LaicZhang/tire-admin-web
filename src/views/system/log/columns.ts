@@ -1,6 +1,8 @@
 import { h } from "vue";
 import type { TableColumnRenderer } from "@pureadmin/table";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     label: "模块",
@@ -45,6 +47,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "时间",
+    hide: hideOnMobile,
     prop: "createdAt",
     minWidth: 160
   },

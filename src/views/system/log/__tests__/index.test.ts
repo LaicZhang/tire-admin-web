@@ -1,3 +1,8 @@
+vi.mock("@/utils/viewport", () => ({
+  resolveDialogFullscreen: () => false,
+  isMobileViewport: () => false,
+  hideOnMobile: () => false
+}));
 import { flushPromises, mount } from "@vue/test-utils";
 import { defineComponent } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -40,8 +45,7 @@ vi.mock("@/utils/message", () => ({
 vi.mock("@pureadmin/utils", async importOriginal => {
   const actual = await importOriginal<typeof import("@pureadmin/utils")>();
   return {
-    ...actual,
-    deviceDetection: vi.fn(() => false)
+    ...actual
   };
 });
 

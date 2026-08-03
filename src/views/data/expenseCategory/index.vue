@@ -20,10 +20,10 @@ import {
 } from "@/api/data/category";
 import { message } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { useCrud } from "@/composables";
 import Form from "./form.vue";
 import type { FormInstance } from "element-plus";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "ExpenseCategoryManagement"
@@ -142,7 +142,7 @@ function openDialog(title = "新增", row?: FlatCategoryItem) {
     },
     width: "500px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

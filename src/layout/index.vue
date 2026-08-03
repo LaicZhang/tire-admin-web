@@ -15,7 +15,11 @@ import {
   defineComponent
 } from "vue";
 import { useDark, useGlobal, useResizeObserver } from "@pureadmin/utils";
-import { VIEWPORT_BREAKPOINTS, isMobileViewport } from "@/utils/viewport";
+import {
+  VIEWPORT_BREAKPOINTS,
+  isMobileViewport,
+  resolveViewportBand
+} from "@/utils/viewport";
 
 import navbar from "./components/navbar.vue";
 import tag from "./components/tag/index.vue";
@@ -85,15 +89,16 @@ function applyViewportLayout(width: number, height: number) {
    * BREAKPOINTS.MOBILE < width <= BREAKPOINTS.TABLET 折叠侧边栏
    * width > BREAKPOINTS.TABLET 展开侧边栏
    */
-  if (width > 0 && width <= BREAKPOINTS.MOBILE) {
+  const band = resolveViewportBand(width);
+  if (band === "mobile") {
     toggle("mobile", false);
     isAutoCloseSidebar = true;
-  } else if (width > BREAKPOINTS.MOBILE && width <= BREAKPOINTS.TABLET) {
+  } else if (band === "tablet") {
     if (isAutoCloseSidebar) {
       toggle("desktop", false);
       isAutoCloseSidebar = false;
     }
-  } else if (width > BREAKPOINTS.TABLET && !set.sidebar.isClickCollapse) {
+  } else if (band === "desktop" && !set.sidebar.isClickCollapse) {
     toggle("desktop", true);
     isAutoCloseSidebar = true;
   } else {

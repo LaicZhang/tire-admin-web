@@ -2,7 +2,6 @@
 import dayjs from "dayjs";
 import { computed, h, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { deviceDetection } from "@pureadmin/utils";
 import { PAGE_SIZE_SMALL } from "@/utils/constants";
 import {
   getRepoListApi,
@@ -30,6 +29,7 @@ import {
   parseTraceWorkbenchFilters,
   toTraceWorkbenchParams
 } from "./query";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "TraceWorkbenchPage"
@@ -219,7 +219,7 @@ function openTraceDialog(initialSection: "plan" | "execute") {
     title: initialSection === "execute" ? "溯源与回滚" : "溯源预览",
     width: "70%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     hideFooter: true,

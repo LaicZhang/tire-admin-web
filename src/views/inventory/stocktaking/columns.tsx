@@ -4,6 +4,7 @@ import {
   stocktakingStatusMap,
   type StocktakingStatus
 } from "./types";
+import { hideOnMobile } from "@/utils/viewport";
 
 export const columns: TableColumnList = [
   {
@@ -74,6 +75,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "开始时间",
+    hide: hideOnMobile,
     prop: "startedAt",
     width: 160,
     formatter: row =>
@@ -81,6 +83,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "完成时间",
+    hide: hideOnMobile,
     prop: "completedAt",
     width: 160,
     formatter: row =>
@@ -88,6 +91,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "remark",
     minWidth: 120,
     showOverflowTooltip: true
@@ -148,6 +152,7 @@ export const detailColumns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "remark",
     minWidth: 120
   },

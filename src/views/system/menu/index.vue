@@ -6,7 +6,6 @@ import { useColumns, type MenuItem } from "./columns";
 import { FormItemProps } from "./utils/types";
 import MenuForm from "./form.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { message, handleApiError } from "@/utils";
 import { resolveTrustedFrameSrc } from "@/utils/frame";
 import {
@@ -24,6 +23,7 @@ import Search from "~icons/ep/search";
 import Refresh from "~icons/ep/refresh";
 import More from "~icons/ep/more-filled";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "MenuManagement"
@@ -98,7 +98,7 @@ const openDialog = (title = "新增", row?: MenuItem) => {
     },
     width: "45%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

@@ -34,6 +34,24 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         storageState: storageStatePath
       }
+    },
+    {
+      name: "mobile-chrome",
+      dependencies: ["setup"],
+      testMatch: "**/responsive*.spec.ts",
+      use: {
+        ...devices["Pixel 5"],
+        storageState: storageStatePath
+      }
+    },
+    {
+      name: "ipad",
+      dependencies: ["setup"],
+      testMatch: "**/responsive*.spec.ts",
+      use: {
+        ...devices["iPad Mini"],
+        storageState: storageStatePath
+      }
     }
   ],
   webServer: {

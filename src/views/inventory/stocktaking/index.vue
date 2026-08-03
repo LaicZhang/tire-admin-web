@@ -11,7 +11,6 @@ import RefreshLeft from "~icons/ep/refresh-left";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { columns } from "./columns";
 import editForm from "./form.vue";
@@ -33,6 +32,7 @@ import {
 } from "@/api/business/inventory-check";
 import { getRepoListApi } from "@/api/company/repo";
 import { handleApiError, message } from "@/utils";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "InventoryStocktaking"
@@ -128,7 +128,7 @@ const openCreateDialog = () => {
     },
     width: "50%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>
@@ -175,7 +175,7 @@ const handleViewDetails = (row: StocktakingTask) => {
     },
     width: "80%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: true,
     hideFooter: true,

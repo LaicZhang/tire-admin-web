@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { h, onMounted, reactive, ref } from "vue";
-import { deviceDetection } from "@pureadmin/utils";
 import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -20,6 +19,7 @@ import {
 } from "@/api/business/quality";
 import { columns } from "./columns";
 import QualityInspectionFormDialog from "./components/QualityInspectionFormDialog.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "QualityInspection"
@@ -92,7 +92,7 @@ function openCreateDialog() {
     title: "新增质检",
     width: "680px",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: () =>

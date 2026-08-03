@@ -7,7 +7,6 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import {
   getNoticeListApi,
   createNoticeApi,
@@ -19,6 +18,7 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 import View from "~icons/ep/view";
 import DeleteButton from "@/components/DeleteButton/index.vue";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "NoticeManagement"
@@ -77,7 +77,7 @@ function viewDetail(row: NoticeItem) {
     title: "公告详情",
     width: "50%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: true,
     contentRenderer: () =>
@@ -135,7 +135,7 @@ function openDialog(title = "新增", row?: NoticeItem) {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {

@@ -16,7 +16,9 @@
 }
 
 /* ADM-MOB-006: make table horizontal scroll obvious on narrow screens */
-@media (width <= 768px) {
+
+/* sync: breakpoints.scss $viewport-mobile */
+@media (width <= 760px) {
   .pure-table,
   .el-table {
     max-width: 100%;

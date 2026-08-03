@@ -1,8 +1,6 @@
 import { MoneyDisplay, StatusTag } from "@/components";
 import { paymentStatusLabel } from "@/services/order.service";
-import { isMobileViewport } from "@/utils/viewport";
-
-const hideOnMobile = () => isMobileViewport();
+import { hideOnMobile } from "@/utils/viewport";
 
 /** 单据启停（boolean status），非支付态 */
 const DOCUMENT_STATUS_TAG_MAP = {

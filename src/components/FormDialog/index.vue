@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
 import { ref, watch } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 export interface FormDialogProps<T> {
   visible: boolean;
@@ -32,6 +33,7 @@ const props = withDefaults(
 const emit = defineEmits<FormDialogEmits<T>>();
 
 const dialogVisible = ref(props.visible);
+const isFullscreen = ref(resolveDialogFullscreen());
 const formRef = ref<FormInstance>();
 
 watch(
@@ -39,6 +41,7 @@ watch(
   val => {
     dialogVisible.value = val;
     if (val) {
+      isFullscreen.value = resolveDialogFullscreen();
       resetForm();
     }
   }
@@ -86,6 +89,7 @@ defineExpose({
     class="pure-dialog"
     :title="title"
     :width="width"
+    :fullscreen="isFullscreen"
     :close-on-click-modal="false"
     :close-on-press-escape="true"
     destroy-on-close

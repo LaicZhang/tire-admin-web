@@ -2,7 +2,7 @@
 import { ListItem } from "./data";
 import { ref, PropType, nextTick } from "vue";
 import { useNav } from "@/layout/hooks/useNav";
-import { deviceDetection } from "@pureadmin/utils";
+import { isMobileViewport } from "@/utils/viewport";
 
 const props = defineProps({
   noticeItem: {
@@ -16,7 +16,7 @@ const titleTooltip = ref(false);
 const descriptionRef = ref<HTMLElement | null>(null);
 const descriptionTooltip = ref(false);
 const { tooltipEffect } = useNav();
-const isMobile = deviceDetection();
+const isMobile = isMobileViewport();
 
 function hoverTitle() {
   nextTick(() => {

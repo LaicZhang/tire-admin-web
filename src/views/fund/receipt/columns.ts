@@ -1,6 +1,8 @@
 import { fenToYuanOrDash } from "@/utils/formatMoney";
 import { getPaymentMethodText, type ReceiptOrder } from "./types";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 export const columns: TableColumnList = [
   {
     type: "selection",
@@ -29,6 +31,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "本次核销",
+    hide: hideOnMobile,
     prop: "writeOffAmount",
     minWidth: 120,
     align: "right",
@@ -43,6 +46,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "结算账户",
+    hide: hideOnMobile,
     prop: "paymentName",
     minWidth: 130,
     formatter: (row: ReceiptOrder) =>
@@ -50,12 +54,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "收款方式",
+    hide: hideOnMobile,
     prop: "paymentMethod",
     minWidth: 100,
     formatter: (row: ReceiptOrder) => getPaymentMethodText(row.paymentMethod)
   },
   {
     label: "收款日期",
+    hide: hideOnMobile,
     prop: "receiptDate",
     minWidth: 120
   },
@@ -67,12 +73,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "remark",
     minWidth: 180,
     showOverflowTooltip: true
   },
   {
     label: "创建时间",
+    hide: hideOnMobile,
     prop: "createdAt",
     minWidth: 160
   },

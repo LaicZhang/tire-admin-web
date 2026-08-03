@@ -18,9 +18,9 @@ import {
 } from "@/api/system/dict";
 import { message, handleApiError } from "@/utils";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import { useCurrentCompanyStoreHook } from "@/store/modules/company";
 import { invalidateDictCache, preloadDicts } from "@/composables/useSysDict";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "DictManagement"
@@ -129,7 +129,7 @@ function openDialog(title = "新增", row?: DictItem) {
     },
     width: "46%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) => {

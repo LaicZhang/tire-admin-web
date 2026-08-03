@@ -10,7 +10,6 @@ import { type PlusColumn, PlusSearch } from "plus-pro-components";
 import { columns } from "./columns";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { addDialog } from "@/composables/useDialogService";
-import { deviceDetection } from "@pureadmin/utils";
 import WarehouseForm from "./form.vue";
 import { message } from "@/utils";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
@@ -23,6 +22,7 @@ import {
   deleteStorageZoneApi
 } from "@/api/business/storage";
 import { useCrud } from "@/composables";
+import { resolveDialogFullscreen } from "@/utils/viewport";
 
 defineOptions({
   name: "DataWarehouse"
@@ -86,7 +86,7 @@ const getDetails = async (row: FormItemProps) => {
       },
       width: "40%",
       draggable: true,
-      fullscreen: deviceDetection(),
+      fullscreen: resolveDialogFullscreen(),
       fullscreenIcon: true,
       closeOnClickModal: true,
       hideFooter: true,
@@ -120,7 +120,7 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
     },
     width: "40%",
     draggable: true,
-    fullscreen: deviceDetection(),
+    fullscreen: resolveDialogFullscreen(),
     fullscreenIcon: true,
     closeOnClickModal: false,
     contentRenderer: ({ options }) =>

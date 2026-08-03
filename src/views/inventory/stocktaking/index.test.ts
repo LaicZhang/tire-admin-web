@@ -27,8 +27,12 @@ vi.mock("@/composables/useDialogService", () => ({
   addDialog: vi.fn()
 }));
 
+vi.mock("@/utils/viewport", () => ({
+  resolveDialogFullscreen: () => false,
+  isMobileViewport: () => false,
+  hideOnMobile: () => false
+}));
 vi.mock("@pureadmin/utils", () => ({
-  deviceDetection: () => false,
   storageLocal: () => ({
     getItem: () => null,
     setItem: () => undefined,

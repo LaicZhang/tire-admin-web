@@ -1,7 +1,10 @@
 import type { DocumentItem } from "./types";
 
+import { hideOnMobile } from "@/utils/viewport";
+
 type TableColumn = {
   label: string;
+  hide?: boolean | (() => boolean);
   type?: string;
   prop?: string;
   slot?: string;
@@ -39,6 +42,7 @@ export const documentColumns: TableColumn[] = [
   },
   {
     label: "商品数量",
+    hide: hideOnMobile,
     prop: "count",
     width: 100
   },
@@ -49,6 +53,7 @@ export const documentColumns: TableColumn[] = [
   },
   {
     label: "操作员",
+    hide: hideOnMobile,
     prop: "operatorName",
     width: 100
   },
@@ -70,11 +75,13 @@ export const documentColumns: TableColumn[] = [
   },
   {
     label: "创建时间",
+    hide: hideOnMobile,
     prop: "createdAt",
     width: 160
   },
   {
     label: "备注",
+    hide: hideOnMobile,
     prop: "desc",
     minWidth: 150
   },

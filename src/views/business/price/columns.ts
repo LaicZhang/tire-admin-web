@@ -1,3 +1,5 @@
+import { hideOnMobile } from "@/utils/viewport";
+
 const typeTextMap: Record<string, string> = {
   STANDARD: "标准价",
   PROMOTION: "促销价",
@@ -12,6 +14,7 @@ export const columns: TableColumnList = [
   {
     label: "类型",
     prop: "type",
+    hide: hideOnMobile,
     formatter: (_row, _column, cellValue) => {
       return typeTextMap[String(cellValue)] || cellValue;
     }
@@ -19,6 +22,7 @@ export const columns: TableColumnList = [
   {
     label: "启用",
     prop: "isActive",
+    hide: hideOnMobile,
     formatter: (_row, _column, cellValue) => (cellValue ? "是" : "否")
   },
   {
