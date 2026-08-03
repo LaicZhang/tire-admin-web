@@ -15,12 +15,18 @@ import {
 } from "@/api/analysis";
 import { getRepoListApi, type Repo } from "@/api/company/repo";
 import { getStoreListApi, type Store } from "@/api/company/store";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { getEcharts } from "@/utils/echarts";
 import { handleApiError } from "@/utils";
-import Refresh from "~icons/ep/refresh";
 import { movementColumns, slowMovingColumns, stockoutColumns } from "./columns";
-import { buildAnalysisQuery, parseAnalysisFilters } from "../shared";
+import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
+import {
+  buildAnalysisFilterQuery,
+  createDefaultAnalysisFilterState,
+  inferGroupBy,
+  parseAnalysisFilters,
+  toRequiredDateParams,
+  type AnalysisGroupBy
+} from "../shared";
 import { buildInventoryMovementRows } from "../transformers";
 import { useUserStoreHook } from "@/store/modules/user";
 import {
@@ -40,7 +46,23 @@ const stores = ref<Store[]>([]);
 const repos = ref<Repo[]>([]);
 const analysisMembers = ref<AnalysisMember[]>([]);
 
-const dateRange = ref<[Date, Date] | null>(null);
+const filterState = ref(createDefaultAnalysisFilterState());
+const dateRange = computed({
+  get: () => filterState.value.dateRange,
+  set: v => {
+    filterState.value = {
+      ...filterState.value,
+      dateRange: v,
+      groupBy: inferGroupBy(v)
+    };
+  }
+});
+const groupBy = computed({
+  get: () => filterState.value.groupBy,
+  set: (v: AnalysisGroupBy) => {
+    filterState.value = { ...filterState.value, groupBy: v };
+  }
+});
 const selectedStoreId = ref("");
 const selectedRepoId = ref("");
 const selectedOperatorId = ref("");
@@ -137,6 +159,7 @@ const currentViewLabel = computed(() => {
   );
 });
 const inventoryParams = computed(() => ({
+  ...toRequiredDateParams(dateRange.value),
   repoId: selectedRepoId.value || undefined,
   operatorId: canSelectMember.value
     ? selectedOperatorId.value || undefined
@@ -338,7 +361,7 @@ async function loadAnalysisMembers() {
 
 function applyRouteFilters() {
   const parsed = parseAnalysisFilters(route.query);
-  dateRange.value = parsed.dateRange;
+  filterState.value = { ...parsed };
   selectedStoreId.value = parsed.storeId;
   selectedRepoId.value = parsed.repoId;
   selectedOperatorId.value = parsed.operatorId;
@@ -346,15 +369,11 @@ function applyRouteFilters() {
 
 async function syncQuery() {
   await router.replace({
-    query: buildAnalysisQuery({
-      dateRange: dateRange.value,
-      storeId: selectedStoreId.value || undefined,
-      repoId: selectedRepoId.value || undefined,
-      extras: {
-        operatorId: canSelectMember.value
-          ? selectedOperatorId.value || undefined
-          : undefined
-      }
+    query: buildAnalysisFilterQuery({
+      ...filterState.value,
+      storeId: selectedStoreId.value,
+      repoId: selectedRepoId.value,
+      operatorId: canSelectMember.value ? selectedOperatorId.value : ""
     })
   });
 }
@@ -416,6 +435,14 @@ onUnmounted(() => {
           >
             {{ currentViewLabel }}
           </el-tag>
+          <AnalysisDateToolbar
+            v-model:date-range="dateRange"
+            v-model:group-by="groupBy"
+            :show-group-by="false"
+            :loading="loading"
+            @change="handleFiltersChange"
+            @refresh="loadData"
+          />
           <el-select
             v-model="selectedStoreId"
             clearable
@@ -466,7 +493,6 @@ onUnmounted(() => {
             返回公司图表
           </el-button>
         </div>
-        <el-button :icon="useRenderIcon(Refresh)" circle @click="loadData" />
       </div>
     </el-card>
 

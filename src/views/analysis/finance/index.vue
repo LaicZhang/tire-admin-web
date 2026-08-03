@@ -6,9 +6,14 @@ import {
   getFundReportApi
 } from "@/api/analysis";
 import { message, handleApiError } from "@/utils";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import Refresh from "~icons/ep/refresh";
 import dayjs from "dayjs";
+import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
+import {
+  createDefaultAnalysisFilterState,
+  inferGroupBy,
+  toRequiredDateParams,
+  type AnalysisGroupBy
+} from "../shared";
 import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
 import {
@@ -25,39 +30,23 @@ defineOptions({
 
 const loading = ref(false);
 
-const dateRange = ref<[Date, Date] | null>([
-  dayjs().subtract(29, "day").toDate(),
-  dayjs().toDate()
-]);
-
-const shortcuts = [
-  {
-    text: "最近一周",
-    value: () => {
-      const end = new Date();
-      const start = new Date();
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-      return [start, end];
-    }
-  },
-  {
-    text: "最近一个月",
-    value: () => {
-      const end = new Date();
-      const start = new Date();
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-      return [start, end];
-    }
-  },
-  {
-    text: "本年度",
-    value: () => {
-      const end = new Date();
-      const start = new Date(new Date().getFullYear(), 0, 1);
-      return [start, end];
-    }
+const filterState = ref(createDefaultAnalysisFilterState());
+const dateRange = computed({
+  get: () => filterState.value.dateRange,
+  set: v => {
+    filterState.value = {
+      ...filterState.value,
+      dateRange: v,
+      groupBy: inferGroupBy(v)
+    };
   }
-];
+});
+const groupBy = computed({
+  get: () => filterState.value.groupBy,
+  set: (v: AnalysisGroupBy) => {
+    filterState.value = { ...filterState.value, groupBy: v };
+  }
+});
 
 const summaryData = ref(mapIncomeExpenseSummaryCards(null));
 const cashFlowSegments = ref(mapCashFlowSegments(null));
@@ -69,13 +58,7 @@ const balanceChartRef = ref<HTMLElement | null>(null);
 let cashFlowChart: EChartsType | null = null;
 let balanceChart: EChartsType | null = null;
 
-const dateParams = computed(() => {
-  if (!dateRange.value) return {};
-  return {
-    startDate: dayjs(dateRange.value[0]).format("YYYY-MM-DD"),
-    endDate: dayjs(dateRange.value[1]).format("YYYY-MM-DD")
-  };
-});
+const dateParams = computed(() => toRequiredDateParams(dateRange.value));
 
 const getSummary = async () => {
   try {
@@ -249,16 +232,14 @@ onUnmounted(() => {
   <div class="main p-4">
     <el-card class="mb-4">
       <div class="flex items-center justify-between">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          :shortcuts="shortcuts"
+        <AnalysisDateToolbar
+          v-model:date-range="dateRange"
+          v-model:group-by="groupBy"
+          :show-group-by="false"
+          :loading="loading"
           @change="handleDateChange"
+          @refresh="loadData"
         />
-        <el-button :icon="useRenderIcon(Refresh)" circle @click="loadData" />
       </div>
     </el-card>
 

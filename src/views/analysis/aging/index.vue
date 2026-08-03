@@ -2,11 +2,16 @@
 import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { getReceivableAgingApi, getPayableAgingApi } from "@/api/analysis";
 import { message } from "@/utils/message";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { receivableColumns, payableColumns } from "./columns";
-import Refresh from "~icons/ep/refresh";
 import type { EChartsType } from "echarts/core";
 import { getEcharts } from "@/utils/echarts";
+import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
+import {
+  createDefaultAnalysisFilterState,
+  inferGroupBy,
+  toRequiredDateParams,
+  type AnalysisGroupBy
+} from "../shared";
 
 defineOptions({
   name: "AnalysisAging"
@@ -35,15 +40,29 @@ interface AgingData {
 
 const loading = ref(false);
 const activeTab = ref("receivable");
-const dateRange = ref<[Date, Date] | null>(null);
+const filterState = ref(createDefaultAnalysisFilterState());
+const dateRange = computed({
+  get: () => filterState.value.dateRange,
+  set: v => {
+    filterState.value = {
+      ...filterState.value,
+      dateRange: v,
+      groupBy: inferGroupBy(v)
+    };
+  }
+});
+const groupBy = computed({
+  get: () => filterState.value.groupBy,
+  set: (v: AnalysisGroupBy) => {
+    filterState.value = { ...filterState.value, groupBy: v };
+  }
+});
 
-// 应收数据
 const receivableData = ref<AgingData>({
   totalAmount: "0",
   buckets: [],
   details: []
 });
-// 应付数据
 const payableData = ref<AgingData>({
   totalAmount: "0",
   buckets: [],
@@ -55,11 +74,8 @@ const chartRefPayable = ref<HTMLElement | null>(null);
 let chartInstanceReceivable: EChartsType | null = null;
 let chartInstancePayable: EChartsType | null = null;
 
-const dateParams = computed(() => {
-  // 账龄分析通常不需要时间段筛选，而是截止日期，但API提供了startDate/endDate，可能是筛选订单生成时间
-  // 这里暂时不传，获取所有未结清
-  return {};
-});
+/** Order-date window for aging APIs; always send default 30d range (no full-history). */
+const dateParams = computed(() => toRequiredDateParams(dateRange.value));
 
 const formatAmount = (val: string | number) => {
   const num = Number(val) / 100;
@@ -139,7 +155,7 @@ const updateChart = async (type: "receivable" | "payable") => {
         type: "pie",
         radius: "50%",
         data: buckets.map((item: BucketItem) => ({
-          value: Number(item.amount) / 100, // 转为元
+          value: Number(item.amount) / 100,
           name: item.label
         })),
         emphasis: {
@@ -203,9 +219,16 @@ onUnmounted(() => {
 <template>
   <div class="main p-4">
     <el-card class="mb-4">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <span class="font-bold text-lg">账龄分析</span>
-        <el-button :icon="useRenderIcon(Refresh)" circle @click="loadData" />
+        <AnalysisDateToolbar
+          v-model:date-range="dateRange"
+          v-model:group-by="groupBy"
+          :show-group-by="false"
+          :loading="loading"
+          @change="loadData"
+          @refresh="loadData"
+        />
       </div>
     </el-card>
 

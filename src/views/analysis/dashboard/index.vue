@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import dayjs from "dayjs";
 import { useRoute, useRouter } from "vue-router";
 import {
   getRepoListApi,
@@ -11,10 +10,16 @@ import {
   type Store
 } from "@/api";
 import { handleApiError } from "@/utils";
+import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
 import {
-  buildAnalysisQuery,
+  buildAnalysisFilterQuery,
+  createDefaultAnalysisFilterState,
+  inferGroupBy,
   parseAnalysisFilters,
-  toDateParams
+  toRequiredDateParams,
+  type AnalysisDateRange,
+  type AnalysisFilterState,
+  type AnalysisGroupBy
 } from "../shared";
 import RoleDashboardContent from "../components/RoleDashboardContent.vue";
 
@@ -29,26 +34,22 @@ const stores = ref<Store[]>([]);
 const repos = ref<Repo[]>([]);
 const dashboardData = ref<RoleDashboardData | null>(null);
 
-const filters = reactive({
-  dateRange: null as [Date, Date] | null,
-  storeId: "",
-  repoId: ""
+const filters = reactive<AnalysisFilterState>(createDefaultAnalysisFilterState());
+
+const dateRange = computed({
+  get: () => filters.dateRange,
+  set: (v: AnalysisDateRange) => {
+    filters.dateRange = v;
+    filters.groupBy = inferGroupBy(v);
+  }
 });
 
-const shortcuts = [
-  {
-    text: "最近一周",
-    value: () => [dayjs().subtract(6, "day").toDate(), dayjs().toDate()]
-  },
-  {
-    text: "最近一个月",
-    value: () => [dayjs().subtract(29, "day").toDate(), dayjs().toDate()]
-  },
-  {
-    text: "最近三个月",
-    value: () => [dayjs().subtract(89, "day").toDate(), dayjs().toDate()]
+const groupBy = computed({
+  get: () => filters.groupBy,
+  set: (v: AnalysisGroupBy) => {
+    filters.groupBy = v;
   }
-];
+});
 
 const currentStore = computed(() =>
   stores.value.find(item => item.uid === filters.storeId)
@@ -61,7 +62,7 @@ const repoOptions = computed(() => {
 });
 
 const filterParams = computed(() => ({
-  ...toDateParams(filters.dateRange),
+  ...toRequiredDateParams(filters.dateRange),
   storeId: filters.storeId || undefined,
   repoId: filters.repoId || undefined
 }));
@@ -71,15 +72,14 @@ function applyRouteFilters() {
   filters.dateRange = parsed.dateRange;
   filters.storeId = parsed.storeId;
   filters.repoId = parsed.repoId;
+  filters.operatorId = parsed.operatorId;
+  filters.groupBy = parsed.groupBy;
+  filters.dim = parsed.dim;
 }
 
 async function syncRouteQuery() {
   await router.replace({
-    query: buildAnalysisQuery({
-      dateRange: filters.dateRange,
-      storeId: filters.storeId || undefined,
-      repoId: filters.repoId || undefined
-    })
+    query: buildAnalysisFilterQuery(filters)
   });
 }
 
@@ -128,12 +128,6 @@ watch(
 
 onMounted(async () => {
   applyRouteFilters();
-  if (!filters.dateRange) {
-    filters.dateRange = [
-      dayjs().subtract(29, "day").toDate(),
-      dayjs().toDate()
-    ];
-  }
   await loadOptions();
   if (filters.storeId && !filters.repoId) {
     filters.repoId = currentStore.value?.defaultRepositoryId ?? "";
@@ -146,14 +140,13 @@ onMounted(async () => {
   <div class="main p-4">
     <el-card class="mb-4">
       <div class="flex flex-wrap items-center gap-3">
-        <el-date-picker
-          v-model="filters.dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          :shortcuts="shortcuts"
+        <AnalysisDateToolbar
+          v-model:date-range="dateRange"
+          v-model:group-by="groupBy"
+          :show-group-by="false"
+          :loading="loading"
           @change="refreshDashboard"
+          @refresh="refreshDashboard"
         />
         <el-select
           v-model="filters.storeId"

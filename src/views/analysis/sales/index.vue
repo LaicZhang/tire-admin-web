@@ -14,15 +14,17 @@ import {
   type SalesOrderTrackingData
 } from "@/api";
 import { getStoreListApi, type Store } from "@/api/company/store";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { getEcharts } from "@/utils/echarts";
 import { handleApiError } from "@/utils";
-import Refresh from "~icons/ep/refresh";
 import { useColumns } from "./columns";
+import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
 import {
-  buildAnalysisQuery,
+  buildAnalysisFilterQuery,
+  createDefaultAnalysisFilterState,
+  inferGroupBy,
   parseAnalysisFilters,
-  toDateParams
+  toRequiredDateParams,
+  type AnalysisGroupBy
 } from "../shared";
 import { buildTrackingSummaryCards } from "../transformers";
 import { useUserStoreHook } from "@/store/modules/user";
@@ -47,7 +49,23 @@ let chartInstance: EChartsType | null = null;
 const stores = ref<Store[]>([]);
 const analysisMembers = ref<AnalysisMember[]>([]);
 
-const dateRange = ref<[Date, Date] | null>(null);
+const filterState = ref(createDefaultAnalysisFilterState());
+const dateRange = computed({
+  get: () => filterState.value.dateRange,
+  set: v => {
+    filterState.value = {
+      ...filterState.value,
+      dateRange: v,
+      groupBy: inferGroupBy(v)
+    };
+  }
+});
+const groupBy = computed({
+  get: () => filterState.value.groupBy,
+  set: (v: AnalysisGroupBy) => {
+    filterState.value = { ...filterState.value, groupBy: v };
+  }
+});
 const selectedStoreId = ref("");
 const selectedOperatorId = ref("");
 const activeRankingTab = ref("customer");
@@ -73,42 +91,13 @@ const trackingSummary = ref<SalesOrderTrackingData["summary"]>({
   completed: 0
 });
 
-const shortcuts = [
-  {
-    text: "最近一周",
-    value: () => {
-      const end = new Date();
-      const start = new Date();
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-      return [start, end];
-    }
-  },
-  {
-    text: "最近一个月",
-    value: () => {
-      const end = new Date();
-      const start = new Date();
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-      return [start, end];
-    }
-  },
-  {
-    text: "最近三个月",
-    value: () => {
-      const end = new Date();
-      const start = new Date();
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-      return [start, end];
-    }
-  }
-];
-
 const dateParams = computed(() => ({
-  ...toDateParams(dateRange.value),
+  ...toRequiredDateParams(dateRange.value),
   storeId: selectedStoreId.value || undefined,
   operatorId: canSelectMember.value
     ? selectedOperatorId.value || undefined
-    : undefined
+    : undefined,
+  groupBy: groupBy.value
 }));
 
 const trackingCards = computed(() =>
@@ -211,7 +200,7 @@ async function getSummary() {
 async function getTrend() {
   const { data, code } = await getSalesTrendApi({
     ...dateParams.value,
-    groupBy: "month"
+    groupBy: groupBy.value
   });
   if (code !== 200) return;
   trendData.value = data?.data ?? [];
@@ -282,21 +271,17 @@ async function loadAnalysisMembers() {
 
 function applyRouteFilters() {
   const parsed = parseAnalysisFilters(route.query);
-  dateRange.value = parsed.dateRange;
+  filterState.value = { ...parsed };
   selectedStoreId.value = parsed.storeId;
   selectedOperatorId.value = parsed.operatorId;
 }
 
 async function syncQuery() {
   await router.replace({
-    query: buildAnalysisQuery({
-      dateRange: dateRange.value,
-      storeId: selectedStoreId.value || undefined,
-      extras: {
-        operatorId: canSelectMember.value
-          ? selectedOperatorId.value || undefined
-          : undefined
-      }
+    query: buildAnalysisFilterQuery({
+      ...filterState.value,
+      storeId: selectedStoreId.value,
+      operatorId: canSelectMember.value ? selectedOperatorId.value : ""
     })
   });
 }
@@ -353,14 +338,12 @@ onUnmounted(() => {
           >
             {{ currentViewLabel }}
           </el-tag>
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            :shortcuts="shortcuts"
+          <AnalysisDateToolbar
+            v-model:date-range="dateRange"
+            v-model:group-by="groupBy"
+            :loading="loading"
             @change="handleFilterChange"
+            @refresh="loadData"
           />
           <el-select
             v-model="selectedStoreId"
@@ -397,7 +380,6 @@ onUnmounted(() => {
             返回公司图表
           </el-button>
         </div>
-        <el-button :icon="useRenderIcon(Refresh)" circle @click="loadData" />
       </div>
     </el-card>
 

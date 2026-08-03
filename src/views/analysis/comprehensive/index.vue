@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import dayjs from "dayjs";
-import { ref, onMounted } from "vue";
+import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
+import {
+  createDefaultAnalysisFilterState,
+  inferGroupBy,
+  toRequiredDateParams,
+  type AnalysisGroupBy
+} from "../shared";
+import { computed, ref, onMounted } from "vue";
 import {
   getReturnRateApi,
   getClaimLossApi,
@@ -21,7 +27,23 @@ const { claimLossColumns, slowMovingColumns, expiryColumns, stockoutColumns } =
 
 const activeTab = ref("return-rate");
 const loading = ref(false);
-const dateRange = ref<[Date, Date] | null>(null);
+const filterState = ref(createDefaultAnalysisFilterState());
+const dateRange = computed({
+  get: () => filterState.value.dateRange,
+  set: v => {
+    filterState.value = {
+      ...filterState.value,
+      dateRange: v,
+      groupBy: inferGroupBy(v)
+    };
+  }
+});
+const groupBy = computed({
+  get: () => filterState.value.groupBy,
+  set: (v: AnalysisGroupBy) => {
+    filterState.value = { ...filterState.value, groupBy: v };
+  }
+});
 
 // 退货率数据
 const returnRateData = ref({
@@ -62,11 +84,9 @@ const stockoutData = ref({
 async function loadReturnRate() {
   loading.value = true;
   try {
-    const params: Record<string, unknown> = {};
-    if (dateRange.value) {
-      params.startDate = dayjs(dateRange.value[0]).format("YYYY-MM-DD");
-      params.endDate = dayjs(dateRange.value[1]).format("YYYY-MM-DD");
-    }
+    const params: Record<string, unknown> = {
+      ...toRequiredDateParams(dateRange.value)
+    };
     const { data, code, msg } = await getReturnRateApi(params);
     if (code === 200) {
       returnRateData.value = data || {
@@ -88,11 +108,9 @@ async function loadReturnRate() {
 async function loadClaimLoss() {
   loading.value = true;
   try {
-    const params: Record<string, unknown> = {};
-    if (dateRange.value) {
-      params.startDate = dayjs(dateRange.value[0]).format("YYYY-MM-DD");
-      params.endDate = dayjs(dateRange.value[1]).format("YYYY-MM-DD");
-    }
+    const params: Record<string, unknown> = {
+      ...toRequiredDateParams(dateRange.value)
+    };
     const { data, code, msg } = await getClaimLossApi(params);
     if (code === 200) {
       claimLossData.value = data || {
@@ -201,6 +219,14 @@ function formatMoney(value: number) {
   return Number(fenToYuan(value));
 }
 
+function loadData() {
+  handleTabChange(activeTab.value);
+}
+
+function handleDateChange() {
+  loadData();
+}
+
 onMounted(() => {
   loadReturnRate();
 });
@@ -211,13 +237,13 @@ onMounted(() => {
     <template #header>
       <div class="flex items-center justify-between">
         <span class="text-lg font-medium">综合分析</span>
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="handleTabChange(activeTab)"
+        <AnalysisDateToolbar
+          v-model:date-range="dateRange"
+          v-model:group-by="groupBy"
+          :show-group-by="false"
+          :loading="loading"
+          @change="handleDateChange"
+          @refresh="loadData"
         />
       </div>
     </template>
