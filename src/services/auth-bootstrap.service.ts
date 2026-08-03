@@ -14,6 +14,8 @@ import {
   type StoreOption
 } from "@/store/modules/company";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import { useOptionsStoreHook } from "@/store/modules/options";
+import { usePermissionStoreHook } from "@/store/modules/permission";
 import { routerArrays, toMultiTypeArray } from "@/store/utils";
 import { useUserStoreHook } from "@/store/modules/user";
 import { message } from "@/utils/message";
@@ -113,19 +115,49 @@ async function promptSelectStore(
   return selectedStoreId.value;
 }
 
+/**
+ * W-MC3: 切公司后清空业务选项/路由缓存，避免跨公司串味。
+ * 草稿/近期表单已按 companyUid 分 key，不在此全量 wipe。
+ */
+export function resetBusinessContextForCompanyChange() {
+  useOptionsStoreHook().clearForCompanyChange();
+  usePermissionStoreHook().clearAllCachePage();
+}
+
 async function ensureCompanyContextReady() {
   const companyStore = useCurrentCompanyStoreHook();
   const companies = await companyStore.fetchAvailableCompanies();
 
-  if (companies.length === 1) return;
+  if (companies.length === 0) {
+    throw new Error("当前用户没有可用公司，请联系管理员");
+  }
 
-  const storedCompanyId = companyStore.companyId;
-  if (storedCompanyId && companies.some(c => c.uid === storedCompanyId)) {
-    await companyStore.determineCurrentCompany(storedCompanyId);
+  // 单公司：fetch 已写入本地；零弹窗
+  if (companies.length === 1) {
     return;
   }
 
-  const picked = await promptSelectCompany(companies, storedCompanyId);
+  // 多公司：必须显式选择。localStorage 中的 companyId 仅作弹窗默认高亮，禁止静默 determine。
+  const storedCompanyId = companyStore.companyId;
+  const highlightId =
+    storedCompanyId && companies.some(c => c.uid === storedCompanyId)
+      ? storedCompanyId
+      : undefined;
+
+  // 失效公司：本地有 id 但不在列表 → 不作为高亮，强制重选
+  if (storedCompanyId && !highlightId) {
+    companyStore.setCurrentCompany({
+      companyId: "",
+      companyName: "",
+      storeId: "",
+      storeName: ""
+    });
+  }
+
+  const picked = await promptSelectCompany(companies, highlightId);
+  if (!picked || !companies.some(c => c.uid === picked)) {
+    throw new Error("请选择有效公司");
+  }
   await companyStore.determineCurrentCompany(picked);
 }
 
@@ -163,7 +195,7 @@ async function redirectToTopMenu() {
 
 /**
  * 登录成功后的统一收口：
- * - 确保公司上下文已确定（多公司弹窗选择）
+ * - 确保公司上下文已确定（多公司弹窗选择；stored 仅高亮）
  * - 初始化动态路由（后端 async-routes -> meta.auths -> 按钮权限）
  * - 跳转到顶级菜单
  */
@@ -173,6 +205,7 @@ export async function completeLogin(tokenPayload?: SetTokenPayload) {
     if (tokenPayload) setToken(tokenPayload);
 
     await ensureCompanyContextReady();
+    resetBusinessContextForCompanyChange();
     await ensureStoreContextReady();
     await initRouter();
     addPathMatch();
@@ -188,23 +221,31 @@ export async function completeLogin(tokenPayload?: SetTokenPayload) {
 /**
  * 全局公司切换：
  * - 同步后端当前公司上下文
- * - 重置菜单/路由缓存并重新拉取 async-routes
- * - 跳转到新公司顶级菜单
+ * - 重置业务 store / 菜单路由缓存并重新拉取 async-routes
+ * - 失败不登出，保留原公司并展示回滚文案
  */
 export async function switchCompany(companyId: string) {
   const companyStore = useCurrentCompanyStoreHook();
   if (!companyId) return;
   if (companyId === companyStore.companyId) return;
 
+  const previousId = companyStore.companyId;
+  const previousName = companyStore.companyName;
+
   try {
     await companyStore.determineCurrentCompany(companyId);
+    resetBusinessContextForCompanyChange();
     await ensureStoreContextReady();
     resetUiForContextChange();
     await initRouter();
     addPathMatch();
     await redirectToTopMenu();
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "切换公司失败";
+    const detail = error instanceof Error ? error.message : "切换公司失败";
+    const keepLabel = previousName || previousId;
+    const msg = keepLabel
+      ? `切换公司失败，已保留原公司「${keepLabel}」：${detail}`
+      : detail;
     message(msg, { type: "error" });
     // 切换失败时不强制登出；保留原公司上下文
     throw error;

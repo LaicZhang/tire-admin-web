@@ -142,6 +142,22 @@ export const useOptionsStore = defineStore("pure-options", {
     },
 
     /**
+     * 切换公司时清空内存选项，避免跨公司串数据（W-MC3 / W116）
+     */
+    clearForCompanyChange(): void {
+      this.employees = [];
+      this.managers = [];
+      this.customers = [];
+      this.providers = [];
+      this.repos = [];
+      this.tires = [];
+      this.positions = [];
+      this.isLoaded = false;
+      this.isLoading = false;
+      loadAllPromise = null;
+    },
+
+    /**
      * 刷新所有选项数据
      */
     async refreshAll(): Promise<void> {
