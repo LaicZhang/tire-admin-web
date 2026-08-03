@@ -21,7 +21,13 @@ import {
   getSalesProvinceApi,
   getSalesSummaryByDimensionApi,
   getPurchaseSummaryByDimensionApi,
-  getProviderQualityIssuesApi
+  getProviderQualityIssuesApi,
+  getReceivableAgingApi,
+  getPayableAgingApi,
+  getCustomerRankingApi,
+  getSlowMovingApi,
+  getStockoutApi,
+  getDotAgingApi
 } from "../analysis";
 import { http } from "@/utils/http";
 
@@ -339,6 +345,80 @@ describe("analysis api", () => {
       "get",
       "/api/v1/analysis/provider-quality-issues",
       { params }
+    );
+  });
+
+  it("requests receivable/payable aging with agingDays buckets", async () => {
+    const params = {
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      agingDays: [30, 60, 90]
+    };
+    await getReceivableAgingApi(params);
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/receivable/aging",
+      { params }
+    );
+
+    vi.mocked(http.request).mockClear();
+    await getPayableAgingApi({
+      ...params,
+      agingDays: [15, 30, 60, 90]
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/payable/aging",
+      {
+        params: {
+          startDate: "2026-07-01",
+          endDate: "2026-07-31",
+          agingDays: [15, 30, 60, 90]
+        }
+      }
+    );
+  });
+
+  it("requests ranking and inventory enhancement endpoints", async () => {
+    await getCustomerRankingApi({
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      limit: 20
+    });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/ranking/customers",
+      {
+        params: {
+          startDate: "2026-07-01",
+          endDate: "2026-07-31",
+          limit: 20
+        }
+      }
+    );
+
+    vi.mocked(http.request).mockClear();
+    await getSlowMovingApi({ days: 90, repoId: "r1" });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/slow-moving",
+      { params: { days: 90, repoId: "r1" } }
+    );
+
+    vi.mocked(http.request).mockClear();
+    await getStockoutApi({ repoId: "r1" });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/stockout",
+      { params: { repoId: "r1" } }
+    );
+
+    vi.mocked(http.request).mockClear();
+    await getDotAgingApi({ repoId: "r1" });
+    expect(http.request).toHaveBeenCalledWith(
+      "get",
+      "/api/v1/analysis/inventory/dot-aging",
+      { params: { repoId: "r1" } }
     );
   });
 

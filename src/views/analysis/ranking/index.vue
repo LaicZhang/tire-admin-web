@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import type { EChartsType } from "echarts/core";
 import {
   getCustomerRankingApi,
   getProviderRankingApi,
@@ -7,6 +8,7 @@ import {
   getOperatorRankingApi
 } from "@/api/analysis";
 import { message } from "@/utils/message";
+import { getEcharts } from "@/utils/echarts";
 import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
 import {
   createDefaultAnalysisFilterState,
@@ -25,7 +27,7 @@ const { customerColumns, providerColumns, productColumns, operatorColumns } =
 
 const loading = ref(false);
 const activeTab = ref("customer");
-const limit = ref(20); // 默认展示 Top 20
+const limit = ref(20);
 
 const limitOptions = [
   { label: "Top 10", value: 10 },
@@ -34,7 +36,6 @@ const limitOptions = [
   { label: "Top 100", value: 100 }
 ];
 
-// 日期范围筛选
 const filterState = ref(createDefaultAnalysisFilterState());
 const dateRange = computed({
   get: () => filterState.value.dateRange,
@@ -52,13 +53,112 @@ const groupBy = computed({
     filterState.value = { ...filterState.value, groupBy: v };
   }
 });
-// 排行榜数据
-const customerRanking = ref<unknown[]>([]);
-const providerRanking = ref<unknown[]>([]);
-const productRanking = ref<unknown[]>([]);
-const operatorRanking = ref<unknown[]>([]);
+
+type RankItem = {
+  rank?: number;
+  name: string;
+  amount: string;
+  count?: number;
+  quantity?: number;
+};
+
+const customerRanking = ref<RankItem[]>([]);
+const providerRanking = ref<RankItem[]>([]);
+const productRanking = ref<RankItem[]>([]);
+const operatorRanking = ref<RankItem[]>([]);
+
+const chartRef = ref<HTMLElement | null>(null);
+let chartInstance: EChartsType | null = null;
 
 const dateParams = computed(() => toRequiredDateParams(dateRange.value));
+
+const activeRows = computed(() => {
+  switch (activeTab.value) {
+    case "provider":
+      return providerRanking.value;
+    case "product":
+      return productRanking.value;
+    case "operator":
+      return operatorRanking.value;
+    case "customer":
+    default:
+      return customerRanking.value;
+  }
+});
+
+const activeSeriesName = computed(() => {
+  switch (activeTab.value) {
+    case "provider":
+      return "采购金额";
+    case "product":
+      return "销售金额";
+    case "operator":
+      return "员工业绩";
+    default:
+      return "客户金额";
+  }
+});
+
+function fenToYuan(val: string | number | null | undefined): number {
+  const n = Number(String(val ?? "0").replace(/,/g, ""));
+  return Number.isFinite(n) ? n / 100 : 0;
+}
+
+async function updateChart() {
+  if (!chartRef.value) return;
+  if (!chartInstance) {
+    const echarts = await getEcharts();
+    chartInstance = echarts.init(chartRef.value);
+  }
+  const rows = activeRows.value.slice(0, Math.min(limit.value, 20));
+  const labels = rows.map(r => r.name || "-").reverse();
+  const amounts = rows.map(r => fenToYuan(r.amount)).reverse();
+  chartInstance.setOption(
+    {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        formatter: (params: unknown) => {
+          const list = Array.isArray(params) ? params : [params];
+          const item = list[0] as { name?: string; value?: number } | undefined;
+          if (!item) return "";
+          return `${item.name}<br/>${activeSeriesName.value}：¥${Number(
+            item.value ?? 0
+          ).toLocaleString("zh-CN", { minimumFractionDigits: 2 })}`;
+        }
+      },
+      grid: {
+        left: "3%",
+        right: "8%",
+        bottom: "3%",
+        top: "8%",
+        containLabel: true
+      },
+      xAxis: {
+        type: "value",
+        name: "金额(元)",
+        axisLabel: {
+          formatter: (val: number) =>
+            val >= 10000 ? `${(val / 10000).toFixed(1)}万` : String(val)
+        }
+      },
+      yAxis: {
+        type: "category",
+        data: labels,
+        axisLabel: { width: 110, overflow: "truncate" }
+      },
+      series: [
+        {
+          name: activeSeriesName.value,
+          type: "bar",
+          data: amounts,
+          itemStyle: { color: "#2563eb" }
+        }
+      ]
+    },
+    true
+  );
+}
 
 const getCustomerRank = async () => {
   const { data, code } = await getCustomerRankingApi({
@@ -80,7 +180,7 @@ const getProductRank = async () => {
   const { data, code } = await getProductRankingApi({
     ...dateParams.value,
     limit: limit.value,
-    orderBy: "amount" // 默认按金额排行
+    orderBy: "amount"
   });
   if (code === 200) productRanking.value = data?.items || [];
 };
@@ -97,14 +197,14 @@ const getOperatorRank = async () => {
 const loadData = async () => {
   loading.value = true;
   try {
-    // 根据当前Tab加载对应数据，或者一次性加载所有（如果为了切换流畅，可以一次性加载）
-    // 为了用户体验，这里选择一次性加载，数据量不会太大（Top N）
     await Promise.all([
       getCustomerRank(),
       getProviderRank(),
       getProductRank(),
       getOperatorRank()
     ]);
+    await nextTick();
+    await updateChart();
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "加载排行榜数据失败";
     message(msg, { type: "error" });
@@ -114,17 +214,32 @@ const loadData = async () => {
 };
 
 const handleFilterChange = () => {
-  loadData();
+  void loadData();
+};
+
+watch(activeTab, async () => {
+  await nextTick();
+  await updateChart();
+});
+
+const handleResize = () => {
+  chartInstance?.resize();
 };
 
 onMounted(() => {
-  loadData();
+  void loadData();
+  window.addEventListener("resize", handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
+  chartInstance?.dispose();
+  chartInstance = null;
 });
 </script>
 
 <template>
   <div class="main p-4">
-    <!-- 筛选栏 -->
     <el-card class="mb-4">
       <div class="flex items-center space-x-4">
         <AnalysisDateToolbar
@@ -152,10 +267,18 @@ onMounted(() => {
       </div>
     </el-card>
 
-    <!-- 排行榜 Tabs -->
+    <el-card class="mb-4">
+      <template #header>
+        <div class="flex items-center justify-between">
+          <span class="font-bold">排行水平 bar（C/E1）</span>
+          <el-tag size="small" type="info" effect="plain">当前 Tab Top</el-tag>
+        </div>
+      </template>
+      <div ref="chartRef" v-loading="loading" class="h-80" />
+    </el-card>
+
     <el-card>
       <el-tabs v-model="activeTab">
-        <!-- 客户排行 -->
         <el-tab-pane label="客户业绩排行" name="customer">
           <pure-table
             border
@@ -166,7 +289,6 @@ onMounted(() => {
           />
         </el-tab-pane>
 
-        <!-- 供应商排行 -->
         <el-tab-pane label="供应商采购排行" name="provider">
           <pure-table
             border
@@ -177,7 +299,6 @@ onMounted(() => {
           />
         </el-tab-pane>
 
-        <!-- 商品排行 -->
         <el-tab-pane label="热门商品排行" name="product">
           <pure-table
             border
@@ -188,7 +309,6 @@ onMounted(() => {
           />
         </el-tab-pane>
 
-        <!-- 员工排行 -->
         <el-tab-pane label="员工业绩排行" name="operator">
           <pure-table
             border

@@ -126,9 +126,15 @@ const movementRows = ref<
 const turnoverChartRef = ref<HTMLElement | null>(null);
 const expiryChartRef = ref<HTMLElement | null>(null);
 const movementChartRef = ref<HTMLElement | null>(null);
+const slowMovingChartRef = ref<HTMLElement | null>(null);
+const stockoutChartRef = ref<HTMLElement | null>(null);
+const dotAgingChartRef = ref<HTMLElement | null>(null);
 let turnoverChart: EChartsType | null = null;
 let expiryChart: EChartsType | null = null;
 let movementChart: EChartsType | null = null;
+let slowMovingChart: EChartsType | null = null;
+let stockoutChart: EChartsType | null = null;
+let dotAgingChart: EChartsType | null = null;
 
 const currentStore = computed(() =>
   stores.value.find(item => item.uid === selectedStoreId.value)
@@ -192,12 +198,14 @@ async function getSlowMoving() {
   });
   if (code !== 200) return;
   slowMovingList.value = (Array.isArray(data) ? data : data?.items) || [];
+  await updateSlowMovingChart();
 }
 
 async function getStockout() {
   const { data, code } = await getStockoutApi(inventoryParams.value);
   if (code !== 200) return;
   stockoutList.value = (Array.isArray(data) ? data : data?.items) || [];
+  await updateStockoutChart();
 }
 
 async function getTurnover() {
@@ -222,6 +230,7 @@ async function getDotAging() {
   const { data, code } = await getDotAgingApi(inventoryParams.value);
   if (code !== 200) return;
   dotAgingList.value = data?.list || [];
+  await updateDotAgingChart();
 }
 
 async function getMovement() {
@@ -321,6 +330,120 @@ async function updateMovementChart() {
   });
 }
 
+async function updateSlowMovingChart() {
+  slowMovingChart = await ensureChart(slowMovingChart, slowMovingChartRef.value);
+  if (!slowMovingChart) return;
+  const rows = slowMovingList.value
+    .map(item => ({
+      name: item.tireName || "未知",
+      qty: Number(item.quantity ?? (item as { stockQuantity?: number }).stockQuantity ?? 0)
+    }))
+    .sort((a, b) => b.qty - a.qty)
+    .slice(0, 12);
+  slowMovingChart.setOption({
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    grid: { left: "3%", right: "8%", top: "8%", bottom: "3%", containLabel: true },
+    xAxis: { type: "value", name: "数量" },
+    yAxis: {
+      type: "category",
+      data: rows.map(r => r.name).reverse(),
+      axisLabel: { width: 100, overflow: "truncate" }
+    },
+    series: [
+      {
+        name: "滞销库存",
+        type: "bar",
+        data: rows.map(r => r.qty).reverse(),
+        itemStyle: { color: "#f59e0b" }
+      }
+    ]
+  });
+}
+
+async function updateStockoutChart() {
+  stockoutChart = await ensureChart(stockoutChart, stockoutChartRef.value);
+  if (!stockoutChart) return;
+  const rows = stockoutList.value
+    .map(item => {
+      const current = Number(
+        item.currentQuantity ?? (item as { currentStock?: number }).currentStock ?? 0
+      );
+      const safety = Number(
+        item.safetyStock ?? (item as { minStock?: number }).minStock ?? 0
+      );
+      const gap = Math.max(
+        0,
+        Number(item.suggestPurchase ?? safety - current)
+      );
+      return {
+        name: item.tireName || (item as { name?: string }).name || "未知",
+        gap
+      };
+    })
+    .sort((a, b) => b.gap - a.gap)
+    .slice(0, 12);
+  stockoutChart.setOption({
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    grid: { left: "3%", right: "8%", top: "8%", bottom: "3%", containLabel: true },
+    xAxis: { type: "value", name: "缺口" },
+    yAxis: {
+      type: "category",
+      data: rows.map(r => r.name).reverse(),
+      axisLabel: { width: 100, overflow: "truncate" }
+    },
+    series: [
+      {
+        name: "缺货缺口",
+        type: "bar",
+        data: rows.map(r => r.gap).reverse(),
+        itemStyle: { color: "#ef4444" }
+      }
+    ]
+  });
+}
+
+async function updateDotAgingChart() {
+  dotAgingChart = await ensureChart(dotAgingChart, dotAgingChartRef.value);
+  if (!dotAgingChart) return;
+  // stack counts by repo × DOT year buckets
+  const repos = Array.from(
+    new Set(dotAgingList.value.map(i => i.repoName || "未分配仓"))
+  );
+  const years = Array.from(
+    new Set(
+      dotAgingList.value.map(i => String(i.dotYear ?? "未知"))
+    )
+  ).sort();
+  const series = years.map((year, idx) => ({
+    name: `DOT ${year}`,
+    type: "bar" as const,
+    stack: "dot",
+    emphasis: { focus: "series" as const },
+    data: repos.map(repo =>
+      dotAgingList.value
+        .filter(
+          i =>
+            (i.repoName || "未分配仓") === repo &&
+            String(i.dotYear ?? "未知") === year
+        )
+        .reduce((sum, i) => sum + Number(i.count ?? 0), 0)
+    ),
+    itemStyle: {
+      color: ["#22c55e", "#3b82f6", "#eab308", "#f97316", "#ef4444", "#7c3aed"][
+        idx % 6
+      ]
+    }
+  }));
+  dotAgingChart.setOption({
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    legend: { bottom: 0 },
+    grid: { left: "3%", right: "4%", top: "8%", bottom: "16%", containLabel: true },
+    xAxis: { type: "category", data: repos, axisLabel: { rotate: repos.length > 4 ? 30 : 0 } },
+    yAxis: { type: "value", name: "数量" },
+    series
+  }, true);
+}
+
 async function loadData() {
   loading.value = true;
   try {
@@ -395,6 +518,9 @@ function handleResize() {
   turnoverChart?.resize();
   expiryChart?.resize();
   movementChart?.resize();
+  slowMovingChart?.resize();
+  stockoutChart?.resize();
+  dotAgingChart?.resize();
 }
 
 watch(
@@ -417,6 +543,15 @@ onUnmounted(() => {
   turnoverChart?.dispose();
   expiryChart?.dispose();
   movementChart?.dispose();
+  slowMovingChart?.dispose();
+  stockoutChart?.dispose();
+  dotAgingChart?.dispose();
+  turnoverChart = null;
+  expiryChart = null;
+  movementChart = null;
+  slowMovingChart = null;
+  stockoutChart = null;
+  dotAgingChart = null;
 });
 </script>
 
@@ -578,26 +713,28 @@ onUnmounted(() => {
       <el-col v-if="visibleSections.has('slowMoving')" :span="12">
         <el-card>
           <template #header>
-            <span class="font-bold">滞销商品</span>
+            <span class="font-bold">滞销商品（B7 bar）</span>
           </template>
+          <div ref="slowMovingChartRef" v-loading="loading" class="h-64 mb-3" />
           <pure-table
             :data="slowMovingList"
             :columns="slowMovingColumns"
             stripe
-            height="360"
+            height="240"
           />
         </el-card>
       </el-col>
       <el-col v-if="visibleSections.has('stockout')" :span="12">
         <el-card>
           <template #header>
-            <span class="font-bold">缺货预警</span>
+            <span class="font-bold">缺货预警（B8 gap bar）</span>
           </template>
+          <div ref="stockoutChartRef" v-loading="loading" class="h-64 mb-3" />
           <pure-table
             :data="stockoutList"
             :columns="stockoutColumns"
             stripe
-            height="360"
+            height="240"
           />
         </el-card>
       </el-col>
@@ -619,12 +756,13 @@ onUnmounted(() => {
       <el-col v-if="visibleSections.has('dotAging')" :span="12">
         <el-card>
           <template #header>
-            <span class="font-bold">DOT 库龄分布</span>
+            <span class="font-bold">DOT 库龄分布（B6 stacked）</span>
           </template>
+          <div ref="dotAgingChartRef" v-loading="loading" class="h-64 mb-3" />
           <pure-table
             :data="dotAgingList"
             stripe
-            height="360"
+            height="220"
             :columns="[
               { label: '仓库', prop: 'repoName', minWidth: 120 },
               { label: '轮胎', prop: 'tireName', minWidth: 180 },
