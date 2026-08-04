@@ -28,7 +28,7 @@ vi.mock("@/utils/http", () => ({
   }
 }));
 
-describe("subscription admin api contract (W132)", () => {
+describe("subscription admin api contract (W132/W133)", () => {
   beforeEach(() => {
     vi.mocked(http.request).mockReset();
     vi.mocked(http.request).mockResolvedValue({ code: 200, data: {} });
@@ -175,7 +175,7 @@ describe("subscription admin api contract (W132)", () => {
     );
   });
 
-  it("reads current company plan and redeems code (Boss path)", async () => {
+  it("reads current company plan and redeems code (W133 Boss path)", async () => {
     await getCompanyPlanCurrentApi();
     expect(http.request).toHaveBeenCalledWith(
       "get",

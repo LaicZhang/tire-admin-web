@@ -20,6 +20,7 @@ import EditPen from "~icons/ep/edit-pen";
 import type { CompanyInfo } from "@/api/type";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useCurrentCompanyStoreHook } from "@/store/modules/company";
+import CompanyCurrentPlanCard from "./components/CompanyCurrentPlanCard.vue";
 
 defineOptions({
   name: "companyInfo"
@@ -214,6 +215,9 @@ onMounted(async () => {
         </div>
       </div>
     </el-card>
+
+    <!-- W133: 当前计划 + Boss 兑换（无购买入口） -->
+    <CompanyCurrentPlanCard :is-company-boss="canSelfClose" />
 
     <!-- 详细信息区域 -->
     <el-row :gutter="16" class="detail-row">
