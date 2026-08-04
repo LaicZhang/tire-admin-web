@@ -372,6 +372,51 @@ export default [
           title: "帮助中心",
           icon: null
         }
+      },
+      {
+        id: 65,
+        uid: "29a45619-ad82-4396-b4ff-b8ac30871b77",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "subscriptionPlans",
+        path: "/system/subscription-plans",
+        redirect: null,
+        component: () => import("@/views/system/subscription-plans/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin"],
+          title: "订阅计划",
+          icon: null
+        }
+      },
+      {
+        id: 66,
+        uid: "0f992aeb-8f05-4017-a688-35230fea6727",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "featureCatalog",
+        path: "/system/features",
+        redirect: null,
+        component: () => import("@/views/system/features/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin"],
+          title: "功能目录",
+          icon: null
+        }
+      },
+      {
+        id: 67,
+        uid: "64a6de4b-fb95-4913-a049-c16b6847201e",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "planRedeemCodes",
+        path: "/system/plan-redeem-codes",
+        redirect: null,
+        component: () => import("@/views/system/plan-redeem-codes/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin"],
+          title: "计划兑换码",
+          icon: null
+        }
       }
     ]
   },

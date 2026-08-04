@@ -6,6 +6,7 @@ import ReSearchForm from "@/components/ReSearchForm/index.vue";
 import { useColumns } from "./columns";
 import { FormItemProps } from "./utils/types";
 import CompanyForm from "./form.vue";
+import CompanyPlanGrantsDialog from "./components/CompanyPlanGrantsDialog.vue";
 import { addDialog } from "@/composables/useDialogService";
 import { message, handleApiError } from "@/utils";
 import {
@@ -229,6 +230,15 @@ const handleTransferBoss = async (row: FormItemProps) => {
   }
 };
 
+const planDialogVisible = ref(false);
+const planCompany = ref<{ uid: string; name: string } | null>(null);
+
+const openPlanDialog = (row: FormItemProps) => {
+  if (!row.uid) return;
+  planCompany.value = { uid: row.uid, name: row.name ?? "" };
+  planDialogVisible.value = true;
+};
+
 function handleSizeChange(val: number) {
   onSizeChange(val);
   pagination.currentPage = 1;
@@ -332,6 +342,15 @@ onMounted(() => {
               >
                 移交老板
               </el-button>
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                @click="openPlanDialog(row)"
+              >
+                订阅计划
+              </el-button>
               <DeleteButton
                 :size="size"
                 :show-icon="false"
@@ -342,6 +361,13 @@ onMounted(() => {
         </pure-table>
       </template>
     </PureTableBar>
+
+    <CompanyPlanGrantsDialog
+      v-if="planCompany"
+      v-model="planDialogVisible"
+      :company-id="planCompany.uid"
+      :company-name="planCompany.name"
+    />
   </div>
 </template>
 

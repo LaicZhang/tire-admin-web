@@ -65,4 +65,32 @@ describe("auth routes", () => {
     });
   });
 
+  it("exposes platform subscription admin entries under system", () => {
+    const systemRoute = authRoutes.find(route => route.name === "system");
+    const plans = systemRoute?.children?.find(
+      route => route.path === "/system/subscription-plans"
+    );
+    const features = systemRoute?.children?.find(
+      route => route.path === "/system/features"
+    );
+    const codes = systemRoute?.children?.find(
+      route => route.path === "/system/plan-redeem-codes"
+    );
+
+    expect(plans).toMatchObject({
+      name: "subscriptionPlans",
+      isShow: true,
+      meta: { title: "订阅计划", roles: ["admin"] }
+    });
+    expect(features).toMatchObject({
+      name: "featureCatalog",
+      isShow: true,
+      meta: { title: "功能目录", roles: ["admin"] }
+    });
+    expect(codes).toMatchObject({
+      name: "planRedeemCodes",
+      isShow: true,
+      meta: { title: "计划兑换码", roles: ["admin"] }
+    });
+  });
 });
