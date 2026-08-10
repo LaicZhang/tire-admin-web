@@ -91,7 +91,7 @@
     "sortablejs": "^1.15.7",
     "unstorage": "^1.17.5",
     "uuid": "^14.0.1",
-    "vue": "^3.5.40",
+    "vue": "^3.5.41",
     "vue-demi": "^0.14.10",
     "vue-router": "^5.2.0",
     "vue-tippy": "^6.7.1",
