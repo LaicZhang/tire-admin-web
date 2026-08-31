@@ -18,7 +18,7 @@ export interface SalarySocialInput {
   medical?: string | number;
   unemployment?: string | number;
   fertility?: string | number;
-  injurty?: string | number;
+  injury?: string | number;
   birth?: string | number;
   housing?: string | number;
   tax?: string | number;

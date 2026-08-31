@@ -3,15 +3,14 @@ import { computed, onMounted, ref } from "vue";
 import { createNoticeTabs, type TabItem } from "./data";
 import NoticeList from "./noticeList.vue";
 import Bell from "~icons/ep/bell";
-import { getNoticeApi } from "@/api";
+import { getNoticeApi, getUnreadCountApi } from "@/api";
 import { message } from "@/utils/message";
 
 const notices = ref<TabItem[]>([]);
 const activeKey = ref("notice");
+const unreadNum = ref(0);
 
-const noticesNum = computed(() =>
-  notices.value.reduce((count, item) => count + item.list.length, 0)
-);
+const noticesNum = computed(() => unreadNum.value);
 
 const getNotice = async () => {
   try {
@@ -27,15 +26,32 @@ const getNotice = async () => {
   }
 };
 
+const getUnreadCount = async () => {
+  try {
+    const { data, code, msg } = await getUnreadCountApi();
+    if (code === 200) {
+      unreadNum.value = data ?? 0;
+      return;
+    }
+    message(msg, { type: "error" });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "未读数加载失败";
+    message(detail, { type: "error" });
+  }
+};
+
 onMounted(async () => {
   await getNotice();
+  await getUnreadCount();
+  // short poll every 30s (lazy UX)
+  setInterval(getUnreadCount, 30000);
 });
 </script>
 
 <template>
   <el-dropdown trigger="click" placement="bottom-end">
     <span class="dropdown-badge navbar-bg-hover select-none">
-      <el-badge :value="noticesNum" :hidden="noticesNum === 0" :max="99">
+      <el-badge :value="unreadNum" :hidden="unreadNum === 0" :max="99">
         <span class="header-notice-icon">
           <IconifyIconOffline :icon="Bell" />
         </span>

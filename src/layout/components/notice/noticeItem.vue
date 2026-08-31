@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ListItem } from "./data";
 import { ref, PropType, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import { useNav } from "@/layout/hooks/useNav";
 import { isMobileViewport } from "@/utils/viewport";
+import { markNoticeReadApi } from "@/api";
 
 const props = defineProps({
   noticeItem: {
@@ -10,6 +12,21 @@ const props = defineProps({
     default: () => ({}) as ListItem
   }
 });
+
+const router = useRouter();
+
+const handleJump = async (link?: string, uid?: string) => {
+  if (uid && !props.noticeItem.isRead) {
+    try {
+      await markNoticeReadApi(uid);
+    } catch {
+      // ignore mark failure
+    }
+  }
+  if (link) {
+    router.push(link);
+  }
+};
 
 const titleRef = ref<HTMLElement | null>(null);
 const titleTooltip = ref(false);
@@ -70,6 +87,7 @@ function hoverDescription(event: MouseEvent, description: string) {
             ref="titleRef"
             class="notice-title-content"
             @mouseover="hoverTitle"
+            @click="handleJump(props.noticeItem.link, props.noticeItem.uid)"
           >
             {{ props.noticeItem.title }}
           </div>

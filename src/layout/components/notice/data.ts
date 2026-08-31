@@ -11,6 +11,8 @@ export interface ListItem {
   extra?: string;
   level: number;
   levelLabel: string;
+  link?: string;
+  isRead?: boolean;
 }
 
 export interface TabItem {
@@ -46,18 +48,23 @@ export function getNoticeLevelMeta(level: number): NoticeLevelMeta {
 export function normalizeNoticeItem(item: AuthNoticeItem): ListItem {
   const levelMeta = getNoticeLevelMeta(item.level);
   const content = trimText(item.content);
+  const createAt = item.createAt
+    ? new Date(item.createAt).toLocaleString()
+    : "系统公告";
 
   return {
     uid: item.uid,
     avatar: "",
     title: trimText(item.title) || "未命名公告",
-    datetime: "系统公告",
+    datetime: createAt,
     type: "notice",
     description: content || DEFAULT_NOTICE_DESCRIPTION,
     status: levelMeta.status,
     extra: levelMeta.label,
     level: item.level,
-    levelLabel: levelMeta.label
+    levelLabel: levelMeta.label,
+    link: item.link,
+    isRead: item.isRead
   };
 }
 

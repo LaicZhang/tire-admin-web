@@ -83,6 +83,11 @@ export interface AuthNoticeItem {
   title: string;
   content?: string;
   level: number;
+  link?: string;
+  createAt?: string | Date;
+  source?: "platform" | "company";
+  isRead?: boolean;
+  readAt?: string | Date | null;
 }
 
 /**
@@ -372,4 +377,18 @@ export const wxQrBindApi = (data: {
   return http.request<CommonResult>("post", baseUrlApi("/auth/wx-qr/bind"), {
     data
   });
+};
+
+export const getUnreadCountApi = () => {
+  return http.request<CommonResult<number>>(
+    "get",
+    baseUrlApi("/auth/notice/unread-count")
+  );
+};
+
+export const markNoticeReadApi = (uid: string) => {
+  return http.request<CommonResult<boolean>>(
+    "post",
+    baseUrlApi("/auth/notice/" + uid + "/read")
+  );
 };
