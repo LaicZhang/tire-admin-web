@@ -153,4 +153,32 @@ describe("error contract: 前端码字面量 ↔ 后端注册表", () => {
       }
     }
   });
+
+  it("契约模块只读顶层 errorCode，不再回退 meta.errorCode（审计 §4 第 3 项）", () => {
+    // 注释里保留历史说明是允许的，这里只锁实现：去掉注释后再检查。
+    const moduleCode = fs
+      .readFileSync(contractModulePath, "utf-8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\/\/[^\n]*/g, "");
+    expect(moduleCode).not.toMatch(/readMetaErrorCode/);
+    expect(moduleCode).not.toMatch(/meta\.errorCode/);
+    expect(moduleCode).toMatch(
+      /errorCodeSource:\s*"errorCode"\s*\|\s*"http-fallback"/
+    );
+  });
+
+  it("errorHandler 复用契约模块的信封判定，且码位来源不再含 meta", () => {
+    const handlerPath = path.join(
+      adminRoot,
+      "src",
+      "utils",
+      "http",
+      "errorHandler.ts"
+    );
+    const handlerText = fs.readFileSync(handlerPath, "utf-8");
+    expect(handlerText).toMatch(
+      /import\s*\{\s*isApiEnvelope,\s*resolveApiError\s*\}\s*from\s*"@\/utils\/apiErrorContract"/
+    );
+    expect(handlerText).not.toMatch(/meta\.errorCode/);
+  });
 });

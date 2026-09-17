@@ -153,7 +153,7 @@ describe("apiErrorContract: resolveApiError", () => {
     expect(resolved.errorCodeSource).toBe("http-fallback");
   });
 
-  it("顶层 errorCode 缺失时回退 meta.errorCode（过渡期双写）", () => {
+  it("顶层 errorCode 缺失时不再回退 meta.errorCode（§4 第 3 项：过渡双写已删除）", () => {
     const resolved = resolveApiError(
       {
         code: 10001,
@@ -163,9 +163,11 @@ describe("apiErrorContract: resolveApiError", () => {
       },
       { status: 409 }
     );
-    expect(resolved.kind).toBe("dynamic");
-    expect(resolved.errorCode).toBe("STATE.ORDER_LOCKED");
-    expect(resolved.errorCodeSource).toBe("meta.errorCode");
+    expect(resolved.kind).toBe("transport");
+    expect(resolved.errorCode).toBe("HTTP_409");
+    expect(resolved.errorCodeSource).toBe("http-fallback");
+    // meta 仍原样透传（链路信息），但不再参与码位解析
+    expect(resolved.meta).toEqual({ errorCode: "STATE.ORDER_LOCKED" });
   });
 
   it("旧业务码落在 400-599 且无 errorCode 时按状态码降级（§2.7 双轨残留）", () => {
@@ -183,7 +185,7 @@ describe("apiErrorContract: resolveApiError", () => {
     expect(resolved.fieldErrors).toEqual([]);
   });
 
-  it("顶层与 meta 都不是合法码时按传输层兜底", () => {
+  it("顶层 errorCode 不合法且无合法状态码时按传输层兜底", () => {
     const resolved = resolveApiError(
       {
         code: 1000,

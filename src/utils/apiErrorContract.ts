@@ -7,8 +7,8 @@
  *
  * 四条约定（前端侧）：
  * 1. 响应体 `code` = HTTP 状态码，不是业务码；业务分支一律判断 `errorCode`。
- * 2. `errorCode` 只读响应体**顶层**；`meta.errorCode` 为过渡期双写字段，
- *    仅在顶层缺失时兜底（审计 §4 第 3 项：前端切换完成后由后端单独 PR 删除）。
+ * 2. `errorCode` 只读响应体**顶层**，是唯一码位；`meta.errorCode` 过渡双写已删除
+ *    （审计 §4 第 3 项），`meta` 仅透传 `timestamp` / `path` / `traceid` 等链路信息。
  * 3. 成功响应**不携带** `errorCode`，`code` 固定 200。
  * 4. 码格式三类：业务码 `DOMAIN.REASON`、系统码 `SYSTEM.*`、传输层兜底 `HTTP_<status>`；
  *    未注册 / 不合法取值一律按 `HTTP_<status>` 等价处理，不新增分支（审计 §2.3）。
@@ -79,8 +79,8 @@ export interface ResolvedApiError {
   msg?: string;
   /** 仅 DTO 校验失败（`VALIDATION.REQUEST_INVALID`）时非空。 */
   fieldErrors: ApiFieldError[];
-  /** 过渡期兜底来源标记（审计 §4 第 3 项）。 */
-  errorCodeSource: "errorCode" | "meta.errorCode" | "http-fallback";
+  /** 码位来源：顶层 `errorCode`，或传输层兜底 `HTTP_<status>`（审计 §4 第 3 项）。 */
+  errorCodeSource: "errorCode" | "http-fallback";
   meta?: Record<string, unknown>;
 }
 
@@ -147,11 +147,6 @@ export function resolveBoundedErrorCode(
   return toHttpFallbackCode(status);
 }
 
-/** 从 `meta` 中读过渡期双写的 `errorCode`。 */
-function readMetaErrorCode(meta: Record<string, unknown> | undefined) {
-  return meta ? readString(meta, "errorCode") : undefined;
-}
-
 /**
  * 提取 DTO 校验字段级明细。
  *
@@ -192,7 +187,7 @@ function createResolved(
  *
  * - `kind: 'success'`：`code === 200`，`errorCode` 为 `undefined`（成功响应不带该字段）。
  * - `kind: 'static'`：`code` 落在 400–599，`errorCode` 为 `HTTP_<code>`。
- * - `kind: 'dynamic' | 'system'`：`code` 为业务码，`errorCode` 取顶层（回退 `meta.errorCode`）。
+ * - `kind: 'dynamic' | 'system'`：码位合法，`errorCode` 取顶层。
  * - `kind: 'transport'`：无法判定或码不合法，按 `HTTP_<status>` 等价处理。
  */
 export function resolveApiError(
@@ -259,10 +254,10 @@ function kindForErrorCode(errorCode: string) {
  * 码位解析顺序：
  * 1. 顶层 `errorCode` 格式合法 → 采信该码（`DOMAIN.REASON` / `SYSTEM.*`）。
  * 2. `code` 落在常规 HTTP 状态区间 → `HTTP_<code>`（§1 约定 1：`code` 是状态码）。
- * 3. 顶层 `errorCode` 显式存在但格式不合法 → 按 `HTTP_<status>` 降级，不再回退
- *    `meta.errorCode`（避免用双写旧值覆盖显式给出的新值）。
- * 4. 顶层缺失 → 回退 `meta.errorCode`（过渡期双写，审计 §4 第 3 项）。
- * 5. 仍无合法码 → `HTTP_<status>`（审计 §2.3：不新增分支）。
+ * 3. 其余情况（含顶层存在但格式不合法）→ `HTTP_<status>`（审计 §2.3：不新增分支）。
+ *
+ * 不再回退 `meta.errorCode`：该过渡期双写字段已随审计 §4 第 3 项在后端删除，
+ * 顶层是唯一码位来源。
  */
 function resolveApiErrorCodeFrom(
   source: Record<string, unknown>,
@@ -288,18 +283,6 @@ function resolveApiErrorCodeFrom(
       errorCode: toHttpFallbackCode(code),
       errorCodeSource: "http-fallback"
     };
-  }
-
-  if (topLevel === undefined) {
-    const meta = isRecord(source.meta) ? source.meta : undefined;
-    const fromMeta = readMetaErrorCode(meta);
-    if (fromMeta !== undefined && isApiErrorCode(fromMeta)) {
-      return {
-        kind: kindForErrorCode(fromMeta),
-        errorCode: fromMeta,
-        errorCodeSource: "meta.errorCode"
-      };
-    }
   }
 
   return {

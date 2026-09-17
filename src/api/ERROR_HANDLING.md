@@ -7,8 +7,8 @@
 ## 四条约定（先读这个）
 
 1. 响应体 `code` 是 **HTTP 状态码**，不是业务码；业务分支一律判断 `errorCode`。
-2. 失败响应**顶层 `errorCode` 是唯一码位**。`meta.errorCode` 是过渡期双写字段，
-   仅作兜底，不要写新逻辑（后端会在前端切换完成后单独删除）。
+2. 失败响应**顶层 `errorCode` 是唯一码位**。`meta.errorCode` 过渡双写已随审计 §4 第 3 项
+   在后端删除，`meta` 只承载 `timestamp` / `path` / `traceid` 等链路信息，不要据它取码。
 3. 成功响应**不携带** `errorCode`，`code` 固定 `200`。
 4. 码格式只有三类：业务码 `DOMAIN.REASON`、系统码 `SYSTEM.*`、传输层兜底 `HTTP_<status>`。
    其余取值一律按 `HTTP_<status>` 等价处理，不要新增分支。
@@ -39,8 +39,7 @@
   "meta": {
     "timestamp": "2026-09-17T00:00:00.000Z",
     "path": "/api/v1/orders/1",
-    "traceid": "...",
-    "errorCode": "STATE.ORDER_LOCKED"
+    "traceid": "..."
   }
 }
 ```
@@ -66,12 +65,13 @@ DTO 校验失败（`VALIDATION.REQUEST_INVALID`，HTTP 400）额外带字段级�
       }
     ]
   },
-  "meta": { "errorCode": "VALIDATION.REQUEST_INVALID" }
+  "meta": { "path": "/api/v1/orders" }
 }
 ```
 
 `field` 是**嵌套路径**（点号连接）。需要高亮字段时必须读 `data.errors`，
-**禁止**解析 `msg` 字符串。
+**禁止**解析 `msg` 字符串。失败响应的 `data` 只承载业务扩展字段（如 `total` / `limit`），
+**不再**有迁移前的旧业务码 `data.code`（审计 §4 第 4 项已删除，门禁规则 7 防回填）。
 
 ## 前端解析入口
 

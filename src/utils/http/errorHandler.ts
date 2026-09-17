@@ -7,8 +7,12 @@
  */
 import type { AxiosError } from "axios";
 import { httpLogger } from "@/utils/logger";
-import { resolveApiError } from "@/utils/apiErrorContract";
-import type { ApiErrorKind, ApiFieldError } from "@/utils/apiErrorContract";
+import { isApiEnvelope, resolveApiError } from "@/utils/apiErrorContract";
+import type {
+  ApiEnvelope,
+  ApiErrorKind,
+  ApiFieldError
+} from "@/utils/apiErrorContract";
 
 /**
  * 错误类型枚举
@@ -48,30 +52,18 @@ export interface HttpErrorInfo {
   errorCode?: string;
   /** 契约分类：状态码型 / 业务码型 / 系统码型 / 传输层兜底。 */
   kind?: ApiErrorKind;
-  /** 码位来源，`meta.errorCode` 表示走了过渡期兜底。 */
-  errorCodeSource?: "errorCode" | "meta.errorCode" | "http-fallback";
+  /** 码位来源：顶层 `errorCode`，或传输层兜底 `HTTP_<status>`。 */
+  errorCodeSource?: "errorCode" | "http-fallback";
   /** DTO 校验失败的字段级明细（`data.errors`，审计 §2.4）。 */
   fieldErrors?: ApiFieldError[];
   /** 原始错误 */
   originalError?: unknown;
 }
 
-type ErrorEnvelope = {
-  code: number;
-  msg?: string;
-  errorCode?: string;
-  data?: unknown;
-  meta?: unknown;
-};
-
-function readErrorEnvelope(error: AxiosError): ErrorEnvelope | undefined {
+/** 信封判定复用契约模块：`code: number` + `msg: string`（审计 §2.5）。 */
+function readErrorEnvelope(error: AxiosError): ApiEnvelope | undefined {
   const data = error.response?.data as unknown;
-  if (!data || typeof data !== "object") return undefined;
-  const candidate = data as { code?: unknown; msg?: unknown };
-  if (typeof candidate.code !== "number" || typeof candidate.msg !== "string") {
-    return undefined;
-  }
-  return data as ErrorEnvelope;
+  return isApiEnvelope(data) ? data : undefined;
 }
 
 /** 状态码 → 错误类型的既有映射（保持与迁移前一致的分类顺序）。 */

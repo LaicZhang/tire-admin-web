@@ -313,8 +313,7 @@ describe("HTTP utility functions", () => {
           ]
         },
         meta: {
-          path: "/api/v1/salary",
-          errorCode: "VALIDATION.REQUEST_INVALID"
+          path: "/api/v1/salary"
         }
       };
 
@@ -333,7 +332,7 @@ describe("HTTP utility functions", () => {
         errorCode: "HTTP_404",
         msg: "Cannot GET /api/v1/nope",
         data: null,
-        meta: { path: "/api/v1/nope", errorCode: "HTTP_404" }
+        meta: { path: "/api/v1/nope" }
       };
 
       const result = (await responseErrorHandler(
