@@ -1,10 +1,45 @@
-import { describe, it, expect, vi } from "vitest";
-import type { AxiosError } from "axios";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { AxiosError, AxiosInstance } from "axios";
+
+type ResponseErrorHandler = (error: unknown) => Promise<unknown>;
+
+/** 捕获注册到 axios 实例上的响应错误拦截器（用于直接驱动拦截器逻辑）。 */
+const interceptorHandlers = vi.hoisted(() => ({}) as { response?: unknown });
+
+vi.mock("axios", () => {
+  const instance = {
+    interceptors: {
+      request: { use: vi.fn() },
+      response: {
+        use: vi.fn(
+          (
+            _onFulfilled: unknown,
+            onRejected: ResponseErrorHandler | undefined
+          ) => {
+            if (onRejected) interceptorHandlers.response = onRejected;
+          }
+        )
+      }
+    },
+    request: vi.fn()
+  } as unknown as AxiosInstance;
+
+  return {
+    default: {
+      create: () => instance,
+      isCancel: () => false
+    },
+    Axios: { isCancel: () => false }
+  };
+});
 
 // Mock dependencies before importing the module
 vi.mock("element-plus", () => ({
   ElMessage: {
     error: vi.fn()
+  },
+  ElMessageBox: {
+    alert: vi.fn(() => Promise.resolve())
   }
 }));
 
@@ -239,6 +274,78 @@ describe("HTTP utility functions", () => {
       };
 
       expect(normalizePaginatedApiEnvelope(response)).toBe(response);
+    });
+  });
+
+  describe("失败信封解析（统一 Error Contract，审计 §2.4 / §2.5）", () => {
+    /**
+     * 拦截器对失败信封走「resolve 而非 reject」：调用方沿用 `code !== 200` 分支，
+     * 需要业务码时读顶层 `errorCode`（审计 §5.4 第 2 步）。
+     */
+    const envelopeError = (data: unknown, status: number): AxiosError =>
+      ({
+        isAxiosError: true,
+        message: `Request failed with status code ${status}`,
+        config: { url: "/api/v1/salary", method: "post", headers: {} },
+        response: { status, statusText: "", headers: {}, config: {}, data }
+      }) as unknown as AxiosError;
+
+    let responseErrorHandler: ResponseErrorHandler;
+
+    beforeEach(() => {
+      expect(interceptorHandlers.response).toBeTypeOf("function");
+      responseErrorHandler =
+        interceptorHandlers.response as ResponseErrorHandler;
+    });
+
+    it("业务码失败信封被 resolve，且 errorCode / data.errors 完整保留", async () => {
+      const envelope = {
+        code: 400,
+        errorCode: "VALIDATION.REQUEST_INVALID",
+        msg: "Invalid params: 金额必须为正数",
+        data: {
+          errors: [
+            {
+              field: "amount",
+              constraint: "isPositive",
+              message: "金额必须为正数"
+            }
+          ]
+        },
+        meta: {
+          path: "/api/v1/salary",
+          errorCode: "VALIDATION.REQUEST_INVALID"
+        }
+      };
+
+      const result = (await responseErrorHandler(
+        envelopeError(envelope, 400)
+      )) as typeof envelope;
+
+      expect(result).toEqual(envelope);
+      expect(result.errorCode).toBe("VALIDATION.REQUEST_INVALID");
+      expect(result.data.errors[0].field).toBe("amount");
+    });
+
+    it("未匹配路由兜底信封（§2.5）同样按信封解析，不再走 axios 兜底文案", async () => {
+      const envelope = {
+        code: 404,
+        errorCode: "HTTP_404",
+        msg: "Cannot GET /api/v1/nope",
+        data: null,
+        meta: { path: "/api/v1/nope", errorCode: "HTTP_404" }
+      };
+
+      const result = (await responseErrorHandler(
+        envelopeError(envelope, 404)
+      )) as typeof envelope;
+
+      expect(result).toEqual(envelope);
+    });
+
+    it("非信封响应（HTML 404）仍 reject，保持旧行为", async () => {
+      const error = envelopeError("<html>Not Found</html>", 404);
+      await expect(responseErrorHandler(error)).rejects.toBe(error);
     });
   });
 });

@@ -13,6 +13,7 @@ import type {
 } from "./types.d";
 import { stringify } from "qs";
 import { httpLogger } from "@/utils/logger";
+import { isApiEnvelope } from "@/utils/apiErrorContract";
 import { useHttpOnlyCookie } from "@/utils/auth-config";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { resolveBaseURLFromViteEnv } from "./baseurl";
@@ -260,20 +261,6 @@ class PureHttp {
         }
 
         const responseData = $error.response?.data as unknown;
-        const isApiEnvelope = (
-          value: unknown
-        ): value is {
-          code: number;
-          msg: string;
-          data?: unknown;
-          meta?: unknown;
-        } =>
-          !!value &&
-          typeof value === "object" &&
-          "code" in value &&
-          "msg" in value &&
-          typeof (value as { code?: unknown }).code === "number" &&
-          typeof (value as { msg?: unknown }).msg === "string";
 
         // 非取消请求时显示错误提示
         if (
@@ -283,6 +270,9 @@ class PureHttp {
           if (isApiEnvelope(responseData)) {
             const normalizedResponseData =
               normalizePaginatedApiEnvelope(responseData);
+            // 注意：失败信封（含未匹配路由的兜底 404，审计 §2.5）在此被 resolve 而非
+            // reject，调用方沿用 `code !== 200` 分支；需要业务码时用
+            // `resolveApiError(response)` 读顶层 `errorCode`（审计 §5.4 第 2 步）。
             ElMessage.error(
               normalizedResponseData.msg || "请求失败，请稍后重试"
             );

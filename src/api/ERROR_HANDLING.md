@@ -1,53 +1,117 @@
 # API 错误处理指南
 
-## 概述
+> 契约口径与 `docs/audit/2026-09-17-error-contract-frontend-sync-audit.md` 一致；
+> 后端实现见 `be-core/src/common/filter/all-exceptions.filter.ts` 与
+> `be-core/src/common/interceptor/transform.interceptor.ts`。
 
-本文档定义了项目中 API 错误处理的统一策略和最佳实践。
+## 四条约定（先读这个）
 
-## 错误响应结构
+1. 响应体 `code` 是 **HTTP 状态码**，不是业务码；业务分支一律判断 `errorCode`。
+2. 失败响应**顶层 `errorCode` 是唯一码位**。`meta.errorCode` 是过渡期双写字段，
+   仅作兜底，不要写新逻辑（后端会在前端切换完成后单独删除）。
+3. 成功响应**不携带** `errorCode`，`code` 固定 `200`。
+4. 码格式只有三类：业务码 `DOMAIN.REASON`、系统码 `SYSTEM.*`、传输层兜底 `HTTP_<status>`。
+   其余取值一律按 `HTTP_<status>` 等价处理，不要新增分支。
 
-所有 API 响应遵循统一的结构：
+## 响应结构
 
-```typescript
-interface CommonResult<T = unknown> {
-  code: number; // 状态码，200 表示成功
-  msg: string; // 提示信息
-  data: T; // 响应数据
+成功：
+
+```json
+{
+  "code": 200,
+  "data": {},
+  "msg": "success",
+  "timestamp": "2026-09-17T00:00:00.000Z",
+  "path": "/api/v1/...",
+  "meta": { "timestamp": "...", "path": "/api/v1/..." }
 }
 ```
 
-### 常见状态码
+失败（HTTP 状态与响应体 `code` 一致）：
 
-| 状态码 | 说明         | 处理方式           |
-| ------ | ------------ | ------------------ |
-| `200`  | 成功         | 正常处理 data      |
-| `400`  | 请求参数错误 | 显示 msg 错误提示  |
-| `401`  | 未授权       | 跳转登录页         |
-| `403`  | 无权限       | 显示权限不足提示   |
-| `404`  | 资源不存在   | 显示资源不存在提示 |
-| `500`  | 服务器错误   | 显示通用错误提示   |
+```json
+{
+  "code": 409,
+  "errorCode": "STATE.ORDER_LOCKED",
+  "msg": "订单已锁定",
+  "data": null,
+  "meta": {
+    "timestamp": "2026-09-17T00:00:00.000Z",
+    "path": "/api/v1/orders/1",
+    "traceid": "...",
+    "errorCode": "STATE.ORDER_LOCKED"
+  }
+}
+```
+
+DTO 校验失败（`VALIDATION.REQUEST_INVALID`，HTTP 400）额外带字段级明细：
+
+```json
+{
+  "code": 400,
+  "errorCode": "VALIDATION.REQUEST_INVALID",
+  "msg": "Invalid params: 数量必须为正数",
+  "data": {
+    "errors": [
+      {
+        "field": "quantity",
+        "constraint": "isPositive",
+        "message": "数量必须为正数"
+      },
+      {
+        "field": "nested.code",
+        "constraint": "isNotEmpty",
+        "message": "不能为空"
+      }
+    ]
+  },
+  "meta": { "errorCode": "VALIDATION.REQUEST_INVALID" }
+}
+```
+
+`field` 是**嵌套路径**（点号连接）。需要高亮字段时必须读 `data.errors`，
+**禁止**解析 `msg` 字符串。
+
+## 前端解析入口
+
+统一用 `@/utils/apiErrorContract`，不要自己写信封判定或码格式判断：
+
+```ts
+import { resolveApiError, getApiErrorCode } from "@/utils/apiErrorContract";
+
+const res = await someApi();
+if (res.code !== 200) {
+  const { errorCode, kind, msg, fieldErrors } = resolveApiError(res, {
+    status: <HTTP 状态码，可选>
+  });
+  // 分支只看 errorCode / kind，展示只看 msg，字段高亮只看 fieldErrors
+}
+```
+
+`kind` 取值：
+
+| kind        | 含义                                        | errorCode 取值           |
+| ----------- | ------------------------------------------- | ------------------------ |
+| `success`   | `code === 200`                              | 无（成功响应不带该字段） |
+| `dynamic`   | 业务码型失败                                | `DOMAIN.REASON`          |
+| `system`    | 系统码型失败                                | `SYSTEM.*`               |
+| `static`    | 状态码型失败（400–599，无业务码）           | `HTTP_<code>`            |
+| `transport` | 无法判定 / 码不合法（按传输层兜底等价处理） | `HTTP_<status>`          |
+
+未匹配路由由后端兜底中间件返回统一信封（`errorCode: "HTTP_404"`，
+`msg: "Cannot GET /api/v1/..."`），不再返回 HTML。
 
 ## HTTP 拦截器处理
 
 `src/utils/http/index.ts` 中的拦截器已经处理了：
 
-1. **Token 过期自动刷新**
-2. **请求重试**（仅对幂等请求）
-3. **统一错误提示**
+1. **Token 过期自动刷新**（仅 401；`cookie-auth` 拦截器）
+2. **请求重试**（仅幂等请求 + 网络错误/超时）
+3. **统一错误提示**（失败信封按 `msg` 弹 `ElMessage.error`）
 
-```typescript
-// 响应拦截器自动处理错误
-instance.interceptors.response.use(
-  response => response.data,
-  error => {
-    if (!error.isCancelRequest) {
-      const message = error.response?.data?.msg || error.message || "请求失败";
-      ElMessage.error(message);
-    }
-    return Promise.reject(error);
-  }
-);
-```
+注意：拦截器对**失败信封走 `resolve` 而不是 `reject`**，调用方沿用
+`code !== 200` 分支即可；需要业务码时对返回的信封调用 `resolveApiError`。
 
 ## 业务层错误处理
 
@@ -55,8 +119,8 @@ instance.interceptors.response.use(
 
 ```typescript
 const handleSubmit = async () => {
+  loading.value = true;
   try {
-    loading.value = true;
     await createOrderApi(formData);
     message("创建成功", { type: "success" });
     router.push("/orders");
@@ -69,23 +133,54 @@ const handleSubmit = async () => {
 };
 ```
 
-### 需要自定义错误处理时
+### 需要按业务码分支时
 
 ```typescript
-const handleDelete = async (id: string) => {
-  try {
-    await deleteApi(id);
-    message("删除成功", { type: "success" });
-    refreshList();
-  } catch (error) {
-    // 自定义错误处理
-    if (error.response?.status === 409) {
-      message("该记录正在使用中，无法删除", { type: "warning" });
-    }
-    // 其他错误已被拦截器处理
+const res = await createOrderApi(formData);
+if (res.code !== 200) {
+  const { errorCode } = resolveApiError(res);
+  if (errorCode === "STATE.ORDER_LOCKED") {
+    // 订单已锁定：走专属交互
   }
-};
+  return;
+}
 ```
+
+禁止用 HTTP 状态码代替 `errorCode` 做业务分支：同一个 `errorCode` 的 HTTP 状态
+由后端注册表统一决定，历史上有过归一化调整；也禁止按 `msg` 文本分支——存在
+「同文案不同码」的刻意保留对。
+
+### 字段级错误（表单高亮）
+
+`data.errors` 给的是后端字段路径（点号连接）。Element Plus 的表单项错误文案由
+本地 `rules` 驱动，**不能**直接把后端文案塞进去；推荐做法是：
+
+1. 用后端 `fieldErrors` 定位到表单项（路径 → 表单项 `prop` 的映射按项目实际写法转换）；
+2. 用 `useFormRef(formRef).scrollToField(prop)` 滚动定位；
+3. 文案用 `message(fieldErrors[0].message, { type: "warning" })` 展示。
+
+```typescript
+const { scrollToField } = useFormRef(formRef);
+
+const res = await submitApi(form);
+if (res.code !== 200) {
+  const { fieldErrors, msg } = resolveApiError(res);
+  const first = fieldErrors[0];
+  if (first) {
+    scrollToField(toFormProp(first.field));
+    message(first.message, { type: "warning" });
+  } else {
+    message(msg ?? "提交失败", { type: "error" });
+  }
+  return;
+}
+```
+
+### 错误分类与上报
+
+`src/utils/http/errorHandler.ts` 提供 `classifyHttpError` / `reportHttpError`，
+返回值除 `type`（按 HTTP 状态分类，语义与历史一致）外，还会带上信封里的
+`errorCode` / `kind` / `fieldErrors`，便于接入 Sentry 等监控。
 
 ## 最佳实践
 
@@ -146,25 +241,36 @@ const result = await fetchApi();
 fetchApi().then(result => { ... });
 ```
 
+### 5. 不要解析 `msg` 字符串
+
+`msg` 只用于展示。字段定位读 `data.errors`，分支判断读 `errorCode`。
+
 ## 错误边界
 
 对于关键页面，考虑使用 Vue 的错误边界组件或 `onErrorCaptured` 钩子捕获未处理的错误。
 
-## 业务错误码
+## 已知的码值例外（写入分支前对照）
 
-以下是后端返回的业务错误码及其含义：
+- Prisma 底层码已收口为语义码：`P2002 → SYSTEM.DB_UNIQUE_VIOLATION`、
+  `P2025/P2015 → SYSTEM.DB_RECORD_NOT_FOUND`、`P2003 → SYSTEM.DB_FOREIGN_KEY`、
+  `P2034 → SYSTEM.DB_WRITE_CONFLICT` 等；原始 `P####` 只在非生产的
+  `meta.prismaCode` 出现，**不要**在业务代码里引用。
+- 以下旧码已合并，引用会永远不命中：
+  `AUTH.SELF_AUDIT_FORBIDDEN`（→ `AUTH.CANNOT_AUDIT_OWN_DOCUMENT`）、
+  `BALANCE.STOCK_INSUFFICIENT`（→ `BALANCE.AVAILABLE_STOCK_INSUFFICIENT`）、
+  `RESOURCE.STORE_NOT_FOUND_IN_COMPANY`（→ `RESOURCE.STORE_NOT_FOUND_OR_NO_ACCESS`）。
+- 以下成对码同文案不同状态，**刻意保留**，必须按码而不是按文案区分：
+  `RESOURCE.PAYMENT_NOT_FOUND`(400) / `RESOURCE.PAYMENT_RECORD_NOT_FOUND`(404)、
+  `RESOURCE.REPO_NOT_FOUND`(404) / `RESOURCE.REPO_NOT_FOUND_IN_COMPANY`(400)。
+- 旧的数字业务码（`10001` 等）从未进入现行契约，历史文档中的码表已删除。
 
-| 错误码  | 模块 | 说明           | 建议处理     |
-| ------- | ---- | -------------- | ------------ |
-| `10001` | 订单 | 订单不存在     | 刷新列表     |
-| `10002` | 订单 | 订单已审核     | 提示用户     |
-| `10003` | 订单 | 订单已作废     | 提示用户     |
-| `10004` | 订单 | 库存不足       | 显示库存信息 |
-| `10005` | 订单 | 订单已付款     | 提示无法修改 |
-| `20001` | 库存 | 仓库不存在     | 刷新数据     |
-| `20002` | 库存 | 库存数量不足   | 显示当前库存 |
-| `20003` | 库存 | 批次不存在     | 刷新批次列表 |
-| `30001` | 财务 | 账户余额不足   | 显示余额信息 |
-| `30002` | 财务 | 支付账户不存在 | 刷新账户列表 |
-| `40001` | 权限 | 无操作权限     | 联系管理员   |
-| `40002` | 权限 | 数据权限不足   | 联系管理员   |
+## 新增按码分支时的规矩
+
+前端**不**持有全量码枚举（后端 827 个码，前端目前 0 处按码分支，枚举只会制造第二份真相
+并需要独立发版同步）。确实需要按码分支时：
+
+1. 只判断 `resolveApiError(...).errorCode`，不要判断 `code`（HTTP 状态）或 `msg` 文本；
+2. 把码字面量写进**本文档**或 `@/utils/apiErrorContract`，不要散落在各页面 ——
+   `src/utils/__tests__/apiErrorRegistry.contract.test.ts` 会把这两处出现的码字面量
+   逐个对后端注册表校验，写错码或后端改名会直接测试失败；
+3. 未覆盖的码必须安全降级：展示 `msg`（后端已是本地化文案），必要时用 `fieldErrors` 定位字段。
