@@ -1,6 +1,7 @@
 import { http } from "../utils/http";
 import { baseUrlApi } from "./utils";
 import type { CommonResult } from "./type";
+import { unsupportedBackendRoute } from "./route-gap";
 
 const dashboardPrefix = "/dashboard/";
 
@@ -347,9 +348,10 @@ export async function getRoleOverviewApi(params?: {
   );
 }
 
+/** 后端没有 trace-workbench。 */
 export async function getTraceWorkbenchListApi(
-  page: number,
-  params?: {
+  _page: number,
+  _params?: {
     startDate?: string;
     endDate?: string;
     storeId?: string;
@@ -360,24 +362,12 @@ export async function getTraceWorkbenchListApi(
     keyword?: string;
     pageSize?: number;
   }
-) {
-  return await http.request<CommonResult<TraceWorkbenchListResponse>>(
-    "get",
-    baseUrlApi(dashboardPrefix + "trace-workbench"),
-    {
-      params: {
-        page,
-        ...params
-      }
-    }
-  );
+): Promise<CommonResult<TraceWorkbenchListResponse>> {
+  return unsupportedBackendRoute("GET /dashboard/trace-workbench");
 }
 
-export async function getTraceWorkbenchDetailApi(incidentId: string) {
-  return await http.request<CommonResult<TraceWorkbenchDetailResponse>>(
-    "get",
-    baseUrlApi(
-      dashboardPrefix + `trace-workbench/${encodeURIComponent(incidentId)}`
-    )
-  );
+export async function getTraceWorkbenchDetailApi(
+  _incidentId: string
+): Promise<CommonResult<TraceWorkbenchDetailResponse>> {
+  return unsupportedBackendRoute("GET /dashboard/trace-workbench/:id");
 }

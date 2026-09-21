@@ -15,7 +15,7 @@ import {
   ReportType,
   reportTypeMap
 } from "./types";
-import { http } from "@/utils/http";
+import { unsupportedBackendRoute } from "@/api/route-gap";
 import { logger } from "@/utils/logger";
 import RepoSelect from "@/components/EntitySelect/RepoSelect.vue";
 import { fenToYuan } from "@/utils/formatMoney";
@@ -150,45 +150,15 @@ const summaryExportColumns: PresentationColumn<InventorySummary>[] = [
 const fetchData = async () => {
   loading.value = true;
   try {
-    let endpoint = "";
-    switch (currentReportType.value) {
-      case ReportType.DETAIL:
-        endpoint = "/api/v1/inventory-report/detail";
-        break;
-      case ReportType.SUMMARY:
-        endpoint = "/api/v1/inventory-report/summary";
-        break;
-      default:
-        endpoint = "/api/v1/inventory-report/balance";
-    }
-
-    const { data, code } = await http.request<{
-      code: number;
-      data: { count: number; list: unknown[] };
-    }>("get", `${endpoint}/${pagination.value.currentPage}`, {
-      params: {
-        ...queryParams,
-        repoId: queryParams.repoId || undefined,
-        startDate: dateRange.value?.[0] || undefined,
-        endDate: dateRange.value?.[1] || undefined
-      }
-    });
-
-    if (code === 200) {
-      switch (currentReportType.value) {
-        case ReportType.DETAIL:
-          detailList.value = data.list as InventoryDetail[];
-          break;
-        case ReportType.SUMMARY:
-          summaryList.value = data.list as InventorySummary[];
-          break;
-        default:
-          balanceList.value = data.list as InventoryBalance[];
-      }
-      pagination.value.total = data.count;
-    }
+    await unsupportedBackendRoute(
+      "GET /inventory-report/{detail,summary,balance}"
+    );
   } catch (error) {
     logger.error("获取报表数据失败", error);
+    balanceList.value = [];
+    detailList.value = [];
+    summaryList.value = [];
+    pagination.value.total = 0;
   } finally {
     loading.value = false;
   }

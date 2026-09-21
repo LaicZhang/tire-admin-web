@@ -12,7 +12,7 @@ import Printer from "~icons/ep/printer";
 import Download from "~icons/ep/download";
 import Upload from "~icons/ep/upload";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import { http } from "@/utils/http";
+import { unsupportedBackendRoute } from "@/api/route-gap";
 import { handleApiError, message } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import {
@@ -287,7 +287,9 @@ async function handleDelete(row: FundDocument) {
 
   try {
     // 根据类型调用不同的删除接口
-    await http.delete(`/fund/documents/${row.documentType}/${row.uid}`);
+    await unsupportedBackendRoute(
+      `DELETE /fund/documents/${row.documentType}/${row.uid}`
+    );
     message("删除成功", { type: "success" });
     onSearch();
   } catch (e) {
@@ -309,7 +311,9 @@ async function handleBatchDelete() {
 
   try {
     for (const row of selectedRows.value) {
-      await http.delete(`/fund/documents/${row.documentType}/${row.uid}`);
+      await unsupportedBackendRoute(
+        `DELETE /fund/documents/${row.documentType}/${row.uid}`
+      );
     }
     message("批量删除成功", { type: "success" });
     onSearch();

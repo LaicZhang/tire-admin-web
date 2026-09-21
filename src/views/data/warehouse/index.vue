@@ -98,6 +98,8 @@ const getDetails = async (row: FormItemProps) => {
           disabled: true
         })
     });
+  } catch {
+    message("加载仓库详情失败", { type: "error" });
   } finally {
     loading.value = false;
   }

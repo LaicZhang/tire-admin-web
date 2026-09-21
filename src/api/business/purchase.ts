@@ -1,8 +1,10 @@
-import { http } from "../../utils/http";
-import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
+import { unsupportedBackendRoute } from "../route-gap";
 
-const prefix = "/purchase/";
+/**
+ * T3-X-002：零引用死封装。真实模块是 purchase-plan / purchase-inquiry，
+ * 此前缀 `/purchase/` 后端不存在。
+ */
 
 export interface PurchasePlanDto {
   providerId?: string;
@@ -39,46 +41,30 @@ export interface PurchasePlanQuery {
   endDate?: string;
 }
 
-/** 采购计划 API */
 export async function getPurchasePlanListApi(
-  index: number,
-  params?: PurchasePlanQuery
-) {
-  return await http.request<CommonResult<PaginatedResponseDto<PurchasePlan>>>(
-    "get",
-    baseUrlApi(prefix + "plan/" + index),
-    { params }
-  );
+  _index: number,
+  _params?: PurchasePlanQuery
+): Promise<CommonResult<PaginatedResponseDto<PurchasePlan>>> {
+  return unsupportedBackendRoute("GET /purchase/plan/:index");
 }
 
-export async function createPurchasePlanApi(data: PurchasePlanDto) {
-  return await http.request<CommonResult<PurchasePlan>>(
-    "post",
-    baseUrlApi(prefix + "plan"),
-    {
-      data
-    }
-  );
+export async function createPurchasePlanApi(
+  _data: PurchasePlanDto
+): Promise<CommonResult<PurchasePlan>> {
+  return unsupportedBackendRoute("POST /purchase/plan");
 }
 
 export async function updatePurchasePlanApi(
-  id: string,
-  data: Partial<PurchasePlanDto>
-) {
-  return await http.request<CommonResult<PurchasePlan>>(
-    "patch",
-    baseUrlApi(prefix + "plan/" + id),
-    {
-      data
-    }
-  );
+  _id: string,
+  _data: Partial<PurchasePlanDto>
+): Promise<CommonResult<PurchasePlan>> {
+  return unsupportedBackendRoute("PATCH /purchase/plan/:id");
 }
 
-export async function deletePurchasePlanApi(id: string) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + "plan/" + id)
-  );
+export async function deletePurchasePlanApi(
+  _id: string
+): Promise<CommonResult<void>> {
+  return unsupportedBackendRoute("DELETE /purchase/plan/:id");
 }
 
 /** 采购询价查询参数 */
@@ -91,42 +77,28 @@ export interface PurchaseInquiryQuery {
   endDate?: string;
 }
 
-/** 采购询价 API */
 export async function getPurchaseInquiryListApi(
-  index: number,
-  params?: PurchaseInquiryQuery
-) {
-  return await http.request<
-    CommonResult<PaginatedResponseDto<PurchaseInquiry>>
-  >("get", baseUrlApi(prefix + "inquiry/" + index), { params });
+  _index: number,
+  _params?: PurchaseInquiryQuery
+): Promise<CommonResult<PaginatedResponseDto<PurchaseInquiry>>> {
+  return unsupportedBackendRoute("GET /purchase/inquiry/:index");
 }
 
-export async function createPurchaseInquiryApi(data: PurchaseInquiryDto) {
-  return await http.request<CommonResult<PurchaseInquiry>>(
-    "post",
-    baseUrlApi(prefix + "inquiry"),
-    {
-      data
-    }
-  );
+export async function createPurchaseInquiryApi(
+  _data: PurchaseInquiryDto
+): Promise<CommonResult<PurchaseInquiry>> {
+  return unsupportedBackendRoute("POST /purchase/inquiry");
 }
 
 export async function updatePurchaseInquiryApi(
-  id: string,
-  data: Partial<PurchaseInquiryDto>
-) {
-  return await http.request<CommonResult<PurchaseInquiry>>(
-    "patch",
-    baseUrlApi(prefix + "inquiry/" + id),
-    {
-      data
-    }
-  );
+  _id: string,
+  _data: Partial<PurchaseInquiryDto>
+): Promise<CommonResult<PurchaseInquiry>> {
+  return unsupportedBackendRoute("PATCH /purchase/inquiry/:id");
 }
 
-export async function deletePurchaseInquiryApi(id: string) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + "inquiry/" + id)
-  );
+export async function deletePurchaseInquiryApi(
+  _id: string
+): Promise<CommonResult<void>> {
+  return unsupportedBackendRoute("DELETE /purchase/inquiry/:id");
 }

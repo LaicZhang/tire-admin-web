@@ -93,10 +93,14 @@ function openEditForm(tag: Tag) {
       h(TagEditForm, {
         formData: { name: tag.name, color: tag.color || "#409EFF" },
         onSubmit: async (data: { name: string; color: string }) => {
-          await updateCustomerTagApi(tag.id, data);
-          message("标签更新成功", { type: "success" });
-          closeAllDialog();
-          await loadTags();
+          try {
+            await updateCustomerTagApi(tag.id, data);
+            message("标签更新成功", { type: "success" });
+            closeAllDialog();
+            await loadTags();
+          } catch {
+            message("标签更新失败", { type: "error" });
+          }
         },
         onClose: () => closeAllDialog()
       })
@@ -109,6 +113,8 @@ async function handleDelete(tag: Tag) {
     await deleteCustomerTagApi(tag.id);
     message("标签删除成功", { type: "success" });
     await loadTags();
+  } catch {
+    message("标签删除失败", { type: "error" });
   } finally {
     loading.value = false;
   }

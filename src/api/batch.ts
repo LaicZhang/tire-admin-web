@@ -1,6 +1,7 @@
 import { http } from "../utils/http";
 import { baseUrlApi } from "./utils";
 import type { CommonResult } from "./type";
+import { unsupportedBackendRoute } from "./route-gap";
 
 const prefix = "/batch/";
 
@@ -44,27 +45,22 @@ export interface Batch {
   createdAt?: string;
 }
 
-// 更新批次
+/** 后端没有 PUT /batch/:id。 */
 export async function updateBatchApi(
-  id: number,
-  data: {
+  _id: number,
+  _data: {
     batchNo?: string;
     quantity?: number;
     productionDate?: string;
     expiryDate?: string;
   }
 ) {
-  return await http.request<CommonResult>("put", baseUrlApi(prefix + `${id}`), {
-    data
-  });
+  return unsupportedBackendRoute("PUT /batch/:id");
 }
 
-// 删除批次
-export async function deleteBatchApi(id: number) {
-  return await http.request<CommonResult>(
-    "delete",
-    baseUrlApi(prefix + `${id}`)
-  );
+/** 后端没有 DELETE /batch/:id。 */
+export async function deleteBatchApi(_id: number) {
+  return unsupportedBackendRoute("DELETE /batch/:id");
 }
 
 // 记录批次出入库流水
