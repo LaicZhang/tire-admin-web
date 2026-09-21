@@ -10,6 +10,7 @@ import {
   type SalesDimensionGroupBy
 } from "@/api/analysis";
 import { getEcharts } from "@/utils/echarts";
+import { toChartNumber } from "../transformers";
 import { handleApiError } from "@/utils";
 
 defineOptions({
@@ -31,9 +32,9 @@ const emit = defineEmits<{
 
 const loading = ref(false);
 const regionSummary = ref<RegionSalesItem[]>([]);
-const regionTrend = ref<
-  Array<{ period: string; regions: RegionSalesItem[] }>
->([]);
+const regionTrend = ref<Array<{ period: string; regions: RegionSalesItem[] }>>(
+  []
+);
 const provinceSummary = ref<ProvinceSalesItem[]>([]);
 const dimensionItems = ref<
   Array<{ name: string; amount: string; quantity: number; count: number }>
@@ -59,13 +60,6 @@ const dateParams = computed(() => ({
   endDate: props.endDate
 }));
 
-/** Sales analysis amounts remain fen in many endpoints; display as yuan. */
-function fenToYuan(val: string | number | null | undefined): number {
-  const n = Number(String(val ?? "0").replace(/,/g, ""));
-  if (!Number.isFinite(n)) return 0;
-  return n / 100;
-}
-
 function formatYuan(val: number): string {
   return val.toLocaleString("zh-CN", {
     minimumFractionDigits: 2,
@@ -89,7 +83,13 @@ function buildHorizontalBarOption(
         return `${item.name}<br/>${seriesName}：¥${formatYuan(Number(item.value ?? 0))}`;
       }
     },
-    grid: { left: "3%", right: "8%", bottom: "3%", top: "8%", containLabel: true },
+    grid: {
+      left: "3%",
+      right: "8%",
+      bottom: "3%",
+      top: "8%",
+      containLabel: true
+    },
     xAxis: {
       type: "value",
       name: "金额(元)",
@@ -112,8 +112,7 @@ function buildHorizontalBarOption(
         label: {
           show: amounts.length <= 12,
           position: "right",
-          formatter: (p: { value?: number }) =>
-            formatYuan(Number(p.value ?? 0))
+          formatter: (p: { value?: number }) => formatYuan(Number(p.value ?? 0))
         }
       }
     ]
@@ -124,7 +123,9 @@ function buildHeatmapOption(): EChartsCoreOption {
   const periods = regionTrend.value.map(t => t.period);
   const regionNames = Array.from(
     new Set(
-      regionTrend.value.flatMap(t => t.regions.map(r => r.regionName || "未分配区域"))
+      regionTrend.value.flatMap(t =>
+        t.regions.map(r => r.regionName || "未分配区域")
+      )
     )
   );
   if (periods.length === 0 || regionNames.length === 0) {
@@ -145,7 +146,7 @@ function buildHeatmapOption(): EChartsCoreOption {
     for (const r of row.regions) {
       const y = nameIndex.get(r.regionName || "未分配区域");
       if (y == null) continue;
-      const v = fenToYuan(r.amount);
+      const v = toChartNumber(r.amount);
       max = Math.max(max, v);
       data.push([x, y, v]);
     }
@@ -160,7 +161,13 @@ function buildHeatmapOption(): EChartsCoreOption {
         return `${periods[d[0]]} · ${regionNames[d[1]]}<br/>¥${formatYuan(d[2])}`;
       }
     },
-    grid: { left: "3%", right: "8%", bottom: "12%", top: "8%", containLabel: true },
+    grid: {
+      left: "3%",
+      right: "8%",
+      bottom: "12%",
+      top: "8%",
+      containLabel: true
+    },
     xAxis: {
       type: "category",
       data: periods,
@@ -217,16 +224,22 @@ async function renderCharts() {
   const regionLabels = regionSummary.value.map(
     r => r.regionName || "未分配区域"
   );
-  const regionAmounts = regionSummary.value.map(r => fenToYuan(r.amount));
+  const regionAmounts = regionSummary.value.map(r => toChartNumber(r.amount));
   regionBarChart?.setOption(
-    buildHorizontalBarOption(regionLabels.reverse(), regionAmounts.reverse(), "区域销售"),
+    buildHorizontalBarOption(
+      regionLabels.reverse(),
+      regionAmounts.reverse(),
+      "区域销售"
+    ),
     true
   );
 
   regionHeatChart?.setOption(buildHeatmapOption(), true);
 
   const provinceLabels = provinceSummary.value.map(p => p.province);
-  const provinceAmounts = provinceSummary.value.map(p => fenToYuan(p.amount));
+  const provinceAmounts = provinceSummary.value.map(p =>
+    toChartNumber(p.amount)
+  );
   provinceBarChart?.setOption(
     buildHorizontalBarOption(
       provinceLabels.reverse(),
@@ -237,7 +250,7 @@ async function renderCharts() {
   );
 
   const dimLabels = dimensionItems.value.map(i => i.name);
-  const dimAmounts = dimensionItems.value.map(i => fenToYuan(i.amount));
+  const dimAmounts = dimensionItems.value.map(i => toChartNumber(i.amount));
   dimensionBarChart?.setOption(
     buildHorizontalBarOption(
       dimLabels.reverse(),

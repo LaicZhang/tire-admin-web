@@ -17,6 +17,7 @@ import { getStoreListApi, type Store } from "@/api/company/store";
 import { getEcharts } from "@/utils/echarts";
 import { handleApiError } from "@/utils";
 import { useColumns } from "./columns";
+import { formatYuanAmount } from "../transformers";
 import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
 import SalesHotspotCharts from "../components/SalesHotspotCharts.vue";
 import {
@@ -72,7 +73,6 @@ const selectedStoreId = ref("");
 const selectedOperatorId = ref("");
 const activeRankingTab = ref("customer");
 const dimensionGroupBy = ref<SalesDimensionGroupBy>("tire");
-
 
 const summaryData = ref({
   totalAmount: "0",
@@ -131,11 +131,6 @@ const exceptionTrackingList = computed(() =>
   trackingList.value.filter(item => item.trackingStatus !== "completed")
 );
 
-function formatAmount(val: string | number) {
-  const num = Number(val);
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-}
-
 function buildTrendOption(): EChartsCoreOption {
   return {
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
@@ -151,7 +146,7 @@ function buildTrendOption(): EChartsCoreOption {
         name: "金额(元)",
         position: "left",
         axisLabel: {
-          formatter: (val: number) => (val / 100).toLocaleString()
+          formatter: (val: number) => val.toLocaleString("zh-CN")
         }
       },
       {
@@ -409,7 +404,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">销售总额</div>
           <div class="mt-2 text-xl font-bold text-blue-600">
-            ¥{{ formatAmount(summaryData.totalAmount) }}
+            ¥{{ formatYuanAmount(summaryData.totalAmount) }}
           </div>
         </el-card>
       </el-col>
@@ -425,7 +420,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">已收款</div>
           <div class="mt-2 text-xl font-bold text-emerald-600">
-            ¥{{ formatAmount(summaryData.paidAmount) }}
+            ¥{{ formatYuanAmount(summaryData.paidAmount) }}
           </div>
         </el-card>
       </el-col>
@@ -433,7 +428,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">未收款</div>
           <div class="mt-2 text-xl font-bold text-orange-600">
-            ¥{{ formatAmount(summaryData.unpaidAmount) }}
+            ¥{{ formatYuanAmount(summaryData.unpaidAmount) }}
           </div>
         </el-card>
       </el-col>
@@ -441,7 +436,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">平均订单金额</div>
           <div class="mt-2 text-xl font-bold text-indigo-600">
-            ¥{{ formatAmount(summaryData.averageOrderValue) }}
+            ¥{{ formatYuanAmount(summaryData.averageOrderValue) }}
           </div>
         </el-card>
       </el-col>

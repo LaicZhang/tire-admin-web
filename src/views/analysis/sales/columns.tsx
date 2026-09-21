@@ -1,7 +1,4 @@
-const formatAmount = (val: string | number) => {
-  const num = Number(val);
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
+import { formatYuanAmount } from "../transformers";
 
 interface RankRow {
   name: string;
@@ -21,7 +18,7 @@ export function useColumns() {
       width: 150,
       cellRenderer: data => {
         const row = data.row as RankRow | undefined;
-        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+        return <span>¥{row ? formatYuanAmount(row.amount) : "-"}</span>;
       }
     }
   ];
@@ -35,7 +32,7 @@ export function useColumns() {
       width: 150,
       cellRenderer: data => {
         const row = data.row as RankRow | undefined;
-        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+        return <span>¥{row ? formatYuanAmount(row.amount) : "-"}</span>;
       }
     }
   ];
@@ -49,7 +46,7 @@ export function useColumns() {
       width: 150,
       cellRenderer: data => {
         const row = data.row as RankRow | undefined;
-        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+        return <span>¥{row ? formatYuanAmount(row.amount) : "-"}</span>;
       }
     }
   ];
@@ -63,7 +60,7 @@ export function useColumns() {
       minWidth: 140,
       cellRenderer: data => {
         const row = data.row as RankRow | undefined;
-        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+        return <span>¥{row ? formatYuanAmount(row.amount) : "-"}</span>;
       }
     },
     { label: "状态", prop: "trackingStatus", minWidth: 100 },

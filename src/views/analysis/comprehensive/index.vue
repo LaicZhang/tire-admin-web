@@ -16,7 +16,6 @@ import {
   getProviderQualityIssuesApi
 } from "@/api/analysis";
 import { message } from "@/utils/message";
-import { fenToYuan } from "@/utils/formatMoney";
 import { useColumns } from "./columns";
 
 defineOptions({
@@ -260,8 +259,9 @@ function handleTabChange(tab: string | number) {
   }
 }
 
-function formatMoney(value: number) {
-  return Number(fenToYuan(value));
+function formatMoney(value: number | string | null | undefined) {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num : 0;
 }
 
 function loadData() {
@@ -393,7 +393,10 @@ onMounted(() => {
         <div v-loading="loading" class="space-y-4">
           <el-row :gutter="16">
             <el-col :span="8">
-              <el-statistic title="质量问题数" :value="providerQuality.totalIssues" />
+              <el-statistic
+                title="质量问题数"
+                :value="providerQuality.totalIssues"
+              />
             </el-col>
             <el-col :span="8">
               <el-statistic
@@ -409,9 +412,17 @@ onMounted(() => {
             </el-col>
           </el-row>
           <el-table :data="providerQuality.items" stripe max-height="420">
-            <el-table-column prop="providerName" label="供应商" min-width="140" />
+            <el-table-column
+              prop="providerName"
+              label="供应商"
+              min-width="140"
+            />
             <el-table-column prop="totalIssues" label="问题数" width="100" />
-            <el-table-column prop="claimOrderCount" label="理赔单" width="100" />
+            <el-table-column
+              prop="claimOrderCount"
+              label="理赔单"
+              width="100"
+            />
             <el-table-column label="损失(元)" min-width="120">
               <template #default="{ row }">
                 {{ formatMoney(Number(row.totalLoss || 0)).toLocaleString() }}
