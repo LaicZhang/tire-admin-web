@@ -58,9 +58,13 @@ const {
 });
 
 const handleDelete = async (row: Zone) => {
-  await deleteRepoZoneApi(String(row.id));
-  message("删除成功", { type: "success" });
-  getData();
+  try {
+    await deleteRepoZoneApi(String(row.id));
+    message("删除成功", { type: "success" });
+    getData();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 type DialogProps = { name: string; repoId: string };
@@ -119,11 +123,13 @@ function openDialog(title = "新增", row?: unknown) {
         name: dialogProps.name,
         repoId: dialogProps.repoId
       };
-      createRepoZoneApi(data).then(() => {
-        message("操作成功", { type: "success" });
-        done();
-        getData();
-      });
+      createRepoZoneApi(data)
+        .then(() => {
+          message("操作成功", { type: "success" });
+          done();
+          getData();
+        })
+        .catch(() => undefined);
     }
   });
 }
@@ -162,7 +168,7 @@ function openDialog(title = "新增", row?: unknown) {
       </PureTableBar>
     </el-card>
 
-    <!-- Note: Bin Management would logically be a sub-view or drill-down. 
+    <!-- Note: Bin Management would logically be a sub-view or drill-down.
          For simplicity in this batch, we assume it's managed under Zone or separate tab.
          Here we only implemented Zone list first. -->
   </div>

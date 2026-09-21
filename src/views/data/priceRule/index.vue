@@ -199,7 +199,9 @@ const handleSave = () => {
     uid: configUid.value,
     saleRules: saleRules.value,
     purchaseRules: purchaseRules.value
-  }).then(() => message("保存成功", { type: "success" }));
+  })
+    .then(() => message("保存成功", { type: "success" }))
+    .catch(() => undefined);
 };
 
 const refreshData = async () => {

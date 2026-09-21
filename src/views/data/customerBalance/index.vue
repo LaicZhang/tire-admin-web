@@ -267,28 +267,32 @@ const openDialog = (title = "新增", row?: CustomerBalance) => {
 };
 
 const handleDelete = async (row: CustomerBalance) => {
-  const date = today();
-  const [r1, r2] = await Promise.all([
-    createInitialBalanceApi({
-      type: CUSTOMER_RECEIVABLE_TYPE,
-      amount: 0,
-      date,
-      remark: "clear",
-      customerId: row.customerId
-    }),
-    createInitialBalanceApi({
-      type: CUSTOMER_ADVANCE_TYPE,
-      amount: 0,
-      date,
-      remark: "clear",
-      customerId: row.customerId
-    })
-  ]);
-  if (r1.code === 200 && r2.code === 200) {
-    message(`清空${row.customerName}的期初余额成功`, { type: "success" });
-    getList();
-  } else {
-    message("清空失败", { type: "error" });
+  try {
+    const date = today();
+    const [r1, r2] = await Promise.all([
+      createInitialBalanceApi({
+        type: CUSTOMER_RECEIVABLE_TYPE,
+        amount: 0,
+        date,
+        remark: "clear",
+        customerId: row.customerId
+      }),
+      createInitialBalanceApi({
+        type: CUSTOMER_ADVANCE_TYPE,
+        amount: 0,
+        date,
+        remark: "clear",
+        customerId: row.customerId
+      })
+    ]);
+    if (r1.code === 200 && r2.code === 200) {
+      message(`清空${row.customerName}的期初余额成功`, { type: "success" });
+      getList();
+    } else {
+      message("清空失败", { type: "error" });
+    }
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
   }
 };
 
@@ -315,12 +319,14 @@ const handleBatchDelete = () => {
         customerId: row.customerId
       })
     ])
-  ).then(() => {
-    message(`批量清空${selectedRows.value.length}条数据成功`, {
-      type: "success"
-    });
-    getList();
-  });
+  )
+    .then(() => {
+      message(`批量清空${selectedRows.value.length}条数据成功`, {
+        type: "success"
+      });
+      getList();
+    })
+    .catch(() => undefined);
 };
 
 const beforeUpload = (file: File) => {

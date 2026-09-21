@@ -196,11 +196,15 @@ const openDialog = (title = "新增", row?: InitialStock) => {
 };
 
 const handleDelete = async (row: InitialStock) => {
-  await deleteInitialStockApi(row.uid);
-  message(`删除${row.tireName}在${row.repoName}的期初库存成功`, {
-    type: "success"
-  });
-  getList();
+  try {
+    await deleteInitialStockApi(row.uid);
+    message(`删除${row.tireName}在${row.repoName}的期初库存成功`, {
+      type: "success"
+    });
+    getList();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 const handleBatchDelete = () => {
@@ -208,14 +212,14 @@ const handleBatchDelete = () => {
     message("请选择要删除的数据", { type: "warning" });
     return;
   }
-  Promise.all(selectedRows.value.map(r => deleteInitialStockApi(r.uid))).then(
-    () => {
+  Promise.all(selectedRows.value.map(r => deleteInitialStockApi(r.uid)))
+    .then(() => {
       message(`批量删除${selectedRows.value.length}条数据成功`, {
         type: "success"
       });
       getList();
-    }
-  );
+    })
+    .catch(() => undefined);
 };
 
 const beforeUpload = (file: File) => {

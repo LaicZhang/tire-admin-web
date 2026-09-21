@@ -56,28 +56,32 @@ export function openDialog(
         .formInline;
 
       FormRef.validate(async (valid: boolean) => {
-        if (valid) {
-          if (title === "新增") {
-            await addFeedbackApi({
-              content: curData.content ?? "",
-              rating: curData.rating,
-              status: curData.status,
-              type: curData.type
-            });
-            message(`您${title}了反馈`, { type: "success" });
-          } else {
-            if (!row?.uid) return;
-            await updateFeedbackApi(row.uid, {
-              content: curData.content,
-              rating: curData.rating,
-              status: curData.status,
-              type: curData.type
-            });
-            message(`您${title}了反馈`, { type: "success" });
+        try {
+          if (valid) {
+            if (title === "新增") {
+              await addFeedbackApi({
+                content: curData.content ?? "",
+                rating: curData.rating,
+                status: curData.status,
+                type: curData.type
+              });
+              message(`您${title}了反馈`, { type: "success" });
+            } else {
+              if (!row?.uid) return;
+              await updateFeedbackApi(row.uid, {
+                content: curData.content,
+                rating: curData.rating,
+                status: curData.status,
+                type: curData.type
+              });
+              message(`您${title}了反馈`, { type: "success" });
+            }
+            done();
+            // 调用成功回调刷新数据
+            onSuccess?.();
           }
-          done();
-          // 调用成功回调刷新数据
-          onSuccess?.();
+        } catch {
+          // 失败信封已由 HTTP 拦截器提示
         }
       });
     }

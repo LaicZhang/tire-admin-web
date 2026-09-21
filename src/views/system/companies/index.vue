@@ -124,11 +124,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
                   principalPhone: curData.principalPhone || null
                 });
 
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            onSearch();
-          });
+          promise
+            .then(() => {
+              message("操作成功", { type: "success" });
+              done();
+              onSearch();
+            })
+            .catch(() => undefined);
         }
       });
     }

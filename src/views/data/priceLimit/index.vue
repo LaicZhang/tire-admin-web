@@ -254,11 +254,13 @@ const openDialog = (row: PriceLimit) => {
           formData.value.minSalePrice === undefined
             ? undefined
             : Math.round(formData.value.minSalePrice * 100)
-      }).then(() => {
-        message("保存成功", { type: "success" });
-        done();
-        getList();
-      });
+      })
+        .then(() => {
+          message("保存成功", { type: "success" });
+          done();
+          getList();
+        })
+        .catch(() => undefined);
     }
   });
 };

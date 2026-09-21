@@ -144,11 +144,13 @@ const openDialog = (title = "新增", row?: CompanyRoleItem) => {
               ? createRoleApi(payload)
               : updateRoleApi(row?.uid ?? "", payload);
 
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            handleSearch();
-          });
+          promise
+            .then(() => {
+              message("操作成功", { type: "success" });
+              done();
+              handleSearch();
+            })
+            .catch(() => undefined);
         }
       });
     }
@@ -156,15 +158,23 @@ const openDialog = (title = "新增", row?: CompanyRoleItem) => {
 };
 
 const deleteOne = async (row: CompanyRoleItem) => {
-  await deleteRoleApi(row.uid ?? "");
-  message("删除成功", { type: "success" });
-  handleSearch();
+  try {
+    await deleteRoleApi(row.uid ?? "");
+    message("删除成功", { type: "success" });
+    handleSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 const restoreOne = async (row: CompanyRoleItem) => {
-  await restoreRoleApi(row.uid ?? "");
-  message("恢复成功", { type: "success" });
-  handleSearch();
+  try {
+    await restoreRoleApi(row.uid ?? "");
+    message("恢复成功", { type: "success" });
+    handleSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 const openPermissionDialog = (row: CompanyRoleItem) => {

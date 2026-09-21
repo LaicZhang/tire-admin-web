@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { AxiosError, AxiosInstance } from "axios";
+import { ElMessage } from "element-plus";
 
 type ResponseErrorHandler = (error: unknown) => Promise<unknown>;
 
@@ -279,8 +280,8 @@ describe("HTTP utility functions", () => {
 
   describe("失败信封解析（统一 Error Contract，审计 §2.4 / §2.5）", () => {
     /**
-     * 拦截器对失败信封走「resolve 而非 reject」：调用方沿用 `code !== 200` 分支，
-     * 需要业务码时读顶层 `errorCode`（审计 §5.4 第 2 步）。
+     * 拦截器对失败信封走 reject（T3-ADM-001 / T3-X-001）。
+     * 业务码从被拒绝的信封顶层 `errorCode` 读取。
      */
     const envelopeError = (data: unknown, status: number): AxiosError =>
       ({
@@ -296,9 +297,10 @@ describe("HTTP utility functions", () => {
       expect(interceptorHandlers.response).toBeTypeOf("function");
       responseErrorHandler =
         interceptorHandlers.response as ResponseErrorHandler;
+      vi.mocked(ElMessage.error).mockClear();
     });
 
-    it("业务码失败信封被 resolve，且 errorCode / data.errors 完整保留", async () => {
+    it("4xx 信封被 reject，且 errorCode / data.errors 完整保留", async () => {
       const envelope = {
         code: 400,
         errorCode: "VALIDATION.REQUEST_INVALID",
@@ -317,16 +319,15 @@ describe("HTTP utility functions", () => {
         }
       };
 
-      const result = (await responseErrorHandler(
-        envelopeError(envelope, 400)
-      )) as typeof envelope;
-
-      expect(result).toEqual(envelope);
-      expect(result.errorCode).toBe("VALIDATION.REQUEST_INVALID");
-      expect(result.data.errors[0].field).toBe("amount");
+      await expect(
+        responseErrorHandler(envelopeError(envelope, 400))
+      ).rejects.toEqual(envelope);
+      expect(ElMessage.error).toHaveBeenCalledWith(
+        "Invalid params: 金额必须为正数"
+      );
     });
 
-    it("未匹配路由兜底信封（§2.5）同样按信封解析，不再走 axios 兜底文案", async () => {
+    it("未匹配路由兜底 404 信封同样 reject，不再走 axios 兜底文案", async () => {
       const envelope = {
         code: 404,
         errorCode: "HTTP_404",
@@ -335,16 +336,16 @@ describe("HTTP utility functions", () => {
         meta: { path: "/api/v1/nope" }
       };
 
-      const result = (await responseErrorHandler(
-        envelopeError(envelope, 404)
-      )) as typeof envelope;
-
-      expect(result).toEqual(envelope);
+      await expect(
+        responseErrorHandler(envelopeError(envelope, 404))
+      ).rejects.toEqual(envelope);
+      expect(ElMessage.error).toHaveBeenCalledWith("Cannot GET /api/v1/nope");
     });
 
-    it("非信封响应（HTML 404）仍 reject，保持旧行为", async () => {
+    it("非信封响应（HTML 404）仍 reject 原 error", async () => {
       const error = envelopeError("<html>Not Found</html>", 404);
       await expect(responseErrorHandler(error)).rejects.toBe(error);
+      expect(ElMessage.error).toHaveBeenCalled();
     });
   });
 });

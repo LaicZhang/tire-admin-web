@@ -161,28 +161,38 @@ const openDialog = (title = "新增", row?: PermissionDto) => {
         if (!promise)
           return message("缺少权限信息，无法更新", { type: "error" });
 
-        promise.then(() => {
-          message("操作成功", { type: "success" });
-          done();
-          onSearch();
-        });
+        promise
+          .then(() => {
+            message("操作成功", { type: "success" });
+            done();
+            onSearch();
+          })
+          .catch(() => undefined);
       });
     }
   });
 };
 
 const handleDelete = async (row: PermissionDto) => {
-  if (!row.uid) return;
-  await deletePermissionApi(row.uid);
-  message("删除成功（可恢复）", { type: "success" });
-  onSearch();
+  try {
+    if (!row.uid) return;
+    await deletePermissionApi(row.uid);
+    message("删除成功（可恢复）", { type: "success" });
+    onSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 const handleRestore = async (row: PermissionDto) => {
-  if (!row.uid) return;
-  await restorePermissionApi(row.uid);
-  message("恢复成功", { type: "success" });
-  onSearch();
+  try {
+    if (!row.uid) return;
+    await restorePermissionApi(row.uid);
+    message("恢复成功", { type: "success" });
+    onSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 function handleSizeChange(val: number) {

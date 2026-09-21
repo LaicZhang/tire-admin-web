@@ -66,9 +66,13 @@ const handleSearch = () => {
 };
 
 const handleDelete = async (row: IncomeExpenseItem) => {
-  await deleteIncomeExpenseItemApi(row.id);
-  message("删除成功", { type: "success" });
-  getData();
+  try {
+    await deleteIncomeExpenseItemApi(row.id);
+    message("删除成功", { type: "success" });
+    getData();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 function openDialog() {
@@ -116,11 +120,13 @@ function openDialog() {
         }
       ).formInline;
       curData.name = String(curData.name || "").trim();
-      createIncomeExpenseItemApi(curData).then(() => {
-        message("创建成功", { type: "success" });
-        done();
-        getData();
-      });
+      createIncomeExpenseItemApi(curData)
+        .then(() => {
+          message("创建成功", { type: "success" });
+          done();
+          getData();
+        })
+        .catch(() => undefined);
     }
   });
 }

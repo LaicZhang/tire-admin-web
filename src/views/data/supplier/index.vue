@@ -158,11 +158,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             message("缺少供应商ID，无法更新", { type: "error" });
             return;
           }
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            handleSearch();
-          });
+          promise
+            .then(() => {
+              message("操作成功", { type: "success" });
+              done();
+              handleSearch();
+            })
+            .catch(() => undefined);
         }
       });
     }
@@ -170,17 +172,25 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 };
 
 const handleDelete = async (row: FormItemProps) => {
-  if (!row.uid) return;
-  await deleteProviderApi(row.uid);
-  message("删除成功（可恢复）", { type: "success" });
-  handleSearch();
+  try {
+    if (!row.uid) return;
+    await deleteProviderApi(row.uid);
+    message("删除成功（可恢复）", { type: "success" });
+    handleSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 const handleRestore = async (row: FormItemProps) => {
-  if (!row.uid) return;
-  await restoreProviderApi(row.uid);
-  message("恢复成功", { type: "success" });
-  handleSearch();
+  try {
+    if (!row.uid) return;
+    await restoreProviderApi(row.uid);
+    message("恢复成功", { type: "success" });
+    handleSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 </script>
 

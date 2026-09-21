@@ -223,9 +223,9 @@ const {
 
 // 保存配置
 const handleSave = () => {
-  saveColumnSettingsApi(currentModule.value, columnList.value).then(() =>
-    message("保存成功", { type: "success" })
-  );
+  saveColumnSettingsApi(currentModule.value, columnList.value)
+    .then(() => message("保存成功", { type: "success" }))
+    .catch(() => undefined);
 };
 
 // 恢复默认
@@ -233,9 +233,9 @@ const handleResetDefault = () => {
   columnList.value = (defaultColumns[currentModule.value] || []).map(item => ({
     ...item
   }));
-  clearColumnSettingsApi(currentModule.value).then(() =>
-    message("已恢复默认设置", { type: "success" })
-  );
+  clearColumnSettingsApi(currentModule.value)
+    .then(() => message("已恢复默认设置", { type: "success" }))
+    .catch(() => undefined);
 };
 
 // 上移

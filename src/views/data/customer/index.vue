@@ -152,11 +152,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             title === "新增"
               ? addCustomerApi(curData)
               : updateCustomerApi(row?.uid ?? "", curData);
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            handleSearch();
-          });
+          promise
+            .then(() => {
+              message("操作成功", { type: "success" });
+              done();
+              handleSearch();
+            })
+            .catch(() => undefined);
         }
       });
     }
@@ -164,17 +166,25 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
 };
 
 const handleDelete = async (row: FormItemProps) => {
-  if (!row.uid) return;
-  await deleteCustomerApi(row.uid);
-  message("删除成功（可恢复）", { type: "success" });
-  handleSearch();
+  try {
+    if (!row.uid) return;
+    await deleteCustomerApi(row.uid);
+    message("删除成功（可恢复）", { type: "success" });
+    handleSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 const handleRestore = async (row: FormItemProps) => {
-  if (!row.uid) return;
-  await restoreCustomerApi(row.uid);
-  message("恢复成功", { type: "success" });
-  handleSearch();
+  try {
+    if (!row.uid) return;
+    await restoreCustomerApi(row.uid);
+    message("恢复成功", { type: "success" });
+    handleSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 </script>
 
