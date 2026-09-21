@@ -16,6 +16,7 @@ import {
   updateOrderApi,
   type OrderQueryDto
 } from "./business/order";
+import { normalizeOrderListResult } from "@/utils/moneyAmount";
 import type { SalesOrder } from "@/views/sales/order/types";
 import type { OutboundOrder } from "@/views/sales/outbound/types";
 import type { SalesReturnOrder } from "@/views/sales/return/types";
@@ -24,8 +25,16 @@ export const SALES_ORDER_TYPE = "sale-order" as const;
 export const SALES_RETURN_ORDER_TYPE = "return-order" as const;
 export const SALES_OUTBOUND_ORDER_TYPE = "sale-outbound" as const;
 
-export function getSalesOrderListApi(index: number, params?: OrderQueryDto) {
-  return getOrderListApi<SalesOrder>(SALES_ORDER_TYPE, index, params);
+export async function getSalesOrderListApi(
+  index: number,
+  params?: OrderQueryDto
+) {
+  const result = await getOrderListApi<SalesOrder>(
+    SALES_ORDER_TYPE,
+    index,
+    params
+  );
+  return normalizeOrderListResult(result);
 }
 
 export function createSalesOrderApi(data: Parameters<typeof addOrderApi>[1]) {

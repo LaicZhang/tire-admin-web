@@ -1,3 +1,5 @@
+import type { MoneyAmount } from "@/utils/moneyAmount";
+
 /** Purchase Order Module Types */
 
 export interface PurchaseOrderDetail {
@@ -5,8 +7,8 @@ export interface PurchaseOrderDetail {
   tireId: string;
   tireName?: string;
   count: number;
-  unitPrice: number;
-  total: number;
+  unitPrice: MoneyAmount;
+  total: MoneyAmount;
   repoId?: string;
   repoName?: string;
   batchNo?: string;
@@ -26,9 +28,9 @@ export interface PurchaseOrder {
   auditorId?: string;
   auditorName?: string;
   count: number;
-  total: number;
-  showTotal: number;
-  paidAmount: number;
+  total: MoneyAmount;
+  showTotal: MoneyAmount;
+  paidAmount: MoneyAmount;
   status: boolean;
   orderStatus: number;
   logisticsStatus: number;
