@@ -23,6 +23,7 @@ import {
 import { getCompanyConnect, getCompanyId } from "@/api/company";
 import { auditOrderApi } from "@/api/business/order";
 import { message, handleApiError } from "@/utils";
+import { canCollectApprovedOrder } from "@/utils/moneyAmount";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { useOrderListPage } from "@/composables/useOrderListPage";
 import { purchaseOrderColumns } from "./columns";
@@ -350,9 +351,7 @@ onMounted(async () => {
                       {
                         label: '付款',
                         type: 'primary',
-                        visible:
-                          row.isApproved &&
-                          (row.paidAmount || 0) < (row.total || 0),
+                        visible: row.isApproved && canCollectApprovedOrder(row),
                         onClick: () => openDialog('付款', row)
                       },
                       {

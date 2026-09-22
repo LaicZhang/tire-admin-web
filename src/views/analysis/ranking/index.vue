@@ -17,6 +17,7 @@ import {
   type AnalysisGroupBy
 } from "../shared";
 import { useColumns } from "./columns";
+import { toChartNumber } from "../transformers";
 
 defineOptions({
   name: "AnalysisRanking"
@@ -99,11 +100,6 @@ const activeSeriesName = computed(() => {
   }
 });
 
-function fenToYuan(val: string | number | null | undefined): number {
-  const n = Number(String(val ?? "0").replace(/,/g, ""));
-  return Number.isFinite(n) ? n / 100 : 0;
-}
-
 async function updateChart() {
   if (!chartRef.value) return;
   if (!chartInstance) {
@@ -112,7 +108,7 @@ async function updateChart() {
   }
   const rows = activeRows.value.slice(0, Math.min(limit.value, 20));
   const labels = rows.map(r => r.name || "-").reverse();
-  const amounts = rows.map(r => fenToYuan(r.amount)).reverse();
+  const amounts = rows.map(r => toChartNumber(r.amount)).reverse();
   chartInstance.setOption(
     {
       tooltip: {

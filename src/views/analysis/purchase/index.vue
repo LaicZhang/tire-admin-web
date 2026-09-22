@@ -34,7 +34,11 @@ import {
   toRequiredDateParams,
   type AnalysisGroupBy
 } from "../shared";
-import { buildTrackingSummaryCards } from "../transformers";
+import {
+  buildTrackingSummaryCards,
+  formatYuanAmount,
+  toChartNumber
+} from "../transformers";
 import { useUserStoreHook } from "@/store/modules/user";
 import {
   canSelectAnalysisMember,
@@ -80,7 +84,6 @@ const dimensionItems = ref<
 >([]);
 const dimChartRef = ref<HTMLElement | null>(null);
 let dimChartInstance: EChartsType | null = null;
-
 
 const summaryData = ref({
   totalAmount: "0",
@@ -144,10 +147,6 @@ const exceptionTrackingList = computed(() =>
   trackingList.value.filter(item => item.trackingStatus !== "completed")
 );
 
-function formatAmount(val: string | number) {
-  return Number(val).toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-}
-
 function buildTrendOption(): EChartsCoreOption {
   return {
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
@@ -162,7 +161,7 @@ function buildTrendOption(): EChartsCoreOption {
         type: "value",
         name: "金额(元)",
         axisLabel: {
-          formatter: (val: number) => (val / 100).toLocaleString()
+          formatter: (val: number) => val.toLocaleString("zh-CN")
         }
       },
       {
@@ -260,11 +259,6 @@ async function getProviderEvaluation() {
   };
 }
 
-function fenToYuan(val: string | number | null | undefined): number {
-  const n = Number(String(val ?? "0").replace(/,/g, ""));
-  return Number.isFinite(n) ? n / 100 : 0;
-}
-
 async function updateDimChart() {
   if (!dimChartRef.value) return;
   if (!dimChartInstance) {
@@ -272,7 +266,9 @@ async function updateDimChart() {
     dimChartInstance = echarts.init(dimChartRef.value);
   }
   const labels = dimensionItems.value.map(i => i.name).reverse();
-  const amounts = dimensionItems.value.map(i => fenToYuan(i.amount)).reverse();
+  const amounts = dimensionItems.value
+    .map(i => toChartNumber(i.amount))
+    .reverse();
   dimChartInstance.setOption({
     tooltip: {
       trigger: "axis",
@@ -284,7 +280,13 @@ async function updateDimChart() {
         return `${item.name}<br/>金额：¥${Number(item.value ?? 0).toLocaleString("zh-CN", { minimumFractionDigits: 2 })}`;
       }
     },
-    grid: { left: "3%", right: "8%", bottom: "3%", top: "8%", containLabel: true },
+    grid: {
+      left: "3%",
+      right: "8%",
+      bottom: "3%",
+      top: "8%",
+      containLabel: true
+    },
     xAxis: { type: "value", name: "金额(元)" },
     yAxis: {
       type: "category",
@@ -477,7 +479,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">采购总额</div>
           <div class="mt-2 text-xl font-bold text-teal-700">
-            ¥{{ formatAmount(summaryData.totalAmount) }}
+            ¥{{ formatYuanAmount(summaryData.totalAmount) }}
           </div>
         </el-card>
       </el-col>
@@ -493,7 +495,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">已付款</div>
           <div class="mt-2 text-xl font-bold text-emerald-600">
-            ¥{{ formatAmount(summaryData.paidAmount) }}
+            ¥{{ formatYuanAmount(summaryData.paidAmount) }}
           </div>
         </el-card>
       </el-col>
@@ -501,7 +503,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">未付款</div>
           <div class="mt-2 text-xl font-bold text-orange-600">
-            ¥{{ formatAmount(summaryData.unpaidAmount) }}
+            ¥{{ formatYuanAmount(summaryData.unpaidAmount) }}
           </div>
         </el-card>
       </el-col>
@@ -509,7 +511,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">平均订单金额</div>
           <div class="mt-2 text-xl font-bold text-indigo-600">
-            ¥{{ formatAmount(summaryData.averageOrderValue) }}
+            ¥{{ formatYuanAmount(summaryData.averageOrderValue) }}
           </div>
         </el-card>
       </el-col>

@@ -1,4 +1,5 @@
 import { http } from "../../utils/http";
+import { unsupportedBackendRoute } from "../route-gap";
 import { baseUrlApi } from "../utils";
 import type { CommonResult } from "../type";
 import { createCrudApi } from "../utils/crud-factory";
@@ -212,11 +213,12 @@ export async function createCustomerDebtProfileApi(
   );
 }
 
-export async function getCustomerDebtProfileApi(uid: string) {
-  return await http.request<CommonResult>(
-    "get",
-    baseUrlApi(prefix + "debt-profile/" + uid)
-  );
+/**
+ * 后端没有 GET debt-profile。写入走 createCustomerDebtProfileApi 的 POST，
+ * 不要把这个只读函数改成无 body 的 POST。
+ */
+export async function getCustomerDebtProfileApi(_uid: string) {
+  return unsupportedBackendRoute("GET /customer/debt-profile/:uid");
 }
 
 // ============ 客户标签管理 ============
@@ -236,26 +238,17 @@ export async function createCustomerTagApi(data: {
   });
 }
 
-/** 更新客户标签 */
+/** 后端没有 PATCH /customer/tag/:id。 */
 export async function updateCustomerTagApi(
-  id: number,
-  data: { name?: string; color?: string }
+  _id: number,
+  _data: { name?: string; color?: string }
 ) {
-  return await http.request<CommonResult>(
-    "patch",
-    baseUrlApi(prefix + `tag/${id}`),
-    {
-      data
-    }
-  );
+  return unsupportedBackendRoute("PATCH /customer/tag/:id");
 }
 
-/** 删除客户标签 */
-export async function deleteCustomerTagApi(id: number) {
-  return await http.request<CommonResult>(
-    "delete",
-    baseUrlApi(prefix + `tag/${id}`)
-  );
+/** 后端没有 DELETE /customer/tag/:id。 */
+export async function deleteCustomerTagApi(_id: number) {
+  return unsupportedBackendRoute("DELETE /customer/tag/:id");
 }
 
 /** 绑定客户标签 */

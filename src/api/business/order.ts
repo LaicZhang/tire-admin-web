@@ -13,8 +13,8 @@ export interface OrderDetailDto {
   uid?: string;
   tireId: string;
   count: number;
-  unitPrice?: number;
-  total?: number;
+  unitPrice?: number | string;
+  total?: number | string;
   desc?: string;
   isArrival?: boolean;
   companyId?: string;

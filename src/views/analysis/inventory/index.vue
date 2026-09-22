@@ -18,6 +18,7 @@ import { getStoreListApi, type Store } from "@/api/company/store";
 import { getEcharts } from "@/utils/echarts";
 import { handleApiError } from "@/utils";
 import { movementColumns, slowMovingColumns, stockoutColumns } from "./columns";
+import { formatYuanAmount } from "../transformers";
 import AnalysisDateToolbar from "../components/AnalysisDateToolbar.vue";
 import {
   buildAnalysisFilterQuery,
@@ -171,10 +172,6 @@ const inventoryParams = computed(() => ({
     ? selectedOperatorId.value || undefined
     : undefined
 }));
-
-function formatAmount(val: string | number) {
-  return Number(val).toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-}
 
 async function getSummary() {
   const { data, code } = await getInventorySummaryApi(inventoryParams.value);
@@ -331,18 +328,29 @@ async function updateMovementChart() {
 }
 
 async function updateSlowMovingChart() {
-  slowMovingChart = await ensureChart(slowMovingChart, slowMovingChartRef.value);
+  slowMovingChart = await ensureChart(
+    slowMovingChart,
+    slowMovingChartRef.value
+  );
   if (!slowMovingChart) return;
   const rows = slowMovingList.value
     .map(item => ({
       name: item.tireName || "未知",
-      qty: Number(item.quantity ?? (item as { stockQuantity?: number }).stockQuantity ?? 0)
+      qty: Number(
+        item.quantity ?? (item as { stockQuantity?: number }).stockQuantity ?? 0
+      )
     }))
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 12);
   slowMovingChart.setOption({
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-    grid: { left: "3%", right: "8%", top: "8%", bottom: "3%", containLabel: true },
+    grid: {
+      left: "3%",
+      right: "8%",
+      top: "8%",
+      bottom: "3%",
+      containLabel: true
+    },
     xAxis: { type: "value", name: "数量" },
     yAxis: {
       type: "category",
@@ -366,15 +374,14 @@ async function updateStockoutChart() {
   const rows = stockoutList.value
     .map(item => {
       const current = Number(
-        item.currentQuantity ?? (item as { currentStock?: number }).currentStock ?? 0
+        item.currentQuantity ??
+          (item as { currentStock?: number }).currentStock ??
+          0
       );
       const safety = Number(
         item.safetyStock ?? (item as { minStock?: number }).minStock ?? 0
       );
-      const gap = Math.max(
-        0,
-        Number(item.suggestPurchase ?? safety - current)
-      );
+      const gap = Math.max(0, Number(item.suggestPurchase ?? safety - current));
       return {
         name: item.tireName || (item as { name?: string }).name || "未知",
         gap
@@ -384,7 +391,13 @@ async function updateStockoutChart() {
     .slice(0, 12);
   stockoutChart.setOption({
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-    grid: { left: "3%", right: "8%", top: "8%", bottom: "3%", containLabel: true },
+    grid: {
+      left: "3%",
+      right: "8%",
+      top: "8%",
+      bottom: "3%",
+      containLabel: true
+    },
     xAxis: { type: "value", name: "缺口" },
     yAxis: {
       type: "category",
@@ -410,9 +423,7 @@ async function updateDotAgingChart() {
     new Set(dotAgingList.value.map(i => i.repoName || "未分配仓"))
   );
   const years = Array.from(
-    new Set(
-      dotAgingList.value.map(i => String(i.dotYear ?? "未知"))
-    )
+    new Set(dotAgingList.value.map(i => String(i.dotYear ?? "未知")))
   ).sort();
   const series = years.map((year, idx) => ({
     name: `DOT ${year}`,
@@ -434,14 +445,27 @@ async function updateDotAgingChart() {
       ]
     }
   }));
-  dotAgingChart.setOption({
-    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-    legend: { bottom: 0 },
-    grid: { left: "3%", right: "4%", top: "8%", bottom: "16%", containLabel: true },
-    xAxis: { type: "category", data: repos, axisLabel: { rotate: repos.length > 4 ? 30 : 0 } },
-    yAxis: { type: "value", name: "数量" },
-    series
-  }, true);
+  dotAgingChart.setOption(
+    {
+      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+      legend: { bottom: 0 },
+      grid: {
+        left: "3%",
+        right: "4%",
+        top: "8%",
+        bottom: "16%",
+        containLabel: true
+      },
+      xAxis: {
+        type: "category",
+        data: repos,
+        axisLabel: { rotate: repos.length > 4 ? 30 : 0 }
+      },
+      yAxis: { type: "value", name: "数量" },
+      series
+    },
+    true
+  );
 }
 
 async function loadData() {
@@ -636,7 +660,7 @@ onUnmounted(() => {
         <el-card shadow="hover" class="text-center">
           <div class="text-gray-500 text-sm">库存总价值</div>
           <div class="mt-2 text-xl font-bold text-blue-600">
-            ¥{{ formatAmount(summaryData.totalValue) }}
+            ¥{{ formatYuanAmount(summaryData.totalValue) }}
           </div>
         </el-card>
       </el-col>

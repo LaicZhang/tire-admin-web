@@ -185,11 +185,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
                 status: curData.status
               }
             };
-            addEmployeeApi(createData).then(() => {
-              message("操作成功", { type: "success" });
-              done();
-              fetchData();
-            });
+            addEmployeeApi(createData)
+              .then(() => {
+                message("操作成功", { type: "success" });
+                done();
+                fetchData();
+              })
+              .catch(() => undefined);
           } else {
             if (!row?.uid) {
               message("缺少职员ID，无法更新", { type: "error" });
@@ -207,11 +209,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
                 email: curData.email
               }
             };
-            updateEmployeeApi(row.uid, updateData).then(() => {
-              message("操作成功", { type: "success" });
-              done();
-              fetchData();
-            });
+            updateEmployeeApi(row.uid, updateData)
+              .then(() => {
+                message("操作成功", { type: "success" });
+                done();
+                fetchData();
+              })
+              .catch(() => undefined);
           }
         }
       });

@@ -77,9 +77,13 @@ const handleSearch = () => {
 };
 
 const handleDelete = async (row: PriceList) => {
-  await deletePriceListApi(row.id);
-  message("删除成功", { type: "success" });
-  getData();
+  try {
+    await deletePriceListApi(row.id);
+    message("删除成功", { type: "success" });
+    getData();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 function getPriceListRow(row: unknown): PriceList {
@@ -231,11 +235,13 @@ function openDialog(title = "新增", row?: PriceList) {
         );
       }
 
-      promise.then(() => {
-        message("操作成功", { type: "success" });
-        done();
-        getData();
-      });
+      promise
+        .then(() => {
+          message("操作成功", { type: "success" });
+          done();
+          getData();
+        })
+        .catch(() => undefined);
     }
   });
 }

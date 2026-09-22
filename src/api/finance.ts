@@ -1,6 +1,7 @@
 import { http } from "../utils/http";
 import { baseUrlApi } from "./utils";
 import type { CommonResult, PaginatedResponseDto } from "./type";
+import { unsupportedBackendRoute } from "./route-gap";
 
 const prefix = "/finance-extension/";
 
@@ -265,33 +266,24 @@ export async function getCollectionReminderListApi(
   >("get", baseUrlApi(prefix + `collection-reminder/${index}`), { params });
 }
 
-/** 获取收支项目列表 */
+/** 后端没有 /finance-extension/item。 */
 export async function getIncomeExpenseItemListApi(
-  index: number,
-  params?: { type?: "income" | "expense" }
-) {
-  return await http.request<
-    CommonResult<PaginatedResponseDto<IncomeExpenseItem>>
-  >("get", baseUrlApi(prefix + `item/${index}`), { params });
+  _index: number,
+  _params?: { type?: "income" | "expense" }
+): Promise<CommonResult<PaginatedResponseDto<IncomeExpenseItem>>> {
+  return unsupportedBackendRoute("GET /finance-extension/item/:index");
 }
 
-/** 创建收支项目 */
-export async function createIncomeExpenseItemApi(data: {
+export async function createIncomeExpenseItemApi(_data: {
   name: string;
   type: "income" | "expense";
   desc?: string;
-}) {
-  return await http.request<CommonResult<IncomeExpenseItem>>(
-    "post",
-    baseUrlApi(prefix + "item"),
-    { data }
-  );
+}): Promise<CommonResult<IncomeExpenseItem>> {
+  return unsupportedBackendRoute("POST /finance-extension/item");
 }
 
-/** 删除收支项目 */
-export async function deleteIncomeExpenseItemApi(id: number) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + `item/${id}`)
-  );
+export async function deleteIncomeExpenseItemApi(
+  _id: number
+): Promise<CommonResult<void>> {
+  return unsupportedBackendRoute("DELETE /finance-extension/item/:id");
 }

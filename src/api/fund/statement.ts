@@ -1,6 +1,10 @@
-import { http } from "@/utils/http";
-import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
+import { unsupportedBackendRoute } from "../route-gap";
+
+/**
+ * T3-X-002：这三条读路径没有后端路由。
+ * 不要改接到 receivable-statement / payable-statement（那是另一套对账单）。
+ */
 
 // ================== 资金报表 API ==================
 export interface FundFlow {
@@ -70,31 +74,21 @@ export interface ContactDebtQueryDto {
 }
 
 export async function getFundFlowListApi(
-  index: number,
-  params?: FundFlowQueryDto
-) {
-  return await http.request<CommonResult<PaginatedResponseDto<FundFlow>>>(
-    "get",
-    baseUrlApi(`/statement/${index}`),
-    { params }
-  );
+  _index: number,
+  _params?: FundFlowQueryDto
+): Promise<CommonResult<PaginatedResponseDto<FundFlow>>> {
+  return unsupportedBackendRoute("GET /statement/:index");
 }
 
-export async function getAccountBalanceApi(params?: AccountBalanceQueryDto) {
-  return await http.request<CommonResult<AccountBalance[]>>(
-    "get",
-    baseUrlApi("/statement/account-balance"),
-    { params }
-  );
+export async function getAccountBalanceApi(
+  _params?: AccountBalanceQueryDto
+): Promise<CommonResult<AccountBalance[]>> {
+  return unsupportedBackendRoute("GET /statement/account-balance");
 }
 
 export async function getContactDebtListApi(
-  index: number,
-  params?: ContactDebtQueryDto
-) {
-  return await http.request<CommonResult<PaginatedResponseDto<ContactDebt>>>(
-    "get",
-    baseUrlApi(`/statement/contact-debt/${index}`),
-    { params }
-  );
+  _index: number,
+  _params?: ContactDebtQueryDto
+): Promise<CommonResult<PaginatedResponseDto<ContactDebt>>> {
+  return unsupportedBackendRoute("GET /statement/contact-debt/:index");
 }

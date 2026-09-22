@@ -126,11 +126,13 @@ const openDialog = (title = "新增", row?: MenuItem) => {
               ? createMenuApi(curData)
               : updateMenuApi(String(row?.uid ?? row?.id ?? ""), curData);
 
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            onSearch();
-          });
+          promise
+            .then(() => {
+              message("操作成功", { type: "success" });
+              done();
+              onSearch();
+            })
+            .catch(() => undefined);
         }
       });
     }
@@ -138,15 +140,23 @@ const openDialog = (title = "新增", row?: MenuItem) => {
 };
 
 const handleDelete = async (row: MenuItem) => {
-  await deleteMenuApi(String(row.uid ?? row.id));
-  message("删除成功", { type: "success" });
-  onSearch();
+  try {
+    await deleteMenuApi(String(row.uid ?? row.id));
+    message("删除成功", { type: "success" });
+    onSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 const handleRestore = async (row: MenuItem) => {
-  await restoreMenuApi(String(row.uid ?? row.id));
-  message("恢复成功", { type: "success" });
-  onSearch();
+  try {
+    await restoreMenuApi(String(row.uid ?? row.id));
+    message("恢复成功", { type: "success" });
+    onSearch();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 onMounted(() => {

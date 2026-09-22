@@ -53,11 +53,15 @@ const {
 });
 
 const handleScan = async () => {
-  const { code, msg } = await scanStockAlertApi();
-  if (code === 200) {
-    message("触发扫描成功", { type: "success" });
-  } else {
-    message(msg, { type: "error" });
+  try {
+    const { code, msg } = await scanStockAlertApi();
+    if (code === 200) {
+      message("触发扫描成功", { type: "success" });
+    } else {
+      message(msg, { type: "error" });
+    }
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
   }
 };
 </script>

@@ -1,8 +1,10 @@
-import { http } from "../../utils/http";
-import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
+import { unsupportedBackendRoute } from "../route-gap";
 
-const prefix = "/price/";
+/**
+ * T3-X-002：零引用死封装。真实价格模块是 `@/api/business/price-list`，
+ * 此前缀 `/price/` 后端不存在。
+ */
 
 export interface PriceListDto {
   name: string;
@@ -24,57 +26,29 @@ export interface PriceListQuery {
 }
 
 export async function getPriceListListApi(
-  index: number,
-  params?: PriceListQuery
-) {
-  return await http.request<CommonResult<PaginatedResponseDto<PriceList>>>(
-    "get",
-    baseUrlApi(prefix + "list/page/" + index),
-    { params }
-  );
+  _index: number,
+  _params?: PriceListQuery
+): Promise<CommonResult<PaginatedResponseDto<PriceList>>> {
+  return unsupportedBackendRoute("GET /price/list/page/:index");
 }
 
-export async function createPriceListApi(data: PriceListDto) {
-  return await http.request<CommonResult<PriceList>>(
-    "post",
-    baseUrlApi(prefix + "list"),
-    {
-      data
-    }
-  );
+export async function createPriceListApi(
+  _data: PriceListDto
+): Promise<CommonResult<PriceList>> {
+  return unsupportedBackendRoute("POST /price/list");
 }
 
 export async function updatePriceListApi(
-  id: string,
-  data: Partial<PriceListDto>
-) {
-  return await http.request<CommonResult<PriceList>>(
-    "patch",
-    baseUrlApi(prefix + "list/" + id),
-    {
-      data
-    }
-  );
+  _id: string,
+  _data: Partial<PriceListDto>
+): Promise<CommonResult<PriceList>> {
+  return unsupportedBackendRoute("PATCH /price/list/:id");
 }
 
-export async function deletePriceListApi(id: string) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(prefix + "list/" + id)
-  );
-}
-
-export async function getProductPriceApi(params: {
-  tireId?: string;
-  customerId?: string;
-}) {
-  return await http.request<CommonResult<ProductPriceQueryResult>>(
-    "get",
-    baseUrlApi(prefix + "query"),
-    {
-      params
-    }
-  );
+export async function deletePriceListApi(
+  _id: string
+): Promise<CommonResult<void>> {
+  return unsupportedBackendRoute("DELETE /price/list/:id");
 }
 
 export interface ProductPriceQueryResult extends Record<string, unknown> {
@@ -84,13 +58,16 @@ export interface ProductPriceQueryResult extends Record<string, unknown> {
   strategy?: string;
 }
 
-export async function assignPriceListApi(data: {
+export async function getProductPriceApi(_params: {
+  tireId?: string;
+  customerId?: string;
+}): Promise<CommonResult<ProductPriceQueryResult>> {
+  return unsupportedBackendRoute("GET /price/query");
+}
+
+export async function assignPriceListApi(_data: {
   priceListId: string;
   customerIds: string[];
-}) {
-  return await http.request<CommonResult<void>>(
-    "post",
-    baseUrlApi(prefix + "assign"),
-    { data }
-  );
+}): Promise<CommonResult<void>> {
+  return unsupportedBackendRoute("POST /price/assign");
 }

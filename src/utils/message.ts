@@ -1,6 +1,7 @@
 import type { VNode, Component } from "vue";
 import { isFunction } from "@pureadmin/utils";
 import { type MessageHandler, ElMessage, ElMessageBox } from "element-plus";
+import { isFollowupErrorToastSuppressed } from "@/utils/http/notified-error";
 
 type messageStyle = "el" | "antd";
 type messageTypes = "info" | "success" | "warning" | "error";
@@ -46,6 +47,9 @@ const message = (
   message: string | VNode | (() => VNode),
   params?: MessageParams
 ): MessageHandler => {
+  if (params?.type === "error" && isFollowupErrorToastSuppressed()) {
+    return { close: () => undefined } as MessageHandler;
+  }
   if (!params) {
     return ElMessage({
       message,

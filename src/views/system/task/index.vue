@@ -290,11 +290,13 @@ function openDialog(title = "新增", row?: TaskItem) {
         }
         promise = updateTaskApi(row.id, data);
       }
-      promise.then(() => {
-        message("操作成功", { type: "success" });
-        done();
-        onSearch();
-      });
+      promise
+        .then(() => {
+          message("操作成功", { type: "success" });
+          done();
+          onSearch();
+        })
+        .catch(() => undefined);
     }
   });
 }

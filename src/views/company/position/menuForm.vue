@@ -53,16 +53,21 @@ async function loadCheckedKeys() {
 }
 
 async function submit() {
-  const checked = (treeRef.value?.getCheckedKeys(false) ?? []) as string[];
-  const halfChecked = (treeRef.value?.getHalfCheckedKeys() ?? []) as string[];
-  const menuUids = Array.from(new Set([...checked, ...halfChecked]));
-  const { code, msg } = await setPositionMenusApi(props.uid, menuUids);
-  if (code === 200) {
-    message("保存成功", { type: "success" });
-    return true;
+  try {
+    const checked = (treeRef.value?.getCheckedKeys(false) ?? []) as string[];
+    const halfChecked = (treeRef.value?.getHalfCheckedKeys() ?? []) as string[];
+    const menuUids = Array.from(new Set([...checked, ...halfChecked]));
+    const { code, msg } = await setPositionMenusApi(props.uid, menuUids);
+    if (code === 200) {
+      message("保存成功", { type: "success" });
+      return true;
+    }
+    message(msg || "保存失败", { type: "error" });
+    return false;
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+    return false;
   }
-  message(msg || "保存失败", { type: "error" });
-  return false;
 }
 
 defineExpose({ submit });
@@ -72,6 +77,8 @@ onMounted(async () => {
   try {
     await loadMenus();
     await loadCheckedKeys();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
   } finally {
     loading.value = false;
   }

@@ -110,8 +110,14 @@ if (res.code !== 200) {
 2. **请求重试**（仅幂等请求 + 网络错误/超时）
 3. **统一错误提示**（失败信封按 `msg` 弹 `ElMessage.error`）
 
-注意：拦截器对**失败信封走 `resolve` 而不是 `reject`**，调用方沿用
-`code !== 200` 分支即可；需要业务码时对返回的信封调用 `resolveApiError`。
+失败信封（4xx/5xx，含未匹配路由兜底 404）在弹 `ElMessage.error` 后
+**`reject` 信封本身**，不再 `resolve`。调用方用 `try/catch`；业务码从
+**catch 到的信封**读 `resolveApiError(error).errorCode`。取消请求与致命配置错误
+不弹窗：信封仍 `resolve`，非信封仍 `reject` 原 axios error。
+
+HTTP 失败不会再进入 `if (res.code !== 200)`。仓库里既有的 `code !== 200` 判定
+因此走不到，保留无害，不批量删除。拦截器已提示过的失败，紧随其后的
+`message(..., { type: "error" })`（含 `handleApiError`）会被抑制，避免双 toast。
 
 ## 业务层错误处理
 
@@ -136,13 +142,13 @@ const handleSubmit = async () => {
 ### 需要按业务码分支时
 
 ```typescript
-const res = await createOrderApi(formData);
-if (res.code !== 200) {
-  const { errorCode } = resolveApiError(res);
+try {
+  await createOrderApi(formData);
+} catch (error) {
+  const { errorCode } = resolveApiError(error);
   if (errorCode === "STATE.ORDER_LOCKED") {
     // 订单已锁定：走专属交互
   }
-  return;
 }
 ```
 
@@ -162,9 +168,10 @@ if (res.code !== 200) {
 ```typescript
 const { scrollToField } = useFormRef(formRef);
 
-const res = await submitApi(form);
-if (res.code !== 200) {
-  const { fieldErrors, msg } = resolveApiError(res);
+try {
+  await submitApi(form);
+} catch (error) {
+  const { fieldErrors, msg } = resolveApiError(error);
   const first = fieldErrors[0];
   if (first) {
     scrollToField(toFormProp(first.field));
@@ -172,9 +179,11 @@ if (res.code !== 200) {
   } else {
     message(msg ?? "提交失败", { type: "error" });
   }
-  return;
 }
 ```
+
+`message(..., { type: "error" })` 若紧跟拦截器的失败提示，会被自动抑制；
+`warning` 不会被抑制，字段级提示仍会显示。
 
 ### 错误分类与上报
 

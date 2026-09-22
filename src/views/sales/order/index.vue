@@ -27,6 +27,7 @@ import {
 } from "@/api/sales";
 import { auditOrderApi } from "@/api/business/order";
 import { message, handleApiError } from "@/utils";
+import { canCollectApprovedOrder } from "@/utils/moneyAmount";
 import { useActionFormDialog } from "@/composables/useActionFormDialog";
 import { useOrderListPage } from "@/composables/useOrderListPage";
 import { salesOrderColumns } from "./columns";
@@ -411,9 +412,7 @@ async function openConfirmActionDialog(
                       {
                         label: '收款',
                         type: 'primary',
-                        visible:
-                          row.isApproved &&
-                          (row.paidAmount || 0) < (row.total || 0),
+                        visible: row.isApproved && canCollectApprovedOrder(row),
                         onClick: () => openDialog('收款', row)
                       },
                       {

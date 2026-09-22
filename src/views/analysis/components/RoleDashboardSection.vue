@@ -39,7 +39,7 @@ function buildTrendOption(section: RoleDashboardSection): EChartsCoreOption {
           {
             type: "value",
             axisLabel: {
-              formatter: (value: number) => `${(value / 100).toFixed(0)}`
+              formatter: (value: number) => value.toLocaleString("zh-CN")
             }
           },
           { type: "value" }

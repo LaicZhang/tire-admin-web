@@ -1,5 +1,6 @@
 import { MoneyDisplay, StatusTag } from "@/components";
 import { paymentStatusLabel } from "@/services/order.service";
+import { toMoneyNumber } from "@/utils/moneyAmount";
 import { hideOnMobile } from "@/utils/viewport";
 
 /** 单据启停（boolean status），非支付态 */
@@ -53,10 +54,7 @@ export const purchaseOrderColumns: TableColumnList = [
     width: 120,
     align: "right",
     cellRenderer: ({ row }) => (
-      <MoneyDisplay
-        value={typeof row.total === "number" ? row.total : null}
-        emptyText="-"
-      />
+      <MoneyDisplay value={toMoneyNumber(row.total)} emptyText="-" />
     )
   },
   {
@@ -66,10 +64,7 @@ export const purchaseOrderColumns: TableColumnList = [
     width: 120,
     align: "right",
     cellRenderer: ({ row }) => (
-      <MoneyDisplay
-        value={typeof row.paidAmount === "number" ? row.paidAmount : null}
-        emptyText="-"
-      />
+      <MoneyDisplay value={toMoneyNumber(row.paidAmount)} emptyText="-" />
     )
   },
   {

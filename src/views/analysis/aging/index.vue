@@ -12,6 +12,7 @@ import {
   type AnalysisGroupBy
 } from "../shared";
 import { receivableColumns, payableColumns } from "./columns";
+import { formatYuanAmount, toChartNumber } from "../transformers";
 
 defineOptions({
   name: "AnalysisAging"
@@ -99,19 +100,9 @@ let chartInstancePayable: EChartsType | null = null;
 let topChartReceivable: EChartsType | null = null;
 let topChartPayable: EChartsType | null = null;
 
-function formatAmount(val: string | number) {
-  const num = Number(val) / 100;
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-}
-
-function fenToYuan(val: string | number | null | undefined): number {
-  const n = Number(String(val ?? "0").replace(/,/g, ""));
-  return Number.isFinite(n) ? n / 100 : 0;
-}
-
 function topOverdue(details: DetailItem[], limit = 10): DetailItem[] {
   return [...details]
-    .sort((a, b) => fenToYuan(b.dueAmount) - fenToYuan(a.dueAmount))
+    .sort((a, b) => toChartNumber(b.dueAmount) - toChartNumber(a.dueAmount))
     .slice(0, limit);
 }
 
@@ -175,7 +166,7 @@ async function updateBucketCharts(type: "receivable" | "payable") {
           type: "bar" as const,
           stack: "aging",
           emphasis: { focus: "series" as const },
-          data: [fenToYuan(item.amount)],
+          data: [toChartNumber(item.amount)],
           itemStyle: {
             color: ["#22c55e", "#eab308", "#f97316", "#ef4444", "#7f1d1d"][
               idx % 5
@@ -190,7 +181,7 @@ async function updateBucketCharts(type: "receivable" | "payable") {
           avoidLabelOverlap: true,
           label: { formatter: "{b}\n{d}%" },
           data: buckets.map(item => ({
-            value: fenToYuan(item.amount),
+            value: toChartNumber(item.amount),
             name: item.label
           }))
         }
@@ -216,7 +207,7 @@ async function updateTopChart(type: "receivable" | "payable") {
 
   const top = topOverdue(details, 10);
   const labels = top.map(d => d.name || "-").reverse();
-  const amounts = top.map(d => fenToYuan(d.dueAmount)).reverse();
+  const amounts = top.map(d => toChartNumber(d.dueAmount)).reverse();
 
   instance.setOption(
     {
@@ -395,7 +386,7 @@ onUnmounted(() => {
               <div class="text-center mt-2">
                 <span class="text-gray-500">总应收金额: </span>
                 <span class="text-xl font-bold text-red-500"
-                  >¥{{ formatAmount(receivableData.totalAmount) }}</span
+                  >¥{{ formatYuanAmount(receivableData.totalAmount) }}</span
                 >
               </div>
             </el-col>
@@ -419,7 +410,7 @@ onUnmounted(() => {
               <div class="text-center mt-2">
                 <span class="text-gray-500">总应付金额: </span>
                 <span class="text-xl font-bold text-green-500"
-                  >¥{{ formatAmount(payableData.totalAmount) }}</span
+                  >¥{{ formatYuanAmount(payableData.totalAmount) }}</span
                 >
               </div>
             </el-col>

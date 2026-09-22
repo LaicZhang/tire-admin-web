@@ -1,7 +1,4 @@
-const formatAmount = (val: string | number) => {
-  const num = Number(val) / 100;
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
+import { formatYuanAmount } from "../transformers";
 
 interface RankRow {
   name: string;
@@ -44,7 +41,7 @@ export function useColumns() {
         const row = data.row as RankRow | undefined;
         return (
           <span class="font-bold text-blue-600">
-            ¥{row ? formatAmount(row.amount) : "-"}
+            ¥{row ? formatYuanAmount(row.amount) : "-"}
           </span>
         );
       }
@@ -84,7 +81,7 @@ export function useColumns() {
         const row = data.row as RankRow | undefined;
         return (
           <span class="font-bold text-green-600">
-            ¥{row ? formatAmount(row.amount) : "-"}
+            ¥{row ? formatYuanAmount(row.amount) : "-"}
           </span>
         );
       }
@@ -122,7 +119,7 @@ export function useColumns() {
       sortable: true,
       cellRenderer: data => {
         const row = data.row as RankRow | undefined;
-        return <span>¥{row ? formatAmount(row.amount) : "-"}</span>;
+        return <span>¥{row ? formatYuanAmount(row.amount) : "-"}</span>;
       }
     },
     {
@@ -133,7 +130,7 @@ export function useColumns() {
         const row = data.row as RankRow | undefined;
         return (
           <span class="text-emerald-500">
-            ¥{row ? formatAmount(row.profit ?? 0) : "-"}
+            ¥{row ? formatYuanAmount(row.profit ?? 0) : "-"}
           </span>
         );
       }
@@ -172,7 +169,9 @@ export function useColumns() {
       cellRenderer: data => {
         const row = data.row as RankRow | undefined;
         return (
-          <span class="font-bold">¥{row ? formatAmount(row.amount) : "-"}</span>
+          <span class="font-bold">
+            ¥{row ? formatYuanAmount(row.amount) : "-"}
+          </span>
         );
       }
     }

@@ -32,16 +32,11 @@ const dateParams = computed(() => ({
   endDate: props.endDate
 }));
 
-/** Aging API still returns fen; convert to yuan for display bars. */
-function fenToYuan(val: string | number | null | undefined): number {
-  return toChartNumber(val) / 100;
-}
-
 const overdueBuckets = computed(() => {
   const buckets = aging.value?.buckets ?? [];
   return buckets.map(item => ({
     label: item.label,
-    amount: fenToYuan(item.amount),
+    amount: toChartNumber(item.amount),
     count: item.count ?? 0
   }));
 });
@@ -51,7 +46,7 @@ const maxBucketAmount = computed(() =>
 );
 
 const totalReceivable = computed(() =>
-  formatYuanAmount(fenToYuan(aging.value?.totalAmount ?? "0"))
+  formatYuanAmount(aging.value?.totalAmount ?? "0")
 );
 
 async function loadProfit() {
@@ -103,7 +98,11 @@ onMounted(() => {
 
 <template>
   <div v-loading="loading" class="decision-cards">
-    <el-card class="decision-card" shadow="hover" @click="go('/analysis/profit')">
+    <el-card
+      class="decision-card"
+      shadow="hover"
+      @click="go('/analysis/profit')"
+    >
       <div class="decision-card__title">利润健康（A2）</div>
       <div class="decision-card__grid">
         <div>
@@ -127,7 +126,11 @@ onMounted(() => {
       </div>
     </el-card>
 
-    <el-card class="decision-card" shadow="hover" @click="go('/analysis/aging')">
+    <el-card
+      class="decision-card"
+      shadow="hover"
+      @click="go('/analysis/aging')"
+    >
       <div class="decision-card__title">应收逾期风险（A3）</div>
       <div class="decision-card__meta mb-3">
         总应收 ¥{{ totalReceivable }} · 点此下钻账龄
@@ -147,7 +150,9 @@ onMounted(() => {
               }"
             />
           </div>
-          <span class="risk-bar-value">¥{{ formatYuanAmount(bucket.amount) }}</span>
+          <span class="risk-bar-value"
+            >¥{{ formatYuanAmount(bucket.amount) }}</span
+          >
         </div>
       </div>
       <el-empty v-else description="暂无应收账龄数据" :image-size="64" />

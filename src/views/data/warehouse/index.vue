@@ -98,6 +98,8 @@ const getDetails = async (row: FormItemProps) => {
           disabled: true
         })
     });
+  } catch {
+    message("加载仓库详情失败", { type: "error" });
   } finally {
     loading.value = false;
   }
@@ -143,11 +145,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             title === "新增"
               ? createStorageZoneApi(curData)
               : updateStorageZoneApi(uid, curData);
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            fetchData();
-          });
+          promise
+            .then(() => {
+              message("操作成功", { type: "success" });
+              done();
+              fetchData();
+            })
+            .catch(() => undefined);
         }
       });
     }

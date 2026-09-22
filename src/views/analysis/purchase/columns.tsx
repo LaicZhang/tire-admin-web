@@ -1,9 +1,5 @@
 import type { TableColumnRenderer } from "@pureadmin/table";
-
-const formatAmount = (val: string | number) => {
-  const num = Number(val);
-  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-};
+import { formatYuanAmount } from "../transformers";
 
 export const providerColumns: TableColumnList = [
   {
@@ -24,7 +20,7 @@ export const providerColumns: TableColumnList = [
     label: "采购金额",
     width: 150,
     cellRenderer: (data: TableColumnRenderer) => {
-      return <span>¥{formatAmount(data.row?.amount)}</span>;
+      return <span>¥{formatYuanAmount(data.row?.amount)}</span>;
     }
   }
 ];
@@ -48,7 +44,7 @@ export const productColumns: TableColumnList = [
     label: "交易金额",
     width: 150,
     cellRenderer: (data: TableColumnRenderer) => {
-      return <span>¥{formatAmount(data.row?.amount)}</span>;
+      return <span>¥{formatYuanAmount(data.row?.amount)}</span>;
     }
   }
 ];
@@ -61,7 +57,7 @@ export const trackingColumns: TableColumnList = [
     label: "金额",
     minWidth: 140,
     cellRenderer: (data: TableColumnRenderer) => (
-      <span>¥{formatAmount(data.row?.total ?? 0)}</span>
+      <span>¥{formatYuanAmount(data.row?.total ?? 0)}</span>
     )
   },
   { label: "状态", prop: "trackingStatus", minWidth: 100 },

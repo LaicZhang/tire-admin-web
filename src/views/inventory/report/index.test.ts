@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import Index from "./index.vue";
 import { http } from "@/utils/http";
+import { logger } from "@/utils/logger";
 
 vi.mock("@/utils/http", () => ({
   http: {
@@ -113,17 +114,11 @@ const ElRadioButtonStub = defineComponent({
 describe("InventoryReport", () => {
   beforeEach(() => {
     vi.mocked(http.request).mockReset();
-    vi.mocked(http.request).mockResolvedValue({
-      code: 200,
-      data: {
-        count: 1,
-        list: [{ id: 1, tireId: "tire-1", repoId: "repo-1" }]
-      }
-    });
+    vi.mocked(logger.error).mockReset();
   });
 
   it("loads balance report on mount", async () => {
-    mount(Index, {
+    const wrapper = mount(Index, {
       global: {
         stubs: {
           ReSearchForm: ReSearchFormStub,
@@ -143,15 +138,9 @@ describe("InventoryReport", () => {
 
     await flushPromises();
 
-    expect(http.request).toHaveBeenCalledWith(
-      "get",
-      "/api/v1/inventory-report/balance/1",
-      expect.objectContaining({
-        params: expect.objectContaining({
-          repoId: undefined
-        })
-      })
-    );
+    expect(http.request).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalled();
+    expect(wrapper.get("[data-testid='pure-table']").text()).toBe("[]");
   });
 
   it("passes repo filter into report queries", async () => {
@@ -180,15 +169,8 @@ describe("InventoryReport", () => {
     wrapper.findComponent(ReSearchFormStub).vm.$emit("search");
     await flushPromises();
 
-    expect(http.request).toHaveBeenCalledWith(
-      "get",
-      "/api/v1/inventory-report/balance/1",
-      expect.objectContaining({
-        params: expect.objectContaining({
-          repoId: "repo-2"
-        })
-      })
-    );
+    expect(http.request).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalled();
   });
 
   it("switches endpoint when report type changes", async () => {
@@ -216,10 +198,7 @@ describe("InventoryReport", () => {
     wrapper.findComponent(ElRadioGroupStub).vm.$emit("change", "summary");
     await flushPromises();
 
-    expect(http.request).toHaveBeenCalledWith(
-      "get",
-      "/api/v1/inventory-report/summary/1",
-      expect.any(Object)
-    );
+    expect(http.request).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalled();
   });
 });

@@ -1,4 +1,5 @@
 import type { TableColumnRenderer } from "@pureadmin/table";
+import { formatYuanAmount } from "../transformers";
 
 export const receivableColumns: TableColumnList = [
   {
@@ -18,17 +19,11 @@ export const receivableColumns: TableColumnList = [
   {
     label: "欠款金额",
     prop: "dueAmount",
-    cellRenderer: (data: TableColumnRenderer) => {
-      const formatAmount = (val: string | number) => {
-        const num = Number(val) / 100;
-        return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-      };
-      return (
-        <span class="font-bold text-red-500">
-          ¥{formatAmount(data.row?.dueAmount)}
-        </span>
-      );
-    }
+    cellRenderer: (data: TableColumnRenderer) => (
+      <span class="font-bold text-red-500">
+        ¥{formatYuanAmount(data.row?.dueAmount)}
+      </span>
+    )
   },
   {
     label: "账龄(天)",
@@ -61,17 +56,11 @@ export const payableColumns: TableColumnList = [
   {
     label: "欠款金额",
     prop: "dueAmount",
-    cellRenderer: (data: TableColumnRenderer) => {
-      const formatAmount = (val: string | number) => {
-        const num = Number(val) / 100;
-        return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });
-      };
-      return (
-        <span class="font-bold text-green-500">
-          ¥{formatAmount(data.row?.dueAmount)}
-        </span>
-      );
-    }
+    cellRenderer: (data: TableColumnRenderer) => (
+      <span class="font-bold text-green-500">
+        ¥{formatYuanAmount(data.row?.dueAmount)}
+      </span>
+    )
   },
   {
     label: "账龄(天)",

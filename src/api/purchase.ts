@@ -14,6 +14,10 @@ import {
 import type { CommonResult } from "./type";
 import { http } from "@/utils/http";
 import { baseUrlApi } from "./utils";
+import {
+  normalizeOrderListResult,
+  normalizeOrderResult
+} from "@/utils/moneyAmount";
 import type { PurchaseOrder } from "@/views/purchase/order/types";
 import type { InboundOrder } from "@/views/purchase/inbound/types";
 import type { ReturnOrder } from "@/views/purchase/return/types";
@@ -26,12 +30,21 @@ export const PURCHASE_INBOUND_ORDER_TYPE = "purchase-inbound" as const;
  */
 export const PURCHASE_RETURN_ORDER_TYPE = "return-order" as const;
 
-export function getPurchaseOrderListApi(index: number, params?: OrderQueryDto) {
-  return getOrderListApi<PurchaseOrder>(PURCHASE_ORDER_TYPE, index, params);
+export async function getPurchaseOrderListApi(
+  index: number,
+  params?: OrderQueryDto
+) {
+  const result = await getOrderListApi<PurchaseOrder>(
+    PURCHASE_ORDER_TYPE,
+    index,
+    params
+  );
+  return normalizeOrderListResult(result);
 }
 
-export function getPurchaseOrderApi(uid: string) {
-  return getOrderApi<PurchaseOrder>(PURCHASE_ORDER_TYPE, uid);
+export async function getPurchaseOrderApi(uid: string) {
+  const result = await getOrderApi<PurchaseOrder>(PURCHASE_ORDER_TYPE, uid);
+  return normalizeOrderResult(result);
 }
 
 export function createPurchaseOrderApi(

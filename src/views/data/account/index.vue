@@ -156,11 +156,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
                 balance: yuanToFen(curData.initialBalance)
               }
             };
-            createPaymentApi(createData).then(() => {
-              message("操作成功", { type: "success" });
-              done();
-              fetchData();
-            });
+            createPaymentApi(createData)
+              .then(() => {
+                message("操作成功", { type: "success" });
+                done();
+                fetchData();
+              })
+              .catch(() => undefined);
           } else {
             const updateData = {
               name: curData.name,
@@ -170,11 +172,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
               desc: curData.desc,
               status: curData.status
             };
-            updatePaymentProfileApi(row?.uid ?? "", updateData).then(() => {
-              message("操作成功", { type: "success" });
-              done();
-              fetchData();
-            });
+            updatePaymentProfileApi(row?.uid ?? "", updateData)
+              .then(() => {
+                message("操作成功", { type: "success" });
+                done();
+                fetchData();
+              })
+              .catch(() => undefined);
           }
         }
       });

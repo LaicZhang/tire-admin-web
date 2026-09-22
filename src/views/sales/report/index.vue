@@ -11,6 +11,7 @@ import {
 } from "@/utils";
 import { exportSectionedCsv } from "@/utils/tablePresentation";
 import { MAX_FETCH_PAGE_SIZE } from "@/utils/constants";
+import { coerceMoneyAmount } from "@/utils/moneyAmount";
 import type {
   SalesStatistics,
   CustomerRanking,
@@ -43,8 +44,8 @@ interface SelectItem {
 }
 
 interface OrderItem {
-  total?: number;
-  paidAmount?: number;
+  total?: string | number;
+  paidAmount?: string | number;
   count?: number;
   customer?: { name?: string };
   customerId?: string;
@@ -108,8 +109,8 @@ async function loadReportData() {
       const dateMap = new Map<string, TrendData>();
 
       (orders as OrderItem[]).forEach((order: OrderItem) => {
-        totalAmount += order.total || 0;
-        totalReceived += order.paidAmount || 0;
+        totalAmount += coerceMoneyAmount(order.total);
+        totalReceived += coerceMoneyAmount(order.paidAmount);
         totalQuantity += order.count || 0;
 
         const customerName = order.customer?.name || "未知客户";
@@ -128,7 +129,7 @@ async function loadReportData() {
         const customerData = customerMap.get(customerId);
         if (!customerData) return;
         customerData.orderCount++;
-        customerData.totalAmount += order.total || 0;
+        customerData.totalAmount += coerceMoneyAmount(order.total);
         customerData.totalQuantity += order.count || 0;
 
         const dateKey = formatDate(order.createdAt);
@@ -143,7 +144,7 @@ async function loadReportData() {
         const trendData = dateMap.get(dateKey);
         if (!trendData) return;
         trendData.orderCount++;
-        trendData.amount += order.total || 0;
+        trendData.amount += coerceMoneyAmount(order.total);
         trendData.quantity += order.count || 0;
       });
 

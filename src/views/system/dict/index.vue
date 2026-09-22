@@ -224,12 +224,14 @@ function openDialog(title = "新增", row?: DictItem) {
           ? createDictApi(data)
           : updateDictApi(row.id, data);
 
-      promise.then(async () => {
-        await refreshActiveDictCache();
-        message("操作成功", { type: "success" });
-        done();
-        getData();
-      });
+      promise
+        .then(async () => {
+          await refreshActiveDictCache();
+          message("操作成功", { type: "success" });
+          done();
+          getData();
+        })
+        .catch(() => undefined);
     }
   });
 }

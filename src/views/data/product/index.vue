@@ -148,11 +148,13 @@ const openDialog = (title = "新增", row?: FormItemProps) => {
             message("缺少商品信息，无法更新", { type: "error" });
             return;
           }
-          promise.then(() => {
-            message("操作成功", { type: "success" });
-            done();
-            fetchData();
-          });
+          promise
+            .then(() => {
+              message("操作成功", { type: "success" });
+              done();
+              fetchData();
+            })
+            .catch(() => undefined);
         }
       });
     }

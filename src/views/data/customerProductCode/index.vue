@@ -137,24 +137,29 @@ const openDialog = (title = "新增", row?: CustomerProductCode) => {
       const FormRef = dialogFormRef.value?.formRef;
       if (!FormRef) return;
       FormRef.validate(async (valid: boolean) => {
-        if (valid) {
-          const cur = (options.props as { formInline: CustomerProductCodeForm })
-            .formInline;
-          const { code, msg } = await upsertCustomerProductCodeApi({
-            uid: cur.uid,
-            customerId: cur.customerId,
-            tireId: cur.tireId,
-            customerCode: cur.customerCode,
-            customerProductName: cur.customerProductName,
-            remark: cur.remark
-          });
-          if (code === 200) {
-            message(`${title}成功`, { type: "success" });
-            done();
-            getList();
-          } else {
-            message(msg || `${title}失败`, { type: "error" });
+        try {
+          if (valid) {
+            const cur = (
+              options.props as { formInline: CustomerProductCodeForm }
+            ).formInline;
+            const { code, msg } = await upsertCustomerProductCodeApi({
+              uid: cur.uid,
+              customerId: cur.customerId,
+              tireId: cur.tireId,
+              customerCode: cur.customerCode,
+              customerProductName: cur.customerProductName,
+              remark: cur.remark
+            });
+            if (code === 200) {
+              message(`${title}成功`, { type: "success" });
+              done();
+              getList();
+            } else {
+              message(msg || `${title}失败`, { type: "error" });
+            }
           }
+        } catch {
+          // 失败信封已由 HTTP 拦截器提示
         }
       });
     }
@@ -162,12 +167,16 @@ const openDialog = (title = "新增", row?: CustomerProductCode) => {
 };
 
 const handleDelete = async (row: CustomerProductCode) => {
-  const { code, msg } = await deleteCustomerProductCodeApi(row.uid);
-  if (code === 200) {
-    message(`删除${row.customerCode}成功`, { type: "success" });
-    getList();
-  } else {
-    message(msg || "删除失败", { type: "error" });
+  try {
+    const { code, msg } = await deleteCustomerProductCodeApi(row.uid);
+    if (code === 200) {
+      message(`删除${row.customerCode}成功`, { type: "success" });
+      getList();
+    } else {
+      message(msg || "删除失败", { type: "error" });
+    }
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
   }
 };
 

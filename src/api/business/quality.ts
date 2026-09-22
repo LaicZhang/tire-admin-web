@@ -1,8 +1,8 @@
 import { http } from "@/utils/http";
 import { baseUrlApi } from "../utils";
 import type { CommonResult, PaginatedResponseDto } from "../type";
+import { unsupportedBackendRoute } from "../route-gap";
 
-const legacyPrefix = "/quality/";
 const inspectionPrefix = "/quality-inspection";
 
 export interface DefectCategoryDto {
@@ -79,41 +79,53 @@ function resolveInspectionQuery(params?: QualityInspectionQuery) {
   };
 }
 
+function defectCategoryBody(data: DefectCategoryDto & { code?: string; remark?: string }) {
+  const body: { name: string; code?: string; remark?: string } = {
+    name: data.name
+  };
+  if (data.code) body.code = data.code;
+  const remark = data.remark ?? data.description;
+  if (remark) body.remark = remark;
+  return body;
+}
+
+/** 真实路由是 GET /claim-order/defect-category，返回数组。 */
 export async function getDefectCategoryListApi(params?: {
   name?: string;
   status?: number;
 }) {
-  return await http.request<CommonResult<DefectCategory[]>>(
+  const result = await http.request<CommonResult<DefectCategory[]>>(
     "get",
-    baseUrlApi(legacyPrefix + "defect-categories"),
-    { params }
+    baseUrlApi("/claim-order/defect-category")
   );
+  const list = Array.isArray(result.data) ? result.data : [];
+  const filtered = list.filter(item => {
+    if (params?.name && !item.name.includes(params.name)) return false;
+    if (params?.status != null && item.status !== params.status) return false;
+    return true;
+  });
+  return { ...result, data: filtered };
 }
 
 export async function createDefectCategoryApi(data: DefectCategoryDto) {
   return await http.request<CommonResult<DefectCategory>>(
     "post",
-    baseUrlApi(legacyPrefix + "defect-categories"),
-    { data }
+    baseUrlApi("/claim-order/defect-category"),
+    { data: defectCategoryBody(data) }
   );
 }
 
+/** 后端没有 PATCH /claim-order/defect-category/:id。 */
 export async function updateDefectCategoryApi(
-  id: number,
-  data: Partial<DefectCategoryDto> & { status?: number }
+  _id: number,
+  _data: Partial<DefectCategoryDto> & { status?: number }
 ) {
-  return await http.request<CommonResult<DefectCategory>>(
-    "patch",
-    baseUrlApi(legacyPrefix + `defect-categories/${id}`),
-    { data }
-  );
+  return unsupportedBackendRoute("PATCH /claim-order/defect-category/:id");
 }
 
-export async function deleteDefectCategoryApi(id: number) {
-  return await http.request<CommonResult<void>>(
-    "delete",
-    baseUrlApi(legacyPrefix + `defect-categories/${id}`)
-  );
+/** 后端没有 DELETE /claim-order/defect-category/:id。 */
+export async function deleteDefectCategoryApi(_id: number) {
+  return unsupportedBackendRoute("DELETE /claim-order/defect-category/:id");
 }
 
 export async function getQualityInspectionListApi(

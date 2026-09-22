@@ -14,6 +14,11 @@ import type {
 import { stringify } from "qs";
 import { httpLogger } from "@/utils/logger";
 import { isApiEnvelope } from "@/utils/apiErrorContract";
+import {
+  installUnhandledHttpErrorGuard,
+  markHttpErrorNotified,
+  suppressFollowupErrorToasts
+} from "@/utils/http/notified-error";
 import { useHttpOnlyCookie } from "@/utils/auth-config";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { resolveBaseURLFromViteEnv } from "./baseurl";
@@ -261,32 +266,28 @@ class PureHttp {
         }
 
         const responseData = $error.response?.data as unknown;
+        const skipNotify =
+          $error.isCancelRequest || $error.code === fatalApiConfigErrorCode;
 
-        // 非取消请求时显示错误提示
-        if (
-          !$error.isCancelRequest &&
-          $error.code !== fatalApiConfigErrorCode
-        ) {
-          if (isApiEnvelope(responseData)) {
-            const normalizedResponseData =
-              normalizePaginatedApiEnvelope(responseData);
-            // 注意：失败信封（含未匹配路由的兜底 404，审计 §2.5）在此被 resolve 而非
-            // reject，调用方沿用 `code !== 200` 分支；需要业务码时用
-            // `resolveApiError(response)` 读顶层 `errorCode`（审计 §5.4 第 2 步）。
-            ElMessage.error(
-              normalizedResponseData.msg || "请求失败，请稍后重试"
-            );
+        // 失败信封（含未匹配路由的兜底 404）改为 reject，与 uni 一致。
+        // 业务码从 catch 到的信封读顶层 errorCode（resolveApiError）。
+        // 取消请求与致命配置错误不弹窗：信封仍 resolve，非信封 reject 原错误。
+        if (isApiEnvelope(responseData)) {
+          const normalizedResponseData =
+            normalizePaginatedApiEnvelope(responseData);
+          if (skipNotify) {
             return Promise.resolve(normalizedResponseData);
           }
+          ElMessage.error(normalizedResponseData.msg || "请求失败，请稍后重试");
+          suppressFollowupErrorToasts();
+          return Promise.reject(markHttpErrorNotified(normalizedResponseData));
+        }
 
+        if (!skipNotify) {
           const response = $error.response as { data?: { msg?: string } };
           const message =
             response?.data?.msg || $error.message || "请求失败，请稍后重试";
           ElMessage.error(message);
-        }
-
-        if (isApiEnvelope(responseData)) {
-          return Promise.resolve(normalizePaginatedApiEnvelope(responseData));
         }
         return Promise.reject($error);
       }
@@ -356,5 +357,7 @@ class PureHttp {
     return this.request<P>("delete", url, params, config);
   }
 }
+
+installUnhandledHttpErrorGuard();
 
 export const http = new PureHttp();

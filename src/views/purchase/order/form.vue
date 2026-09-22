@@ -15,6 +15,11 @@ import {
   loadSettlementDefaults
 } from "@/composables";
 import { logger } from "@/utils/logger";
+import { coerceMoneyAmount, toMoneyNumber } from "@/utils/moneyAmount";
+
+function moneyInput(value: string | number | null | undefined): number {
+  return toMoneyNumber(value) ?? 0;
+}
 
 const props = withDefaults(
   defineProps<{
@@ -135,13 +140,14 @@ function onAddDetail() {
 function onDeleteDetail(index: number) {
   const detail = formData.value.details[index];
   formData.value.count -= detail.count || 0;
-  formData.value.total -= detail.total || 0;
+  formData.value.total =
+    coerceMoneyAmount(formData.value.total) - coerceMoneyAmount(detail.total);
   formData.value.showTotal = formData.value.total;
   formData.value.details.splice(index, 1);
 }
 
 function calcDetailTotal(row: PurchaseOrderDetail) {
-  row.total = (row.count || 0) * (row.unitPrice || 0);
+  row.total = coerceMoneyAmount(row.count) * coerceMoneyAmount(row.unitPrice);
   recalcOrderTotal();
 }
 
@@ -150,7 +156,7 @@ function recalcOrderTotal() {
   let totalAmount = 0;
   formData.value.details.forEach(d => {
     totalCount += d.count || 0;
-    totalAmount += d.total || 0;
+    totalAmount += coerceMoneyAmount(d.total);
   });
   formData.value.count = totalCount;
   formData.value.total = totalAmount;
@@ -261,7 +267,7 @@ watch(
         <el-col :span="8">
           <el-form-item label="应付金额">
             <el-input-number
-              v-model="formData.total"
+              :model-value="moneyInput(formData.total)"
               :min="0"
               :precision="0"
               class="w-full"
@@ -272,7 +278,7 @@ watch(
         <el-col :span="8">
           <el-form-item label="已付金额">
             <el-input-number
-              v-model="formData.paidAmount"
+              :model-value="moneyInput(formData.paidAmount)"
               :min="0"
               :precision="0"
               class="w-full"
@@ -345,18 +351,23 @@ watch(
 
       <template #unitPriceInput="{ row }">
         <el-input-number
-          v-model="row.unitPrice"
+          :model-value="moneyInput(row.unitPrice)"
           :min="0"
           :precision="2"
           :disabled="isReadOnly"
           controls-position="right"
-          @change="calcDetailTotal(row)"
+          @update:model-value="
+            value => {
+              row.unitPrice = value ?? 0;
+              calcDetailTotal(row);
+            }
+          "
         />
       </template>
 
       <template #totalInput="{ row }">
         <el-input-number
-          v-model="row.total"
+          :model-value="moneyInput(row.total)"
           :min="0"
           :precision="2"
           disabled
@@ -430,7 +441,7 @@ watch(
       <el-col :span="6">
         <el-form-item label="应付金额">
           <el-input-number
-            v-model="formData.showTotal"
+            :model-value="moneyInput(formData.showTotal)"
             disabled
             :precision="2"
             class="w-full"
@@ -440,17 +451,18 @@ watch(
       <el-col :span="6">
         <el-form-item label="实付金额">
           <el-input-number
-            v-model="formData.total"
+            :model-value="moneyInput(formData.total)"
             :precision="2"
             :disabled="isReadOnly"
             class="w-full"
+            @update:model-value="value => (formData.total = value ?? 0)"
           />
         </el-form-item>
       </el-col>
       <el-col :span="6">
         <el-form-item label="已付金额">
           <el-input-number
-            v-model="formData.paidAmount"
+            :model-value="moneyInput(formData.paidAmount)"
             disabled
             :precision="2"
             class="w-full"

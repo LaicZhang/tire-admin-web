@@ -57,9 +57,13 @@ const {
 });
 
 const handleDelete = async (row: Unit) => {
-  await deleteUnitApi(row.id);
-  message("删除成功", { type: "success" });
-  getData();
+  try {
+    await deleteUnitApi(row.id);
+    message("删除成功", { type: "success" });
+    getData();
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
+  }
 };
 
 function openDialog() {
@@ -98,11 +102,13 @@ function openDialog() {
         message("名称最多 20 个字符", { type: "warning" });
         return;
       }
-      createUnitApi({ name }).then(() => {
-        message("创建成功", { type: "success" });
-        done();
-        getData();
-      });
+      createUnitApi({ name })
+        .then(() => {
+          message("创建成功", { type: "success" });
+          done();
+          getData();
+        })
+        .catch(() => undefined);
     }
   });
 }

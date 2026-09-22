@@ -237,63 +237,73 @@ const disableRule = async (row: CodeRule) => {
 };
 
 const deleteRule = async (row: CodeRule) => {
-  if (row.isDefault) {
-    message("默认规则不能删除", { type: "warning" });
-    return;
-  }
-  if (row.isActive) {
-    message("使用中的规则不能删除", { type: "warning" });
-    return;
-  }
-  if (!row.uid) {
-    message("缺少规则ID", { type: "warning" });
-    return;
-  }
-  const ok = await confirm(`确定要删除规则 "${row.name}" 吗？`, "删除确认", {
-    confirmButtonText: "确定删除",
-    cancelButtonText: "取消",
-    type: "warning"
-  });
-  if (!ok) return;
+  try {
+    if (row.isDefault) {
+      message("默认规则不能删除", { type: "warning" });
+      return;
+    }
+    if (row.isActive) {
+      message("使用中的规则不能删除", { type: "warning" });
+      return;
+    }
+    if (!row.uid) {
+      message("缺少规则ID", { type: "warning" });
+      return;
+    }
+    const ok = await confirm(`确定要删除规则 "${row.name}" 吗？`, "删除确认", {
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+    if (!ok) return;
 
-  const { code, msg } = await deleteCodeRuleApi(row.uid);
-  if (code === 200) {
-    message("删除成功", { type: "success" });
-    loadData();
-  } else {
-    message(msg || "删除失败", { type: "error" });
+    const { code, msg } = await deleteCodeRuleApi(row.uid);
+    if (code === 200) {
+      message("删除成功", { type: "success" });
+      loadData();
+    } else {
+      message(msg || "删除失败", { type: "error" });
+    }
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
   }
 };
 
 const batchDelete = async () => {
-  if (selectedRows.value.length === 0) {
-    message("请先选择要删除的规则", { type: "warning" });
-    return;
-  }
-  const canDelete = selectedRows.value.filter(r => !r.isDefault && !r.isActive);
-  if (canDelete.length === 0) {
-    message("选中的规则都不能删除", { type: "warning" });
-    return;
-  }
-  const ok = await confirm(
-    `确定要批量删除选中的 ${canDelete.length} 个规则吗？`,
-    "批量删除确认",
-    {
-      confirmButtonText: "确定删除",
-      cancelButtonText: "取消",
-      type: "warning"
+  try {
+    if (selectedRows.value.length === 0) {
+      message("请先选择要删除的规则", { type: "warning" });
+      return;
     }
-  );
-  if (!ok) return;
+    const canDelete = selectedRows.value.filter(
+      r => !r.isDefault && !r.isActive
+    );
+    if (canDelete.length === 0) {
+      message("选中的规则都不能删除", { type: "warning" });
+      return;
+    }
+    const ok = await confirm(
+      `确定要批量删除选中的 ${canDelete.length} 个规则吗？`,
+      "批量删除确认",
+      {
+        confirmButtonText: "确定删除",
+        cancelButtonText: "取消",
+        type: "warning"
+      }
+    );
+    if (!ok) return;
 
-  const { code, msg } = await batchDeleteCodeRulesApi(
-    canDelete.map(r => r.uid)
-  );
-  if (code === 200) {
-    message("删除成功", { type: "success" });
-    loadData();
-  } else {
-    message(msg || "删除失败", { type: "error" });
+    const { code, msg } = await batchDeleteCodeRulesApi(
+      canDelete.map(r => r.uid)
+    );
+    if (code === 200) {
+      message("删除成功", { type: "success" });
+      loadData();
+    } else {
+      message(msg || "删除失败", { type: "error" });
+    }
+  } catch {
+    // 失败信封已由 HTTP 拦截器提示
   }
 };
 

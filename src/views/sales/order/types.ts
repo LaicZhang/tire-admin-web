@@ -1,4 +1,5 @@
 import type { SerialNumberPayload } from "@/utils/serialNumber";
+import type { MoneyAmount } from "@/utils/moneyAmount";
 
 /** Sales Order Module Types */
 
@@ -7,8 +8,8 @@ export interface SalesOrderDetail {
   tireId: string;
   tireName?: string;
   count: number;
-  unitPrice: number;
-  total: number;
+  unitPrice: MoneyAmount;
+  total: MoneyAmount;
   repoId?: string;
   repoName?: string;
   discountRate?: number;
@@ -34,9 +35,9 @@ export interface SalesOrder {
   auditorId?: string;
   auditorName?: string;
   count: number;
-  total: number;
-  showTotal: number;
-  paidAmount: number;
+  total: MoneyAmount;
+  showTotal: MoneyAmount;
+  paidAmount: MoneyAmount;
   status: boolean;
   orderStatus: number;
   logisticsStatus: number;
