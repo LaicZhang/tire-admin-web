@@ -139,8 +139,8 @@ importers:
         specifier: ^1.2.10
         version: 1.2.10
       '@iconify/json':
-        specifier: ^2.2.509
-        version: 2.2.509
+        specifier: ^2.2.511
+        version: 2.2.511
       '@iconify/vue':
         specifier: 5.0.1
         version: 5.0.1(vue@3.5.40(typescript@6.0.3))
@@ -754,8 +754,8 @@ packages:
   '@iconify-json/ri@1.2.10':
     resolution: {integrity: sha512-WWMhoncVVM+Xmu9T5fgu2lhYRrKTEWhKk3Com0KiM111EeEsRLiASjpsFKnC/SrB6covhUp95r2mH8tGxhgd5Q==}
 
-  '@iconify/json@2.2.509':
-    resolution: {integrity: sha512-gW8y0Jq5U25BIgtyRxyVnLonosWw3n3tCBW1rB7hAJqsCCzUep0ph3TAniwFaqs/YsKaVTgU8KyqSyOeMJMAGA==}
+  '@iconify/json@2.2.511':
+    resolution: {integrity: sha512-yYsoI0cAv3QrdOfGljIw6Ksmy1hnFfQ3+XmEIoIp9x735Vd5gqKCKRzemvUohP0kmOW4UC9S7po9VGYfmoU4sA==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -2086,6 +2086,7 @@ packages:
 
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
 
   css-functions-list@3.3.3:
     resolution: {integrity: sha512-8HFEBPKhOpJPEPu70wJJetjKta86Gw9+CCyCnB3sui2qQfOvRyqBy4IKLKKAwdMpWb2lHXWk9Wb4Z6AmaUT1Pg==}
@@ -5153,7 +5154,7 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify/json@2.2.509':
+  '@iconify/json@2.2.511':
     dependencies:
       '@iconify/types': 2.0.0
       pathe: 2.0.3
@@ -5774,7 +5775,7 @@ snapshots:
       '@typescript-eslint/types': 8.58.0
       '@typescript-eslint/visitor-keys': 8.58.0
       debug: 4.4.3(supports-color@10.2.2)
-      minimatch: 10.2.4
+      minimatch: 10.2.6
       semver: 7.8.5
       tinyglobby: 0.2.17
       ts-api-utils: 2.5.0(typescript@6.0.3)
