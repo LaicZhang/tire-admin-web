@@ -36,16 +36,27 @@ vi.mock("@/api/fund/payment-order", () => ({
   updatePaymentOrderApi: vi.fn().mockResolvedValue({ code: 200 })
 }));
 
-vi.mock("@/composables", () => ({
-  loadSettlementDefaults: vi.fn()
+// Keep the real create-defaults pipeline; only stub its data source.
+vi.mock("@/composables/useSettlementDefaults", () => ({
+  loadSettlementDefaults: vi.fn(),
+  invalidateSettlementDefaultsCache: vi.fn()
 }));
 
-vi.mock("@/utils", () => ({
+// Keep recent-form memory out of the test (no localForage writes).
+vi.mock("@/composables/recentFormMemory", async importOriginal => ({
+  ...(await importOriginal<typeof import("@/composables/recentFormMemory")>()),
+  applyLastFormHeaderAsync: vi.fn(),
+  recordSuccessfulCreate: vi.fn()
+}));
+
+vi.mock("@/utils", async importOriginal => ({
+  ...(await importOriginal<typeof import("@/utils")>()),
   handleApiError: vi.fn(),
   message: vi.fn()
 }));
 
-vi.mock("@/utils/logger", () => ({
+vi.mock("@/utils/logger", async importOriginal => ({
+  ...(await importOriginal<typeof import("@/utils/logger")>()),
   logger: {
     error: vi.fn()
   }
@@ -202,7 +213,7 @@ describe("Payment Form", () => {
         providerId: "provider-1",
         paymentId: "payment-default",
         amount: 12_345,
-        paymentMethod: "WECHAT",
+        paymentMethod: "BANK_TRANSFER",
         remark: "首付款",
         details: []
       })

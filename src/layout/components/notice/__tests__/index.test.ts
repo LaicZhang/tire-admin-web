@@ -3,7 +3,8 @@ import { defineComponent } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/api", () => ({
-  getNoticeApi: vi.fn()
+  getNoticeApi: vi.fn(),
+  getUnreadCountApi: vi.fn()
 }));
 
 vi.mock("@/utils/message", () => ({
@@ -18,7 +19,7 @@ vi.mock("../noticeList.vue", () => ({
 }));
 
 import Notice from "../index.vue";
-import { getNoticeApi } from "@/api";
+import { getNoticeApi, getUnreadCountApi } from "@/api";
 
 const ElDropdown = defineComponent({
   name: "ElDropdown",
@@ -101,6 +102,10 @@ describe("header notice", () => {
           level: 1
         }
       ]
+    } as never);
+    vi.mocked(getUnreadCountApi).mockResolvedValue({
+      code: 200,
+      data: 2
     } as never);
   });
 
