@@ -7,7 +7,7 @@ import { http } from "@/utils/http";
 import { handleApiError, message } from "@/utils";
 import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { getPaymentListApi } from "@/api/payment";
-import { fenToYuanOrDash } from "@/utils/formatMoney";
+import { fenToYuanNumber, fenToYuanOrDash } from "@/utils/formatMoney";
 import {
   exportRowsAsCsv,
   printRows,
@@ -146,7 +146,7 @@ const sparklinePoints = computed(() => {
   if (activeTab.value === "balance") {
     return accountBalanceList.value.slice(0, 12).map(item => ({
       label: item.paymentName || "账户",
-      value: Number(item.closingBalance || 0) / 100
+      value: fenToYuanNumber(Number(item.closingBalance || 0))
     }));
   }
   if (activeTab.value === "debt") {
@@ -162,9 +162,12 @@ const sparklinePoints = computed(() => {
   // flow: daily net from fundFlowList
   const byDay = new Map<string, number>();
   for (const item of fundFlowList.value) {
-    const day = String(item.transactionTime || item.createdAt || "").slice(0, 10) || "未知";
+    const day =
+      String(item.transactionTime || item.createdAt || "").slice(0, 10) ||
+      "未知";
     const signed =
-      (item.direction === "OUT" ? -1 : 1) * (Number(item.amount || 0) / 100);
+      (item.direction === "OUT" ? -1 : 1) *
+      fenToYuanNumber(Number(item.amount || 0));
     byDay.set(day, (byDay.get(day) || 0) + signed);
   }
   return Array.from(byDay.entries())

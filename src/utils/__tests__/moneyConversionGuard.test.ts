@@ -26,7 +26,6 @@ const STRICT_PATH_PREFIXES = [
  */
 const ALLOWED_AMOUNT_BARE_FILES = new Set([
   "utils/formatMoney.ts", // helpers themselves
-  "views/analysis/aging/index.vue",
   "views/business/finance/income/IncomeForm.vue",
   "views/business/finance/transfer/index.vue",
   "views/data/initialStock/index.vue",

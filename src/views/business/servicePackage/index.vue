@@ -17,7 +17,7 @@ import {
 import { getTireListApi } from "@/api/business/tire";
 import { message, handleApiError } from "@/utils";
 import { fieldRules } from "@/utils/validation/fieldRules";
-import { yuanToFen } from "@/utils/formatMoney";
+import { fenToYuanNumber, yuanToFen } from "@/utils/formatMoney";
 
 defineOptions({ name: "ServicePackage" });
 
@@ -163,7 +163,7 @@ function openEditDialog(row: ServicePackageItem) {
     unitPriceYuan:
       line.unitPrice === null || line.unitPrice === undefined
         ? undefined
-        : Number(line.unitPrice) / 100,
+        : fenToYuanNumber(Number(line.unitPrice)),
     remark: line.remark || ""
   }));
   if (!form.lines.length) form.lines = [emptyLine()];

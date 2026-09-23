@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessageBox } from "element-plus";
 import { message } from "@/utils";
-import { formatMoneyFromFen } from "@/utils/formatMoney";
+import { formatMoneyFromFen, yuanToFen } from "@/utils/formatMoney";
 import PaymentSelect from "@/components/EntitySelect/PaymentSelect.vue";
 import {
   accruePayrollRunApi,
@@ -158,7 +158,7 @@ async function submitDisburse() {
     message("请选择资金账户", { type: "warning" });
     return;
   }
-  const amountFen = Math.round(Number(disburse.amountYuan) * 100);
+  const amountFen = yuanToFen(Number(disburse.amountYuan));
   loading.value = true;
   try {
     await disbursePayrollRunApi(current.value.uid, {
