@@ -22,7 +22,7 @@
 
 - 端口：`VITE_PORT`（默认 8848）
 - 开发代理：`/api/v1` → `VITE_PROXY_TARGET` → `VITE_SERVER_URL` → `http://localhost:3000`
-- 生产/预发：优先使用 `.env.*` 的 `VITE_SERVER_URL`；不要在业务代码里硬编码后端地址
+- 生产/预发：优先使用 `.env.*` 的 `VITE_SERVER_URL`；不在业务代码里硬编码后端地址
 
 ## 开发约定（高频）
 
