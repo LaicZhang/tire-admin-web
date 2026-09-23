@@ -41,7 +41,9 @@ const canRedeem = computed(
 
 const summary = computed(() => summarizeCompanyPlan(plan.value));
 
-const featureTags = computed(() => (plan.value?.featureKeys ?? []).slice(0, 12));
+const featureTags = computed(() =>
+  (plan.value?.featureKeys ?? []).slice(0, 12)
+);
 
 async function loadPlan() {
   loading.value = true;
@@ -76,10 +78,10 @@ async function handleRedeem() {
   try {
     const { code: resCode, msg } = await redeemCompanyPlanApi({ code });
     if (resCode === 200) {
-      message(
-        "兑换成功。若菜单未立即更新，请刷新页面或重新登录以同步权限。",
-        { type: "success", duration: 5000 }
-      );
+      message("兑换成功。若菜单未立即更新，请刷新页面或重新登录以同步权限。", {
+        type: "success",
+        duration: 5000
+      });
       redeemCode.value = "";
       await loadPlan();
       return;
@@ -133,7 +135,9 @@ defineExpose({ loadPlan });
     <el-descriptions :column="2" border class="mt-4" size="small">
       <el-descriptions-item label="计划">
         <el-tag type="primary" effect="plain">{{ summary.planLabel }}</el-tag>
-        <span v-if="plan?.planCode" class="code-hint">（{{ plan.planCode }}）</span>
+        <span v-if="plan?.planCode" class="code-hint"
+          >（{{ plan.planCode }}）</span
+        >
       </el-descriptions-item>
       <el-descriptions-item label="到期">
         {{ summary.endsAt }}
@@ -270,8 +274,8 @@ defineExpose({ loadPlan });
 }
 
 .redeem-box {
-  margin-top: 16px;
   padding: 14px 16px;
+  margin-top: 16px;
   background: #f8fafc;
   border: 1px solid #e5e7eb;
   border-radius: 12px;

@@ -1,6 +1,9 @@
 /** W133: company subscription plan display helpers (no purchase). */
 
-import type { CompanyPlanCurrent, SubscriptionPlanCode } from "@/api/system/subscription";
+import type {
+  CompanyPlanCurrent,
+  SubscriptionPlanCode
+} from "@/api/system/subscription";
 
 export const PLAN_CODE_LABELS: Record<SubscriptionPlanCode, string> = {
   FREE: "免费计划",
@@ -9,7 +12,9 @@ export const PLAN_CODE_LABELS: Record<SubscriptionPlanCode, string> = {
 };
 
 /** Distinguish 免费计划 vs 免费账套导入 (import free is unrelated). */
-export function planCodeLabel(code: SubscriptionPlanCode | string | null | undefined): string {
+export function planCodeLabel(
+  code: SubscriptionPlanCode | string | null | undefined
+): string {
   if (!code) return "—";
   if (code in PLAN_CODE_LABELS) {
     return PLAN_CODE_LABELS[code as SubscriptionPlanCode];
@@ -17,7 +22,10 @@ export function planCodeLabel(code: SubscriptionPlanCode | string | null | undef
   return String(code);
 }
 
-export function formatFeatureKeysSummary(keys: string[] | null | undefined, max = 8): string {
+export function formatFeatureKeysSummary(
+  keys: string[] | null | undefined,
+  max = 8
+): string {
   const list = (keys ?? []).filter(Boolean);
   if (list.length === 0) return "无功能点";
   if (list.length <= max) return list.join("、");
@@ -31,7 +39,9 @@ export function formatPlanEndsAt(endsAt: string | null | undefined): string {
   return d.toLocaleString("zh-CN", { hour12: false });
 }
 
-export function isAdminOrBossRole(roles: readonly string[] | null | undefined): boolean {
+export function isAdminOrBossRole(
+  roles: readonly string[] | null | undefined
+): boolean {
   if (!roles?.length) return false;
   return roles.some(r => {
     const n = String(r).trim().toLowerCase();
@@ -50,7 +60,9 @@ export type RedeemFailureKind =
   | "unknown";
 
 /** Map backend msg / client state to a readable Boss-facing reason. */
-export function classifyRedeemFailure(message: string | null | undefined): RedeemFailureKind {
+export function classifyRedeemFailure(
+  message: string | null | undefined
+): RedeemFailureKind {
   const msg = (message ?? "").trim();
   if (!msg) return "unknown";
   if (/不能为空|请输入/.test(msg)) return "empty";
@@ -63,7 +75,10 @@ export function classifyRedeemFailure(message: string | null | undefined): Redee
   return "unknown";
 }
 
-export function redeemFailureCopy(kind: RedeemFailureKind, fallback?: string): string {
+export function redeemFailureCopy(
+  kind: RedeemFailureKind,
+  fallback?: string
+): string {
   switch (kind) {
     case "empty":
       return "请输入兑换码";
@@ -84,7 +99,9 @@ export function redeemFailureCopy(kind: RedeemFailureKind, fallback?: string): s
   }
 }
 
-export function summarizeCompanyPlan(plan: CompanyPlanCurrent | null | undefined): {
+export function summarizeCompanyPlan(
+  plan: CompanyPlanCurrent | null | undefined
+): {
   planLabel: string;
   features: string;
   endsAt: string;
@@ -102,6 +119,8 @@ export function summarizeCompanyPlan(plan: CompanyPlanCurrent | null | undefined
     planLabel: planCodeLabel(plan.planCode),
     features: formatFeatureKeysSummary(plan.featureKeys),
     endsAt: formatPlanEndsAt(plan.endsAt),
-    receivesUpdates: plan.receivesUpdates ? "跟随功能更新" : "买断快照（不跟随更新）"
+    receivesUpdates: plan.receivesUpdates
+      ? "跟随功能更新"
+      : "买断快照（不跟随更新）"
   };
 }

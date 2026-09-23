@@ -32,10 +32,7 @@ const ElCard = defineComponent({
   name: "ElCard",
   setup(_, { slots }) {
     return () =>
-      h("div", { class: "el-card" }, [
-        slots.header?.(),
-        slots.default?.()
-      ]);
+      h("div", { class: "el-card" }, [slots.header?.(), slots.default?.()]);
   }
 });
 const ElRow = defineComponent({
@@ -70,10 +67,7 @@ const ElSegmented = defineComponent({
         {
           value: props.modelValue,
           onChange: (e: Event) =>
-            emit(
-              "update:modelValue",
-              (e.target as HTMLSelectElement).value
-            )
+            emit("update:modelValue", (e.target as HTMLSelectElement).value)
         },
         (props.options as Array<{ label: string; value: string }>).map(opt =>
           h("option", { value: opt.value }, opt.label)

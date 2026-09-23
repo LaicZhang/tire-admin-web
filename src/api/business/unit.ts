@@ -118,7 +118,11 @@ export async function createUnitConversionApi(data: {
 }) {
   const fromUnitId = toPositiveInt(data.fromUnitId ?? data.sourceUnitId);
   const toUnitId = toPositiveInt(data.toUnitId ?? data.targetUnitId);
-  if (fromUnitId == null || toUnitId == null || typeof data.ratio !== "number") {
+  if (
+    fromUnitId == null ||
+    toUnitId == null ||
+    typeof data.ratio !== "number"
+  ) {
     return unsupportedBackendRoute(
       "POST /unit/conversion requires integer fromUnitId/toUnitId"
     );

@@ -14,7 +14,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "check"): void;
   (e: "close"): void;
-  (e: "complete", payload: { code: string; state: string; currentPassword: string }): void;
+  (
+    e: "complete",
+    payload: { code: string; state: string; currentPassword: string }
+  ): void;
 }>();
 
 const oauthCode = ref("");

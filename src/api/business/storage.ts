@@ -34,11 +34,9 @@ export async function deleteStorageZoneApi(_uid: string) {
 }
 
 export async function createStorageLocationApi(data: object) {
-  return await http.request<CommonResult>(
-    "post",
-    baseUrlApi(locationPrefix),
-    { data }
-  );
+  return await http.request<CommonResult>("post", baseUrlApi(locationPrefix), {
+    data
+  });
 }
 
 export async function getStorageLocationListApi(

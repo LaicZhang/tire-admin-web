@@ -428,64 +428,64 @@ describe("analysis api", () => {
       { params: { repoId: "r1" } }
     );
   });
-
 });
 
-  it("requests analysis overview export as blob", async () => {
-    const params = {
-      startDate: "2026-07-01",
-      endDate: "2026-07-31",
-      format: "excel" as const
-    };
+it("requests analysis overview export as blob", async () => {
+  const params = {
+    startDate: "2026-07-01",
+    endDate: "2026-07-31",
+    format: "excel" as const
+  };
 
-    await exportReportApi(params);
+  await exportReportApi(params);
 
-    expect(http.request).toHaveBeenCalledWith(
-      "get",
-      "/api/v1/analysis/export",
-      { params, responseType: "blob" }
-    );
+  expect(http.request).toHaveBeenCalledWith("get", "/api/v1/analysis/export", {
+    params,
+    responseType: "blob"
   });
+});
 
-  it("requests report subscriptions CRUD endpoints", async () => {
-    await getReportSubscriptionsApi({ reportType: "sales_summary", status: true });
-    expect(http.request).toHaveBeenCalledWith(
-      "get",
-      "/api/v1/analysis/subscriptions",
-      { params: { reportType: "sales_summary", status: true } }
-    );
-
-    await getReportSubscriptionApi("sub-1");
-    expect(http.request).toHaveBeenCalledWith(
-      "get",
-      "/api/v1/analysis/subscriptions/sub-1"
-    );
-
-    const createPayload = {
-      name: "每日销售",
-      reportType: "sales_summary",
-      frequency: "daily" as const,
-      channels: ["email"],
-      recipients: ["boss@example.com"]
-    };
-    await createReportSubscriptionApi(createPayload);
-    expect(http.request).toHaveBeenCalledWith(
-      "post",
-      "/api/v1/analysis/subscriptions",
-      { data: createPayload }
-    );
-
-    await updateReportSubscriptionApi("sub-1", { status: false });
-    expect(http.request).toHaveBeenCalledWith(
-      "patch",
-      "/api/v1/analysis/subscriptions/sub-1",
-      { data: { status: false } }
-    );
-
-    await deleteReportSubscriptionApi("sub-1");
-    expect(http.request).toHaveBeenCalledWith(
-      "delete",
-      "/api/v1/analysis/subscriptions/sub-1"
-    );
+it("requests report subscriptions CRUD endpoints", async () => {
+  await getReportSubscriptionsApi({
+    reportType: "sales_summary",
+    status: true
   });
+  expect(http.request).toHaveBeenCalledWith(
+    "get",
+    "/api/v1/analysis/subscriptions",
+    { params: { reportType: "sales_summary", status: true } }
+  );
 
+  await getReportSubscriptionApi("sub-1");
+  expect(http.request).toHaveBeenCalledWith(
+    "get",
+    "/api/v1/analysis/subscriptions/sub-1"
+  );
+
+  const createPayload = {
+    name: "每日销售",
+    reportType: "sales_summary",
+    frequency: "daily" as const,
+    channels: ["email"],
+    recipients: ["boss@example.com"]
+  };
+  await createReportSubscriptionApi(createPayload);
+  expect(http.request).toHaveBeenCalledWith(
+    "post",
+    "/api/v1/analysis/subscriptions",
+    { data: createPayload }
+  );
+
+  await updateReportSubscriptionApi("sub-1", { status: false });
+  expect(http.request).toHaveBeenCalledWith(
+    "patch",
+    "/api/v1/analysis/subscriptions/sub-1",
+    { data: { status: false } }
+  );
+
+  await deleteReportSubscriptionApi("sub-1");
+  expect(http.request).toHaveBeenCalledWith(
+    "delete",
+    "/api/v1/analysis/subscriptions/sub-1"
+  );
+});

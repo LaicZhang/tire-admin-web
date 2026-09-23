@@ -35,7 +35,9 @@ const stores = ref<Store[]>([]);
 const repos = ref<Repo[]>([]);
 const dashboardData = ref<RoleDashboardData | null>(null);
 
-const filters = reactive<AnalysisFilterState>(createDefaultAnalysisFilterState());
+const filters = reactive<AnalysisFilterState>(
+  createDefaultAnalysisFilterState()
+);
 
 const dateRange = computed({
   get: () => filters.dateRange,

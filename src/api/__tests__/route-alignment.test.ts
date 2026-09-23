@@ -9,10 +9,7 @@ import {
   lockRepoBinApi
 } from "../business/stock";
 import { getStorageZoneListApi } from "../business/storage";
-import {
-  createUnitConversionApi,
-  getAllUnitsApi
-} from "../business/unit";
+import { createUnitConversionApi, getAllUnitsApi } from "../business/unit";
 import {
   deleteCodeRuleApi,
   getCodeRulesApi,
@@ -228,7 +225,9 @@ describe("T3-X-002 route alignment", () => {
     await expect(deleteIncomeExpenseItemApi(1)).rejects.toThrow(
       /finance-extension\/item/
     );
-    await expect(getTraceWorkbenchListApi(1)).rejects.toThrow(/trace-workbench/);
+    await expect(getTraceWorkbenchListApi(1)).rejects.toThrow(
+      /trace-workbench/
+    );
     await expect(getTraceWorkbenchDetailApi("inc-1")).rejects.toThrow(
       /trace-workbench/
     );

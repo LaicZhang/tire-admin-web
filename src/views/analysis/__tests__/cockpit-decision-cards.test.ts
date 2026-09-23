@@ -18,10 +18,7 @@ vi.mock("@/api/analysis", () => ({
 }));
 
 import CockpitDecisionCards from "../components/CockpitDecisionCards.vue";
-import {
-  getProfitStatementApi,
-  getReceivableAgingApi
-} from "@/api/analysis";
+import { getProfitStatementApi, getReceivableAgingApi } from "@/api/analysis";
 
 describe("CockpitDecisionCards", () => {
   beforeEach(() => {
@@ -65,7 +62,8 @@ describe("CockpitDecisionCards", () => {
         stubs: {
           ElCard: defineComponent({
             name: "ElCard",
-            template: "<div class='el-card' @click=\"$attrs.onClick?.()\"><slot /></div>"
+            template:
+              "<div class='el-card' @click=\"$attrs.onClick?.()\"><slot /></div>"
           }),
           ElEmpty: true
         }

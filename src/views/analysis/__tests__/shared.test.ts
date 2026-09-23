@@ -41,21 +41,23 @@ describe("analysis shared query helpers", () => {
   });
 
   it("infers groupBy by range length", () => {
-    expect(
-      inferGroupBy([new Date("2026-03-01"), new Date("2026-03-15")])
-    ).toBe("day");
-    expect(
-      inferGroupBy([new Date("2026-01-01"), new Date("2026-03-15")])
-    ).toBe("week");
-    expect(
-      inferGroupBy([new Date("2025-01-01"), new Date("2026-03-15")])
-    ).toBe("month");
+    expect(inferGroupBy([new Date("2026-03-01"), new Date("2026-03-15")])).toBe(
+      "day"
+    );
+    expect(inferGroupBy([new Date("2026-01-01"), new Date("2026-03-15")])).toBe(
+      "week"
+    );
+    expect(inferGroupBy([new Date("2025-01-01"), new Date("2026-03-15")])).toBe(
+      "month"
+    );
   });
 
   it("defaults to near-30-day range with inferred day groupBy", () => {
     const state = createDefaultAnalysisFilterState();
     const [start, end] = state.dateRange!;
-    const days = dayjs(end).startOf("day").diff(dayjs(start).startOf("day"), "day");
+    const days = dayjs(end)
+      .startOf("day")
+      .diff(dayjs(start).startOf("day"), "day");
     expect(days).toBe(29);
     expect(state.groupBy).toBe("day");
     const required = toRequiredDateParams(null);

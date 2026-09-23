@@ -114,5 +114,7 @@ export async function deleteWorkflowApi(uid: string) {
 
 /** Legacy restore is not supported for ApprovalFlow soft-delete. */
 export async function restoreWorkflowApi(_uid: string) {
-  throw new Error("真实审批流不支持从本页恢复 SystemWorkflow；请使用 approval-flow 重新创建");
+  throw new Error(
+    "真实审批流不支持从本页恢复 SystemWorkflow；请使用 approval-flow 重新创建"
+  );
 }

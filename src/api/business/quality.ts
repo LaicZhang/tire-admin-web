@@ -79,7 +79,9 @@ function resolveInspectionQuery(params?: QualityInspectionQuery) {
   };
 }
 
-function defectCategoryBody(data: DefectCategoryDto & { code?: string; remark?: string }) {
+function defectCategoryBody(
+  data: DefectCategoryDto & { code?: string; remark?: string }
+) {
   const body: { name: string; code?: string; remark?: string } = {
     name: data.name
   };

@@ -58,7 +58,6 @@ async function loadRecentOffboard() {
   }
 }
 
-
 const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   Employee,
   CommonResult<PaginatedResponseDto<Employee>>,
@@ -210,14 +209,31 @@ onMounted(() => {
       <template #header>
         <div class="flex justify-between items-center">
           <span>最近离岗/关停审计（只读）</span>
-          <el-button link type="primary" @click="loadRecentOffboard">刷新</el-button>
+          <el-button link type="primary" @click="loadRecentOffboard"
+            >刷新</el-button
+          >
         </div>
       </template>
       <el-table :data="recentOffboard" size="small" max-height="220">
         <el-table-column prop="action" label="动作" width="130" />
-        <el-table-column prop="targetEmployeeId" label="对象" min-width="140" show-overflow-tooltip />
-        <el-table-column prop="reason" label="原因" min-width="140" show-overflow-tooltip />
-        <el-table-column prop="operatorId" label="操作人" min-width="120" show-overflow-tooltip />
+        <el-table-column
+          prop="targetEmployeeId"
+          label="对象"
+          min-width="140"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="reason"
+          label="原因"
+          min-width="140"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="operatorId"
+          label="操作人"
+          min-width="120"
+          show-overflow-tooltip
+        />
         <el-table-column prop="createAt" label="时间" min-width="160" />
       </el-table>
     </el-card>

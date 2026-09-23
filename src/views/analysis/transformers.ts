@@ -122,9 +122,10 @@ export function buildInventoryMovementRows(
   ];
 }
 
-
 /** BE money strings are already yuan (e.g. "123.45"). */
-export function formatYuanAmount(val: string | number | null | undefined): string {
+export function formatYuanAmount(
+  val: string | number | null | undefined
+): string {
   const num = Number(val ?? 0);
   if (Number.isNaN(num)) return "0.00";
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2 });

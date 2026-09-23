@@ -227,5 +227,4 @@ describe("Welcome role home", () => {
     expect(wrapper.find(".sales-chart-stub").exists()).toBe(true);
     expect(wrapper.find(".alert-cards-stub").exists()).toBe(true);
   });
-
 });

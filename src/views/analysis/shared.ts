@@ -22,7 +22,10 @@ function getQueryString(query: LocationQuery, key: string): string | undefined {
 }
 
 export function defaultAnalysisDateRange(): [Date, Date] {
-  return [dayjs().subtract(29, "day").startOf("day").toDate(), dayjs().endOf("day").toDate()];
+  return [
+    dayjs().subtract(29, "day").startOf("day").toDate(),
+    dayjs().endOf("day").toDate()
+  ];
 }
 
 /** Shared shortcuts: 近7/30/90/本月/上月 */
@@ -71,14 +74,18 @@ export function inferGroupBy(dateRange: AnalysisDateRange): AnalysisGroupBy {
   if (!dateRange) return "day";
   const days = Math.max(
     0,
-    dayjs(dateRange[1]).startOf("day").diff(dayjs(dateRange[0]).startOf("day"), "day")
+    dayjs(dateRange[1])
+      .startOf("day")
+      .diff(dayjs(dateRange[0]).startOf("day"), "day")
   );
   if (days <= 31) return "day";
   if (days <= 90) return "week";
   return "month";
 }
 
-export function parseGroupBy(value: string | undefined): AnalysisGroupBy | undefined {
+export function parseGroupBy(
+  value: string | undefined
+): AnalysisGroupBy | undefined {
   if (value === "day" || value === "week" || value === "month") return value;
   return undefined;
 }
@@ -147,7 +154,9 @@ export function createDefaultAnalysisFilterState(
   };
 }
 
-export function parseAnalysisFilters(query: LocationQuery): AnalysisFilterState {
+export function parseAnalysisFilters(
+  query: LocationQuery
+): AnalysisFilterState {
   const dateRange = parseDateRangeQuery(query) ?? defaultAnalysisDateRange();
   const groupByFromUrl = parseGroupBy(getQueryString(query, "groupBy"));
   return {

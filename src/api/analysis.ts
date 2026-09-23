@@ -432,7 +432,6 @@ export interface SerialProductSummaryData {
   }>;
 }
 
-
 /** W123: 区域销售 summary + period×region trend */
 export interface RegionSalesItem {
   regionId: number;

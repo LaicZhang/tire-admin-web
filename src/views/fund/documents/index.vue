@@ -104,7 +104,6 @@ function resolveDirection(
   return "OUT";
 }
 
-
 function escapeHtml(value: string): string {
   return String(value)
     .replace(/&/g, "&amp;")

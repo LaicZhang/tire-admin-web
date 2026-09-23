@@ -240,7 +240,6 @@ const handlePrint = () => {
   }
 };
 
-
 const sparklinePoints = computed(() => {
   if (currentReportType.value === ReportType.SUMMARY) {
     return summaryList.value.slice(0, 12).map(item => ({
@@ -346,19 +345,19 @@ onMounted(() => {
 
     <!-- 报表数据 -->
     <el-card>
-          <div class="m-1 mb-4">
-      <ReportSparkline
-        :title="sparklineTitle"
-        series-name="数量"
-        chart-type="bar"
-        :points="sparklinePoints"
-        :loading="loading"
-        color="#f59e0b"
-        height="200px"
-      />
-    </div>
+      <div class="m-1 mb-4">
+        <ReportSparkline
+          :title="sparklineTitle"
+          series-name="数量"
+          chart-type="bar"
+          :points="sparklinePoints"
+          :loading="loading"
+          color="#f59e0b"
+          height="200px"
+        />
+      </div>
 
-<PureTableBar
+      <PureTableBar
         :title="reportTypeMap[currentReportType]?.label || '库存报表'"
         :columns="currentColumns"
         @refresh="fetchData"

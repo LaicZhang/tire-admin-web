@@ -2,10 +2,7 @@
 import { onMounted, ref, computed } from "vue";
 import { ElMessageBox } from "element-plus";
 import { getCompanyInfoApi } from "@/api";
-import {
-  deleteCompanyApi,
-  getCompanyClosePrecheckApi
-} from "@/api/company";
+import { deleteCompanyApi, getCompanyClosePrecheckApi } from "@/api/company";
 import { message, handleApiError } from "@/utils";
 import { formatDateTime } from "@/utils";
 import { openDialog } from "./table";
