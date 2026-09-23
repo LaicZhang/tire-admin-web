@@ -21,18 +21,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate pnpm (Corepack)
+        run: corepack prepare pnpm@12.5.1 --activate
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "24.20.0"
           cache: "pnpm"
           cache-dependency-path: "pnpm-lock.yaml"
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm (Corepack)
-        run: corepack prepare pnpm@12.5.1 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
