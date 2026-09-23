@@ -56,6 +56,8 @@ export type AuthSessionResult = CommonResult<{
 export type PaginatedResponseDto<T = unknown> = {
   list: T[];
   total: number;
+  /** Legacy/`page/0` envelope variant: the backend reports the size as `count`. */
+  count?: number;
   page?: number;
   pageSize?: number;
 };
