@@ -39,6 +39,15 @@ const ALLOWED_AMOUNT_BARE_FILES = new Set([
 const BARE_AMOUNT_PATTERN =
   /(?:amount|Amount|price|Price|fee|Fee|total|Total|balance|Balance|cost|Cost|money|Money|paid|Paid|receive|Receive|payable|Payable|receivable|Receivable|writeOff|WriteOff|advance|Advance|costPrice|minSalePrice|maxPurchasePrice|vipPrice|basePrice)\b[^\n;]{0,80}(?:\/|\*)\s*100\b|(?:\/|\*)\s*100\b[^\n;]{0,80}\b(?:amount|Amount|price|Price|fee|Fee|total|Total|balance|Balance|cost|Cost|money|Money|paid|Paid)/;
 
+/**
+ * Share-of-total percentage, not a fen/yuan conversion: a parenthesized
+ * division by a runtime value (never the literal 100) multiplied by 100.
+ * A fen/yuan conversion always divides or multiplies by the literal 100,
+ * so it cannot take this shape.
+ */
+const SHARE_OF_TOTAL_PERCENT =
+  /\([^()]*\/\s*[A-Za-z_$][^\s()]*\s*\)\s*\*\s*100/;
+
 /** Non-amount semantics that commonly use *100 or /100. */
 const NON_AMOUNT_LINE =
   /discountRate|percentage|percent|Percent|progress|expiresIn|timeout|interval|delay|3600|24\s*\*\s*60|60\s*\*\s*1000|1000|10000|w-\[|opacity|scale|zoom|ratio|Rate\b|loaded\s*\*\s*100|successRows|totalRows/;
@@ -84,8 +93,8 @@ function findBareAmountHits(
     if (NON_AMOUNT_LINE.test(line)) continue;
     // share-of-total percentage, not fen/yuan conversion
     if (
-      /totalAmount\s*>\s*0\s*\?\s*\(.*totalAmount.*\)\s*\*\s*100/.test(line) ||
-      /\(.*\/\s*totalAmount\)\s*\*\s*100/.test(line)
+      SHARE_OF_TOTAL_PERCENT.test(line) ||
+      /totalAmount\s*>\s*0\s*\?\s*\(.*totalAmount.*\)\s*\*\s*100/.test(line)
     ) {
       continue;
     }

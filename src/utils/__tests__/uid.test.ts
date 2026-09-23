@@ -14,7 +14,7 @@ function mockCrypto(value: unknown) {
 describe("createUid", () => {
   afterEach(() => {
     vi.resetModules();
-    vi.unmock("uuid");
+    vi.doUnmock("uuid");
     vi.restoreAllMocks();
   });
 
