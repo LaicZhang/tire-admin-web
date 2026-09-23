@@ -1,7 +1,5 @@
 # tire-admin-web — Agent Guide（摘要）
 
-> 详细版协作规范见 `docs/AGENTS_FULL.md`（本文只保留可执行摘要）。
->
 > 说明：下列路径均以 `tire-admin-web/` 为根目录。
 
 ## TL;DR
@@ -15,19 +13,10 @@
 
 ## 常用命令
 
-在 `tire-admin-web/` 下执行：
-
-- 安装：`pnpm i`
 - 开发：`pnpm dev`
 - 类型检查：`pnpm typecheck`
 - 规范检查：`pnpm lint:check`（只读）或 `pnpm lint`（自动修复后格式化）
 - 构建：`pnpm build`
-
-从根目录执行（等价）：
-
-- `pnpm -C tire-admin-web dev`
-- `pnpm -C tire-admin-web typecheck`
-- `pnpm -C tire-admin-web lint:check`
 
 ## 环境变量（常用）
 
@@ -38,9 +27,10 @@
 ## 开发约定（高频）
 
 - 页面/模块尽量沿用现有结构：`src/views/business/<module>/{index.vue, form.vue, table.tsx, columns.ts(x)}`
-- 组件库优先用 Element Plus；弹窗/表格优先复用项目内 `ReDialog`、`RePureTableBar` 等模式
-- TypeScript：避免 `any`；类型集中维护在 `types/` 或 `src/api/type.ts` 等既有位置
+- 组件库优先用 Element Plus；弹窗/表格优先复用项目内 `ReDialog`、`RePureTableBar` 等组件
+- TypeScript：确保类型安全；类型集中维护在 `types/` 或 `src/api/type.ts` 等既有位置
 - 提交前清理多余 `console.*`；不要提交构建产物（`dist/`、`node_modules/`、报告文件等）
+- 如果必须对某个功能进行隔离测试，先列出它所有可能失败的情况，再编写代码
 
 ## 参考
 
