@@ -379,8 +379,10 @@ onMounted(() => {
         <el-table-column label="渠道" min-width="120">
           <template #default="{ row }">
             {{
-              (row.channels || [])
-                .map(ch => (ch === "email" ? "邮件" : ch === "sms" ? "短信" : ch))
+              ((row as ReportSubscription).channels || [])
+                .map(ch =>
+                  ch === "email" ? "邮件" : ch === "sms" ? "短信" : ch
+                )
                 .join("、") || "—"
             }}
           </template>
@@ -394,7 +396,10 @@ onMounted(() => {
           <template #default="{ row }">
             <el-switch
               :model-value="row.status"
-              @change="(val: string | number | boolean) => handleToggleStatus(row, Boolean(val))"
+              @change="
+                (val: string | number | boolean) =>
+                  handleToggleStatus(row as ReportSubscription, Boolean(val))
+              "
             />
           </template>
         </el-table-column>
@@ -410,8 +415,18 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button
+              link
+              type="primary"
+              @click="openEdit(row as ReportSubscription)"
+              >编辑</el-button
+            >
+            <el-button
+              link
+              type="danger"
+              @click="handleDelete(row as ReportSubscription)"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -425,7 +440,11 @@ onMounted(() => {
     >
       <el-form label-width="96px">
         <el-form-item label="名称" required>
-          <el-input v-model="form.name" maxlength="64" placeholder="例如：每日销售汇总" />
+          <el-input
+            v-model="form.name"
+            maxlength="64"
+            placeholder="例如：每日销售汇总"
+          />
         </el-form-item>
         <el-form-item label="报表类型" required>
           <el-select v-model="form.reportType" class="w-full">

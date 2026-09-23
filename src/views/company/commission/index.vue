@@ -435,7 +435,9 @@ onMounted(() => {
               }}</template>
             </el-table-column>
             <el-table-column label="出账关联" min-width="180">
-              <template #default="{ row }">{{ payoutLinkLabel(row) }}</template>
+              <template #default="{ row }">{{
+                payoutLinkLabel(row as CommissionSettlement)
+              }}</template>
             </el-table-column>
             <el-table-column prop="remark" label="备注" min-width="160" />
             <el-table-column label="操作" width="360" fixed="right">
@@ -479,7 +481,7 @@ onMounted(() => {
                     "
                     link
                     type="primary"
-                    @click="openMerge(row)"
+                    @click="openMerge(row as CommissionSettlement)"
                   >
                     并入工资表
                   </el-button>
@@ -493,7 +495,7 @@ onMounted(() => {
                     "
                     link
                     type="success"
-                    @click="openImmediate(row)"
+                    @click="openImmediate(row as CommissionSettlement)"
                   >
                     立即出账
                   </el-button>

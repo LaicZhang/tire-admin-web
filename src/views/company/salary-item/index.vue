@@ -108,8 +108,8 @@ onMounted(load);
             placeholder="BASE+PERF 或 IF(BASE>=10000,BASE*2,BASE)"
           />
           <div class="text-xs text-gray-500 mt-1 w-full">
-            支持 + - * 与有界 IF(条件,真,假)；条件为比较（&gt; &gt;= &lt; &lt;= ==
-            !=）；嵌套深度≤3；不支持除法/AND/OR/字符串。
+            支持 + - * 与有界 IF(条件,真,假)；条件为比较（&gt; &gt;= &lt; &lt;=
+            == !=）；嵌套深度≤3；不支持除法/AND/OR/字符串。
           </div>
         </el-form-item>
         <el-form-item>
@@ -146,14 +146,18 @@ onMounted(load);
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="toggleActive(row)">
+            <el-button
+              link
+              type="primary"
+              @click="toggleActive(row as SalaryItemDefinition)"
+            >
               {{ row.active ? "停用" : "启用" }}
             </el-button>
             <el-button
               v-if="!row.isSystem"
               link
               type="danger"
-              @click="remove(row)"
+              @click="remove(row as SalaryItemDefinition)"
             >
               删除
             </el-button>
