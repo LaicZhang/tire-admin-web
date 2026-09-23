@@ -46,7 +46,7 @@ allowBuilds:
   typeit: true
   vue-demi: true
 minimumReleaseAgeExclude:
-  - typescript-eslint@8.66.0
+  - typescript-eslint@8.66.0 || 8.70.1
   - '@oxfmt/binding-android-arm-eabi@0.62.0'
   - '@oxfmt/binding-android-arm64@0.62.0'
   - '@oxfmt/binding-darwin-arm64@0.62.0'
@@ -67,3 +67,5 @@ minimumReleaseAgeExclude:
   - '@oxfmt/binding-win32-ia32-msvc@0.62.0'
   - '@oxfmt/binding-win32-x64-msvc@0.62.0'
   - oxfmt@0.62.0
+  - '@iconify/json@2.2.532'
+  - '@iconify/vue@5.0.3'
