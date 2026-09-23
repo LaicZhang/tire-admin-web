@@ -149,7 +149,7 @@
     "unplugin-auto-import": "^21.1.0",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^32.1.0",
-    "vite": "^8.2.0",
+    "vite": "^8.2.1",
     "vite-plugin-cdn-import": "^1.0.1",
     "vite-plugin-remove-console": "^2.2.0",
     "vite-plugin-router-warn": "^2.0.0",
