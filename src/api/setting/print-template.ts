@@ -1,18 +1,16 @@
-import { http } from "@/utils/http";
-import { baseUrlApi } from "../utils";
-import type { CommonResult } from "../type";
 import { unsupportedBackendRoute } from "../route-gap";
 
-const printPrefix = "/print-template/";
-
-export async function getPrintTemplatesApi(docType?: string) {
-  const url = docType
-    ? baseUrlApi(printPrefix + "list?docType=" + docType)
-    : baseUrlApi(printPrefix + "list");
-  return await http.request<CommonResult>("get", url);
+/**
+ * The backend exposes a single template read at `/tools/print/template/:type`,
+ * not the legacy admin list endpoint. Keep this wrapper fail-closed until the
+ * UI is migrated to the backend's single-template contract instead of sending
+ * requests to a route that cannot exist.
+ */
+export async function getPrintTemplatesApi(_docType?: string) {
+  return unsupportedBackendRoute("GET /print-template/list");
 }
 
-/** 后端没有设置默认模板路由。列表接口仍是 C 类，本批不改。 */
+/** 后端没有设置默认模板路由。 */
 export async function setDefaultTemplateApi(_uid: string) {
   return unsupportedBackendRoute("PATCH /print-template/:uid/default");
 }
