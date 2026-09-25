@@ -209,7 +209,7 @@ export function createCrudApi<
     const requestData = processRequest("restore", uid);
     const response = await http.request<CommonResult<T>>(
       "post",
-      baseUrlApi(prefix + "restore/" + requestData)
+      baseUrlApi(prefix + requestData + "/restore")
     );
     return processResponse(response);
   };
