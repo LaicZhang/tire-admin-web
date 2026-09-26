@@ -6,7 +6,10 @@ import {
   parseSettingsCsv,
   type SettingsCsvRow
 } from "../../test-utils/settingsCsv";
-import { resolveWorkspaceRoot } from "../../test-utils/workspaceRoot";
+import {
+  resolveWorkspaceRoot,
+  tryResolveWorkspaceRoot
+} from "../../test-utils/workspaceRoot";
 
 type RegistryDefinition = Readonly<{
   group: string;
@@ -18,8 +21,10 @@ type RegistryDefinition = Readonly<{
 const REGISTRY_DEF_RE =
   /\{\s*group:\s*(["'])([^"']+)\1,\s*key:\s*(["'])([^"']+)\3,\s*displayName:\s*(["'])([^"']+)\5,\s*type:\s*(["'])([^"']+)\7,/gms;
 
+const here = path.dirname(fileURLToPath(import.meta.url));
+const hasBackendSettings = tryResolveWorkspaceRoot(here) !== undefined;
+
 function resolveRepoRoot(): string {
-  const here = path.dirname(fileURLToPath(import.meta.url));
   return resolveWorkspaceRoot(here);
 }
 
@@ -105,47 +110,63 @@ describe("company-setting registry ↔ docs/settings.csv contract", () => {
     ]);
   });
 
-  it("keeps backend registry definitions aligned with CSV (scope=company)", () => {
-    const csvText = fs.readFileSync(resolveCompanySettingsCsvPath(), "utf-8");
-    const csvRows = parseSettingsCsv(csvText);
-    const companyRowMap = buildCompanyScopeRowMap(csvRows);
+  it.skipIf(!hasBackendSettings)(
+    "keeps backend registry definitions aligned with CSV (scope=company)",
+    () => {
+      const csvText = fs.readFileSync(resolveCompanySettingsCsvPath(), "utf-8");
+      const csvRows = parseSettingsCsv(csvText);
+      const companyRowMap = buildCompanyScopeRowMap(csvRows);
 
-    const registryText = fs.readFileSync(resolveBackendRegistryPath(), "utf-8");
-    const registryDefs = parseRegistryDefinitions(registryText);
+      const registryText = fs.readFileSync(
+        resolveBackendRegistryPath(),
+        "utf-8"
+      );
+      const registryDefs = parseRegistryDefinitions(registryText);
 
-    for (const d of registryDefs) {
-      const id = `${d.group}:${d.key}`;
-      const row = companyRowMap.get(id);
-      expect(
-        row,
-        `Missing CSV row for registry definition: ${id}`
-      ).toBeDefined();
-      if (!row) {
-        throw new Error(`Missing CSV row for registry definition: ${id}`);
+      for (const d of registryDefs) {
+        const id = `${d.group}:${d.key}`;
+        const row = companyRowMap.get(id);
+        expect(
+          row,
+          `Missing CSV row for registry definition: ${id}`
+        ).toBeDefined();
+        if (!row) {
+          throw new Error(`Missing CSV row for registry definition: ${id}`);
+        }
+
+        expect(normalizeCell(row.backendExists)).toBe("yes");
+        expect(normalizeCell(row.settingType)).toBe(
+          normalizeCell(d.settingType)
+        );
+        expect(normalizeCell(row.displayName)).toBe(
+          normalizeCell(d.displayName)
+        );
       }
-
-      expect(normalizeCell(row.backendExists)).toBe("yes");
-      expect(normalizeCell(row.settingType)).toBe(normalizeCell(d.settingType));
-      expect(normalizeCell(row.displayName)).toBe(normalizeCell(d.displayName));
     }
-  });
+  );
 
-  it('requires rows using "/company-setting/group/*" API to exist in backend registry', () => {
-    const csvText = fs.readFileSync(resolveCompanySettingsCsvPath(), "utf-8");
-    const csvRows = parseSettingsCsv(csvText);
-    const companyRowMap = buildCompanyScopeRowMap(csvRows);
+  it.skipIf(!hasBackendSettings)(
+    'requires rows using "/company-setting/group/*" API to exist in backend registry',
+    () => {
+      const csvText = fs.readFileSync(resolveCompanySettingsCsvPath(), "utf-8");
+      const csvRows = parseSettingsCsv(csvText);
+      const companyRowMap = buildCompanyScopeRowMap(csvRows);
 
-    const registryText = fs.readFileSync(resolveBackendRegistryPath(), "utf-8");
-    const registryDefs = parseRegistryDefinitions(registryText);
-    const registryIds = new Set(registryDefs.map(d => `${d.group}:${d.key}`));
+      const registryText = fs.readFileSync(
+        resolveBackendRegistryPath(),
+        "utf-8"
+      );
+      const registryDefs = parseRegistryDefinitions(registryText);
+      const registryIds = new Set(registryDefs.map(d => `${d.group}:${d.key}`));
 
-    for (const [id, row] of companyRowMap.entries()) {
-      const api = normalizeCell(row.api);
-      if (!api.includes("/company-setting/group/")) continue;
-      expect(
-        registryIds.has(id),
-        `CSV row references company-setting group API but is missing in registry: ${id}`
-      ).toBe(true);
+      for (const [id, row] of companyRowMap.entries()) {
+        const api = normalizeCell(row.api);
+        if (!api.includes("/company-setting/group/")) continue;
+        expect(
+          registryIds.has(id),
+          `CSV row references company-setting group API but is missing in registry: ${id}`
+        ).toBe(true);
+      }
     }
-  });
+  );
 });

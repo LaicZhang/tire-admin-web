@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export function resolveWorkspaceRoot(fromDir: string): string {
+export function tryResolveWorkspaceRoot(fromDir: string): string | undefined {
   let current = path.resolve(fromDir);
 
   while (true) {
@@ -16,11 +16,16 @@ export function resolveWorkspaceRoot(fromDir: string): string {
     }
 
     const parent = path.dirname(current);
-    if (parent === current) {
-      throw new Error(
-        `Failed to resolve workspace root from "${fromDir}": be-core/docs/settings.csv not found in ancestor directories`
-      );
-    }
+    if (parent === current) return undefined;
     current = parent;
   }
+}
+
+export function resolveWorkspaceRoot(fromDir: string): string {
+  const workspaceRoot = tryResolveWorkspaceRoot(fromDir);
+  if (workspaceRoot !== undefined) return workspaceRoot;
+
+  throw new Error(
+    `Failed to resolve workspace root from "${fromDir}": be-core/docs/settings.csv not found in ancestor directories`
+  );
 }
