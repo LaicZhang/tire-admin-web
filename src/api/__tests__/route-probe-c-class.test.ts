@@ -181,6 +181,9 @@ describe("T3-X-002 C 类运行时路由探针", () => {
       await provider.getProviderApi("uid-1");
       await provider.updateProviderApi("uid-1", {});
       await provider.deleteProviderApi("uid-1");
+      // crud-factory 的 `:uid/restore` 形状改动有两个消费者（customer /
+      // provider），这里补齐 provider 一侧，避免只覆盖一个消费者。
+      await provider.restoreProviderApi("uid-1");
 
       await customerProductCode.getCustomerProductCodeListApi(1);
       await customerProductCode.upsertCustomerProductCodeApi({} as never);
