@@ -142,8 +142,8 @@ const handleUnlock = async (row: { id: string | number }) => {
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
           }"
-          @page-size-change="onSearch"
-          @page-current-change="onSearch"
+          @page-size-change="onSizeChange"
+          @page-current-change="onCurrentChange"
         >
           <template #operation="{ row }">
             <el-button

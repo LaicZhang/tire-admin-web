@@ -3,10 +3,13 @@ import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, reactive, onMounted, computed } from "vue";
 import type { TabPaneName } from "element-plus";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
-import { http } from "@/utils/http";
 import { handleApiError, message } from "@/utils";
-import type { CommonResult, PaginatedResponseDto } from "@/api/type";
 import { getPaymentListApi } from "@/api/payment";
+import {
+  getAccountBalanceApi,
+  getContactDebtListApi,
+  getFundFlowListApi
+} from "@/api/fund/statement";
 import { fenToYuanNumber, fenToYuanOrDash } from "@/utils/formatMoney";
 import {
   exportRowsAsCsv,
@@ -265,20 +268,12 @@ async function loadPayments() {
 async function fetchFundFlow() {
   loading.value = true;
   try {
-    const params: Record<string, unknown> = {
-      ...queryForm,
-      index: flowPagination.currentPage
-    };
-    Object.keys(params).forEach(key => {
-      if (params[key] === "" || params[key] === undefined) {
-        delete params[key];
-      }
+    const { data } = await getFundFlowListApi(flowPagination.currentPage, {
+      startDate: queryForm.startDate,
+      endDate: queryForm.endDate,
+      paymentId: queryForm.paymentId,
+      keyword: queryForm.targetName
     });
-
-    const { data } = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<FundFlow>>
-    >(`/statement/${flowPagination.currentPage}`, { params });
 
     fundFlowList.value = data.list || [];
     flowPagination.total = data.total ?? 0;
@@ -307,15 +302,11 @@ async function fetchFundFlow() {
 async function fetchAccountBalance() {
   loading.value = true;
   try {
-    const params: Record<string, unknown> = {
+    const { data } = await getAccountBalanceApi({
       startDate: queryForm.startDate,
-      endDate: queryForm.endDate
-    };
-
-    const { data } = await http.get<never, CommonResult<AccountBalance[]>>(
-      "/statement/account-balance",
-      { params }
-    );
+      endDate: queryForm.endDate,
+      paymentId: queryForm.paymentId
+    });
 
     accountBalanceList.value = data || [];
   } catch (e) {
@@ -329,21 +320,12 @@ async function fetchAccountBalance() {
 async function fetchContactDebt() {
   loading.value = true;
   try {
-    const params: Record<string, unknown> = {
+    const { data } = await getContactDebtListApi(debtPagination.currentPage, {
+      startDate: queryForm.startDate,
+      endDate: queryForm.endDate,
       targetType: queryForm.targetType,
-      targetName: queryForm.targetName,
-      index: debtPagination.currentPage
-    };
-    Object.keys(params).forEach(key => {
-      if (params[key] === "" || params[key] === undefined) {
-        delete params[key];
-      }
+      keyword: queryForm.targetName
     });
-
-    const { data } = await http.get<
-      never,
-      CommonResult<PaginatedResponseDto<ContactDebt>>
-    >(`/statement/contact-debt/${debtPagination.currentPage}`, { params });
 
     contactDebtList.value = data.list || [];
     debtPagination.total = data.total ?? 0;

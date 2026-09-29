@@ -61,11 +61,13 @@ const {
   fetchData: getBatchList,
   onCurrentChange: onBatchPageChange
 } = useCrud<Batch, CommonResult<Batch[]>, { page: number; pageSize: number }>({
-  api: () =>
+  api: ({ page, pageSize }) =>
     getBatchListApi({
       tireId: batchForm.value.tireId,
       repoId: batchForm.value.repoId,
-      batchNo: batchForm.value.batchNo
+      batchNo: batchForm.value.batchNo,
+      page,
+      pageSize
     }),
   pagination: {
     total: 0,
@@ -74,7 +76,7 @@ const {
     background: true
   },
   transform: (res: CommonResult<Batch[]>) => {
-    if (res.code !== 0) {
+    if (res.code !== 200) {
       message(res.msg || "获取批次列表失败", { type: "error" });
       return { list: [], total: 0 };
     }
@@ -95,8 +97,10 @@ const {
   CommonResult<PaginatedResponseDto<SerialNumber>>,
   { page: number; pageSize: number }
 >({
-  api: () =>
+  api: ({ page, pageSize }) =>
     getSerialNumberList({
+      index: page,
+      pageSize,
       tireId: serialForm.value.tireId,
       repoId: serialForm.value.repoId,
       status: serialForm.value.status,
@@ -109,7 +113,7 @@ const {
     background: true
   },
   transform: (res: CommonResult<PaginatedResponseDto<SerialNumber>>) => {
-    if (res.code !== 0) {
+    if (res.code !== 200) {
       message(res.msg || "获取序列号列表失败", { type: "error" });
       return { list: [], total: 0 };
     }
@@ -221,7 +225,7 @@ const openBatchDialog = (title = "新增", row?: Batch) => {
                 productionDate: formData.productionDate,
                 expiryDate: formData.expiryDate
               });
-              if (code === 0) {
+              if (code === 200) {
                 message(`${title}成功`, { type: "success" });
                 done();
                 getBatchList();
@@ -236,7 +240,7 @@ const openBatchDialog = (title = "新增", row?: Batch) => {
                 productionDate: formData.productionDate,
                 expiryDate: formData.expiryDate
               });
-              if (code === 0) {
+              if (code === 200) {
                 message(`${title}成功`, { type: "success" });
                 done();
                 getBatchList();
@@ -279,7 +283,7 @@ const openSerialDialog = () => {
 const handleDeleteBatch = async (row: Batch) => {
   try {
     const { data, code } = await deleteBatchApi(row.id);
-    if (code === 0) {
+    if (code === 200) {
       message(`删除批次${row.batchNo}成功`, { type: "success" });
       getBatchList();
     }

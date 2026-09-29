@@ -70,8 +70,8 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
   CommonResult<{ list: BatchItem[]; total?: number } | BatchItem[]>,
   { page: number; pageSize: number }
 >({
-  api: () =>
-    getBatchListApi({ ...queryForm.value }) as Promise<
+  api: ({ page, pageSize }) =>
+    getBatchListApi({ page, pageSize, ...queryForm.value }) as Promise<
       CommonResult<{ list: BatchItem[]; total?: number } | BatchItem[]>
     >,
   transform: res => {
@@ -85,7 +85,9 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
     ) as BatchItem[];
     const total = Array.isArray(data)
       ? data.length
-      : (data as { total?: number })?.total || list.length;
+      : ((data as { total?: number; count?: number })?.total ??
+        (data as { count?: number })?.count ??
+        list.length);
     return { list, total };
   },
   immediate: false

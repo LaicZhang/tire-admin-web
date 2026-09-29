@@ -56,6 +56,7 @@ export interface SerialNumberLog {
 /** 获取序列号列表 */
 export function getSerialNumberList(params?: {
   index?: number;
+  pageSize?: number;
   tireId?: string;
   repoId?: string;
   status?: string;

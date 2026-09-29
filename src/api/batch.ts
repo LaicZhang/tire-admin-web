@@ -24,6 +24,8 @@ export async function getBatchListApi<T = Batch[]>(params?: {
   repoId?: string;
   tireId?: string;
   batchNo?: string;
+  page?: number;
+  pageSize?: number;
 }) {
   return await http.request<CommonResult<T>>("get", baseUrlApi(prefix), {
     params
