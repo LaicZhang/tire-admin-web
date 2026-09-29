@@ -4,7 +4,16 @@ export default {
   meta: {
     icon: "ri:information-line",
     showLink: false,
-    title: "异常页面"
+    title: "异常页面",
+    roles: [
+      "admin",
+      "boss",
+      "common",
+      "officer",
+      "manager",
+      "finance",
+      "financeManager"
+    ]
   },
   children: [
     {

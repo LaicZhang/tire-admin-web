@@ -15,6 +15,7 @@ import { plugin as VueTippy } from "vue-tippy";
 
 import Table from "@pureadmin/table";
 import PureDescriptions from "@pureadmin/descriptions";
+import { Auth } from "@/components/ReAuth";
 
 // 引入重置样式
 import "./style/reset.scss";
@@ -39,6 +40,7 @@ Object.keys(directives).forEach(key => {
 // 全局注册@iconify/vue图标库
 import { IconifyIconOffline } from "./components/ReIcon";
 app.component("IconifyIconOffline", IconifyIconOffline);
+app.component("Auth", Auth);
 
 app.config.errorHandler = (error, _instance, info) => {
   const detail = formatRuntimeError(error, info);

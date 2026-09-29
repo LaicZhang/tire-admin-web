@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, h } from "vue";
+import { ElMessageBox } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import EditPen from "~icons/ep/edit-pen";
 import Setting from "~icons/ep/setting";
@@ -127,30 +128,55 @@ const openDialog = (title = "新增", row?: CompanyRoleItem) => {
         ref: formRef,
         formInline: (options.props as { formInline: FormItemProps }).formInline
       }),
-    beforeSure: (done, { options }) => {
+    beforeSure: async (done, { options }) => {
       const curData = (options.props as { formInline: FormItemProps })
         .formInline;
       const FormRef = formRef.value.formRef;
-      FormRef.validate((valid: boolean) => {
+      FormRef.validate(async (valid: boolean) => {
         if (valid) {
           const payload = {
             cn: curData.name,
             name: curData.code,
             desc: curData.description,
-            status: curData.status === 1
+            status: curData.status === 1,
+            company: undefined
           };
-          const promise =
-            title === "新增"
-              ? createRoleApi(payload)
-              : updateRoleApi(row?.uid ?? "", payload);
+          if (title === "新增") {
+            try {
+              const { value } = await ElMessageBox.prompt(
+                "新增角色属于敏感操作，请填写原因（至少 5 个字符）",
+                "确认新增角色",
+                {
+                  confirmButtonText: "确认新增",
+                  cancelButtonText: "取消",
+                  inputValidator: value =>
+                    value.trim().length >= 5 || "操作原因至少需要 5 个字符"
+                }
+              );
+              Object.assign(payload, {
+                confirm: true,
+                reason: value.trim()
+              });
+            } catch {
+              return;
+            }
+          }
 
-          promise
-            .then(() => {
-              message("操作成功", { type: "success" });
-              done();
-              handleSearch();
-            })
-            .catch(() => undefined);
+          try {
+            const response =
+              title === "新增"
+                ? await createRoleApi(payload)
+                : await updateRoleApi(row?.uid ?? "", payload);
+            if (response.code !== 200) {
+              message(response.msg || "操作失败", { type: "error" });
+              return;
+            }
+            message("操作成功", { type: "success" });
+            done();
+            handleSearch();
+          } catch (error) {
+            handleApiError(error, "角色保存失败");
+          }
         }
       });
     }

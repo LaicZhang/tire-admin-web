@@ -33,6 +33,8 @@ export interface RoleDto {
   level?: number | null;
   type?: number | null;
   company?: { connect: { uid: string } };
+  confirm?: boolean;
+  reason?: string;
 }
 
 export async function getRoleListApi() {

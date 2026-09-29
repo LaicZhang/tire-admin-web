@@ -12,6 +12,7 @@ export interface AuditOrder {
   totalAmount?: number | string;
   createdAt: string;
   creatorName: string;
+  creatorUid?: string;
   auditStatus: string;
   uid: string;
 }

@@ -4,7 +4,9 @@ import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, onMounted, reactive } from "vue";
 import { columns, AuditOrder } from "./columns";
 import { getPendingAuditOrdersApi, auditOrderApi } from "@/api/business/order";
-import { confirmBox, message } from "@/utils/message";
+import { message } from "@/utils/message";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
+import { useUserStoreHook } from "@/store/modules/user";
 import { useRouter } from "vue-router";
 import type { PaginatedResponseDto } from "@/api/type";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -14,6 +16,8 @@ defineOptions({
 });
 
 const router = useRouter();
+const userStore = useUserStoreHook();
+const { confirm } = useConfirmDialog();
 const loading = ref(false);
 const activeTab = ref("sale-order");
 const currentPage = ref(1);
@@ -124,7 +128,12 @@ async function submitAudit(
 }
 
 async function handleApprove(row: AuditOrder) {
-  const ok = await confirmBox("确认审核通过该单据？", "确认审核", {
+  if (row.creatorUid && row.creatorUid === userStore.uid) {
+    message("不能审核自己创建的单据", { type: "warning" });
+    return;
+  }
+
+  const ok = await confirm("确认审核通过该单据？", "确认审核", {
     type: "warning"
   });
   if (!ok) return;

@@ -4,7 +4,8 @@ export default {
   meta: {
     icon: "ri:tools-line",
     title: "工具服务",
-    rank: 100
+    rank: 100,
+    roles: ["admin"]
   },
   children: [
     {

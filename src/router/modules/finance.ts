@@ -3,7 +3,8 @@ export default {
   redirect: "/finance/expense",
   meta: {
     icon: "ep:money",
-    title: "财务管理"
+    title: "财务管理",
+    roles: ["admin", "boss", "manager", "finance"]
   },
   children: [
     {

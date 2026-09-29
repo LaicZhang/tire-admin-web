@@ -46,6 +46,7 @@ declare module 'vue' {
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
     ElOption: typeof import('element-plus/es')['ElOption']
+    ElOptionGroup: typeof import('element-plus/es')['ElOptionGroup']
     ElPagination: typeof import('element-plus/es')['ElPagination']
     ElPopconfirm: typeof import('element-plus/es')['ElPopconfirm']
     ElPopover: typeof import('element-plus/es')['ElPopover']
@@ -56,6 +57,7 @@ declare module 'vue' {
     ElResult: typeof import('element-plus/es')['ElResult']
     ElRow: typeof import('element-plus/es')['ElRow']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
+    ElSegmented: typeof import('element-plus/es')['ElSegmented']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
     ElSkeletonItem: typeof import('element-plus/es')['ElSkeletonItem']
@@ -121,6 +123,7 @@ declare global {
   const ElMenu: (typeof import("element-plus/es"))["ElMenu"];
   const ElMenuItem: (typeof import("element-plus/es"))["ElMenuItem"];
   const ElOption: (typeof import("element-plus/es"))["ElOption"];
+  const ElOptionGroup: (typeof import("element-plus/es"))["ElOptionGroup"];
   const ElPagination: (typeof import("element-plus/es"))["ElPagination"];
   const ElPopconfirm: (typeof import("element-plus/es"))["ElPopconfirm"];
   const ElPopover: (typeof import("element-plus/es"))["ElPopover"];
@@ -131,6 +134,7 @@ declare global {
   const ElResult: (typeof import("element-plus/es"))["ElResult"];
   const ElRow: (typeof import("element-plus/es"))["ElRow"];
   const ElScrollbar: (typeof import("element-plus/es"))["ElScrollbar"];
+  const ElSegmented: (typeof import("element-plus/es"))["ElSegmented"];
   const ElSelect: (typeof import("element-plus/es"))["ElSelect"];
   const ElSkeleton: (typeof import("element-plus/es"))["ElSkeleton"];
   const ElSkeletonItem: (typeof import("element-plus/es"))["ElSkeletonItem"];

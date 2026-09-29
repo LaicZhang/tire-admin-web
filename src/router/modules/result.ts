@@ -4,7 +4,16 @@ export default {
   meta: {
     icon: "ri:checkbox-circle-line",
     showLink: false,
-    title: "结果页面"
+    title: "结果页面",
+    roles: [
+      "admin",
+      "boss",
+      "common",
+      "officer",
+      "manager",
+      "finance",
+      "financeManager"
+    ]
   },
   children: [
     {

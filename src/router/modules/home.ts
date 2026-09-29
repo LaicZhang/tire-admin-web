@@ -9,7 +9,16 @@ export default {
   meta: {
     icon: "ep:home-filled",
     title: "首页",
-    rank: 0
+    rank: 0,
+    roles: [
+      "admin",
+      "boss",
+      "common",
+      "officer",
+      "manager",
+      "finance",
+      "financeManager"
+    ]
   },
   children: [
     {
