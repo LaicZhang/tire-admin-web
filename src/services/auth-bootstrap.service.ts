@@ -119,8 +119,8 @@ async function promptSelectStore(
  * W-MC3: 切公司后清空业务选项/路由缓存，避免跨公司串味。
  * 草稿/近期表单已按 companyUid 分 key，不在此全量 wipe。
  */
-export function resetBusinessContextForCompanyChange() {
-  useOptionsStoreHook().clearForCompanyChange();
+export async function resetBusinessContextForCompanyChange() {
+  await useOptionsStoreHook().clearForCompanyChange();
   usePermissionStoreHook().clearAllCachePage();
 }
 
@@ -205,7 +205,7 @@ export async function completeLogin(tokenPayload?: SetTokenPayload) {
     if (tokenPayload) setToken(tokenPayload);
 
     await ensureCompanyContextReady();
-    resetBusinessContextForCompanyChange();
+    await resetBusinessContextForCompanyChange();
     await ensureStoreContextReady();
     await initRouter();
     addPathMatch();
@@ -222,7 +222,7 @@ export async function completeLogin(tokenPayload?: SetTokenPayload) {
  * 全局公司切换：
  * - 同步后端当前公司上下文
  * - 重置业务 store / 菜单路由缓存并重新拉取 async-routes
- * - 失败不登出，保留原公司并展示回滚文案
+ * - 失败不登出，尝试恢复原公司上下文
  */
 export async function switchCompany(companyId: string) {
   const companyStore = useCurrentCompanyStoreHook();
@@ -231,10 +231,18 @@ export async function switchCompany(companyId: string) {
 
   const previousId = companyStore.companyId;
   const previousName = companyStore.companyName;
+  const previousStoreId = companyStore.storeId;
+  const previousStoreName = companyStore.storeName;
+  const previousCompany = {
+    companyId: previousId,
+    companyName: previousName,
+    storeId: previousStoreId,
+    storeName: previousStoreName
+  };
 
   try {
     await companyStore.determineCurrentCompany(companyId);
-    resetBusinessContextForCompanyChange();
+    await resetBusinessContextForCompanyChange();
     await ensureStoreContextReady();
     resetUiForContextChange();
     await initRouter();
@@ -242,12 +250,19 @@ export async function switchCompany(companyId: string) {
     await redirectToTopMenu();
   } catch (error: unknown) {
     const detail = error instanceof Error ? error.message : "切换公司失败";
+    let rollbackFailed = false;
+    try {
+      await companyStore.determineCurrentCompany(previousId);
+      companyStore.setCurrentCompany(previousCompany);
+    } catch {
+      rollbackFailed = true;
+      companyStore.setCurrentCompany(previousCompany);
+    }
     const keepLabel = previousName || previousId;
-    const msg = keepLabel
-      ? `切换公司失败，已保留原公司「${keepLabel}」：${detail}`
-      : detail;
+    const msg = rollbackFailed
+      ? `切换公司失败，原公司「${keepLabel}」恢复失败，请重新登录：${detail}`
+      : `切换公司失败，已恢复原公司「${keepLabel}」：${detail}`;
     message(msg, { type: "error" });
-    // 切换失败时不强制登出；保留原公司上下文
     throw error;
   }
 }

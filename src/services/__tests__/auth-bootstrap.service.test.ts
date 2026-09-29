@@ -258,12 +258,14 @@ describe("auth-bootstrap.service (W116 / W-MC3)", () => {
   it("does not logout when switchCompany fails and shows rollback message", async () => {
     mocks.companyId = "company-1";
     mocks.companyName = "公司一";
-    mocks.determineCurrentCompany.mockRejectedValue(new Error("not a member"));
+    mocks.determineCurrentCompany
+      .mockRejectedValueOnce(new Error("not a member"))
+      .mockResolvedValueOnce(undefined);
 
     await expect(switchCompany("company-x")).rejects.toThrow("not a member");
 
     expect(mocks.message).toHaveBeenCalledWith(
-      expect.stringContaining("已保留原公司「公司一」"),
+      expect.stringContaining("已恢复原公司「公司一」"),
       expect.objectContaining({ type: "error" })
     );
     expect(mocks.message).toHaveBeenCalledWith(

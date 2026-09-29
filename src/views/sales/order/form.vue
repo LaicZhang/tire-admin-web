@@ -7,6 +7,8 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Delete from "~icons/ep/delete";
 import AddFill from "~icons/ri/add-circle-line";
 import { ALL_LIST, localForage, message } from "@/utils";
+import { getCompanyId } from "@/api/company";
+import { getCompanyScopedOptionKey } from "@/utils/companyOptionCache";
 import {
   formatSerialNumbersText,
   parseSerialNumbersText
@@ -100,10 +102,17 @@ watch(
 
 async function loadBaseData() {
   try {
+    const companyId = getCompanyId();
     const [tireData, repoData, managerData] = await Promise.all([
-      localForage().getItem(ALL_LIST.tire),
-      localForage().getItem(ALL_LIST.repo),
-      localForage().getItem(ALL_LIST.manager)
+      localForage().getItem(
+        getCompanyScopedOptionKey(ALL_LIST.tire, companyId)
+      ),
+      localForage().getItem(
+        getCompanyScopedOptionKey(ALL_LIST.repo, companyId)
+      ),
+      localForage().getItem(
+        getCompanyScopedOptionKey(ALL_LIST.manager, companyId)
+      )
     ]);
     allTireList.value = (tireData as SelectItem[]) || [];
     allRepoList.value = (repoData as SelectItem[]) || [];

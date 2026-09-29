@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
 import { store } from "@/store";
 import { ALL_LIST, localForage } from "@/utils";
+import { getCompanyScopedOptionKey } from "@/utils/companyOptionCache";
+import { useCurrentCompanyStoreHook } from "./company";
 
 /** 选项数据项类型 */
 export interface OptionItem {
@@ -44,6 +46,13 @@ const OPTION_KEY_MAP: Record<OptionType, ALL_LIST> = {
 };
 
 let loadAllPromise: Promise<void> | null = null;
+
+function getOptionCacheKey(optionKey: ALL_LIST): string {
+  return getCompanyScopedOptionKey(
+    optionKey,
+    useCurrentCompanyStoreHook().companyId
+  );
+}
 
 /**
  * 统一选项数据 Store
@@ -105,13 +114,13 @@ export const useOptionsStore = defineStore("pure-options", {
             tires,
             positions
           ] = await Promise.all([
-            storage.getItem<OptionItem[]>(ALL_LIST.employee),
-            storage.getItem<OptionItem[]>(ALL_LIST.manager),
-            storage.getItem<OptionItem[]>(ALL_LIST.customer),
-            storage.getItem<OptionItem[]>(ALL_LIST.provider),
-            storage.getItem<OptionItem[]>(ALL_LIST.repo),
-            storage.getItem<OptionItem[]>(ALL_LIST.tire),
-            storage.getItem<OptionItem[]>(ALL_LIST.position)
+            storage.getItem<OptionItem[]>(getOptionCacheKey(ALL_LIST.employee)),
+            storage.getItem<OptionItem[]>(getOptionCacheKey(ALL_LIST.manager)),
+            storage.getItem<OptionItem[]>(getOptionCacheKey(ALL_LIST.customer)),
+            storage.getItem<OptionItem[]>(getOptionCacheKey(ALL_LIST.provider)),
+            storage.getItem<OptionItem[]>(getOptionCacheKey(ALL_LIST.repo)),
+            storage.getItem<OptionItem[]>(getOptionCacheKey(ALL_LIST.tire)),
+            storage.getItem<OptionItem[]>(getOptionCacheKey(ALL_LIST.position))
           ]);
 
           this.employees = employees || [];
@@ -135,7 +144,7 @@ export const useOptionsStore = defineStore("pure-options", {
      * 刷新特定类型的选项数据
      */
     async refresh(type: OptionType): Promise<void> {
-      const forageKey = OPTION_KEY_MAP[type];
+      const forageKey = getOptionCacheKey(OPTION_KEY_MAP[type]);
       const storage = localForage();
       const data = await storage.getItem<OptionItem[]>(forageKey);
       this[type] = data || [];
@@ -144,7 +153,7 @@ export const useOptionsStore = defineStore("pure-options", {
     /**
      * 切换公司时清空内存选项，避免跨公司串数据（W-MC3 / W116）
      */
-    clearForCompanyChange(): void {
+    async clearForCompanyChange(): Promise<void> {
       this.employees = [];
       this.managers = [];
       this.customers = [];
@@ -155,6 +164,21 @@ export const useOptionsStore = defineStore("pure-options", {
       this.isLoaded = false;
       this.isLoading = false;
       loadAllPromise = null;
+
+      const storage = localForage();
+      const keys = await storage.keys();
+      const optionKeys = new Set(Object.values(ALL_LIST));
+      await Promise.all(
+        keys
+          .filter(
+            key =>
+              optionKeys.has(key as ALL_LIST) ||
+              [...optionKeys].some(baseKey =>
+                key.startsWith(`${baseKey}:company:`)
+              )
+          )
+          .map(key => storage.removeItem(key))
+      );
     },
 
     /**

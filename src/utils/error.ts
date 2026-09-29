@@ -1,4 +1,7 @@
 import { message } from "./message";
+import { resolveApiError } from "./apiErrorContract";
+import { wasHttpErrorNotified } from "./http/notified-error";
+import { ApiResponseError } from "./apiResponse";
 
 export interface ApiError {
   message: string;
@@ -30,6 +33,29 @@ export function extractErrorMessage(
  * @param fallback - 默认错误消息
  */
 export function handleApiError(error: unknown, fallback = "操作失败"): void {
+  if (wasHttpErrorNotified(error)) return;
+  if (error instanceof ApiResponseError) {
+    const fieldMessage = error.resolved.fieldErrors
+      .map(item => `${item.field}: ${item.message}`)
+      .join("；");
+    message(fieldMessage || error.resolved.msg || fallback, { type: "error" });
+    return;
+  }
+  if (error && typeof error === "object" && "response" in error) {
+    const response = (
+      error as { response?: { data?: unknown; status?: number } }
+    ).response;
+    const resolved = resolveApiError(response?.data, {
+      status: response?.status
+    });
+    const fieldMessage = resolved.fieldErrors
+      .map(item => `${item.field}: ${item.message}`)
+      .join("；");
+    if (resolved.kind !== "transport") {
+      message(fieldMessage || resolved.msg || fallback, { type: "error" });
+      return;
+    }
+  }
   const msg = extractErrorMessage(error, fallback);
   message(msg, { type: "error" });
 }

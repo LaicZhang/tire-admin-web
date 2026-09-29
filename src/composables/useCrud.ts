@@ -1,5 +1,6 @@
 import { ref, shallowRef, onUnmounted, toValue, type Ref, watch } from "vue";
 import { createLogger } from "@/utils/logger";
+import { assertApiSuccess } from "@/utils/apiResponse";
 
 import { PAGE_SIZE_SMALL } from "../utils/constants";
 const logger = createLogger("useCrud");
@@ -128,6 +129,15 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
       });
       if (myController.signal.aborted) return;
 
+      if (
+        typeof res === "object" &&
+        res !== null &&
+        "code" in res &&
+        typeof (res as { code?: unknown }).code === "number"
+      ) {
+        assertApiSuccess(res as { code?: number });
+      }
+
       let list: T[] = [];
       let total = 0;
 
@@ -163,7 +173,6 @@ export function useCrud<T = unknown, Res = unknown, Params = unknown>(
         error instanceof Error && error.name === "AbortError";
       if (!isAbortError) {
         logger.error("fetchData error:", error);
-        dataList.value = [];
       }
     } finally {
       if (abortController === myController) {

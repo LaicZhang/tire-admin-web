@@ -7,6 +7,7 @@ import { ref, computed } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { ALL_LIST, localForage, message } from "@/utils";
 import { getPaymentListApi, getCompanyId } from "@/api";
+import { getCompanyScopedOptionKey } from "@/utils/companyOptionCache";
 
 export interface OrderDetailBase {
   tireId?: string;
@@ -96,11 +97,18 @@ export function useOrderForm<T extends OrderDetailBase>(
     try {
       const mainKey =
         mainDataType === "provider" ? ALL_LIST.provider : ALL_LIST.customer;
+      const companyId = getCompanyId();
       const [mainData, tireData, repoData, managerData] = await Promise.all([
-        localForage().getItem(mainKey),
-        localForage().getItem(ALL_LIST.tire),
-        localForage().getItem(ALL_LIST.repo),
-        localForage().getItem(ALL_LIST.manager)
+        localForage().getItem(getCompanyScopedOptionKey(mainKey, companyId)),
+        localForage().getItem(
+          getCompanyScopedOptionKey(ALL_LIST.tire, companyId)
+        ),
+        localForage().getItem(
+          getCompanyScopedOptionKey(ALL_LIST.repo, companyId)
+        ),
+        localForage().getItem(
+          getCompanyScopedOptionKey(ALL_LIST.manager, companyId)
+        )
       ]);
 
       mainList.value = (mainData as SelectItem[]) || [];

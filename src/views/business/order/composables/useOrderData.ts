@@ -13,6 +13,8 @@ import type { Tire } from "@/api/business/tire";
 import type { Customer } from "@/api/business/customer";
 import type { Provider } from "@/api/business/provider";
 import { ALL_LIST, localForage, message, ORDER_TYPE } from "@/utils";
+import { getCompanyId } from "@/api/company";
+import { getCompanyScopedOptionKey } from "@/utils/companyOptionCache";
 
 /**
  * 订单相关数据获取 composable
@@ -27,13 +29,15 @@ export function useOrderData(orderType: Ref<string>) {
   const allProviderList = ref<Provider[]>([]);
 
   const LIST_CACHE_MINUTES = 30;
+  const cacheKey = (key: ALL_LIST) =>
+    getCompanyScopedOptionKey(key, getCompanyId());
 
   const getAllEmployeeList = async () => {
     const res = await getAllEmployeeApi();
     if (res.code !== 200) return message(res.msg, { type: "error" });
     employeeList.value = res.data || [];
     await localForage().setItem(
-      ALL_LIST.employee,
+      cacheKey(ALL_LIST.employee),
       employeeList.value,
       LIST_CACHE_MINUTES
     );
@@ -44,7 +48,7 @@ export function useOrderData(orderType: Ref<string>) {
     if (res.code !== 200) return message(res.msg, { type: "error" });
     allRepoList.value = res.data.list;
     await localForage().setItem(
-      ALL_LIST.repo,
+      cacheKey(ALL_LIST.repo),
       res.data.list,
       LIST_CACHE_MINUTES
     );
@@ -55,7 +59,7 @@ export function useOrderData(orderType: Ref<string>) {
     if (res.code !== 200) return message(res.msg, { type: "error" });
     allCustomerList.value = res.data.list;
     await localForage().setItem(
-      ALL_LIST.customer,
+      cacheKey(ALL_LIST.customer),
       res.data.list,
       LIST_CACHE_MINUTES
     );
@@ -66,7 +70,7 @@ export function useOrderData(orderType: Ref<string>) {
     if (res.code !== 200) return message(res.msg, { type: "error" });
     allProviderList.value = res.data.list;
     await localForage().setItem(
-      ALL_LIST.provider,
+      cacheKey(ALL_LIST.provider),
       res.data.list,
       LIST_CACHE_MINUTES
     );
@@ -77,7 +81,7 @@ export function useOrderData(orderType: Ref<string>) {
     if (res.code !== 200) return message(res.msg, { type: "error" });
     allTireList.value = res.data.list;
     await localForage().setItem(
-      ALL_LIST.tire,
+      cacheKey(ALL_LIST.tire),
       res.data.list,
       LIST_CACHE_MINUTES
     );
@@ -89,7 +93,7 @@ export function useOrderData(orderType: Ref<string>) {
     if (res.code !== 200) return message(res.msg, { type: "error" });
     managerList.value = (res.data || []) as Employee[];
     await localForage().setItem(
-      ALL_LIST.manager,
+      cacheKey(ALL_LIST.manager),
       managerList.value,
       LIST_CACHE_MINUTES
     );

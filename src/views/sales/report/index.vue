@@ -20,6 +20,8 @@ import type {
 } from "./types";
 import { useColumns } from "./columns";
 import ReportSparkline from "@/components/ReportSparkline/index.vue";
+import { getCompanyId } from "@/api/company";
+import { getCompanyScopedOptionKey } from "@/utils/companyOptionCache";
 
 defineOptions({
   name: "SalesReport"
@@ -81,7 +83,9 @@ const groupByOptions = [
 ];
 
 async function loadSelectData() {
-  const customers = await localForage().getItem(ALL_LIST.customer);
+  const customers = await localForage().getItem(
+    getCompanyScopedOptionKey(ALL_LIST.customer, getCompanyId())
+  );
   customerList.value = (customers as SelectItem[]) || [];
 }
 

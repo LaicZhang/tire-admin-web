@@ -13,7 +13,8 @@ import type {
 } from "./types.d";
 import { stringify } from "qs";
 import { httpLogger } from "@/utils/logger";
-import { isApiEnvelope } from "@/utils/apiErrorContract";
+import { isApiEnvelope, resolveApiError } from "@/utils/apiErrorContract";
+import { ApiResponseError } from "@/utils/apiResponse";
 import {
   installUnhandledHttpErrorGuard,
   markHttpErrorNotified,
@@ -230,6 +231,17 @@ class PureHttp {
       (response: PureHttpResponse) => {
         const $config = response.config;
         const normalizedData = normalizePaginatedApiEnvelope(response.data);
+        if (isApiEnvelope(normalizedData) && normalizedData.code !== 200) {
+          const resolved = resolveApiError(normalizedData, {
+            status: response.status
+          });
+          const apiError = markHttpErrorNotified(
+            new ApiResponseError(normalizedData, resolved)
+          );
+          ElMessage.error(resolved.msg || "请求失败，请稍后重试");
+          suppressFollowupErrorToasts();
+          return Promise.reject(apiError);
+        }
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
         if (typeof $config.beforeResponseCallback === "function") {
           $config.beforeResponseCallback(response);
