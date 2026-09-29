@@ -37,7 +37,11 @@ async function handleSave(row: SettingItem) {
       message("缺少配置项 uid，无法保存", { type: "error" });
       return;
     }
-    await updateSettingApi(row.uid, { value: row.value });
+    const { code, msg } = await updateSettingApi(row.uid, { value: row.value });
+    if (code !== 200) {
+      message(msg || "保存失败", { type: "error" });
+      return;
+    }
     message("保存成功", { type: "success" });
   } catch (e) {
     message(e instanceof Error ? e.message : "保存失败", { type: "error" });

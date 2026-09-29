@@ -91,7 +91,10 @@ async function onSearch() {
       module: state.value.module || undefined,
       path: state.value.path || undefined,
       type: state.value.type || undefined,
-      belong: state.value.belong === "" ? undefined : Number(state.value.belong)
+      belong:
+        state.value.belong == null || state.value.belong === ""
+          ? undefined
+          : Number(state.value.belong)
     });
     dataList.value = data?.list ?? [];
     pagination.total = data?.count ?? 0;

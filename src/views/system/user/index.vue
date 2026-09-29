@@ -96,7 +96,10 @@ const {
     getUsersApi(params.page, {
       scope: state.value.scope,
       username: state.value.username || undefined,
-      status: state.value.status === "" ? undefined : state.value.status === "1"
+      status:
+        state.value.status == null || state.value.status === ""
+          ? undefined
+          : state.value.status === "1"
     }) as unknown as Promise<CommonResult<PaginatedResponseDto<UserDto>>>,
   transform: (res: CommonResult<PaginatedResponseDto<UserDto>>) => ({
     list: res.data?.list ?? [],

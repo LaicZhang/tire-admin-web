@@ -59,7 +59,10 @@ export async function updateSettingApi(
   }
 ) {
   return await http.request<CommonResult>("patch", baseUrlApi(prefix + uid), {
-    data
+    data: {
+      where: { uid },
+      update: data
+    }
   });
 }
 
