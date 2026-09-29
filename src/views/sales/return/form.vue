@@ -426,6 +426,7 @@ watch(
               :precision="2"
               class="w-full"
             />
+            <span class="ml-2">元</span>
           </el-form-item>
         </el-col>
         <el-col :span="8">

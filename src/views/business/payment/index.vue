@@ -26,6 +26,7 @@ import type { FormInstance } from "element-plus";
 import { columns } from "./columns";
 import { useCrud } from "@/composables";
 import { resolveDialogFullscreen } from "@/utils/viewport";
+import { fenToYuanNumber } from "@/utils/formatMoney";
 
 defineOptions({
   name: "Payment"
@@ -291,7 +292,7 @@ onMounted(async () => {
       :type="operationType"
       :payment-uid="currentPayment?.uid ?? ''"
       :payment-name="currentPayment?.name ?? ''"
-      :current-balance="Number(currentPayment?.balance ?? 0)"
+      :current-balance="fenToYuanNumber(Number(currentPayment?.balance ?? 0))"
       @success="onSearch"
     />
   </div>

@@ -2,7 +2,8 @@
 import { ref, computed, watch } from "vue";
 import { message } from "@/utils";
 import { updatePaymentApi } from "@/api";
-import { yuanToFen } from "@/utils/formatMoney";
+import { yuanToFen, fenToYuanNumber } from "@/utils/formatMoney";
+import { useUserStoreHook } from "@/store/modules/user";
 
 type OperationType = "top-up" | "pay" | "freeze" | "unfreeze";
 
@@ -17,6 +18,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   currentBalance: 0
 });
+const userStore = useUserStoreHook();
 
 const emit = defineEmits<{
   (e: "update:visible", value: boolean): void;
@@ -93,10 +95,15 @@ async function handleSubmit() {
 
   loading.value = true;
   try {
+    if (!userStore.uid) {
+      message("无法识别当前操作人，请重新登录后重试", { type: "error" });
+      return;
+    }
     const { code, msg } = await updatePaymentApi(props.paymentUid, {
       type: props.type,
       record: {
         modified: yuanToFen(formData.value.amount),
+        operator: { connect: { uid: userStore.uid } },
         desc: formData.value.desc || undefined
       }
     });

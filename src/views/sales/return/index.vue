@@ -21,6 +21,8 @@ import {
   refundReturnOrderApi
 } from "@/api/sales";
 import { message, ALL_LIST, localForage, handleApiError } from "@/utils";
+import { yuanToFen } from "@/utils/formatMoney";
+import { getCompanyScopedOptionKey } from "@/utils/companyOptionCache";
 import { auditOrderApi } from "@/api/business/order";
 import { salesReturnColumns } from "./columns";
 import type { SalesReturnOrder, SalesReturnQueryParams } from "./types";
@@ -61,10 +63,17 @@ const managerList = ref<SelectItem[]>([]);
 const customerList = ref<SelectItem[]>([]);
 
 async function loadSelectData() {
+  const companyId = getCompanyId();
   const [employees, managers, customers] = await Promise.all([
-    localForage().getItem(ALL_LIST.employee),
-    localForage().getItem(ALL_LIST.manager),
-    localForage().getItem(ALL_LIST.customer)
+    localForage().getItem(
+      getCompanyScopedOptionKey(ALL_LIST.employee, companyId)
+    ),
+    localForage().getItem(
+      getCompanyScopedOptionKey(ALL_LIST.manager, companyId)
+    ),
+    localForage().getItem(
+      getCompanyScopedOptionKey(ALL_LIST.customer, companyId)
+    )
   ]);
   employeeList.value = (employees as SelectItem[]) || [];
   managerList.value = (managers as SelectItem[]) || [];
@@ -81,7 +90,7 @@ async function getList() {
     if (res.code === 200) {
       const list = res.data.list as SalesReturnOrder[];
       dataList.value = list.filter((item: SalesReturnOrder) => item.customerId);
-      pagination.value.total = dataList.value.length;
+      pagination.value.total = res.data.total ?? res.data.count ?? list.length;
     } else {
       message(res.msg, { type: "error" });
     }
@@ -202,7 +211,7 @@ function openDialog(title: string, row?: SalesReturnOrder) {
             message("审核完成", { type: "success" });
           } else if (title === "退款") {
             await refundReturnOrderApi(formData.uid, {
-              fee: formData.refundAmount || 0,
+              fee: yuanToFen(formData.refundAmount),
               paymentId: String(formData.paymentId || "").trim()
             });
             message("退款成功", { type: "success" });
