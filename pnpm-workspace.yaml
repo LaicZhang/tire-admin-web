@@ -67,5 +67,10 @@ minimumReleaseAgeExclude:
   - '@oxfmt/binding-win32-ia32-msvc@0.62.0'
   - '@oxfmt/binding-win32-x64-msvc@0.62.0'
   - oxfmt@0.62.0
-  - '@iconify/json@2.2.532'
+  - '@iconify/json@2.2.532 || 2.2.537'
   - '@iconify/vue@5.0.3'
+  - '@vitest/coverage-v8@5.0.3'
+  - '@vitest/mocker@5.0.3'
+  - '@vitest/spy@5.0.3'
+  - element-plus@2.14.7
+  - vitest@5.0.3
