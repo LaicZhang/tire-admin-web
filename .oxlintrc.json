@@ -1,0 +1,84 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "vue"],
+  "categories": {
+    "correctness": "warn"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "vue": true
+  },
+  "globals": {
+    "$": "readonly",
+    "$$": "readonly",
+    "$computed": "readonly",
+    "$customRef": "readonly",
+    "$ref": "readonly",
+    "$shallowRef": "readonly",
+    "$toRef": "readonly",
+    "RefType": "readonly",
+    "EmitType": "readonly",
+    "TargetContext": "readonly",
+    "ComponentRef": "readonly",
+    "ElRef": "readonly",
+    "ForDataType": "readonly",
+    "AnyFunction": "readonly",
+    "PropType": "readonly",
+    "Writable": "readonly",
+    "Nullable": "readonly",
+    "NonNullable": "readonly",
+    "Recordable": "readonly",
+    "ReadonlyRecordable": "readonly",
+    "Indexable": "readonly",
+    "DeepPartial": "readonly",
+    "Without": "readonly",
+    "Exclusive": "readonly",
+    "TimeoutHandle": "readonly",
+    "IntervalHandle": "readonly",
+    "Effect": "readonly",
+    "ChangeEvent": "readonly",
+    "WheelEvent": "readonly",
+    "ImportMetaEnv": "readonly",
+    "Fn": "readonly",
+    "PromiseFn": "readonly",
+    "ComponentElRef": "readonly",
+    "parseInt": "readonly",
+    "parseFloat": "readonly"
+  },
+  "ignorePatterns": [
+    "**/.*",
+    "dist/**",
+    "public/**",
+    "src/assets/**",
+    "src/**/iconfont/**",
+    "**/*.d.ts"
+  ],
+  "rules": {
+    "no-debugger": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-unused-expressions": "off",
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "no-redeclare": "error",
+    "no-empty-function": "warn",
+    "typescript/ban-ts-comment": "warn",
+    "typescript/consistent-type-imports": [
+      "error",
+      { "disallowTypeAnnotations": false, "fixStyle": "inline-type-imports" }
+    ],
+    "typescript/no-explicit-any": "error",
+    "typescript/no-import-type-side-effects": "error",
+    "typescript/no-non-null-assertion": "warn",
+    "typescript/prefer-as-const": "warn",
+    "typescript/prefer-literal-enum-member": [
+      "error",
+      { "allowBitwiseExpressions": true }
+    ]
+  }
+}
