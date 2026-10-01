@@ -9,6 +9,7 @@
 - API 调用：统一走 `src/utils/http`；URL 用 `baseUrlApi('/xxx')`（`src/api/utils.ts`，自动加 `/api/v1` 前缀）
 - 权限：页面级用路由 `meta.roles`；按钮级用 `<Auth :value="'perm.code' | ['perm.code']">`
 - 运行时平台配置：`public/platform-config.json`（字段类型见 `types/global.d.ts` 的 `PlatformConfigs`）
+- API 类型或行为调整需先确认后端契约；页面改造优先保持已有可用流程，再逐步切换
 - 合入前自检：`pnpm typecheck && pnpm lint:check && pnpm test && pnpm build --mode staging`
 
 ## 常用命令
