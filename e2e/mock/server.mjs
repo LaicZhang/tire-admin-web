@@ -1056,7 +1056,12 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, ok(true));
       }
 
-      const restoreMatch = matchPath(pathname, "/api/v1/customer/restore/:uid");
+      // 与 crud-factory 生成的契约一致：`POST /customer/:uid/restore`。
+      // 旧形状 `/customer/restore/:uid` 保留兼容（历史上 mock 只写了这一种，导致
+      // e2e 的「恢复」步骤一直 501）。见 e2e/mock/customer.crud.spec.ts。
+      const restoreMatch =
+        matchPath(pathname, "/api/v1/customer/:uid/restore") ||
+        matchPath(pathname, "/api/v1/customer/restore/:uid");
       if (restoreMatch && method === "POST") {
         const found = customers.find(x => x.uid === restoreMatch.uid);
         if (!found) return notFound(res, method, pathname);

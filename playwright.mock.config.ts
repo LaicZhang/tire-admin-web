@@ -50,6 +50,10 @@ export default defineConfig({
       testMatch: "**/responsive*.spec.ts",
       use: {
         ...devices["iPad Mini"],
+        // CI 只安装 chromium（`playwright install --with-deps chromium`），而
+        // iPad Mini 描述符默认走 webkit，会让响应式用例在 CI 因"可执行文件不存在"失败。
+        // 响应式断言只依赖 viewport，用 chromium 模拟即可，不必为此多下载一个浏览器。
+        browserName: "chromium",
         storageState: storageStatePath
       }
     }
