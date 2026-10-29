@@ -8,8 +8,9 @@ if (!userAgent.includes("pnpm/")) {
       `Detected user agent: ${userAgent || "<empty>"}`,
       "",
       "Fix:",
-      "  corepack enable",
-      "  corepack prepare pnpm@11 --activate",
+      // Node 26 不再随发行版分发 Corepack，`corepack enable` 已不可用；
+      // 版本与 package.json 的 packageManager(pnpm@12.10.1) 保持一致。
+      "  npm install -g pnpm@12.10.1",
       "  pnpm install"
     ].join("\n")
   );
