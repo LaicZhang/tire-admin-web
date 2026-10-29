@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const MIN_NODE_VERSION = [24, 12, 0];
+const MIN_NODE_VERSION = [24, 20, 0];
 
 function parseNodeVersion(version) {
   const match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
@@ -27,8 +27,8 @@ if (compareSemver(current, MIN_NODE_VERSION) < 0) {
       `当前版本：${currentVersion}`,
       "",
       "请升级 Node.js 后重试：",
-      "  - 推荐：使用 nvm 切换到本仓库的 .nvmrc 指定版本",
-      "  - 或：安装/切换到 Node.js 24.12.0 及以上版本"
+      "  - 推荐：使用 nvm 切换到本仓库的 .nvmrc 指定版本（v26.13.0 LTS）",
+      "  - 或：安装/切换到 Node.js 24.20.0 及以上版本"
     ].join("\n")
   );
   process.exit(1);
