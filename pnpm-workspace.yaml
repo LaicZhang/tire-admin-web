@@ -103,3 +103,4 @@ minimumReleaseAgeExclude:
   - postcss-merge-rules@9.1.1
   - postcss@8.5.29
   - vue-router@5.4.0
+  - '@types/node@26.6.6'
