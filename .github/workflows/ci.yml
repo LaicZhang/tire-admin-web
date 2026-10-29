@@ -21,16 +21,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm (Corepack)
-        run: corepack prepare pnpm@12.5.1 --activate
+      # Node 26 不再随发行版分发 Corepack（`corepack enable` 会 not found），
+      # 改由 pnpm/action-setup 按 package.json 的 packageManager(pnpm@12.10.1) 安装。
+      # 必须先于 setup-node：下一步的 cache: pnpm 需要 pnpm 已在 PATH。
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24.20.0"
+          node-version: "26.13.0"
           cache: "pnpm"
           cache-dependency-path: "pnpm-lock.yaml"
 
@@ -51,16 +51,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm (Corepack)
-        run: corepack prepare pnpm@12.5.1 --activate
+      # Node 26 不再随发行版分发 Corepack（`corepack enable` 会 not found），
+      # 改由 pnpm/action-setup 按 package.json 的 packageManager(pnpm@12.10.1) 安装。
+      # 必须先于 setup-node：下一步的 cache: pnpm 需要 pnpm 已在 PATH。
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24.20.0"
+          node-version: "26.13.0"
           cache: "pnpm"
           cache-dependency-path: "pnpm-lock.yaml"
 
