@@ -1,8 +1,9 @@
-FROM node:24.20.0-alpine AS build-stage
+FROM node:26.13.0-alpine AS build-stage
 
 WORKDIR /app
-RUN corepack enable
-RUN corepack prepare pnpm@12.5.1 --activate
+# Node 26 不再随发行版分发 Corepack，改用 npm 安装；版本与 package.json 的
+# packageManager(pnpm@12.10.1) 对齐（原 12.5.1 是历史遗留，会与 packageManager 漂移）。
+RUN npm install -g pnpm@12.10.1 && pnpm --version
 
 COPY .npmrc package.json pnpm-lock.yaml ./
 COPY scripts ./scripts
