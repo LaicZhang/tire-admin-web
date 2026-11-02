@@ -100,11 +100,14 @@ export function useColumns() {
 
   function onCurrentChange(val: number, callback?: () => void) {
     pagination.currentPage = val;
-    if (callback) {
+    if (typeof callback === "function") {
       loading.value = true;
       delay(300).then(() => {
-        callback();
-        loading.value = false;
+        try {
+          callback();
+        } finally {
+          loading.value = false;
+        }
       });
     }
   }

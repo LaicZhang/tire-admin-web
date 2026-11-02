@@ -18,21 +18,15 @@
     "sourceMap": true,
     "allowJs": false,
     "resolveJsonModule": true,
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
+    "lib": ["ESNext", "DOM"],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@build/*": [
-        "./build/*"
-      ]
+      "@/*": ["./src/*"],
+      "@build/*": ["./build/*"]
     },
     "types": [
       "node",
       "vite/client",
+      "vitest/globals",
       "element-plus/global",
       "@pureadmin/table/volar",
       "unplugin-icons/types/vue",
@@ -51,6 +45,9 @@
   ],
   "exclude": [
     "dist",
+    "src/**/__tests__/**",
+    "src/**/*.{test,spec}.{ts,tsx}",
+    "tests/**/*",
     "**/*.js",
     "node_modules"
   ]

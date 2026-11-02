@@ -125,6 +125,13 @@ export default defineConfig([
     }
   },
   {
+    files: ["src/**/__tests__/**/*.{ts,tsx}", "src/**/*.{test,spec}.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off"
+    }
+  },
+  {
     files: ["**/*.vue"],
     languageOptions: {
       globals: {

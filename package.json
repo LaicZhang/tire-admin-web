@@ -117,6 +117,7 @@
     "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
+    "@vitest/coverage-istanbul": "5.0.3",
     "@vitest/coverage-v8": "^5.0.3",
     "@vue/compiler-sfc": "^3.5.43",
     "@vue/test-utils": "^2.5.1",

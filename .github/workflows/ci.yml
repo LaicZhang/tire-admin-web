@@ -85,8 +85,15 @@ jobs:
       - name: Lint
         run: pnpm lint:check
 
-      - name: Unit tests
-        run: pnpm test
+      - name: Unit tests with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
 
       - name: Install Playwright Chromium (mock e2e)
         run: pnpm exec playwright install --with-deps chromium

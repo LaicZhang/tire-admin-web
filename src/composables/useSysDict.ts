@@ -223,7 +223,9 @@ export function useDictItems(dictName: string, options?: UseDictOptions) {
   };
 
   onMounted(() => {
-    void refresh();
+    void refresh().catch(error => {
+      logger.error("自动加载字典失败", error);
+    });
   });
 
   return { dictItems, isLoading, refresh };

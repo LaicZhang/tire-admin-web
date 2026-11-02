@@ -14,7 +14,12 @@ export function useCaptcha() {
   const doRefreshCaptcha = () => {
     captchaTimestamp.value = Date.now();
     // 使用 URL 对象安全拼接验证码 URL
-    const url = new URL(baseUrlApi("/verify/captcha"), window.location.origin);
+    let url: URL;
+    try {
+      url = new URL(baseUrlApi("/verify/captcha"), window.location.href);
+    } catch {
+      url = new URL(baseUrlApi("/verify/captcha"), "http://localhost/");
+    }
     url.searchParams.set("t", captchaTimestamp.value.toString());
     captchaUrl.value = url.toString();
   };

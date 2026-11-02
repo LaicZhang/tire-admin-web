@@ -181,4 +181,106 @@ describe("fieldRules", () => {
     await expect(runAll(rules, 10.01)).rejects.toBeInstanceOf(Error);
     await expect(runAll(rules, 10)).resolves.toBeUndefined();
   });
+
+  it("covers required and optional text wrappers with custom limits", async () => {
+    const requiredTitle = fieldRules.title({
+      required: true,
+      label: "标题",
+      max: 2,
+      trigger: "change"
+    });
+    expect(requiredTitle[0].trigger).toBe("change");
+    await expect(runAll(requiredTitle, "")).rejects.toBeInstanceOf(Error);
+    await expect(runAll(requiredTitle, "abc")).rejects.toBeInstanceOf(Error);
+    await expect(runAll(requiredTitle, "ab")).resolves.toBeUndefined();
+
+    expect(fieldRules.title({ required: false })).toHaveLength(1);
+    expect(fieldRules.code({ required: true })).toHaveLength(2);
+    expect(fieldRules.code({ required: false })).toHaveLength(1);
+    await expect(
+      runAll(fieldRules.code({ required: true, max: 2 }), "")
+    ).rejects.toBeInstanceOf(Error);
+    await expect(
+      runAll(fieldRules.code({ max: 2 }), "")
+    ).resolves.toBeUndefined();
+    await expect(
+      runAll(fieldRules.code({ max: 2 }), "abc")
+    ).rejects.toBeInstanceOf(Error);
+    await expect(
+      runAll(fieldRules.keyword({ label: "关键字", max: 2 }), "abc")
+    ).rejects.toBeInstanceOf(Error);
+  });
+
+  it("covers required, default and custom remark/address/desc behavior", async () => {
+    expect(fieldRules.remark()).toHaveLength(1);
+    expect(fieldRules.remark({ required: true })).toHaveLength(2);
+    expect(fieldRules.desc()).toHaveLength(1);
+    expect(
+      fieldRules.desc({ required: true, max: 3, label: "说明" })
+    ).toHaveLength(2);
+    expect(fieldRules.address()).toHaveLength(1);
+    expect(fieldRules.address({ required: true })).toHaveLength(2);
+
+    await expect(
+      runAll(fieldRules.remark({ required: true }), "   ")
+    ).rejects.toBeInstanceOf(Error);
+    await expect(
+      runAll(fieldRules.desc({ max: 2 }), "abc")
+    ).rejects.toBeInstanceOf(Error);
+    await expect(
+      runAll(fieldRules.address({ max: 2 }), "abc")
+    ).rejects.toBeInstanceOf(Error);
+  });
+
+  it("validates required and optional phone values", async () => {
+    const optional = fieldRules.phone();
+    expect(optional).toHaveLength(1);
+    await expect(runAll(optional, "")).resolves.toBeUndefined();
+    await expect(runAll(optional, "123")).rejects.toBeInstanceOf(Error);
+    await expect(runAll(optional, "13800138000")).resolves.toBeUndefined();
+
+    const required = fieldRules.phone({ required: true, label: "联系电话" });
+    await expect(runAll(required, "")).rejects.toBeInstanceOf(Error);
+    await expect(runAll(required, "13800138000")).resolves.toBeUndefined();
+  });
+
+  it("covers optional select variants and signed money bounds", async () => {
+    expect(fieldRules.select({ required: true, label: "仓库" })).toHaveLength(
+      1
+    );
+    expect(fieldRules.select({ required: false, label: "仓库" })).toHaveLength(
+      0
+    );
+    expect(
+      fieldRules.uidSelect({ required: false, label: "仓库" })
+    ).toHaveLength(1);
+
+    const rules = fieldRules.moneyYuanSigned({
+      label: "调整金额",
+      min: -10,
+      minExclusive: true,
+      max: 10
+    });
+    await expect(runAll(rules, "")).rejects.toBeInstanceOf(Error);
+    await expect(runAll(rules, "-10")).rejects.toBeInstanceOf(Error);
+    await expect(runAll(rules, 10.01)).rejects.toBeInstanceOf(Error);
+    await expect(runAll(rules, "-9.5")).resolves.toBeUndefined();
+    await expect(runAll(rules, 10)).resolves.toBeUndefined();
+    expect(
+      fieldRules.moneyYuanSigned({ required: false, label: "调整金额" })
+    ).toHaveLength(1);
+  });
+
+  it("covers date wrappers, defaults and any() normalization", async () => {
+    const optionalDate = fieldRules.date({ required: false });
+    expect(optionalDate).toHaveLength(0);
+    const requiredDate = fieldRules.date({ label: "生效日期" });
+    await expect(runAll(requiredDate, "")).rejects.toBeInstanceOf(Error);
+
+    expect(fieldRules.dateRange()).toHaveLength(1);
+    expect(fieldRules.arrayMinSize()).toHaveLength(1);
+    const rule = fieldRules.keyword()[0];
+    expect(fieldRules.any(rule)).toEqual([rule]);
+    expect(fieldRules.any([rule, rule])).toEqual([rule, rule]);
+  });
 });

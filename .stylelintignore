@@ -5,3 +5,4 @@ public/*
 /playwright-report-uni-mini/*
 /test-results/*
 src/style/reset.scss
+coverage*

@@ -9,8 +9,16 @@ import { computed, ref } from "vue";
 
 const { copied, update } = useCopyToClipboard();
 
-export const copySvg = new URL("../order/copy.svg", location.origin).href;
-export const checkSvg = new URL("../order/check.svg", location.origin).href;
+function resolveAsset(path: string) {
+  try {
+    return new URL(path, window.location.href).href;
+  } catch {
+    return new URL(path, "http://localhost/").href;
+  }
+}
+
+export const copySvg = resolveAsset("../order/copy.svg");
+export const checkSvg = resolveAsset("../order/check.svg");
 export const curCopyActive = ref<string | number | null>(null);
 
 export const copyStyle = computed(() => {

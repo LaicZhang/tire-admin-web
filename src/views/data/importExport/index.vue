@@ -258,7 +258,10 @@ const handleDownload = (row: ImportExportTask) => {
     message("该任务无可下载文件", { type: "warning" });
     return;
   }
-  downloadFromUrl(row.downloadUrl, row.fileName || `${row.module}.xlsx`);
+  void downloadFromUrl(
+    row.downloadUrl,
+    row.fileName || `${row.module}.xlsx`
+  ).catch(() => undefined);
 };
 
 // 删除任务
