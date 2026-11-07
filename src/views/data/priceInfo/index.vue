@@ -46,7 +46,6 @@ type TireLike = Tire & {
   barcode?: string;
   salePrice?: number;
   purchasePrice?: number;
-  updateAt?: string;
   updatedAt?: string;
 };
 
@@ -145,7 +144,7 @@ const { loading, dataList, pagination, fetchData, onCurrentChange } = useCrud<
         enableSaleLimit: limit?.enableSaleLimit,
         lastPurchasePrice: undefined,
         lastSalePrice: undefined,
-        updatedAt: t.updateAt ?? t.updatedAt
+        updatedAt: t.updatedAt
       } as PriceInfo;
     });
     return { list, total: tires.data?.total ?? 0 };

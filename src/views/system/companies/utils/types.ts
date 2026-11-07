@@ -17,7 +17,7 @@ export interface FormItemProps {
   status?: boolean | null;
 
   /** 创建时间 */
-  createAt?: string | null;
+  createdAt?: string | null;
   /** 删除时间（软删） */
   deleteAt?: string | null;
 }

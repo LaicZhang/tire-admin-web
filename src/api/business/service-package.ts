@@ -23,8 +23,8 @@ export interface ServicePackageItem {
   name: string;
   enabled: boolean;
   remark?: string | null;
-  createAt?: string;
-  updateAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
   lines: ServicePackageLine[];
 }
 

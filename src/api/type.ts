@@ -78,8 +78,8 @@ export interface CompanyInfo {
   province?: string;
   city?: string;
   bossId?: string;
-  createAt?: string;
-  updateAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type CaptchaResponseDto = {
@@ -115,9 +115,9 @@ export type PaymentAccount = {
   /** 排序级别 */
   level?: number | null;
   /** 创建时间 */
-  createAt?: string;
+  createdAt?: string;
   /** 更新时间 */
-  updateAt?: string;
+  updatedAt?: string;
 };
 
 export type PaymentRecord = {

@@ -26,7 +26,7 @@ export interface CostAdjustOrder {
   isApproved: boolean;
   isLocked: boolean;
   totalAdjustAmount: bigint;
-  createAt: string;
+  createdAt: string;
   auditAt?: string;
   details: CostAdjustOrderDetail[];
   operator?: {

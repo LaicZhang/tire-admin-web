@@ -27,7 +27,7 @@ export interface PurchaseFormItemProps {
   auditAt: Date;
   arrivalAt: Date;
   payAt: Date;
-  updateAt: Date;
+  updatedAt: Date;
   fee?: number;
   details: Array<{
     index: number;

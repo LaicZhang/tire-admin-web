@@ -44,7 +44,7 @@ export interface Employee {
   nickname?: string;
   desc?: string;
   status?: number;
-  updateAt?: string;
+  updatedAt?: string;
   layoffAt?: string | null;
   deleteAt?: string | null;
   jobs?: unknown[];

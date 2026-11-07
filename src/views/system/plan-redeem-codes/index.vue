@@ -98,10 +98,10 @@ const columns: TableColumnList = [
   },
   {
     label: "创建",
-    prop: "createAt",
+    prop: "createdAt",
     minWidth: 160,
-    formatter: ({ createAt }) =>
-      createAt ? String(createAt).replace("T", " ").substring(0, 19) : "—"
+    formatter: ({ createdAt }) =>
+      createdAt ? String(createdAt).replace("T", " ").substring(0, 19) : "—"
   },
   { label: "操作", fixed: "right", width: 120, slot: "operation" }
 ];

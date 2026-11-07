@@ -30,7 +30,7 @@ export interface BalanceAdjustment {
   isReversed: boolean;
   reversedAt?: string | null;
   reversedBy?: string | null;
-  createAt: string;
+  createdAt: string;
 }
 
 export async function createManualBalanceAdjustmentApi(data: {

@@ -45,8 +45,8 @@ export interface ServiceWorkOrderItem {
   remark?: string | null;
   saleOrderUid?: string | null;
   receiptOrderUid?: string | null;
-  createAt?: string;
-  updateAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
   store?: { uid?: string; name?: string | null } | null;
   customer?: { uid?: string; name?: string | null } | null;
   lines?: ServiceWorkOrderLine[];

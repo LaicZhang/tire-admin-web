@@ -33,8 +33,8 @@ export interface SubscriptionPlan {
   status: boolean;
   sortOrder: number;
   features?: PlanFeatureLink[];
-  createAt?: string;
-  updateAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface FeatureDefinition {
@@ -46,8 +46,8 @@ export interface FeatureDefinition {
   permissionPaths?: string[];
   limits?: Record<string, unknown> | null;
   status: boolean;
-  createAt?: string;
-  updateAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PlanRedeemCode {
@@ -61,7 +61,7 @@ export interface PlanRedeemCode {
   status: PlanRedeemCodeStatus;
   note?: string | null;
   createdByAdminId?: string | null;
-  createAt?: string;
+  createdAt?: string;
   plan?: Pick<SubscriptionPlan, "uid" | "code" | "name">;
 }
 
@@ -77,7 +77,7 @@ export interface CompanyPlanGrant {
   operatorUserId?: string | null;
   note?: string | null;
   redeemCodeId?: string | null;
-  createAt?: string;
+  createdAt?: string;
   plan?: Pick<SubscriptionPlan, "uid" | "code" | "name" | "receivesUpdates">;
   redeemCode?: Pick<PlanRedeemCode, "uid" | "code"> | null;
 }

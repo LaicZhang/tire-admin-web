@@ -170,7 +170,7 @@ describe("company management behavior", () => {
         province: "P",
         city: "C",
         status: true,
-        createAt: "2026-01-01T00:00:00Z"
+        createdAt: "2026-01-01T00:00:00Z"
       },
       {
         uid: "b",
@@ -444,7 +444,7 @@ describe("company management behavior", () => {
     );
     expect(columns[1].formatter!({} as any)).toBe("-");
     expect(
-      columns[5].formatter!({ createAt: "2026-01-01T12:00:00Z" } as any)
+      columns[5].formatter!({ createdAt: "2026-01-01T12:00:00Z" } as any)
     ).toBe("2026-01-01 12:00:00");
     expect(columns[5].formatter!({} as any)).toBe("-");
     expect(

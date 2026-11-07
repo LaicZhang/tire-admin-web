@@ -114,7 +114,7 @@ const props = withDefaults(defineProps<OrderFormProps>(), {
       auditAt: undefined,
       arrivalAt: undefined,
       payAt: undefined,
-      updateAt: undefined,
+      updatedAt: undefined,
       providerId: undefined,
       customerId: undefined,
       attachments: [] as string[],
@@ -352,7 +352,7 @@ async function handleCreateSupplierClaim() {
       docNo: data?.docNo,
       isApproved: data?.isApproved,
       isReversed: data?.isReversed,
-      createAt: data?.createAt
+      createdAt: data?.createdAt
     });
     (newFormInline.value as ClaimFormItemProps).supplierClaimOrders = current;
     message("已生成供应商索赔单", { type: "success" });

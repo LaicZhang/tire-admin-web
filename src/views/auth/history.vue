@@ -54,7 +54,7 @@ interface HistoryRow {
     os?: string;
     browser?: string;
   };
-  createAt?: string;
+  createdAt?: string;
 }
 
 interface ApiResponseData {

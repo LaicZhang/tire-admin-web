@@ -64,7 +64,7 @@ export function useColumns() {
       }
     },
     { label: "状态", prop: "trackingStatus", minWidth: 100 },
-    { label: "日期", prop: "createAt", minWidth: 160 }
+    { label: "日期", prop: "createdAt", minWidth: 160 }
   ];
 
   return { customerColumns, productColumns, operatorColumns, trackingColumns };

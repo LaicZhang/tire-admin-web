@@ -57,8 +57,8 @@ export interface Salary {
   actualWages: string | number;
   confirmedAt?: string | null;
   desc?: string | null;
-  createAt?: string;
-  updateAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
   employee?: SalaryEmployeeSummary | null;
   operator?: SalaryEmployeeSummary | null;
   total?: Record<string, unknown> | null;

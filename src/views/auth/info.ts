@@ -11,7 +11,7 @@ export interface UserInfoType {
     birthday: string | Date;
     gender: number;
     isCN: boolean;
-    updateAt?: string;
+    updatedAt?: string;
   };
 }
 
@@ -28,6 +28,6 @@ export const userInfoTemplate: UserInfoType = {
     birthday: "",
     gender: 1,
     isCN: true,
-    updateAt: undefined
+    updatedAt: undefined
   }
 };

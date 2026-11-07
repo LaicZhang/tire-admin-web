@@ -74,10 +74,10 @@ export const columns: TableColumnList = [
   {
     label: "创建时间",
     hide: hideOnMobile,
-    prop: "createAt",
+    prop: "createdAt",
     width: 160,
     formatter: (row: TransferOrder) =>
-      row.createAt ? dayjs(row.createAt).format("YYYY-MM-DD HH:mm") : "-"
+      row.createdAt ? dayjs(row.createdAt).format("YYYY-MM-DD HH:mm") : "-"
   },
   {
     label: "备注",

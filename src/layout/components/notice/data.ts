@@ -48,15 +48,15 @@ export function getNoticeLevelMeta(level: number): NoticeLevelMeta {
 export function normalizeNoticeItem(item: AuthNoticeItem): ListItem {
   const levelMeta = getNoticeLevelMeta(item.level);
   const content = trimText(item.content);
-  const createAt = item.createAt
-    ? new Date(item.createAt).toLocaleString()
+  const createdAt = item.createdAt
+    ? new Date(item.createdAt).toLocaleString()
     : "系统公告";
 
   return {
     uid: item.uid,
     avatar: "",
     title: trimText(item.title) || "未命名公告",
-    datetime: createAt,
+    datetime: createdAt,
     type: "notice",
     description: content || DEFAULT_NOTICE_DESCRIPTION,
     status: levelMeta.status,

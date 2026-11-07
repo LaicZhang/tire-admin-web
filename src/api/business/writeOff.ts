@@ -28,7 +28,7 @@ export interface WriteOffOrder extends WriteOffOrderDto {
   isReversed: boolean;
   operatorId: string;
   auditorId?: string;
-  createAt: string;
+  createdAt: string;
   auditAt?: string;
   customer?: { name: string };
   provider?: { name: string };

@@ -30,9 +30,9 @@ export interface TransferOrder {
   isLocked: boolean;
   rejectReason?: string | null;
   details: TransferOrderDetail[];
-  createAt?: string;
+  createdAt?: string;
   auditAt?: string;
-  updateAt?: string;
+  updatedAt?: string;
 }
 
 export interface TransferOrderQuery {

@@ -281,13 +281,13 @@ onMounted(async () => {
             <div class="detail-item">
               <span class="detail-label">创建时间</span>
               <span class="detail-value">{{
-                formatDateTime(companyInfo.createAt) || "—"
+                formatDateTime(companyInfo.createdAt) || "—"
               }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">更新时间</span>
               <span class="detail-value">{{
-                formatDateTime(companyInfo.updateAt) || "—"
+                formatDateTime(companyInfo.updatedAt) || "—"
               }}</span>
             </div>
           </div>

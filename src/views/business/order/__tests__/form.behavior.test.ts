@@ -218,7 +218,7 @@ describe("order form behavior", () => {
           docNo: "SC-1",
           isApproved: true,
           isReversed: false,
-          createAt: "2026-01-01"
+          createdAt: "2026-01-01"
         }
       });
 
@@ -234,7 +234,7 @@ describe("order form behavior", () => {
           docNo: "SC-1",
           isApproved: true,
           isReversed: false,
-          createAt: "2026-01-01"
+          createdAt: "2026-01-01"
         }
       ]);
       expect(state.creatingSupplierClaim).toBe(false);
@@ -658,7 +658,7 @@ describe("order form field and row branches", () => {
           docNo: "SC-2",
           isApproved: true,
           isReversed: true,
-          createAt: "2026-02-01"
+          createdAt: "2026-02-01"
         }
       ];
       await nextTick();

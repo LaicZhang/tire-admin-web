@@ -47,10 +47,10 @@ export const columns: TableColumnList = [
   },
   {
     label: "创建时间",
-    prop: "createAt",
+    prop: "createdAt",
     width: 160,
     formatter: row =>
-      row.createAt ? dayjs(row.createAt).format("YYYY-MM-DD HH:mm") : "-"
+      row.createdAt ? dayjs(row.createdAt).format("YYYY-MM-DD HH:mm") : "-"
   },
   {
     label: "审核时间",

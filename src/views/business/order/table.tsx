@@ -135,7 +135,7 @@ interface OrderRow {
     docNo?: string | null;
     isApproved?: boolean;
     isReversed?: boolean;
-    createAt?: string;
+    createdAt?: string;
   }>;
   details?: _OrderDetail[];
   name?: string;

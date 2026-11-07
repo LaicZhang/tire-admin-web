@@ -22,7 +22,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "创建时间",
-    prop: "createAt",
+    prop: "createdAt",
     formatter: (_row, _column, cellValue) => formatDateTime(cellValue)
   },
   {

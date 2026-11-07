@@ -65,8 +65,8 @@ const assembly = (
   repoId: "repo-1",
   operatorId: "user-1",
   auditorId: null,
-  createAt: "2026-02-01T10:00:00Z",
-  updateAt: "2026-02-02T10:00:00Z",
+  createdAt: "2026-02-01T10:00:00Z",
+  updatedAt: "2026-02-02T10:00:00Z",
   isApproved: false,
   isLocked: false,
   desc: "assembly order",
@@ -100,7 +100,7 @@ const surplus = (
   number: 1002n,
   operatorId: "user-2",
   auditorId: "auditor-2",
-  createAt: "2026-03-01T00:00:00Z",
+  createdAt: "2026-03-01T00:00:00Z",
   isApproved: true,
   details: [
     {
@@ -122,7 +122,7 @@ const waste = (overrides: Partial<RawWasteOrder> = {}): RawWasteOrder => ({
   uid: "waste-1",
   number: 1003,
   operatorId: "user-3",
-  createAt: "2026-04-01T00:00:00Z",
+  createdAt: "2026-04-01T00:00:00Z",
   isApproved: false,
   rejectReason: "damaged",
   details: [
@@ -458,7 +458,7 @@ describe("inventory adapters", () => {
       ],
       operator: { uid: "u", name: "Op" },
       auditor: { uid: "a", name: "Aud" },
-      createAt: "2026-05-01"
+      createdAt: "2026-05-01"
     });
     expect(transfer).toMatchObject({
       id: 0,
@@ -567,7 +567,7 @@ describe("inventory adapters", () => {
         isApproved: false,
         isLocked: false,
         totalAdjustAmount: 12n,
-        createAt: "2026-05-03",
+        createdAt: "2026-05-03",
         details: [
           {
             repoId: "r",
@@ -595,7 +595,7 @@ describe("inventory adapters", () => {
         isApproved: false,
         isLocked: false,
         totalAdjustAmount: 0n,
-        createAt: "",
+        createdAt: "",
         details: [],
         rejectReason: "bad"
       }).status

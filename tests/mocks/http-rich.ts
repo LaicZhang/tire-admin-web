@@ -27,7 +27,6 @@ const detail: Row = {
   total: 100,
   isArrival: true,
   isApproved: true,
-  createAt: "2026-01-01T00:00:00.000Z",
   createdAt: "2026-01-01T00:00:00.000Z"
 };
 
@@ -151,9 +150,7 @@ function makeRow(): Row {
     visible: true,
     startDate: "2026-01-01",
     endDate: "2026-01-31",
-    createAt: "2026-01-01T00:00:00.000Z",
     createdAt: "2026-01-01T00:00:00.000Z",
-    updateAt: "2026-01-02T00:00:00.000Z",
     updatedAt: "2026-01-02T00:00:00.000Z",
     info: { userId: "fixture-user", avatarId: "", isRealName: true },
     backup: {

@@ -218,7 +218,7 @@ onMounted(() => {
     </div>
 
     <el-table border :data="historyList" :loading="listLoading" height="420">
-      <el-table-column label="时间" prop="createAt" width="170" />
+      <el-table-column label="时间" prop="createdAt" width="170" />
       <el-table-column label="类型" prop="type" min-width="120">
         <template #default="{ row }">
           {{ getBalanceAdjustmentTypeLabel(row.type) }}

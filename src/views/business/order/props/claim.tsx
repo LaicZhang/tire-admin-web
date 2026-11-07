@@ -26,7 +26,7 @@ export interface ClaimFormItemProps {
     docNo?: string | null;
     isApproved?: boolean;
     isReversed?: boolean;
-    createAt?: string;
+    createdAt?: string;
   }>;
   details: Array<{
     uid?: string;

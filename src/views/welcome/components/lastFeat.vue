@@ -65,7 +65,7 @@ onMounted(async () => {
                 })
               )
             "
-            :timestamp="formatDate(item.createAt)"
+            :timestamp="formatDate(item.createdAt)"
           >
             <p class="text-text_color_regular text-sm">
               {{ item.title }}

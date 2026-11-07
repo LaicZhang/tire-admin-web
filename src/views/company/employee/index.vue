@@ -234,7 +234,7 @@ onMounted(() => {
           min-width="120"
           show-overflow-tooltip
         />
-        <el-table-column prop="createAt" label="时间" min-width="160" />
+        <el-table-column prop="createdAt" label="时间" min-width="160" />
       </el-table>
     </el-card>
     <ReSearchForm

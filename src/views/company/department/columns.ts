@@ -15,14 +15,14 @@ export const columns: TableColumnList = [
   },
   {
     label: "更新时间",
-    prop: "updateAt",
+    prop: "updatedAt",
     formatter: (row, column, cellValue) => {
       return formatDate(cellValue);
     }
   },
   {
     label: "创建时间",
-    prop: "createAt",
+    prop: "createdAt",
     formatter: (row, column, cellValue) => {
       return formatDate(cellValue);
     }

@@ -70,7 +70,7 @@ const columns: TableColumnList = [
     formatter: (row: ServicePackageItem) => String(row.lines?.length ?? 0)
   },
   { label: "备注", prop: "remark", minWidth: 160 },
-  { label: "创建时间", prop: "createAt", minWidth: 160 },
+  { label: "创建时间", prop: "createdAt", minWidth: 160 },
   {
     label: "操作",
     fixed: "right",

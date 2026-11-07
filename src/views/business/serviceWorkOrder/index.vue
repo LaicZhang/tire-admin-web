@@ -133,7 +133,7 @@ const columns: TableColumnList = [
     formatter: (row: ServiceWorkOrderItem) =>
       row.saleOrderUid ? row.saleOrderUid.slice(0, 8) + "…" : "—"
   },
-  { label: "创建时间", prop: "createAt", minWidth: 160 },
+  { label: "创建时间", prop: "createdAt", minWidth: 160 },
   { label: "操作", fixed: "right", width: 100, slot: "operation" }
 ];
 

@@ -80,10 +80,10 @@ const historyColumns: TableColumnList = [
   },
   {
     label: "创建",
-    prop: "createAt",
+    prop: "createdAt",
     minWidth: 150,
-    formatter: ({ createAt }) =>
-      createAt ? String(createAt).replace("T", " ").substring(0, 19) : "—"
+    formatter: ({ createdAt }) =>
+      createdAt ? String(createdAt).replace("T", " ").substring(0, 19) : "—"
   }
 ];
 

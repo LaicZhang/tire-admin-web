@@ -19,7 +19,7 @@ export interface ChatSession {
   question?: string | null;
   answer?: string | null;
   index?: number | null;
-  createAt?: string | null;
+  createdAt?: string | null;
   deleteAt?: string | null;
 }
 

@@ -116,8 +116,8 @@ export interface RawAssemblyOrder {
   rejectReason?: string | null;
   isApproved?: boolean | null;
   isLocked?: boolean | null;
-  createAt?: string | null;
-  updateAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   repo?: RawRepoRef;
   operator?: RawEmployeeRef;
   auditor?: RawEmployeeRef;
@@ -147,8 +147,8 @@ export interface RawSurplusOrder {
   rejectReason?: string | null;
   isApproved?: boolean | null;
   isLocked?: boolean | null;
-  createAt?: string | null;
-  updateAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   operator?: RawEmployeeRef;
   auditor?: RawEmployeeRef;
   details?: RawSurplusOrderDetail[];
@@ -176,8 +176,8 @@ export interface RawWasteOrder {
   rejectReason?: string | null;
   isApproved?: boolean | null;
   isLocked?: boolean | null;
-  createAt?: string | null;
-  updateAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   operator?: RawEmployeeRef;
   auditor?: RawEmployeeRef;
   details?: RawWasteOrderDetail[];
@@ -275,12 +275,12 @@ export function mapAssemblyOrderToDisassembly(
     operatorName: item.operator?.name,
     auditorId: item.auditorId || undefined,
     auditorName: item.auditor?.name,
-    orderDate: normalizeDate(item.createAt),
+    orderDate: normalizeDate(item.createdAt),
     bomId: undefined,
     remark: item.desc || undefined,
     components,
-    createdAt: normalizeDate(item.createAt),
-    updatedAt: normalizeDate(item.updateAt)
+    createdAt: normalizeDate(item.createdAt),
+    updatedAt: normalizeDate(item.updatedAt)
   };
 }
 
@@ -309,12 +309,12 @@ export function mapAssemblyOrderRecord(item: RawAssemblyOrder): AssemblyOrder {
     operatorName: item.operator?.name,
     auditorId: item.auditorId || undefined,
     auditorName: item.auditor?.name,
-    orderDate: normalizeDate(item.createAt),
+    orderDate: normalizeDate(item.createdAt),
     bomId: undefined,
     remark: item.desc || undefined,
     components,
-    createdAt: normalizeDate(item.createAt),
-    updatedAt: normalizeDate(item.updateAt)
+    createdAt: normalizeDate(item.createdAt),
+    updatedAt: normalizeDate(item.updatedAt)
   };
 }
 
@@ -495,14 +495,14 @@ export function mapSurplusOrderToOtherInbound(
     operatorName: item.operator?.name,
     auditorId: item.auditorId || undefined,
     auditorName: item.auditor?.name,
-    orderDate: normalizeDate(item.createAt),
+    orderDate: normalizeDate(item.createdAt),
     approvedAt: undefined,
     totalAmount: calculateTotalAmount(details),
     totalQuantity: calculateTotalQuantity(details),
     remark: item.desc || undefined,
     details,
-    createdAt: normalizeDate(item.createAt),
-    updatedAt: normalizeDate(item.updateAt)
+    createdAt: normalizeDate(item.createdAt),
+    updatedAt: normalizeDate(item.updatedAt)
   };
 }
 
@@ -590,14 +590,14 @@ export function mapWasteOrderToOtherOutbound(
     operatorName: item.operator?.name,
     auditorId: item.auditorId || undefined,
     auditorName: item.auditor?.name,
-    orderDate: normalizeDate(item.createAt),
+    orderDate: normalizeDate(item.createdAt),
     approvedAt: undefined,
     totalAmount: calculateTotalAmount(details),
     totalQuantity: calculateTotalQuantity(details),
     remark: item.desc || undefined,
     details,
-    createdAt: normalizeDate(item.createAt),
-    updatedAt: normalizeDate(item.updateAt)
+    createdAt: normalizeDate(item.createdAt),
+    updatedAt: normalizeDate(item.updatedAt)
   };
 }
 
@@ -689,8 +689,8 @@ export function mapTransferOrderToInventoryDocument(
       (sum, detail) => sum + (detail.count || 0),
       0
     ),
-    orderDate: normalizeDate(item.createAt),
-    createdAt: normalizeDate(item.createAt),
+    orderDate: normalizeDate(item.createdAt),
+    createdAt: normalizeDate(item.createdAt),
     remark: item.desc || undefined
   };
 }
@@ -733,8 +733,8 @@ export function mapAssemblyOrderToInventoryDocument(
       (sum, detail) => sum + (detail.count || 0),
       0
     ),
-    orderDate: normalizeDate(item.createAt),
-    createdAt: normalizeDate(item.createAt),
+    orderDate: normalizeDate(item.createdAt),
+    createdAt: normalizeDate(item.createdAt),
     remark: item.desc || undefined
   };
 }
@@ -796,8 +796,8 @@ export function mapCostAdjustToInventoryDocument(
       (sum, detail) => sum + (detail.count || 0),
       0
     ),
-    orderDate: normalizeDate(item.createAt),
-    createdAt: normalizeDate(item.createAt),
+    orderDate: normalizeDate(item.createdAt),
+    createdAt: normalizeDate(item.createdAt),
     remark: item.desc || item.reason
   };
 }

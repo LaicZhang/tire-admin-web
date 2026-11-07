@@ -133,7 +133,7 @@ export type MonitorCompanyCard = {
   name: string;
   status?: string | null;
   employeeCount?: number;
-  createAt?: string | null;
+  createdAt?: string | null;
 };
 
 export type MonitorEmployeeItem = {

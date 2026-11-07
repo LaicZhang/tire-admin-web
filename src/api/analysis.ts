@@ -146,7 +146,7 @@ export interface PurchaseOrderTrackingItem {
   logisticsStatus?: unknown;
   trackingStatus: "pending" | "partial" | "completed";
   isApproved: boolean;
-  createAt?: string;
+  createdAt?: string;
 }
 
 export interface PurchaseOrderTrackingData {
@@ -191,7 +191,7 @@ export interface SalesOrderTrackingItem {
   logisticsStatus?: unknown;
   trackingStatus: "pending" | "partial" | "completed";
   isApproved: boolean;
-  createAt?: string;
+  createdAt?: string;
 }
 
 export interface SalesOrderTrackingData {
@@ -374,7 +374,7 @@ export interface SerialTraceData {
     oldTireDisposition?: string | null;
     oldTireRemark?: string | null;
     identificationResult?: string | null;
-    createAt?: string | null;
+    createdAt?: string | null;
   }>;
 }
 
@@ -781,7 +781,7 @@ export interface PurchaseDetailOrderInfo {
   number?: string;
   providerId?: string;
   provider?: { uid?: string; name?: string };
-  createAt?: string;
+  createdAt?: string;
 }
 
 export interface PurchaseDetailItem {
@@ -794,7 +794,7 @@ export interface PurchaseDetailItem {
   unitPrice?: number | string;
   count?: number;
   totalAmount?: number | string;
-  createAt?: string;
+  createdAt?: string;
   order?: PurchaseDetailOrderInfo;
   tire?: { uid?: string; name?: string; barcode?: string };
   repo?: { uid?: string; name?: string };
@@ -835,7 +835,7 @@ export interface SaleDetailOrderInfo {
   paidAmount?: number | string;
   logisticsStatus?: unknown;
   orderStatus?: unknown;
-  createAt?: string;
+  createdAt?: string;
   customer?: SaleDetailCustomerInfo;
   operator?: SaleDetailOperatorInfo;
 }
@@ -879,11 +879,12 @@ export interface SaleDetailItem {
   desc?: string;
   currencyId?: string;
   taxIncluded?: boolean;
-  taxRate?: number | string;
+  /** 后端 `tax_rate` 为 Decimal(5,4)，序列化为字符串（如 "0.13"） */
+  taxRate?: string | null;
   taxAmount?: number | string;
   shippedCount?: number;
   deliveredCount?: number;
-  createAt?: string;
+  createdAt?: string;
   arrivalAt?: string;
   order?: SaleDetailOrderInfo;
   tire?: SaleDetailTireInfo;
@@ -1080,7 +1081,7 @@ export interface ReportSubscription {
   parameters?: Record<string, unknown> | null;
   nextRunAt?: string | null;
   lastRunAt?: string | null;
-  createAt: string;
+  createdAt: string;
 }
 
 export interface CreateReportSubscriptionPayload {

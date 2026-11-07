@@ -468,7 +468,7 @@ export async function createSupplierClaimOrderFromClaimApi(
       docNo?: string | null;
       isApproved?: boolean;
       isReversed?: boolean;
-      createAt?: string;
+      createdAt?: string;
     }>
   >("post", baseUrlApi(`/supplier-claim-order/from-claim/${claimOrderUid}`));
 }

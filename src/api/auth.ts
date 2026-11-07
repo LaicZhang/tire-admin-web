@@ -84,7 +84,7 @@ export interface AuthNoticeItem {
   content?: string;
   level: number;
   link?: string;
-  createAt?: string | Date;
+  createdAt?: string | Date;
   source?: "platform" | "company";
   isRead?: boolean;
   readAt?: string | Date | null;

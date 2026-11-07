@@ -57,7 +57,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "创建时间",
-    prop: "createAt",
+    prop: "createdAt",
     width: 180
   },
   {

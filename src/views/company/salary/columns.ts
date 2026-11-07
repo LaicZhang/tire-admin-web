@@ -52,7 +52,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "更新时间",
-    prop: "updateAt",
+    prop: "updatedAt",
     minWidth: 160,
     formatter: (_row, _column, cellValue) => formatDate(cellValue)
   },

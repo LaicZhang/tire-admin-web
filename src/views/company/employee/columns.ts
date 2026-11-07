@@ -42,7 +42,7 @@ export const columns: TableColumnList = [
   },
   {
     label: "更新时间",
-    prop: "updateAt",
+    prop: "updatedAt",
     formatter: (row, column, cellValue) => {
       return formatDate(cellValue);
     }

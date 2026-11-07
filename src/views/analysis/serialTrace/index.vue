@@ -309,7 +309,7 @@ async function loadProductSummary(serialNo: string) {
             <span>{{
               item.identificationResult || item.oldTireDisposition || "-"
             }}</span>
-            <span>{{ formatDateTime(item.createAt) }}</span>
+            <span>{{ formatDateTime(item.createdAt) }}</span>
           </div>
         </div>
         <el-empty v-else description="暂无售后或报废记录" />

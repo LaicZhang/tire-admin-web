@@ -20,7 +20,7 @@ export function useColumns() {
       os?: string;
       browser?: string;
     };
-    createAt?: string;
+    createdAt?: string;
   };
 
   const dataList = ref<HistoryRow[]>([]);
@@ -70,8 +70,8 @@ export function useColumns() {
     },
     {
       label: "时间",
-      prop: "createAt",
-      formatter: row => formatDate(row.createAt),
+      prop: "createdAt",
+      formatter: row => formatDate(row.createdAt),
       minWidth: 160
     }
   ];

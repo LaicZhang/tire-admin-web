@@ -34,8 +34,8 @@ export interface Department extends Omit<
 > {
   id: number;
   uid: string;
-  createAt?: string;
-  updateAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
   deleteAt?: string;
   employees?: Array<{
     id: number;

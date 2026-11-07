@@ -327,7 +327,7 @@ describe("CompanyPlanGrantsDialog behavior", () => {
     expect(columns[4].formatter({ featureSnapshotKeys: ["a"] })).toBe("a");
     expect(columns[4].formatter({ featureSnapshotKeys: [] })).toBe("—");
     expect(columns[5].formatter({ note: "" })).toBe("—");
-    expect(columns[6].formatter({ createAt: "2026-01-02T03:04:05Z" })).toBe(
+    expect(columns[6].formatter({ createdAt: "2026-01-02T03:04:05Z" })).toBe(
       "2026-01-02 03:04:05"
     );
     expect(columns[6].formatter({})).toBe("—");

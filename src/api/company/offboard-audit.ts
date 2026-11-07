@@ -20,7 +20,7 @@ export type OffboardAuditEvent = {
   reason?: string | null;
   handoffUserId?: string | null;
   payload?: Record<string, unknown> | null;
-  createAt: string;
+  createdAt: string;
 };
 
 export type OffboardAuditListResult = {

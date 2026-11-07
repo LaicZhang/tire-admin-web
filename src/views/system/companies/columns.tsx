@@ -57,10 +57,10 @@ export function useColumns() {
     },
     {
       label: "创建时间",
-      prop: "createAt",
+      prop: "createdAt",
       minWidth: 160,
-      formatter: ({ createAt }) => {
-        return createAt ? createAt.replace("T", " ").substring(0, 19) : "-";
+      formatter: ({ createdAt }) => {
+        return createdAt ? createdAt.replace("T", " ").substring(0, 19) : "-";
       }
     },
     {

@@ -160,7 +160,7 @@ const paymentAccounts = [
     realName: "示例公司",
     balance: 156780,
     status: true,
-    createAt: nowIso()
+    createdAt: nowIso()
   },
   {
     id: 2,
@@ -174,7 +174,7 @@ const paymentAccounts = [
     realName: "示例公司",
     balance: 98500,
     status: true,
-    createAt: nowIso()
+    createdAt: nowIso()
   },
   {
     id: 3,
@@ -188,7 +188,7 @@ const paymentAccounts = [
     realName: "示例公司",
     balance: 64320,
     status: true,
-    createAt: nowIso()
+    createdAt: nowIso()
   }
 ];
 const receiptOrders = [

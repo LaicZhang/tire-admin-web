@@ -171,7 +171,7 @@ export const supplierClaimOrderColumns: TableColumnList = [
   },
   {
     label: "创建时间",
-    prop: "createAt",
+    prop: "createdAt",
     minWidth: 160,
     formatter: (_row, _column, cellValue) => formatDate(cellValue)
   },

@@ -41,16 +41,16 @@ export function useColumns() {
     },
     {
       label: "创建时间",
-      prop: "createAt",
+      prop: "createdAt",
       cellRenderer: ({ row }: { row: CompanyInfo }) => {
-        return formatDateTime(row.createAt);
+        return formatDateTime(row.createdAt);
       }
     },
     {
       label: "更新时间",
-      prop: "updateAt",
+      prop: "updatedAt",
       cellRenderer: ({ row }: { row: CompanyInfo }) => {
-        return formatDateTime(row.updateAt);
+        return formatDateTime(row.updatedAt);
       }
     }
   ]);
