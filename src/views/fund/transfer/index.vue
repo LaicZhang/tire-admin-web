@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { ref, reactive, onMounted } from "vue";
+import { ElMessageBox } from "element-plus";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import ReSearchForm from "@/components/ReSearchForm/index.vue";
@@ -179,11 +180,26 @@ async function handleBatchDelete() {
 }
 
 async function handleApprove(row: Transfer) {
-  const ok = await confirm("确定审核通过该转账单吗？", "审核确认");
-  if (!ok) return;
+  let reason = "";
+  try {
+    const result = await ElMessageBox.prompt(
+      "审核转账单属于敏感操作，请填写审核原因（至少 5 个字符）",
+      "审核确认",
+      {
+        confirmButtonText: "确认审核",
+        cancelButtonText: "取消",
+        inputType: "textarea",
+        inputValidator: (value: string) =>
+          value.trim().length >= 5 || "审核原因至少需要 5 个字符"
+      }
+    );
+    reason = result.value.trim();
+  } catch {
+    return;
+  }
 
   try {
-    await approveTransferApi(row.uid);
+    await approveTransferApi(row.uid, { reason });
     message("审核成功", { type: "success" });
     onSearch();
   } catch (e) {

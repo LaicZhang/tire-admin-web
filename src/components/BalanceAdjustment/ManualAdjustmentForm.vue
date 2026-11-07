@@ -9,6 +9,7 @@ const ruleFormRef = ref<FormInstance>();
 const form = reactive({
   direction: "increase" as Direction,
   amountYuan: 0,
+  reason: "",
   remark: ""
 });
 
@@ -20,6 +21,24 @@ const rules: FormRules = {
       validator: (_rule, value, callback) => {
         if (typeof value !== "number" || Number.isNaN(value) || value <= 0) {
           callback(new Error("金额必须大于 0"));
+          return;
+        }
+        callback();
+      },
+      trigger: "blur"
+    }
+  ],
+  reason: [
+    { required: true, message: "请输入操作原因", trigger: "blur" },
+    {
+      validator: (_rule, value, callback) => {
+        const text = typeof value === "string" ? value.trim() : "";
+        if (text.length < 5) {
+          callback(new Error("操作原因至少 5 个字符"));
+          return;
+        }
+        if (text.length > 200) {
+          callback(new Error("操作原因最多 200 个字符"));
           return;
         }
         callback();
@@ -63,6 +82,17 @@ defineExpose({ formRef: ruleFormRef, getForm });
         :min="0"
         :precision="2"
         class="w-full!"
+      />
+    </el-form-item>
+
+    <el-form-item label="操作原因" prop="reason">
+      <el-input
+        v-model="form.reason"
+        type="textarea"
+        :rows="2"
+        maxlength="200"
+        show-word-limit
+        placeholder="必填，至少 5 个字符；将随操作日志留痕"
       />
     </el-form-item>
 

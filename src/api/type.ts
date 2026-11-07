@@ -169,6 +169,8 @@ export type UpdatePaymentProfileDto = {
 
 export type UpdatePaymentDto = {
   type: "top-up" | "pay" | "freeze" | "unfreeze" | "pay-frozen";
+  /** 操作原因（至少 5 个字符），后端敏感操作留痕使用 */
+  reason: string;
   /** 支付账户更新信息 */
   payment?: {
     type?: number;

@@ -34,6 +34,7 @@ export interface BalanceAdjustment {
 }
 
 export async function createManualBalanceAdjustmentApi(data: {
+  reason: string;
   customerId?: string;
   providerId?: string;
   amount: number;

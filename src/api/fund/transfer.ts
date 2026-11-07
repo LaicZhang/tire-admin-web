@@ -68,9 +68,13 @@ export async function deleteTransferApi(uid: string) {
   );
 }
 
-export async function approveTransferApi(uid: string) {
+export async function approveTransferApi(
+  uid: string,
+  data: { reason: string }
+) {
   return await http.request<CommonResult<void>>(
     "post",
-    baseUrlApi(`/finance-extension/account-transfer/${uid}/approve`)
+    baseUrlApi(`/finance-extension/account-transfer/${uid}/approve`),
+    { data }
   );
 }

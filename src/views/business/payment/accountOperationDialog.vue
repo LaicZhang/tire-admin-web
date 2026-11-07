@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import { ElMessageBox } from "element-plus";
 import { message } from "@/utils";
 import { updatePaymentApi } from "@/api";
 import { yuanToFen, fenToYuanNumber } from "@/utils/formatMoney";
 import { useUserStoreHook } from "@/store/modules/user";
+import {
+  buildOperationPayload,
+  submitWithLargeOperationConfirm
+} from "./accountOperation.logic";
 
 type OperationType = "top-up" | "pay" | "freeze" | "unfreeze";
 
@@ -33,6 +38,7 @@ const dialogVisible = computed({
 const loading = ref(false);
 const formData = ref({
   amount: 0,
+  reason: "",
   desc: ""
 });
 
@@ -86,6 +92,26 @@ const formRules = {
       },
       trigger: "blur"
     }
+  ],
+  reason: [
+    { required: true, message: "请输入操作原因", trigger: "blur" },
+    {
+      validator: (
+        _rule: unknown,
+        value: string,
+        callback: (error?: Error) => void
+      ) => {
+        const text = typeof value === "string" ? value.trim() : "";
+        if (text.length < 5) {
+          callback(new Error("操作原因至少 5 个字符"));
+        } else if (text.length > 200) {
+          callback(new Error("操作原因最多 200 个字符"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "blur"
+    }
   ]
 };
 
@@ -95,26 +121,53 @@ async function handleSubmit() {
 
   loading.value = true;
   try {
-    if (!userStore.uid) {
+    const operatorUid = userStore.uid;
+    if (!operatorUid) {
       message("无法识别当前操作人，请重新登录后重试", { type: "error" });
       return;
     }
-    const { code, msg } = await updatePaymentApi(props.paymentUid, {
-      type: props.type,
-      record: {
-        modified: yuanToFen(formData.value.amount),
-        operator: { connect: { uid: userStore.uid } },
-        desc: formData.value.desc || undefined
+
+    const amountFen = yuanToFen(formData.value.amount);
+    const reason = formData.value.reason.trim();
+    const result = await submitWithLargeOperationConfirm({
+      amountFen,
+      submit: async confirm => {
+        await updatePaymentApi(
+          props.paymentUid,
+          buildOperationPayload({
+            type: props.type,
+            amountFen,
+            operatorUid,
+            reason,
+            desc: formData.value.desc || undefined,
+            confirm
+          })
+        );
+      },
+      confirmLarge: async fen => {
+        try {
+          await ElMessageBox.confirm(
+            `本次操作金额 ¥${fenToYuanNumber(fen)} 超过大额阈值，确认继续吗？`,
+            "大额操作确认",
+            {
+              type: "warning",
+              confirmButtonText: "确认操作",
+              cancelButtonText: "取消",
+              closeOnClickModal: false
+            }
+          );
+          return true;
+        } catch {
+          return false;
+        }
       }
     });
 
-    if (code === 200) {
-      message(`${operationTitle.value}成功`, { type: "success" });
-      emit("success");
-      dialogVisible.value = false;
-    } else {
-      message(msg || `${operationTitle.value}失败`, { type: "error" });
-    }
+    if (result === "cancelled") return;
+
+    message(`${operationTitle.value}成功`, { type: "success" });
+    emit("success");
+    dialogVisible.value = false;
   } catch {
     message(`${operationTitle.value}失败`, { type: "error" });
   } finally {
@@ -122,14 +175,18 @@ async function handleSubmit() {
   }
 }
 
+function resetForm() {
+  formData.value = { amount: 0, reason: "", desc: "" };
+}
+
 function handleClose() {
-  formData.value = { amount: 0, desc: "" };
+  resetForm();
   dialogVisible.value = false;
 }
 
 watch(dialogVisible, visible => {
   if (visible) {
-    formData.value = { amount: 0, desc: "" };
+    resetForm();
   }
 });
 </script>
@@ -171,6 +228,16 @@ watch(dialogVisible, visible => {
             style="width: 200px"
           />
           <span class="ml-2">元</span>
+        </el-form-item>
+        <el-form-item label="操作原因" prop="reason">
+          <el-input
+            v-model="formData.reason"
+            type="textarea"
+            :rows="2"
+            maxlength="200"
+            show-word-limit
+            placeholder="必填，至少 5 个字符；将随操作日志留痕"
+          />
         </el-form-item>
         <el-form-item label="备注" prop="desc">
           <el-input

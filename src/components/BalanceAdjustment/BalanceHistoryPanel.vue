@@ -152,6 +152,7 @@ function openManualAdjustmentDialog() {
           ...(props.partyType === "customer"
             ? { customerId: props.partyUid }
             : { providerId: props.partyUid }),
+          reason: data.reason.trim(),
           amount: amountFen,
           remark: data.remark?.trim() ? data.remark.trim() : undefined
         });
