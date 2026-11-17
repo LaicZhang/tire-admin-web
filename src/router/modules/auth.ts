@@ -329,6 +329,21 @@ export default [
         }
       },
       {
+        id: 65,
+        uid: "a1b2c3d4-e5f6-4a7b-8c9d-1e2f3a4b5c6d",
+        parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "systemParams",
+        path: "/system/systemParams",
+        redirect: null,
+        component: () => import("@/views/system/systemParams/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin"],
+          title: "系统参数",
+          icon: null
+        }
+      },
+      {
         id: 63,
         uid: "6f3b8f6c-3a2b-47f2-bdb1-8a5f4b1138df",
         parentId: "d3337daf-db89-4ccf-a79e-1dd3437d5ddd",
@@ -534,6 +549,21 @@ export default [
         meta: {
           roles: ["admin", "boss"],
           title: "条码设置",
+          icon: null
+        }
+      },
+      {
+        id: 650,
+        uid: "9d4e7c21-6f3a-4b58-8e2c-1a7f5b9d3c64",
+        parentId: "d3437daf-db89-4ccf-a79e-1dd3437d5ddd",
+        name: "businessSettings",
+        path: "/company/business-settings",
+        redirect: null,
+        component: () => import("@/views/company/business-settings/index.vue"),
+        isShow: true,
+        meta: {
+          roles: ["admin", "boss"],
+          title: "业务设置",
           icon: null
         }
       },
