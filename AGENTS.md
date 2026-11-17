@@ -28,9 +28,9 @@
 ## 开发约定（高频）
 
 - 页面/模块尽量沿用现有结构：`src/views/business/<module>/{index.vue, form.vue, table.tsx, columns.ts(x)}`
-- 组件库优先用 Element Plus；弹窗/表格优先复用项目内 `ReDialog`、`RePureTableBar` 等组件
+- 组件库优先用 Element Plus；弹窗/表格优先复用项目内 `ReDialog`、`RePureTableBar` 等现有组件
 - TypeScript：确保类型安全；类型集中维护在 `types/` 或 `src/api/type.ts` 等既有位置
-- 提交前清理多余 `console.*`；不要提交构建产物（`dist/`、`node_modules/`、报告文件等）
+- 不提交构建产物（`dist/`、`node_modules/`、报告文件等）
 - 如果必须对某个功能进行隔离测试，先列出它所有可能失败的情况，再编写代码
 
 ## 参考
