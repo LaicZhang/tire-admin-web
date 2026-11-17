@@ -101,6 +101,11 @@ minimumReleaseAgeExclude:
   - oxlint@1.87.0
   - postcss-discard-empty@9.0.6
   - postcss-merge-rules@9.1.1
-  - postcss@8.5.29
-  - vue-router@5.4.0
+  - postcss@8.5.29 || 8.5.33
+  - vue-router@5.4.0 || 5.5.1
   - '@types/node@26.6.6'
+  - '@eslint/config-array@0.23.6'
+  - eslint@10.15.0
+  - '@playwright/test@1.65.1'
+  - playwright-core@1.65.1
+  - playwright@1.65.1
