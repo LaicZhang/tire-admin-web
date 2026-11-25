@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 const MIN_NODE_VERSION = [24, 20, 0];
+// stylelint 18 已不支持处于 EOL 的 25.x
+const UNSUPPORTED_MAJORS = [25];
 
 function parseNodeVersion(version) {
   const match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
@@ -18,17 +20,17 @@ function compareSemver(a, b) {
 const currentVersion = process.versions.node;
 const current = parseNodeVersion(currentVersion);
 
-if (compareSemver(current, MIN_NODE_VERSION) < 0) {
+if (compareSemver(current, MIN_NODE_VERSION) < 0 || UNSUPPORTED_MAJORS.includes(current[0])) {
   console.error(
     [
       "Node.js 版本不满足要求。",
       "",
-      `最低要求：>=${MIN_NODE_VERSION.join(".")}`,
+      `最低要求：>=${MIN_NODE_VERSION.join(".")}（不支持 25.x）`,
       `当前版本：${currentVersion}`,
       "",
       "请升级 Node.js 后重试：",
       "  - 推荐：使用 nvm 切换到本仓库的 .nvmrc 指定版本（v26.13.0 LTS）",
-      "  - 或：安装/切换到 Node.js 24.20.0 及以上版本"
+      "  - 或：安装/切换到 Node.js 24.20.x 或 26.x 及以上版本（不支持 25.x）"
     ].join("\n")
   );
   process.exit(1);
