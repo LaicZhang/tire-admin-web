@@ -415,13 +415,3 @@ onMounted(() => {
     </PureTableBar>
   </div>
 </template>
-
-<style scoped lang="scss">
-.page-container {
-  @extend .page-container;
-}
-
-.search-form {
-  @extend .search-form;
-}
-</style>

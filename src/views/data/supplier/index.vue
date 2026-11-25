@@ -280,10 +280,6 @@ const handleRestore = async (row: FormItemProps) => {
 </template>
 
 <style scoped lang="scss">
-.page-container {
-  @extend .page-container;
-}
-
 :deep(.el-card) {
   border: none;
   box-shadow: none;

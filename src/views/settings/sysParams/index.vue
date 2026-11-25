@@ -193,10 +193,6 @@ const {
 </template>
 
 <style scoped lang="scss">
-.page-container {
-  @extend .page-container;
-}
-
 :deep(.el-divider__text) {
   font-weight: 600;
   color: #303133;

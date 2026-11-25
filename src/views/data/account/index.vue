@@ -294,10 +294,6 @@ const deleteOne = async (row: { uid: string; name: string }) => {
 </template>
 
 <style scoped lang="scss">
-.page-container {
-  @extend .page-container;
-}
-
 :deep(.el-card) {
   border: none;
   box-shadow: none;

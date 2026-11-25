@@ -313,10 +313,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.page-container {
-  @extend .page-container;
-}
-
 :deep(.el-menu) {
   border-right: none;
 }

@@ -293,9 +293,3 @@ const batchDelete = async () => {
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.page-container {
-  @extend .page-container;
-}
-</style>

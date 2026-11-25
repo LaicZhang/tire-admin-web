@@ -245,10 +245,6 @@ const handleLogoUpload = async (file: File) => {
 </template>
 
 <style scoped lang="scss">
-.page-container {
-  @extend .page-container;
-}
-
 .logo-uploader {
   :deep(.el-upload) {
     display: block;
