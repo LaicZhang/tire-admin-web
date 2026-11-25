@@ -4,22 +4,31 @@
 export default {
   extends: [
     "stylelint-config-standard",
-    "stylelint-config-html/vue",
-    "stylelint-config-recess-order"
+    "stylelint-config-html/vue.js",
+    "stylelint-config-recess-order",
+    // 顶层引入：让 .vue 的 <style lang="scss"> 也受 scss/* 规则约束
+    "stylelint-config-recommended-vue/scss/index.js"
   ],
   plugins: ["stylelint-scss", "stylelint-order"],
   overrides: [
     {
-      files: ["**/*.(css|html|vue)"],
+      // 仅 html/vue 需要 postcss-html；.css 走默认 CSS 解析器才会被真正检查
+      files: ["**/*.{html,vue}"],
       customSyntax: "postcss-html"
     },
     {
       files: ["*.scss", "**/*.scss"],
       customSyntax: "postcss-scss",
-      extends: [
-        "stylelint-config-standard-scss",
-        "stylelint-config-recommended-vue/scss"
-      ]
+      extends: ["stylelint-config-standard-scss"]
+    },
+    {
+      // Tailwind v4 的 CSS 入口文件：@import 必须是字符串形式，
+      // 主题变量名（--color-bg_color）对应工具类名，不能改成 kebab-case
+      files: ["src/style/tailwind.css"],
+      rules: {
+        "import-notation": "string",
+        "custom-property-pattern": null
+      }
     }
   ],
   rules: {
@@ -53,7 +62,54 @@ export default {
           "include",
           "mixin",
           "use",
-          "extend"
+          "extend",
+          // Tailwind CSS v4 指令
+          "theme",
+          "utility",
+          "custom-variant",
+          "source",
+          "plugin",
+          "config",
+          "reference"
+        ]
+      }
+    ],
+    // @apply / @tailwind 等指令的 prelude 是工具类名列表，不是 CSS 值；
+    // Sass 指令（@mixin/@include/@if…）的 prelude 是 SassScript，同样不适用
+    "at-rule-prelude-no-invalid": [
+      true,
+      {
+        ignoreAtRules: [
+          "media",
+          "apply",
+          "tailwind",
+          "screen",
+          "variants",
+          "responsive",
+          "theme",
+          "utility",
+          "custom-variant",
+          "source",
+          "plugin",
+          "config",
+          "reference",
+          "mixin",
+          "include",
+          "function",
+          "if",
+          "else",
+          "each",
+          "for",
+          "while",
+          "use",
+          "forward",
+          "extend",
+          "at-root",
+          "return",
+          "content",
+          "debug",
+          "warn",
+          "error"
         ]
       }
     ],

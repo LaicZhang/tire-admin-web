@@ -5,4 +5,6 @@ public/*
 /playwright-report-uni-mini/*
 /test-results/*
 src/style/reset.scss
+# iconfont.cn 生成的图标字体样式，重新生成会覆盖，不参与 lint
+src/assets/iconfont/iconfont.css
 coverage*
