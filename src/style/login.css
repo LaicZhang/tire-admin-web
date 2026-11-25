@@ -1,26 +1,26 @@
 .wave {
   position: fixed;
-  height: 100%;
-  width: 80%;
-  left: 0;
   bottom: 0;
+  left: 0;
   z-index: -1;
+  width: 80%;
+  height: 100%;
 }
 
 .login-container {
-  width: 100vw;
-  height: 100vh;
-  max-width: 100%;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-gap: 18rem;
+  gap: 18rem;
+  width: 100vw;
+  max-width: 100%;
+  height: 100vh;
   padding: 0 2rem;
 }
 
 .img {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .img img {
@@ -30,8 +30,8 @@
 .login-box {
   display: flex;
   align-items: center;
-  text-align: center;
   overflow: hidden;
+  text-align: center;
 }
 
 .login-form {
@@ -44,18 +44,18 @@
 }
 
 .login-form h2 {
-  text-transform: uppercase;
   margin: 15px 0;
-  color: #999;
   font:
     bold 200% Consolas,
     Monaco,
     monospace;
+  color: #999;
+  text-transform: uppercase;
 }
 
-@media screen and (max-width: 1180px) {
+@media screen and (width <= 1180px) {
   .login-container {
-    grid-gap: 9rem;
+    gap: 9rem;
   }
 
   .login-form {
@@ -63,8 +63,8 @@
   }
 
   .login-form h2 {
-    font-size: 2.4rem;
     margin: 8px 0;
+    font-size: 2.4rem;
   }
 
   .img img {
@@ -77,7 +77,7 @@
   }
 }
 
-@media screen and (max-width: 968px) {
+@media screen and (width <= 968px) {
   .wave {
     display: none;
   }
